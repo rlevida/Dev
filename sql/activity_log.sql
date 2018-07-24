@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS `activity_log`;
+CREATE TABLE `activity_log` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT,
+    `invokerUserId` BIGINT,
+    `data` TEXT,
+    `dateAdded` DATETIME,
+    `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY(`id`)
+) ENGINE=INNODB;

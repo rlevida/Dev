@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS `users_team`;
+
+CREATE TABLE `users_team` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT,
+    `usersId` BIGINT,
+    `teamId` BIGINT,
+    `dateAdded` DATETIME,
+    `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `isActive` TINYINT(1) DEFAULT '1',
+    `isDeleted` TINYINT(1) DEFAULT '0',
+    PRIMARY KEY(`id`)
+) ENGINE=INNODB;

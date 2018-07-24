@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS `document`;
+CREATE TABLE `document` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT,
+    `name` VARCHAR(50),
+    `uploadedBy` BIGINT,
+    `type` VARCHAR(20),
+    `dateAdded` DATETIME,
+    `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `isActive` TINYINT(1) DEFAULT '1',
+    `isDeleted` TINYINT(1) DEFAULT '0',
+    PRIMARY KEY(`id`)
+) ENGINE=INNODB;
