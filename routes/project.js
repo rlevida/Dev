@@ -17,10 +17,11 @@ router.use(function (req, res, next) {
 });
 
 router.get('/', function (req, res, next) {
-    res.render('index', {
+    res.render('project', {
         title: global.site_name,
         page: 'project',
         subpage: '',
+        project: "",
         body: "./template/index"
     });
 });
@@ -28,7 +29,7 @@ router.get('/', function (req, res, next) {
 router.get('/:project', function (req, res, next) {
 
     if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
-        res.render('index', {
+        res.render('project', {
             title: global.site_name,
             page: 'project',
             subpage: 'home',
@@ -40,49 +41,69 @@ router.get('/:project', function (req, res, next) {
     
 });
 
-router.get('/documents', function (req, res, next) {
-    res.render('index', {
-        title: global.site_name,
-        page: 'project',
-        subpage: 'documents',
-        body: "./template/index"
-    });
+router.get('/documents/:project', function (req, res, next) {
+
+    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
+        res.render('project', {
+            title: global.site_name,
+            page: 'project',
+            subpage: 'documents',
+            body: "./template/index",
+            project: req.params.project
+        });
+    }
 });
 
-router.get('/trash', function (req, res, next) {
-    res.render('index', {
-        title: global.site_name + " - Trash",
-        body: './template/index',
-        page: 'project',
-        subpage: 'trash',
-    });
+router.get('/trash/:project', function (req, res, next) {
+
+    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
+        res.render('project', {
+            title: global.site_name + " - Trash",
+            body: './template/index',
+            page: 'project',
+            subpage: 'trash',
+            project: req.params.project
+        });
+    }
 });
 
-router.get('/processes', function (req, res, next) {
-    res.render('index', {
-        title: global.site_name + " - Processes",
-        body: './template/index',
-        page: 'project',
-        subpage: 'processes',
-    });
+router.get('/processes/:project', function (req, res, next) {
+
+    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
+        res.render('project', {
+            title: global.site_name + " - Processes",
+            body: './template/index',
+            page: 'project',
+            subpage: 'processes',
+            project: req.params.project
+        });
+    }
 });
 
-router.get('/tasks', function (req, res, next) {
-    res.render('index', {
-        title: global.site_name + " - Tasks",
-        body: './template/index',
-        page: 'project',
-        subpage: 'task',
-    });
+router.get('/tasks/:project', function (req, res, next) {
+
+    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
+        res.render('project', {
+            title: global.site_name + " - Tasks",
+            body: './template/index',
+            page: 'project',
+            subpage: 'task',
+            project: req.params.project
+        });
+    }
 });
 
-router.get('/conversations', function (req, res, next) {
-    res.render('index', {
-        title: global.site_name + " - Conversations",
-        body: './template/index',
-        page: 'project',
-        subpage: 'conversations',
-    });
+router.get('/conversations/:project', function (req, res, next) {
+
+    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
+        res.render('project', {
+            title: global.site_name + " - Conversations",
+            body: './template/index',
+            page: 'project',
+            subpage: 'conversations',
+            project: req.params.project
+        });
+    }
 });
 
 module.exports = router;

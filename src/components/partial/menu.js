@@ -66,40 +66,40 @@ export default class Component extends React.Component {
                     <li class="nav-header">Menu</li>
                     <li data-tip={(this.state.miniSideMenu=="true")?"Home":""} class={page=="index"?"active":""}><a href="/" class="menu-list"><i class="fa fa-home" aria-hidden="true"></i><span class="link-title">&nbsp; Home</span></a></li>
                     <li class="dropdown">
-                        <a href="/project" class="dropdown-toggle" data-toggle="dropdown">
+                        <a href={"/project/"+project} class="dropdown-toggle" data-toggle="dropdown">
                             <i class="fa fa-calendar"></i>
                             <span class="link-title">&nbsp; Documents</span> 
                             <span class="fa arrow"></span> 
                         </a> 
                         <ul class="collapse in">
                             <li class={page == "project" && subpage=="documents"?"active":""}>
-                                <a href="/project/documents">
+                                <a href={"/project/documents/"+project}>
                                 <i class="fa fa-angle-right"></i>&nbsp; Library </a> 
                             </li>
                             <li class={page == "project" && subpage=="trash"?"active":""}>
-                                <a href="/project/trash">
+                                <a href={"/project/trash/"+project}>
                                 <i class="fa fa-angle-right"></i>&nbsp; Trash </a> 
                             </li>
                         </ul>
                     </li>
                     <li class="dropdown">
-                        <a href="/project/documents" class="dropdown-toggle" data-toggle="dropdown">
+                        <a href={"/project/documents"+project} class="dropdown-toggle" data-toggle="dropdown">
                             <i class="fa fa-calendar"></i>
                             <span class="link-title">&nbsp; Processes</span> 
                             <span class="fa arrow"></span> 
                         </a> 
                         <ul class="collapse in">
                             <li class={page == "project" && subpage=="processes"?"active":""}>
-                                <a href="/project/processes">
+                                <a href={"/project/processes/"+project}>
                                 <i class="fa fa-angle-right"></i>&nbsp; Workstream </a> 
                             </li>
                             <li class={page == "project" && subpage=="task"?"active":""}>
-                                <a href="/project/tasks">
+                                <a href={"/project/tasks/"+project}>
                                 <i class="fa fa-angle-right"></i>&nbsp; Tasks </a> 
                             </li>
                         </ul>
                     </li>
-                    <li data-tip={(this.state.miniSideMenu=="true")?"Conversations":""} class={page == "project" && subpage=="conversations"?"active":""}><a href="/project/conversations" class="menu-list"><i class="fa fa-users" aria-hidden="true"></i><span class="link-title">&nbsp; Conversations</span></a></li>
+                    <li data-tip={(this.state.miniSideMenu=="true")?"Conversations":""} class={page == "project" && subpage=="conversations"?"active":""}><a href={"/project/conversations/"+project} class="menu-list"><i class="fa fa-users" aria-hidden="true"></i><span class="link-title">&nbsp; Conversations</span></a></li>
                     <li><a href="javascript:void(0)" onClick={this.handleLogout} class="menu-list"><span class="fa fa-sign-out"></span><span class="link-title"> Logout</span></a></li>
                 </ul>
         }
