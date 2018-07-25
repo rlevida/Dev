@@ -21,6 +21,8 @@ export default class List extends React.Component {
 
     componentWillMount() {
         this.props.socket.emit("GET_PROJECT_LIST",{});
+        this.props.socket.emit("GET_STATUS_LIST",{});
+        this.props.socket.emit("GET_TYPE_LIST",{});
     }
 
     updateActiveStatus(id,active){
@@ -65,9 +67,9 @@ export default class List extends React.Component {
                         {
                             project.List.map((data, index) => {
                                 return <tr key={index}>
-                                        <td></td>
-                                        <td>{data.project}</td>
-                                        <td></td>
+                                        <td>{data.status_status}</td>
+                                        <td><a href={"/project/"+data.id}>{data.project}</a></td>
+                                        <td>{data.type_type}</td>
                                         <td></td>
                                         <td></td>
                                         <td></td>

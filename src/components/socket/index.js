@@ -7,6 +7,8 @@ import Auth from "./auth"
 import Users from "./users"
 import Company from "./company"
 import Project from "./project"
+import Type from "./type"
+import Status from "./status"
 
 export default class Socket extends React.Component {
     render() {
@@ -16,6 +18,8 @@ export default class Socket extends React.Component {
                     <Users />
                     <Company />
                     <Project />
+                    <Status />
+                    <Type />
                 </div>
     }
 }

@@ -13,5 +13,5 @@ CREATE TABLE `type` (
 INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('Client', 'project', NOW());
 INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('Internal', 'project', NOW());
 INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('External', 'project', NOW());
-INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('Repeat', 'project', NOW());
-INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('Time', 'project', NOW());
+INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('Repeat', 'workstream', NOW());
+INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('Time', 'workstream', NOW());

@@ -11,7 +11,9 @@ import { connect } from "react-redux"
     return {
         socket: store.socket.container,
         project: store.project,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        status: store.status,
+        type: store.type
     }
 })
 
@@ -67,7 +69,11 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, project, loggedUser } = this.props
+        let { dispatch, project, loggedUser, status, type } = this.props
+
+        let statusList = [], typeList = []
+        status.List.map((e,i)=>{ if(e.linkType=="project"){statusList.push({id:e.id,name:e.status})} })
+        type.List.map((e,i)=>{ if(e.linkType=="project"){typeList.push({id:e.id,name:e.type})} })
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -91,9 +97,31 @@ export default class FormComponent extends React.Component {
                         <div class="panel-body">
                             <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
                                 <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Status</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <DropDown multiple={false} 
+                                            required={false}
+                                            options={ statusList } 
+                                            selected={(typeof project.Selected.statusId == "undefined")?"":project.Selected.statusId} 
+                                            onChange={(e)=>this.setDropDown("statusId",e.value)} /> 
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Project *</label>
                                     <div class="col-md-7 col-xs-12">
                                         <input type="text" name="project" required value={(typeof project.Selected.project == "undefined")?"":project.Selected.project} class="form-control" placeholder="Project" onChange={this.handleChange} />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Type</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <DropDown multiple={false} 
+                                            required={false}
+                                            options={ typeList } 
+                                            selected={(typeof project.Selected.typeId == "undefined")?"":project.Selected.typeId} 
+                                            onChange={(e)=>this.setDropDown("typeId",e.value)} /> 
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>

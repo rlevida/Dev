@@ -6,6 +6,8 @@ import loggedUser from "./loggedUser"
 import users from "./users"
 import company from "./company"
 import project from "./project"
+import type from "./type"
+import status from "./status"
 import global from "./global"
 
 export default combineReducers({
@@ -15,5 +17,7 @@ export default combineReducers({
     users,
     company,
     project,
+    type,
+    status,
     global
 })

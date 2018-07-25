@@ -31,6 +31,9 @@ switch (page) {
         break;
     case "project":
         switch (subpage) {
+            case "home":
+                require('./container/home');
+                break;
             case "documents":
                 require('./container/home');
                 break;

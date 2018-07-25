@@ -25,6 +25,21 @@ router.get('/', function (req, res, next) {
     });
 });
 
+router.get('/:project', function (req, res, next) {
+
+    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
+        res.render('index', {
+            title: global.site_name,
+            page: 'project',
+            subpage: 'home',
+            body: "./template/index",
+            project: req.params.project
+        });
+    }
+
+    
+});
+
 router.get('/documents', function (req, res, next) {
     res.render('index', {
         title: global.site_name,
