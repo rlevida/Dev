@@ -52,6 +52,15 @@ router.get('/teams', function (req, res, next) {
     });
 });
 
+router.get('/mytask', function (req, res, next) {
+    res.render('index', {
+        title: global.site_name + " - Teams",
+        body: './template/index',
+        subpage: '',
+        page: 'mytask'
+    });
+});
+
 router.get('/wikis', function (req, res, next) {
     res.render('index', {
         title: global.site_name + " - Wikis",

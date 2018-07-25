@@ -49,8 +49,8 @@ export default class Component extends React.Component {
                                 <a href="/project">
                                 <i class="fa fa-angle-right"></i>&nbsp; Dashboard </a> 
                             </li>
-                            <li class={page == "project" && subpage=="tasks"?"active":""}>
-                                <a href="/project/tasks">
+                            <li class={page == "mytask" && subpage==""?"active":""}>
+                                <a href="/mytask">
                                 <i class="fa fa-angle-right"></i>&nbsp; My Tasks </a> 
                             </li>
                         </ul>

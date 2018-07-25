@@ -51,6 +51,9 @@ switch (page) {
                 break
         }
         break;
+    case "mytask":
+        require('./container/home');
+        break;
     case "teams":
         require('./container/home');
         break;
