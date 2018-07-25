@@ -20,6 +20,15 @@ router.get('/', function (req, res, next) {
     res.render('index', {
         title: global.site_name,
         page: 'project',
+        subpage: '',
+        body: "./template/index"
+    });
+});
+
+router.get('/documents', function (req, res, next) {
+    res.render('index', {
+        title: global.site_name,
+        page: 'project',
         subpage: 'documents',
         body: "./template/index"
     });

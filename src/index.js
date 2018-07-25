@@ -29,6 +29,37 @@ switch (page) {
     case "company":
         require('./container/company');
         break;
+    case "project":
+        switch (subpage) {
+            case "documents":
+                require('./container/home');
+                break;
+            case "trash":
+                require('./container/home');
+                break;
+            case "processes":
+                require('./container/home');
+                break;
+            case "task":
+                require('./container/home');
+                break;
+            case "conversations":
+                require('./container/home');
+                break;
+            default:
+                require('./container/home');
+                break
+        }
+        break;
+    case "teams":
+        require('./container/home');
+        break;
+    case "wikis":
+        require('./container/home');
+        break;
+    case "reports":
+        require('./container/home');
+        break;
 
     
     /** ========================================================================================

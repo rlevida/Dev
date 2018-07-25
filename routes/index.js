@@ -20,6 +20,7 @@ router.get('/', function (req, res, next) {
     res.render('index', {
         title: global.site_name,
         page: 'index',
+        subpage: '',
         body: "./template/index"
     });
 });
@@ -28,6 +29,7 @@ router.get('/users', function (req, res, next) {
     res.render('index', {
         title: global.site_name + " - Users",
         body: './template/index',
+        subpage: '',
         page: 'users'
     });
 });
@@ -36,6 +38,7 @@ router.get('/company', function (req, res, next) {
     res.render('index', {
         title: global.site_name + " - Company",
         body: './template/index',
+        subpage: '',
         page: 'company'
     });
 });
@@ -44,6 +47,7 @@ router.get('/teams', function (req, res, next) {
     res.render('index', {
         title: global.site_name + " - Teams",
         body: './template/index',
+        subpage: '',
         page: 'teams'
     });
 });
@@ -52,6 +56,7 @@ router.get('/wikis', function (req, res, next) {
     res.render('index', {
         title: global.site_name + " - Wikis",
         body: './template/index',
+        subpage: '',
         page: 'wikis'
     });
 });
@@ -60,6 +65,7 @@ router.get('/reports', function (req, res, next) {
     res.render('index', {
         title: global.site_name + " - Reports",
         body: './template/index',
+        subpage: '',
         page: 'reports'
     });
 });
