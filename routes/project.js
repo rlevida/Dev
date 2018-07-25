@@ -19,48 +19,45 @@ router.use(function (req, res, next) {
 router.get('/', function (req, res, next) {
     res.render('index', {
         title: global.site_name,
-        page: 'index',
+        page: 'project',
+        subpage: 'documents',
         body: "./template/index"
     });
 });
 
-router.get('/users', function (req, res, next) {
+router.get('/trash', function (req, res, next) {
     res.render('index', {
-        title: global.site_name + " - Users",
+        title: global.site_name + " - Trash",
         body: './template/index',
-        page: 'users'
+        page: 'project',
+        subpage: 'trash',
     });
 });
 
-router.get('/company', function (req, res, next) {
+router.get('/processes', function (req, res, next) {
     res.render('index', {
-        title: global.site_name + " - Company",
+        title: global.site_name + " - Processes",
         body: './template/index',
-        page: 'company'
+        page: 'project',
+        subpage: 'processes',
     });
 });
 
-router.get('/teams', function (req, res, next) {
+router.get('/tasks', function (req, res, next) {
     res.render('index', {
-        title: global.site_name + " - Teams",
+        title: global.site_name + " - Tasks",
         body: './template/index',
-        page: 'teams'
+        page: 'project',
+        subpage: 'task',
     });
 });
 
-router.get('/wikis', function (req, res, next) {
+router.get('/conversations', function (req, res, next) {
     res.render('index', {
-        title: global.site_name + " - Wikis",
+        title: global.site_name + " - Conversations",
         body: './template/index',
-        page: 'wikis'
-    });
-});
-
-router.get('/reports', function (req, res, next) {
-    res.render('index', {
-        title: global.site_name + " - Reports",
-        body: './template/index',
-        page: 'reports'
+        page: 'project',
+        subpage: 'conversations',
     });
 });
 

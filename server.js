@@ -17,6 +17,7 @@ var serverAuth = require('./auth');
 require('./backup')
 // get
 var index = require('./routes');
+var project = require('./routes/project');
 var auth = require('./routes/auth');
 var forgot = require('./routes/forgotPassword');
 
@@ -50,6 +51,7 @@ app.use(function(req, res, next){
 
 app.use('/forgotPassword', forgot);
 app.use('/auth', auth);
+app.use('/project', project);
 app.use('/', index);
 
 app.use(function (req, res, next) {
