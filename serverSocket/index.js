@@ -32,7 +32,7 @@ var socketIo = exports.socketIo = function(server) {
                         if(ret.status && ret.data.length > 0){
                             socket.handshake.query.Token = packet[1].Token;
                             socket.handshake.query.UserId = ret.data[0].userId;
-                            socket.handshake.query.LastLoggedIn = ret.data[0].date_updated;
+                            socket.handshake.query.LastLoggedIn = ret.data[0].dateUpdated;
                             next()
                         }else{
                             socket.emit("RETURN_ERROR_MESSAGE",{message:"Access denied. You need to login to proceed."});
@@ -48,10 +48,10 @@ var socketIo = exports.socketIo = function(server) {
                         if(ret.data.length > 0){
                             // packet[0].Token = socket.request.cookies["app.sid"];
                             // packet[0].UserId = ret.data[0].userid;
-                            // packet[0].LastLoggedIn = ret.data[0].date_updated;
+                            // packet[0].LastLoggedIn = ret.data[0].dateUpdated;
                             socket.handshake.query.Token = socket.request.cookies["app.sid"];
                             socket.handshake.query.UserId = ret.data[0].userId;
-                            socket.handshake.query.LastLoggedIn = ret.data[0].date_updated;
+                            socket.handshake.query.LastLoggedIn = ret.data[0].dateUpdated;
                             next()
                         }else{
                             socket.emit("RETURN_ERROR_MESSAGE",{message:"Access denied. You need to login to proceed."});
@@ -73,5 +73,6 @@ var socketIo = exports.socketIo = function(server) {
         require("./login").init(socket);
         require("./user").init(socket);
         require("./company").init(socket);
+        require("./project").init(socket);
     });
 }

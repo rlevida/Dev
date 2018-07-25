@@ -6,6 +6,7 @@ import Global from "./global"
 import Auth from "./auth"
 import Users from "./users"
 import Company from "./company"
+import Project from "./project"
 
 export default class Socket extends React.Component {
     render() {
@@ -14,6 +15,7 @@ export default class Socket extends React.Component {
                     <Auth />
                     <Users />
                     <Company />
+                    <Project />
                 </div>
     }
 }

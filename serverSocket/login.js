@@ -30,11 +30,10 @@ var init = exports.init = (socket) => {
 
                     let session = global.initModel("session");
                     session.getData("session",{usersId:user.data[0].id},{},(sess)=>{
-                        console.log(sess);
                         if(sess.data.length == 0){
                             delete user.data[0].password;
                             delete user.data[0].salt;
-                            session.postData("session",{userId:user.data[0].id,session:socket.request.cookies["app.sid"],data:JSON.stringify(user.data[0]),date_added:new Date()},()=>{
+                            session.postData("session",{userId:user.data[0].id,session:socket.request.cookies["app.sid"],data:JSON.stringify(user.data[0]),dateAdded:new Date()},()=>{
                                 socket.emit("AUTHENTICATION_RETURN",{token:socket.request.cookies["app.sid"]})
                                 socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully Login"})
                                 return;
@@ -44,7 +43,7 @@ var init = exports.init = (socket) => {
                             delete user.data[0].salt;
                             session.putData(
                                 "session",
-                                {session:socket.request.cookies["app.sid"],data:JSON.stringify(user.data[0]),date_added:new Date()},
+                                {session:socket.request.cookies["app.sid"],data:JSON.stringify(user.data[0]),dateAdded:new Date()},
                                 {id:sess.data[0].id},
                                 ()=>{
                                     socket.emit("AUTHENTICATION_RETURN",{token:socket.request.cookies["app.sid"]})

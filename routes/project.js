@@ -7,7 +7,7 @@ router.use(function (req, res, next) {
     let session = global.initModel("session");
     session.getData("session",{session:req.cookies["app.sid"]},{},(ret)=>{
         if(ret.status && ret.data.length > 0){
-            session.putData("session",{date_updated:new Date()},{id:ret.data[0].id},()=>{
+            session.putData("session",{dateUpdated:new Date()},{id:ret.data[0].id},()=>{
                 next();
             })
         } else {

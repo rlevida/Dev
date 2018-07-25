@@ -21,14 +21,14 @@ var field = exports.field = {
     'linkId' : {type : 'bigint' , access : "public" },
 
     /**
-     * date_added (DATETIME)
+     * dateAdded (DATETIME)
      */
-    'date_added' : {type : 'date' , access : "public" },
+    'dateAdded' : {type : 'date' , access : "public" },
 
     /**
-     * date_updated (TIMESTAMP)
+     * dateUpdated (TIMESTAMP)
      */
-    'date_updated' :  {type : 'date' , access : "public" }
+    'dateUpdated' :  {type : 'date' , access : "public" }
 
 }
 

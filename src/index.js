@@ -47,7 +47,7 @@ switch (page) {
                 require('./container/home');
                 break;
             default:
-                require('./container/home');
+                require('./container/project');
                 break
         }
         break;

@@ -211,8 +211,8 @@ var postData = exports.postData = ( tablename, data , cb ) => {
             params.push(data[e])  
         }
     })
-    if(dataField.indexOf("date_added") < 0){
-            fieldStr.push("date_added");
+    if(dataField.indexOf("dateAdded") < 0){
+            fieldStr.push("dateAdded");
             fieldReplacer.push("NOW()");
     }
 
