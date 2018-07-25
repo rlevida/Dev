@@ -6,16 +6,6 @@ var field = exports.field = {
     'id' : {type : 'bigint' , access : "public" },
 
     /**
-     * name (VARCHAR(50))
-     */
-    'name' : {type : 'string' , access : "public" },
-    
-    /**
-     * uploadedBy (BIGINT)
-     */
-    'uploadedBy' : {type : 'bigint' , access : "public" },
-
-    /**
      * type (VARCHAR(50))
      */
     'type' : {type : 'string' , access : "public" },
@@ -26,11 +16,6 @@ var field = exports.field = {
     'linkType' : {type : 'string' , access : "public" },
 
     /**
-     * linkId (BIGINT)
-     */
-    'linkId' : {type : 'bigint' , access : "public" },
-
-    /**
      * dateAdded (DATETIME)
      */
     'dateAdded' : {type : 'date' , access : "public" },
@@ -38,7 +23,17 @@ var field = exports.field = {
     /**
      * dateUpdated (TIMESTAMP)
      */
-    'dateUpdated' :  {type : 'date' , access : "public" }
+    'dateUpdated' :  {type : 'date' , access : "public" },
+
+    /**
+     * isActive (tinyint )
+     */
+    'isActive' :  {type : 'date' , access : "public" },
+
+    /**
+     * isDeleted (tinyint )
+     */
+    'isDeleted' :  {type : 'date' , access : "public" }
 
 }
 

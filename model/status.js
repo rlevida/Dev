@@ -16,11 +16,6 @@ var field = exports.field = {
     'linkType' : {type : 'string' , access : "public", database: "users" , relation: "one-to-one" },
 
     /**
-     * linkId (BIGINT)
-     */
-    'linkId' : {type : 'bigint' , access : "public" },
-
-    /**
      * dateAdded (DATETIME)
      */
     'dateAdded' : {type : 'date' , access : "public" },
@@ -28,7 +23,17 @@ var field = exports.field = {
     /**
      * dateUpdated (TIMESTAMP)
      */
-    'dateUpdated' :  {type : 'date' , access : "public" }
+    'dateUpdated' :  {type : 'date' , access : "public" },
+
+    /**
+     * isActive (tinyint )
+     */
+    'isActive' :  {type : 'date' , access : "public" },
+
+    /**
+     * isDeleted (tinyint )
+     */
+    'isDeleted' :  {type : 'date' , access : "public" }
 
 }
 
