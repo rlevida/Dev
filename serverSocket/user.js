@@ -57,7 +57,7 @@ var init = exports.init = (socket) => {
         let users = global.initModel("users")
         let usersRole = global.initModel("users_role")
         sequence.create().then(function (nextThen) {
-            usersRole.getData("users",{roleId:1},{},(b)=>{
+            usersRole.getData("users_role",{roleId:1},{},(b)=>{
                 if( b.data.length <= 1 && b.data[0].usersId == d.data.id && ( typeof d.data.isActive != "undefined" && d.data.isActive == "0" ) ){
                     socket.emit("RETURN_ERROR_MESSAGE",{message:"Cant set to inactive, Last Master admin user."})
                     socket.emit("FRONT_USER_ACTIVE",{id:d.data.id,status:1})
@@ -120,11 +120,12 @@ var init = exports.init = (socket) => {
                 socket.emit("FRONT_USER_ADD",retData.data)
             }
             socket.emit("RETURN_SUCCESS_MESSAGE",{message:retData.message})
-
-            let model = global.initModel("users_role");
-            model.deleteData("users_role",{usersId:retData.id},(a)=>{
-                model.postData("users_role",{usersId:retData.id,roleId:d.data.userRole},()=>{ })
-            })
+            if( typeof d.data.userRole != "undefined" ){
+                let model = global.initModel("users_role");
+                model.deleteData("users_role",{usersId:retData.id},(a)=>{
+                    model.postData("users_role",{usersId:retData.id,roleId:d.data.userRole},()=>{ })
+                })
+            }
         })
     })
 
