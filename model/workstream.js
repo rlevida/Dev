@@ -18,12 +18,12 @@ var field = exports.field = {
         /**
          * statusId (BIGINT)
          */
-        'statusId' : {type : 'bigint' , access : "public" },
+        'statusId' : {type : 'bigint' , access : "public", database: "status", relation: "one-to-one"  },
 
         /**
          * typeId (BIGINT)
          */
-        'typeId' : {type : 'bigint' , access : "public" },
+        'typeId' : {type : 'bigint' , access : "public", database: "type", relation: "one-to-one"  },
         
         /**
          * dateAdded (DATETIME)

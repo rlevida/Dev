@@ -1,7 +1,5 @@
 import React from "react"
-import ReactDOM from "react-dom"
 
-import { showToast } from '../../globalFunction'
 import Global from "./global"
 import Auth from "./auth"
 import Users from "./users"
@@ -11,7 +9,7 @@ import Type from "./type"
 import Status from "./status"
 import Role from "./role"
 import Team from "./teams"
-
+import Workstream from "./workstream"
 export default class Socket extends React.Component {
     render() {
         return <div>
@@ -24,6 +22,7 @@ export default class Socket extends React.Component {
                     <Type />
                     <Role />
                     <Team />
+                    <Workstream />
                 </div>
     }
 }
