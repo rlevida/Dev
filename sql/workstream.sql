@@ -5,6 +5,7 @@ CREATE TABLE `workstream` (
     `workstream` VARCHAR(50),
     `projectName` VARCHAR(50),
     `projectDescription` TEXT,
+    `numberOfHours` BIGINT,
     `statusId` BIGINT,
     `typeId` BIGINT,
     `dateAdded` DATETIME,
