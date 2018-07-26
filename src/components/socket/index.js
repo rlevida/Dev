@@ -12,6 +12,7 @@ import Team from "./teams"
 import Workstream from "./workstream"
 import Member from "./member"
 import Document from "./document"
+import Workstream from "./workstream"
 
 export default class Socket extends React.Component {
     render() {

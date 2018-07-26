@@ -42,7 +42,6 @@ export default class List extends React.Component {
 
     render() {
         let { workstream, dispatch, socket } = this.props;
-        
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })} >

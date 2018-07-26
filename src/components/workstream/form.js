@@ -1,5 +1,4 @@
 import React from "react"
-
 import { showToast } from '../../globalFunction'
 import { HeaderButtonContainer, DropDown } from "../../globalComponents";
 import MembersForm from "../global/members/membersForm";
@@ -52,6 +51,7 @@ export default class FormComponent extends React.Component {
 
         let result = true;
         $('.form-container *').validator('validate');
+
         $('.form-container .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
                 result = false;
@@ -126,7 +126,6 @@ export default class FormComponent extends React.Component {
                     <span>Save</span>
                 </li>
             </HeaderButtonContainer>
-
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">
                     <div class="panel panel-default">
