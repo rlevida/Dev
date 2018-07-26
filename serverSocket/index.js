@@ -82,5 +82,6 @@ var socketIo = exports.socketIo = function(server) {
         require("./member").init(socket);
         require("./document").init(socket);
         require("./workstream").init(socket);
+        require("./task").init(socket);
     });
 }
