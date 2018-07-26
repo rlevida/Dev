@@ -20,7 +20,7 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_WORKSTREAM_LIST", {});
+        this.props.socket.emit("GET_WORKSTREAM_LIST", {filter:{projectId:project}});
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
     }
