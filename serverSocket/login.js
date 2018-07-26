@@ -33,7 +33,7 @@ var init = exports.init = (socket) => {
                         if(sess.data.length == 0){
                             delete user.data[0].password;
                             delete user.data[0].salt;
-                            session.postData("session",{userId:user.data[0].id,session:socket.request.cookies["app.sid"],data:JSON.stringify(user.data[0]),dateAdded:new Date()},()=>{
+                            session.postData("session",{usersId:user.data[0].id,session:socket.request.cookies["app.sid"],data:JSON.stringify(user.data[0]),dateAdded:new Date()},()=>{
                                 socket.emit("AUTHENTICATION_RETURN",{token:socket.request.cookies["app.sid"]})
                                 socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully Login"})
                                 return;
@@ -67,8 +67,9 @@ var init = exports.init = (socket) => {
     });
 
     socket.on('LOGGED_USER', function (data) {
+        console.log("pass here");
         let users = global.initModel("users");
-        users.getData("users",{id:socket.handshake.query.UserId},{},(user)=>{
+        users.getData("users",{id:socket.handshake.query.UsersId},{},(user)=>{
             if(user.data.length > 0 && user.status){
                 let retData = Object.assign({},user.data[0])
                 delete retData.password

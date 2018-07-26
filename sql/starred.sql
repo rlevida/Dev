@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `starred`;
 CREATE TABLE `starred` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
-    `userId` BIGINT,
+    `usersId` BIGINT,
     `linkType` ENUM("project","workstream","task","document","conversation"),
     `linkId` BIGINT,
     `dateAdded` DATETIME,

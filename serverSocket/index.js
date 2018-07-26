@@ -31,7 +31,7 @@ var socketIo = exports.socketIo = function(server) {
                     session.getData("session",{session:packet[1].Token},{},(ret)=>{
                         if(ret.status && ret.data.length > 0){
                             socket.handshake.query.Token = packet[1].Token;
-                            socket.handshake.query.UserId = ret.data[0].userId;
+                            socket.handshake.query.UserId = ret.data[0].usersId;
                             socket.handshake.query.LastLoggedIn = ret.data[0].dateUpdated;
                             next()
                         }else{
@@ -50,7 +50,7 @@ var socketIo = exports.socketIo = function(server) {
                             // packet[0].UserId = ret.data[0].userid;
                             // packet[0].LastLoggedIn = ret.data[0].dateUpdated;
                             socket.handshake.query.Token = socket.request.cookies["app.sid"];
-                            socket.handshake.query.UserId = ret.data[0].userId;
+                            socket.handshake.query.UserId = ret.data[0].usersId;
                             socket.handshake.query.LastLoggedIn = ret.data[0].dateUpdated;
                             next()
                         }else{

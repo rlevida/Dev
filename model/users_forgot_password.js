@@ -8,7 +8,7 @@ var field = exports.field = {
     /**
      * username (VARCHAR 100)
      */
-    'userId' : {type : 'string' , access : "public", database: "users" , relation: "one-to-one" },
+    'usersId' : {type : 'string' , access : "public", database: "users" , relation: "one-to-one" },
 
     /**
      * hash (VARCHAR 50)

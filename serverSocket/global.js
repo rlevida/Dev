@@ -38,7 +38,7 @@ var init = exports.init = (socket) => {
                 data = {};
                 data.salt = func.randomString(32);
                 data.password = func.generatePassword(c.newPassword,data.salt);
-                ufp.putData("users",data,{id:ufpRet.data[0].userId},(users)=>{
+                ufp.putData("users",data,{id:ufpRet.data[0].usersId},(users)=>{
                     if(users.status){
                         socket.emit("COMPLETE_FORGOT_PASSWORD_SUCCESS",{});
                     }else{

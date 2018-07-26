@@ -39,9 +39,6 @@ export default class Component extends React.Component {
 
         socket.emit("GET_SETTINGS",{});
 
-        NationalityList(function(nationality){
-            dispatch({type:"SET_NATIONALITY_LIST",List:nationality})
-        });
         if(window.innerHeight <= 550){
             this.setState({showMore:""})
             $("body").css("overflow-y","auto").css("min-height","550px")

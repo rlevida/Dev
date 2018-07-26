@@ -6,9 +6,9 @@ var field = exports.field = {
     'id' : {type : 'bigint' , access : "public" },
 
     /**
-     * userId (BIGINT)
+     * usersId (BIGINT)
      */
-    'userId' : {type : 'bigint' , access : "public" },
+    'usersId' : {type : 'bigint' , access : "public" },
 
     /**
      * linkType (ENUM("project","workstream","task","document","conversation"))
