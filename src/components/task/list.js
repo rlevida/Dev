@@ -1,7 +1,7 @@
 import React from "react";
 import Tooltip from "react-tooltip";
-import { showToast, displayDate, numberFormat } from '../../globalFunction';
-import { HeaderButtonContainer, HeaderButton, DropDown, OnOffSwitch } from "../../globalComponents";
+import { HeaderButtonContainer } from "../../globalComponents";
+import moment from 'moment'
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -20,9 +20,10 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_TASK_LIST", {});
+        this.props.socket.emit("GET_TASK_LIST", { filter: { projectId: project } });
+        this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
         this.props.socket.emit("GET_STATUS_LIST", {});
-        this.props.socket.emit("GET_WORKSTREAM_LIST", {});
+        this.props.socket.emit("GET_TYPE_LIST", {});
     }
 
     updateActiveStatus(id, active) {
@@ -40,7 +41,7 @@ export default class List extends React.Component {
 
     render() {
         let { task, dispatch, socket } = this.props;
-
+        
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })} >
@@ -51,7 +52,6 @@ export default class List extends React.Component {
                 <tbody>
                     <tr>
                         <th></th>
-                        <th>Project Name</th>
                         <th>Workstream</th>
                         <th>Task Name</th>
                         <th>Due Date</th>
@@ -68,9 +68,9 @@ export default class List extends React.Component {
                         task.List.map((data, index) => {
                             return <tr key={index}>
                                 <td>{data.status_status}</td>
+                                <td>{data.workstream_workstream}</td>
                                 <td>{data.task}</td>
-                                <td></td>
-                                <td></td>
+                                <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
