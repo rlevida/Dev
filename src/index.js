@@ -44,7 +44,7 @@ switch (page) {
                 require('./container/workstream');
                 break;
             case "task":
-                require('./container/home');
+                require('./container/task');
                 break;
             case "conversations":
                 require('./container/home');
