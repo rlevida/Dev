@@ -16,9 +16,9 @@ var field = exports.field = {
     'industry' : {type : 'string' , access : "public" },
 
     /**
-     * active (TinyInt 1)
+     * isActive (TinyInt 1)
      */
-    'active' : {type : 'tinyint' , access : "public" },
+    'isActive' : {type : 'tinyint' , access : "public" },
 
     /**
      * dateAdded (DATETIME)

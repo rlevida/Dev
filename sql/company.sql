@@ -3,7 +3,7 @@ CREATE TABLE `company` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `companyName` VARCHAR(50),
     `industry` VARCHAR(50),
-    `active` TINYINT(1) DEFAULT '1',
+    `isActive` TINYINT(1) DEFAULT '1',
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)

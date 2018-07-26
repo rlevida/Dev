@@ -55,10 +55,11 @@ var init = exports.init = (socket) => {
     
     socket.on("SAVE_OR_UPDATE_USER",(d) => {
         let users = global.initModel("users")
+        let usersRole = global.initModel("users_role")
         sequence.create().then(function (nextThen) {
-            users.getData("users",{active:1},{},(b)=>{
-                if( b.data.length <= 1 && b.data[0].id == d.data.id && ( typeof d.data.active != "undefined" && d.data.active == "0" ) ){
-                    socket.emit("RETURN_ERROR_MESSAGE",{message:"Cant Delete, Last admin user."})
+            usersRole.getData("users",{roleId:1},{},(b)=>{
+                if( b.data.length <= 1 && b.data[0].usersId == d.data.id && ( typeof d.data.isActive != "undefined" && d.data.isActive == "0" ) ){
+                    socket.emit("RETURN_ERROR_MESSAGE",{message:"Cant set to inactive, Last Master admin user."})
                     socket.emit("FRONT_USER_ACTIVE",{id:d.data.id,status:1})
                 }else{
                     nextThen()
@@ -128,14 +129,16 @@ var init = exports.init = (socket) => {
     })
 
     socket.on("DELETE_USER",(d) => {
+        let usersRole = global.initModel("users_role")
         let users = global.initModel("users")
 
-        users.getData("users",{active:1},{},(b)=>{
-            if( b.data.length <= 1 && b.data[0].id == d.id ){
-                socket.emit("RETURN_ERROR_MESSAGE",{message:"Cant Delete, Last admin user."})
+        usersRole.getData("users_role",{roleId:1},{},(b)=>{
+            if( b.data.length <= 1 && b.data[0].usersId == d.id ){
+                socket.emit("RETURN_ERROR_MESSAGE",{message:"Cant Delete, Last Master Admin user."})
             }else{
                 users.deleteData("users",{id:d.id},(c)=>{
                     if(c.status) {
+                        usersRole.deleteData("users_role",{usersId:d.id},()=>{})
                         socket.emit("FRONT_USER_DELETED",{id:d.id})
                     }else{
                         socket.emit("RETURN_ERROR_MESSAGE","Delete failed. Please try again later.")

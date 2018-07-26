@@ -28,7 +28,7 @@ export default class List extends React.Component {
     updateActiveStatus(id,active){
         let { socket, dispatch } = this.props;
         dispatch({type:"SET_USER_STATUS",record:{id:id,status:(active==1)?0:1}})
-        socket.emit("SAVE_OR_UPDATE_USER",{data : {id:id,active:(active==1)?0:1}})
+        socket.emit("SAVE_OR_UPDATE_USER",{data : {id:id,isActive:(active==1)?0:1}})
     }
 
     deleteData(id){
@@ -90,7 +90,7 @@ export default class List extends React.Component {
                                                 }} class="btn btn-info btn-sm ml10">
                                                 <span class="glyphicon glyphicon-lock"></span>
                                             </a>
-                                            <OnOffSwitch Active={data.active} Action={()=>this.updateActiveStatus(data.id,data.active)} />
+                                            <OnOffSwitch Active={data.isActive} Action={()=>this.updateActiveStatus(data.id,data.isActive)} />
                                             <Tooltip />
                                         </td>
                                     </tr>

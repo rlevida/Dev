@@ -13,7 +13,7 @@ var init = exports.init = (socket) => {
                     return;
                 }
                 // check if user is Active
-                if( user.data[0].active == 0 ){
+                if( user.data[0].isActive == 0 ){
                     socket.emit("RETURN_ERROR_MESSAGE",{message:"Account is inactive. Please contact your administrator."})
                     return;
                 }
