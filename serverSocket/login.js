@@ -5,7 +5,6 @@ var init = exports.init = (socket) => {
     socket.on('USER_LOGGED_IN', function (data) {
         let users = global.initModel("users");
             users.getData("users",{username:data.username},{allowedPrivate:true},(user)=>{
-                console.log(user);
             if( user.status && user.data.length > 0 ){
                 
                 if (!user.data[0].salt || typeof user.data[0].salt == "undefined") {
@@ -20,7 +19,6 @@ var init = exports.init = (socket) => {
 
                 // manage password hash here
                 var inputPassword = func.generatePassword(data.password, user.data[0].salt);
-                console.log(inputPassword, user.data[0].password);
                 if (user.data[0].password == inputPassword) {
                     if(typeof socket.request.cookies["app.sid"] == "undefined"){
                         // manage token if app.sid is not yet set by the server/mobile access directly to socket during login
@@ -67,9 +65,8 @@ var init = exports.init = (socket) => {
     });
 
     socket.on('LOGGED_USER', function (data) {
-        console.log("pass here");
         let users = global.initModel("users");
-        users.getData("users",{id:socket.handshake.query.UsersId},{},(user)=>{
+        users.getData("users",{id:socket.handshake.query.UserId},{},(user)=>{
             if(user.data.length > 0 && user.status){
                 let retData = Object.assign({},user.data[0])
                 delete retData.password
