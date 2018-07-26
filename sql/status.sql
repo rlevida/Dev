@@ -14,8 +14,9 @@ INSERT INTO `cloud_cfo`.`status`(`status`, `linkType`, `dateAdded`) VALUES ('Act
 INSERT INTO `cloud_cfo`.`status`(`status`, `linkType`, `dateAdded`) VALUES ('On-track', 'project',NOW());
 INSERT INTO `cloud_cfo`.`status`(`status`, `linkType`, `dateAdded`) VALUES ('Issues', 'project',NOW());
 INSERT INTO `cloud_cfo`.`status`(`status`, `linkType`, `dateAdded`) VALUES ('Active', 'workstream',NOW());
-INSERT INTO `cloud_cfo`.`status`(`status`, `linkType`, `dateAdded`) VALUES ('On-track', 'workstream',NOW());
+INSERT INTO `cloud_cfo`.`status`(`status`, `linkType`, `dateAdded`) VALUES ('On-time', 'workstream',NOW());
 INSERT INTO `cloud_cfo`.`status`(`status`, `linkType`, `dateAdded`) VALUES ('Issues', 'workstream',NOW());
 INSERT INTO `cloud_cfo`.`status`(`status`, `linkType`, `dateAdded`) VALUES ('Active', 'task',NOW());
 INSERT INTO `cloud_cfo`.`status`(`status`, `linkType`, `dateAdded`) VALUES ('On-track', 'task',NOW());
 INSERT INTO `cloud_cfo`.`status`(`status`, `linkType`, `dateAdded`) VALUES ('Issues', 'task',NOW());
+INSERT INTO `cloud_cfo`.`status`(`status`, `linkType`, `dateAdded`) VALUES ('Inactive', 'workstream',NOW());

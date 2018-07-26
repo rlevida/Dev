@@ -3,6 +3,8 @@ CREATE TABLE `workstream` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `projectId` BIGINT,
     `workstream` VARCHAR(50),
+    `projectName` VARCHAR(50),
+    `projectDescription` TEXT,
     `statusId` BIGINT,
     `typeId` BIGINT,
     `dateAdded` DATETIME,
