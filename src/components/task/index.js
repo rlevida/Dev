@@ -29,7 +29,6 @@ export default class Component extends React.Component {
 
     render() {
         let { socket, task, dispatch } = this.props
-        console.log(task)
         let Component = <div>
                 {task.FormActive == "List" &&
                     <List />

@@ -12,6 +12,7 @@ import Team from "./teams"
 import Member from "./member"
 import Document from "./document"
 import Workstream from "./workstream"
+import Task from "./task"
 
 export default class Socket extends React.Component {
     render() {
@@ -28,6 +29,7 @@ export default class Socket extends React.Component {
                     <Workstream />
                     <Member />
                     <Document/>
+                    <Task />
                 </div>
     }
 }
