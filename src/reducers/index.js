@@ -29,5 +29,7 @@ export default combineReducers({
     workstream,
     members,
     global,
-    document
+    document,
+    workstream,
+    global
 })
