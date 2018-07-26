@@ -51,7 +51,6 @@ export default class FormComponent extends React.Component {
 
         let result = true;
         $('.form-container *').validator('validate');
-
         $('.form-container .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
                 result = false;
@@ -62,7 +61,6 @@ export default class FormComponent extends React.Component {
             showToast("error", "Form did not fullfill the required value.")
             return;
         }
-
         socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { ...workstream.Selected, projectId: project, numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0 } });
     }
 
