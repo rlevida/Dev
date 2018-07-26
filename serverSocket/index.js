@@ -76,5 +76,6 @@ var socketIo = exports.socketIo = function(server) {
         require("./project").init(socket);
         require("./status").init(socket);
         require("./type").init(socket);
+        require("./role").init(socket);
     });
 }

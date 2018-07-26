@@ -36,25 +36,19 @@ var init = exports.init = (socket) => {
             }
         })
     })
-
-    socket.on("GET_TRAINER_LIST",(d) => {
-        let users = global.initModel("users")
-        let filter = (typeof d.filter != "undefined")?d.filter:{};
-        filter.userType = "trainer";
-        users.getData("users",filter,{},(c)=>{
-            if(c.status) {
-                socket.emit("FRONT_TRAINER_LIST",c.data)
-            }else{
-                if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
-            }
-        })
-    })
     
     socket.on("GET_USER_DETAIL",(d) => {
         let users = global.initModel("users")
         users.getData("users",{id:d.id},{},(c)=>{
-            if(c.data.length > 0) {
-                socket.emit("FRONT_USER_SELECTED",c.data[0])
+            if(c.status && c.data.length > 0) {
+                
+                let usersRole = global.initModel("users_role")
+                usersRole.getData("users_role",{usersId:c.data[0].id},{},(e)=>{
+                    c.data[0].userRole = (e.data.length > 0)?e.data[0].roleId:0;
+                    socket.emit("FRONT_USER_SELECTED",c.data[0]);
+                })
+            }else{
+                if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
             }
         })
     })
@@ -62,7 +56,7 @@ var init = exports.init = (socket) => {
     socket.on("SAVE_OR_UPDATE_USER",(d) => {
         let users = global.initModel("users")
         sequence.create().then(function (nextThen) {
-            users.getData("users",{active:1,userType:"admin"},{},(b)=>{
+            users.getData("users",{active:1},{},(b)=>{
                 if( b.data.length <= 1 && b.data[0].id == d.data.id && ( typeof d.data.active != "undefined" && d.data.active == "0" ) ){
                     socket.emit("RETURN_ERROR_MESSAGE",{message:"Cant Delete, Last admin user."})
                     socket.emit("FRONT_USER_ACTIVE",{id:d.data.id,status:1})
@@ -90,8 +84,7 @@ var init = exports.init = (socket) => {
                     if(c.status) {
                         users.getData("users",{id:id},{},(e)=>{
                             if(e.data.length > 0) {
-                                socket.emit("FRONT_USER_EDIT",e.data[0])
-                                socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
+                                nextThen({id:id,type:"edit",data:e.data[0],message:"Successfully updated."})
                             }else{
                                 socket.emit("RETURN_ERROR_MESSAGE",{message:"Updating failed. Please Try again later."})
                             }
@@ -107,7 +100,8 @@ var init = exports.init = (socket) => {
                     if(typeof c.id != "undefined" && c.id > 0) {
                         users.getData("users",{id:c.id},{},(e)=>{
                             if(e.data.length > 0) {
-                                socket.emit("FRONT_USER_ADD",e.data)
+                                nextThen({id:c.id,type:"add",data:e.data,message:"Successfully added."})
+                                
                                 socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
                             }else{
                                 socket.emit("RETURN_ERROR_MESSAGE",{message:"Saving failed. Please Try again later."})
@@ -118,13 +112,25 @@ var init = exports.init = (socket) => {
                     }
                 })
             }
+        }).then(function (nextThen,retData) {
+            if(retData.type == "edit"){
+                socket.emit("FRONT_USER_EDIT",retData.data)
+            }else{
+                socket.emit("FRONT_USER_ADD",retData.data)
+            }
+            socket.emit("RETURN_SUCCESS_MESSAGE",{message:retData.message})
+
+            let model = global.initModel("users_role");
+            model.deleteData("users_role",{usersId:retData.id},(a)=>{
+                model.postData("users_role",{usersId:retData.id,roleId:d.data.userRole},()=>{ })
+            })
         })
     })
 
     socket.on("DELETE_USER",(d) => {
         let users = global.initModel("users")
 
-        users.getData("users",{active:1,userType:"admin"},{},(b)=>{
+        users.getData("users",{active:1},{},(b)=>{
             if( b.data.length <= 1 && b.data[0].id == d.id ){
                 socket.emit("RETURN_ERROR_MESSAGE",{message:"Cant Delete, Last admin user."})
             }else{

@@ -6,6 +6,11 @@ var field = exports.field = {
         'id' : {type : 'bigint' , access : "public" },
 
         /**
+         * roleType ENUM("Internal","External"))
+         */
+        'roleType' : {type : 'string' , access : "public" },
+
+        /**
          * role (VARCHAR(50))
          */
         'role' : {type : 'string' , access : "public" },

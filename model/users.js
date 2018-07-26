@@ -51,6 +51,11 @@ var field = exports.field = {
     'emailAddress' : {type : 'string' , access : "public" },
 
     /**
+     * userType (ENUM("Internal","External"))
+     */
+    'userType' : {type : 'string' , access : "public" },
+
+    /**
      * dateAdded (DATETIME)
      */
     'dateAdded' : {type : 'date' , access : "public" },

@@ -21,16 +21,8 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        var checkUser = setInterval(()=>{ 
-            if(typeof this.props.loggedUser.data.userType != "undefined" && this.props.loggedUser.data.userType == "admin" ){
-                this.props.socket.emit("GET_USER_LIST",{filter:{ "|||or|||" : [{ name : "userType" , value : "admin"},{ name : "userType" , value : "trainer"},{ name : "userType" , value : "participant"}] } });
-                clearInterval(checkUser)
-            }
-            if(typeof this.props.loggedUser.data.userType != "undefined" && this.props.loggedUser.data.userType == "trainer" ){
-                this.props.socket.emit("GET_USER_LIST",{filter:{ "|||or|||" : [{ name : "userType" , value : "participant"}] } });
-                clearInterval(checkUser)
-            }
-         }, 1000);
+        this.props.socket.emit("GET_USER_LIST",{});
+        this.props.socket.emit("GET_ROLE_LIST",{});
     }
 
     updateActiveStatus(id,active){
@@ -65,7 +57,7 @@ export default class List extends React.Component {
                             <th>ID</th>
                             <th>User Id</th>
                             <th>Email Address</th>
-                            <th>User Type</th>
+                            <th>Type</th>
                             <th></th>
                         </tr>
                         {
@@ -79,8 +71,8 @@ export default class List extends React.Component {
                                 return <tr key={index}>
                                         <td>{data.id}</td>
                                         <td>{data.username}</td>
-                                        <td>{data.email}</td>
-                                        <td style={{textTransform:"capitalize"}}>{data.userType}</td>
+                                        <td>{data.emailAddress}</td>
+                                        <td>{data.userType}</td>
                                         <td class="text-center">
                                             <a href="javascript:void(0);" data-tip="EDIT" 
                                                 onClick={(e) => socket.emit("GET_USER_DETAIL",{id:data.id})}

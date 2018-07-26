@@ -23,9 +23,7 @@ export default class Component extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_COMPANY_LIST",{});
-        this.props.socket.emit("GET_POSITION_LIST",{});   
-        this.props.socket.emit("GET_BRANCH_LIST",{});   
+
     }
 
     editData(id) {

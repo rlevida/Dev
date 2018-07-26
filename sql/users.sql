@@ -9,6 +9,7 @@ CREATE TABLE `users` (
     `username` VARCHAR(100),
     `password` VARCHAR(50),
     `salt` VARCHAR(50),
+    `userType` ENUM("Internal","External"),
     `avatar` TEXT,
     `emailAddress` VARCHAR(100),
     `dateAdded` DATETIME,

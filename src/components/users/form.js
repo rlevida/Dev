@@ -12,9 +12,7 @@ import { connect } from "react-redux"
         socket: store.socket.container,
         users: store.users,
         loggedUser: store.loggedUser,
-        position: store.position,
-        company: store.company,
-        branch: store.branch,
+        role: store.role,
         global: store.global
     }
 })
@@ -82,12 +80,8 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({},users.Selected)
         Selected[name] = value;
 
-        if( name == "companyId" ){
-            Selected["positionId"] = ""
-            Selected["branchId"] = ""
-        }
         if(name == "userType"){
-            setDatePicker(this.handleDate, "birthday");
+            Selected["userRole"] = ""
         }
         dispatch({type:"SET_USER_SELECTED",Selected:Selected})
     }
@@ -99,16 +93,16 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, users, loggedUser, company, position, branch , global} = this.props
-        let userType = [];
-        if( typeof loggedUser.data.userType != "undefined" && loggedUser.data.userType == "admin" ){
-            userType.push({ id:"admin", name : "Admin" });
-            userType.push({ id: "trainer", name : "Trainer" });
-            userType.push({ id: "participant", name : "Participant" });
-        }
-        if( typeof loggedUser.data.userType != "undefined" && loggedUser.data.userType == "trainer" ){
-            userType.push({ id: "participant", name : "Participant" });
-        }
+        let { dispatch, users, loggedUser, role , global} = this.props
+        let userType = [{ id:"Internal", name : "Internal" },{ id:"External", name : "External" }];
+
+        let userRole = []
+        role.List.map((e,i)=>{
+            console.log();
+            if( e.roleType == users.Selected.userType ){
+                userRole.push({id:e.id,name:e.role})
+            }
+        })
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -141,7 +135,28 @@ export default class FormComponent extends React.Component {
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Email Address *</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <input type="email" name="email" required value={(typeof users.Selected.email == "undefined")?"":users.Selected.email} class="form-control" placeholder="Email" onChange={this.handleChange} />
+                                        <input type="email" name="emailAddress" required value={(typeof users.Selected.emailAddress == "undefined")?"":users.Selected.emailAddress} class="form-control" placeholder="email Address" onChange={this.handleChange} />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Name *</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <input type="text" name="firstName" required value={(typeof users.Selected.firstName != "undefined" && users.Selected.firstName)?users.Selected.firstName:""} class="form-control" placeholder="Name" onChange={this.handleChange} />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Family Name</label>
+                                    <div class="col-md-7 col-xs-text">
+                                        <input type="text" name="lastName" value={(typeof users.Selected.lastName != "undefined" && users.Selected.lastName)?users.Selected.lastName:""} class="form-control" placeholder="Family Name" onChange={this.handleChange} />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Phone No.</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <input type="number" name="phoneNumber" value={(typeof users.Selected.phoneNumber != "undefined" && users.Selected.phoneNumber)?users.Selected.phoneNumber:"" } class="form-control" placeholder="Phone Number" onChange={this.handleChange} />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
@@ -156,72 +171,17 @@ export default class FormComponent extends React.Component {
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
-                                { (typeof users.Selected.userType != "undefined" && users.Selected.userType == "participant") &&
-                                    <div>
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Name *</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <input type="text" name="firstName" required value={(typeof users.Selected.firstName != "undefined" && users.Selected.firstName)?users.Selected.firstName:""} class="form-control" placeholder="Name" onChange={this.handleChange} />
-                                                <div class="help-block with-errors"></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Family Name</label>
-                                            <div class="col-md-7 col-xs-text">
-                                                <input type="text" name="lastName" value={(typeof users.Selected.lastName != "undefined" && users.Selected.lastName)?users.Selected.lastName:""} class="form-control" placeholder="Family Name" onChange={this.handleChange} />
-                                                <div class="help-block with-errors"></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">tel</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <input type="number" name="tel" value={(typeof users.Selected.tel != "undefined" && users.Selected.tel)?users.Selected.tel:"" } class="form-control" placeholder="Phone Number" onChange={this.handleChange} />
-                                                <div class="help-block with-errors"></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Birthday: </label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <div class="input-group date">
-                                                    <input type="text"
-                                                        class="form-control datepicker"
-                                                        style={{ backgroundColor: "#eee" }}
-                                                        id="birthday"
-                                                        name="birthday"
-                                                        value={(typeof users.Selected.birthday != "undefined" && users.Selected.birthday)?displayDate(users.Selected.birthday):""}
-                                                        onChange={() => { }}
-                                                        required={false}
-                                                    />
-                                                    <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="help-block with-errors"></div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Nationality</label>
-                                            <div class="col-md-7 col-xs-text">
-                                                <DropDown multiple={false} 
-                                                    required={false}
-                                                    options={ global.NationalityList } 
-                                                    selected={(typeof users.Selected.nationality == "undefined")?"":users.Selected.nationality} 
-                                                    onChange={(e)=>this.setDropDown("nationality",e.value)} /> 
-                                                <div class="help-block with-errors"></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Company</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <DropDown multiple={false} 
-                                                    required={false}
-                                                    options={ company.List.map((e,i)=>{ return {id:e.id,name:e.companyName}}) } 
-                                                    selected={(typeof users.Selected.companyId == "undefined")?"":users.Selected.companyId} 
-                                                    onChange={(e)=>this.setDropDown("companyId",e.value)} /> 
-                                                <div class="help-block with-errors"></div>
-                                            </div>
-                                        </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">User Role *</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <DropDown multiple={false} 
+                                            required={true}
+                                            options={ userRole } 
+                                            selected={(typeof users.Selected.userRole == "undefined")?"":users.Selected.userRole} 
+                                            onChange={(e)=>this.setDropDown("userRole",e.value)} /> 
+                                        <div class="help-block with-errors"></div>
                                     </div>
-                                }
+                                </div>
                             </form>
                         </div>
                     </div>
