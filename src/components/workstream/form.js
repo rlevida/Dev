@@ -1,10 +1,9 @@
 import React from "react"
+import Tooltip from "react-tooltip";
 import { showToast } from '../../globalFunction'
 import { HeaderButtonContainer, DropDown } from "../../globalComponents";
 import MembersForm from "../global/members/membersForm";
 import { connect } from "react-redux";
-
-import Tooltip from "react-tooltip";
 import _ from "lodash";
 
 @connect((store) => {
