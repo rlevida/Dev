@@ -4,14 +4,28 @@ var func = global.initFunc(),
 var init = exports.init = (socket) => {
 
     socket.on("GET_DOCUMENT_LIST",(d) => {
-        let document = global.initModel("document")
+
+        let documentLink = global.initModel("document_link")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
-        document.getData("document",filter,{},(c)=>{
+        documentLink.getData("document_link", filter , { linkId : d.project },(c)=>{
+            
             if(c.status) {
-                socket.emit("FRONT_DOCUMENT_LIST",c.data)
+                let docId = [];
+                c.data.map( link => {
+                    docId.push(link.documentId)
+                })
+               
+                let document = global.initModel("document");
+                document.getProjectDocument( filter, docId , ( doc )=>{
+                    if(doc.status){
+                        socket.emit("FRONT_DOCUMENT_LIST",doc.data)
+                    }
+                })
+
             }else{
                 if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
             }
+
         })
     })
     
@@ -48,22 +62,22 @@ var init = exports.init = (socket) => {
             if(d.data.length > 0){
                 d.data.map( file => {
                     tempResData.push( new Promise((resolve,reject) => {
-                        let tmpData = { name: file.filename ,  origin : file.origin  }
+                        let tmpData = { name: file.filename ,  origin : file.origin , uploadedBy : d.userId }
                         document.postData("document",tmpData,(c)=>{
                             if(typeof c.id != "undefined" && c.id > 0) {
                                 document.getData("document",{id:c.id},{},(e)=>{
                                     if(e.data.length > 0) {
+                                        let documentLink = global.initModel("document_link")
+                                        let linkData = { documentId : e.data[0].id , linkType : "project", linkId: d.project } 
+                                        documentLink.postData("document_link",linkData ,(l)=>{
+                                        })
                                         resolve(e.data)
-                                        // socket.emit("FRONT_DOCUMENT_ADD",e.data)
-                                        // socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
                                     }else{
                                         reject()
-                                        // socket.emit("RETURN_ERROR_MESSAGE",{message:"Saving failed. Please Try again later."})
                                     }
                                 })
                             }else{
                                 reject()
-                                // socket.emit("RETURN_ERROR_MESSAGE",{message:"Saving failed. Please Try again later."})
                             }
                         })
                     }))

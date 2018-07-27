@@ -18,16 +18,15 @@ export default class List extends React.Component {
         super(props)
         this.state = {
             tempData : [] , 
-            upload : false
+            upload : false,
+            loading : false
         }
         this.deleteData = this.deleteData.bind(this)
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_DOCUMENT_LIST",{ filter : { isDeleted : 0 } });
-        this.props.socket.emit("GET_STATUS_LIST",{});
-        this.props.socket.emit("GET_TYPE_LIST",{});
+        this.props.socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linktype : "project" }});
     }
 
     updateActiveStatus(id,active){
@@ -51,9 +50,9 @@ export default class List extends React.Component {
     }
     
     saveData(){
-        let { socket } = this.props
+        let { socket , loggedUser } = this.props
         let { tempData } = this.state
-        socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data:tempData , loggedUser : "" })
+        socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data: tempData , userId : loggedUser.data.id, project: project })
         this.setState({ 
             upload : false , 
             tempData : []
@@ -135,7 +134,7 @@ export default class List extends React.Component {
                                 resp.files.map((e) => {
                                     tempData.push({ Id: e.Id, filename: e.filename, origin: e.origin })
                                 })
-                                this.setState({ tempData : tempData })
+                                this.setState({ tempData : tempData , loading : false  })
                             },
                             chooseFile: (resp) => {
                                 this.setState({ upload : true })
@@ -143,11 +142,16 @@ export default class List extends React.Component {
                         }}>
                             <a class="btn btn-primary" ref="chooseBtn" style={{ marginRight: "2px" }} >choose</a>
                             { ( this.state.upload ) && 
-                                <a ref="uploadBtn" class="btn btn-primary">upload</a>
+                                <a ref="uploadBtn" class="btn btn-primary" onClick={()=> this.setState({ loading : true })}>upload</a>
                             }
                         </FileUpload>
                         <table id="dataTable" class="table responsive-table">
                             <tbody>
+                            {( this.state.tempData.length == 0 && this.state.loading ) &&
+                                <tr>
+                                    <td style={{textAlign:"center"}} colSpan={8}><i class="fa fa-spinner fa-spin" style={{ fontSize:"36px" , marginTop: "50px"}}></i></td>
+                                </tr>
+                            }
                             {(this.state.tempData.length > 0) &&
                                 this.state.tempData.map((data, index) => {
                                     return  (

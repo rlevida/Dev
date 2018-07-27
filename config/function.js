@@ -43,6 +43,12 @@ var sendForgotPasswordmail = exports.sendForgotPasswordmail = (responseId, email
             });
         })
     })
+}
+
+var getFilePathExtension = exports.getFilePathExtension = (path) => {
+    var filename = path.split('\\').pop().split('/').pop();
+    return filename.substr((Math.max(0, filename.lastIndexOf(".")) || Infinity) + 1);
+}
 
 var uploadFile = exports.uploadFile = (params,cb) => {
     var fs = global.initRequire('fs'),
@@ -51,7 +57,7 @@ var uploadFile = exports.uploadFile = (params,cb) => {
     fileStream.on('error', (err) => {
        console.log("Error in creating file stream. [" + err + "]");
     });
-
+    
     fileStream.on('open', () => {
         var s3 = new AWS.S3();
             s3.putObject({
@@ -69,9 +75,4 @@ var uploadFile = exports.uploadFile = (params,cb) => {
                 }
             });
     });
-}
-
-var getFilePathExtension = exports.getFilePathExtension = (path) => {
-    var filename = path.split('\\').pop().split('/').pop();
-    return filename.substr((Math.max(0, filename.lastIndexOf(".")) || Infinity) + 1);
 }
