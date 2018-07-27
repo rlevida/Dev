@@ -14,7 +14,7 @@ var init = exports.init = (socket) => {
                 c.data.map( link => {
                     docId.push(link.documentId)
                 })
-               
+                
                 let document = global.initModel("document");
                 document.getProjectDocument( filter, docId , ( doc )=>{
                     if(doc.status){

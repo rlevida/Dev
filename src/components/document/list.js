@@ -140,10 +140,10 @@ export default class List extends React.Component {
                                 this.setState({ upload : true })
                             }
                         }}>
-                            <a class="btn btn-primary" ref="chooseBtn" style={{ marginRight: "2px" }} >choose</a>
-                            { ( this.state.upload ) && 
-                                <a ref="uploadBtn" class="btn btn-primary" onClick={()=> this.setState({ loading : true })}>upload</a>
-                            }
+                                <a class="btn btn-primary" ref="chooseBtn" style={ this.state.loading ? { display:"none" } : { marginRight: "2px" }} >choose</a>
+                                { ( this.state.upload  && !this.state.loading ) && 
+                                    <a ref="uploadBtn" class="btn btn-primary" onClick={()=> this.setState({ loading : true })}>upload</a>
+                                }
                         </FileUpload>
                         <table id="dataTable" class="table responsive-table">
                             <tbody>

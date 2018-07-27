@@ -59,7 +59,7 @@ var getProjectDocument = exports.getProjectDocument = (filter,data,cb) =>{
                 }
             })
         }
-
+        
         db.query(
             query,
             params,

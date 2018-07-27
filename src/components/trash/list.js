@@ -24,7 +24,7 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_DOCUMENT_LIST",{ filter : { isDeleted : 1 } });
+        this.props.socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 1 , linkId : project , linktype : "project" }});
         this.props.socket.emit("GET_STATUS_LIST",{});
         this.props.socket.emit("GET_TYPE_LIST",{});
     }
