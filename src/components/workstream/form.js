@@ -1,10 +1,7 @@
 import React from "react"
-import ReactDOM from "react-dom"
-import Select from 'react-select'
-import moment from 'moment'
 
-import { showToast, displayDate, setDatePicker } from '../../globalFunction'
-import { HeaderButtonContainer, HeaderButton, DropDown } from "../../globalComponents"
+import { showToast } from '../../globalFunction'
+import { HeaderButtonContainer, DropDown } from "../../globalComponents"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -51,7 +48,8 @@ export default class FormComponent extends React.Component {
             showToast("error", "Form did not fullfill the required value.")
             return;
         }
-        socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { ...workstream.Selected, projectId: project } });
+        
+        socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { ...workstream.Selected, projectId: project, numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0 } });
     }
 
     setDropDown(name, value) {
