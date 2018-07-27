@@ -42,8 +42,9 @@ var field = exports.field = {
 
 }
 
-var { getData, putData, postData, deleteData } = require("./index");
+var { getData, putData, postData, deleteData, countData } = require("./index");
 exports.getData = getData;
 exports.putData = putData;
 exports.postData = postData;
 exports.deleteData = deleteData;
+exports.countData = countData;

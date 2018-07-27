@@ -78,5 +78,7 @@ var socketIo = exports.socketIo = function(server) {
         require("./type").init(socket);
         require("./role").init(socket);
         require("./teams").init(socket);
+        require("./workstream").init(socket);
+        require("./member").init(socket);
     });
 }

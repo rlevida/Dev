@@ -13,7 +13,7 @@ var field = exports.field = {
         /**
          * roleId (BIGINT)
          */
-        'roleId' : {type : 'bigint' , access : "public" },
+        'roleId' : {type : 'bigint' , access : "public", database: "role" , relation: "one-to-one" },
         
         /**
          * dateAdded (DATETIME)

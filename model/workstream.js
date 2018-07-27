@@ -16,14 +16,29 @@ var field = exports.field = {
         'workstream' : {type : 'string' , access : "public" },
 
         /**
+         * projectName (VARCHAR(50))
+         */
+        'projectName' : {type : 'string' , access : "public" },
+
+        /**
+         * projectDescription (text)
+         */
+        'projectDescription' : {type : 'string' , access : "public" },
+
+        /**
+         * numberOfHours (BIGINT)
+         */
+        'numberOfHours' : {type : 'numberOfHours' , access : "public", database: "status", relation: "one-to-one"  },
+
+        /**
          * statusId (BIGINT)
          */
-        'statusId' : {type : 'bigint' , access : "public" },
+        'statusId' : {type : 'bigint' , access : "public", database: "status", relation: "one-to-one"  },
 
         /**
          * typeId (BIGINT)
          */
-        'typeId' : {type : 'bigint' , access : "public" },
+        'typeId' : {type : 'bigint' , access : "public", database: "type", relation: "one-to-one"  },
         
         /**
          * dateAdded (DATETIME)
