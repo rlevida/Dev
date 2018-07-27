@@ -62,11 +62,14 @@ var init = exports.init = (socket) => {
 
     socket.on("DELETE_WORKSTREAM",(d) => {
         let workstream = global.initModel("workstream")
+        let members = global.initModel("members")
 
         workstream.getData("workstream",{},{},(b)=>{
             workstream.deleteData("workstream",{id:d.id},(c)=>{
                 if(c.status) {
-                    socket.emit("FRONT_WORKSTREAM_DELETED",{id:d.id})
+                    members.deleteData("workstream",{linkId:d.id, linkType:'workstream'},(c)=>{
+                        socket.emit("FRONT_WORKSTREAM_DELETED",{id:d.id})
+                    });
                 }else{
                     socket.emit("RETURN_ERROR_MESSAGE","Delete failed. Please try again later.")
                 }

@@ -3,8 +3,10 @@ import React from "react"
 import { showToast } from '../../globalFunction'
 import { HeaderButtonContainer, DropDown } from "../../globalComponents";
 import MembersForm from "./membersForm";
+import { connect } from "react-redux";
 
-import { connect } from "react-redux"
+import Tooltip from "react-tooltip";
+
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -24,12 +26,16 @@ export default class FormComponent extends React.Component {
         this.handleChange = this.handleChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
+        this.deleteData = this.deleteData.bind(this)
     }
 
     componentDidMount() {
         $(".form-container").validator();
         let { workstream } = this.props
-        this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: workstream.Selected.id, linkType: 'workstream' } });
+
+        if (typeof workstream.Selected.id != 'undefined') {
+            this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: workstream.Selected.id, linkType: 'workstream' } });
+        }
     }
 
     handleChange(e) {
@@ -57,6 +63,13 @@ export default class FormComponent extends React.Component {
         socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { ...workstream.Selected, projectId: project, numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0 } });
     }
 
+    deleteData(id) {
+        let { socket } = this.props;
+        if (confirm("Do you really want to delete this record?")) {
+            socket.emit("DELETE_MEMBERS", { id: id })
+        }
+    }
+
     setDropDown(name, value) {
         let { socket, dispatch, workstream } = this.props
         let Selected = Object.assign({}, workstream.Selected)
@@ -80,7 +93,7 @@ export default class FormComponent extends React.Component {
 
         let memberList = members.List.map((e, i) => {
             let returnObject = e;
-            let userMember = userList.filter((o) => { return o.id == e.userTypeLinkId });
+            let userMember = (users.List).filter((o) => { return o.id == e.userTypeLinkId });
             return { ...e, 'user': userMember[0] };
         });
 
@@ -90,6 +103,7 @@ export default class FormComponent extends React.Component {
                     onClick={(e) => {
                         dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
                         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
+                        dispatch({ type: "SET_MEMBERS_LIST", list: [] });
                     }} >
                     <span>Back</span>
                 </li>
@@ -97,6 +111,7 @@ export default class FormComponent extends React.Component {
                     <span>Save</span>
                 </li>
             </HeaderButtonContainer>
+
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">
                     <div class="panel panel-default">
@@ -159,16 +174,56 @@ export default class FormComponent extends React.Component {
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label pt0">Members</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <a href="#" type="button" data-toggle="modal" data-target="#modal">
-                                            Add Members
+                                {
+                                    (typeof workstream.Selected.id != 'undefined') && <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label pt0">Members</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <a href="#" type="button" data-toggle="modal" data-target="#modal">
+                                                Add Members
                                         </a>
+                                        </div>
                                     </div>
-                                </div>
+                                }
                             </form>
-                            
+
+                            {
+                                (typeof workstream.Selected.id != 'undefined') && <div class="row pd20">
+                                    <table id="dataTable" class="table responsive-table mt30">
+                                        <tbody>
+                                            <tr>
+                                                <th>Member Name</th>
+                                                <th>Type</th>
+                                                <th>Role</th>
+                                                <th></th>
+                                            </tr>
+                                            {
+                                                (memberList.length == 0) &&
+                                                <tr>
+                                                    <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
+                                                </tr>
+                                            }
+                                            {
+                                                memberList.map((data, index) => {
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td>{data.user.firstName + ' ' + data.user.lastName}</td>
+                                                            <td>{data.user.userType}</td>
+                                                            <td>{data.user.roles[0].role_role}</td>
+                                                            <td class="text-center">
+                                                                <a href="javascript:void(0);" data-tip="DELETE"
+                                                                    onClick={e => this.deleteData(data.id)}
+                                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                                    <span class="glyphicon glyphicon-trash"></span></a>
+                                                                <Tooltip />
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
 
                         </div>
                     </div>

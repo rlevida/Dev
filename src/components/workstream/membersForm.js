@@ -24,15 +24,15 @@ export default class MembersForm extends React.Component {
     }
 
     componentDidMount() {
-        $(".form-container").validator();
+        $(".member-form-container").validator();
     }
 
     handleSubmit(e) {
         let { socket, members, workstream } = this.props
         let result = true;
 
-        $('.form-container *').validator('validate');
-        $('.form-container .form-group').each(function () {
+        $('.member-form-container *').validator('validate');
+        $('.member-form-container .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
                 result = false;
             }
@@ -90,7 +90,7 @@ export default class MembersForm extends React.Component {
                 </HeaderButtonContainer>
                 <div class="row mt10">
                     <div class="col-lg-12 col-md-12 col-xs-12">
-                        <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
+                        <form onSubmit={this.handleSubmit} class="form-horizontal member-form-container">
                             <div class="form-group">
                                 <label class="col-md-3 col-xs-12 control-label">Member</label>
                                 <div class="col-md-7 col-xs-12">
