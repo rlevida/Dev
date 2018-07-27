@@ -1,7 +1,6 @@
 import React from "react";
 import Tooltip from "react-tooltip";
-import { showToast, displayDate, numberFormat } from '../../globalFunction';
-import { HeaderButtonContainer, HeaderButton, DropDown, OnOffSwitch } from "../../globalComponents";
+import { HeaderButtonContainer } from "../../globalComponents";
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -20,7 +19,7 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_WORKSTREAM_LIST", {filter:{projectId:project}});
+        this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
         this.props.socket.emit("GET_USER_LIST",{});
