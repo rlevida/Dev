@@ -41,7 +41,7 @@ export default class List extends React.Component {
 
     render() {
         let { workstream, dispatch, socket } = this.props;
-
+        
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })} >
@@ -76,7 +76,7 @@ export default class List extends React.Component {
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td></td>
+                                <td>{data.member_count}</td>
                                 <td>{data.type_type}</td>
                                 <td></td>
                                 <td class="text-center">

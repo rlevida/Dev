@@ -45,7 +45,6 @@ var init = exports.init = (socket) => {
             })
         }else{
             project.postData("project",d.data,(c)=>{
-                        console.log(c);
                 if(typeof c.id != "undefined" && c.id > 0) {
                     project.getData("project",{id:c.id},{},(e)=>{
                         if(e.data.length > 0) {

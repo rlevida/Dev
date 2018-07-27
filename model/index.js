@@ -274,6 +274,46 @@ var deleteData = exports.deleteData = ( tablename, data, cb ) => {
 }
 
 /**
+ * countData - count record
+ * @id : id of the record
+ */
+
+var countData = exports.countData = ( tablename, data, alias, cb ) => {
+
+    let db = global.initDB();
+    let field = global.initModel(tablename).field;
+    let dataField = Object.keys(data);
+    let query = " SELECT COUNT(*) AS "+alias
+                    + " FROM " + tablename
+                    + " WHERE ";
+    let params = [];
+    let paramStr = [];
+
+    dataField.map((e,i)=>{
+        if(typeof field[e] != "undefined"){
+            paramStr.push(e + " = ?")
+            params.push(data[e])
+        }
+    })
+    
+    if(paramStr.length <= 0){
+        cb({ status : false, error : "Should have one parameter to continue counting.", data : [] })
+        return;
+    }
+
+    query += paramStr.join(" AND ");
+    db.query(
+        query,
+        params, 
+        function(err,row,fields){
+            if(err) { cb({ status : false, error : err, data : row }); return }
+
+            cb({  status : true, error : err, data : row[0] });
+        }
+    );
+}
+
+/**
  * getPublicField - manage field to show on the list
  */
 

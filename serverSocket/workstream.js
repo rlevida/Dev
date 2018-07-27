@@ -1,14 +1,23 @@
 var func = global.initFunc(),
-    sequence = require("sequence").Sequence;
+    sequence = require("sequence").Sequence,
+    async = require("async");
 
 var init = exports.init = (socket) => {
 
     socket.on("GET_WORKSTREAM_LIST",(d) => {
         let workstream = global.initModel("workstream")
+        let members = global.initModel("members")
         let filter = (typeof d.filter != "undefined")?d.filter:{};
+
         workstream.getData("workstream",filter,{},(c)=>{
             if(c.status) {
-                socket.emit("FRONT_WORKSTREAM_LIST",c.data)
+                async.map(c.data, function (result, workstreamCallback) {
+                    members.countData("members",{linkId:result.id,linkType: 'workstream'}, 'member_count',(e) =>{
+                        workstreamCallback(null, Object.assign({}, result, {member_count:e.data.member_count}))
+                    })
+                }, function (err, results) {
+                    socket.emit("FRONT_WORKSTREAM_LIST",results)
+                });
             }else{
                 if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
             }

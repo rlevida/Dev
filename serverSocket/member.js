@@ -7,14 +7,11 @@ var init = exports.init = (socket) => {
         let members = global.initModel("members")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
         members.getData("members", filter, {}, (c) => {
-            
-            
-            
-            // if (c.status) {
-            //     socket.emit("FRONT_MEMBERS_LIST", c.data)
-            // } else {
-            //     if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
-            // }
+            if (c.status) {
+                socket.emit("FRONT_MEMBERS_LIST", c.data)
+            } else {
+                if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
+            }
         })
     })
 
