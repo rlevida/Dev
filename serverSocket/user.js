@@ -36,12 +36,12 @@ var init = exports.init = (socket) => {
 
         users.getData("users", filter, {}, (c) => {
             if (c.status) {
-                async.map(c.data, function (result, userCallback) {
-                    usersRole.getData("users_role", { usersId: result.id }, {}, (e) => {
-                        userCallback(null, Object.assign({}, result, { roles: e.data }))
+                usersRole.getData("users_role", { }, {}, (e) => {
+                    c.data = c.data.map((f,j)=>{
+                        f.role = e.data.filter(g=>g.usersId == f.id)
+                        return f
                     })
-                }, function (err, results) {
-                    socket.emit("FRONT_USER_LIST", results)
+                    socket.emit("FRONT_USER_LIST", c.data)
                 });
             } else {
                 if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
@@ -61,7 +61,7 @@ var init = exports.init = (socket) => {
 
                     let usersTeam = global.initModel("users_team")
                     usersTeam.getData("users_team",{usersId:c.data[0].id},{},(e)=>{
-                        c.data[0].team = JSON.stringify(e.data.map((e,i)=>{ return {value:e.teamId}; }));
+                        c.data[0].team = JSON.stringify(e.data.map((e,i)=>{ return {value:e.teamId,label:e.team_team}; }));
                         socket.emit("FRONT_USER_SELECTED",c.data[0]);
                     })
                 })

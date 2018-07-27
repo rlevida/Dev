@@ -43,7 +43,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { users, dispatch, socket } = this.props;
+        let { users, dispatch, socket, loggedUser } = this.props;
 
         return <div>
                 <a class="btn btn-primary" style={{float:"right",cursor:"pointer",margin:"10px"}} onClick={(e)=>dispatch({type:"SET_USER_FORM_ACTIVE", FormActive: "Form" })} ><span>New Users</span></a>
@@ -64,32 +64,37 @@ export default class List extends React.Component {
                         }
                         {
                             users.List.map((data, index) => {
-                                return <tr key={index}>
-                                        <td>{data.id}</td>
-                                        <td>{data.username}</td>
-                                        <td>{data.emailAddress}</td>
-                                        <td>{data.userType}</td>
-                                        <td class="text-center">
-                                            <a href="javascript:void(0);" data-tip="EDIT" 
-                                                onClick={(e) => socket.emit("GET_USER_DETAIL",{id:data.id})}
-                                                class="btn btn-info btn-sm">
-                                                <span class="glyphicon glyphicon-pencil"></span></a>
-                                            <a href="javascript:void(0);" data-tip="DELETE"
-                                                onClick={e => this.deleteData(data.id)}
-                                                class={data.allowedDelete==0?'hide':'btn btn-danger btn-sm ml10'}>
-                                                <span class="glyphicon glyphicon-trash"></span></a>
-                                            <a href="javascript:void(0);"
-                                                data-tip='CHANGE PASSWORD'
-                                                onClick={e => {
-                                                    dispatch({type:"SET_USER_ID", SelectedId : data.id}) 
-                                                    dispatch({type: "SET_USER_FORM_ACTIVE", FormActive: "ChangePassword" })
-                                                }} class="btn btn-info btn-sm ml10">
-                                                <span class="glyphicon glyphicon-lock"></span>
-                                            </a>
-                                            <OnOffSwitch Active={data.isActive} Action={()=>this.updateActiveStatus(data.id,data.isActive)} />
-                                            <Tooltip />
-                                        </td>
-                                    </tr>
+                                let role = data.role.filter(e => e.roleId == 1)
+                                if(loggedUser.data.userRole == 2 && role.length > 0){ 
+                                    // only master admin can view master admin user
+                                }else{
+                                    return <tr key={index}>
+                                            <td>{data.id}</td>
+                                            <td>{data.username}</td>
+                                            <td>{data.emailAddress}</td>
+                                            <td>{data.userType}</td>
+                                            <td class="text-center">
+                                                <a href="javascript:void(0);" data-tip="EDIT" 
+                                                    onClick={(e) => socket.emit("GET_USER_DETAIL",{id:data.id})}
+                                                    class="btn btn-info btn-sm">
+                                                    <span class="glyphicon glyphicon-pencil"></span></a>
+                                                <a href="javascript:void(0);" data-tip="DELETE"
+                                                    onClick={e => this.deleteData(data.id)}
+                                                    class={data.allowedDelete==0?'hide':'btn btn-danger btn-sm ml10'}>
+                                                    <span class="glyphicon glyphicon-trash"></span></a>
+                                                <a href="javascript:void(0);"
+                                                    data-tip='CHANGE PASSWORD'
+                                                    onClick={e => {
+                                                        dispatch({type:"SET_USER_ID", SelectedId : data.id}) 
+                                                        dispatch({type: "SET_USER_FORM_ACTIVE", FormActive: "ChangePassword" })
+                                                    }} class="btn btn-info btn-sm ml10">
+                                                    <span class="glyphicon glyphicon-lock"></span>
+                                                </a>
+                                                <OnOffSwitch Active={data.isActive} Action={()=>this.updateActiveStatus(data.id,data.isActive)} />
+                                                <Tooltip />
+                                            </td>
+                                        </tr>
+                                }
                             })
                         }
                     </tbody>

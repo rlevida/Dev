@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `type`;
 CREATE TABLE `type` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
-    `type` VARCHAR(20),
+    `type` VARCHAR(30),
     `linkType` ENUM("project","workstream","task"),
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
