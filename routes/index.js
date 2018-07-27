@@ -40,14 +40,6 @@ router.get('/company', function (req, res, next) {
     });
 });
 
-router.get('/teams', function (req, res, next) {
-    res.render('index', {
-        title: global.site_name + " - Teams",
-        body: './template/index',
-        page: 'teams'
-    });
-});
-
 router.get('/mytask', function (req, res, next) {
     res.render('index', {
         title: global.site_name + " - Teams",

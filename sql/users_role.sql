@@ -10,3 +10,5 @@ CREATE TABLE `users_role` (
     `isDeleted` TINYINT(1) DEFAULT '0',
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;
+
+INSERT INTO `cloud_cfo`.`users_role`(`usersId`,`roleId`,`dateAdded`) VALUES ('1','1',NOW());

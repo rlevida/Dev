@@ -10,6 +10,7 @@ import Project from "./project"
 import Type from "./type"
 import Status from "./status"
 import Role from "./role"
+import Team from "./teams"
 
 export default class Socket extends React.Component {
     render() {
@@ -22,6 +23,7 @@ export default class Socket extends React.Component {
                     <Status />
                     <Type />
                     <Role />
+                    <Team />
                 </div>
     }
 }

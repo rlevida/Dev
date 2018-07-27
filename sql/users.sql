@@ -19,5 +19,5 @@ CREATE TABLE `users` (
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;
 /* password : volenday */
-INSERT INTO users (`username`,`password`,`emailAddress`,`salt`)
-values('admin','c08f94cdbfd13e47333a2d6e18c5ab8b6d2c3fbf','johnaldrin.tapia@volenday.com','4qVnChLYBUpVWuLXQsZBKQJcYiq5ZVRn');
+INSERT INTO users (`username`,`firstName`,`lastName`,`password`,`emailAddress`,`salt`,`userType`,`dateAdded`)
+values('admin','John Aldrin','Tapia','c08f94cdbfd13e47333a2d6e18c5ab8b6d2c3fbf','johnaldrin.tapia@volenday.com','4qVnChLYBUpVWuLXQsZBKQJcYiq5ZVRn',"Internal",NOW());

@@ -73,6 +73,10 @@ export default class Socket extends React.Component {
                 window.location.replace('/');
             },1000);
         })
+
+        socket.on("FRONT_APPLICATION_SELECT_LIST",(data)=>{
+            dispatch({type:"SET_APPLICATION_SELECT_LIST",List:data.data , name: data.name })
+        })
     }
 
     render() {return <div> </div> }

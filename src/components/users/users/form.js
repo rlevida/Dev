@@ -3,8 +3,8 @@ import ReactDOM from "react-dom"
 import Select from 'react-select'
 import moment from 'moment'
 
-import { showToast,displayDate,setDatePicker } from '../../globalFunction'
-import { HeaderButtonContainer,HeaderButton,DropDown } from "../../globalComponents"
+import { showToast,displayDate,setDatePicker } from '../../../globalFunction'
+import { HeaderButtonContainer,HeaderButton,DropDown } from "../../../globalComponents"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -27,6 +27,10 @@ export default class FormComponent extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
         this.handleDate = this.handleDate.bind(this)
+    }
+
+    componentWillMount(){
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{selectName:"teamList"});
     }
 
     componentDidMount() {
@@ -87,9 +91,10 @@ export default class FormComponent extends React.Component {
     }
 
     setDropDownMultiple(name,values) {
-        this.setState({
-            [name]: JSON.stringify(values?values:[])
-        });
+        let { socket, dispatch, users } = this.props
+        let Selected = Object.assign({},users.Selected)
+        Selected[name] = JSON.stringify(values?values:[])
+        dispatch({type:"SET_USER_SELECTED",Selected:Selected})
     }
 
     render() {
@@ -98,25 +103,21 @@ export default class FormComponent extends React.Component {
 
         let userRole = []
         role.List.map((e,i)=>{
-            console.log();
             if( e.roleType == users.Selected.userType ){
                 userRole.push({id:e.id,name:e.role})
             }
         })
 
+        let teamList = []
+        if(typeof global.SelectList["teamList"] != "undefined"){
+            global.SelectList["teamList"].map((e,i)=>{
+                teamList.push({id:e.id,name:e.team})
+            })
+        }
+        
+
+
         return <div>
-            <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" style={{marginRight:"2px"}} 
-                    onClick={(e)=>{
-                        dispatch({type:"SET_USER_FORM_ACTIVE", FormActive: "List" });
-                        dispatch({type:"SET_USER_SELECTED", Selected: {} });
-                    }} >
-                    <span>Back</span>
-                </li>
-                <li class="btn btn-info" onClick={this.handleSubmit} >
-                    <span>Save</span>
-                </li>
-            </HeaderButtonContainer>
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">
                     <div class="panel panel-default">
@@ -182,7 +183,27 @@ export default class FormComponent extends React.Component {
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Team *</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <DropDown multiple={true} 
+                                            required={false}
+                                            options={ teamList } 
+                                            selected={(typeof users.Selected.team == "undefined")?[]:JSON.parse(users.Selected.team)} 
+                                            onChange={(e)=>this.setDropDownMultiple("team",e)} /> 
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
                             </form>
+                            
+                            <a class="btn btn-primary" style={{float:"left",cursor:"pointer",margin:"10px"}}  onClick={(e)=>{
+                                        dispatch({type:"SET_USER_FORM_ACTIVE", FormActive: "List" });
+                                        dispatch({type:"SET_USER_SELECTED", Selected: {} });
+                                    }} ><span>Back</span>
+                            </a>
+                            <a class="btn btn-primary" style={{float:"right",cursor:"pointer",margin:"10px"}}   onClick={this.handleSubmit}  >
+                                <span>Save</span>
+                            </a>
                         </div>
                     </div>
                 </div>

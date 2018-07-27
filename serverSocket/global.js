@@ -58,4 +58,25 @@ var init = exports.init = (socket) => {
 
         socket.emit("GET_SETTINGS_RETURN", data);
     })
+
+    socket.on("GET_APPLICATION_SELECT_LIST", (d) => {
+        let modelName = "";
+        let modelList = [];
+            modelList["teamList"] = "team"; 
+            modelList["usersList"] = "users"; 
+        
+        modelName = modelList[d.selectName];
+        if(modelName != ""){
+            let model = global.initModel(modelName);
+            let type = (typeof d.type != 'undefined') ? d.type : 'client';
+            let filter = (typeof d.filter != "undefined")?d.filter:{};
+            model.getData(modelName, filter, {}, (c) => {
+                if (c.status) {
+                    socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:c.data,name:d.selectName})
+                } else {
+                    socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:[],name:d.selectName})
+                }
+            })
+        }
+    })    
 }

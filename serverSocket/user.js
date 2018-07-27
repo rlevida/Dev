@@ -45,7 +45,12 @@ var init = exports.init = (socket) => {
                 let usersRole = global.initModel("users_role")
                 usersRole.getData("users_role",{usersId:c.data[0].id},{},(e)=>{
                     c.data[0].userRole = (e.data.length > 0)?e.data[0].roleId:0;
-                    socket.emit("FRONT_USER_SELECTED",c.data[0]);
+
+                    let usersTeam = global.initModel("users_team")
+                    usersTeam.getData("users_team",{usersId:c.data[0].id},{},(e)=>{
+                        c.data[0].team = JSON.stringify(e.data.map((e,i)=>{ return {value:e.teamId}; }));
+                        socket.emit("FRONT_USER_SELECTED",c.data[0]);
+                    })
                 })
             }else{
                 if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
@@ -58,7 +63,7 @@ var init = exports.init = (socket) => {
         let usersRole = global.initModel("users_role")
         sequence.create().then(function (nextThen) {
             usersRole.getData("users_role",{roleId:1},{},(b)=>{
-                if( b.data.length <= 1 && b.data[0].usersId == d.data.id && ( typeof d.data.isActive != "undefined" && d.data.isActive == "0" ) ){
+                if( b.data.length == 1 && b.data[0].usersId == d.data.id && ( typeof d.data.isActive != "undefined" && d.data.isActive == "0" ) ){
                     socket.emit("RETURN_ERROR_MESSAGE",{message:"Cant set to inactive, Last Master admin user."})
                     socket.emit("FRONT_USER_ACTIVE",{id:d.data.id,status:1})
                 }else{
@@ -102,8 +107,6 @@ var init = exports.init = (socket) => {
                         users.getData("users",{id:c.id},{},(e)=>{
                             if(e.data.length > 0) {
                                 nextThen({id:c.id,type:"add",data:e.data,message:"Successfully added."})
-                                
-                                socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
                             }else{
                                 socket.emit("RETURN_ERROR_MESSAGE",{message:"Saving failed. Please Try again later."})
                             }
@@ -124,6 +127,15 @@ var init = exports.init = (socket) => {
                 let model = global.initModel("users_role");
                 model.deleteData("users_role",{usersId:retData.id},(a)=>{
                     model.postData("users_role",{usersId:retData.id,roleId:d.data.userRole},()=>{ })
+                })
+            }
+            if( typeof d.data.team != "undefined" ){
+                let model = global.initModel("users_team");
+                model.deleteData("users_team",{usersId:retData.id},(a)=>{
+                    let teams = JSON.parse(d.data.team);
+                    teams.map((e,i)=>{
+                        model.postData("users_team",{usersId:retData.id,teamId:e.value},()=>{ })
+                    })
                 })
             }
         })

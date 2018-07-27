@@ -9,6 +9,7 @@ import project from "./project"
 import type from "./type"
 import role from "./role"
 import status from "./status"
+import teams from "./teams"
 import global from "./global"
 
 export default combineReducers({
@@ -21,5 +22,6 @@ export default combineReducers({
     type,
     role,
     status,
+    teams,
     global
 })
