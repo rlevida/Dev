@@ -13,6 +13,7 @@ import role from "./role"
 import status from "./status"
 import teams from "./teams"
 import global from "./global"
+import document from "./document"
 
 export default combineReducers({
     socket,
@@ -27,5 +28,6 @@ export default combineReducers({
     teams,
     workstream,
     members,
-    global
+    global,
+    document
 })

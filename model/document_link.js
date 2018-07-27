@@ -6,19 +6,9 @@ var field = exports.field = {
         'id' : {type : 'bigint' , access : "public" },
 
         /**
-         * name (VARCHAR(50))
+         * documentId (BIGINT)
          */
-        'name' : {type : 'string' , access : "public" },
-
-        /**
-         * uploadedBy (BIGINT)
-         */
-        'uploadedBy' : {type : 'bigint' , access : "public" },
-
-        /**
-         * type (VARCHAR(20))
-         */
-        'type' : {type : 'string' , access : "public" },
+        'documentId' : {type : 'bigint' , access : "public" },
 
         /**
          * linkType (ENUM("project","workstream","task"))
@@ -43,7 +33,7 @@ var field = exports.field = {
 }
 
 var { getData, putData, postData, deleteData } = require("./index");
-exports.getData = getData;
+exports.getData = getData;field
 exports.putData = putData;
 exports.postData = postData;
 exports.deleteData = deleteData;

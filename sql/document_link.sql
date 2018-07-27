@@ -1,10 +1,8 @@
 DROP TABLE IF EXISTS `document_link`;
 CREATE TABLE `document_link` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
-    `name` VARCHAR(50),
-    `uploadedBy` BIGINT,
-    `type` VARCHAR(20),
-    `linkType` ENUM("project","workstream","task"),
+    `documentId` BIGINT,
+    `linkType` ENUM("project","workstream","task","conversation"),
     `linkId` BIGINT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
