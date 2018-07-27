@@ -1,7 +1,8 @@
 import React from "react"
 
 import { showToast } from '../../globalFunction'
-import { HeaderButtonContainer, DropDown } from "../../globalComponents"
+import { HeaderButtonContainer, DropDown } from "../../globalComponents";
+import MembersForm from "./membersForm";
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -9,7 +10,9 @@ import { connect } from "react-redux"
         socket: store.socket.container,
         workstream: store.workstream,
         loggedUser: store.loggedUser,
+        users: store.users,
         status: store.status,
+        members: store.members,
         type: store.type
     }
 })
@@ -25,6 +28,8 @@ export default class FormComponent extends React.Component {
 
     componentDidMount() {
         $(".form-container").validator();
+        let { workstream } = this.props
+        this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: workstream.Selected.id, linkType: 'workstream' } });
     }
 
     handleChange(e) {
@@ -48,7 +53,7 @@ export default class FormComponent extends React.Component {
             showToast("error", "Form did not fullfill the required value.")
             return;
         }
-        
+
         socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { ...workstream.Selected, projectId: project, numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0 } });
     }
 
@@ -66,10 +71,18 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, workstream, loggedUser, status, type } = this.props
-        let statusList = [], typeList = []
+        let { dispatch, workstream, users, status, type, members } = this.props
+        let statusList = [], typeList = [], userList = [];
+
         status.List.map((e, i) => { if (e.linkType == "workstream") { statusList.push({ id: e.id, name: e.status }) } })
         type.List.map((e, i) => { if (e.linkType == "workstream") { typeList.push({ id: e.id, name: e.type }) } })
+        userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
+
+        let memberList = members.List.map((e, i) => {
+            let returnObject = e;
+            let userMember = userList.filter((o) => { return o.id == e.userTypeLinkId });
+            return { ...e, 'user': userMember[0] };
+        });
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -146,7 +159,30 @@ export default class FormComponent extends React.Component {
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label pt0">Members</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <a href="#" type="button" data-toggle="modal" data-target="#modal">
+                                            Add Members
+                                        </a>
+                                    </div>
+                                </div>
                             </form>
+                            
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="modal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog modal-md" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Add Members</h4>
+                        </div>
+                        <div class="modal-body">
+                            <MembersForm />
                         </div>
                     </div>
                 </div>

@@ -5,6 +5,7 @@ import login from "./login"
 import loggedUser from "./loggedUser"
 import users from "./users"
 import company from "./company"
+import members from "./members"
 import project from "./project"
 import workstream from "./workstream"
 import type from "./type"
@@ -25,5 +26,6 @@ export default combineReducers({
     status,
     teams,
     workstream,
+    members,
     global
 })
