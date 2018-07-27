@@ -13,7 +13,7 @@ var field = exports.field = {
         /**
          * teamId (BIGINT)
          */
-        'teamId' : {type : 'bigint' , access : "public" },
+        'teamId' : {type : 'bigint' , access : "public", database: "team" , relation: "one-to-one" },
         
         /**
          * dateAdded (DATETIME)

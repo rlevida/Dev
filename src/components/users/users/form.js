@@ -104,7 +104,11 @@ export default class FormComponent extends React.Component {
         let userRole = []
         role.List.map((e,i)=>{
             if( e.roleType == users.Selected.userType ){
-                userRole.push({id:e.id,name:e.role})
+                if(loggedUser.data.userRole == 2 && e.id == 1){ 
+                    // master admin can be created by master admin only
+                }else{
+                    userRole.push({id:e.id,name:e.role})
+                }
             }
         })
 

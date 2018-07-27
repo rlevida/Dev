@@ -72,7 +72,19 @@ var init = exports.init = (socket) => {
                 delete retData.password
                 delete retData.salt
                 retData.LastLoggedIn = socket.handshake.query.LastLoggedIn
-                socket.emit("RETURN_LOGGED_USER",{data:retData})
+                let usersRole = global.initModel("users_role")
+                usersRole.getData("users_role",{usersId:retData.id},{},(e)=>{
+                    retData.userRole = (e.data.length > 0)?e.data[0].roleId:0;
+                    
+                    let usersTeam = global.initModel("users_team")
+                    usersTeam.getData("users_team",{usersId:retData.id},{},(e)=>{
+                        retData.team = JSON.stringify(e.data.map((e,i)=>{ return {value:e.teamId,label:e.team_team}; }));
+
+                        socket.emit("RETURN_LOGGED_USER",{data:retData})
+                    })
+                })
+
+                
             }
         })
     });

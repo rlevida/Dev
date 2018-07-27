@@ -27,12 +27,21 @@ var init = exports.init = (socket) => {
 
     socket.on("GET_USER_LIST",(d) => {
         let users = global.initModel("users")
-        let filter = (typeof d.filter != "undefined")?d.filter:{};
-        users.getData("users",filter,{},(c)=>{
-            if(c.status) {
-                socket.emit("FRONT_USER_LIST",c.data)
-            }else{
-                if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
+
+        let filter = (typeof d.filter != "undefined") ? d.filter : {};
+        let usersRole = global.initModel("users_role");
+
+        users.getData("users", filter, {}, (c) => {
+            if (c.status) {
+                usersRole.getData("users_role", { }, {}, (e) => {
+                    c.data = c.data.map((f,j)=>{
+                        f.role = e.data.filter(g=>g.usersId == f.id)
+                        return f
+                    })
+                    socket.emit("FRONT_USER_LIST", c.data)
+                });
+            } else {
+                if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
             }
         })
     })
@@ -48,7 +57,7 @@ var init = exports.init = (socket) => {
 
                     let usersTeam = global.initModel("users_team")
                     usersTeam.getData("users_team",{usersId:c.data[0].id},{},(e)=>{
-                        c.data[0].team = JSON.stringify(e.data.map((e,i)=>{ return {value:e.teamId}; }));
+                        c.data[0].team = JSON.stringify(e.data.map((e,i)=>{ return {value:e.teamId,label:e.team_team}; }));
                         socket.emit("FRONT_USER_SELECTED",c.data[0]);
                     })
                 })
