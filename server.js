@@ -20,6 +20,7 @@ var index = require('./routes');
 var project = require('./routes/project');
 var auth = require('./routes/auth');
 var forgot = require('./routes/forgotPassword');
+var api = require('./routes/api');
 
 var app = express();
 
@@ -52,6 +53,7 @@ app.use(function(req, res, next){
 app.use('/forgotPassword', forgot);
 app.use('/auth', auth);
 app.use('/project', project);
+app.use('/api', api);
 app.use('/', index);
 
 app.use(function (req, res, next) {

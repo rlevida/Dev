@@ -9,7 +9,10 @@ var field = exports.field = {
          * name (VARCHAR(50))
          */
         'name' : {type : 'string' , access : "public" },
-
+        /**
+         * name (VARCHAR(50))
+         */
+        'origin' : {type : 'string' , access : "public" },
         /**
          * uploadedBy (BIGINT)
          */

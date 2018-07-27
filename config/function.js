@@ -43,4 +43,35 @@ var sendForgotPasswordmail = exports.sendForgotPasswordmail = (responseId, email
             });
         })
     })
+
+var uploadFile = exports.uploadFile = (params,cb) => {
+    var fs = global.initRequire('fs'),
+        AWS = global.initAWS();
+    var fileStream = fs.createReadStream(params.file.path);
+    fileStream.on('error', (err) => {
+       console.log("Error in creating file stream. [" + err + "]");
+    });
+
+    fileStream.on('open', () => {
+        var s3 = new AWS.S3();
+            s3.putObject({
+                Bucket: global.AWSBucket,
+                Key: global.environment + "/" + params.form + "/" + params.filename,
+                ACL: 'public-read-write',
+                Body: fileStream,
+                ContentType : params.file.type
+            }, (err) => {
+                if(err){
+                    console.log("Error in Uploading to AWS. [" + err + "]");
+                    cb({Message:'Failed to upload'})
+                }else{
+                    cb({Message:'Success'})
+                }
+            });
+    });
+}
+
+var getFilePathExtension = exports.getFilePathExtension = (path) => {
+    var filename = path.split('\\').pop().split('/').pop();
+    return filename.substr((Math.max(0, filename.lastIndexOf(".")) || Infinity) + 1);
 }

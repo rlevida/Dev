@@ -35,10 +35,10 @@ switch (page) {
                 require('./container/home');
                 break;
             case "documents":
-                require('./container/home');
+                require('./container/document');
                 break;
             case "trash":
-                require('./container/home');
+                require('./container/trash');
                 break;
             case "processes":
                 require('./container/workstream');
