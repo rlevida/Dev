@@ -1,7 +1,7 @@
 import React from "react"
 
-import { showToast } from '../../globalFunction'
-import { HeaderButtonContainer, DropDown } from "../../globalComponents"
+import { showToast } from '../../../globalFunction'
+import { HeaderButtonContainer, DropDown } from "../../../globalComponents"
 
 import { connect } from "react-redux";
 import _ from "lodash";
@@ -9,7 +9,6 @@ import _ from "lodash";
 @connect((store) => {
     return {
         socket: store.socket.container,
-        workstream: store.workstream,
         users: store.users,
         members: store.members
     }
@@ -28,7 +27,7 @@ export default class MembersForm extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, members, workstream } = this.props
+        let { socket, members, type } = this.props
         let result = true;
 
         $('.member-form-container *').validator('validate');
@@ -51,8 +50,8 @@ export default class MembersForm extends React.Component {
             data: {
                 ...members.Selected,
                 usersType: 'users',
-                linkType: 'workstream',
-                linkId: workstream.Selected.id
+                linkType: type.label,
+                linkId: type.data.Selected.id
             }
         });
     }

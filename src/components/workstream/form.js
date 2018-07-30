@@ -2,7 +2,7 @@ import React from "react"
 
 import { showToast } from '../../globalFunction'
 import { HeaderButtonContainer, DropDown } from "../../globalComponents";
-import MembersForm from "./membersForm";
+import MembersForm from "../global/members/membersForm";
 import { connect } from "react-redux";
 
 import Tooltip from "react-tooltip";
@@ -237,7 +237,14 @@ export default class FormComponent extends React.Component {
                             <h4 class="modal-title" id="myModalLabel">Add Members</h4>
                         </div>
                         <div class="modal-body">
-                            <MembersForm />
+                            <MembersForm 
+                                type={
+                                   {
+                                    data:workstream,
+                                    label:'workstream'
+                                   }
+                                }
+                            />
                         </div>
                     </div>
                 </div>
