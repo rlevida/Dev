@@ -77,7 +77,7 @@ export default class List extends React.Component {
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td>{data.member_count}</td>
+                                <td></td>
                                 <td>{data.type_type}</td>
                                 <td></td>
                                 <td class="text-center">
