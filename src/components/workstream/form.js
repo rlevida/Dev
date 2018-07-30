@@ -6,6 +6,7 @@ import MembersForm from "../global/members/membersForm";
 import { connect } from "react-redux";
 
 import Tooltip from "react-tooltip";
+import _ from "lodash";
 
 @connect((store) => {
     return {
@@ -15,6 +16,7 @@ import Tooltip from "react-tooltip";
         users: store.users,
         status: store.status,
         members: store.members,
+        teams: store.teams,
         type: store.type
     }
 })
@@ -55,6 +57,7 @@ export default class FormComponent extends React.Component {
                 result = false;
             }
         });
+        
         if (!result) {
             showToast("error", "Form did not fullfill the required value.")
             return;
@@ -63,10 +66,10 @@ export default class FormComponent extends React.Component {
         socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { ...workstream.Selected, projectId: project, numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0 } });
     }
 
-    deleteData(id) {
+    deleteData(params) {
         let { socket } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_MEMBERS", { id: id })
+            socket.emit("DELETE_MEMBERS", params)
         }
     }
 
@@ -84,18 +87,30 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, workstream, users, status, type, members } = this.props
+        let { dispatch, workstream, users, status, type, members, teams } = this.props
         let statusList = [], typeList = [], userList = [];
 
         status.List.map((e, i) => { if (e.linkType == "workstream") { statusList.push({ id: e.id, name: e.status }) } })
         type.List.map((e, i) => { if (e.linkType == "workstream") { typeList.push({ id: e.id, name: e.type }) } })
         userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
 
-        let memberList = members.List.map((e, i) => {
-            let returnObject = e;
-            let userMember = (users.List).filter((o) => { return o.id == e.userTypeLinkId });
-            return { ...e, 'user': userMember[0] };
-        });
+        let userMemberList = _(members.List)
+            .filter((member) => { return member.usersType == 'users' })
+            .map((member) => {
+                let returnObject = member;
+                let userMember = (users.List).filter((o) => { return o.id == member.userTypeLinkId });
+                return { ...member, 'user': userMember[0] };
+            })
+            .value();
+
+        let teamMemberList = _(members.List)
+            .filter((member) => { return member.usersType == 'team' })
+            .map((member) => {
+                let returnObject = member;
+                let teamMember = (teams.List).filter((o) => { return o.id == member.userTypeLinkId });
+                return { ...member, 'team': teamMember[0] };
+            })
+            .value();
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -188,6 +203,42 @@ export default class FormComponent extends React.Component {
 
                             {
                                 (typeof workstream.Selected.id != 'undefined') && <div class="row pd20">
+                                    <h3>Teams</h3>
+                                    <table id="dataTable" class="table responsive-table mt30">
+                                        <tbody>
+                                            <tr>
+                                                <th>Team Name</th>
+                                                <th></th>
+                                            </tr>
+                                            {
+                                                (teamMemberList.length == 0) &&
+                                                <tr>
+                                                    <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
+                                                </tr>
+                                            }
+                                            {
+                                                teamMemberList.map((data, index) => {
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td>{data.team.team}</td>
+                                                            <td class="text-center">
+                                                                <a href="javascript:void(0);" data-tip="DELETE"
+                                                                    onClick={e => this.deleteData({ id: data.id, type: 'team' })}
+                                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                                    <span class="glyphicon glyphicon-trash"></span></a>
+                                                                <Tooltip />
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            {
+                                (typeof workstream.Selected.id != 'undefined') && <div class="row pd20">
+                                    <h3>Members</h3>
                                     <table id="dataTable" class="table responsive-table mt30">
                                         <tbody>
                                             <tr>
@@ -197,13 +248,13 @@ export default class FormComponent extends React.Component {
                                                 <th></th>
                                             </tr>
                                             {
-                                                (memberList.length == 0) &&
+                                                (userMemberList.length == 0) &&
                                                 <tr>
                                                     <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
                                                 </tr>
                                             }
                                             {
-                                                memberList.map((data, index) => {
+                                                userMemberList.map((data, index) => {
                                                     return (
                                                         <tr key={index}>
                                                             <td>{data.user.firstName + ' ' + data.user.lastName}</td>
@@ -211,7 +262,7 @@ export default class FormComponent extends React.Component {
                                                             <td>{((typeof data.user.role != 'undefined' && data.user.role).length > 0) ? data.user.role[0].role_role : ''}</td>
                                                             <td class="text-center">
                                                                 <a href="javascript:void(0);" data-tip="DELETE"
-                                                                    onClick={e => this.deleteData(data.id)}
+                                                                    onClick={e => this.deleteData({ id: data.id, type: 'team' })}
                                                                     class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
                                                                     <span class="glyphicon glyphicon-trash"></span></a>
                                                                 <Tooltip />
@@ -237,12 +288,12 @@ export default class FormComponent extends React.Component {
                             <h4 class="modal-title" id="myModalLabel">Add Members</h4>
                         </div>
                         <div class="modal-body">
-                            <MembersForm 
+                            <MembersForm
                                 type={
-                                   {
-                                    data:workstream,
-                                    label:'workstream'
-                                   }
+                                    {
+                                        data: workstream,
+                                        label: 'workstream'
+                                    }
                                 }
                             />
                         </div>

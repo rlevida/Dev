@@ -10,7 +10,8 @@ import _ from "lodash";
     return {
         socket: store.socket.container,
         users: store.users,
-        members: store.members
+        members: store.members,
+        teams: store.teams
     }
 })
 
@@ -41,15 +42,15 @@ export default class MembersForm extends React.Component {
             return;
         }
 
-        if (_.has(members.Selected, 'userTypeLinkId') == false) {
-            showToast("error", "No members remaining.")
+        if (_.has(members.Selected, 'userTypeLinkId') == false || members.Selected.userTypeLinkId == '') {
+            showToast("error", "All members are assigned.")
             return;
         }
 
         socket.emit("SAVE_OR_UPDATE_MEMBERS", {
             data: {
                 ...members.Selected,
-                usersType: 'users',
+                usersType: members.Selected.type,
                 linkType: type.label,
                 linkId: type.data.Selected.id
             }
@@ -58,8 +59,22 @@ export default class MembersForm extends React.Component {
 
     setDropDown(name, value) {
         let { dispatch, members } = this.props
-        let Selected = Object.assign({}, members.Selected)
-        Selected[name] = value;
+        let Selected = { ...members.Selected }
+
+        if (name == 'type') {
+            Selected = {
+                ...Selected,
+                [name]: value,
+                userTypeLinkId: '',
+                memberType: ''
+            }
+        } else {
+            Selected = {
+                ...Selected,
+                [name]: value
+            }
+        }
+
         dispatch({ type: "SET_MEMBERS_SELECTED", Selected: Selected })
     }
 
@@ -70,15 +85,27 @@ export default class MembersForm extends React.Component {
     }
 
     render() {
-        let { users, members } = this.props;
+        let { users, members, teams } = this.props;
         let typeList = [
             { id: 'assignedTo', name: 'Assigned To' },
             { id: 'Follower', name: 'Follower' },
             { id: 'responsible', name: 'Responsible' },
         ];
         let userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
-        let memberListIds = members.List.map((o) => { return o.userTypeLinkId });
-        userList = userList.filter((e, i) => { return (memberListIds).indexOf(e.id) === -1 });
+        let userMemberListIds = _(members.List)
+            .filter((o) => { return o.usersType == 'users' })
+            .map((o) => { return o.userTypeLinkId })
+            .value();
+        userList = userList.filter((e, i) => { return (userMemberListIds).indexOf(e.id) === -1 });
+
+        let teamList = teams.List.map((e, i) => { return { id: e.id, name: e.team } });
+        let teamMemberListIds = _(members.List)
+            .filter((o) => { return o.usersType == 'team' })
+            .map((o) => { return o.userTypeLinkId })
+            .value();
+        teamList = teamList.filter((e, i) => { return (teamMemberListIds).indexOf(e.id) === -1 });
+
+        let memberList = (members.Selected.type == 'team') ? teamList : (members.Selected.type == 'users') ? userList : [];
 
         return (
             <div>
@@ -91,11 +118,28 @@ export default class MembersForm extends React.Component {
                     <div class="col-lg-12 col-md-12 col-xs-12">
                         <form onSubmit={this.handleSubmit} class="form-horizontal member-form-container">
                             <div class="form-group">
+                                <label class="col-md-3 col-xs-12 control-label">Member Type</label>
+                                <div class="col-md-7 col-xs-12">
+                                    <DropDown multiple={false}
+                                        required={true}
+                                        options={[
+                                            { id: 'users', name: 'User' },
+                                            { id: 'team', name: 'Team' }
+                                        ]}
+                                        selected={(typeof members.Selected.type == "undefined") ? "" : members.Selected.type}
+                                        onChange={(e) => {
+                                            this.setDropDown("type", e.value);
+                                        }}
+                                    />
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label class="col-md-3 col-xs-12 control-label">Member</label>
                                 <div class="col-md-7 col-xs-12">
                                     <DropDown multiple={false}
                                         required={true}
-                                        options={userList}
+                                        options={memberList}
                                         selected={(typeof members.Selected.userTypeLinkId == "undefined" || userList.length == 0) ? "" : members.Selected.userTypeLinkId}
                                         onChange={(e) => {
                                             this.setDropDown("userTypeLinkId", e.value);

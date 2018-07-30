@@ -24,6 +24,7 @@ export default class List extends React.Component {
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
         this.props.socket.emit("GET_USER_LIST",{});
+        this.props.socket.emit("GET_TEAM_LIST",{});
     }
 
     updateActiveStatus(id, active) {
