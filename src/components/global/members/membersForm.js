@@ -106,7 +106,7 @@ export default class MembersForm extends React.Component {
         teamList = teamList.filter((e, i) => { return (teamMemberListIds).indexOf(e.id) === -1 });
 
         let memberList = (members.Selected.type == 'team') ? teamList : (members.Selected.type == 'users') ? userList : [];
-
+       
         return (
             <div>
                 <HeaderButtonContainer withMargin={true}>
@@ -140,7 +140,7 @@ export default class MembersForm extends React.Component {
                                     <DropDown multiple={false}
                                         required={true}
                                         options={memberList}
-                                        selected={(typeof members.Selected.userTypeLinkId == "undefined" || userList.length == 0) ? "" : members.Selected.userTypeLinkId}
+                                        selected={(typeof members.Selected.userTypeLinkId == "undefined") ? "" : members.Selected.userTypeLinkId}
                                         onChange={(e) => {
                                             this.setDropDown("userTypeLinkId", e.value);
                                         }}
