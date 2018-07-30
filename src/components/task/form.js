@@ -2,9 +2,10 @@ import React from "react"
 
 import { showToast, setDatePicker, displayDate } from '../../globalFunction'
 import { HeaderButtonContainer, DropDown } from "../../globalComponents"
-
+import Tooltip from "react-tooltip";
 import { connect } from "react-redux"
 import moment from 'moment'
+import MembersForm from "../global/members/membersForm";
 
 @connect((store) => {
     return {
@@ -12,7 +13,9 @@ import moment from 'moment'
         task: store.task,
         loggedUser: store.loggedUser,
         status: store.status,
-        workstream: store.workstream
+        workstream: store.workstream,
+        members: store.members,
+        users: store.users
     }
 })
 
@@ -24,11 +27,16 @@ export default class FormComponent extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
         this.handleDate = this.handleDate.bind(this)
+        this.deleteData = this.deleteData.bind(this)
     }
 
     componentDidMount() {
+        let { task } = this.props
         $(".form-container").validator();
         setDatePicker(this.handleDate, "dueDate");
+        if (typeof task.Selected.id != 'undefined') {
+            this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
+        }
     }
 
     componentDidUpdate() {
@@ -49,6 +57,13 @@ export default class FormComponent extends React.Component {
 
         Selected[e.target.name] = e.target.value;
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
+    }
+
+    deleteData(id) {
+        let { socket } = this.props;
+        if (confirm("Do you really want to delete this record?")) {
+            socket.emit("DELETE_MEMBERS", { id: id })
+        }
     }
 
     handleSubmit(e) {
@@ -82,10 +97,18 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, task, status, workstream } = this.props;
+        let { dispatch, task, status, workstream, users, members } = this.props;
         let statusList = [], typeList = [];
         let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
+
+        let userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
+
+        let memberList = members.List.map((e, i) => {
+            let returnObject = e;
+            let userMember = (users.List).filter((o) => { return o.id == e.userTypeLinkId });
+            return { ...e, 'user': userMember[0] };
+        });
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -156,7 +179,77 @@ export default class FormComponent extends React.Component {
                                     </div>
                                     <div class="help-block with-errors"></div>
                                 </div>
+                                {
+                                    (typeof task.Selected.id != 'undefined') && <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label pt0">Members</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <a href="#" type="button" data-toggle="modal" data-target="#modal">
+                                                Add Members
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
                             </form>
+
+                             {
+                                (typeof task.Selected.id != 'undefined') && <div class="row pd20">
+                                    <table id="dataTable" class="table responsive-table mt30">
+                                        <tbody>
+                                            <tr>
+                                                <th>Member Name</th>
+                                                <th>Type</th>
+                                                <th>Role</th>
+                                                <th></th>
+                                            </tr>
+                                            {
+                                                (memberList.length == 0) &&
+                                                <tr>
+                                                    <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
+                                                </tr>
+                                            }
+                                            {
+                                                memberList.map((data, index) => {
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td>{data.user.firstName + ' ' + data.user.lastName}</td>
+                                                            <td>{data.user.userType}</td>
+                                                            <td>{((typeof data.user.role != 'undefined' && data.user.role).length > 0) ? data.user.role[0].role_role : ''}</td>
+                                                            <td class="text-center">
+                                                                <a href="javascript:void(0);" data-tip="DELETE"
+                                                                    onClick={e => this.deleteData(data.id)}
+                                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                                    <span class="glyphicon glyphicon-trash"></span></a>
+                                                                <Tooltip />
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="modal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog modal-md" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Add Members</h4>
+                        </div>
+                        <div class="modal-body">
+                            <MembersForm 
+                                type={
+                                   {
+                                    data:task,
+                                    label:'task'
+                                   }
+                                }
+                            />
                         </div>
                     </div>
                 </div>
