@@ -208,7 +208,7 @@ export default class FormComponent extends React.Component {
                                                         <tr key={index}>
                                                             <td>{data.user.firstName + ' ' + data.user.lastName}</td>
                                                             <td>{data.user.userType}</td>
-                                                            <td>{data.user.roles[0].role_role}</td>
+                                                            <td>{((typeof data.user.role != 'undefined' && data.user.role).length > 0) ? data.user.role[0].role_role : ''}</td>
                                                             <td class="text-center">
                                                                 <a href="javascript:void(0);" data-tip="DELETE"
                                                                     onClick={e => this.deleteData(data.id)}
