@@ -15,6 +15,7 @@ import MembersForm from "../global/members/membersForm";
         status: store.status,
         workstream: store.workstream,
         members: store.members,
+        teams: store.teams,
         users: store.users
     }
 })
@@ -59,10 +60,10 @@ export default class FormComponent extends React.Component {
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
-    deleteData(id) {
+    deleteData(params) {
         let { socket } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_MEMBERS", { id: id })
+            socket.emit("DELETE_MEMBERS", params)
         }
     }
 
@@ -97,18 +98,30 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, task, status, workstream, users, members } = this.props;
+        let { dispatch, task, status, workstream, users, members, teams } = this.props;
         let statusList = [], typeList = [];
         let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
         let userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
 
-        let memberList = members.List.map((e, i) => {
-            let returnObject = e;
-            let userMember = (users.List).filter((o) => { return o.id == e.userTypeLinkId });
-            return { ...e, 'user': userMember[0] };
-        });
+        let userMemberList = _(members.List)
+            .filter((member) => { return member.usersType == 'users' })
+            .map((member) => {
+                let returnObject = member;
+                let userMember = (users.List).filter((o) => { return o.id == member.userTypeLinkId });
+                return { ...member, 'user': userMember[0] };
+            })
+            .value();
+
+        let teamMemberList = _(members.List)
+            .filter((member) => { return member.usersType == 'team' })
+            .map((member) => {
+                let returnObject = member;
+                let teamMember = (teams.List).filter((o) => { return o.id == member.userTypeLinkId });
+                return { ...member, 'team': teamMember[0] };
+            })
+            .value();
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -190,33 +203,29 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 }
                             </form>
-
-                             {
+                            {
                                 (typeof task.Selected.id != 'undefined') && <div class="row pd20">
+                                    <h3>Teams</h3>
                                     <table id="dataTable" class="table responsive-table mt30">
                                         <tbody>
                                             <tr>
-                                                <th>Member Name</th>
-                                                <th>Type</th>
-                                                <th>Role</th>
+                                                <th>Team Name</th>
                                                 <th></th>
                                             </tr>
                                             {
-                                                (memberList.length == 0) &&
+                                                (teamMemberList.length == 0) &&
                                                 <tr>
                                                     <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
                                                 </tr>
                                             }
                                             {
-                                                memberList.map((data, index) => {
+                                                teamMemberList.map((data, index) => {
                                                     return (
                                                         <tr key={index}>
-                                                            <td>{data.user.firstName + ' ' + data.user.lastName}</td>
-                                                            <td>{data.user.userType}</td>
-                                                            <td>{((typeof data.user.role != 'undefined' && data.user.role).length > 0) ? data.user.role[0].role_role : ''}</td>
+                                                            <td>{data.team.team}</td>
                                                             <td class="text-center">
                                                                 <a href="javascript:void(0);" data-tip="DELETE"
-                                                                    onClick={e => this.deleteData(data.id)}
+                                                                    onClick={e => this.deleteData({ id: data.id, type: 'team' })}
                                                                     class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
                                                                     <span class="glyphicon glyphicon-trash"></span></a>
                                                                 <Tooltip />
@@ -229,7 +238,47 @@ export default class FormComponent extends React.Component {
                                     </table>
                                 </div>
                             }
-                            
+
+                            {
+                                (typeof task.Selected.id != 'undefined') && <div class="row pd20">
+                                    <h3>Members</h3>
+                                    <table id="dataTable" class="table responsive-table mt30">
+                                        <tbody>
+                                            <tr>
+                                                <th>Member Name</th>
+                                                <th>Type</th>
+                                                <th>Role</th>
+                                                <th></th>
+                                            </tr>
+                                            {
+                                                (userMemberList.length == 0) &&
+                                                <tr>
+                                                    <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
+                                                </tr>
+                                            }
+                                            {
+                                                userMemberList.map((data, index) => {
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td>{data.user.firstName + ' ' + data.user.lastName}</td>
+                                                            <td>{data.user.userType}</td>
+                                                            <td>{((typeof data.user.role != 'undefined' && data.user.role).length > 0) ? data.user.role[0].role_role : ''}</td>
+                                                            <td class="text-center">
+                                                                <a href="javascript:void(0);" data-tip="DELETE"
+                                                                    onClick={e => this.deleteData({ id: data.id, type: 'team' })}
+                                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                                    <span class="glyphicon glyphicon-trash"></span></a>
+                                                                <Tooltip />
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+
                         </div>
                     </div>
                 </div>
@@ -242,12 +291,12 @@ export default class FormComponent extends React.Component {
                             <h4 class="modal-title" id="myModalLabel">Add Members</h4>
                         </div>
                         <div class="modal-body">
-                            <MembersForm 
+                            <MembersForm
                                 type={
-                                   {
-                                    data:task,
-                                    label:'task'
-                                   }
+                                    {
+                                        data: task,
+                                        label: 'task'
+                                    }
                                 }
                             />
                         </div>
