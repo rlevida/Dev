@@ -13,12 +13,22 @@ var field = exports.field = {
     /**
      * workstream (VARCHAR(50))
      */
-    'workstream' : {type : 'string' , access : "public" },
+    'workstreamId' : {type : 'bigint' , access : "public",  database: "workstream", relation: "one-to-one" },
+
+     /**
+     * task (TEXT)
+     */
+    'task' : {type : 'text' , access : "public" },
+
+     /**
+     * dueDate (DATETIME)
+     */
+    'dueDate' : {type : 'date' , access : "public" },
 
     /**
      * statusId (BIGINT)
      */
-    'statusId' : {type : 'bigint' , access : "public" },
+    'statusId' : {type : 'bigint' , access : "public", database: "status", relation: "one-to-one" },
 
     /**
      * typeId (BIGINT)

@@ -1,21 +1,22 @@
 import React from "react"
+
+import { showToast, setDatePicker, displayDate } from '../../globalFunction'
+import { HeaderButtonContainer, DropDown } from "../../globalComponents"
 import Tooltip from "react-tooltip";
-import { showToast } from '../../globalFunction'
-import { HeaderButtonContainer, DropDown } from "../../globalComponents";
+import { connect } from "react-redux"
+import moment from 'moment'
 import MembersForm from "../global/members/membersForm";
-import { connect } from "react-redux";
-import _ from "lodash";
 
 @connect((store) => {
     return {
         socket: store.socket.container,
-        workstream: store.workstream,
+        task: store.task,
         loggedUser: store.loggedUser,
-        users: store.users,
         status: store.status,
+        workstream: store.workstream,
         members: store.members,
         teams: store.teams,
-        type: store.type
+        users: store.users
     }
 })
 
@@ -26,41 +27,37 @@ export default class FormComponent extends React.Component {
         this.handleChange = this.handleChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
+        this.handleDate = this.handleDate.bind(this)
         this.deleteData = this.deleteData.bind(this)
     }
 
     componentDidMount() {
+        let { task } = this.props
         $(".form-container").validator();
-        let { workstream } = this.props
-
-        if (typeof workstream.Selected.id != 'undefined') {
-            this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: workstream.Selected.id, linkType: 'workstream' } });
+        setDatePicker(this.handleDate, "dueDate");
+        if (typeof task.Selected.id != 'undefined') {
+            this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
         }
+    }
+
+    componentDidUpdate() {
+        setDatePicker(this.handleDate, "dueDate");
+    }
+
+    handleDate(e) {
+        let { dispatch, task } = this.props
+        let Selected = Object.assign({}, task.Selected)
+
+        Selected[e.target.name] = e.target.value + " UTC";
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
     handleChange(e) {
-        let { socket, dispatch, workstream } = this.props
-        let Selected = Object.assign({}, workstream.Selected)
+        let { socket, dispatch, task } = this.props
+        let Selected = Object.assign({}, task.Selected)
+
         Selected[e.target.name] = e.target.value;
-        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: Selected })
-    }
-
-    handleSubmit(e) {
-        let { socket, workstream } = this.props
-
-        let result = true;
-        $('.form-container *').validator('validate');
-        $('.form-container .form-group').each(function () {
-            if ($(this).hasClass('has-error')) {
-                result = false;
-            }
-        });
-        
-        if (!result) {
-            showToast("error", "Form did not fullfill the required value.")
-            return;
-        }
-        socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { ...workstream.Selected, projectId: project, numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0 } });
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
     deleteData(params) {
@@ -70,11 +67,28 @@ export default class FormComponent extends React.Component {
         }
     }
 
+    handleSubmit(e) {
+        let { socket, task } = this.props
+
+        let result = true;
+        $('.form-container *').validator('validate');
+        $('.form-container .form-group').each(function () {
+            if ($(this).hasClass('has-error')) {
+                result = false;
+            }
+        });
+        if (!result) {
+            showToast("error", "Form did not fullfill the required value.")
+            return;
+        }
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...task.Selected, projectId: project, dueDate: moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') } });
+    }
+
     setDropDown(name, value) {
-        let { socket, dispatch, workstream } = this.props
-        let Selected = Object.assign({}, workstream.Selected)
+        let { socket, dispatch, task } = this.props
+        let Selected = Object.assign({}, task.Selected)
         Selected[name] = value;
-        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: Selected })
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
     setDropDownMultiple(name, values) {
@@ -84,12 +98,12 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, workstream, users, status, type, members, teams } = this.props
-        let statusList = [], typeList = [], userList = [];
+        let { dispatch, task, status, workstream, users, members, teams } = this.props;
+        let statusList = [], typeList = [];
+        let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
+        status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
-        status.List.map((e, i) => { if (e.linkType == "workstream") { statusList.push({ id: e.id, name: e.status }) } })
-        type.List.map((e, i) => { if (e.linkType == "workstream") { typeList.push({ id: e.id, name: e.type }) } })
-        userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
+        let userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
 
         let userMemberList = _(members.List)
             .filter((member) => { return member.usersType == 'users' })
@@ -113,9 +127,8 @@ export default class FormComponent extends React.Component {
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
                     onClick={(e) => {
-                        dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
-                        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
-                        dispatch({ type: "SET_MEMBERS_LIST", list: [] });
+                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+                        dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
                     }} >
                     <span>Back</span>
                 </li>
@@ -127,7 +140,7 @@ export default class FormComponent extends React.Component {
                 <div class="col-lg-12 col-md-12 col-xs-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="panel-title">Workstream {(workstream.Selected.id) ? " > Edit > ID: " + workstream.Selected.id : " > Add"}</h3>
+                            <h3 class="panel-title">Task {(task.Selected.id) ? " > Edit > ID: " + task.Selected.id : " > Add"}</h3>
                         </div>
                         <div class="panel-body">
                             <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
@@ -137,68 +150,61 @@ export default class FormComponent extends React.Component {
                                         <DropDown multiple={false}
                                             required={false}
                                             options={statusList}
-                                            selected={(typeof workstream.Selected.statusId == "undefined") ? "" : workstream.Selected.statusId}
+                                            selected={(typeof task.Selected.statusId == "undefined") ? "" : task.Selected.statusId}
                                             onChange={(e) => this.setDropDown("statusId", e.value)} />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Workstream *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="workstream" required value={(typeof workstream.Selected.workstream == "undefined") ? "" : workstream.Selected.workstream} class="form-control" placeholder="Workstream" onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Type</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Workstream</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={false}
                                             required={false}
-                                            options={typeList}
-                                            selected={(typeof workstream.Selected.typeId == "undefined") ? "" : workstream.Selected.typeId}
-                                            onChange={(e) => {
-                                                this.setDropDown("typeId", e.value);
-                                            }} />
+                                            options={workstreamList}
+                                            selected={(typeof task.Selected.workstreamId == "undefined") ? "" : task.Selected.workstreamId}
+                                            onChange={(e) => this.setDropDown("workstreamId", e.value)} />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
-                                {
-                                    (typeof workstream.Selected.typeId != "undefined" && workstream.Selected.typeId == 5) && <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Number of Hours</label>
-                                        <div class="col-md-7 col-xs-12">
-                                            <input type="number" name="numberOfHours" required value={(typeof workstream.Selected.numberOfHours == "undefined") ? "" : workstream.Selected.numberOfHours} class="form-control" placeholder="Number of Hours" onChange={this.handleChange} />
-                                            <div class="help-block with-errors"></div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Task Name *</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Due Date: </label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <div class="input-group date">
+                                            <input type="text"
+                                                class="form-control datepicker"
+                                                style={{ backgroundColor: "#eee" }}
+                                                id="dueDate"
+                                                name="dueDate"
+                                                value={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate) ? displayDate(task.Selected.dueDate) : ""}
+                                                onChange={() => { }}
+                                                required={false}
+                                            />
+                                            <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
+                                            </span>
                                         </div>
                                     </div>
-                                }
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Project Name *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="projectName" required value={(typeof workstream.Selected.projectName == "undefined") ? "" : workstream.Selected.projectName} class="form-control" placeholder="Project Name" onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Project Description</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <textarea name="projectDescription" value={(typeof workstream.Selected.projectDescription == "undefined") ? "" : workstream.Selected.projectDescription} class="form-control" placeholder="Project Description" onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
+                                    <div class="help-block with-errors"></div>
                                 </div>
                                 {
-                                    (typeof workstream.Selected.id != 'undefined') && <div class="form-group">
+                                    (typeof task.Selected.id != 'undefined') && <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label pt0">Members</label>
                                         <div class="col-md-7 col-xs-12">
                                             <a href="#" type="button" data-toggle="modal" data-target="#modal">
                                                 Add Members
-                                        </a>
+                                            </a>
                                         </div>
                                     </div>
                                 }
                             </form>
-
                             {
-                                (typeof workstream.Selected.id != 'undefined') && <div class="row pd20">
+                                (typeof task.Selected.id != 'undefined') && <div class="row pd20">
                                     <h3>Teams</h3>
                                     <table id="dataTable" class="table responsive-table mt30">
                                         <tbody>
@@ -232,8 +238,9 @@ export default class FormComponent extends React.Component {
                                     </table>
                                 </div>
                             }
+
                             {
-                                (typeof workstream.Selected.id != 'undefined') && <div class="row pd20">
+                                (typeof task.Selected.id != 'undefined') && <div class="row pd20">
                                     <h3>Members</h3>
                                     <table id="dataTable" class="table responsive-table mt30">
                                         <tbody>
@@ -287,8 +294,8 @@ export default class FormComponent extends React.Component {
                             <MembersForm
                                 type={
                                     {
-                                        data: workstream,
-                                        label: 'workstream'
+                                        data: task,
+                                        label: 'task'
                                     }
                                 }
                             />

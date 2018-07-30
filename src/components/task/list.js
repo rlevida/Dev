@@ -1,12 +1,13 @@
 import React from "react";
 import Tooltip from "react-tooltip";
 import { HeaderButtonContainer } from "../../globalComponents";
+import moment from 'moment'
 
 import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
-        workstream: store.workstream,
+        task: store.task,
         loggedUser: store.loggedUser
     }
 })
@@ -19,6 +20,7 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
+        this.props.socket.emit("GET_TASK_LIST", { filter: { projectId: project } });
         this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
@@ -28,23 +30,24 @@ export default class List extends React.Component {
 
     updateActiveStatus(id, active) {
         let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_WORKSTREAM_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
-        socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { id: id, active: (active == 1) ? 0 : 1 } })
+        dispatch({ type: "SET_TASK_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: id, active: (active == 1) ? 0 : 1 } })
     }
 
     deleteData(id) {
         let { socket } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_WORKSTREAM", { id: id })
+            socket.emit("DELETE_TASK", { id: id })
         }
     }
 
     render() {
-        let { workstream, dispatch, socket } = this.props;
+        let { task, dispatch, socket } = this.props;
+        
         return <div>
             <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })} >
-                    <span>New Workstream</span>
+                <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })} >
+                    <span>New Task</span>
                 </li>
             </HeaderButtonContainer>
             <table id="dataTable" class="table responsive-table">
@@ -52,27 +55,24 @@ export default class List extends React.Component {
                     <tr>
                         <th></th>
                         <th>Workstream</th>
-                        <th>Pending</th>
-                        <th>Completed</th>
-                        <th>Issues</th>
-                        <th>New Docs</th>
-                        <th>Members</th>
-                        <th>Type</th>
+                        <th>Task Name</th>
+                        <th>Due Date</th>
+                        <th>Assigned to</th>
                         <th></th>
                     </tr>
                     {
-                        (workstream.List.length == 0) &&
+                        (task.List.length == 0) &&
                         <tr>
                             <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
                         </tr>
                     }
                     {
-                        workstream.List.map((data, index) => {
+                        task.List.map((data, index) => {
                             return <tr key={index}>
                                 <td>{data.status_status}</td>
-                                <td>{data.workstream}</td>
-                                <td></td>
-                                <td></td>
+                                <td>{data.workstream_workstream}</td>
+                                <td>{data.task}</td>
+                                <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -80,7 +80,7 @@ export default class List extends React.Component {
                                 <td></td>
                                 <td class="text-center">
                                     <a href="javascript:void(0);" data-tip="EDIT"
-                                        onClick={(e) => socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id })}
+                                        onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id })}
                                         class="btn btn-info btn-sm">
                                         <span class="glyphicon glyphicon-pencil"></span></a>
                                     <a href="javascript:void(0);" data-tip="DELETE"

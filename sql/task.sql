@@ -2,7 +2,9 @@ DROP TABLE IF EXISTS `task`;
 CREATE TABLE `task` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `projectId` BIGINT,
-    `workstream` VARCHAR(50),
+    `task` TEXT,
+    `workstreamId` BIGINT,
+    `dueDate` DATETIME,
     `statusId` BIGINT,
     `typeId` BIGINT,
     `dateAdded` DATETIME,
