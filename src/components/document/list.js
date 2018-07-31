@@ -63,8 +63,10 @@ export default class List extends React.Component {
             this.setState({  upload : false ,   tempData : [] , tags : [] });
     }
 
-    selectTag(e){
-        this.setState({ tags : e })
+    selectTag(e , index){
+        let { tempData }  = this.state;
+        tempData[index].tags = JSON.stringify(e);
+        this.setState({ tempData : tempData })
     }
 
     viewDocument(data){
@@ -75,10 +77,9 @@ export default class List extends React.Component {
     
 
     render() {
-        let { document, dispatch, workstream , users } = this.props;
+        let { document, dispatch, workstream , users , loggedUser } = this.props;
         let data = [] , tempData = [];
         let workstreamList = workstream.List.map( e => { return { id:e.id , name:e.workstream }})
-
         return <div>
                 <HeaderButtonContainer  withMargin={true}>
                     <li class="btn btn-info" onClick={(e)=>dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })} >
@@ -153,7 +154,7 @@ export default class List extends React.Component {
                                 multiple: true,
                                 uploadSuccess: (resp) => {
                                     resp.files.map((e) => {
-                                        tempData.push({ Id: e.Id, filename: e.filename, origin: e.origin })
+                                        tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id })
                                     })
                                     this.setState({ tempData : tempData , loading : false  })
                                 },
@@ -186,8 +187,8 @@ export default class List extends React.Component {
                                                         multiple={true}
                                                         required={false}
                                                         options={ workstreamList } 
-                                                        selected={ ( this.state.tags.length > 0) ? this.state.tags : []  } 
-                                                        onChange={(e)=>this.selectTag(e)} 
+                                                        selected={ ( typeof data.tags != "undefined" ) ? JSON.parse(data.tags) : []  } 
+                                                        onChange={(e)=>this.selectTag(e , index)} 
                                                         /> 
                                                     <div class="help-block with-errors"></div>
                                                 </td>

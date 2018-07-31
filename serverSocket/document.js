@@ -62,8 +62,7 @@ var init = exports.init = (socket) => {
             if(d.data.length > 0){
                 d.data.map( file => {
                     tempResData.push( new Promise((resolve,reject) => {
-                        let tempData = { name: file.filename ,  origin : file.origin , uploadedBy : d.userId , tags : d.tags}
-                        document.postData("document",tempData,(c)=>{
+                        document.postData("document",file,(c)=>{
                             if(typeof c.id != "undefined" && c.id > 0) {
                                 document.getData("document",{id:c.id},{},(e)=>{
                                     if(e.data.length > 0) {
