@@ -11,7 +11,8 @@ import { connect } from "react-redux"
         socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
-        workstream: store.workstream
+        workstream: store.workstream,
+        users : store.users
     }
 })
 export default class List extends React.Component {
@@ -74,7 +75,7 @@ export default class List extends React.Component {
     
 
     render() {
-        let { document, dispatch, workstream } = this.props;
+        let { document, dispatch, workstream , users } = this.props;
         let data = [] , tempData = [];
         let workstreamList = workstream.List.map( e => { return { id:e.id , name:e.workstream }})
 
@@ -108,7 +109,7 @@ export default class List extends React.Component {
                                     <tr key={index}>
                                         <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }>{data.origin}</a></td>
                                         <td>{ moment(data.dateAdded).format('L') }</td>
-                                        <td>{ data.uploadedBy }</td>
+                                        <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
                                         <td> 
                                             { (data.tags != "") &&
                                                 JSON.parse(data.tags).map((tag,tagIndex) =>{
