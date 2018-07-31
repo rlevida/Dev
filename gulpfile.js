@@ -13,7 +13,8 @@ var fileSources = {
             "node_modules/moment/moment.js",
             "node_modules/bootstrap-validator/dist/validator.js",
             "public/javascripts/function.js",
-            "public/javascripts/picker.js"
+            "public/javascripts/picker.js",
+            "node_modules/react-mentions/lib/Highlighter.js"
         ]
     },
     vendorCSS: {
@@ -22,7 +23,8 @@ var fileSources = {
             "node_modules/toastr/build/toastr.css",
             "node_modules/react-select/dist/react-select.css",
             "node_modules/font-awesome/css/font-awesome.min.css",
-            "public/stylesheets/picker.css"
+            "public/stylesheets/picker.css",
+            "node_modules/rc-editor-mention/assets/index.css"
         ]
     },
     vendorFonts: {

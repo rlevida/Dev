@@ -221,3 +221,8 @@ var setTimePicker = exports.setTimePicker = function(handleDate,Id){
         //console.log(error)
     }
 }
+
+var getFilePathExtension = exports.getFilePathExtension = (path) => {
+    var filename = path.split('\\').pop().split('/').pop();
+    return filename.substr((Math.max(0, filename.lastIndexOf(".")) || Infinity) + 1);
+}
