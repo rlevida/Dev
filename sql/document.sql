@@ -9,5 +9,7 @@ CREATE TABLE `document` (
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `isDeleted` TINYINT(1) DEFAULT '0',
     `tags` TEXT,
+    `status` ENUM("newupload","foraction","email"),
+    `isCompleted` TINYINT(1) DEFAULT '0',
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;

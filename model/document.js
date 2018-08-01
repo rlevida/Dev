@@ -40,6 +40,15 @@ var field = exports.field = {
          * tags (VARCHAR(50))
          */
         'tags' : {type : 'string' , access : "public" },
+        /**
+         * status (ENUM("newupload","foraction","email"))
+         */
+        'status' : {type : 'string' , access : "public" },
+         /**
+         * isCompleted (tinyint)
+         */
+        'isCompleted' : {type : 'tinyint' , access : "public" },
+
 
 }
 

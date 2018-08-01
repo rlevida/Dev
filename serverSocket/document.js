@@ -44,7 +44,7 @@ var init = exports.init = (socket) => {
         if( typeof d.data.id != "undefined" && d.data.id != "" ){
             let id = d.data.id
             delete d.data.id
-            document.putData("document",d.data,{id:id},(c)=>{
+            document.putData("document",d.data,{ id : id },(c)=>{
                 if(c.status) {
                     document.getData("document",{id:id},{},(e)=>{
                         if(e.data.length > 0) {

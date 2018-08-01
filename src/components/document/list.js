@@ -66,7 +66,8 @@ export default class List extends React.Component {
     selectTag(e , index){
         let { tempData }  = this.state;
         tempData[index].tags = JSON.stringify(e);
-        this.setState({ tempData : tempData })
+        tempData[index].status = "foraction";
+        this.setState({ tempData : tempData });
     }
 
     viewDocument(data){
@@ -74,24 +75,53 @@ export default class List extends React.Component {
             dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
             dispatch({type:"SET_DOCUMENT_SELECTED" , Selected : data })
     }
-    
+
+    handleIsCompleted( data , value ){
+        let { socket , document } = this.props;
+        socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data : { id: data.id , isCompleted : !value  }})
+        // console.log( document.List[index] ) 
+    }
 
     render() {
         let { document, dispatch, workstream , users , loggedUser } = this.props;
         let data = [] , tempData = [];
         let workstreamList = workstream.List.map( e => { return { id:e.id , name:e.workstream }})
+        let documentList = { newUpload : [] , forAction : [] };
+
+        if( document.List.length > 0 ){
+
+            document.List.filter( e =>{
+                if(e.status == "newupload"){
+                    documentList.newUpload.push(e)
+                }
+
+                if(e.status == "foraction" && e.isCompleted != 1  ){
+                    documentList.forAction.push(e)
+                }
+            })
+        }
+        
         return <div>
                 <HeaderButtonContainer  withMargin={true}>
                     <li class="btn btn-info" onClick={(e)=>dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })} >
                         <span>New Document</span>
                     </li>
                 </HeaderButtonContainer>
-                <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#uploadFileModal">
-                    Upload Files
-                </button>
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#uploadFileModal">
+                        Upload Files
+                    </button>
+                </div>
+                <div class="tool-bar">
+                    <span class="label label-success" style={{fontSize:"12px"}}> New Uploads { documentList.newUpload.length }</span> 
+                    <span class="label label-primary" style={{fontSize:"12px"}}> For Action { documentList.forAction.length }</span>
+                </div>
+
+                <h3>New Documents</h3>
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
                         <tr>
+                            <th></th>
                             <th>Name</th>
                             <th>Uploaded</th>
                             <th>By</th>
@@ -105,14 +135,15 @@ export default class List extends React.Component {
                             </tr>
                         }
                         {
-                            document.List.map((data, index) => {
+                            documentList.newUpload.map((data, index) => {
                                 return (
                                     <tr key={index}>
+                                        <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
                                         <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }>{data.origin}</a></td>
                                         <td>{ moment(data.dateAdded).format('L') }</td>
                                         <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
                                         <td> 
-                                            { (data.tags != "") &&
+                                            { ( data.tags != "" && data.tags != null ) &&
                                                 JSON.parse(data.tags).map((tag,tagIndex) =>{
                                                     return <span key={tagIndex} class="label label-primary" style={{margin:"5px"}}>{tag.label}</span>
                                                 })
@@ -131,6 +162,57 @@ export default class List extends React.Component {
                         }
                     </tbody>
                 </table>
+
+                <hr/>
+
+                <h3>For Action</h3>
+                <table id="dataTable" class="table responsive-table">
+                    <tbody>
+                        <tr>
+                            <th></th>
+                            <th>Name</th>
+                            <th>Uploaded</th>
+                            <th>By</th>
+                            <th>Tags</th>
+                            <th></th>
+                        </tr>
+                        {
+                            (document.List.length == 0) &&
+                            <tr>
+                                <td style={{textAlign:"center"}} colSpan={8}>No Record Found!</td>
+                            </tr>
+                        }
+
+                        {
+                            documentList.forAction.map((data, index) => {
+                                return (
+                                    <tr key={index}>
+                                        <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
+                                        <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }>{data.origin}</a></td>
+                                        <td>{ moment(data.dateAdded).format('L') }</td>
+                                        <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
+                                        <td> 
+                                            { ( data.tags != "" && data.tags != null ) &&
+                                                JSON.parse(data.tags).map((tag,tagIndex) =>{
+                                                    return <span key={tagIndex} class="label label-primary" style={{margin:"5px"}}>{tag.label}</span>
+                                                })
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="javascript:void(0);" data-tip="ARCHIVE"
+                                                onClick={e => this.archiveData(data.id)}
+                                                class={ data.allowedDelete==0 ? 'hide' : 'btn btn-danger btn-sm ml10' }>
+                                                <span class="glyphicon glyphicon-trash"></span>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                )
+                            })
+                        }
+                    </tbody>
+                </table>
+
+
 
                 <div class="modal fade" id="uploadFileModal" tabIndex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
@@ -154,7 +236,7 @@ export default class List extends React.Component {
                                 multiple: true,
                                 uploadSuccess: (resp) => {
                                     resp.files.map((e) => {
-                                        tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id })
+                                        tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id , status : "newupload"})
                                     })
                                     this.setState({ tempData : tempData , loading : false  })
                                 },
