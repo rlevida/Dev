@@ -4,13 +4,12 @@ var field = exports.field = {
          *  Id (Primary Key)
          */
         'id' : {type : 'bigint' , access : "public" },
-
         /**
          * name (VARCHAR(50))
          */
         'name' : {type : 'string' , access : "public" },
         /**
-         * name (VARCHAR(50))
+         * origin (VARCHAR(50))
          */
         'origin' : {type : 'string' , access : "public" },
         /**
@@ -36,7 +35,11 @@ var field = exports.field = {
         /**
          * isDeleted (tinyint )
          */
-        'isDeleted' :  {type : 'date' , access : "public" }
+        'isDeleted' :  {type : 'date' , access : "public" },
+           /**
+         * tags (VARCHAR(50))
+         */
+        'tags' : {type : 'string' , access : "public" },
 
 }
 

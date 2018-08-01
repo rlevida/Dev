@@ -15,6 +15,8 @@ import status from "./status"
 import teams from "./teams"
 import global from "./global"
 import document from "./document"
+import settings from "./settings"
+import conversation from "./conversation"
 
 export default combineReducers({
     socket,
@@ -33,5 +35,7 @@ export default combineReducers({
     document,
     workstream,
     task,
-    global
+    global,
+    settings,
+    conversation
 })

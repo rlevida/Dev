@@ -38,7 +38,12 @@ var field = exports.field = {
     /**
      * isDeleted (tinyint )
      */
-    'isDeleted' :  {type : 'date' , access : "public" }
+    'isDeleted' :  {type : 'date' , access : "public" },
+
+    /**
+     * documentId (BIGINT )
+     */
+    'documentId' :  {type : 'bigint' , access : "public" }
 
 }
 

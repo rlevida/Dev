@@ -5,6 +5,7 @@ import { showToast } from '../../globalFunction'
 import Header from "../partial/header"
 import Form from "./form"
 import List from "./list"
+import DocumentViewer from "./documentViewer"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -38,6 +39,9 @@ export default class Component extends React.Component {
 
                 {document.FormActive == "Form" &&
                     <Form />
+                }
+                {document.FormActive == "DocumentViewer" &&
+                    <DocumentViewer />
                 }
             </div>
         return (

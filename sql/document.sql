@@ -8,5 +8,6 @@ CREATE TABLE `document` (
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `isDeleted` TINYINT(1) DEFAULT '0',
+    `tags` TEXT,
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;
