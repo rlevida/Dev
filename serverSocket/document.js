@@ -4,11 +4,11 @@ var func = global.initFunc(),
 var init = exports.init = (socket) => {
 
     socket.on("GET_DOCUMENT_LIST",(d) => {
-
+        
         let documentLink = global.initModel("document_link")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
         documentLink.getData("document_link", filter , { linkId : d.project },(c)=>{
-            
+        
             if(c.status) {
                 let docId = [];
                 c.data.map( link => {
@@ -96,21 +96,21 @@ var init = exports.init = (socket) => {
         }
     })
 
+    // socket.on("DELETE_DOCUMENT",(d) => {
+    //     let document = global.initModel("document")
+
+    //     document.getData("document",{},{},(b)=>{
+    //         document.deleteData("document",{id:d.id},(c)=>{
+    //             if(c.status) {
+    //                 socket.emit("FRONT_DOCUMENT_DELETED",{id:d.id})
+    //             }else{
+    //                 socket.emit("RETURN_ERROR_MESSAGE","Delete failed. Please try again later.")
+    //             }
+    //         })
+    //     })
+    // })
+
     socket.on("DELETE_DOCUMENT",(d) => {
-        let document = global.initModel("document")
-
-        document.getData("document",{},{},(b)=>{
-            document.deleteData("document",{id:d.id},(c)=>{
-                if(c.status) {
-                    socket.emit("FRONT_DOCUMENT_DELETED",{id:d.id})
-                }else{
-                    socket.emit("RETURN_ERROR_MESSAGE","Delete failed. Please try again later.")
-                }
-            })
-        })
-    })
-
-    socket.on("ARCHIVE_DOCUMENT",(d) => {
         let data = { isDeleted : 1 } 
 
         let document = global.initModel("document")

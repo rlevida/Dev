@@ -17,6 +17,7 @@ import global from "./global"
 import document from "./document"
 import settings from "./settings"
 import conversation from "./conversation"
+import starred from "./starred"
 
 export default combineReducers({
     socket,
@@ -37,5 +38,6 @@ export default combineReducers({
     task,
     global,
     settings,
-    conversation
+    conversation,
+    starred
 })

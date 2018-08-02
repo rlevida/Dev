@@ -9,7 +9,7 @@ export default function reducer(state={
         //ADD
         case "ADD_DOCUMENT_LIST":{
             let List = state.List;
-            action.List.map( e => {
+            action.list.map( e => {
                 List.push( e )
             })
             return {...state, List : List }

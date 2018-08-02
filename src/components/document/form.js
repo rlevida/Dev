@@ -23,7 +23,7 @@ export default class FormComponent extends React.Component {
 
         this.handleChange = this.handleChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
-        this.setDropDown = this.setDropDown.bind(this)
+        // this.setDropDown = this.setDropDown.bind(this)
     }
 
     componentDidMount() {
@@ -52,21 +52,21 @@ export default class FormComponent extends React.Component {
             return;
         }
 
-        socket.emit("SAVE_OR_UPDATE_document",{data:document.Selected});
+        socket.emit("SAVE_OR_UPDATE_DOCUMENT",{data:document.Selected});
     }
     
-    setDropDown(name,value) {
-        let { socket, dispatch, document } = this.props
-        let Selected = Object.assign({},document.Selected)
-        Selected[name] = value;
-        dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
-    }
+    // setDropDown(name,value) {
+    //     let { socket, dispatch, document } = this.props
+    //     let Selected = Object.assign({},document.Selected)
+    //     Selected[name] = value;
+    //     dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
+    // }
 
-    setDropDownMultiple(name,values) {
-        this.setState({
-            [name]: JSON.stringify(values?values:[])
-        });
-    }
+    // setDropDownMultiple(name,values) {
+    //     this.setState({
+    //         [name]: JSON.stringify(values?values:[])
+    //     });
+    // }
 
     render() {
         let { dispatch, document, loggedUser, status, type } = this.props
@@ -96,7 +96,7 @@ export default class FormComponent extends React.Component {
                         </div>
                         <div class="panel-body">
                             <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
-                                <div class="form-group">
+                                {/* <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Status</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={false} 
@@ -106,7 +106,7 @@ export default class FormComponent extends React.Component {
                                             onChange={(e)=>this.setDropDown("statusId",e.value)} /> 
                                         <div class="help-block with-errors"></div>
                                     </div>
-                                </div>
+                                </div> */}
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Document *</label>
                                     <div class="col-md-7 col-xs-12">
@@ -114,7 +114,7 @@ export default class FormComponent extends React.Component {
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
-                                <div class="form-group">
+                                {/* <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Type</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={false} 
@@ -124,7 +124,7 @@ export default class FormComponent extends React.Component {
                                             onChange={(e)=>this.setDropDown("typeId",e.value)} /> 
                                         <div class="help-block with-errors"></div>
                                     </div>
-                                </div>
+                                </div> */}
                             </form>
                         </div>
                     </div>

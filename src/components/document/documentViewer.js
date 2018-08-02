@@ -93,7 +93,7 @@ export default class DocumentViewerComponent extends React.Component {
     }
 
     render() {
-        let { document, users , settings , conversation } = this.props , 
+        let { dispatch , document, users , settings , conversation } = this.props , 
             { comment , suggestions , editorState} = this.state ,
             isDocument = true , ext = "";
         let uploadedBy =  users.List.filter( e =>{ return e.id == document.Selected.uploadedBy});
@@ -103,8 +103,18 @@ export default class DocumentViewerComponent extends React.Component {
             }
         return (
             <div>
+                <HeaderButtonContainer withMargin={true}>
+                <li class="btn btn-info" style={{marginRight:"2px"}} 
+                    onClick={(e)=>{
+                        dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
+                        dispatch({type:"SET_DOCUMENT_SELECTED", Selected: {} });
+                    }} >
+                    <span>Back</span>
+                </li>
+                </HeaderButtonContainer>
                 <div class="row mt10">
                     <div class="col-lg-12 col-md-12 col-xs-12">
+                    
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h3 class="panel-title">DOCUMENT VIEWER</h3>

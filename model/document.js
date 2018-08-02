@@ -59,7 +59,7 @@ exports.postData = postData;
 exports.deleteData = deleteData;
 
 var getProjectDocument = exports.getProjectDocument = (filter,data,cb) =>{
-        let db = global.initDB();
+    let db = global.initDB();
         let query = `select * from document WHERE id IN (${data.join(",")})`;
         let params = [];
         let tempFilter = Object.keys(filter);

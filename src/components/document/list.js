@@ -12,7 +12,10 @@ import { connect } from "react-redux"
         document: store.document,
         loggedUser: store.loggedUser,
         workstream: store.workstream,
-        users : store.users
+        users : store.users,
+        settings: store.settings,
+        starred : store.starred
+
     }
 })
 export default class List extends React.Component {
@@ -34,6 +37,7 @@ export default class List extends React.Component {
             socket.emit("GET_USER_LIST",{});
             socket.emit("GET_SETTINGS", {});
             socket.emit("GET_WORKSTREAM_LIST", {filter:{projectId:project}});
+            socket.emit("GET_STARRED_LIST",{ filter : { linkType : "project" } })
     }
 
     updateActiveStatus(id,active){
@@ -65,41 +69,53 @@ export default class List extends React.Component {
 
     selectTag(e , index){
         let { tempData }  = this.state;
-        tempData[index].tags = JSON.stringify(e);
-        tempData[index].status = "foraction";
-        this.setState({ tempData : tempData });
+            tempData[index].tags = JSON.stringify(e);
+            tempData[index].status = "foraction";
+            this.setState({ tempData : tempData });
     }
 
     viewDocument(data){
         let { socket, dispatch } = this.props;
             dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
-            dispatch({type:"SET_DOCUMENT_SELECTED" , Selected : data })
+            dispatch({type:"SET_DOCUMENT_SELECTED" , Selected : data });
     }
 
     handleIsCompleted( data , value ){
         let { socket , document } = this.props;
-        socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data : { id: data.id , isCompleted : !value  }})
-        // console.log( document.List[index] ) 
+            socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data : { id: data.id , isCompleted : !value  }});
+    }
+
+    starDocument(data , isStarred){
+        let { socket , loggedUser } = this.props;
+            if(isStarred){
+                socket.emit("DELETE_STARRED", { id : data.id } );
+            }else{
+                socket.emit("SAVE_STARRED", { data : { usersId : loggedUser.data.id , linkType : "project" , linkId : data.id } });
+            }
+    }
+
+    editDocument(data){
+        let { dispatch } = this.props;
+        dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" });
+        dispatch({type:"SET_DOCUMENT_SELECTED" , Selected : data });
     }
 
     render() {
-        let { document, dispatch, workstream , users , loggedUser } = this.props;
+        let { document, dispatch, workstream , users , loggedUser , settings , starred } = this.props;
         let data = [] , tempData = [];
         let workstreamList = workstream.List.map( e => { return { id:e.id , name:e.workstream }})
         let documentList = { newUpload : [] , forAction : [] };
 
-        if( document.List.length > 0 ){
-
-            document.List.filter( e =>{
-                if(e.status == "newupload"){
-                    documentList.newUpload.push(e)
-                }
-
-                if(e.status == "foraction" && e.isCompleted != 1  ){
-                    documentList.forAction.push(e)
-                }
-            })
-        }
+            if( document.List.length > 0 ){
+                document.List.filter( e =>{
+                    if( e.status == "newupload" && e.isCompleted != 1 ){
+                        documentList.newUpload.push(e)
+                    }
+                    if( e.status == "foraction" && e.isCompleted != 1 ){
+                        documentList.forAction.push(e)
+                    }
+                })
+            }
         
         return <div>
                 <HeaderButtonContainer  withMargin={true}>
@@ -118,9 +134,10 @@ export default class List extends React.Component {
                 </div>
 
                 <h3>New Documents</h3>
-                <table id="dataTable" class="table responsive-table">
+                <table id="dataTable" class="table responsive-table table-bordered">
                     <tbody>
                         <tr>
+                            <th></th>
                             <th></th>
                             <th>Name</th>
                             <th>Uploaded</th>
@@ -128,18 +145,27 @@ export default class List extends React.Component {
                             <th>Tags</th>
                             <th></th>
                         </tr>
+
                         {
-                            (document.List.length == 0) &&
+                            (documentList.newUpload.length == 0) &&
                             <tr>
                                 <td style={{textAlign:"center"}} colSpan={8}>No Record Found!</td>
                             </tr>
                         }
+
                         {
                             documentList.newUpload.map((data, index) => {
                                 return (
                                     <tr key={index}>
                                         <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
-                                        <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }>{data.origin}</a></td>
+                                        <td style={{textAlign:"center"}}> 
+                                            {
+                                                starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                    ? <span class="glyphicon glyphicon-star" onClick={()=> this.starDocument( data , 1 )} style={{ cursor:"pointer" }}></span>
+                                                        : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
+                                            }
+                                        </td>
+                                        <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }>{ data.origin }</a></td>
                                         <td>{ moment(data.dateAdded).format('L') }</td>
                                         <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
                                         <td> 
@@ -150,11 +176,31 @@ export default class List extends React.Component {
                                             }
                                         </td>
                                         <td class="text-center">
-                                            <a href="javascript:void(0);" data-tip="ARCHIVE"
-                                                onClick={e => this.archiveData(data.id)}
-                                                class={ data.allowedDelete==0 ? 'hide' : 'btn btn-danger btn-sm ml10' }>
-                                                <span class="glyphicon glyphicon-trash"></span>
-                                            </a>
+                                        <div class="dropdown">
+                                            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                               Action
+                                            </button>
+                                            <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                <li><a href="javascript:void(0)" onClick={()=> this.viewDocument(data)}>View</a></li>
+                                                <li><a href="javascript:void(0)" onClick={()=> this.editDocument(data)}>Edit</a></li>
+                                                <li>
+                                                    <a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Delete"> Download </a>
+                                                </li>
+                                                <li>
+                                                {
+                                                    starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                        ? <a href="javascript:void(0)" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
+                                                            :  <a href="javascript:void(0)" onClick={()=> this.starDocument( data , 0 )}>Star</a>
+                                                }
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0);" data-tip="Delete"
+                                                        onClick={e => this.deleteData(data.id)}
+                                                       > Delete
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
                                         </td>
                                     </tr>
                                 )
@@ -165,7 +211,7 @@ export default class List extends React.Component {
 
                 <hr/>
 
-                <h3>For Action</h3>
+                <h3>Library</h3>
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
                         <tr>
@@ -177,7 +223,7 @@ export default class List extends React.Component {
                             <th></th>
                         </tr>
                         {
-                            (document.List.length == 0) &&
+                            (documentList.forAction.length == 0) &&
                             <tr>
                                 <td style={{textAlign:"center"}} colSpan={8}>No Record Found!</td>
                             </tr>
@@ -200,7 +246,7 @@ export default class List extends React.Component {
                                         </td>
                                         <td class="text-center">
                                             <a href="javascript:void(0);" data-tip="ARCHIVE"
-                                                onClick={e => this.archiveData(data.id)}
+                                                onClick={e => this.deleteData(data.id)}
                                                 class={ data.allowedDelete==0 ? 'hide' : 'btn btn-danger btn-sm ml10' }>
                                                 <span class="glyphicon glyphicon-trash"></span>
                                             </a>
@@ -211,8 +257,6 @@ export default class List extends React.Component {
                         }
                     </tbody>
                 </table>
-
-
 
                 <div class="modal fade" id="uploadFileModal" tabIndex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
