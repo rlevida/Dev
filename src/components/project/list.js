@@ -43,7 +43,7 @@ export default class List extends React.Component {
     render() {
         let { project, dispatch, socket } = this.props;
         return <div>
-                <ProjectStatus />
+                <ProjectStatus style={{float:"right",padding:"20px"}} />
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
                         <tr>

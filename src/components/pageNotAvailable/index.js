@@ -16,8 +16,7 @@ export default class Component extends React.Component {
     render() {
         var Component =  <div id="content">
             <div>
-                <h4>Project</h4>
-                <ProjectStatus style={{}} />
+                <h1>Page not available</h1>
             </div>
         </div>
         return (

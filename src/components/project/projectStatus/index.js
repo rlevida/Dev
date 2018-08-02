@@ -34,7 +34,7 @@ export default class ProjectStatus extends React.Component {
                             Issues: (typeof e.Issues != "undefined")?e.Issues:0}
         })
 
-        return <div style={{float:"right",padding:"20px"}}>
+        return <div style={this.props.style}>
                 <table>
                     <tr>
                         <td style={{padding:"10px 5px",width:"120px"}}>Client</td>

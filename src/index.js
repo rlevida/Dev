@@ -32,7 +32,7 @@ switch (page) {
     case "project":
         switch (subpage) {
             case "home":
-                require('./container/home');
+                require('./container/pageNotAvailable');
                 break;
             case "documents":
                 require('./container/document');
@@ -47,7 +47,7 @@ switch (page) {
                 require('./container/task');
                 break;
             case "conversations":
-                require('./container/home');
+                require('./container/pageNotAvailable');
                 break;
             default:
                 require('./container/project');
@@ -55,13 +55,13 @@ switch (page) {
         }
         break;
     case "mytask":
-        require('./container/home');
+        require('./container/pageNotAvailable');
         break;
     case "wikis":
-        require('./container/home');
+        require('./container/pageNotAvailable');
         break;
     case "reports":
-        require('./container/home');
+        require('./container/pageNotAvailable');
         break;
 
     
