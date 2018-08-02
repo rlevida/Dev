@@ -1,5 +1,6 @@
 export default function reducer(state={
         List : [],
+        CountList : [],
         FormActive : "List",
         Selected : {},
         SelectedId: [],
@@ -7,6 +8,9 @@ export default function reducer(state={
         switch (action.type) {
             case "SET_PROJECT_LIST": {
                 return { ...state, List: action.list }
+            }
+            case "SET_PROJECT_COUNT_LIST": {
+                return { ...state, CountList: action.list }
             }
             case "SET_PROJECT_FORM_ACTIVE": {
                 return { ...state, FormActive: action.FormActive }

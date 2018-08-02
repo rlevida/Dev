@@ -57,3 +57,30 @@ exports.getData = getData;
 exports.putData = putData;
 exports.postData = postData;
 exports.deleteData = deleteData;
+
+var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
+    let db = global.initDB();
+    let params = [];
+    
+    let query = `SELECT 
+                        typeId,
+                        Active,
+                        type,
+                        linkType 
+                FROM (SELECT 
+                        typeId,
+                        SUM(IF(isActive="1",1,0)) as Active 
+                      FROM project 
+                      GROUP BY typeId) AS tb 
+                      LEFT JOIN type ON tb.typeId = type.id`;
+
+    db.query(
+        query,
+        params, 
+        function(err,row,fields){
+            if(err) { cb({ status : false, error : err, data : row }); return; }
+
+            cb({  status : true, error : err, data : row });
+        }
+    );
+}
