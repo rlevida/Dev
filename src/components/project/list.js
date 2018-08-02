@@ -2,6 +2,8 @@ import React from "react";
 import Tooltip from "react-tooltip";
 import { showToast,displayDate,numberFormat } from '../../globalFunction';
 import { HeaderButtonContainer,HeaderButton, DropDown, OnOffSwitch } from "../../globalComponents";
+import ProjectFilter from "./ProjectFilter"
+import ProjectStatus from "./projectStatus"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -41,13 +43,12 @@ export default class List extends React.Component {
     render() {
         let { project, dispatch, socket } = this.props;
         return <div>
-                <HeaderButtonContainer  withMargin={true}>
-                    <li class="btn btn-info" onClick={(e)=>dispatch({type:"SET_PROJECT_FORM_ACTIVE", FormActive: "Form" })} >
-                        <span>New Project</span>
-                    </li>
-                </HeaderButtonContainer>
+                <ProjectStatus />
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
+                        <tr>
+                            <th colSpan={8}> <ProjectFilter /> </th>
+                        </tr>
                         <tr>
                             <th>Status</th>
                             <th>Project</th>
@@ -67,7 +68,7 @@ export default class List extends React.Component {
                         {
                             project.List.map((data, index) => {
                                 return <tr key={index}>
-                                        <td>{data.status_status}</td>
+                                        <td>{data.isActive?"Active":"Inactive"}</td>
                                         <td><a href={"/project/"+data.id}>{data.project}</a></td>
                                         <td>{data.type_type}</td>
                                         <td></td>

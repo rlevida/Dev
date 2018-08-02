@@ -10,11 +10,8 @@ CREATE TABLE `type` (
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;
 
-ALTER TABLE  `type` CHANGE  `type`  `type` VARCHAR( 30 ) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL 
-
 INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('Client', 'project', NOW());
 INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('Internal', 'project', NOW());
-INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('Project - Output base
-', 'workstream', NOW());
-INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('External', 'project', NOW());
+INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('Private', 'project', NOW());
+INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('Project - Output base', 'workstream', NOW());
 INSERT INTO `cloud_cfo`.`type`(`type`, `linkType`, `dateAdded`) VALUES ('Time based', 'workstream', NOW());

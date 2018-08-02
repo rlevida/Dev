@@ -24,6 +24,7 @@ export default class FormComponent extends React.Component {
         this.handleChange = this.handleChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
+        this.handleCheckbox = this.handleCheckbox.bind(this)
     }
 
     componentDidMount() {
@@ -34,6 +35,13 @@ export default class FormComponent extends React.Component {
         let { socket, dispatch, project } = this.props
         let Selected = Object.assign({},project.Selected)
         Selected[e.target.name] = e.target.value;
+        dispatch({type:"SET_PROJECT_SELECTED",Selected:Selected})
+    }
+
+    handleCheckbox(name,value) {
+        let { socket, dispatch, project } = this.props
+        let Selected = Object.assign({},project.Selected)
+        Selected[name] = value;
         dispatch({type:"SET_PROJECT_SELECTED",Selected:Selected})
     }
 
@@ -97,14 +105,14 @@ export default class FormComponent extends React.Component {
                         <div class="panel-body">
                             <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Status</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false} 
-                                            required={false}
-                                            options={ statusList } 
-                                            selected={(typeof project.Selected.statusId == "undefined")?"":project.Selected.statusId} 
-                                            onChange={(e)=>this.setDropDown("statusId",e.value)} /> 
-                                        <div class="help-block with-errors"></div>
+                                        <input type="checkbox" 
+                                            style={{ width: "15px", marginTop: "10px" }}
+                                            checked={ project.Selected.isActive?true:false  }
+                                            onChange={()=>{}}
+                                            onClick={(f)=>{ this.handleCheckbox("isActive",(project.Selected.isActive)?0:1) }}
+                                        /> 
                                     </div>
                                 </div>
                                 <div class="form-group">
