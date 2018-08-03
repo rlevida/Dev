@@ -127,7 +127,7 @@ export default class List extends React.Component {
                 contentType: false,
                 success: function(res) {   
                     res.files.map( e =>{
-                        tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id , status : "new"})
+                        tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id , status : "new" })
                     })
                     self.setState({ tempData : tempData , loading : false , upload : false })
                 }
@@ -155,7 +155,7 @@ export default class List extends React.Component {
                     }
                 })
             }
-        
+
         return <div>
                 <HeaderButtonContainer  withMargin={true}>
                     <li class="btn btn-info" onClick={(e)=>dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })} >
@@ -177,7 +177,7 @@ export default class List extends React.Component {
                         <h3>New Documents 
                             <div class="tool-bar pull-right">
                                 <span class="label label-primary label-flat" style={{ fontSize:"16px" , margin: "2px" , width:"300px"}}> New Uploads { documentList.newUpload.length }</span> 
-                                <span class="label label-primary" style={{ fontSize:"16px" }} > For Action { documentList.library.length }</span>
+                                <span class="label label-primary" style={{ fontSize:"16px" }} > Library { documentList.library.length }</span>
                             </div>
                         </h3>
                         <table id="dataTable" class="table responsive-table table-bordered document-table">
@@ -221,7 +221,7 @@ export default class List extends React.Component {
                                                 </td>
                                                 <td>
                                                     <div class="dropdown">
-                                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
+                                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                         <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
                                                             <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
                                                             <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "rename" )}>Rename</a></li>
@@ -253,6 +253,7 @@ export default class List extends React.Component {
                             <tbody>
                                 <tr>
                                     <th></th>
+                                    <th></th>
                                     <th>Name</th>
                                     <th>Modified</th>
                                     <th>Members</th>
@@ -271,8 +272,15 @@ export default class List extends React.Component {
                                         return (
                                             <tr key={index}>
                                                 <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
-                                                <td><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
-                                                <td>{ moment(data.dateAdded).format('L') }</td>
+                                                <td> 
+                                                    {
+                                                        starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                            ? <span class="glyphicon glyphicon-star" onClick={()=> this.starDocument( data , 1 )} style={{ cursor:"pointer" }}></span>
+                                                                : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
+                                                    }
+                                                </td>
+                                               <td><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
+                                                <td>{ moment(data.dateUpdated).format('L') }</td>
                                                 <td></td>
                                                 <td> 
                                                     { ( data.tags != "" && data.tags != null ) &&
@@ -283,9 +291,7 @@ export default class List extends React.Component {
                                                 </td>
                                                 <td>
                                                     <div class="dropdown">
-                                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                        Action
-                                                        </button>
+                                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                         <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
                                                             <li><a href="javascript:void(0)" onClick={()=> this.viewDocument(data)}>View</a></li>
                                                             <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
