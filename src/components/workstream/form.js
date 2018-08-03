@@ -27,6 +27,7 @@ export default class FormComponent extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
         this.deleteData = this.deleteData.bind(this)
+        this.handleCheckbox = this.handleCheckbox.bind(this)
     }
 
     componentDidMount() {
@@ -43,6 +44,13 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, workstream.Selected)
         Selected[e.target.name] = e.target.value;
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: Selected })
+    }
+
+    handleCheckbox(name,value) {
+        let { socket, dispatch, project } = this.props
+        let Selected = Object.assign({},project.Selected)
+        Selected[name] = value;
+        dispatch({type:"SET_WORKSTREAM_SELECTED",Selected:Selected})
     }
 
     handleSubmit(e) {
@@ -132,14 +140,14 @@ export default class FormComponent extends React.Component {
                         <div class="panel-body">
                             <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Status</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false}
-                                            required={false}
-                                            options={statusList}
-                                            selected={(typeof workstream.Selected.statusId == "undefined") ? "" : workstream.Selected.statusId}
-                                            onChange={(e) => this.setDropDown("statusId", e.value)} />
-                                        <div class="help-block with-errors"></div>
+                                        <input type="checkbox" 
+                                            style={{ width: "15px", marginTop: "10px" }}
+                                            checked={ workstream.Selected.isActive?true:false  }
+                                            onChange={()=>{}}
+                                            onClick={(f)=>{ this.handleCheckbox("isActive",(workstream.Selected.isActive)?0:1) }}
+                                        /> 
                                     </div>
                                 </div>
                                 <div class="form-group">
