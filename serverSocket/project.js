@@ -58,6 +58,14 @@ var init = exports.init = (socket) => {
         }else{
             project.postData("project",d.data,(c)=>{
                 if(typeof c.id != "undefined" && c.id > 0) {
+                    let workstream = global.initModel("workstream")
+                    let workstreamData = {
+                        projectId: c.id,
+                        workstream: "Default Workstream",
+                        typeId: 4
+                    }
+                    workstream.postData("workstream",workstreamData,(f)=>{ console.log(f);})
+
                     project.getData("project",{id:c.id},{},(e)=>{
                         if(e.data.length > 0) {
                             socket.emit("FRONT_PROJECT_ADD",e.data)
