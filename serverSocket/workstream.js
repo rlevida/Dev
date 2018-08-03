@@ -23,6 +23,18 @@ var init = exports.init = (socket) => {
             }
         })
     })
+
+    socket.on("GET_WORKSTREAM_COUNT_LIST",(d) => {
+        let workstream = global.initModel("workstream")
+        let filter = (typeof d.filter != "undefined")?d.filter:{};
+        workstream.getDataCount("workstream",filter,{},(c)=>{
+            if(c.status) {
+                socket.emit("FRONT_WORKSTREAM_COUNT_LIST",c.data)
+            }else{
+                if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
+            }
+        })
+    })
     
     socket.on("GET_WORKSTREAM_DETAIL",(d) => {
         let workstream = global.initModel("workstream")

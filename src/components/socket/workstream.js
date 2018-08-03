@@ -22,6 +22,10 @@ export default class Socket extends React.Component {
             dispatch({ type: "SET_WORKSTREAM_LIST", list: data })
         })
 
+        socket.on("FRONT_WORKSTREAM_COUNT_LIST",(data) => {
+            dispatch({type:"SET_WORKSTREAM_COUNT_LIST",list : data})
+        })
+
         socket.on("FRONT_WORKSTREAM_SELECTED", (data) => {
             dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: data })
             dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })

@@ -1,6 +1,7 @@
 import React from "react";
 import Tooltip from "react-tooltip";
 import { HeaderButtonContainer } from "../../globalComponents";
+import WorkstreamStatus from "./workstreamStatus"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -42,6 +43,8 @@ export default class List extends React.Component {
     render() {
         let { workstream, dispatch, socket } = this.props;
         return <div>
+            
+            <WorkstreamStatus style={{float:"right",padding:"20px"}} />
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })} >
                     <span>New Workstream</span>

@@ -67,3 +67,35 @@ exports.getData = getData;
 exports.putData = putData;
 exports.postData = postData;
 exports.deleteData = deleteData;
+
+var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
+    let db = global.initDB();
+    let params = [data.projectId,data.projectId];
+    
+    let query = `SELECT tb.projectId,
+                        Active, 
+                        tb2.Issues, 
+                        IF(tb2.Issues=0,tb2.OnTrack,0) as OnTrack 
+                    FROM (select projectId,sum(IF(isActive="1",1,0)) as Active FROM workstream WHERE projectId = ? ) as tb
+                    LEFT JOIN
+                (SELECT projectId,
+                        SUM(IF(Issues>0,1,0))  as Issues,
+                        SUM(IF(OnTrack>0,1,0)) as OnTrack  FROM 
+                            ( SELECT projectId,
+                                     workstreamId,
+                                     SUM(IF(dueDate>NOW(),1,0)) as OnTrack, 
+                                     SUM(IF(dueDate<NOW(),1,0)) as Issues FROM task WHERE projectId = ?
+                                GROUP BY workstreamId ) as tbpt) as tb2
+                ON tb.projectId = tb2.projectId
+                        `;
+
+    db.query(
+        query,
+        params, 
+        function(err,row,fields){
+            if(err) { cb({ status : false, error : err, data : row }); return; }
+
+            cb({  status : true, error : err, data : row });
+        }
+    );
+}
