@@ -25,6 +25,9 @@ export default class Component extends React.Component {
     }
 
     componentDidMount(){
+        if(typeof project != "undefined" && project){
+            this.props.socket.emit("GET_PROJECT_DETAIL",{id:project})
+        }
         this.setState({miniSideMenu:this.props.miniSideMenu})
     }
 

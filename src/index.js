@@ -32,7 +32,7 @@ switch (page) {
     case "project":
         switch (subpage) {
             case "home":
-                require('./container/pageNotAvailable');
+                require('./container/projectDashboard');
                 break;
             case "documents":
                 require('./container/document');
