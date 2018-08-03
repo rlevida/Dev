@@ -13,7 +13,8 @@ import { connect } from "react-redux"
         document: store.document,
         loggedUser: store.loggedUser,
         status: store.status,
-        type: store.type
+        type: store.type,
+        workstream: store.workstream
     }
 })
 
@@ -33,26 +34,33 @@ export default class FormComponent extends React.Component {
     handleChange(e) {
         let { socket, dispatch, document } = this.props
         let Selected = Object.assign({},document.Selected)
-        Selected[e.target.name] = e.target.value;
-        dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
+            Selected[e.target.name] = e.target.value;
+            dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
     }
 
     handleSubmit(e) {
         let { socket, document } = this.props
 
         let result = true;
-        $('.form-container *').validator('validate');
-        $('.form-container .form-group').each(function(){
-            if($(this).hasClass('has-error')){
-                result = false;
+            $('.form-container *').validator('validate');
+            $('.form-container .form-group').each(function(){
+                if($(this).hasClass('has-error')){
+                    result = false;
+                }
+            });
+            if(!result){
+                showToast("error","Form did not fullfill the required value.")
+                return;
             }
-        });
-        if(!result){
-            showToast("error","Form did not fullfill the required value.")
-            return;
-        }
 
-        socket.emit("SAVE_OR_UPDATE_DOCUMENT",{data:document.Selected});
+            socket.emit("SAVE_OR_UPDATE_DOCUMENT",{data:document.Selected});
+    }
+
+    selectTag(e,data){
+        let { dispatch , document } = this.props;
+        let Selected = Object.assign({},document.Selected);
+            Selected["tags"] = JSON.stringify(e)
+            dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
     }
     
     // setDropDown(name,value) {
@@ -69,11 +77,11 @@ export default class FormComponent extends React.Component {
     // }
 
     render() {
-        let { dispatch, document, loggedUser, status, type } = this.props
-
-        let statusList = [], typeList = []
-        status.List.map((e,i)=>{ if(e.linkType=="document"){statusList.push({id:e.id,name:e.status})} })
-        type.List.map((e,i)=>{ if(e.linkType=="document"){typeList.push({id:e.id,name:e.type})} })
+        let { dispatch, document, loggedUser, status, type , workstream } = this.props;
+        let statusList = [], typeList = [] , workstreamList = []
+            workstreamList = workstream.List.map( e => { return { id:e.id , name:e.workstream }});
+            status.List.map((e,i)=>{ if(e.linkType=="document"){statusList.push({id:e.id,name:e.status})} });
+            type.List.map((e,i)=>{ if(e.linkType=="document"){typeList.push({id:e.id,name:e.type})} });
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -107,13 +115,31 @@ export default class FormComponent extends React.Component {
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div> */}
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Document *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="origin" required value={(typeof document.Selected.origin == "undefined")?"":document.Selected.origin} class="form-control" placeholder="Document" onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
+                                { (document.EditType == "rename") && 
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Document Name *</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <input type="text" name="origin" required value={(typeof document.Selected.origin == "undefined")?"":document.Selected.origin} class="form-control" placeholder="Document" onChange={this.handleChange} />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
                                     </div>
-                                </div>
+                                }
+                                { (document.EditType == "tags" && workstreamList.length > 0) && 
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Document Tags *</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <DropDown 
+                                                name="tags"
+                                                multiple={true}
+                                                required={false}
+                                                options={ workstreamList } 
+                                                selected={ ( document.Selected.tags != null ) ? JSON.parse(document.Selected.tags) : []  } 
+                                                onChange={(e)=>this.selectTag(e , document.Selected )} 
+                                                /> 
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                }
                                 {/* <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Type</label>
                                     <div class="col-md-7 col-xs-12">

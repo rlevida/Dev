@@ -72,7 +72,7 @@ export default class List extends React.Component {
     selectTag(e , index){
         let { tempData }  = this.state;
             tempData[index].tags = JSON.stringify(e);
-            tempData[index].status = "foraction";
+            tempData[index].status = "library";
             this.setState({ tempData : tempData });
     }
 
@@ -96,10 +96,11 @@ export default class List extends React.Component {
             }
     }
 
-    editDocument(data){
+    editDocument(data , type){
         let { dispatch } = this.props;
             dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" });
-            dispatch({type:"SET_DOCUMENT_SELECTED" , Selected : data });
+            dispatch({type:"SET_DOCUMENT_SELECTED" , Selected: data });
+            dispatch({type:"SET_DOCUMENT_EDIT_TYPE" , EditType: type })
     }
 
     onDrop(files){
@@ -126,26 +127,31 @@ export default class List extends React.Component {
                 contentType: false,
                 success: function(res) {   
                     res.files.map( e =>{
-                        tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id , status : "newupload"})
+                        tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id , status : "new"})
                     })
                     self.setState({ tempData : tempData , loading : false , upload : false })
                 }
             });
     }
 
+    moveToLibrary(data){
+        let { socket } = this.props;
+            socket.emit("SAVE_OR_UPDATE_DOCUMENT" , { data : { status : "library" , id : data.id }})
+    }
+
     render() {
         let { document, dispatch, workstream , users , loggedUser , settings , starred } = this.props;
         let data = [] , tempData = [];
         let workstreamList = workstream.List.map( e => { return { id:e.id , name:e.workstream }})
-        let documentList = { newUpload : [] , forAction : [] };
+        let documentList = { newUpload : [] , library : [] };
 
             if( document.List.length > 0 ){
                 document.List.filter( e =>{
-                    if( e.status == "newupload" && e.isCompleted != 1 ){
+                    if( e.status == "new" && e.isCompleted != 1 ){
                         documentList.newUpload.push(e)
                     }
-                    if( e.status == "foraction" && e.isCompleted != 1 ){
-                        documentList.forAction.push(e)
+                    if( e.status == "library" && e.isCompleted != 1 ){
+                        documentList.library.push(e)
                     }
                 })
             }
@@ -171,10 +177,10 @@ export default class List extends React.Component {
                         <h3>New Documents 
                             <div class="tool-bar pull-right">
                                 <span class="label label-primary label-flat" style={{ fontSize:"16px" , margin: "2px" , width:"300px"}}> New Uploads { documentList.newUpload.length }</span> 
-                                <span class="label label-primary" style={{ fontSize:"16px" }} > For Action { documentList.forAction.length }</span>
+                                <span class="label label-primary" style={{ fontSize:"16px" }} > For Action { documentList.library.length }</span>
                             </div>
                         </h3>
-                        <table id="dataTable" class="table responsive-table table-bordered" >
+                        <table id="dataTable" class="table responsive-table table-bordered document-table">
                             <tbody>
                                 <tr>
                                     <th></th>
@@ -188,7 +194,7 @@ export default class List extends React.Component {
 
                                 {
                                     (documentList.newUpload.length == 0) &&
-                                    <tr><td class="text-center" colSpan={8}>No Record Found!</td></tr>
+                                    <tr><td colSpan={8}>No Record Found!</td></tr>
                                 }
 
                                 {
@@ -196,7 +202,7 @@ export default class List extends React.Component {
                                         return (
                                             <tr key={index}>
                                                 <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
-                                                <td class="text-center"> 
+                                                <td> 
                                                     {
                                                         starred.List.filter( s => { return s.linkId == data.id }).length > 0 
                                                             ? <span class="glyphicon glyphicon-star" onClick={()=> this.starDocument( data , 1 )} style={{ cursor:"pointer" }}></span>
@@ -213,23 +219,22 @@ export default class List extends React.Component {
                                                         })
                                                     }
                                                 </td>
-                                                <td class="text-center">
+                                                <td>
                                                     <div class="dropdown">
-                                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                        Action
-                                                        </button>
+                                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action</button>
                                                         <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
-                                                            <li><a href="javascript:void(0)" data-tip="View" onClick={()=> this.viewDocument(data)}>View</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument(data)}>Edit</a></li>
                                                             <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
-                                                            <li>
-                                                            {
-                                                                starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "rename" )}>Rename</a></li>
+                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" )}>Edit Tags</a></li>
+                                                            <li>{ starred.List.filter( s => { return s.linkId == data.id }).length > 0 
                                                                     ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
                                                                         :  <a href="javascript:void(0)" data-tip="Star" onClick={()=> this.starDocument( data , 0 )}>Star</a>
-                                                            }
+                                                                }
                                                             </li>
+                                                            <li><a href="javascript:void(0)" data-tip="Move to library" onClick={()=> this.moveToLibrary(data)}>Move to library</a></li>
                                                             <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data.id)}>Delete</a></li>
+                                                            <li><a href="javascript:void(0)" data-tip="View" onClick={()=> this.viewDocument(data)}>View</a></li>
+                                                            
                                                         </ul>
                                                     </div>
                                                 </td>
@@ -244,33 +249,31 @@ export default class List extends React.Component {
                     <hr/>
                     <div class="col-lg-12 col-md-12">
                         <h3>Library</h3>
-                        <table id="dataTable" class="table responsive-table table-bordered" ref={el => (this.componentRef = el)}>
+                        <table id="dataTable" class="table responsive-table table-bordered document-table" ref={el => (this.componentRef = el)}>
                             <tbody>
                                 <tr>
                                     <th></th>
                                     <th>Name</th>
-                                    <th>Uploaded</th>
-                                    <th>Upload Type</th>
-                                    <th>By</th>
+                                    <th>Modified</th>
+                                    <th>Members</th>
                                     <th>Tags</th>
                                     <th></th>
                                 </tr>
                                 {
-                                    (documentList.forAction.length == 0) &&
+                                    (documentList.library.length == 0) &&
                                     <tr>
-                                        <td class="text-center" colSpan={8}>No Record Found!</td>
+                                        <td colSpan={8}>No Record Found!</td>
                                     </tr>
                                 }
 
                                 {
-                                    documentList.forAction.map((data, index) => {
+                                    documentList.library.map((data, index) => {
                                         return (
                                             <tr key={index}>
                                                 <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
-                                                <td><span class="glyphicon glyphicon-file"></span><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }>{ data.origin }</a></td>
+                                                <td><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
                                                 <td>{ moment(data.dateAdded).format('L') }</td>
-                                                <td>Direct Upload</td>
-                                                <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
+                                                <td></td>
                                                 <td> 
                                                     { ( data.tags != "" && data.tags != null ) &&
                                                         JSON.parse(data.tags).map((tag,tagIndex) =>{
@@ -278,7 +281,7 @@ export default class List extends React.Component {
                                                         })
                                                     }
                                                 </td>
-                                                <td class="text-center">
+                                                <td>
                                                     <div class="dropdown">
                                                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                         Action
@@ -306,6 +309,7 @@ export default class List extends React.Component {
                         </table>
                     </div>
                 </div>
+
                 <div class="modal fade" id="uploadFileModal" tabIndex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
@@ -319,7 +323,7 @@ export default class List extends React.Component {
 
                             { (!this.state.loading) &&
                                 <Dropzone onDrop={this.onDrop.bind(this)}
-                                    style={{ borderStyle: "dashed" , width : "100%" , borderColor :"gray" , borderRadius : "5px" , position : "relative" , height : "200px" }}
+                                    class="document-file-upload"
                                 >
                                     <div style={{ textAlign : "center" , height: "100%" , padding: "60px"}}>
                                         <div>
@@ -344,7 +348,7 @@ export default class List extends React.Component {
                                 <tbody>
                                 {( this.state.tempData.length == 0 && this.state.loading ) &&
                                     <tr>
-                                        <td class="text-center" colSpan={8}><i class="fa fa-spinner fa-spin" style={{ fontSize:"36px" , marginTop: "50px"}}></i></td>
+                                        <td colSpan={8}><i class="fa fa-spinner fa-spin" style={{ fontSize:"36px" , marginTop: "50px"}}></i></td>
                                     </tr>
                                 }
                                 {(this.state.tempData.length > 0) &&
