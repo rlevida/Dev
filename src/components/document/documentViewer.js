@@ -38,7 +38,7 @@ export default class DocumentViewerComponent extends React.Component {
 
     componentWillMount() {
         let { socket  , document , users } = this.props
-            socket.emit("GET_COMMENT_LIST",{ filter : { documentId : document.Selected.id , linkType : "project" , linkId : project , }})
+            socket.emit("GET_COMMENT_LIST",{ filter : { linkType : "project" , linkId : document.Selected.id }})
             this.setState({ users : users.List  })
     }
 
@@ -52,7 +52,7 @@ export default class DocumentViewerComponent extends React.Component {
         let { comment } = this.state;
 
         socket.emit("SAVE_OR_UPDATE_CONVERSATION", { 
-                data: { comment : comment , linkType : "project" , linkId : project , usersId : loggedUser.data.id , documentId : document.Selected.id } 
+                data: { comment : comment , linkType : "project" , linkId : document.Selected.id , usersId : loggedUser.data.id } 
             });
             this.setState({ comment : "" , editorState :toEditorState('') })
     }

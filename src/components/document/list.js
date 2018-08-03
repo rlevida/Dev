@@ -4,6 +4,7 @@ import { showToast,displayDate,numberFormat } from '../../globalFunction';
 import { HeaderButtonContainer,HeaderButton, DropDown, OnOffSwitch } from "../../globalComponents";
 import moment from 'moment'
 import FileUpload from 'react-fileupload';
+import Dropzone from 'react-dropzone'
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -25,10 +26,12 @@ export default class List extends React.Component {
             tempData : [] , 
             upload : false,
             loading : false,
-            tags : []
+            tags : [],
+            files : []
         }
         this.deleteData = this.deleteData.bind(this)
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
+        this.onDrop = this.onDrop.bind(this)
     }
 
     componentWillMount() {
@@ -100,6 +103,37 @@ export default class List extends React.Component {
         dispatch({type:"SET_DOCUMENT_SELECTED" , Selected : data });
     }
 
+    onDrop(files){
+        this.setState({ files  , upload : true });
+    }
+
+    submitDrop(){
+        let { loggedUser } = this.props,
+            { files } = this.state
+        let data = new FormData() , tempData = [] , self = this
+
+            this.setState({ loading : true })
+
+            files.map( e =>{
+                data.append("file",e)
+            } )
+
+            $.ajax({
+                url: '/api/upload?uploadType=form&type=upload',
+                type: 'post',
+                dataType: 'json',
+                data: data,
+                processData: false,
+                contentType: false,
+                success: function(res) {   
+                    res.files.map( e =>{
+                        tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id , status : "newupload"})
+                    })
+                    self.setState({ tempData : tempData , loading : false , upload : false })
+                }
+            });
+    }
+
     render() {
         let { document, dispatch, workstream , users , loggedUser , settings , starred } = this.props;
         let data = [] , tempData = [];
@@ -149,7 +183,7 @@ export default class List extends React.Component {
                         {
                             (documentList.newUpload.length == 0) &&
                             <tr>
-                                <td style={{textAlign:"center"}} colSpan={8}>No Record Found!</td>
+                                <td class="text-center" colSpan={8}>No Record Found!</td>
                             </tr>
                         }
 
@@ -158,7 +192,7 @@ export default class List extends React.Component {
                                 return (
                                     <tr key={index}>
                                         <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
-                                        <td style={{textAlign:"center"}}> 
+                                        <td class="text-center"> 
                                             {
                                                 starred.List.filter( s => { return s.linkId == data.id }).length > 0 
                                                     ? <span class="glyphicon glyphicon-star" onClick={()=> this.starDocument( data , 1 )} style={{ cursor:"pointer" }}></span>
@@ -176,31 +210,31 @@ export default class List extends React.Component {
                                             }
                                         </td>
                                         <td class="text-center">
-                                        <div class="dropdown">
-                                            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                               Action
-                                            </button>
-                                            <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
-                                                <li><a href="javascript:void(0)" onClick={()=> this.viewDocument(data)}>View</a></li>
-                                                <li><a href="javascript:void(0)" onClick={()=> this.editDocument(data)}>Edit</a></li>
-                                                <li>
-                                                    <a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Delete"> Download </a>
-                                                </li>
-                                                <li>
-                                                {
-                                                    starred.List.filter( s => { return s.linkId == data.id }).length > 0 
-                                                        ? <a href="javascript:void(0)" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
-                                                            :  <a href="javascript:void(0)" onClick={()=> this.starDocument( data , 0 )}>Star</a>
-                                                }
-                                                </li>
-                                                <li>
-                                                    <a href="javascript:void(0);" data-tip="Delete"
-                                                        onClick={e => this.deleteData(data.id)}
-                                                       > Delete
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                Action
+                                                </button>
+                                                <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                    <li><a href="javascript:void(0)" onClick={()=> this.viewDocument(data)}>View</a></li>
+                                                    <li><a href="javascript:void(0)" onClick={()=> this.editDocument(data)}>Edit</a></li>
+                                                    <li>
+                                                        <a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Delete"> Download </a>
+                                                    </li>
+                                                    <li>
+                                                    {
+                                                        starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                            ? <a href="javascript:void(0)" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
+                                                                :  <a href="javascript:void(0)" onClick={()=> this.starDocument( data , 0 )}>Star</a>
+                                                    }
+                                                    </li>
+                                                    <li>
+                                                        <a href="javascript:void(0);" data-tip="Delete"
+                                                            onClick={e => this.deleteData(data.id)}
+                                                        > Delete
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
                                         </td>
                                     </tr>
                                 )
@@ -212,12 +246,13 @@ export default class List extends React.Component {
                 <hr/>
 
                 <h3>Library</h3>
-                <table id="dataTable" class="table responsive-table">
+                <table id="dataTable" class="table responsive-table table-bordered">
                     <tbody>
                         <tr>
                             <th></th>
                             <th>Name</th>
                             <th>Uploaded</th>
+                            <th>Upload Type</th>
                             <th>By</th>
                             <th>Tags</th>
                             <th></th>
@@ -225,7 +260,7 @@ export default class List extends React.Component {
                         {
                             (documentList.forAction.length == 0) &&
                             <tr>
-                                <td style={{textAlign:"center"}} colSpan={8}>No Record Found!</td>
+                                <td class="text-center" colSpan={8}>No Record Found!</td>
                             </tr>
                         }
 
@@ -236,6 +271,7 @@ export default class List extends React.Component {
                                         <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
                                         <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }>{data.origin}</a></td>
                                         <td>{ moment(data.dateAdded).format('L') }</td>
+                                        <td>Direct Upload</td>
                                         <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
                                         <td> 
                                             { ( data.tags != "" && data.tags != null ) &&
@@ -245,11 +281,31 @@ export default class List extends React.Component {
                                             }
                                         </td>
                                         <td class="text-center">
-                                            <a href="javascript:void(0);" data-tip="ARCHIVE"
-                                                onClick={e => this.deleteData(data.id)}
-                                                class={ data.allowedDelete==0 ? 'hide' : 'btn btn-danger btn-sm ml10' }>
-                                                <span class="glyphicon glyphicon-trash"></span>
-                                            </a>
+                                            <div class="dropdown">
+                                                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                Action
+                                                </button>
+                                                <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                    <li><a href="javascript:void(0)" onClick={()=> this.viewDocument(data)}>View</a></li>
+                                                    {/* <li><a href="javascript:void(0)" onClick={()=> this.editDocument(data)}>Edit</a></li> */}
+                                                    <li>
+                                                        <a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Delete"> Download </a>
+                                                    </li>
+                                                    <li>
+                                                    {
+                                                        starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                            ? <a href="javascript:void(0)" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
+                                                                :  <a href="javascript:void(0)" onClick={()=> this.starDocument( data , 0 )}>Star</a>
+                                                    }
+                                                    </li>
+                                                    <li>
+                                                        <a href="javascript:void(0);" data-tip="Delete"
+                                                            onClick={e => this.deleteData(data.id)}
+                                                        > Delete
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
                                         </td>
                                     </tr>
                                 )
@@ -268,43 +324,41 @@ export default class List extends React.Component {
                             </button>
                         </div>
                         <div class="modal-body">
-                            <FileUpload required options={{
-                                baseUrl: '/api/upload',
-                                param: {
-                                    category: '1',
-                                    name: "document",
-                                    type: "upload",
-                                    uploadType: "form"
-                                },
-                                dataType: 'json',
-                                multiple: true,
-                                uploadSuccess: (resp) => {
-                                    resp.files.map((e) => {
-                                        tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id , status : "newupload"})
-                                    })
-                                    this.setState({ tempData : tempData , loading : false  })
-                                },
-                                chooseFile: (resp) => {
-                                    this.setState({ upload : true })
-                                }
-                            }}>
-                                    <a class="btn btn-primary" ref="chooseBtn" style={ this.state.loading ? { display:"none" } : { marginRight: "2px" }} >choose</a>
-                                    { ( this.state.upload  && !this.state.loading ) && 
-                                        <a ref="uploadBtn" class="btn btn-primary" onClick={()=> this.setState({ loading : true })}>upload</a>
-                                    }
-                            </FileUpload>
+
+                            { (!this.state.loading) &&
+                                <Dropzone onDrop={this.onDrop.bind(this)}
+                                    style={{ borderStyle: "dashed" , width : "100%" , borderColor :"gray" , borderRadius : "5px" , position : "relative" , height : "200px" }}
+                                >
+                                    <div style={{ textAlign : "center" , height: "100%" , padding: "60px"}}>
+                                        <div>
+                                        { ( this.state.upload  && !this.state.loading ) ?
+                                            <span style={{ fontSize: "75px" }} class="glyphicon glyphicon-file"></span> : 
+                                            <p>Drop some files here, or click to select files to upload.</p>
+                                        }
+                                        </div>
+                                    </div>
+                                </Dropzone>
+                            }
+
+                            <br/>
+
+                            { ( this.state.upload  && !this.state.loading ) && 
+                                <div class="form-group text-center">
+                                    <button class="btn btn-success" onClick={()=> this.submitDrop()}> Upload</button>
+                                </div>
+                            }
+
                             <table id="dataTable" class="table responsive-table">
                                 <tbody>
                                 {( this.state.tempData.length == 0 && this.state.loading ) &&
                                     <tr>
-                                        <td style={{textAlign:"center"}} colSpan={8}><i class="fa fa-spinner fa-spin" style={{ fontSize:"36px" , marginTop: "50px"}}></i></td>
+                                        <td class="text-center" colSpan={8}><i class="fa fa-spinner fa-spin" style={{ fontSize:"36px" , marginTop: "50px"}}></i></td>
                                     </tr>
                                 }
                                 {(this.state.tempData.length > 0) &&
                                     this.state.tempData.map((data, index) => {
                                         return  (
                                             <tr key={index}>
-                                                <td><span class="glyphicon glyphicon-star-empty"></span></td>
                                                 <td><span><i class="fa fa-file" aria-hidden="true"></i></span></td>
                                                 <td>{data.origin}</td>
                                                 <td><span><i class="fa fa-tag" aria-hidden="true"></i></span></td>
@@ -324,6 +378,7 @@ export default class List extends React.Component {
                                 }
                                 </tbody>
                             </table>
+
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
