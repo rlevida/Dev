@@ -2,7 +2,7 @@ import React from "react";
 import Tooltip from "react-tooltip";
 import { showToast,displayDate,numberFormat } from '../../globalFunction';
 import { HeaderButtonContainer,HeaderButton, DropDown, OnOffSwitch } from "../../globalComponents";
-import ProjectFilter from "./ProjectFilter"
+import ProjectFilter from "./projectFilter"
 import ProjectStatus from "./projectStatus"
 
 import { connect } from "react-redux"
