@@ -64,8 +64,11 @@ export default class List extends React.Component {
                         }
                         {
                             users.List.map((data, index) => {
-                                let role = data.role.filter(e => e.roleId == 1)
-                                if(loggedUser.data.userRole == 2 && role.length > 0){ 
+                                let roleMA = data.role.filter(e => e.roleId == 1)
+                                let roleM = data.role.filter(e => e.roleId == 1 || e.roleId == 2 || e.roleId == 3)
+                                if(loggedUser.data.userRole == 2 && roleMA.length > 0){ 
+                                    // only master admin can view master admin user
+                                }else if(loggedUser.data.userRole == 3 && roleM.length > 0){ 
                                     // only master admin can view master admin user
                                 }else{
                                     return <tr key={index}>

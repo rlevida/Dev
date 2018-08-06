@@ -8,7 +8,7 @@ var field = exports.field = {
     /**
      * projectId (BIGINT)
      */
-    'projectId' : {type : 'bigint' , access : "public" },
+    'projectId' : {type : 'bigint' , access : "public",  database: "project", relation: "one-to-one" },
 
     /**
      * workstream (VARCHAR(50))

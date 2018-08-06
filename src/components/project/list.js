@@ -22,9 +22,17 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_PROJECT_LIST",{});
+        let intervalLoggedUser = setInterval(()=>{
+            if(typeof this.props.loggedUser.data.id != "undefined"){
+                this.props.socket.emit("GET_PROJECT_LIST",{ filter : { createdBy : this.props.loggedUser.data.id } });
+                clearInterval(intervalLoggedUser)
+            }
+        },1000)
+        
         this.props.socket.emit("GET_STATUS_LIST",{});
         this.props.socket.emit("GET_TYPE_LIST",{});
+        this.props.socket.emit("GET_USER_LIST",{});
+        this.props.socket.emit("GET_TEAM_LIST",{});
     }
 
     updateActiveStatus(id,active){
@@ -41,7 +49,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { project, dispatch, socket } = this.props;
+        let { project, dispatch, socket,loggedUser } = this.props;
         return <div>
                 <ProjectStatus style={{float:"right",padding:"20px"}} />
                 <table id="dataTable" class="table responsive-table">
@@ -67,7 +75,10 @@ export default class List extends React.Component {
                         }
                         {
                             project.List.map((data, index) => {
-                                return <tr key={index}>
+                                if( data.typeId == 1 && loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2  && loggedUser.data.userRole != 3 ){
+
+                                }else{
+                                    return <tr key={index}>
                                         <td>{data.isActive?"Active":"Inactive"}</td>
                                         <td><a href={"/project/"+data.id}>{data.project}</a></td>
                                         <td>{data.type_type}</td>
@@ -88,6 +99,7 @@ export default class List extends React.Component {
                                             <Tooltip />
                                         </td>
                                     </tr>
+                                }
                             })
                         }
                     </tbody>

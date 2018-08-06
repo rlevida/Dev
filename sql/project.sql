@@ -6,6 +6,7 @@ CREATE TABLE `project` (
     `typeId` BIGINT,
     `projectType` VARCHAR(50),
     `classification` VARCHAR(50),
+    `createdBy` BIGINT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `isActive` TINYINT(1) DEFAULT '1',

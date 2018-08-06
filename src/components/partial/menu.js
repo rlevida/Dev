@@ -57,7 +57,9 @@ export default class Component extends React.Component {
                             </li>
                         </ul>
                     </li>
-                    <li data-tip={(this.state.miniSideMenu=="true")?"Teams":""} class={page=="users"?"active":""}><a href="/users" class="menu-list"><i class="fa fa-users" aria-hidden="true"></i><span class="link-title">&nbsp; Teams</span></a></li>
+                    { (loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
+                        <li data-tip={(this.state.miniSideMenu=="true")?"Teams":""} class={page=="users"?"active":""}><a href="/users" class="menu-list"><i class="fa fa-users" aria-hidden="true"></i><span class="link-title">&nbsp; Teams</span></a></li>
+                    }
                     <li data-tip={(this.state.miniSideMenu=="true")?"Wikis":""} class={page=="wikis"?"active":""}><a href="/wikis" class="menu-list"><i class="fa fa-book" aria-hidden="true"></i><span class="link-title">&nbsp; Wikis</span></a></li>
                     <li data-tip={(this.state.miniSideMenu=="true")?"Reports":""} class={page=="reports"?"active":""}><a href="/reports" class="menu-list"><i class="fa fa-bar-chart" aria-hidden="true"></i><span class="link-title">&nbsp; Reports</span></a></li>
                     <li><a href="javascript:void(0)" onClick={this.handleLogout} class="menu-list"><span class="fa fa-sign-out"></span><span class="link-title"> Logout</span></a></li>

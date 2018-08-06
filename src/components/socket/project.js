@@ -32,7 +32,8 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_PROJECT_ADD",(data) => {
-            dispatch({type:"SET_PROJECT_SELECTED",Selected : {}})
+            dispatch({type:"SET_PROJECT_SELECTED",Selected : data[0]})
+            dispatch({type:"SET_PROJECT_FORM_ACTIVE",FormActive : "Form"})
         })
 
         socket.on("FRONT_PROJECT_EDIT",(data) => {

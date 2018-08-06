@@ -1,24 +1,22 @@
 import React from "react"
-import ReactDOM from "react-dom"
-import Select from 'react-select'
-import moment from 'moment'
 
-import { showToast,displayDate,setDatePicker } from '../../globalFunction'
-import { HeaderButtonContainer,HeaderButton,DropDown } from "../../globalComponents"
-import Members from "./members"
+import { showToast, setDatePicker, displayDate } from '../../globalFunction'
+import { HeaderButtonContainer, DropDown } from "../../globalComponents"
 import Tooltip from "react-tooltip";
-
 import { connect } from "react-redux"
+import moment from 'moment'
+import MembersForm from "../global/members/membersForm";
+
 @connect((store) => {
     return {
         socket: store.socket.container,
-        project: store.project,
+        task: store.task,
         loggedUser: store.loggedUser,
         status: store.status,
-        type: store.type,
-        users: store.users,
+        workstream: store.workstream,
+        members: store.members,
         teams: store.teams,
-        members: store.members
+        users: store.users
     }
 })
 
@@ -29,82 +27,83 @@ export default class FormComponent extends React.Component {
         this.handleChange = this.handleChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
-        this.handleCheckbox = this.handleCheckbox.bind(this)
+        this.handleDate = this.handleDate.bind(this)
+        this.deleteData = this.deleteData.bind(this)
     }
 
     componentDidMount() {
+        let { task } = this.props
         $(".form-container").validator();
-        if (typeof this.props.project.Selected.id != 'undefined') {
-            this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: this.props.project.Selected.id, linkType: 'project' } });
+        setDatePicker(this.handleDate, "dueDate");
+        if (typeof task.Selected.id != 'undefined') {
+            this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
         }
+    }
+
+    componentDidUpdate() {
+        setDatePicker(this.handleDate, "dueDate");
+    }
+
+    handleDate(e) {
+        let { dispatch, task } = this.props
+        let Selected = Object.assign({}, task.Selected)
+
+        Selected[e.target.name] = e.target.value + " UTC";
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
     handleChange(e) {
-        let { socket, dispatch, project } = this.props
-        let Selected = Object.assign({},project.Selected)
+        let { socket, dispatch, task } = this.props
+        let Selected = Object.assign({}, task.Selected)
+
         Selected[e.target.name] = e.target.value;
-        dispatch({type:"SET_PROJECT_SELECTED",Selected:Selected})
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
-    handleCheckbox(name,value) {
-        let { socket, dispatch, project } = this.props
-        let Selected = Object.assign({},project.Selected)
-        Selected[name] = value;
-        dispatch({type:"SET_PROJECT_SELECTED",Selected:Selected})
+    deleteData(params) {
+        let { socket } = this.props;
+        if (confirm("Do you really want to delete this record?")) {
+            socket.emit("DELETE_MEMBERS", params)
+        }
     }
 
     handleSubmit(e) {
-        let { socket, project, loggedUser } = this.props
+        let { socket, task } = this.props
 
         let result = true;
         $('.form-container *').validator('validate');
-        $('.form-container .form-group').each(function(){
-            if($(this).hasClass('has-error')){
+        $('.form-container .form-group').each(function () {
+            if ($(this).hasClass('has-error')) {
                 result = false;
             }
         });
-        if(!result){
-            showToast("error","Form did not fullfill the required value.")
+        if (!result) {
+            showToast("error", "Form did not fullfill the required value.")
             return;
         }
-        if( typeof project.Selected.id != "undefined" ){
-            project.Selected.createdBy = loggedUser.data.id;
-        }
-        
-        socket.emit("SAVE_OR_UPDATE_PROJECT",{data:project.Selected});
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...task.Selected, projectId: project, dueDate: moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') } });
     }
-    
-    setDropDown(name,value) {
-        let { socket, dispatch, project } = this.props
-        let Selected = Object.assign({},project.Selected)
+
+    setDropDown(name, value) {
+        let { socket, dispatch, task } = this.props
+        let Selected = Object.assign({}, task.Selected)
         Selected[name] = value;
-        dispatch({type:"SET_PROJECT_SELECTED",Selected:Selected})
-
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
-    setDropDownMultiple(name,values) {
+    setDropDownMultiple(name, values) {
         this.setState({
-            [name]: JSON.stringify(values?values:[])
+            [name]: JSON.stringify(values ? values : [])
         });
     }
 
     render() {
-        let { dispatch, project, loggedUser, members, status, type, users, teams } = this.props
+        let { dispatch, task, status, workstream, users, members, teams } = this.props;
+        let statusList = [], typeList = [];
+        let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
+        status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
-        let statusList = [], typeList = []
-        status.List.map((e,i)=>{ if(e.linkType=="project"){statusList.push({id:e.id,name:e.status})} })
-        type.List.map((e,i)=>{ 
-            if(e.linkType=="project"){
-                let dontShowType = false;
-                if( e.id == 1 && loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2  && loggedUser.data.userRole != 3){
-                    dontShowType = true;
-                }
-
-                if(!dontShowType){
-                    typeList.push({id:e.id,name:e.type})
-                }
-            } 
-        })
+        let userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
 
         let userMemberList = _(members.List)
             .filter((member) => { return member.usersType == 'users' })
@@ -126,10 +125,10 @@ export default class FormComponent extends React.Component {
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" style={{marginRight:"2px"}} 
-                    onClick={(e)=>{
-                        dispatch({type:"SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
-                        dispatch({type:"SET_PROJECT_SELECTED", Selected: {} });
+                <li class="btn btn-info" style={{ marginRight: "2px" }}
+                    onClick={(e) => {
+                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+                        dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
                     }} >
                     <span>Back</span>
                 </li>
@@ -141,41 +140,60 @@ export default class FormComponent extends React.Component {
                 <div class="col-lg-12 col-md-12 col-xs-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="panel-title">Project {(project.Selected.id)?" > Edit > ID: " + project.Selected.id:" > Add"}</h3>
+                            <h3 class="panel-title">Task {(task.Selected.id) ? " > Edit > ID: " + task.Selected.id : " > Add"}</h3>
                         </div>
                         <div class="panel-body">
                             <form class="form-horizontal form-container">
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Status</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <input type="checkbox" 
-                                            style={{ width: "15px", marginTop: "10px" }}
-                                            checked={ project.Selected.isActive?true:false  }
-                                            onChange={()=>{}}
-                                            onClick={(f)=>{ this.handleCheckbox("isActive",(project.Selected.isActive)?0:1) }}
-                                        /> 
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Project *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="project" required value={(typeof project.Selected.project == "undefined")?"":project.Selected.project} class="form-control" placeholder="Project" onChange={this.handleChange} />
+                                        <DropDown multiple={false}
+                                            required={false}
+                                            options={statusList}
+                                            selected={(typeof task.Selected.statusId == "undefined") ? "" : task.Selected.statusId}
+                                            onChange={(e) => this.setDropDown("statusId", e.value)} />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Type *</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Workstream</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false} 
-                                            required={true}
-                                            options={ typeList } 
-                                            selected={(typeof project.Selected.typeId == "undefined")?"":project.Selected.typeId} 
-                                            onChange={(e)=>this.setDropDown("typeId",e.value)} /> 
+                                        <DropDown multiple={false}
+                                            required={false}
+                                            options={workstreamList}
+                                            selected={(typeof task.Selected.workstreamId == "undefined") ? "" : task.Selected.workstreamId}
+                                            onChange={(e) => this.setDropDown("workstreamId", e.value)} />
                                         <div class="help-block with-errors"></div>
                                     </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Task Name *</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Due Date: </label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <div class="input-group date">
+                                            <input type="text"
+                                                class="form-control datepicker"
+                                                style={{ backgroundColor: "#eee" }}
+                                                id="dueDate"
+                                                name="dueDate"
+                                                value={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate) ? displayDate(task.Selected.dueDate) : ""}
+                                                onChange={() => { }}
+                                                required={false}
+                                            />
+                                            <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="help-block with-errors"></div>
                                 </div>
                                 {
-                                    (typeof project.Selected.id != 'undefined'  && project.Selected.typeId != "3") && <div class="form-group">
+                                    (typeof task.Selected.id != 'undefined') && <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label pt0">Members</label>
                                         <div class="col-md-7 col-xs-12">
                                             <a href="#" type="button" data-toggle="modal" data-target="#modal">
@@ -185,8 +203,8 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 }
                             </form>
-                             {
-                                (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") && <div class="row pd20">
+                            {
+                                (typeof task.Selected.id != 'undefined') && <div class="row pd20">
                                     <h3>Teams</h3>
                                     <table id="dataTable" class="table responsive-table mt30">
                                         <tbody>
@@ -222,7 +240,7 @@ export default class FormComponent extends React.Component {
                             }
 
                             {
-                                (typeof project.Selected.id != 'undefined'  && project.Selected.typeId != "3") && <div class="row pd20">
+                                (typeof task.Selected.id != 'undefined') && <div class="row pd20">
                                     <h3>Members</h3>
                                     <table id="dataTable" class="table responsive-table mt30">
                                         <tbody>
@@ -260,23 +278,27 @@ export default class FormComponent extends React.Component {
                                     </table>
                                 </div>
                             }
-                            <div class="modal fade" id="modal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
-                                <div class="modal-dialog modal-md" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                            <h4 class="modal-title" id="myModalLabel">Add Members</h4>
-                                        </div>
-                                        <div class="modal-body">
-                                            <Members type={
-                                                    {
-                                                        data: project,
-                                                        label: 'project'
-                                                    }} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="modal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog modal-md" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Add Members</h4>
+                        </div>
+                        <div class="modal-body">
+                            <MembersForm
+                                type={
+                                    {
+                                        data: task,
+                                        label: 'task'
+                                    }
+                                }
+                            />
                         </div>
                     </div>
                 </div>

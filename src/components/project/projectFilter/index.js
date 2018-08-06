@@ -60,8 +60,8 @@ export default class ProjectFilter extends React.Component {
         let statusList = [
             {id:"",name:"All Status"},
             {id:"Active",name:"Active"},
-            {id:"On-Track",name:"On-track"},
-            {id:"Issues",name:"Issues"}
+            // {id:"On-Track",name:"On-track"},
+            // {id:"Issues",name:"Issues"}
         ];
         type.List.map((e,i)=>{ if(e.linkType=="project"){typeList.push({id:e.id,name:e.type})} });
 
