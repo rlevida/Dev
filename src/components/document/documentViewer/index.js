@@ -3,8 +3,8 @@ import ReactDOM from "react-dom"
 import Select from 'react-select'
 import moment from 'moment'
 
-import { showToast,displayDate,setDatePicker , getFilePathExtension} from '../../globalFunction'
-import { HeaderButtonContainer,HeaderButton,DropDown } from "../../globalComponents"
+import { showToast,displayDate,setDatePicker , getFilePathExtension} from '../../../globalFunction'
+import { HeaderButtonContainer,HeaderButton,DropDown } from "../../../globalComponents"
 import Mention, { toString, toEditorState , getMentions } from 'rc-editor-mention';
 import Parser from 'html-react-parser'
 const Nav = Mention.Nav;
@@ -21,7 +21,6 @@ import { connect } from "react-redux"
         conversation: store.conversation
     }
 })
-
 
 export default class DocumentViewerComponent extends React.Component {
     constructor(props) {

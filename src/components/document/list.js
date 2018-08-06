@@ -5,6 +5,7 @@ import { HeaderButtonContainer,HeaderButton, DropDown, OnOffSwitch } from "../..
 import moment from 'moment'
 import FileUpload from 'react-fileupload';
 import Dropzone from 'react-dropzone';
+import DocumentStatus from "./documentStatus"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -35,11 +36,11 @@ export default class List extends React.Component {
 
     componentWillMount() {
         let { socket } = this.props
-            socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linktype : "project" }});
+            socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linkType : "project" }});
             socket.emit("GET_USER_LIST",{});
             socket.emit("GET_SETTINGS", {});
             socket.emit("GET_WORKSTREAM_LIST", {filter:{projectId:project}});
-            socket.emit("GET_STARRED_LIST",{ filter : { linkType : "project" } })
+            socket.emit("GET_STARRED_LIST",{filter : { linkType : "project" } })
     }
 
     updateActiveStatus(id,active){
@@ -145,17 +146,17 @@ export default class List extends React.Component {
         let workstreamList = workstream.List.map( e => { return { id:e.id , name:e.workstream }})
         let documentList = { newUpload : [] , library : [] };
 
-            if( document.List.length > 0 ){
-                document.List.filter( e =>{
-                    if( e.status == "new" && e.isCompleted != 1 ){
-                        documentList.newUpload.push(e)
-                    }
-                    if( e.status == "library" && e.isCompleted != 1 ){
-                        documentList.library.push(e)
-                    }
-                })
-            }
-
+        if( document.List.length > 0 ){
+            document.List.filter( e =>{
+                if( e.status == "new" && e.isCompleted != 1 ){
+                    documentList.newUpload.push(e)
+                }
+                if( e.status == "library" && e.isCompleted != 1 ){
+                    documentList.library.push(e)
+                }
+            })
+        }
+        
         return <div>
                 <HeaderButtonContainer  withMargin={true}>
                     <li class="btn btn-info" onClick={(e)=>dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })} >
@@ -173,13 +174,11 @@ export default class List extends React.Component {
                 </div>
                 <div class="row"> 
                     <br/>
-                    <div class="col-lg-12 col-md-12">
-                        <h3>New Documents 
-                            <div class="tool-bar pull-right">
-                                <span class="label label-primary label-flat" style={{ fontSize:"16px" , margin: "2px" , width:"300px"}}> New Uploads { documentList.newUpload.length }</span> 
-                                <span class="label label-primary" style={{ fontSize:"16px" }} > Library { documentList.library.length }</span>
-                            </div>
-                        </h3>
+                    <div class="col-lg-12 col-md-12">  
+                        
+                        <DocumentStatus/>
+
+                        <h3>New Documents</h3>
                         <table id="dataTable" class="table responsive-table table-bordered document-table">
                             <tbody>
                                 <tr>

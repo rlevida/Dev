@@ -38,7 +38,7 @@ var field = exports.field = {
     /**
      * isDeleted (tinyint )
      */
-    'isDeleted' :  {type : 'date' , access : "public" }
+    'isDeleted' :  {type : 'tinyint' , access : "public" }
 
 }
 

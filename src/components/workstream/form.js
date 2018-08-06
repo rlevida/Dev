@@ -5,6 +5,7 @@ import { HeaderButtonContainer, DropDown } from "../../globalComponents";
 import MembersForm from "../global/members/membersForm";
 import { connect } from "react-redux";
 import _ from "lodash";
+import WorkstreamDocument from "./workstreamDocument"
 
 @connect((store) => {
     return {
@@ -138,7 +139,7 @@ export default class FormComponent extends React.Component {
                             <h3 class="panel-title">Workstream {(workstream.Selected.id) ? " > Edit > ID: " + workstream.Selected.id : " > Add"}</h3>
                         </div>
                         <div class="panel-body">
-                            <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
+                            <form class="form-horizontal form-container">
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
                                     <div class="col-md-7 col-xs-12">
@@ -279,7 +280,7 @@ export default class FormComponent extends React.Component {
                                     </table>
                                 </div>
                             }
-
+                            <WorkstreamDocument/>
                         </div>
                     </div>
                 </div>
