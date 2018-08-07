@@ -104,13 +104,14 @@ export default class List extends React.Component {
 
     editDocument(data , type , list ){
         let { dispatch } = this.props;
-        let newData = {} , tempTags = [];
-
-            list.map( e =>{
-                if( e.tagTypeId == data.id ){
-                    tempTags.push( { value : e.linkId , label: e.name })
-                }
-            })        
+        let newData = { ...data } , tempTags = [];
+            if(typeof list != "undefined"){
+                list.map( e =>{
+                    if( e.tagTypeId == data.id ){
+                        tempTags.push( { value : e.linkId , label: e.name })
+                    }
+                }) 
+            }     
             newData = { ...data , tags: JSON.stringify(tempTags) } 
 
             dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" });

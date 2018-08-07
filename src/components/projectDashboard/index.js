@@ -3,6 +3,7 @@ import ReactDOM from "react-dom"
 
 import { showToast } from '../../globalFunction'
 import Header from "../partial/header"
+import DocumentStatus from "./documentStatus"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -21,6 +22,9 @@ export default class Component extends React.Component {
         let { socket, project, dispatch } = this.props
         let Component = <div>
                 <h3>&nbsp;&nbsp;&nbsp;&nbsp;{project.Selected.project}</h3>
+
+                <DocumentStatus/>
+                
             </div>
         return (
             <Header component={Component} page={"Project"} />
