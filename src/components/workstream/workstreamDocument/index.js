@@ -20,7 +20,7 @@ import { connect } from "react-redux"
 
     }
 })
-export default class WorkstreamDocument extends React.Component {
+export default class WorkstreamDocumentViewer extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -86,7 +86,7 @@ export default class WorkstreamDocument extends React.Component {
 
     viewDocument(data){
         let { socket, dispatch } = this.props;
-            dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
+            dispatch({type:"SET_WORKSTREAM_FORM_ACTIVE", FormActive: "WorkstreamDocumentViewer" });
             dispatch({type:"SET_DOCUMENT_SELECTED" , Selected : data });
     }
 
@@ -157,7 +157,11 @@ export default class WorkstreamDocument extends React.Component {
                                     document.List.map((data, index) => {
                                         return (
                                             <tr key={index}>
-                                                <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
+                                                <td> 
+                                                    <input type="checkbox" 
+                                                        // onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }
+                                                    />
+                                                </td>
                                                 <td> 
                                                     {
                                                         starred.List.filter( s => { return s.linkId == data.id }).length > 0 

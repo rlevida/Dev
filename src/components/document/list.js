@@ -202,7 +202,11 @@ export default class List extends React.Component {
                                     documentList.newUpload.map((data, index) => {
                                         return (
                                             <tr key={index}>
-                                                <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
+                                                <td> 
+                                                    <input type="checkbox" 
+                                                        // onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }
+                                                    />
+                                                </td>
                                                 <td> 
                                                     {
                                                         starred.List.filter( s => { return s.linkId == data.id }).length > 0 
@@ -272,7 +276,11 @@ export default class List extends React.Component {
                                     documentList.library.map((data, index) => {
                                         return (
                                             <tr key={index}>
-                                                <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
+                                                <td> 
+                                                    <input type="checkbox" 
+                                                        // onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }
+                                                    />
+                                                </td>
                                                 <td> 
                                                     {
                                                         starred.List.filter( s => { return s.linkId == data.id }).length > 0 
