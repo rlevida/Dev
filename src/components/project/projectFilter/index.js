@@ -52,7 +52,15 @@ export default class ProjectFilter extends React.Component {
                 myFilter.filter[name] = e
             }
         }
-       this.props.socket.emit("GET_PROJECT_LIST",myFilter);
+       let intervalLoggedUser = setInterval(()=>{
+            if(typeof this.props.loggedUser.data.id != "undefined"){
+                if(this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2"){
+                    myFilter.filter.id = {name: "id", value: this.props.loggedUser.data.projectIds, condition: " IN "}
+                }
+                this.props.socket.emit("GET_PROJECT_LIST",myFilter);
+                clearInterval(intervalLoggedUser)
+            }
+        },0)
     }
 
     render() {

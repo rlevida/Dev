@@ -84,7 +84,7 @@ export default class List extends React.Component {
                         }
                         {
                             project.List.map((data, index) => {
-                                if( (data.typeId == 2 || data.typeId == 3) && (loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2  && loggedUser.data.userRole != 3) ){
+                                if( (data.typeId == 2 || data.typeId == 3) && (loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2  && loggedUser.data.userRole != 3 && loggedUser.data.userRole != 4) ){
                                     // if user is client the he can only see client project
                                 }else{
                                     return <tr key={index}>
