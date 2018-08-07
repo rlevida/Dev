@@ -60,8 +60,18 @@ var getData = exports.getData = ( tablename, data, advance , cb ) => {
                         if( typeof f.condition != "undefined" ){
                             condition = f.condition;
                         }
-                        paramStrOr.push( f.name + " " +condition + " ?" ) 
-                        params.push((typeof f.value != "undefined")?f.value:"")
+                        if(condition.trim() == "IN"){
+                            if(data[e].value.length > 0){
+                                let dataValue = f.value.map((e)=>{ return "?" }).join(",")
+                                params = params.concat(f.value)
+                                paramStrOr.push( f.name + " " +condition + " ( "+dataValue+" ) " ) 
+                            }else{
+                                paramStr.push( " false " ) 
+                            }
+                        }else{
+                            paramStrOr.push( f.name + " " +condition + " ?" ) 
+                            params.push((typeof f.value != "undefined")?f.value:"")
+                        }
                     }
                 })
                 if(paramStrOr.length > 0){
@@ -78,8 +88,18 @@ var getData = exports.getData = ( tablename, data, advance , cb ) => {
                         if( typeof f.condition != "undefined" ){
                             condition =f.condition;
                         }
-                        paramStrAnd.push( f.name + " " +condition + " ?" ) 
-                        params.push((typeof f.value != "undefined")?f.value:"")
+                        if(condition.trim() == "IN"){
+                            if(data[e].value.length > 0){
+                                let dataValue = f.value.map((e)=>{ return "?" }).join(",")
+                                params = params.concat(f.value)
+                                paramStrAnd.push( f.name + " " +condition + " ( "+dataValue+" ) " ) 
+                            }else{
+                                paramStr.push( " false " ) 
+                            }
+                        }else{
+                            paramStrAnd.push( f.name + " " +condition + " ?" ) 
+                            params.push((typeof f.value != "undefined")?f.value:"")
+                        }
                     }
                 })
                 if(paramStrAnd.length > 0){
@@ -92,8 +112,19 @@ var getData = exports.getData = ( tablename, data, advance , cb ) => {
                 if( typeof data[e].condition != "undefined" ){
                     condition = data[e].condition;
                 }
-                paramStr.push( e + condition + " ?" ) 
-                params.push((typeof data[e].value != "undefined")?data[e].value:"")
+                
+                if(condition.trim() == "IN"){
+                    if(data[e].value.length > 0){
+                        let dataValue = data[e].value.map((e)=>{ return "?" }).join(",")
+                        params = params.concat(data[e].value)
+                        paramStr.push( e + " " +condition + " ( "+dataValue+" ) " ) 
+                    }else{
+                        paramStr.push( " false " ) 
+                    }
+                }else{
+                    paramStr.push( e + condition + " ?" ) 
+                    params.push((typeof data[e].value != "undefined")?data[e].value:"")
+                }
             }else{
                 paramStr.push(e + " = ?") 
                 params.push(data[e])

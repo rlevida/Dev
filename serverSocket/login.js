@@ -1,4 +1,5 @@
-var func = global.initFunc();
+var func = global.initFunc(),
+    sequence = require("sequence").Sequence;
 
 var init = exports.init = (socket) => {
 
@@ -65,27 +66,36 @@ var init = exports.init = (socket) => {
     });
 
     socket.on('LOGGED_USER', function (data) {
-        let users = global.initModel("users");
-        users.getData("users",{id:socket.handshake.query.UserId},{},(user)=>{
-            if(user.data.length > 0 && user.status){
-                let retData = Object.assign({},user.data[0])
-                delete retData.password
-                delete retData.salt
-                retData.LastLoggedIn = socket.handshake.query.LastLoggedIn
-                let usersRole = global.initModel("users_role")
-                usersRole.getData("users_role",{usersId:retData.id},{},(e)=>{
-                    retData.userRole = (e.data.length > 0)?e.data[0].roleId:0;
-                    
-                    let usersTeam = global.initModel("users_team")
-                    usersTeam.getData("users_team",{usersId:retData.id},{},(e)=>{
-                        retData.team = JSON.stringify(e.data.map((e,i)=>{ return {value:e.teamId,label:e.team_team}; }));
-
-                        socket.emit("RETURN_LOGGED_USER",{data:retData})
-                    })
-                })
-
-                
-            }
+        sequence.create().then((nextThen)=>{
+            let users = global.initModel("users");
+            users.getData("users",{id:socket.handshake.query.UserId},{},(user)=>{
+                if(user.data.length > 0 && user.status){
+                    let retData = Object.assign({},user.data[0])
+                    delete retData.password
+                    delete retData.salt
+                    retData.LastLoggedIn = socket.handshake.query.LastLoggedIn
+                    nextThen(retData)
+                }
+            })
+        }).then((nextThen,retData)=>{
+            let usersRole = global.initModel("users_role")
+            usersRole.getData("users_role",{usersId:retData.id},{},(e)=>{
+                retData.userRole = (e.data.length > 0)?e.data[0].roleId:0;
+                nextThen(retData)
+            })
+        }).then((nextThen,retData)=>{
+            let usersTeam = global.initModel("users_team")
+            usersTeam.getData("users_team",{usersId:retData.id},{},(e)=>{
+                retData.team = JSON.stringify(e.data.map((e,i)=>{ return {value:e.teamId,label:e.team_team}; }));
+                nextThen(retData)
+            })
+        }).then((nextThen,retData)=>{
+            let project = global.initModel("project")
+            console.log(retData.id);
+            project.getProjectAllowedAccess("project",{usersId:retData.id, userRole: retData.userRole},{},(e)=>{
+                retData.projectIds = e.data.map((f) => { return f.projectId })
+                socket.emit("RETURN_LOGGED_USER",{data:retData})
+            })
         })
     });
 

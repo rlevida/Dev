@@ -17,6 +17,7 @@ var init = exports.init = (socket) => {
 
     socket.on("GET_PROJECT_COUNT_LIST",(d) => {
         let project = global.initModel("project")
+        
         let filter = (typeof d.filter != "undefined")?d.filter:{};
         project.getDataCount("project",filter,{},(c)=>{
             if(c.status) {
@@ -42,6 +43,10 @@ var init = exports.init = (socket) => {
             let id = d.data.id
             delete d.data.id
             project.putData("project",d.data,{id:id},(c)=>{
+                let members = global.initModel("members")
+                members.deleteData("members", { linktype: "project", linkId: id }, (c) => {})
+
+
                 if(c.status) {
                     project.getData("project",{id:id},{},(e)=>{
                         if(e.data.length > 0) {

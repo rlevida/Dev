@@ -24,7 +24,11 @@ export default class List extends React.Component {
     componentWillMount() {
         let intervalLoggedUser = setInterval(()=>{
             if(typeof this.props.loggedUser.data.id != "undefined"){
-                this.props.socket.emit("GET_PROJECT_LIST",{ filter : { createdBy : this.props.loggedUser.data.id } });
+                let filter = {}
+                if(this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2"){
+                    filter = {filter:{ id: {name: "id", value: this.props.loggedUser.data.projectIds, condition: " IN "}}}
+                }
+                this.props.socket.emit("GET_PROJECT_LIST",filter);
                 clearInterval(intervalLoggedUser)
             }
         },1000)
@@ -65,7 +69,12 @@ export default class List extends React.Component {
                             <th>Notification</th>
                             <th>Active Workstream</th>
                             <th>Late Workstream</th>
+                            { (loggedUser.data.userRole == 1 
+                                        || loggedUser.data.userRole == 2 
+                                        || loggedUser.data.userRole == 3 
+                                        || loggedUser.data.userRole == 4) &&
                             <th></th>
+                            }
                         </tr>
                         {
                             (project.List.length == 0) &&
@@ -75,8 +84,8 @@ export default class List extends React.Component {
                         }
                         {
                             project.List.map((data, index) => {
-                                if( data.typeId == 1 && loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2  && loggedUser.data.userRole != 3 ){
-
+                                if( (data.typeId == 2 || data.typeId == 3) && (loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2  && loggedUser.data.userRole != 3) ){
+                                    // if user is client the he can only see client project
                                 }else{
                                     return <tr key={index}>
                                         <td>{data.isActive?"Active":"Inactive"}</td>
@@ -86,18 +95,23 @@ export default class List extends React.Component {
                                         <td></td>
                                         <td></td>
                                         <td></td>
-                                        <td class="text-center">
-                                            <a href="javascript:void(0);" data-tip="EDIT" 
-                                                onClick={(e) => socket.emit("GET_PROJECT_DETAIL",{id:data.id})}
-                                                class="btn btn-info btn-sm">
-                                                <span class="glyphicon glyphicon-pencil"></span></a>
-                                            <a href="javascript:void(0);" data-tip="DELETE"
-                                                onClick={e => this.deleteData(data.id)}
-                                                class={data.allowedDelete==0?'hide':'btn btn-danger btn-sm ml10'}>
-                                                <span class="glyphicon glyphicon-trash"></span></a>
-                                            {/*<OnOffSwitch Active={data.isActive} Action={()=>this.updateActiveStatus(data.id,data.isActive)} />*/}
-                                            <Tooltip />
-                                        </td>
+                                        { (loggedUser.data.userRole == 1 
+                                        || loggedUser.data.userRole == 2 
+                                        || loggedUser.data.userRole == 3 
+                                        || loggedUser.data.userRole == 4) &&
+                                            <td class="text-center">
+                                                <a href="javascript:void(0);" data-tip="EDIT" 
+                                                    onClick={(e) => socket.emit("GET_PROJECT_DETAIL",{id:data.id})}
+                                                    class="btn btn-info btn-sm">
+                                                    <span class="glyphicon glyphicon-pencil"></span></a>
+                                                <a href="javascript:void(0);" data-tip="DELETE"
+                                                    onClick={e => this.deleteData(data.id)}
+                                                    class={data.allowedDelete==0?'hide':'btn btn-danger btn-sm ml10'}>
+                                                    <span class="glyphicon glyphicon-trash"></span></a>
+                                                {/*<OnOffSwitch Active={data.isActive} Action={()=>this.updateActiveStatus(data.id,data.isActive)} />*/}
+                                                <Tooltip />
+                                            </td>
+                                        }
                                     </tr>
                                 }
                             })
