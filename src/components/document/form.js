@@ -60,6 +60,7 @@ export default class FormComponent extends React.Component {
         let { dispatch , document } = this.props;
         let Selected = Object.assign({},document.Selected);
             Selected["tags"] = JSON.stringify(e)
+            Selected["status"] = "library"
             dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
     }
     

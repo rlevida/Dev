@@ -108,15 +108,13 @@ export default class WorkstreamDocumentViewer extends React.Component {
     editDocument(data , type , list ){
         let { dispatch } = this.props;
         let newData = { ... data } , tempTags = [];
-          
-            if(type == "tags"){
-                list.map( e =>{
-                    if( e.tagTypeId == data.id ){
-                        tempTags.push( { value : e.linkId , label: e.name })
-                    }
-                })        
-                newData = { ...data , tags: JSON.stringify(tempTags) } 
-            }
+            list.map( e =>{
+                if( e.tagTypeId == data.id ){
+                    tempTags.push( { value : e.linkId , label: e.name })
+                }
+            })        
+
+            newData = { ...data , tags: JSON.stringify(tempTags) } 
 
             dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" });
             dispatch({type:"SET_DOCUMENT_SELECTED" , Selected: newData });
@@ -167,8 +165,8 @@ export default class WorkstreamDocumentViewer extends React.Component {
                                     <th></th>
                                     <th></th>
                                     <th>Name</th>
-                                    <th>Uploaded</th>
-                                    <th>By</th>
+                                    <th>Uploaded date</th>
+                                    <th>Uploaded by</th>
                                     <th>Tags</th>
                                     <th></th>
                                 </tr>
@@ -211,7 +209,7 @@ export default class WorkstreamDocumentViewer extends React.Component {
                                                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                         <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
                                                             <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "rename" , "" )}>Rename</a></li>
+                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "rename" , tagList )}>Rename</a></li>
                                                             <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
                                                             <li>{ starred.List.filter( s => { return s.linkId == data.id }).length > 0 
                                                                     ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>

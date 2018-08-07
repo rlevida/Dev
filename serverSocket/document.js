@@ -15,7 +15,7 @@ var init = exports.init = (socket) => {
                         c.data.map( link => {
                             docLinkId.push(link.id)
                         })
-
+                        
                     let document = global.initModel("document");
                     document.getProjectDocument( filter, docLinkId , ( doc )=>{
                         if(doc.status){
@@ -24,27 +24,27 @@ var init = exports.init = (socket) => {
                     })
                 }
 
-                if(filter.linkType == "workstream"){
-                    let tag = global.initModel("tag")
-                        tag.getData("tag",d.filter,{},(tagRes)=>{
-                            let tagId = []
-                            if(tagRes.status){
-                                tagRes.data.map(tag =>{
-                                    tagId.push(tag.tagTypeId)
+            if(filter.linkType == "workstream"){
+                let tag = global.initModel("tag")
+                    tag.getData("tag",d.filter,{},(tagRes)=>{
+                        let tagId = []
+                        if(tagRes.status){
+                            tagRes.data.map(tag =>{
+                                tagId.push(tag.tagTypeId)
+                            })
+                            if(tagId.length){
+                                let document = global.initModel("document");
+                                document.getProjectDocument( filter, tagId , ( doc )=>{
+                                    if(doc.status){
+                                        socket.emit("FRONT_DOCUMENT_LIST",doc.data)
+                                    }
                                 })
-                                if(tagId.length){
-                                    let document = global.initModel("document");
-                                    document.getProjectDocument( filter, tagId , ( doc )=>{
-                                        if(doc.status){
-                                            socket.emit("FRONT_DOCUMENT_LIST",doc.data)
-                                        }
-                                    })
-                                }else{
-                                    socket.emit("FRONT_DOCUMENT_LIST",[])
-                                }
+                            }else{
+                                socket.emit("FRONT_DOCUMENT_LIST",[])
                             }
-                    })
-                }
+                        }
+                })
+            }
                        
             }else{
                 if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
@@ -80,6 +80,8 @@ var init = exports.init = (socket) => {
                                 nextThen(e.data[0])
                             }
                         })
+                    }else{
+                        socket.emit("RETURN_ERROR_MESSAGE",{message:"Update failed. Please Try again later."})
                     }
                 })
             }).then((nextThen,result) => {
@@ -87,6 +89,8 @@ var init = exports.init = (socket) => {
                 tag.deleteData("tag",filter,(res)=>{
                     if(res.status){
                         nextThen(result)
+                    }else{
+                        socket.emit("RETURN_ERROR_MESSAGE",{message:"Delete failed. Please Try again later."})
                     }
                 })
             }).then((nextThen,result) =>{
@@ -99,11 +103,10 @@ var init = exports.init = (socket) => {
                                     if(res.status){
                                         nextThen(result)
                                     }else{
-                                        console.log("tag failed")
+                                        socket.emit("RETURN_ERROR_MESSAGE",{message:"Tag failed. Please Try again later."})
                                     }
                                 })
                         })
-                
                 }else{
                    nextThen(result)
                 }
@@ -207,7 +210,6 @@ var init = exports.init = (socket) => {
 
     socket.on("DELETE_DOCUMENT",(d) => {
         let data = { isDeleted : 1 } 
-
         let document = global.initModel("document")
         document.putData("document",data,{id:d.id},(c)=>{
             if(c.status) {
@@ -220,7 +222,7 @@ var init = exports.init = (socket) => {
                     }
                 })
             }else{
-                socket.emit("RETURN_ERROR_MESSAGE",{message:"Archive failed. Please Try again later."})
+                socket.emit("RETURN_ERROR_MESSAGE",{message:"Delete failed. Please Try again later."})
             }
         })
     })
