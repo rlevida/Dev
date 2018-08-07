@@ -6,9 +6,10 @@ var init = exports.init = (socket) => {
     socket.on("GET_DOCUMENT_LIST",(d) => {
         let documentLink = global.initModel("document_link")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
-        documentLink.getData("document_link", filter ,{},(c)=>{
         
+        documentLink.getData("document_link", filter ,{},(c)=>{
             if(c.status) {
+
                 if(filter.linkType == "project"){
                     let docLinkId = [];
                         c.data.map( link => {
@@ -109,16 +110,15 @@ var init = exports.init = (socket) => {
                 if(d.type == "project"){
                     socket.emit("FRONT_DOCUMENT_EDIT",result)
                     socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
-                }else{
-                    let filter = (typeof d.filter != "undefined") ? d.filter : {};
+                }
+                if(d.type == "workstream"){
                     let tag = global.initModel("tag")
-                        tag.getData("tag",d.filter,{},(tagRes)=>{
+                        tag.getData("tag",{ linkId : d.linkId }, {} ,(tagRes)=>{
                             let tagId = []
                             if(tagRes.status){
                                 tagRes.data.map(tag =>{
                                     tagId.push(tag.tagTypeId)
                                 })
-
                                 if(tagId.length){
                                     document.getProjectDocument( filter, tagId , ( doc )=>{
                                         if(doc.status){

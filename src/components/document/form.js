@@ -52,7 +52,7 @@ export default class FormComponent extends React.Component {
                 showToast("error","Form did not fullfill the required value.")
                 return;
             }
-
+            
             socket.emit("SAVE_OR_UPDATE_DOCUMENT",{ data:document.Selected , filter :{ tagTypeId:document.Selected.id , tagType: "document" } , type : "project" });
     }
 

@@ -66,7 +66,9 @@ export default class List extends React.Component {
     saveDocument(){
         let { socket , loggedUser } = this.props;
         let { tempData , tags } = this.state;
-            socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data: tempData , userId : loggedUser.data.id, project: project, tags: JSON.stringify(tags) });
+            socket.emit("SAVE_OR_UPDATE_DOCUMENT", { 
+                data: tempData , userId : loggedUser.data.id, project: project, tags: JSON.stringify(tags) 
+            });
             this.setState({  upload : false ,   tempData : [] , tags : [] });
     }
 

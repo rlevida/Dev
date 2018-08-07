@@ -71,7 +71,9 @@ export default class WorkstreamDocument extends React.Component {
         let { socket , loggedUser , document , workstream } = this.props;
             socket.emit("SAVE_OR_UPDATE_DOCUMENT", { 
                 data : document.Selected ,  
-                filter : { isDeleted : 0 , linkId : workstream.Selected.id , linkType : "workstream", tagType: "document" }
+                filter : { tagTypeId : document.Selected.id , linkType : "workstream", tagType: "document"  },
+                linkId : workstream.Selected.id,
+                type : "workstream"
             })
     }
 
