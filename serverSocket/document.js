@@ -71,6 +71,7 @@ var init = exports.init = (socket) => {
             let id = d.data.id
             let newTags = d.data.tags
             delete d.data.id
+            delete d.data.tags
             sequence.create().then((nextThen) => {
                 document.putData("document",d.data,{ id : id },(res)=>{
                     if(res.status) {
@@ -136,15 +137,17 @@ var init = exports.init = (socket) => {
             })
         }else{
             if(d.data.length > 0){
-                d.data.map( file => {                
+                d.data.map( file => {        
+                    let tagList = file.tags
+                    delete file.tags        
                     tempResData.push( new Promise((resolve,reject) => {
                         document.postData("document",file,(c)=>{
                             if(typeof c.id != "undefined" && c.id > 0) {
                                 document.getData("document",{id:c.id},{},(e)=>{
                                     if(e.data.length > 0) {
                                        
-                                        if(typeof file.tags != "undefined"){
-                                            JSON.parse(file.tags).map( t => {
+                                        if(typeof tagList != "undefined"){
+                                            JSON.parse(tagList).map( t => {
                                                 let tag = global.initModel("tag")
                                                 let tagData = { linkType : "workstream", linkId : t.value , tagType : "document" , tagTypeId : e.data[0].id }
                                                     tag.postData("tag",tagData,(tagRes) =>{

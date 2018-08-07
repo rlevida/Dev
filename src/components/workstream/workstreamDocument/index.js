@@ -44,7 +44,8 @@ export default class WorkstreamDocumentViewer extends React.Component {
             socket.emit("GET_SETTINGS", {});
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "documentList"})
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamList"})
-            socket.emit("GET_STARRED_LIST",{filter : { linkType : "project" } })
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamList"})
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
     }
 
     updateActiveStatus(id,active){
@@ -77,12 +78,12 @@ export default class WorkstreamDocumentViewer extends React.Component {
             })
     }
 
-    selectTag(e , index){
-        let { tempData }  = this.state;
-            tempData[index].tags = JSON.stringify(e);
-            tempData[index].status = "library";
-            this.setState({ tempData : tempData });
-    }
+    // selectTag(e , index){
+    //     let { tempData }  = this.state;
+    //         tempData[index].tags = JSON.stringify(e);
+    //         tempData[index].status = "library";
+    //         this.setState({ tempData : tempData });
+    // }
 
     viewDocument(data){
         let { socket, dispatch } = this.props;
@@ -104,11 +105,24 @@ export default class WorkstreamDocumentViewer extends React.Component {
             }
     }
 
-    editDocument(data , type){
+    editDocument(data , type , list ){
         let { dispatch } = this.props;
-            dispatch({type:"SET_DOCUMENT_SELECTED" , Selected: data });
-            dispatch({type:"SET_DOCUMENT_EDIT_TYPE" , EditType: type })
-            $("#workstreamDocumentModal").modal("show")
+        let newData = { ... data } , tempTags = [];
+          
+            if(type == "tags"){
+                list.map( e =>{
+                    if( e.tagTypeId == data.id ){
+                        tempTags.push( { value : e.linkId , label: e.name })
+                    }
+                })        
+                newData = { ...data , tags: JSON.stringify(tempTags) } 
+            }
+
+            dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" });
+            dispatch({type:"SET_DOCUMENT_SELECTED" , Selected: newData });
+            dispatch({type:"SET_DOCUMENT_EDIT_TYPE" , EditType: type });
+            $("#workstreamDocumentModal").modal("show");
+
     }
 
     handleChange(e) {
@@ -126,11 +140,22 @@ export default class WorkstreamDocumentViewer extends React.Component {
     }
 
     render() {
-        let { document, dispatch, workstream , users , loggedUser , settings , starred , global:{ SelectList }} = this.props;
-        let data = [] , tempData = [] , workstreamList = [];
-        if( typeof SelectList.workstreamList != "undefined"){
-            workstreamList = SelectList.workstreamList.map( e =>{ return { id:e.id , name:e.workstream } })
+        let { document, dispatch, workstream , users , loggedUser , settings , starred , global } = this.props;
+        let data = [] , tempData = [] , workstreamList = [] , tagList = [];
+        if( typeof global.SelectList.workstreamList != "undefined"){
+            workstreamList = global.SelectList.workstreamList.map( e =>{ return { id:e.id , name:e.workstream } })
         }
+
+        if(typeof global.SelectList.tagList != "undefined"){
+            global.SelectList.tagList.map( t => {
+                if(workstream.List.filter( w => { return w.id == t.linkId}).length > 0 ){
+                   let workstreamName =  workstream.List.filter( w => { return w.id == t.linkId})[0].workstream
+                   tagList.push({ tagTypeId :t.tagTypeId  , name : workstreamName , linkId : t.linkId })
+                }
+            })
+        }
+
+
         return <div>
                 <div class="row"> 
                     <br/>
@@ -173,9 +198,11 @@ export default class WorkstreamDocumentViewer extends React.Component {
                                                 <td>{ moment(data.dateAdded).format('L') }</td>
                                                 <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
                                                 <td> 
-                                                    { ( data.tags != "" && data.tags != null ) &&
-                                                        JSON.parse(data.tags).map((tag,tagIndex) =>{
-                                                            return <span key={tagIndex} class="label label-primary" style={{margin:"5px"}}>{tag.label}</span>
+                                                    { (tagList.length > 0) &&
+                                                        tagList.map((t,tIndex) =>{
+                                                            if(t.tagTypeId == data.id){
+                                                                return <span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span>
+                                                            }
                                                         })
                                                     }
                                                 </td>
@@ -184,8 +211,8 @@ export default class WorkstreamDocumentViewer extends React.Component {
                                                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                         <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
                                                             <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "rename" )}>Rename</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" )}>Edit Tags</a></li>
+                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "rename" , "" )}>Rename</a></li>
+                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
                                                             <li>{ starred.List.filter( s => { return s.linkId == data.id }).length > 0 
                                                                     ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
                                                                         :  <a href="javascript:void(0)" data-tip="Star" onClick={()=> this.starDocument( data , 0 )}>Star</a>

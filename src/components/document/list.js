@@ -16,7 +16,8 @@ import { connect } from "react-redux"
         workstream: store.workstream,
         users : store.users,
         settings: store.settings,
-        starred : store.starred
+        starred : store.starred,
+        global : store.global
 
     }
 })
@@ -41,6 +42,8 @@ export default class List extends React.Component {
             socket.emit("GET_SETTINGS", {});
             socket.emit("GET_WORKSTREAM_LIST", {filter:{projectId:project}});
             socket.emit("GET_STARRED_LIST",{filter : { linkType : "project" } })
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
+            
     }
 
     updateActiveStatus(id,active){
@@ -99,10 +102,19 @@ export default class List extends React.Component {
             }
     }
 
-    editDocument(data , type){
+    editDocument(data , type , list ){
         let { dispatch } = this.props;
+        let newData = {} , tempTags = [];
+
+            list.map( e =>{
+                if( e.tagTypeId == data.id ){
+                    tempTags.push( { value : e.linkId , label: e.name })
+                }
+            })        
+            newData = { ...data , tags: JSON.stringify(tempTags) } 
+
             dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" });
-            dispatch({type:"SET_DOCUMENT_SELECTED" , Selected: data });
+            dispatch({type:"SET_DOCUMENT_SELECTED" , Selected: newData });
             dispatch({type:"SET_DOCUMENT_EDIT_TYPE" , EditType: type })
     }
 
@@ -143,10 +155,9 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { document, dispatch, workstream , users , loggedUser , settings , starred } = this.props;
-        let data = [] , tempData = [];
+        let { document, dispatch, workstream , users , settings , starred , global } = this.props;
         let workstreamList = workstream.List.map( e => { return { id:e.id , name:e.workstream }})
-        let documentList = { newUpload : [] , library : [] };
+        let documentList = { newUpload : [] , library : [] } , tagList = [] ;
 
         if( document.List.length > 0 ){
             document.List.filter( e =>{
@@ -158,7 +169,16 @@ export default class List extends React.Component {
                 }
             })
         }
-        
+
+        if(typeof global.SelectList.tagList != "undefined"){
+            global.SelectList.tagList.map( t => {
+                if(workstream.List.filter( w => { return w.id == t.linkId}).length > 0 ){
+                   let workstreamName =  workstream.List.filter( w => { return w.id == t.linkId})[0].workstream
+                   tagList.push({ tagTypeId :t.tagTypeId  , name : workstreamName , linkId : t.linkId })
+                }
+            })
+        }
+
         return <div>
                 <HeaderButtonContainer  withMargin={true}>
                     <li class="btn btn-info" onClick={(e)=>dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })} >
@@ -189,7 +209,7 @@ export default class List extends React.Component {
                                     <th>Name</th>
                                     <th>Uploaded</th>
                                     <th>By</th>
-                                    <th>Tags</th>
+                                    {/* <th>Tags</th> */}
                                     <th></th>
                                 </tr>
 
@@ -217,13 +237,13 @@ export default class List extends React.Component {
                                                 <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
                                                 <td>{ moment(data.dateAdded).format('L') }</td>
                                                 <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
-                                                <td> 
+                                                {/* <td> 
                                                     { ( data.tags != "" && data.tags != null ) &&
                                                         JSON.parse(data.tags).map((tag,tagIndex) =>{
                                                             return <span key={tagIndex} class="label label-primary" style={{margin:"5px"}}>{tag.label}</span>
                                                         })
                                                     }
-                                                </td>
+                                                </td> */}
                                                 <td>
                                                     <div class="dropdown">
                                                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
@@ -292,18 +312,25 @@ export default class List extends React.Component {
                                                 <td>{ moment(data.dateUpdated).format('L') }</td>
                                                 <td></td>
                                                 <td> 
-                                                    { ( data.tags != "" && data.tags != null ) &&
+                                                    { (tagList.length > 0) &&
+                                                        tagList.map((t,tIndex) =>{
+                                                            if(t.tagTypeId == data.id){
+                                                                return <span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span>
+                                                            }
+                                                        })
+                                                    }
+                                                    {/* { ( data.tags != "" && data.tags != null ) &&
                                                         JSON.parse(data.tags).map((tag,tagIndex) =>{
                                                             return <span key={tagIndex} class="label label-primary" style={{margin:"5px"}}>{tag.label}</span>
                                                         })
-                                                    }
+                                                    } */}
                                                 </td>
                                                 <td>
                                                     <div class="dropdown">
                                                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                         <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
                                                             <li><a href="javascript:void(0)" onClick={()=> this.viewDocument(data)}>View</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" )}>Edit Tags</a></li>
+                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
                                                             <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
                                                             <li>
                                                             {

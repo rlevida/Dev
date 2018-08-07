@@ -67,6 +67,7 @@ var init = exports.init = (socket) => {
             modelList["documentList"] = "document";
             modelList["workstreamList"] = "workstream";
             modelList["starredList"] = "starred";
+            modelList["tagList"] = "tag";
         
         modelName = modelList[d.selectName];
         if(modelName != ""){
