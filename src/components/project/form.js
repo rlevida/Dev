@@ -30,12 +30,20 @@ export default class FormComponent extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
         this.handleCheckbox = this.handleCheckbox.bind(this)
+        this.deleteData = this.deleteData.bind(this)
     }
 
     componentDidMount() {
         $(".form-container").validator();
         if (typeof this.props.project.Selected.id != 'undefined') {
             this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: this.props.project.Selected.id, linkType: 'project' } });
+        }
+    }
+
+    deleteData(params) {
+        let { socket } = this.props;
+        if (confirm("Do you really want to delete this record?")) {
+            socket.emit("DELETE_MEMBERS", params)
         }
     }
 
@@ -67,7 +75,7 @@ export default class FormComponent extends React.Component {
             showToast("error","Form did not fullfill the required value.")
             return;
         }
-        if( typeof project.Selected.id != "undefined" ){
+        if(!project.Selected.id){
             project.Selected.createdBy = loggedUser.data.id;
         }
         
@@ -157,6 +165,12 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                                 <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Created Date</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <span>{(project.Selected.dateAdded)?moment(project.Selected.dateAdded).format("MMM D YYYY"):""}</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Project *</label>
                                     <div class="col-md-7 col-xs-12">
                                         <input type="text" name="project" required value={(typeof project.Selected.project == "undefined")?"":project.Selected.project} class="form-control" placeholder="Project" onChange={this.handleChange} />
@@ -171,6 +185,20 @@ export default class FormComponent extends React.Component {
                                             options={ typeList } 
                                             selected={(typeof project.Selected.typeId == "undefined")?"":project.Selected.typeId} 
                                             onChange={(e)=>this.setDropDown("typeId",e.value)} /> 
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Tin No.</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <input type="text" name="tinNo" value={(typeof project.Selected.tinNo == "undefined")?"":project.Selected.tinNo} class="form-control" placeholder="Tin No." onChange={this.handleChange} />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Company Address</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <input type="text" name="companyAddress" value={(typeof project.Selected.companyAddress == "undefined")?"":project.Selected.companyAddress} class="form-control" placeholder="Company Address" onChange={this.handleChange} />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>

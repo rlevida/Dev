@@ -9,6 +9,7 @@ import { connect } from "react-redux"
     return {
         socket: store.socket.container,
         status: store.status,
+        loggedUser: store.loggedUser,
         type: store.type
     }
 })
@@ -55,7 +56,7 @@ export default class ProjectFilter extends React.Component {
     }
 
     render() {
-        let { status, type } = this.props
+        let { status, type, loggedUser } = this.props
         let typeList = [ {id:"",name:"All Project Types"} ];
         let statusList = [
             {id:"",name:"All Status"},
@@ -87,9 +88,14 @@ export default class ProjectFilter extends React.Component {
                         selected={this.state.projectStatus} 
                         onChange={(e)=>this.setDropDown("projectStatus",e.value)} /> 
                 </div>
+                { (loggedUser.data.userRole == 1 
+                                        || loggedUser.data.userRole == 2 
+                                        || loggedUser.data.userRole == 3 
+                                        || loggedUser.data.userRole == 4) &&
                 <div class="col-md-1" >
                     <span class="fa fa-plus-circle" title="New Project" style={{cursor:"pointer",fontSize:"20px",paddingTop:"8px"}} onClick={(e)=>this.props.dispatch({type:"SET_PROJECT_FORM_ACTIVE", FormActive: "Form" })}></span>
                 </div>
+                }
             </div>
     }
 }

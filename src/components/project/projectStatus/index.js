@@ -8,6 +8,7 @@ import { connect } from "react-redux"
     return {
         socket: store.socket.container,
         project: store.project,
+        loggedUser: store.loggedUser
     }
 })
 
@@ -20,7 +21,17 @@ export default class ProjectStatus extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_PROJECT_COUNT_LIST",{})
+        let countInterval = setInterval(()=>{
+            let { loggedUser } = this.props
+            if(typeof loggedUser.data.userRole != "undefined"){
+                let filter = {}
+                if(loggedUser.data.userRole != "1" && loggedUser.data.userRole != "2"){
+                    filter = {filter:{projectIds:loggedUser.data.projectIds}}
+                }
+                this.props.socket.emit("GET_PROJECT_COUNT_LIST",filter)
+                clearInterval(countInterval);
+            }
+        },1000)
     }
 
     render() {
@@ -48,30 +59,43 @@ export default class ProjectStatus extends React.Component {
                             <span style={{float:"left"}}>Issues</span><span style={{float:"right"}}>{data.Client.Issues}</span>
                         </td>
                     </tr>
-                    <tr>
-                        <td style={{padding:"10px 5px",width:"120px"}}>Internal</td>
-                        <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
-                            <span style={{float:"left"}}>Active</span><span style={{float:"right"}}>{data.Internal.Active}</span>
-                        </td>
-                        <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#9eca9f",color:"white"}}>
-                            <span style={{float:"left"}}>On-track</span><span style={{float:"right"}}>{data.Internal.OnTrack}</span>
-                        </td>
-                        <td style={{padding:"10px 5px",width:"80px",backgroundColor:"#d4a2a2",color:"white"}}>
-                            <span style={{float:"left"}}>Issues</span><span style={{float:"right"}}>{data.Internal.Issues}</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style={{padding:"10px 5px",width:"120px"}}>Private</td>
-                        <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
-                            <span style={{float:"left"}}>Active</span><span style={{float:"right"}}>{data.Private.Active}</span>
-                        </td>
-                        <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#9eca9f",color:"white"}}>
-                            <span style={{float:"left"}}>On-track</span><span style={{float:"right"}}>{data.Private.OnTrack}</span>
-                        </td>
-                        <td style={{padding:"10px 5px",width:"80px",backgroundColor:"#d4a2a2",color:"white"}}>
-                            <span style={{float:"left"}}>Issues</span><span style={{float:"right"}}>{data.Private.Issues}</span>
-                        </td>
-                    </tr>
+                    { typeof this.props.loggedUser.data.userRole != "undefined" && 
+                        (this.props.loggedUser.data.userRole == "1" ||
+                        this.props.loggedUser.data.userRole == "2" ||
+                        this.props.loggedUser.data.userRole == "3" ||
+                        this.props.loggedUser.data.userRole == "4" ) &&
+                        <tr>
+                            <td style={{padding:"10px 5px",width:"120px"}}>Internal</td>
+                            <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
+                                <span style={{float:"left"}}>Active</span><span style={{float:"right"}}>{data.Internal.Active}</span>
+                            </td>
+                            <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#9eca9f",color:"white"}}>
+                                <span style={{float:"left"}}>On-track</span><span style={{float:"right"}}>{data.Internal.OnTrack}</span>
+                            </td>
+                            <td style={{padding:"10px 5px",width:"80px",backgroundColor:"#d4a2a2",color:"white"}}>
+                                <span style={{float:"left"}}>Issues</span><span style={{float:"right"}}>{data.Internal.Issues}</span>
+                            </td>
+                        </tr>
+                    }
+                    { typeof this.props.loggedUser.data.userRole != "undefined" && 
+                        (this.props.loggedUser.data.userRole == "1" ||
+                        this.props.loggedUser.data.userRole == "2" ||
+                        this.props.loggedUser.data.userRole == "3" ||
+                        this.props.loggedUser.data.userRole == "4" ) &&
+                            <tr>
+                                <td style={{padding:"10px 5px",width:"120px"}}>Private</td>
+                                <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
+                                    <span style={{float:"left"}}>Active</span><span style={{float:"right"}}>{data.Private.Active}</span>
+                                </td>
+                                <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#9eca9f",color:"white"}}>
+                                    <span style={{float:"left"}}>On-track</span><span style={{float:"right"}}>{data.Private.OnTrack}</span>
+                                </td>
+                                <td style={{padding:"10px 5px",width:"80px",backgroundColor:"#d4a2a2",color:"white"}}>
+                                    <span style={{float:"left"}}>Issues</span><span style={{float:"right"}}>{data.Private.Issues}</span>
+                                </td>
+                            </tr>
+                    }
+                    
                 </table>
             </div>
     }

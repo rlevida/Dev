@@ -11,7 +11,8 @@ import _ from "lodash";
         socket: store.socket.container,
         users: store.users,
         members: store.members,
-        teams: store.teams
+        teams: store.teams,
+        project: store.project
     }
 })
 
@@ -85,15 +86,28 @@ export default class MembersForm extends React.Component {
     }
 
     render() {
-        let { users, members, teams } = this.props;
+        let { users, members, teams, project } = this.props;
         let typeList = [
             { id: 'assignedTo', name: 'Assigned To' },
             { id: 'Follower', name: 'Follower' },
             { id: 'responsible', name: 'Responsible' },
         ];
-        let userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
+        let userList = [];
+        users.List.map((e, i) => { 
+            if( project.Selected.typeId == 1 ){
+                userList.push({ id: e.id, name: e.firstName + ' ' + e.lastName })
+            }else{
+                if(typeof e.role != "undefined" && e.role.length > 0 && e.userType == "Internal"){
+                    userList.push({ id: e.id, name: e.firstName + ' ' + e.lastName })
+                }
+            }
+
+            
+        });
         let userMemberListIds = _(members.List)
-            .filter((o) => { return o.usersType == 'users' })
+            .filter((o) => { 
+                return o.usersType == 'users' 
+            })
             .map((o) => { return o.userTypeLinkId })
             .value();
         userList = userList.filter((e, i) => { return (userMemberListIds).indexOf(e.id) === -1 });
