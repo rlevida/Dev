@@ -9,6 +9,5 @@ CREATE TABLE `conversation` (
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `isDeleted` TINYINT(1) DEFAULT '0',
-    `documentId` BIGINT,
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;

@@ -40,6 +40,15 @@ var field = exports.field = {
          * tags (VARCHAR(50))
          */
         'tags' : {type : 'string' , access : "public" },
+        /**
+         * status (ENUM("newupload","foraction","email"))
+         */
+        'status' : {type : 'string' , access : "public" },
+         /**
+         * isCompleted (tinyint)
+         */
+        'isCompleted' : {type : 'tinyint' , access : "public" },
+
 
 }
 
@@ -50,7 +59,7 @@ exports.postData = postData;
 exports.deleteData = deleteData;
 
 var getProjectDocument = exports.getProjectDocument = (filter,data,cb) =>{
-        let db = global.initDB();
+    let db = global.initDB();
         let query = `select * from document WHERE id IN (${data.join(",")})`;
         let params = [];
         let tempFilter = Object.keys(filter);

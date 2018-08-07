@@ -5,6 +5,7 @@ import { showToast } from '../../globalFunction'
 import Header from "../partial/header"
 import Form from "./form"
 import List from "./list"
+import WorkstreamDocumentViewer from "./workstreamDocumentViewer"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -41,6 +42,10 @@ export default class Component extends React.Component {
                 {workstream.FormActive == "Form" &&
                     <Form />
                 }
+                
+                {workstream.FormActive == "WorkstreamDocumentViewer" &&
+                    <WorkstreamDocumentViewer/>
+                 }
             </div>
         return (
             <Header component={Component} page={"Workstream"} />

@@ -43,7 +43,6 @@ router.post('/upload', (req, res, next) => {
             }else{
                 filenameList.push(filename);
             }
-            
                 func.uploadFile({file : file, form : type, filename : filename},response =>{
                     if(response.Message == 'Success'){
                         resolve(filenameList)

@@ -28,7 +28,8 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_DOCUMENT_ADD",(data) => {
-            dispatch({type:"ADD_DOCUMENT_LIST",List : data })
+            dispatch({type:"ADD_DOCUMENT_LIST",list : data })
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
         })
 
         socket.on("FRONT_DOCUMENT_EDIT",(data) => {
@@ -47,12 +48,24 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_COMMENT_LIST",(data) =>{
-           dispatch({ type:"SET_COMMENT_LIST", List: data })
-        })
-        socket.on("FRONT_COMMENT_ADD",(data) =>{
-            dispatch({ type:"ADD_COMMENT_LIST", List: data })
+           dispatch({ type:"SET_COMMENT_LIST", list: data })
         })
 
+        socket.on("FRONT_COMMENT_ADD",(data) => {
+            dispatch({ type:"ADD_COMMENT_LIST", list: data })
+        })
+
+        socket.on("FRONT_STARRED_LIST",(data) =>{
+            dispatch({type:"SET_STARRED_LIST", list : data})
+        })
+
+        socket.on("RETURN_FRONT_SAVE_STARRED",(data) =>{
+            dispatch({type:"ADD_STARRED_LIST", list : data})
+        })
+
+        socket.on("FRONT_DELETE_STARRED" , (data) =>{
+            dispatch({type:"REMOVE_DELETED_STARRED_LIST", id : data.id })
+        })
     }
 
     render() { return <div> </div> }

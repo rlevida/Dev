@@ -2,14 +2,15 @@ export default function reducer(state={
     List : [],
     FormActive : "List",
     Selected : {},
-    SelectedId: [],
+    SelectedId : [],
+    EditType : ""
 },action){
     switch (action.type) {
 
         //ADD
         case "ADD_DOCUMENT_LIST":{
             let List = state.List;
-            action.List.map( e => {
+            action.list.map( e => {
                 List.push( e )
             })
             return {...state, List : List }
@@ -28,6 +29,9 @@ export default function reducer(state={
         case "SET_DOCUMENT_ID": {
             return { ...state, SelectedId: action.SelectedId }
         }
+        case "SET_DOCUMENT_EDIT_TYPE":{
+            return { ...state, EditType : action.EditType }
+        }
         case "SET_DOCUMENT_STATUS": {
             let List = state.List.map((e,i)=>{
                     if(e.id == action.record.id){
@@ -39,6 +43,7 @@ export default function reducer(state={
                 })
             return {...state, List: List }
         }
+        
 
         //UPDATE
         case "UPDATE_DATA_DOCUMENT_LIST" : {

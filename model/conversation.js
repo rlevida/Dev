@@ -40,10 +40,6 @@ var field = exports.field = {
      */
     'isDeleted' :  {type : 'date' , access : "public" },
 
-    /**
-     * documentId (BIGINT )
-     */
-    'documentId' :  {type : 'bigint' , access : "public" }
 
 }
 

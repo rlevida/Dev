@@ -3,8 +3,8 @@ import ReactDOM from "react-dom"
 import Select from 'react-select'
 import moment from 'moment'
 
-import { showToast,displayDate,setDatePicker , getFilePathExtension} from '../../globalFunction'
-import { HeaderButtonContainer,HeaderButton,DropDown } from "../../globalComponents"
+import { showToast,displayDate,setDatePicker , getFilePathExtension} from '../../../globalFunction'
+import { HeaderButtonContainer,HeaderButton,DropDown } from "../../../globalComponents"
 import Mention, { toString, toEditorState , getMentions } from 'rc-editor-mention';
 import Parser from 'html-react-parser'
 const Nav = Mention.Nav;
@@ -22,7 +22,6 @@ import { connect } from "react-redux"
     }
 })
 
-
 export default class DocumentViewerComponent extends React.Component {
     constructor(props) {
         super(props)
@@ -38,21 +37,16 @@ export default class DocumentViewerComponent extends React.Component {
 
     componentWillMount() {
         let { socket  , document , users } = this.props
-            socket.emit("GET_COMMENT_LIST",{ filter : { documentId : document.Selected.id , linkType : "project" , linkId : project , }})
+            socket.emit("GET_COMMENT_LIST",{ filter : { linkType : "project" , linkId : document.Selected.id }})
             this.setState({ users : users.List  })
     }
-
-    // onChange(e){
-    //     let { comment } = this.state;
-    //         this.setState({ [e.target.name] : e.target.value });
-    // }
 
     submitComment(){
         let { socket , loggedUser , document} = this.props;
         let { comment } = this.state;
 
         socket.emit("SAVE_OR_UPDATE_CONVERSATION", { 
-                data: { comment : comment , linkType : "project" , linkId : project , usersId : loggedUser.data.id , documentId : document.Selected.id } 
+                data: { comment : comment , linkType : "project" , linkId : document.Selected.id , usersId : loggedUser.data.id } 
             });
             this.setState({ comment : "" , editorState :toEditorState('') })
     }
@@ -93,7 +87,7 @@ export default class DocumentViewerComponent extends React.Component {
     }
 
     render() {
-        let { document, users , settings , conversation } = this.props , 
+        let { dispatch , document, users , settings , conversation } = this.props , 
             { comment , suggestions , editorState} = this.state ,
             isDocument = true , ext = "";
         let uploadedBy =  users.List.filter( e =>{ return e.id == document.Selected.uploadedBy});
@@ -103,8 +97,18 @@ export default class DocumentViewerComponent extends React.Component {
             }
         return (
             <div>
+                <HeaderButtonContainer withMargin={true}>
+                <li class="btn btn-info" style={{marginRight:"2px"}} 
+                    onClick={(e)=>{
+                        dispatch({type:"SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
+                        dispatch({type:"SET_DOCUMENT_SELECTED", Selected: {} });
+                    }} >
+                    <span>Back</span>
+                </li>
+                </HeaderButtonContainer>
                 <div class="row mt10">
                     <div class="col-lg-12 col-md-12 col-xs-12">
+                    
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h3 class="panel-title">DOCUMENT VIEWER</h3>
@@ -158,7 +162,6 @@ export default class DocumentViewerComponent extends React.Component {
                                             multiLines
                                             noRedup
                                         />
-                                            {/* <textarea class="form-control" name="comment" rows="4" placeholder="New comment" value={comment} onChange={(e)=>this.onChange(e)}></textarea> */}
                                         </div> 
                                         { (comment != "") && 
                                             <button class="btn btn-primary btn-flat pull-right" onClick={()=> this.submitComment()}>Submit</button>

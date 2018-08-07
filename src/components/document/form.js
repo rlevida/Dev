@@ -13,7 +13,8 @@ import { connect } from "react-redux"
         document: store.document,
         loggedUser: store.loggedUser,
         status: store.status,
-        type: store.type
+        type: store.type,
+        workstream: store.workstream
     }
 })
 
@@ -23,7 +24,7 @@ export default class FormComponent extends React.Component {
 
         this.handleChange = this.handleChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
-        this.setDropDown = this.setDropDown.bind(this)
+        // this.setDropDown = this.setDropDown.bind(this)
     }
 
     componentDidMount() {
@@ -33,47 +34,54 @@ export default class FormComponent extends React.Component {
     handleChange(e) {
         let { socket, dispatch, document } = this.props
         let Selected = Object.assign({},document.Selected)
-        Selected[e.target.name] = e.target.value;
-        dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
+            Selected[e.target.name] = e.target.value;
+            dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
     }
 
     handleSubmit(e) {
         let { socket, document } = this.props
 
         let result = true;
-        $('.form-container *').validator('validate');
-        $('.form-container .form-group').each(function(){
-            if($(this).hasClass('has-error')){
-                result = false;
+            $('.form-container *').validator('validate');
+            $('.form-container .form-group').each(function(){
+                if($(this).hasClass('has-error')){
+                    result = false;
+                }
+            });
+            if(!result){
+                showToast("error","Form did not fullfill the required value.")
+                return;
             }
-        });
-        if(!result){
-            showToast("error","Form did not fullfill the required value.")
-            return;
-        }
+            
+            socket.emit("SAVE_OR_UPDATE_DOCUMENT",{ data:document.Selected , filter :{ tagTypeId:document.Selected.id , tagType: "document" } , type : "project" });
+    }
 
-        socket.emit("SAVE_OR_UPDATE_document",{data:document.Selected});
+    selectTag(e,data){
+        let { dispatch , document } = this.props;
+        let Selected = Object.assign({},document.Selected);
+            Selected["tags"] = JSON.stringify(e)
+            dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
     }
     
-    setDropDown(name,value) {
-        let { socket, dispatch, document } = this.props
-        let Selected = Object.assign({},document.Selected)
-        Selected[name] = value;
-        dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
-    }
+    // setDropDown(name,value) {
+    //     let { socket, dispatch, document } = this.props
+    //     let Selected = Object.assign({},document.Selected)
+    //     Selected[name] = value;
+    //     dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
+    // }
 
-    setDropDownMultiple(name,values) {
-        this.setState({
-            [name]: JSON.stringify(values?values:[])
-        });
-    }
+    // setDropDownMultiple(name,values) {
+    //     this.setState({
+    //         [name]: JSON.stringify(values?values:[])
+    //     });
+    // }
 
     render() {
-        let { dispatch, document, loggedUser, status, type } = this.props
-
-        let statusList = [], typeList = []
-        status.List.map((e,i)=>{ if(e.linkType=="document"){statusList.push({id:e.id,name:e.status})} })
-        type.List.map((e,i)=>{ if(e.linkType=="document"){typeList.push({id:e.id,name:e.type})} })
+        let { dispatch, document, loggedUser, status, type , workstream } = this.props;
+        let statusList = [], typeList = [] , workstreamList = []
+            workstreamList = workstream.List.map( e => { return { id:e.id , name:e.workstream }});
+            status.List.map((e,i)=>{ if(e.linkType=="document"){statusList.push({id:e.id,name:e.status})} });
+            type.List.map((e,i)=>{ if(e.linkType=="document"){typeList.push({id:e.id,name:e.type})} });
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -96,7 +104,7 @@ export default class FormComponent extends React.Component {
                         </div>
                         <div class="panel-body">
                             <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
-                                <div class="form-group">
+                                {/* <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Status</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={false} 
@@ -106,15 +114,33 @@ export default class FormComponent extends React.Component {
                                             onChange={(e)=>this.setDropDown("statusId",e.value)} /> 
                                         <div class="help-block with-errors"></div>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Document *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="origin" required value={(typeof document.Selected.origin == "undefined")?"":document.Selected.origin} class="form-control" placeholder="Document" onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
+                                </div> */}
+                                { (document.EditType == "rename") && 
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Document Name *</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <input type="text" name="origin" required value={(typeof document.Selected.origin == "undefined")?"":document.Selected.origin} class="form-control" placeholder="Document" onChange={this.handleChange} />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="form-group">
+                                }
+                                { (document.EditType == "tags" && workstreamList.length > 0) && 
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Document Tags *</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <DropDown 
+                                                name="tags"
+                                                multiple={true}
+                                                required={false}
+                                                options={ workstreamList } 
+                                                selected={ ( document.Selected.tags != null ) ? JSON.parse(document.Selected.tags) : []  } 
+                                                onChange={(e)=>this.selectTag(e , document.Selected )} 
+                                                /> 
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                }
+                                {/* <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Type</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={false} 
@@ -124,7 +150,7 @@ export default class FormComponent extends React.Component {
                                             onChange={(e)=>this.setDropDown("typeId",e.value)} /> 
                                         <div class="help-block with-errors"></div>
                                     </div>
-                                </div>
+                                </div> */}
                             </form>
                         </div>
                     </div>

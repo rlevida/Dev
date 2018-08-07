@@ -9,7 +9,7 @@ export default function reducer(state={
         //ADD
         case "ADD_COMMENT_LIST":{
             let List = state.List;
-            action.List.map( e => {
+            action.list.map( e => {
                 List.push( e )
             })
             return {...state, List : List }
@@ -17,7 +17,7 @@ export default function reducer(state={
 
         //SET
         case "SET_COMMENT_LIST": {
-            return { ...state, List: action.List }
+            return { ...state, List: action.list }
         }
         case "SET_COMMENT_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
@@ -42,7 +42,7 @@ export default function reducer(state={
 
         //UPDATE
         case "UPDATE_DATA_COMMENT_LIST" : {
-            let tempList = action.List.map((e,i)=>{
+            let tempList = action.list.map((e,i)=>{
                 if(e.id == action.UpdatedData.id){
                     return action.UpdatedData
                 }
@@ -54,7 +54,7 @@ export default function reducer(state={
         //REMOVE
         case "REMOVE_DELETED_COMMENT_LIST" : {
             let tempList = [];
-            action.List.map((e,i)=>{
+            action.list.map((e,i)=>{
                 if(action.id != e.id){
                     tempList.push(e)
                 }

@@ -57,8 +57,6 @@ var uploadFile = exports.uploadFile = (params,cb) => {
     fileStream.on('error', (err) => {
        console.log("Error in creating file stream. [" + err + "]");
     });
-    
-    console.log( global.environment + "/" + params.form + "/" + params.filename)
 
     fileStream.on('open', () => {
         var s3 = new AWS.S3();

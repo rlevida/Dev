@@ -10,7 +10,8 @@ import { connect } from "react-redux"
     return {
         socket: store.socket.container,
         document: store.document,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        users : store.users
     }
 })
 export default class List extends React.Component {
@@ -24,9 +25,11 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 1 , linkId : project , linktype : "project" }});
-        this.props.socket.emit("GET_STATUS_LIST",{});
-        this.props.socket.emit("GET_TYPE_LIST",{});
+        let { socket } = this.props
+        socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted: 1 , linkId: project , linktype: "project" }});
+        socket.emit("GET_STATUS_LIST",{});
+        socket.emit("GET_TYPE_LIST",{});
+        socket.emit("GET_USER_LIST",{});
     }
 
     updateActiveStatus(id,active){
@@ -48,13 +51,24 @@ export default class List extends React.Component {
         socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data:tempData , loggedUser : "" })
     }
 
-    undoData(){
-
+    handleIsCompleted(data,value){
+        let { socket , document } = this.props;
+        socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data : { id: data.id , isCompleted : value ? 0 : 1  }})
     }
 
     render() {
-        let { document, dispatch, socket } = this.props;
-        let data = [] , tempData = []
+        let { document, dispatch, socket ,users } = this.props;
+        let data = [] , tempData = [] , documentList = { deleted : []};
+
+        if( document.List.length > 0 ){
+
+            document.List.filter( e =>{
+                if( e.isDeleted ){
+                    documentList.deleted.push(e)
+                }
+            })
+        }
+        
         return <div>
                 <HeaderButtonContainer  withMargin={true}>
                     <li class="btn btn-info" onClick={(e)=>dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })} >
@@ -64,6 +78,7 @@ export default class List extends React.Component {
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
                         <tr>
+                            <th></th>
                             <th>Name</th>
                             <th>Uploaded</th>
                             <th>By</th>
@@ -77,20 +92,25 @@ export default class List extends React.Component {
                             </tr>
                         }
                         {
-                            document.List.map((data, index) => {
+                            documentList.deleted.map((data, index) => {
                                 return <tr key={index}>
+                                         <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
                                         <td>{data.origin}</td>
                                         <td>{ moment(data.dateAdded).format('L') }</td>
-                                        <td>{data.uploadedBy}</td>
-                                        <td><i class="fa fa-tag" aria-hidden="true"></i></td>
-                                        <td class="text-center">
+                                        <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
+                                        <td> 
+                                            { ( data.tags != "" && data.tags != null ) &&
+                                                JSON.parse(data.tags).map((tag,tagIndex) =>{
+                                                    return <span key={tagIndex} class="label label-primary" style={{margin:"5px"}}>{tag.label}</span>
+                                                })
+                                            }
+                                        </td>
+                                        {/* <td class="text-center">
                                             <a href="javascript:void(0);" data-tip="Undo"
                                                 onClick={e => this.undoData(data.id)}
                                                 class={ data.allowedDelete==0 ? 'hide' : 'btn btn-primary btn-sm ml10' }>
                                                 <span class="glyphicon glyphicon-refresh"></span></a>
-                                            {/*<OnOffSwitch Active={data.active} Action={()=>this.updateActiveStatus(data.id,data.active)} />*/}
-                                            <Tooltip />
-                                        </td>
+                                        </td> */}
                                     </tr>
                             })
                         }

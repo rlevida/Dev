@@ -2,6 +2,7 @@ import React from "react";
 import Tooltip from "react-tooltip";
 import { HeaderButtonContainer } from "../../globalComponents";
 import WorkstreamStatus from "./workstreamStatus"
+import WorkstreamDocument from "./workstreamDocument"
 
 import { connect } from "react-redux"
 @connect((store) => {
