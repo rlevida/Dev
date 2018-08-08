@@ -6,7 +6,7 @@ var init = exports.init = (socket) => {
     socket.on("GET_PROJECT_LIST",(d) => {
         let project = global.initModel("project")
         let filter = (typeof d.filter != "undefined")?d.filter:{};
-        project.getData("project",filter,{},(c)=>{
+        project.getProjectList("project",filter,{},(c)=>{
             if(c.status) {
                 socket.emit("FRONT_PROJECT_LIST",c.data)
             }else{
@@ -43,9 +43,10 @@ var init = exports.init = (socket) => {
             let id = d.data.id
             delete d.data.id
             project.putData("project",d.data,{id:id},(c)=>{
-                let members = global.initModel("members")
-                members.deleteData("members", { linktype: "project", linkId: id }, (c) => {})
-
+                if( d.data.typeId == 3 ){// if private delete all user tag
+                    let members = global.initModel("members")
+                    members.deleteData("members", { linktype: "project", linkId: id }, (c) => {})
+                }
 
                 if(c.status) {
                     project.getData("project",{id:id},{},(e)=>{
@@ -69,7 +70,8 @@ var init = exports.init = (socket) => {
                         workstream: "Default Workstream",
                         typeId: 4
                     }
-                    workstream.postData("workstream",workstreamData,(f)=>{ console.log(f);})
+                    // save a default workstream for every creation of project
+                    workstream.postData("workstream",workstreamData,(f)=>{ })
 
                     project.getData("project",{id:c.id},{},(e)=>{
                         if(e.data.length > 0) {

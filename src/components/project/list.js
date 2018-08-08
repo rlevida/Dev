@@ -91,10 +91,10 @@ export default class List extends React.Component {
                                         <td>{data.isActive?"Active":"Inactive"}</td>
                                         <td><a href={"/project/"+data.id}>{data.project}</a></td>
                                         <td>{data.type_type}</td>
+                                        <td>{data.newDocCount}</td>
                                         <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
+                                        <td>{(!data.Active)?"":data.Active}</td>
+                                        <td>{(!data.Issues)?"":data.Issues}</td>
                                         { (loggedUser.data.userRole == 1 
                                         || loggedUser.data.userRole == 2 
                                         || loggedUser.data.userRole == 3 
