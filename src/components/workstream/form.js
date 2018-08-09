@@ -6,6 +6,7 @@ import MembersForm from "../global/members/membersForm";
 import { connect } from "react-redux";
 import _ from "lodash";
 import WorkstreamDocument from "./workstreamDocument"
+import Task from "./task"
 
 @connect((store) => {
     return {
@@ -16,7 +17,8 @@ import WorkstreamDocument from "./workstreamDocument"
         status: store.status,
         members: store.members,
         teams: store.teams,
-        type: store.type
+        type: store.type,
+        global: store.global
     }
 })
 
@@ -48,13 +50,13 @@ export default class FormComponent extends React.Component {
     }
 
     handleCheckbox(name,value) {
-        let { socket, dispatch, project } = this.props
-        let Selected = Object.assign({},project.Selected)
+        let { socket, dispatch, workstream } = this.props
+        let Selected = Object.assign({},workstream.Selected)
         Selected[name] = value;
         dispatch({type:"SET_WORKSTREAM_SELECTED",Selected:Selected})
     }
 
-    handleSubmit(e) {
+    handleSubmit() {
         let { socket, workstream } = this.props
 
         let result = true;
@@ -69,6 +71,7 @@ export default class FormComponent extends React.Component {
             showToast("error", "Form did not fullfill the required value.")
             return;
         }
+        
         socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { ...workstream.Selected, projectId: project, numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0 } });
     }
 
@@ -93,31 +96,15 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, workstream, users, status, type, members, teams } = this.props
-        let statusList = [], typeList = [], userList = [];
+        let { dispatch, workstream, status, type, global } = this.props
+        let statusList = [], typeList = [], projectUserList = [];
 
         status.List.map((e, i) => { if (e.linkType == "workstream") { statusList.push({ id: e.id, name: e.status }) } })
         type.List.map((e, i) => { if (e.linkType == "workstream") { typeList.push({ id: e.id, name: e.type }) } })
-        userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
-
-        let userMemberList = _(members.List)
-            .filter((member) => { return member.usersType == 'users' })
-            .map((member) => {
-                let returnObject = member;
-                let userMember = (users.List).filter((o) => { return o.id == member.userTypeLinkId });
-                return { ...member, 'user': userMember[0] };
-            })
-            .value();
-
-        let teamMemberList = _(members.List)
-            .filter((member) => { return member.usersType == 'team' })
-            .map((member) => {
-                let returnObject = member;
-                let teamMember = (teams.List).filter((o) => { return o.id == member.userTypeLinkId });
-                return { ...member, 'team': teamMember[0] };
-            })
-            .value();
-
+        if(typeof global.SelectList.ProjectMemberList != "undefined"){
+            global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })  })
+        }
+        
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
@@ -128,7 +115,7 @@ export default class FormComponent extends React.Component {
                     }} >
                     <span>Back</span>
                 </li>
-                <li class="btn btn-info" onClick={this.handleSubmit} >
+                <li class="btn btn-info" onClick={()=>this.handleSubmit()} >
                     <span>Save</span>
                 </li>
             </HeaderButtonContainer>
@@ -196,111 +183,22 @@ export default class FormComponent extends React.Component {
                                 </div>
                                 {
                                     (typeof workstream.Selected.id != 'undefined') && <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label pt0">Members</label>
+                                        <label class="col-md-3 col-xs-12 control-label pt0">Responsible</label>
                                         <div class="col-md-7 col-xs-12">
-                                            <a href="#" type="button" data-toggle="modal" data-target="#modal">
-                                                Add Members
-                                        </a>
+                                            <DropDown multiple={false}
+                                                required={false}
+                                                options={projectUserList}
+                                                selected={(typeof workstream.Selected.responsible == "undefined") ? "" : workstream.Selected.responsible}
+                                                onChange={(e) => {
+                                                    this.setDropDown("responsible", e.value);
+                                                }} />
+                                            <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
                                 }
                             </form>
-
-                            {
-                                (typeof workstream.Selected.id != 'undefined') && <div class="row pd20">
-                                    <h3>Teams</h3>
-                                    <table id="dataTable" class="table responsive-table mt30">
-                                        <tbody>
-                                            <tr>
-                                                <th>Team Name</th>
-                                                <th></th>
-                                            </tr>
-                                            {
-                                                (teamMemberList.length == 0) &&
-                                                <tr>
-                                                    <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                                                </tr>
-                                            }
-                                            {
-                                                teamMemberList.map((data, index) => {
-                                                    return (
-                                                        <tr key={index}>
-                                                            <td>{data.team.team}</td>
-                                                            <td class="text-center">
-                                                                <a href="javascript:void(0);" data-tip="DELETE"
-                                                                    onClick={e => this.deleteData({ id: data.id, type: 'team' })}
-                                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                                    <span class="glyphicon glyphicon-trash"></span></a>
-                                                                <Tooltip />
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            }
-                            {
-                                (typeof workstream.Selected.id != 'undefined') && <div class="row pd20">
-                                    <h3>Members</h3>
-                                    <table id="dataTable" class="table responsive-table mt30">
-                                        <tbody>
-                                            <tr>
-                                                <th>Member Name</th>
-                                                <th>Type</th>
-                                                <th>Role</th>
-                                                <th></th>
-                                            </tr>
-                                            {
-                                                (userMemberList.length == 0) &&
-                                                <tr>
-                                                    <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                                                </tr>
-                                            }
-                                            {
-                                                userMemberList.map((data, index) => {
-                                                    return (
-                                                        <tr key={index}>
-                                                            <td>{data.user.firstName + ' ' + data.user.lastName}</td>
-                                                            <td>{data.user.userType}</td>
-                                                            <td>{((typeof data.user.role != 'undefined' && data.user.role).length > 0) ? data.user.role[0].role_role : ''}</td>
-                                                            <td class="text-center">
-                                                                <a href="javascript:void(0);" data-tip="DELETE"
-                                                                    onClick={e => this.deleteData({ id: data.id, type: 'team' })}
-                                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                                    <span class="glyphicon glyphicon-trash"></span></a>
-                                                                <Tooltip />
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            }
+                            <Task />
                             <WorkstreamDocument/>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="modal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
-                <div class="modal-dialog modal-md" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title" id="myModalLabel">Add Members</h4>
-                        </div>
-                        <div class="modal-body">
-                            <MembersForm
-                                type={
-                                    {
-                                        data: workstream,
-                                        label: 'workstream'
-                                    }
-                                }
-                            />
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 import React from "react";
 import Tooltip from "react-tooltip";
-import { HeaderButtonContainer } from "../../globalComponents";
+import { HeaderButtonContainer } from "../../../globalComponents";
 import moment from 'moment'
 
 import { connect } from "react-redux"
@@ -8,6 +8,7 @@ import { connect } from "react-redux"
     return {
         socket: store.socket.container,
         task: store.task,
+        workstream: store.workstream,
         loggedUser: store.loggedUser
     }
 })
@@ -20,7 +21,7 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_TASK_LIST", { filter: { projectId: project } });
+        this.props.socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id  } });
         this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
@@ -45,21 +46,16 @@ export default class List extends React.Component {
         let { task, dispatch, socket } = this.props;
         
         return <div>
-            <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })} >
-                    <span>New Task</span>
-                </li>
-            </HeaderButtonContainer>
+            <h3>&nbsp;&nbsp;&nbsp;&nbsp;Task</h3>
             <table id="dataTable" class="table responsive-table">
                 <tbody>
                     <tr>
                         <th></th>
-                        <th style={{textAlign:"center"}}>Workstream</th>
-                        <th style={{textAlign:"center"}}>Task Name</th>
+                        <th style={{textAlign:"center"}}>Description</th>
                         <th style={{textAlign:"center"}}>Due Date</th>
-                        <th style={{textAlign:"center"}}>Assigned to</th>
-                        <th style={{textAlign:"center"}}>Followed By</th>
-                        <th style={{textAlign:"center"}}></th>
+                        <th style={{textAlign:"center"}}>Assignee</th>
+                        <th style={{textAlign:"center"}}>Status</th>
+                        <th style={{textAlign:"center"}}>Foloower</th>
                     </tr>
                     {
                         (task.List.length == 0) &&
@@ -70,23 +66,12 @@ export default class List extends React.Component {
                     {
                         task.List.map((data, index) => {
                             return <tr key={index}>
-                                <td>{data.status_status}</td>
-                                <td>{data.workstream_workstream}</td>
+                                <td></td>
                                 <td>{data.task}</td>
                                 <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                 <td></td>
+                                <td>{data.status_status}</td>
                                 <td></td>
-                                <td class="text-center">
-                                    <a href="javascript:void(0);" data-tip="EDIT"
-                                        onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id })}
-                                        class="btn btn-info btn-sm">
-                                        <span class="glyphicon glyphicon-pencil"></span></a>
-                                    <a href="javascript:void(0);" data-tip="DELETE"
-                                        onClick={e => this.deleteData(data.id)}
-                                        class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                        <span class="glyphicon glyphicon-trash"></span></a>
-                                    <Tooltip />
-                                </td>
                             </tr>
                         })
                     }

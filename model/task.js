@@ -26,14 +26,19 @@ var field = exports.field = {
     'dueDate' : {type : 'date' , access : "public" },
 
     /**
-     * statusId (BIGINT)
+     * status (ENUM("In Progress","For Approval","Completed"))
      */
-    'statusId' : {type : 'bigint' , access : "public", database: "status", relation: "one-to-one" },
+    'status' : {type : 'string' , access : "public" },
 
     /**
      * typeId (BIGINT)
      */
     'typeId' : {type : 'bigint' , access : "public" },
+
+    /**
+     * linkTaskId (BIGINT)
+     */
+    'linkTaskId' : {type : 'bigint' , access : "public",  database: "task", relation: "one-to-one"  },
 
     /**
      * dateAdded (DATETIME)
@@ -43,7 +48,17 @@ var field = exports.field = {
     /**
      * dateUpdated (TIMESTAMP)
      */
-    'dateUpdated' :  {type : 'date' , access : "public" }
+    'dateUpdated' :  {type : 'date' , access : "public" },
+
+    /**
+     * isActive (tinyInt)
+     */
+    'isActive' : {type : 'int' , access : "public" },
+
+    /**
+     * isDeleted (tinyInt)
+     */
+    'isDeleted' : {type : 'int' , access : "public" },
 
 }
 

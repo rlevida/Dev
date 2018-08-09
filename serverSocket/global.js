@@ -68,19 +68,40 @@ var init = exports.init = (socket) => {
             modelList["workstreamList"] = "workstream";
             modelList["starredList"] = "starred";
             modelList["tagList"] = "tag";
+            modelList["ProjectMemberList"] = "members";
+            modelList["taskList"] = "task";
         
         modelName = modelList[d.selectName];
         if(modelName != ""){
             let model = global.initModel(modelName);
             let type = (typeof d.type != 'undefined') ? d.type : 'client';
             let filter = (typeof d.filter != "undefined")?d.filter:{};
-            model.getData(modelName, filter, {}, (c) => {
-                if (c.status) {
-                    socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:c.data,name:d.selectName})
-                } else {
-                    socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:[],name:d.selectName})
+
+            switch(d.selectName){
+                case "ProjectMemberList" : {
+                    model.getProjectMemberList(modelName, filter, {}, (c) => {
+                        if (c.status) {
+                            socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:c.data,name:d.selectName})
+                        } else {
+                            socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:[],name:d.selectName})
+                        }
+                    })
+                    break;
                 }
-            })
+                default: {
+                    model.getData(modelName, filter, {}, (c) => {
+                        if (c.status) {
+                            socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:c.data,name:d.selectName})
+                        } else {
+                            socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:[],name:d.selectName})
+                        }
+                    })
+                break;
+                }
+            }
+
+
+            
         }
     })    
 }

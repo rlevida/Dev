@@ -16,7 +16,8 @@ import MembersForm from "../global/members/membersForm";
         workstream: store.workstream,
         members: store.members,
         teams: store.teams,
-        users: store.users
+        users: store.users,
+        global: store.global
     }
 })
 
@@ -29,6 +30,8 @@ export default class FormComponent extends React.Component {
         this.setDropDown = this.setDropDown.bind(this)
         this.handleDate = this.handleDate.bind(this)
         this.deleteData = this.deleteData.bind(this)
+        this.handleCheckbox = this.handleCheckbox.bind(this)
+        this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
 
     componentDidMount() {
@@ -37,6 +40,9 @@ export default class FormComponent extends React.Component {
         setDatePicker(this.handleDate, "dueDate");
         if (typeof task.Selected.id != 'undefined') {
             this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
+        }
+        if(typeof task.Selected.workstreamId != "undefined"){
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "taskList" , filter : { "|||and|||": [{ name: "workstreamId", value: task.Selected.workstreamId },{ name: "id", value: task.Selected.id, condition : " != " }] }})
         }
     }
 
@@ -52,6 +58,13 @@ export default class FormComponent extends React.Component {
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
+    handleCheckbox(name,value) {
+        let { socket, dispatch, task } = this.props
+        let Selected = Object.assign({},task.Selected)
+        Selected[name] = value;
+        dispatch({type:"SET_TASK_SELECTED",Selected:Selected})
+    }
+
     handleChange(e) {
         let { socket, dispatch, task } = this.props
         let Selected = Object.assign({}, task.Selected)
@@ -65,6 +78,16 @@ export default class FormComponent extends React.Component {
         if (confirm("Do you really want to delete this record?")) {
             socket.emit("DELETE_MEMBERS", params)
         }
+    }
+    
+    updateActiveStatus() {
+        let {task, socket, dispatch } = this.props;
+        let status = "Completed"
+        if( task.Selected.task_id && task.Selected.task_status != "Completed" ){
+            status = "For Approval"
+        }
+
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
     }
 
     handleSubmit(e) {
@@ -89,6 +112,10 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, task.Selected)
         Selected[name] = value;
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
+        
+        if(name == "workstreamId"){
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "taskList" , filter : { "|||and|||": [{ name: "workstreamId", value: value },{ name: "id", value: task.Selected.id, condition : " != " }] }})
+        }
     }
 
     setDropDownMultiple(name, values) {
@@ -99,9 +126,15 @@ export default class FormComponent extends React.Component {
 
     render() {
         let { dispatch, task, status, workstream, users, members, teams } = this.props;
-        let statusList = [], typeList = [];
+        let statusList = [], typeList = [], taskList = [];
         let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
+
+        if(typeof this.props.global.SelectList.taskList != "undefined"){
+            this.props.global.SelectList["taskList"].map((e)=>{
+                taskList.push({id:e.id,name:e.task})
+            })
+        }
 
         let userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
 
@@ -123,6 +156,8 @@ export default class FormComponent extends React.Component {
             })
             .value();
 
+
+        console.log("test",task.Selected.task_id ,task.Selected.status ,task.Selected.task_status );
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
@@ -145,14 +180,27 @@ export default class FormComponent extends React.Component {
                         <div class="panel-body">
                             <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Status</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false}
-                                            required={false}
-                                            options={statusList}
-                                            selected={(typeof task.Selected.statusId == "undefined") ? "" : task.Selected.statusId}
-                                            onChange={(e) => this.setDropDown("statusId", e.value)} />
-                                        <div class="help-block with-errors"></div>
+                                        <input type="checkbox" 
+                                            style={{ width: "15px", marginTop: "10px" }}
+                                            checked={ task.Selected.isActive?true:false  }
+                                            onChange={()=>{}}
+                                            onClick={(f)=>{ this.handleCheckbox("isActive",(task.Selected.isActive)?0:1) }}
+                                        /> 
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label"></label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <span style={{padding:"10px"}}>{(task.Selected.status)?task.Selected.status:"In Progress"}</span>
+                                        { task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
+                                            <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
+                                        }
+                                        { ((task.Selected.status == "" || task.Selected.status == "In Progress")
+                                        ) &&
+                                            <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
+                                        }
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -170,6 +218,17 @@ export default class FormComponent extends React.Component {
                                     <label class="col-md-3 col-xs-12 control-label">Task Name *</label>
                                     <div class="col-md-7 col-xs-12">
                                         <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Dependent to task</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <DropDown multiple={false}
+                                            required={false}
+                                            options={taskList}
+                                            selected={(typeof task.Selected.linkTaskId == "undefined") ? "" : task.Selected.linkTaskId}
+                                            onChange={(e) => this.setDropDown("linkTaskId", e.value)} />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
