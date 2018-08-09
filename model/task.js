@@ -67,3 +67,24 @@ exports.getData = getData;
 exports.putData = putData;
 exports.postData = postData;
 exports.deleteData = deleteData;
+
+var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
+    let db = global.initDB();
+    let params = [data.projectId];
+    
+    let query = `SELECT projectId,
+                    workstreamId,
+                    SUM(isActive) as Active, 
+                    SUM(IF(dueDate>NOW(),1,0)) as OnTrack, 
+                    SUM(IF(dueDate<NOW(),1,0)) as Issues FROM task WHERE projectId = ? && status != "Completed"
+                `;
+    db.query(
+        query,
+        params, 
+        function(err,row,fields){
+            if(err) { cb({ status : false, error : err, data : row }); return; }
+
+            cb({  status : true, error : err, data : row });
+        }
+    );
+}

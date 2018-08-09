@@ -125,8 +125,8 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, task, status, workstream, users, members, teams } = this.props;
-        let statusList = [], typeList = [], taskList = [];
+        let { dispatch, task, status, workstream, global } = this.props;
+        let statusList = [], typeList = [], taskList = [], projectUserList = [];
         let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
@@ -135,29 +135,9 @@ export default class FormComponent extends React.Component {
                 taskList.push({id:e.id,name:e.task})
             })
         }
-
-        let userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
-
-        let userMemberList = _(members.List)
-            .filter((member) => { return member.usersType == 'users' })
-            .map((member) => {
-                let returnObject = member;
-                let userMember = (users.List).filter((o) => { return o.id == member.userTypeLinkId });
-                return { ...member, 'user': userMember[0] };
-            })
-            .value();
-
-        let teamMemberList = _(members.List)
-            .filter((member) => { return member.usersType == 'team' })
-            .map((member) => {
-                let returnObject = member;
-                let teamMember = (teams.List).filter((o) => { return o.id == member.userTypeLinkId });
-                return { ...member, 'team': teamMember[0] };
-            })
-            .value();
-
-
-        console.log("test",task.Selected.task_id ,task.Selected.status ,task.Selected.task_status );
+        if(typeof global.SelectList.ProjectMemberList != "undefined"){
+            global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })  })
+        }
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
@@ -251,113 +231,21 @@ export default class FormComponent extends React.Component {
                                     </div>
                                     <div class="help-block with-errors"></div>
                                 </div>
-                                {
-                                    (typeof task.Selected.id != 'undefined') && <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label pt0">Members</label>
-                                        <div class="col-md-7 col-xs-12">
-                                            <a href="#" type="button" data-toggle="modal" data-target="#modal">
-                                                Add Members
-                                            </a>
-                                        </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label pt0">Assigned to</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <DropDown multiple={false}
+                                            required={false}
+                                            options={projectUserList}
+                                            selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
+                                            onChange={(e) => {
+                                                this.setDropDown("assignedTo", e.value);
+                                            }} />
+                                        <div class="help-block with-errors"></div>
                                     </div>
-                                }
+                                </div>
                             </form>
-                            {
-                                (typeof task.Selected.id != 'undefined') && <div class="row pd20">
-                                    <h3>Teams</h3>
-                                    <table id="dataTable" class="table responsive-table mt30">
-                                        <tbody>
-                                            <tr>
-                                                <th>Team Name</th>
-                                                <th></th>
-                                            </tr>
-                                            {
-                                                (teamMemberList.length == 0) &&
-                                                <tr>
-                                                    <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                                                </tr>
-                                            }
-                                            {
-                                                teamMemberList.map((data, index) => {
-                                                    return (
-                                                        <tr key={index}>
-                                                            <td>{data.team.team}</td>
-                                                            <td class="text-center">
-                                                                <a href="javascript:void(0);" data-tip="DELETE"
-                                                                    onClick={e => this.deleteData({ id: data.id, type: 'team' })}
-                                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                                    <span class="glyphicon glyphicon-trash"></span></a>
-                                                                <Tooltip />
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            }
 
-                            {
-                                (typeof task.Selected.id != 'undefined') && <div class="row pd20">
-                                    <h3>Members</h3>
-                                    <table id="dataTable" class="table responsive-table mt30">
-                                        <tbody>
-                                            <tr>
-                                                <th>Member Name</th>
-                                                <th>Type</th>
-                                                <th>Role</th>
-                                                <th></th>
-                                            </tr>
-                                            {
-                                                (userMemberList.length == 0) &&
-                                                <tr>
-                                                    <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                                                </tr>
-                                            }
-                                            {
-                                                userMemberList.map((data, index) => {
-                                                    return (
-                                                        <tr key={index}>
-                                                            <td>{data.user.firstName + ' ' + data.user.lastName}</td>
-                                                            <td>{data.user.userType}</td>
-                                                            <td>{((typeof data.user.role != 'undefined' && data.user.role).length > 0) ? data.user.role[0].role_role : ''}</td>
-                                                            <td class="text-center">
-                                                                <a href="javascript:void(0);" data-tip="DELETE"
-                                                                    onClick={e => this.deleteData({ id: data.id, type: 'team' })}
-                                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                                    <span class="glyphicon glyphicon-trash"></span></a>
-                                                                <Tooltip />
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            }
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="modal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
-                <div class="modal-dialog modal-md" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title" id="myModalLabel">Add Members</h4>
-                        </div>
-                        <div class="modal-body">
-                            <MembersForm
-                                type={
-                                    {
-                                        data: task,
-                                        label: 'task'
-                                    }
-                                }
-                            />
                         </div>
                     </div>
                 </div>

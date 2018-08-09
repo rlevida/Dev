@@ -2,6 +2,7 @@ import React from "react";
 import Tooltip from "react-tooltip";
 import { HeaderButtonContainer } from "../../globalComponents";
 import moment from 'moment'
+import TaskStatus from "./taskStatus"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -26,6 +27,7 @@ export default class List extends React.Component {
         this.props.socket.emit("GET_TYPE_LIST", {});
         this.props.socket.emit("GET_USER_LIST",{});
         this.props.socket.emit("GET_TEAM_LIST",{});
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "ProjectMemberList" , filter : { linkId : project, linkType: "project" } })
     }
 
     updateActiveStatus(id, active) {
@@ -45,6 +47,8 @@ export default class List extends React.Component {
         let { task, dispatch, socket } = this.props;
         
         return <div>
+            
+            <TaskStatus style={{float:"right",padding:"20px"}} />
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })} >
                     <span>New Task</span>
