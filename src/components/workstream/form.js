@@ -182,10 +182,10 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label pt0">Responsible</label>
+                                    <label class="col-md-3 col-xs-12 control-label pt0">Responsible *</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={false}
-                                            required={false}
+                                            required={true}
                                             options={projectUserList}
                                             selected={(typeof workstream.Selected.responsible == "undefined") ? "" : workstream.Selected.responsible}
                                             onChange={(e) => {

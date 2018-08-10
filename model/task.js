@@ -76,7 +76,7 @@ var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
                     workstreamId,
                     SUM(isActive) as Active, 
                     SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, 
-                    SUM(IF(dueDate<CURDATE(),1,0)) as Issues FROM task WHERE projectId = ? AND status != "Completed"  AND isActive = 1
+                    SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM task WHERE projectId = ? AND status != "Completed"  AND isActive = 1
                 `;
     db.query(
         query,
@@ -100,7 +100,7 @@ var getUserTaskDataCount = exports.getUserTaskDataCount = ( tablename, data, adv
     }
 
     let query = `
-                    SELECT memberType,SUM(isActive) as Active, SUM(IF(DATE_FORMAT(dueDate,"%Y-%m-%d")=CURDATE(),1,0)) as DueToday, SUM(IF(dueDate<CURDATE(),1,0)) as Issues FROM (SELECT finalTbl1.*,task.id as taskId,task.dueDate,task.isActive,task.status FROM ( SELECT members.linkType,members.linkId,members.memberType,users.id as usersId FROM members 
+                    SELECT memberType,SUM(isActive) as Active, SUM(IF(DATE_FORMAT(dueDate,"%Y-%m-%d")=CURDATE(),1,0)) as DueToday, SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM (SELECT finalTbl1.*,task.id as taskId,task.dueDate,task.isActive,task.status FROM ( SELECT members.linkType,members.linkId,members.memberType,users.id as usersId FROM members 
                         LEFT JOIN users ON members.userTypeLinkId = users.id
                             WHERE usersType = "users"
                     UNION ALL

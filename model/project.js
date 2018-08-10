@@ -104,7 +104,7 @@ var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
                                         FROM `+projectTb+`
                             LEFT JOIN (SELECT projectId,
                                                 SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, 
-                                                SUM(IF(dueDate<CURDATE(),1,0)) as Issues FROM task WHERE status != "Completed" AND isActive = 1 GROUP BY projectId) as tbTask 
+                                                SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM task WHERE status != "Completed" AND isActive = 1 GROUP BY projectId) as tbTask 
                                     ON project.id = tbTask.projectId) as tbpt 
                                     GROUP BY typeId) as taskStatus ON tb.typeId = taskStatus.typeId;
     `;
@@ -316,7 +316,7 @@ var getProjectList = exports.getProjectList = ( tablename, data, advance , cb ) 
 	                            SELECT projectId,sum(IF(isActive="1",1,0)) as Active FROM workstream GROUP BY workstream.projectId 
                             ) as ws
                             LEFT JOIN ( SELECT tb1.projectId,workstreamId, SUM(IF(Issues>0,1,0))  as Issues, SUM(IF(OnTrack>0,1,0)) as OnTrack  FROM 
-			                    (SELECT projectId, workstreamId, SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, SUM(IF(dueDate<CURDATE(),1,0)) as Issues FROM task 			
+			                    (SELECT projectId, workstreamId, SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM task 			
                                     GROUP BY task.workstreamId) as tb1 GROUP BY tb1.projectId) as tk 
                             ON ws.projectId = tk.projectId
                 ) as wsStatus ON prj.id = wsStatus.projectId
