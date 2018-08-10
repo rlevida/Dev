@@ -23,7 +23,7 @@ export default class List extends React.Component {
     componentWillMount() {
         let intervalLoggedUser = setInterval(()=>{
             if(typeof this.props.loggedUser.data.id != "undefined"){
-                let filter = {}
+                let filter = {projectId: project}
                 if(this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2"){
                     filter = {filter:{projectId: project, id: {name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN "}}}
                 }

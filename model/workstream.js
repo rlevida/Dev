@@ -266,7 +266,6 @@ var getWorkstreamList = exports.getWorkstreamList = ( tablename, data, advance ,
          query += " OFFSET " + advance.offset
     }
               
-console.log(query);
     /**
      * Manage Query Connection
      */
