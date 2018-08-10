@@ -100,7 +100,7 @@ var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
                             LEFT JOIN (SELECT typeId,sum(Issues) as Issues,sum(OnTrack) as OnTrack 
                                 FROM (SELECT typeId,projectId,
                                             IF(Issues>0,1,0) as Issues,
-                                            IF(OnTrack>0,1,0) as OnTrack 
+                                            IF(Issues>0,0,IF(OnTrack>0,1,0)) as OnTrack 
                                         FROM `+projectTb+`
                             LEFT JOIN (SELECT projectId,
                                                 SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, 

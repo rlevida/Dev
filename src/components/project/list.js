@@ -88,10 +88,10 @@ export default class List extends React.Component {
                                     // if user is client the he can only see client project
                                 }else{
                                     return <tr key={index}>
-                                        <td>{data.isActive?"Active":"Inactive"}</td>
+                                        <td>{(data.isActive == 0) && <span class="fa fa-circle" style={{color:"#000"}}></span>}{(data.isActive == 1)?<span class="fa fa-circle" style={{color:(data.Issues>0)?"#d4a2a2":(data.OnTrack>0)?"#dee054d9":"#9eca9f"}}></span>:""}</td>
                                         <td><a href={"/project/"+data.id}>{data.project}</a></td>
-                                        <td>{data.type_type}</td>
-                                        <td>{data.newDocCount}</td>
+                                        <td><span class={(data.type_type=="Client")?"fa fa-users":(data.type_type=="Private")?"fa fa-lock":"fa fa-cloud"}></span></td>
+                                        <td>{(data.newDocCount>0)?<span class="fa fa-file"></span>:""} {data.newDocCount}</td>
                                         <td></td>
                                         <td>{(!data.Active)?"":data.Active}</td>
                                         <td>{(!data.Issues)?"":data.Issues}</td>
