@@ -17,7 +17,8 @@ import { connect } from "react-redux"
         users : store.users,
         settings: store.settings,
         starred : store.starred,
-        global : store.global
+        global : store.global,
+        task : store.task
 
     }
 })
@@ -37,12 +38,14 @@ export default class List extends React.Component {
 
     componentWillMount() {
         let { socket } = this.props
-            socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linkType : "project" }});
             socket.emit("GET_USER_LIST",{});
             socket.emit("GET_SETTINGS", {});
-            socket.emit("GET_WORKSTREAM_LIST", {filter:{projectId:project}});
-            socket.emit("GET_STARRED_LIST",{filter : { linkType : "project" } })
+            socket.emit("GET_TASK_LIST", { filter: { projectId: project }});
+            socket.emit("GET_STARRED_LIST",{ filter : { linkType : "project" } })
+            socket.emit("GET_WORKSTREAM_LIST", { filter : { projectId : project } });
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
+            socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linkType : "project" }});
+
             
     }
 
@@ -105,13 +108,19 @@ export default class List extends React.Component {
     editDocument(data , type , list ){
         let { dispatch } = this.props;
         let newData = { ...data } , tempTags = [];
+            
             if(typeof list != "undefined"){
                 list.map( e =>{
-                    if( e.tagTypeId == data.id ){
-                        tempTags.push( { value : e.linkId , label: e.name })
+                    console.log(e)
+                    if( e.tagTypeId == data.id && e.linkType == "workstream"){
+                        tempTags.push( { value : `workstream-${e.linkId}` , label: e.name })
+                    }
+                    if( e.tagTypeId == data.id && e.linkType == "task"){
+                        tempTags.push( { value : `task-${e.linkId}` , label: e.name })
                     }
                 }) 
             }     
+
             newData = { ...data , tags: JSON.stringify(tempTags) } 
 
             dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" });
@@ -156,29 +165,35 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { document, dispatch, workstream , users , settings , starred , global } = this.props;
-        let workstreamList = workstream.List.map( e => { return { id:e.id , name:e.workstream }})
-        let documentList = { newUpload : [] , library : [] } , tagList = [] ;
+        let { document, dispatch, workstream , users , settings , starred , global , task } = this.props;
+        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] ;
 
-        if( document.List.length > 0 ){
-            document.List.filter( e =>{
-                if( e.status == "new" && e.isCompleted != 1 ){
-                    documentList.newUpload.push(e)
-                }
-                if( e.status == "library" && e.isCompleted != 1 ){
-                    documentList.library.push(e)
-                }
-            })
-        }
+            workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
+            task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
 
-        if(typeof global.SelectList.tagList != "undefined"){
-            global.SelectList.tagList.map( t => {
-                if(workstream.List.filter( w => { return w.id == t.linkId}).length > 0 ){
-                   let workstreamName =  workstream.List.filter( w => { return w.id == t.linkId})[0].workstream
-                   tagList.push({ tagTypeId :t.tagTypeId  , name : workstreamName , linkId : t.linkId })
-                }
-            })
-        }
+            if( document.List.length > 0 ){
+                document.List.filter( e =>{
+                    if( e.status == "new" && e.isCompleted != 1 ){
+                        documentList.newUpload.push(e)
+                    }
+                    if( e.status == "library" && e.isCompleted != 1 ){
+                        documentList.library.push(e)
+                    }
+                })
+            }
+
+            if(typeof global.SelectList.tagList != "undefined"){
+                global.SelectList.tagList.map( t => {
+                    if(workstream.List.filter( w => { return w.id == t.linkId && t.linkType == "workstream"} ).length > 0 ){
+                        let workstreamName =  workstream.List.filter( w => { return w.id == t.linkId})[0].workstream;
+                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : workstreamName , linkId : t.linkId });
+                    }
+                    if(task.List.filter( w => { return w.id == t.linkId && t.linkType == "task"} ).length > 0){
+                        let taskName =  task.List.filter( w => { return w.id == t.linkId})[0].task;
+                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : taskName , linkId : t.linkId });
+                    }
+                })
+            }
 
         return <div>
                 <HeaderButtonContainer  withMargin={true}>
@@ -315,6 +330,7 @@ export default class List extends React.Component {
                                                 <td> 
                                                     { (tagList.length > 0) &&
                                                         tagList.map((t,tIndex) =>{
+                                                            console.log(t)
                                                             if(t.tagTypeId == data.id){
                                                                 return <span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span>
                                                             }
@@ -406,7 +422,7 @@ export default class List extends React.Component {
                                                     <DropDown multiple={false} 
                                                         multiple={true}
                                                         required={false}
-                                                        options={ workstreamList } 
+                                                        options={ tagOptions } 
                                                         selected={ ( typeof data.tags != "undefined" ) ? JSON.parse(data.tags) : []  } 
                                                         onChange={(e)=>this.selectTag(e , index)} 
                                                         /> 

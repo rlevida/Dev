@@ -98,7 +98,7 @@ var init = exports.init = (socket) => {
                 if(JSON.parse(newTags).length > 0){
                     let tag = global.initModel("tag");
                         JSON.parse(newTags).map( t => {
-                            let tagData = { linkType : "workstream", linkId : t.value , tagType : "document" , tagTypeId : id }
+                            let tagData = { linkType : t.value.split("-")[0], linkId : t.value.split("-")[1] , tagType : "document" , tagTypeId : id }
                                 tag.postData("tag",tagData,(res) =>{
                                     if(res.status){
                                         nextThen(result)
@@ -148,11 +148,10 @@ var init = exports.init = (socket) => {
                             if(typeof c.id != "undefined" && c.id > 0) {
                                 document.getData("document",{id:c.id},{},(e)=>{
                                     if(e.data.length > 0) {
-                                       
                                         if(typeof tagList != "undefined"){
                                             JSON.parse(tagList).map( t => {
                                                 let tag = global.initModel("tag")
-                                                let tagData = { linkType : "workstream", linkId : t.value , tagType : "document" , tagTypeId : e.data[0].id }
+                                                let tagData = { linkType : t.value.split("-")[0], linkId : t.value.split("-")[1] , tagType : "document" , tagTypeId : e.data[0].id }
                                                     tag.postData("tag",tagData,(tagRes) =>{
                                                         if(tagRes.status){
                                                             console.log("tag success")

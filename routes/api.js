@@ -43,11 +43,11 @@ router.post('/upload', (req, res, next) => {
             }else{
                 filenameList.push(filename);
             }
-                func.uploadFile({file : file, form : type, filename : filename},response =>{
-                    if(response.Message == 'Success'){
-                        resolve(filenameList)
-                    }
-                });
+                // func.uploadFile({file : file, form : type, filename : filename},response =>{
+                //     if(response.Message == 'Success'){
+                //         resolve(filenameList)
+                //     }
+                // });
             });
         }))
 
@@ -56,13 +56,13 @@ router.post('/upload', (req, res, next) => {
             res.send({files : e[0], status : "end" });
         })
         // log any errors that occur
-        form.on('error', function(err) {
-            console.log('An error has occured: \n' + err);
-        });
-        // once all the files have been uploaded, send a response to the client
-        // form.on('end', function() {
-        //    res.send({files : filenameList, status : "end" });
+        // form.on('error', function(err) {
+        //     console.log('An error has occured: \n' + err);
         // });
+        // once all the files have been uploaded, send a response to the client
+        form.on('end', function() {
+           res.send({files : filenameList, status : "end" });
+        });
         // parse the incoming request containing the form data
         form.parse(req);
 });
