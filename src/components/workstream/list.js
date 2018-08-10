@@ -57,13 +57,13 @@ export default class List extends React.Component {
                 <tbody>
                     <tr>
                         <th></th>
-                        <th>Workstream</th>
-                        <th>Pending</th>
-                        <th>Completed</th>
-                        <th>Issues</th>
-                        <th>New Docs</th>
-                        <th>Members</th>
-                        <th>Type</th>
+                        <th style={{textAlign:"center"}}>Workstream</th>
+                        <th style={{textAlign:"center"}}>Pending</th>
+                        <th style={{textAlign:"center"}}>Completed</th>
+                        <th style={{textAlign:"center"}}>Issues</th>
+                        <th style={{textAlign:"center"}}>New Docs</th>
+                        <th style={{textAlign:"center"}}>Members</th>
+                        <th style={{textAlign:"center"}}>Type</th>
                         <th></th>
                     </tr>
                     {
@@ -75,14 +75,14 @@ export default class List extends React.Component {
                     {
                         workstream.List.map((data, index) => {
                             return <tr key={index}>
-                                <td>{data.status_status}</td>
+                                <td>{(data.isActive == 0) && <span class="fa fa-circle" style={{color:"#000"}}></span>}{(data.isActive == 1)?<span class="fa fa-circle" style={{color:(data.Issues>0)?"#d4a2a2":(data.OnTrack>0)?"#dee054d9":"#9eca9f"}}></span>:""}</td>
                                 <td>{data.workstream}</td>
+                                <td>{data.OnTrack}</td>
+                                <td>{data.Completed}</td>
+                                <td>{data.Issues}</td>
                                 <td></td>
                                 <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td>{data.type_type}</td>
+                                <td><span class={data.type_type=="Project - Output base"?"fa fa-calendar":"glyphicon glyphicon-time"}></span></td>
                                 <td></td>
                                 <td class="text-center">
                                     <a href="javascript:void(0);" data-tip="EDIT"

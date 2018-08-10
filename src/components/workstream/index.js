@@ -12,7 +12,7 @@ import { connect } from "react-redux"
     return {
         socket: store.socket.container,
         workstream: store.workstream,
-        project: store.project,
+        projectData: store.project,
         loggedUser: store.loggedUser
     }
 })
@@ -32,9 +32,9 @@ export default class Component extends React.Component {
     }
 
     render() {
-        let { socket, workstream, project, dispatch } = this.props
+        let { socket, workstream, projectData, dispatch } = this.props
         let Component = <div>
-                <h3>&nbsp;&nbsp;&nbsp;&nbsp;{project.Selected.project}</h3>
+                <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/"+project} style={{color:"#000",textDecortion:"none"}}>{projectData.Selected.project}</a></h3>
                 {workstream.FormActive == "List" &&
                     <List />
                 }
