@@ -245,7 +245,6 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                             </form>
-
                         </div>
                     </div>
                 </div>

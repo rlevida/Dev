@@ -75,7 +75,7 @@ var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
     let query = `SELECT tb.projectId,
                         Active, 
                         tb2.Issues, 
-                        IF(tb2.Issues=0,tb2.OnTrack,0) as OnTrack 
+                       tb2.OnTrack
                     FROM (select projectId,sum(IF(isActive="1",1,0)) as Active FROM workstream WHERE projectId = ? ) as tb
                     LEFT JOIN
                 (SELECT projectId,
@@ -83,8 +83,8 @@ var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
                         SUM(IF(OnTrack>0,1,0)) as OnTrack  FROM 
                             ( SELECT projectId,
                                      workstreamId,
-                                     SUM(IF(dueDate>NOW(),1,0)) as OnTrack, 
-                                     SUM(IF(dueDate<NOW(),1,0)) as Issues FROM task WHERE projectId = ?
+                                     IF(SUM(IF(dueDate<CURDATE(),1,0))>0,0,SUM(IF(dueDate>=CURDATE(),1,0))) as OnTrack, 
+                                     SUM(IF(dueDate<CURDATE(),1,0)) as Issues FROM task WHERE projectId = ? AND isActive = 1 AND status != "Completed"
                                 GROUP BY workstreamId ) as tbpt) as tb2
                 ON tb.projectId = tb2.projectId
                         `;

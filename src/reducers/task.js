@@ -1,6 +1,7 @@
 export default function reducer(state={
     List : [],
     CountList : [],
+    AllCountList : [],
     FormActive : "List",
     Selected : {},
     SelectedId: [],
@@ -11,6 +12,9 @@ export default function reducer(state={
         }
         case "SET_TASK_COUNT_LIST": {
             return { ...state, CountList: action.list }
+        }
+        case "SET_ALL_TASK_COUNT_LIST": {
+            return { ...state, AllCountList: action.list }
         }
         case "SET_TASK_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }

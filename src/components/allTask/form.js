@@ -16,7 +16,8 @@ import MembersForm from "../global/members/membersForm";
         workstream: store.workstream,
         members: store.members,
         teams: store.teams,
-        users: store.users
+        users: store.users,
+        global: store.global
     }
 })
 
@@ -29,6 +30,8 @@ export default class FormComponent extends React.Component {
         this.setDropDown = this.setDropDown.bind(this)
         this.handleDate = this.handleDate.bind(this)
         this.deleteData = this.deleteData.bind(this)
+        this.handleCheckbox = this.handleCheckbox.bind(this)
+        this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
 
     componentDidMount() {
@@ -38,6 +41,10 @@ export default class FormComponent extends React.Component {
         if (typeof task.Selected.id != 'undefined') {
             this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
         }
+        if(typeof task.Selected.workstreamId != "undefined"){
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "taskList" , filter : { "|||and|||": [{ name: "workstreamId", value: task.Selected.workstreamId },{ name: "id", value: task.Selected.id, condition : " != " }] }})
+        }
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "ProjectMemberList" , filter : { linkId : task.Selected.projectId, linkType: "project" } })
     }
 
     componentDidUpdate() {
@@ -50,6 +57,13 @@ export default class FormComponent extends React.Component {
 
         Selected[e.target.name] = e.target.value + " UTC";
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
+    }
+
+    handleCheckbox(name,value) {
+        let { socket, dispatch, task } = this.props
+        let Selected = Object.assign({},task.Selected)
+        Selected[name] = value;
+        dispatch({type:"SET_TASK_SELECTED",Selected:Selected})
     }
 
     handleChange(e) {
@@ -66,6 +80,16 @@ export default class FormComponent extends React.Component {
             socket.emit("DELETE_MEMBERS", params)
         }
     }
+    
+    updateActiveStatus() {
+        let {task, socket, dispatch } = this.props;
+        let status = "Completed"
+        if( task.Selected.task_id && task.Selected.task_status != "Completed" ){
+            status = "For Approval"
+        }
+
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
+    }
 
     handleSubmit(e) {
         let { socket, task } = this.props
@@ -81,7 +105,7 @@ export default class FormComponent extends React.Component {
             showToast("error", "Form did not fullfill the required value.")
             return;
         }
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...task.Selected, projectId: project, dueDate: moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') } });
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...task.Selected, dueDate: moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') } });
     }
 
     setDropDown(name, value) {
@@ -89,6 +113,10 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, task.Selected)
         Selected[name] = value;
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
+        
+        if(name == "workstreamId"){
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "taskList" , filter : { "|||and|||": [{ name: "workstreamId", value: value },{ name: "id", value: task.Selected.id, condition : " != " }] }})
+        }
     }
 
     setDropDownMultiple(name, values) {
@@ -98,31 +126,19 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, task, status, workstream, users, members, teams } = this.props;
-        let statusList = [], typeList = [];
+        let { dispatch, task, status, workstream, global } = this.props;
+        let statusList = [], typeList = [], taskList = [], projectUserList = [];
         let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
-        let userList = users.List.map((e, i) => { return { id: e.id, name: e.firstName + ' ' + e.lastName } });
-
-        let userMemberList = _(members.List)
-            .filter((member) => { return member.usersType == 'users' })
-            .map((member) => {
-                let returnObject = member;
-                let userMember = (users.List).filter((o) => { return o.id == member.userTypeLinkId });
-                return { ...member, 'user': userMember[0] };
+        if(typeof this.props.global.SelectList.taskList != "undefined"){
+            this.props.global.SelectList["taskList"].map((e)=>{
+                taskList.push({id:e.id,name:e.task})
             })
-            .value();
-
-        let teamMemberList = _(members.List)
-            .filter((member) => { return member.usersType == 'team' })
-            .map((member) => {
-                let returnObject = member;
-                let teamMember = (teams.List).filter((o) => { return o.id == member.userTypeLinkId });
-                return { ...member, 'team': teamMember[0] };
-            })
-            .value();
-
+        }
+        if(typeof global.SelectList.ProjectMemberList != "undefined"){
+            global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })  })
+        }
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
@@ -136,6 +152,7 @@ export default class FormComponent extends React.Component {
                     <span>Save</span>
                 </li>
             </HeaderButtonContainer>
+            
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">
                     <div class="panel panel-default">
@@ -143,16 +160,29 @@ export default class FormComponent extends React.Component {
                             <h3 class="panel-title">Task {(task.Selected.id) ? " > Edit > ID: " + task.Selected.id : " > Add"}</h3>
                         </div>
                         <div class="panel-body">
-                            <form class="form-horizontal form-container">
+                            <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Status</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false}
-                                            required={false}
-                                            options={statusList}
-                                            selected={(typeof task.Selected.statusId == "undefined") ? "" : task.Selected.statusId}
-                                            onChange={(e) => this.setDropDown("statusId", e.value)} />
-                                        <div class="help-block with-errors"></div>
+                                        <input type="checkbox" 
+                                            style={{ width: "15px", marginTop: "10px" }}
+                                            checked={ task.Selected.isActive?true:false  }
+                                            onChange={()=>{}}
+                                            onClick={(f)=>{ this.handleCheckbox("isActive",(task.Selected.isActive)?0:1) }}
+                                        /> 
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label"></label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <span style={{padding:"10px"}}>{(task.Selected.status)?task.Selected.status:"In Progress"}</span>
+                                        { task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
+                                            <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
+                                        }
+                                        { ((task.Selected.status == "" || task.Selected.status == "In Progress")
+                                        ) &&
+                                            <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
+                                        }
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -170,6 +200,17 @@ export default class FormComponent extends React.Component {
                                     <label class="col-md-3 col-xs-12 control-label">Task Name *</label>
                                     <div class="col-md-7 col-xs-12">
                                         <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Dependent to task</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <DropDown multiple={false}
+                                            required={false}
+                                            options={taskList}
+                                            selected={(typeof task.Selected.linkTaskId == "undefined") ? "" : task.Selected.linkTaskId}
+                                            onChange={(e) => this.setDropDown("linkTaskId", e.value)} />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
@@ -192,113 +233,20 @@ export default class FormComponent extends React.Component {
                                     </div>
                                     <div class="help-block with-errors"></div>
                                 </div>
-                                {
-                                    (typeof task.Selected.id != 'undefined') && <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label pt0">Members</label>
-                                        <div class="col-md-7 col-xs-12">
-                                            <a href="#" type="button" data-toggle="modal" data-target="#modal">
-                                                Add Members
-                                            </a>
-                                        </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label pt0">Assigned to</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <DropDown multiple={false}
+                                            required={false}
+                                            options={projectUserList}
+                                            selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
+                                            onChange={(e) => {
+                                                this.setDropDown("assignedTo", e.value);
+                                            }} />
+                                        <div class="help-block with-errors"></div>
                                     </div>
-                                }
+                                </div>
                             </form>
-                            {
-                                (typeof task.Selected.id != 'undefined') && <div class="row pd20">
-                                    <h3>Teams</h3>
-                                    <table id="dataTable" class="table responsive-table mt30">
-                                        <tbody>
-                                            <tr>
-                                                <th>Team Name</th>
-                                                <th></th>
-                                            </tr>
-                                            {
-                                                (teamMemberList.length == 0) &&
-                                                <tr>
-                                                    <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                                                </tr>
-                                            }
-                                            {
-                                                teamMemberList.map((data, index) => {
-                                                    return (
-                                                        <tr key={index}>
-                                                            <td>{data.team.team}</td>
-                                                            <td class="text-center">
-                                                                <a href="javascript:void(0);" data-tip="DELETE"
-                                                                    onClick={e => this.deleteData({ id: data.id, type: 'team' })}
-                                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                                    <span class="glyphicon glyphicon-trash"></span></a>
-                                                                <Tooltip />
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            }
-
-                            {
-                                (typeof task.Selected.id != 'undefined') && <div class="row pd20">
-                                    <h3>Members</h3>
-                                    <table id="dataTable" class="table responsive-table mt30">
-                                        <tbody>
-                                            <tr>
-                                                <th>Member Name</th>
-                                                <th>Type</th>
-                                                <th>Role</th>
-                                                <th></th>
-                                            </tr>
-                                            {
-                                                (userMemberList.length == 0) &&
-                                                <tr>
-                                                    <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                                                </tr>
-                                            }
-                                            {
-                                                userMemberList.map((data, index) => {
-                                                    return (
-                                                        <tr key={index}>
-                                                            <td>{data.user.firstName + ' ' + data.user.lastName}</td>
-                                                            <td>{data.user.userType}</td>
-                                                            <td>{((typeof data.user.role != 'undefined' && data.user.role).length > 0) ? data.user.role[0].role_role : ''}</td>
-                                                            <td class="text-center">
-                                                                <a href="javascript:void(0);" data-tip="DELETE"
-                                                                    onClick={e => this.deleteData({ id: data.id, type: 'team' })}
-                                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                                    <span class="glyphicon glyphicon-trash"></span></a>
-                                                                <Tooltip />
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            }
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="modal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
-                <div class="modal-dialog modal-md" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title" id="myModalLabel">Add Members</h4>
-                        </div>
-                        <div class="modal-body">
-                            <MembersForm
-                                type={
-                                    {
-                                        data: task,
-                                        label: 'task'
-                                    }
-                                }
-                            />
                         </div>
                     </div>
                 </div>

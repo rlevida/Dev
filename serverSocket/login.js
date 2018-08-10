@@ -91,9 +91,14 @@ var init = exports.init = (socket) => {
             })
         }).then((nextThen,retData)=>{
             let project = global.initModel("project")
-            console.log(retData.id);
             project.getProjectAllowedAccess("project",{usersId:retData.id, userRole: retData.userRole},{},(e)=>{
                 retData.projectIds = e.data.map((f) => { return f.projectId })
+                nextThen(retData)
+            })
+        }).then((nextThen,retData)=>{
+            let task = global.initModel("task")
+            task.getTaskAllowedAccess("task",{usersId:retData.id, userRole: retData.userRole},{},(e)=>{
+                retData.taskIds = e.data.map((f) => { return f.taskId })
                 socket.emit("RETURN_LOGGED_USER",{data:retData})
             })
         })

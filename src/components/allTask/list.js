@@ -2,6 +2,7 @@ import React from "react";
 import Tooltip from "react-tooltip";
 import { HeaderButtonContainer } from "../../globalComponents";
 import moment from 'moment'
+import TaskStatus from './taskStatus'
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -25,7 +26,7 @@ export default class List extends React.Component {
             if(typeof this.props.loggedUser.data.id != "undefined"){
                 let filter = {}
                 if(this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2"){
-                    filter = {filter:{ projectId: {name: "projectId", value: this.props.loggedUser.data.projectIds, condition: " IN "}}}
+                    filter = {filter:{ id: {name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN "}}}
                 }
                 this.props.socket.emit("GET_TASK_LIST",filter);
                 clearInterval(intervalLoggedUser)
@@ -56,21 +57,17 @@ export default class List extends React.Component {
         let { task, dispatch, socket } = this.props;
         
         return <div>
-            <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })} >
-                    <span>New Task</span>
-                </li>
-            </HeaderButtonContainer>
+            <TaskStatus style={{float:"right",padding:"20px"}} />
             <table id="dataTable" class="table responsive-table">
                 <tbody>
                     <tr>
                         <th></th>
-                        <th>Project</th>
-                        <th>Workstream</th>
-                        <th>Task Name</th>
-                        <th>Due Date</th>
-                        <th>Assigned to</th>
-                        <th></th>
+                        <th style={{textAlign:"center"}}>Project</th>
+                        <th style={{textAlign:"center"}}>Workstream</th>
+                        <th style={{textAlign:"center"}}>Task Name</th>
+                        <th style={{textAlign:"center"}}>Due Date</th>
+                        <th style={{textAlign:"center"}}>Assigned to</th>
+                        <th style={{textAlign:"center"}}></th>
                     </tr>
                     {
                         (task.List.length == 0) &&

@@ -26,6 +26,18 @@ var init = exports.init = (socket) => {
             }
         })
     })
+
+    socket.on("GET_ALL_TASK_COUNT_LIST",(d) => {
+        let task = global.initModel("task")
+        let filter = (typeof d.filter != "undefined")?d.filter:{};
+        task.getUserTaskDataCount("task",filter,{},(c)=>{
+            if(c.status) {
+                socket.emit("FRONT_ALL_TASK_COUNT_LIST",c.data)
+            }else{
+                if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
+            }
+        })
+    })
     
     socket.on("GET_TASK_DETAIL",(d) => {
         sequence.create().then((nextThen)=>{
