@@ -194,19 +194,16 @@ var init = exports.init = (socket) => {
         }
     })
 
-    // socket.on("DELETE_DOCUMENT",(d) => {
-    //     let document = global.initModel("document")
-
-    //     document.getData("document",{},{},(b)=>{
-    //         document.deleteData("document",{id:d.id},(c)=>{
-    //             if(c.status) {
-    //                 socket.emit("FRONT_DOCUMENT_DELETED",{id:d.id})
-    //             }else{
-    //                 socket.emit("RETURN_ERROR_MESSAGE","Delete failed. Please try again later.")
-    //             }
-    //         })
-    //     })
-    // })
+    socket.on("DELETE_TRASH_DOCUMENT",(d) => {
+        let document = global.initModel("document")
+            document.deleteData("document",{id:d.id},(c)=>{
+                if(c.status) {
+                    socket.emit("FRONT_DOCUMENT_DELETED",{id:d.id})
+                }else{
+                    socket.emit("RETURN_ERROR_MESSAGE","Delete failed. Please try again later.")
+                }
+            })
+    })
 
     socket.on("DELETE_DOCUMENT",(d) => {
         let data = { isDeleted : 1 } 

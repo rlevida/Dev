@@ -35,6 +35,18 @@ export default class Component extends React.Component {
         let { socket, workstream, projectData, dispatch } = this.props
         let Component = <div>
                 <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/"+project} style={{color:"#000",textDecortion:"none"}}>{projectData.Selected.project}</a></h3>
+                {
+                    (typeof workstream.Selected.id != "undefined") && 
+                    <ul class="list-inline" style={{margin:"20px"}}>
+                        <li class="list-inline-item"><a href="javascript:void(0)">List</a></li>
+                        <li class="list-inline-item"><a href="javascript:void(0)">Document</a></li>
+                        <li class="list-inline-item"><a href="javascript:void(0)">Timeline</a></li>
+                        <li class="list-inline-item"><a href="javascript:void(0)">Members</a></li>
+                        <li class="list-inline-item"><a href="javascript:void(0)" onClick={() => dispatch({type:"SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "document" })}>Documents</a></li>
+                        <li class="list-inline-item"><a href="javascript:void(0)">Conversation</a></li>
+                    </ul> 
+                }
+
                 {workstream.FormActive == "List" &&
                     <List />
                 }

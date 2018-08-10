@@ -126,77 +126,85 @@ export default class FormComponent extends React.Component {
                             <h3 class="panel-title">Workstream {(workstream.Selected.id) ? " > Edit > ID: " + workstream.Selected.id : " > Add"}</h3>
                         </div>
                         <div class="panel-body">
-                            <form class="form-horizontal form-container">
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="checkbox" 
-                                            style={{ width: "15px", marginTop: "10px" }}
-                                            checked={ workstream.Selected.isActive?true:false  }
-                                            onChange={()=>{}}
-                                            onClick={(f)=>{ this.handleCheckbox("isActive",(workstream.Selected.isActive)?0:1) }}
-                                        /> 
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Workstream *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="workstream" required value={(typeof workstream.Selected.workstream == "undefined") ? "" : workstream.Selected.workstream} class="form-control" placeholder="Workstream" onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Type</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false}
-                                            required={false}
-                                            options={typeList}
-                                            selected={(typeof workstream.Selected.typeId == "undefined") ? "" : workstream.Selected.typeId}
-                                            onChange={(e) => {
-                                                this.setDropDown("typeId", e.value);
-                                            }} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                                {
-                                    (typeof workstream.Selected.typeId != "undefined" && workstream.Selected.typeId == 5) && <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Number of Hours</label>
+                            { ( workstream.SelectedLink == "") && 
+                                <form class="form-horizontal form-container">
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
                                         <div class="col-md-7 col-xs-12">
-                                            <input type="number" name="numberOfHours" required value={(typeof workstream.Selected.numberOfHours == "undefined") ? "" : workstream.Selected.numberOfHours} class="form-control" placeholder="Number of Hours" onChange={this.handleChange} />
+                                            <input type="checkbox" 
+                                                style={{ width: "15px", marginTop: "10px" }}
+                                                checked={ workstream.Selected.isActive?true:false  }
+                                                onChange={()=>{}}
+                                                onClick={(f)=>{ this.handleCheckbox("isActive",(workstream.Selected.isActive)?0:1) }}
+                                            /> 
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Workstream *</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <input type="text" name="workstream" required value={(typeof workstream.Selected.workstream == "undefined") ? "" : workstream.Selected.workstream} class="form-control" placeholder="Workstream" onChange={this.handleChange} />
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
-                                }
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Project Name *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="projectName" required value={(typeof workstream.Selected.projectName == "undefined") ? "" : workstream.Selected.projectName} class="form-control" placeholder="Project Name" onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Type</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <DropDown multiple={false}
+                                                required={false}
+                                                options={typeList}
+                                                selected={(typeof workstream.Selected.typeId == "undefined") ? "" : workstream.Selected.typeId}
+                                                onChange={(e) => {
+                                                    this.setDropDown("typeId", e.value);
+                                                }} />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Project Description</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <textarea name="projectDescription" value={(typeof workstream.Selected.projectDescription == "undefined") ? "" : workstream.Selected.projectDescription} class="form-control" placeholder="Project Description" onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
+                                    {
+                                        (typeof workstream.Selected.typeId != "undefined" && workstream.Selected.typeId == 5) && <div class="form-group">
+                                            <label class="col-md-3 col-xs-12 control-label">Number of Hours</label>
+                                            <div class="col-md-7 col-xs-12">
+                                                <input type="number" name="numberOfHours" required value={(typeof workstream.Selected.numberOfHours == "undefined") ? "" : workstream.Selected.numberOfHours} class="form-control" placeholder="Number of Hours" onChange={this.handleChange} />
+                                                <div class="help-block with-errors"></div>
+                                            </div>
+                                        </div>
+                                    }
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Project Name *</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <input type="text" name="projectName" required value={(typeof workstream.Selected.projectName == "undefined") ? "" : workstream.Selected.projectName} class="form-control" placeholder="Project Name" onChange={this.handleChange} />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label pt0">Responsible *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false}
-                                            required={true}
-                                            options={projectUserList}
-                                            selected={(typeof workstream.Selected.responsible == "undefined") ? "" : workstream.Selected.responsible}
-                                            onChange={(e) => {
-                                                this.setDropDown("responsible", e.value);
-                                            }} />
-                                        <div class="help-block with-errors"></div>
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Project Description</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <textarea name="projectDescription" value={(typeof workstream.Selected.projectDescription == "undefined") ? "" : workstream.Selected.projectDescription} class="form-control" placeholder="Project Description" onChange={this.handleChange} />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
                                     </div>
-                                </div>
-                            </form>
-                            <Task />
-                            <WorkstreamDocument/>
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label pt0">Responsible *</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <DropDown multiple={false}
+                                                required={true}
+                                                options={projectUserList}
+                                                selected={(typeof workstream.Selected.responsible == "undefined") ? "" : workstream.Selected.responsible}
+                                                onChange={(e) => {
+                                                    this.setDropDown("responsible", e.value);
+                                                }} />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                </form>
+                            }
+
+                            { ( workstream.SelectedLink == "" || workstream.SelectedLink == "task") &&
+                                <Task />
+                            }
+                            { ( workstream.SelectedLink == "" || workstream.SelectedLink == "document") &&
+                                <WorkstreamDocument/>
+                            }
+                            
                         </div>
                     </div>
                 </div>
