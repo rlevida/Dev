@@ -111,7 +111,6 @@ export default class List extends React.Component {
             
             if(typeof list != "undefined"){
                 list.map( e =>{
-                    console.log(e)
                     if( e.tagTypeId == data.id && e.linkType == "workstream"){
                         tempTags.push( { value : `workstream-${e.linkId}` , label: e.name })
                     }
@@ -330,17 +329,11 @@ export default class List extends React.Component {
                                                 <td> 
                                                     { (tagList.length > 0) &&
                                                         tagList.map((t,tIndex) =>{
-                                                            console.log(t)
                                                             if(t.tagTypeId == data.id){
                                                                 return <span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span>
                                                             }
                                                         })
                                                     }
-                                                    {/* { ( data.tags != "" && data.tags != null ) &&
-                                                        JSON.parse(data.tags).map((tag,tagIndex) =>{
-                                                            return <span key={tagIndex} class="label label-primary" style={{margin:"5px"}}>{tag.label}</span>
-                                                        })
-                                                    } */}
                                                 </td>
                                                 <td>
                                                     <div class="dropdown">

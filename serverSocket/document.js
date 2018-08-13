@@ -9,13 +9,13 @@ var init = exports.init = (socket) => {
         
         documentLink.getData("document_link", filter ,{},(c)=>{
             if(c.status) {
-
+                
                 if(filter.linkType == "project"){
                     let docLinkId = [];
                         c.data.map( link => {
                             docLinkId.push(link.id)
                         })
-                        
+
                     let document = global.initModel("document");
                     document.getProjectDocument( filter, docLinkId , ( doc )=>{
                         if(doc.status){
@@ -24,27 +24,27 @@ var init = exports.init = (socket) => {
                     })
                 }
 
-            if(filter.linkType == "workstream"){
-                let tag = global.initModel("tag")
-                    tag.getData("tag",d.filter,{},(tagRes)=>{
-                        let tagId = []
-                        if(tagRes.status){
-                            tagRes.data.map(tag =>{
-                                tagId.push(tag.tagTypeId)
-                            })
-                            if(tagId.length){
-                                let document = global.initModel("document");
-                                document.getProjectDocument( filter, tagId , ( doc )=>{
-                                    if(doc.status){
-                                        socket.emit("FRONT_DOCUMENT_LIST",doc.data)
-                                    }
+                if(filter.linkType == "workstream"){
+                    let tag = global.initModel("tag")
+                        tag.getData("tag",d.filter,{},(tagRes)=>{
+                            let tagId = []
+                            if(tagRes.status){
+                                tagRes.data.map(tag =>{
+                                    tagId.push(tag.tagTypeId)
                                 })
-                            }else{
-                                socket.emit("FRONT_DOCUMENT_LIST",[])
+                                if(tagId.length){
+                                    let document = global.initModel("document");
+                                    document.getProjectDocument( filter, tagId , ( doc )=>{
+                                        if(doc.status){
+                                            socket.emit("FRONT_DOCUMENT_LIST",doc.data)
+                                        }
+                                    })
+                                }else{
+                                    socket.emit("FRONT_DOCUMENT_LIST",[])
+                                }
                             }
-                        }
-                })
-            }
+                    })
+                }
                        
             }else{
                 if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
@@ -117,24 +117,24 @@ var init = exports.init = (socket) => {
                 }
                 if(d.type == "workstream"){
                     let tag = global.initModel("tag")
-                        tag.getData("tag",{ linkId : d.linkId }, {} ,(tagRes)=>{
+                        tag.getData("tag",{ linkId : d.linkId ,tagType : d.tagType , linkType : d.linkType}, {} ,(tagRes)=>{
                             let tagId = []
-                            if(tagRes.status){
-                                tagRes.data.map(tag =>{
-                                    tagId.push(tag.tagTypeId)
-                                })
-                                if(tagId.length){
-                                    document.getProjectDocument( filter, tagId , ( doc )=>{
-                                        if(doc.status){
-                                            socket.emit("FRONT_DOCUMENT_LIST",doc.data)
-                                            socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
-                                        }
+                                if(tagRes.status){
+                                    tagRes.data.map(tag =>{
+                                        tagId.push(tag.tagTypeId)
                                     })
-                                }else{
-                                    socket.emit("FRONT_DOCUMENT_LIST",[])
-                                    socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
+                                    if(tagId.length){
+                                        document.getProjectDocument( filter, tagId , ( doc )=>{
+                                            if(doc.status){
+                                                socket.emit("FRONT_DOCUMENT_LIST",doc.data)
+                                                socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
+                                            }
+                                        })
+                                    }else{
+                                        socket.emit("FRONT_DOCUMENT_LIST",[])
+                                        socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
+                                    }
                                 }
-                            }
                         })
                 }
             })

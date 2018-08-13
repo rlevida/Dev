@@ -17,6 +17,7 @@ import { connect } from "react-redux"
         settings: store.settings,
         starred : store.starred,
         global : store.global,
+        task : store.task
 
     }
 })
@@ -42,6 +43,7 @@ export default class WorkstreamDocumentViewer extends React.Component {
 
             socket.emit("GET_USER_LIST",{});
             socket.emit("GET_SETTINGS", {});
+            socket.emit("GET_TASK_LIST", { filter: { projectId: project }});
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "documentList"})
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamList"})
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamList"})
@@ -72,18 +74,13 @@ export default class WorkstreamDocumentViewer extends React.Component {
         let { socket , loggedUser , document , workstream } = this.props;
             socket.emit("SAVE_OR_UPDATE_DOCUMENT", { 
                 data : document.Selected ,  
-                filter : { tagTypeId : document.Selected.id , linkType : "workstream", tagType: "document"  },
+                filter : { tagTypeId : document.Selected.id , tagType: "document" },
+                type: "workstream",
                 linkId : workstream.Selected.id,
-                type : "workstream"
+                linkType : "workstream",
+                tagType : "document"
             })
     }
-
-    // selectTag(e , index){
-    //     let { tempData }  = this.state;
-    //         tempData[index].tags = JSON.stringify(e);
-    //         tempData[index].status = "library";
-    //         this.setState({ tempData : tempData });
-    // }
 
     viewDocument(data){
         let { socket, dispatch } = this.props;
@@ -108,11 +105,16 @@ export default class WorkstreamDocumentViewer extends React.Component {
     editDocument(data , type , list ){
         let { dispatch } = this.props;
         let newData = { ... data } , tempTags = [];
-            list.map( e =>{
-                if( e.tagTypeId == data.id ){
-                    tempTags.push( { value : e.linkId , label: e.name })
-                }
-            })        
+            if(typeof list != "undefined"){
+                list.map( e =>{
+                    if( e.tagTypeId == data.id && e.linkType == "workstream"){
+                        tempTags.push( { value : `workstream-${e.linkId}` , label: e.name })
+                    }
+                    if( e.tagTypeId == data.id && e.linkType == "task"){
+                        tempTags.push( { value : `task-${e.linkId}` , label: e.name })
+                    }
+                }) 
+            }     
 
             newData = { ...data , tags: JSON.stringify(tempTags) } 
 
@@ -138,21 +140,24 @@ export default class WorkstreamDocumentViewer extends React.Component {
     }
 
     render() {
-        let { document, dispatch, workstream , users , loggedUser , settings , starred , global } = this.props;
-        let data = [] , tempData = [] , workstreamList = [] , tagList = [];
-        if( typeof global.SelectList.workstreamList != "undefined"){
-            workstreamList = global.SelectList.workstreamList.map( e =>{ return { id:e.id , name:e.workstream } })
-        }
+        let { document, dispatch, workstream , users , loggedUser , settings , starred , global , task } = this.props;
+        let data = [] , tempData = [] , workstreamList = [] , tagList = [] , tagOptions = [];
 
-        if(typeof global.SelectList.tagList != "undefined"){
-            global.SelectList.tagList.map( t => {
-                if(workstream.List.filter( w => { return w.id == t.linkId}).length > 0 ){
-                   let workstreamName =  workstream.List.filter( w => { return w.id == t.linkId})[0].workstream
-                   tagList.push({ tagTypeId :t.tagTypeId  , name : workstreamName , linkId : t.linkId })
-                }
-            })
-        }
+            workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
+            task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
 
+            if(typeof global.SelectList.tagList != "undefined"){
+                global.SelectList.tagList.map( t => {
+                    if(workstream.List.filter( w => { return w.id == t.linkId && t.linkType == "workstream"} ).length > 0 ){
+                        let workstreamName =  workstream.List.filter( w => { return w.id == t.linkId})[0].workstream;
+                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : workstreamName , linkId : t.linkId });
+                    }
+                    if(task.List.filter( w => { return w.id == t.linkId && t.linkType == "task"} ).length > 0){
+                        let taskName =  task.List.filter( w => { return w.id == t.linkId})[0].task;
+                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : taskName , linkId : t.linkId });
+                    }
+                })
+            }
 
         return <div>
                 <div class="row"> 
@@ -246,7 +251,7 @@ export default class WorkstreamDocumentViewer extends React.Component {
                                         </div>
                                     </div>
                             }
-                            { (document.EditType == "tags" && workstreamList.length > 0) && 
+                            { (document.EditType == "tags" && tagOptions.length > 0) && 
                                 <div class="form-group" style={{marginBottom:"30px"}}>
                                     <label class="col-md-3 col-xs-12 control-label">Document Tags *</label>
                                     <div class="col-md-7 col-xs-12">
@@ -254,7 +259,7 @@ export default class WorkstreamDocumentViewer extends React.Component {
                                             name="tags"
                                             multiple={true}
                                             required={false}
-                                            options={ workstreamList } 
+                                            options={ tagOptions } 
                                             selected={ ( document.Selected.tags != null ) ? JSON.parse(document.Selected.tags) : []  } 
                                             onChange={(e)=>this.selectTag(e , document.Selected )} 
                                             /> 

@@ -19,7 +19,8 @@ export default class Socket extends React.Component {
         var { socket, dispatch } = this.props;
 
         socket.on("FRONT_DOCUMENT_LIST",(data) => {
-            dispatch({type:"SET_DOCUMENT_LIST",list : data})
+            dispatch({type:"SET_DOCUMENT_LIST",list : data })
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
         })
 
         socket.on("FRONT_DOCUMENT_SELECTED",(data) => {
