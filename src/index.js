@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 switch (page) {
-
+       
     /** ========================================================================================
      * 
      * Authentication Section
@@ -63,8 +63,11 @@ switch (page) {
     case "reports":
         require('./container/pageNotAvailable');
         break;
-
+    case "pageNotAvailable":
+        require('./container/pageNotAvailable');
+        break;
     
+        
     /** ========================================================================================
      * 
      * Global Function Section
