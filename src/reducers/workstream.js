@@ -4,6 +4,7 @@ export default function reducer(state={
         FormActive : "List",
         Selected : {},
         SelectedId: [],
+        SelectedLink: ""
     },action){
         switch (action.type) {
             case "SET_WORKSTREAM_LIST": {
@@ -49,6 +50,9 @@ export default function reducer(state={
                         }
                     })
                 return {...state, List: List }
+            }
+            case "SET_WORKSTREAM_SELECTED_LINK":{
+                return {...state, SelectedLink : action.SelectedLink }
             }
             default:
                 return state;

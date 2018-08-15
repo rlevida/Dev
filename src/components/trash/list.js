@@ -61,6 +61,13 @@ export default class List extends React.Component {
             socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data : { id: data.id , isCompleted : value ? 0 : 1  }})
     }
 
+    deleteDocument(id){
+        let{ socket } = this.props;
+            if(confirm("Do you really want to delete this record?")){
+                socket.emit("DELETE_TRASH_DOCUMENT",{id:id})
+            }
+    }
+
     render() {
         let { document, dispatch, users , starred , global , workstream } = this.props;
         let tagList = [];
@@ -100,7 +107,7 @@ export default class List extends React.Component {
                         {
                             document.List.map((data, index) => {
                                 return <tr key={index}>
-                                        <td> <input type="checkbox" onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }/></td>
+                                        <td> <input type="checkbox"/></td>
                                         <td>{
                                             starred.List.filter( s => { return s.linkId == data.id }).length > 0 
                                                 ? <span class="glyphicon glyphicon-star"></span>
@@ -119,6 +126,12 @@ export default class List extends React.Component {
                                             }
                                         </td>
                                         <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                                <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                    <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data.id)}>Delete</a></li>
+                                                </ul>
+                                            </div>
                                         </td>
                                     </tr>
                             })

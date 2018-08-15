@@ -9,13 +9,13 @@ var init = exports.init = (socket) => {
         
         documentLink.getData("document_link", filter ,{},(c)=>{
             if(c.status) {
-
+                
                 if(filter.linkType == "project"){
                     let docLinkId = [];
                         c.data.map( link => {
                             docLinkId.push(link.id)
                         })
-                        
+
                     let document = global.initModel("document");
                     document.getProjectDocument( filter, docLinkId , ( doc )=>{
                         if(doc.status){
@@ -24,27 +24,27 @@ var init = exports.init = (socket) => {
                     })
                 }
 
-            if(filter.linkType == "workstream"){
-                let tag = global.initModel("tag")
-                    tag.getData("tag",d.filter,{},(tagRes)=>{
-                        let tagId = []
-                        if(tagRes.status){
-                            tagRes.data.map(tag =>{
-                                tagId.push(tag.tagTypeId)
-                            })
-                            if(tagId.length){
-                                let document = global.initModel("document");
-                                document.getProjectDocument( filter, tagId , ( doc )=>{
-                                    if(doc.status){
-                                        socket.emit("FRONT_DOCUMENT_LIST",doc.data)
-                                    }
+                if(filter.linkType == "workstream"){
+                    let tag = global.initModel("tag")
+                        tag.getData("tag",d.filter,{},(tagRes)=>{
+                            let tagId = []
+                            if(tagRes.status){
+                                tagRes.data.map(tag =>{
+                                    tagId.push(tag.tagTypeId)
                                 })
-                            }else{
-                                socket.emit("FRONT_DOCUMENT_LIST",[])
+                                if(tagId.length){
+                                    let document = global.initModel("document");
+                                    document.getProjectDocument( filter, tagId , ( doc )=>{
+                                        if(doc.status){
+                                            socket.emit("FRONT_DOCUMENT_LIST",doc.data)
+                                        }
+                                    })
+                                }else{
+                                    socket.emit("FRONT_DOCUMENT_LIST",[])
+                                }
                             }
-                        }
-                })
-            }
+                    })
+                }
                        
             }else{
                 if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
@@ -98,7 +98,7 @@ var init = exports.init = (socket) => {
                 if(JSON.parse(newTags).length > 0){
                     let tag = global.initModel("tag");
                         JSON.parse(newTags).map( t => {
-                            let tagData = { linkType : "workstream", linkId : t.value , tagType : "document" , tagTypeId : id }
+                            let tagData = { linkType : t.value.split("-")[0], linkId : t.value.split("-")[1] , tagType : "document" , tagTypeId : id }
                                 tag.postData("tag",tagData,(res) =>{
                                     if(res.status){
                                         nextThen(result)
@@ -117,24 +117,24 @@ var init = exports.init = (socket) => {
                 }
                 if(d.type == "workstream"){
                     let tag = global.initModel("tag")
-                        tag.getData("tag",{ linkId : d.linkId }, {} ,(tagRes)=>{
+                        tag.getData("tag",{ linkId : d.linkId ,tagType : d.tagType , linkType : d.linkType}, {} ,(tagRes)=>{
                             let tagId = []
-                            if(tagRes.status){
-                                tagRes.data.map(tag =>{
-                                    tagId.push(tag.tagTypeId)
-                                })
-                                if(tagId.length){
-                                    document.getProjectDocument( filter, tagId , ( doc )=>{
-                                        if(doc.status){
-                                            socket.emit("FRONT_DOCUMENT_LIST",doc.data)
-                                            socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
-                                        }
+                                if(tagRes.status){
+                                    tagRes.data.map(tag =>{
+                                        tagId.push(tag.tagTypeId)
                                     })
-                                }else{
-                                    socket.emit("FRONT_DOCUMENT_LIST",[])
-                                    socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
+                                    if(tagId.length){
+                                        document.getProjectDocument( filter, tagId , ( doc )=>{
+                                            if(doc.status){
+                                                socket.emit("FRONT_DOCUMENT_LIST",doc.data)
+                                                socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
+                                            }
+                                        })
+                                    }else{
+                                        socket.emit("FRONT_DOCUMENT_LIST",[])
+                                        socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
+                                    }
                                 }
-                            }
                         })
                 }
             })
@@ -148,11 +148,10 @@ var init = exports.init = (socket) => {
                             if(typeof c.id != "undefined" && c.id > 0) {
                                 document.getData("document",{id:c.id},{},(e)=>{
                                     if(e.data.length > 0) {
-                                       
                                         if(typeof tagList != "undefined"){
                                             JSON.parse(tagList).map( t => {
                                                 let tag = global.initModel("tag")
-                                                let tagData = { linkType : "workstream", linkId : t.value , tagType : "document" , tagTypeId : e.data[0].id }
+                                                let tagData = { linkType : t.value.split("-")[0], linkId : t.value.split("-")[1] , tagType : "document" , tagTypeId : e.data[0].id }
                                                     tag.postData("tag",tagData,(tagRes) =>{
                                                         if(tagRes.status){
                                                             console.log("tag success")
@@ -194,19 +193,16 @@ var init = exports.init = (socket) => {
         }
     })
 
-    // socket.on("DELETE_DOCUMENT",(d) => {
-    //     let document = global.initModel("document")
-
-    //     document.getData("document",{},{},(b)=>{
-    //         document.deleteData("document",{id:d.id},(c)=>{
-    //             if(c.status) {
-    //                 socket.emit("FRONT_DOCUMENT_DELETED",{id:d.id})
-    //             }else{
-    //                 socket.emit("RETURN_ERROR_MESSAGE","Delete failed. Please try again later.")
-    //             }
-    //         })
-    //     })
-    // })
+    socket.on("DELETE_TRASH_DOCUMENT",(d) => {
+        let document = global.initModel("document")
+            document.deleteData("document",{id:d.id},(c)=>{
+                if(c.status) {
+                    socket.emit("FRONT_DOCUMENT_DELETED",{id:d.id})
+                }else{
+                    socket.emit("RETURN_ERROR_MESSAGE","Delete failed. Please try again later.")
+                }
+            })
+    })
 
     socket.on("DELETE_DOCUMENT",(d) => {
         let data = { isDeleted : 1 } 

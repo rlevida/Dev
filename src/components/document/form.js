@@ -14,7 +14,8 @@ import { connect } from "react-redux"
         loggedUser: store.loggedUser,
         status: store.status,
         type: store.type,
-        workstream: store.workstream
+        workstream: store.workstream,
+        task: store.task
     }
 })
 
@@ -78,11 +79,14 @@ export default class FormComponent extends React.Component {
     // }
 
     render() {
-        let { dispatch, document, loggedUser, status, type , workstream } = this.props;
-        let statusList = [], typeList = [] , workstreamList = []
-            workstreamList = workstream.List.map( e => { return { id:e.id , name:e.workstream }});
-            status.List.map((e,i)=>{ if(e.linkType=="document"){statusList.push({id:e.id,name:e.status})} });
-            type.List.map((e,i)=>{ if(e.linkType=="document"){typeList.push({id:e.id,name:e.type})} });
+        let { dispatch, document, loggedUser, status, type , workstream ,task } = this.props;
+        let statusList = [], typeList = [] , tagOptions = [] ;
+
+            workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })});
+            task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })});
+
+            // status.List.map((e,i)=>{ if(e.linkType=="document"){statusList.push({id:e.id,name:e.status})} });
+            // type.List.map((e,i)=>{ if(e.linkType=="document"){typeList.push({id:e.id,name:e.type})} });
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -125,7 +129,7 @@ export default class FormComponent extends React.Component {
                                         </div>
                                     </div>
                                 }
-                                { (document.EditType == "tags" && workstreamList.length > 0) && 
+                                { (document.EditType == "tags" && tagOptions.length > 0) && 
                                     <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Document Tags *</label>
                                         <div class="col-md-7 col-xs-12">
@@ -133,7 +137,7 @@ export default class FormComponent extends React.Component {
                                                 name="tags"
                                                 multiple={true}
                                                 required={false}
-                                                options={ workstreamList } 
+                                                options={ tagOptions } 
                                                 selected={ ( document.Selected.tags != null ) ? JSON.parse(document.Selected.tags) : []  } 
                                                 onChange={(e)=>this.selectTag(e , document.Selected )} 
                                                 /> 
