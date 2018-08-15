@@ -76,3 +76,33 @@ var uploadFile = exports.uploadFile = (params,cb) => {
             });
     });
 }
+
+var getUserRoles = exports.getUserRoles = (users,cb) =>{
+    let usersRole = global.initModel("users_role");
+    let data = {}
+    usersRole.getData("users_role",{usersId:users.id},{},(e)=>{
+        data.userRole = (e.data.length > 0)?e.data[0].roleId:0;
+
+        let usersTeam = global.initModel("users_team")
+        usersTeam.getData("users_team",{usersId:users.id},{},(e)=>{
+            data.team = JSON.stringify(e.data.map((e,i)=>{ return {value:e.teamId,label:e.team_team}; }));
+            cb(data)
+        })
+    })
+}
+
+var getUserAllowedAccess = exports.getUserAllowedAccess = (data,cb) =>{
+    let func = global.initFunc();
+        func.getUserRoles({ id:data.userId }, resp =>{
+            let project = global.initModel("project")
+            project.getProjectAllowedAccess("project",{ usersId:data.userId, userRole: resp.userRole},{},(e)=>{
+                let projectIds = e.data.map((f) => { return f.projectId })
+                let allowed = projectIds.filter( f =>{ return f == data.params }).length
+                    if(allowed){
+                        cb({status : true})
+                    }else{
+                        cb({status : false})
+                    }
+            })
+        })
+}
