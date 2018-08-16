@@ -1,0 +1,4 @@
+User-Agent: *
+Disallow: /models/
+Disallow: /sql/
+Disallow: /node_modules/
