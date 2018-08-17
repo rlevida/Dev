@@ -105,7 +105,7 @@ export default class Component extends React.Component {
                             <span class="glyphicon glyphicon-user"></span>
                         </div>
                         <div class="user-wrapper bg-dark">
-                            <a class="user-link" href="">
+                            <a class="user-link" href={"/profile"}>
                                 <img class="media-object img-thumbnail user-img" alt="User Picture" src="/images/user.gif" />
                             </a>
                     

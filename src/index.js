@@ -77,4 +77,7 @@ switch (page) {
     case "forgotPassword":
         require('./container/resetPassword');
         break;
+    case "profile":
+        require('./container/profile');
+        break;
 }
