@@ -38,11 +38,11 @@ export default class Component extends React.Component {
                 {
                     (typeof workstream.Selected.id != "undefined") && 
                     <ul class="list-inline" style={{margin:"20px"}}>
-                        <li class="list-inline-item"><a href="javascript:void(0)">List</a></li>
-                        <li class="list-inline-item"><a href="javascript:void(0)">Document</a></li>
-                        <li class="list-inline-item"><a href="javascript:void(0)">Timeline</a></li>
-                        <li class="list-inline-item"><a href="javascript:void(0)">Members</a></li>
-                        <li class="list-inline-item"><a href="javascript:void(0)" onClick={() => dispatch({type:"SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "document" })}>Documents</a></li>
+                        <li class="list-inline-item"><a href="javascript:void(0)" onClick={() => dispatch({type:"SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" })}>List</a>&nbsp;&nbsp;&nbsp;|</li>
+                        <li class="list-inline-item"><a href="javascript:void(0)">Calendar</a>&nbsp;&nbsp;&nbsp;|</li>
+                        <li class="list-inline-item"><a href="javascript:void(0)">Timeline</a>&nbsp;&nbsp;&nbsp;|</li>
+                        <li class="list-inline-item"><a href="javascript:void(0)" onClick={() => dispatch({type:"SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "member" })}>Members</a>&nbsp;&nbsp;&nbsp;|</li>
+                        <li class="list-inline-item"><a href="javascript:void(0)" onClick={() => dispatch({type:"SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "document" })}>Documents</a>&nbsp;&nbsp;&nbsp;|</li>
                         <li class="list-inline-item"><a href="javascript:void(0)">Conversation</a></li>
                     </ul> 
                 }
@@ -57,7 +57,7 @@ export default class Component extends React.Component {
                 
                 {workstream.FormActive == "WorkstreamDocumentViewer" &&
                     <WorkstreamDocumentViewer/>
-                 }
+                }
             </div>
         return (
             <Header component={Component} page={"Workstream"} />

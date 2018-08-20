@@ -5,8 +5,9 @@ import { HeaderButtonContainer, DropDown } from "../../globalComponents";
 import MembersForm from "../global/members/membersForm";
 import { connect } from "react-redux";
 import _ from "lodash";
-import WorkstreamDocument from "./workstreamDocument"
+import Document from "./document"
 import Task from "./task"
+import Member from "./member"
 
 @connect((store) => {
     return {
@@ -112,6 +113,7 @@ export default class FormComponent extends React.Component {
                         dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
                         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
                         dispatch({ type: "SET_MEMBERS_LIST", list: [] });
+                        dispatch({ type: "SET_SELECTED_WORKSTREAM_LINK", SelectedLink: "" });
                     }} >
                     <span>Back</span>
                 </li>
@@ -202,7 +204,10 @@ export default class FormComponent extends React.Component {
                                 <Task />
                             }
                             { ( workstream.SelectedLink == "" || workstream.SelectedLink == "document") &&
-                                <WorkstreamDocument/>
+                                <Document/>
+                            }
+                            { ( workstream.SelectedLink == "member") &&
+                                <Member/>
                             }
                             
                         </div>
