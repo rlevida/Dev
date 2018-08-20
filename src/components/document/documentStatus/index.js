@@ -38,7 +38,7 @@ export default class DocumentStatus extends React.Component {
                 })
             }
 
-        return  <div style={{float:"right",padding:"20px"}}>
+        return  <div class="pull-right">
                     <table>
                         <tr>
                             <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
@@ -50,5 +50,6 @@ export default class DocumentStatus extends React.Component {
                         </tr>
                     </table>
                 </div>
+               
     }
 }
