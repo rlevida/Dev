@@ -18,7 +18,8 @@ import { connect } from "react-redux"
         settings: store.settings,
         starred : store.starred,
         global : store.global,
-        task : store.task
+        task : store.task,
+        projectData : store.project
 
     }
 })
@@ -164,7 +165,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { document, dispatch, workstream , users , settings , starred , global , task } = this.props;
+        let { document, dispatch, workstream , users , settings , starred , global , task , projectData} = this.props;
         let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] ;
 
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
@@ -200,13 +201,13 @@ export default class List extends React.Component {
                         <span>New Document</span>
                     </li>
                 </HeaderButtonContainer>
-                <div class="row">
-                    <div class="col-lg-12 col-md-12">
-                        <div class="form-group" style={{padding:"20px"}}>
-                            <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#uploadFileModal">
-                                Upload Files &nbsp; <i class="glyphicon glyphicon-upload"></i>
-                            </button>
-                        </div>
+                <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/"+project} style={{color:"#000",textDecortion:"none"}}>{projectData.Selected.project}</a></h3>
+                <div style={{paddingBottom:"50px",paddingRight:"20px"}}>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#uploadFileModal" >
+                            Upload Files &nbsp; <i class="fa fa-caret-down"></i>
+                        </button>
+                        <input class="form-control pull-right" type="text" placeholder="Search" aria-label="Search" style={{width:"200px",marginRight:"50px"}}/>
                     </div>
                 </div>
                 <div style={{padding:"20px"}}>
@@ -220,9 +221,9 @@ export default class List extends React.Component {
                                     <tr>
                                         <th></th>
                                         <th></th>
-                                        <th>Name</th>
-                                        <th>Uploaded</th>
-                                        <th>By</th>
+                                        <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Name</th>
+                                        <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Uploaded</th>
+                                        <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>By</th>
                                         {/* <th>Tags</th> */}
                                         <th></th>
                                     </tr>
@@ -286,10 +287,10 @@ export default class List extends React.Component {
                                     <tr>
                                         <th></th>
                                         <th></th>
-                                        <th>Name</th>
-                                        <th>Modified</th>
-                                        <th>Members</th>
-                                        <th>Tags</th>
+                                        <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Name</th>
+                                        <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Modified</th>
+                                        <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Members</th>
+                                        <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Tags</th>
                                         <th></th>
                                     </tr>
                                     {
