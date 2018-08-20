@@ -188,7 +188,7 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Projects</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Workstream</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={false} 
                                             required={true}
