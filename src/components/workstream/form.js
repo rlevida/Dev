@@ -113,6 +113,7 @@ export default class FormComponent extends React.Component {
                         dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
                         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
                         dispatch({ type: "SET_MEMBERS_LIST", list: [] });
+                        dispatch({ type: "SET_SELECTED_WORKSTREAM_LINK", SelectedLink: "" });
                     }} >
                     <span>Back</span>
                 </li>
