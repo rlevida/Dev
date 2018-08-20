@@ -96,6 +96,10 @@ export default class Component extends React.Component {
                         <h3>
                             <i class="glyphicon glyphicon-dashboard"></i>&nbsp;
                            {this.props.page}{this.props.form?" > "+this.props.form:""}{(this.props.form) == "Form"?(this.props.formId > 0?" > Edit ":" > Add "):""}
+                            <span class="pull-right" style={{marginRight:"40px"}}>
+                                <a class="user-link user-profile" data-tip="profile" href={"/profile"}><i class="glyphicon glyphicon-user"></i>
+                                </a>
+                            </span>
                         </h3>
                     </div>
                 </header>
