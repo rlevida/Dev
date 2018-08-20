@@ -5,8 +5,9 @@ import { HeaderButtonContainer, DropDown } from "../../globalComponents";
 import MembersForm from "../global/members/membersForm";
 import { connect } from "react-redux";
 import _ from "lodash";
-import WorkstreamDocument from "./workstreamDocument"
+import Document from "./document"
 import Task from "./task"
+import Member from "./member"
 
 @connect((store) => {
     return {
@@ -202,7 +203,10 @@ export default class FormComponent extends React.Component {
                                 <Task />
                             }
                             { ( workstream.SelectedLink == "" || workstream.SelectedLink == "document") &&
-                                <WorkstreamDocument/>
+                                <Document/>
+                            }
+                            { ( workstream.SelectedLink == "member") &&
+                                <Member/>
                             }
                             
                         </div>
