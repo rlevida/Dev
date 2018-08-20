@@ -78,4 +78,11 @@ router.get('/reports', function (req, res, next) {
     });
 });
 
+router.get('/profile',function (req,res,next){
+    res.render('index', {
+        title: global.site_name + " - Profile",
+        body: './template/index',
+        page: 'profile'
+    });
+})
 module.exports = router;
