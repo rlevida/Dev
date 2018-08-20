@@ -65,7 +65,8 @@ var uploadFile = exports.uploadFile = (params,cb) => {
                 Key: global.environment + "/" + params.form + "/" + params.filename,
                 ACL: 'public-read-write',
                 Body: fileStream,
-                ContentType : params.file.type
+                ContentType : params.file.type , 
+                ContentDisposition: "attachment"
             }, (err) => {
                 if(err){
                     console.log("Error in Uploading to AWS. [" + err + "]");
