@@ -202,164 +202,157 @@ export default class List extends React.Component {
                 </HeaderButtonContainer>
                 <div class="row">
                     <div class="col-lg-12 col-md-12">
-                        <div class="form-group">
+                        <div class="form-group" style={{padding:"20px"}}>
                             <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#uploadFileModal">
                                 Upload Files &nbsp; <i class="glyphicon glyphicon-upload"></i>
                             </button>
                         </div>
                     </div>
                 </div>
-                <div class="row"> 
-                    <br/>
-                    <div class="col-lg-12 col-md-12">  
-                        
-                        <DocumentStatus/>
-
-                        <h3>New Documents</h3>
-                        <table id="dataTable" class="table responsive-table table-bordered document-table">
-                            <tbody>
-                                <tr>
-                                    <th></th>
-                                    <th></th>
-                                    <th>Name</th>
-                                    <th>Uploaded</th>
-                                    <th>By</th>
-                                    {/* <th>Tags</th> */}
-                                    <th></th>
-                                </tr>
-
-                                {
-                                    (documentList.newUpload.length == 0) &&
-                                    <tr><td colSpan={8}>No Record Found!</td></tr>
-                                }
-
-                                {
-                                    documentList.newUpload.map((data, index) => {
-                                        return (
-                                            <tr key={index}>
-                                                <td> 
-                                                    <input type="checkbox" 
-                                                        // onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }
-                                                    />
-                                                </td>
-                                                <td> 
-                                                    {
-                                                        starred.List.filter( s => { return s.linkId == data.id }).length > 0 
-                                                            ? <span class="glyphicon glyphicon-star" onClick={()=> this.starDocument( data , 1 )} style={{ cursor:"pointer" }}></span>
-                                                                : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
-                                                    }
-                                                </td>
-                                                <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
-                                                <td>{ moment(data.dateAdded).format('L') }</td>
-                                                <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
-                                                {/* <td> 
-                                                    { ( data.tags != "" && data.tags != null ) &&
-                                                        JSON.parse(data.tags).map((tag,tagIndex) =>{
-                                                            return <span key={tagIndex} class="label label-primary" style={{margin:"5px"}}>{tag.label}</span>
-                                                        })
-                                                    }
-                                                </td> */}
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                                        <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
-                                                            <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "rename" )}>Rename</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" )}>Edit Tags</a></li>
-                                                            <li>{ starred.List.filter( s => { return s.linkId == data.id }).length > 0 
-                                                                    ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
-                                                                        :  <a href="javascript:void(0)" data-tip="Star" onClick={()=> this.starDocument( data , 0 )}>Star</a>
-                                                                }
-                                                            </li>
-                                                            <li><a href="javascript:void(0)" data-tip="Move to library" onClick={()=> this.moveToLibrary(data)}>Move to library</a></li>
-                                                            <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data.id)}>Delete</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="View" onClick={()=> this.viewDocument(data)}>View</a></li>
-                                                            
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <hr/>
-                    <div class="col-lg-12 col-md-12">
-                        <h3>Library</h3>
-                        <table id="dataTable" class="table responsive-table table-bordered document-table" ref={el => (this.componentRef = el)}>
-                            <tbody>
-                                <tr>
-                                    <th></th>
-                                    <th></th>
-                                    <th>Name</th>
-                                    <th>Modified</th>
-                                    <th>Members</th>
-                                    <th>Tags</th>
-                                    <th></th>
-                                </tr>
-                                {
-                                    (documentList.library.length == 0) &&
+                <div style={{padding:"20px"}}>
+                    <div class="row"> 
+                        <br/>
+                        <div class="col-lg-12 col-md-12">  
+                            <DocumentStatus/>
+                            <h3>New Documents</h3>
+                            <table id="dataTable" class="table responsive-table table-bordered document-table">
+                                <tbody>
                                     <tr>
-                                        <td colSpan={8}>No Record Found!</td>
+                                        <th></th>
+                                        <th></th>
+                                        <th>Name</th>
+                                        <th>Uploaded</th>
+                                        <th>By</th>
+                                        {/* <th>Tags</th> */}
+                                        <th></th>
                                     </tr>
-                                }
 
-                                {
-                                    documentList.library.map((data, index) => {
-                                        return (
-                                            <tr key={index}>
-                                                <td> 
-                                                    <input type="checkbox" 
-                                                        // onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }
-                                                    />
-                                                </td>
-                                                <td> 
-                                                    {
-                                                        starred.List.filter( s => { return s.linkId == data.id }).length > 0 
-                                                            ? <span class="glyphicon glyphicon-star" onClick={()=> this.starDocument( data , 1 )} style={{ cursor:"pointer" }}></span>
-                                                                : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
-                                                    }
-                                                </td>
-                                               <td><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
-                                                <td>{ moment(data.dateUpdated).format('L') }</td>
-                                                <td></td>
-                                                <td> 
-                                                    { (tagList.length > 0) &&
-                                                        tagList.map((t,tIndex) =>{
-                                                            if(t.tagTypeId == data.id){
-                                                                return <span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span>
-                                                            }
-                                                        })
-                                                    }
-                                                </td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                                        <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
-                                                            <li><a href="javascript:void(0)" onClick={()=> this.viewDocument(data)}>View</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
-                                                            <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
-                                                            <li>
-                                                            {
-                                                                starred.List.filter( s => { return s.linkId == data.id }).length > 0 
-                                                                    ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
-                                                                        :  <a href="javascript:void(0)" data-tip="Star" onClick={()=> this.starDocument( data , 0 )}>Star</a>
-                                                            }
-                                                            </li>
-                                                            <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data.id)}>Delete</a></li>
-                                                            <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Print">Print</a></li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })
-                                }
-                            </tbody>
-                        </table>
+                                    {
+                                        (documentList.newUpload.length == 0) &&
+                                        <tr><td colSpan={8}>No Record Found!</td></tr>
+                                    }
+
+                                    {
+                                        documentList.newUpload.map((data, index) => {
+                                            return (
+                                                <tr key={index}>
+                                                    <td> 
+                                                        <input type="checkbox" 
+                                                            // onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }
+                                                        />
+                                                    </td>
+                                                    <td> 
+                                                        {
+                                                            starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                                ? <span class="glyphicon glyphicon-star" onClick={()=> this.starDocument( data , 1 )} style={{ cursor:"pointer" }}></span>
+                                                                    : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
+                                                        }
+                                                    </td>
+                                                    <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
+                                                    <td>{ moment(data.dateAdded).format('L') }</td>
+                                                    <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
+                                                    <td>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                                            <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                                <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
+                                                                <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "rename" )}>Rename</a></li>
+                                                                <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" )}>Edit Tags</a></li>
+                                                                <li>{ starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                                        ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
+                                                                            :  <a href="javascript:void(0)" data-tip="Star" onClick={()=> this.starDocument( data , 0 )}>Star</a>
+                                                                    }
+                                                                </li>
+                                                                <li><a href="javascript:void(0)" data-tip="Move to library" onClick={()=> this.moveToLibrary(data)}>Move to library</a></li>
+                                                                <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data.id)}>Delete</a></li>
+                                                                <li><a href="javascript:void(0)" data-tip="View" onClick={()=> this.viewDocument(data)}>View</a></li>
+                                                                
+                                                            </ul>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <hr/>
+                        <div class="col-lg-12 col-md-12">
+                            <h3>Library</h3>
+                            <table id="dataTable" class="table responsive-table table-bordered document-table" ref={el => (this.componentRef = el)}>
+                                <tbody>
+                                    <tr>
+                                        <th></th>
+                                        <th></th>
+                                        <th>Name</th>
+                                        <th>Modified</th>
+                                        <th>Members</th>
+                                        <th>Tags</th>
+                                        <th></th>
+                                    </tr>
+                                    {
+                                        (documentList.library.length == 0) &&
+                                        <tr>
+                                            <td colSpan={8}>No Record Found!</td>
+                                        </tr>
+                                    }
+
+                                    {
+                                        documentList.library.map((data, index) => {
+                                            return (
+                                                <tr key={index}>
+                                                    <td> 
+                                                        <input type="checkbox" 
+                                                            // onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }
+                                                        />
+                                                    </td>
+                                                    <td> 
+                                                        {
+                                                            starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                                ? <span class="glyphicon glyphicon-star" onClick={()=> this.starDocument( data , 1 )} style={{ cursor:"pointer" }}></span>
+                                                                    : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
+                                                        }
+                                                    </td>
+                                                <td><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
+                                                    <td>{ moment(data.dateUpdated).format('L') }</td>
+                                                    <td><i class="fa fa-users"></i></td>
+                                                    <td> 
+                                                        { (tagList.length > 0) &&
+                                                            tagList.map((t,tIndex) =>{
+                                                                if(t.tagTypeId == data.id){
+                                                                    return <span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span>
+                                                                }
+                                                            })
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                                            <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                                <li><a href="javascript:void(0)" onClick={()=> this.viewDocument(data)}>View</a></li>
+                                                                <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
+                                                                <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
+                                                                <li>
+                                                                {
+                                                                    starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                                        ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
+                                                                            :  <a href="javascript:void(0)" data-tip="Star" onClick={()=> this.starDocument( data , 0 )}>Star</a>
+                                                                }
+                                                                </li>
+                                                                <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data.id)}>Delete</a></li>
+                                                                <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Print">Print</a></li>
+                                                            </ul>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
