@@ -78,7 +78,7 @@ export default class List extends React.Component {
                                 <td>{data.workstream_workstream}</td>
                                 <td>{data.task}</td>
                                 <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
-                                <td><span><i class="fa fa-user fa-lg"></i></span></td>
+                                <td>{(data.assignedById)?<span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span>:""}</td>
                                 <td><span><i class="fa fa-user fa-lg"></i></span></td>
                                 <td class="text-center">
                                     <a href="javascript:void(0);" data-tip="EDIT"

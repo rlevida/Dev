@@ -85,7 +85,7 @@ export default class List extends React.Component {
                                 <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                 <td></td>
                                 <td></td>
-                                <td></td>
+                                <td>{(data.assignedById)?<span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span>:""}</td>
                                 <td>{data.type_type}</td>
                                 <td></td>
                                 <td class="text-center">

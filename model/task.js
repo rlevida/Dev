@@ -335,9 +335,13 @@ var getTaskList = exports.getTaskList = ( tablename, data, advance , cb ) => {
                             IF(prj.status="Completed","Completed","In Progress")
                         )
                     )
-                ) as currentState 
+                ) as currentState,
+                members.firstName as assignedBy,
+                members.id as assignedById
                 FROM (` + query + `) as prj 
                 LEFT JOIN task ON prj.linkTaskId = task.id
+                LEFT JOIN (SELECT users.*,members.linkId FROM members LEFT JOIN users ON members.userTypeLinkId = users.id AND members.usersType="users" and members.linkType="task" GROUP BY members.linkType ) as members 
+                ON prj.id = members.linkId
             ` 
     /**
      * Manage Query Connection
