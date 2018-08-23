@@ -125,19 +125,22 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, task, status, workstream, global } = this.props;
+        let { dispatch, task, status, workstream, global, loggedUser } = this.props;
         let statusList = [], typeList = [], taskList = [], projectUserList = [];
         let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
-        status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
+        let allowEdit = (loggedUser.data.userRole == 5 || loggedUser.data.userRole == 6) && (loggedUser.data.userType == "External") ? false : true;
 
-        if(typeof this.props.global.SelectList.taskList != "undefined"){
-            this.props.global.SelectList["taskList"].map((e)=>{
-                taskList.push({id:e.id,name:e.task})
-            })
-        }
-        if(typeof global.SelectList.ProjectMemberList != "undefined"){
-            global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })  })
-        }
+            status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
+
+            if(typeof this.props.global.SelectList.taskList != "undefined"){
+                this.props.global.SelectList["taskList"].map((e)=>{
+                    taskList.push({id:e.id,name:e.task})
+                })
+            }
+            if(typeof global.SelectList.ProjectMemberList != "undefined"){
+                global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })  })
+            }
+
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
@@ -190,14 +193,16 @@ export default class FormComponent extends React.Component {
                                             required={false}
                                             options={workstreamList}
                                             selected={(typeof task.Selected.workstreamId == "undefined") ? "" : task.Selected.workstreamId}
-                                            onChange={(e) => this.setDropDown("workstreamId", e.value)} />
+                                            onChange={(e) => this.setDropDown("workstreamId", e.value)} 
+                                            disabled={!allowEdit}
+                                            />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Task Name *</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} />
+                                        <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} disabled={!allowEdit}/>
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
@@ -208,7 +213,9 @@ export default class FormComponent extends React.Component {
                                             required={false}
                                             options={taskList}
                                             selected={(typeof task.Selected.linkTaskId == "undefined") ? "" : task.Selected.linkTaskId}
-                                            onChange={(e) => this.setDropDown("linkTaskId", e.value)} />
+                                            onChange={(e) => this.setDropDown("linkTaskId", e.value)} 
+                                            disabled={!allowEdit}
+                                            />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
@@ -224,6 +231,7 @@ export default class FormComponent extends React.Component {
                                                 value={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate) ? displayDate(task.Selected.dueDate) : ""}
                                                 onChange={() => { }}
                                                 required={false}
+                                                disabled={!allowEdit}
                                             />
                                             <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
                                             </span>
@@ -240,7 +248,9 @@ export default class FormComponent extends React.Component {
                                             selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
                                             onChange={(e) => {
                                                 this.setDropDown("assignedTo", e.value);
-                                            }} />
+                                            }} 
+                                            disabled={!allowEdit}
+                                            />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>

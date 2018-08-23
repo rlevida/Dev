@@ -97,13 +97,18 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, workstream, status, type, global } = this.props
+        let { dispatch, workstream, status, type, global , users } = this.props
         let statusList = [], typeList = [], projectUserList = [];
 
         status.List.map((e, i) => { if (e.linkType == "workstream") { statusList.push({ id: e.id, name: e.status }) } })
         type.List.map((e, i) => { if (e.linkType == "workstream") { typeList.push({ id: e.id, name: e.type }) } })
         if(typeof global.SelectList.ProjectMemberList != "undefined"){
-            global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })  })
+            global.SelectList.ProjectMemberList.map((e, i) => { 
+                let roleId = users.List.filter(u => { return u.id == e.id })[0].role[0].role_id;
+                    if( roleId == 1 || roleId == 2 || roleId == 3 || roleId == 4){
+                        projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })  
+                    }
+            })
         }
         
         return <div>
