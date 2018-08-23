@@ -58,12 +58,8 @@ var init = exports.init = (socket) => {
                 let filter = (typeof d.filter != "undefined")?d.filter:{};
                     members.getWorkstreamTaskMembers({ id : d.id},(c)=>{
                         if(c.status) {
-                            if(c.data.length > 0){
-                                data.taskMemberList = c.data
-                                socket.emit("FRONT_WORKSTREAM_SELECTED",data)
-                            }else{
-                                socket.emit("FRONT_WORKSTREAM_SELECTED",data)
-                            }
+                            data.taskMemberList = c.data
+                            socket.emit("FRONT_WORKSTREAM_SELECTED",data)
                         }else{
                             socket.emit("RETURN_ERROR_MESSAGE","Delete failed. Please try again later.")
                         }
