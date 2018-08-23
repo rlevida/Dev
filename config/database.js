@@ -9,15 +9,12 @@ var connectionCredentials = exports.connectionCredentials = {
     charset : 'utf8mb4'
 };
 
+var connection = mysql.createConnection(connectionCredentials);
+connection.connect();
+
 exports.query = function(query, values, cb){
-
-    var connection = mysql.createConnection(connectionCredentials);
-
-    connection.connect();
-    
     connection.query("SET GLOBAL sql_mode=''", values, function(err1, rows1, fields1){
         connection.query(query, values, function(err, rows, fields){
-            connection.destroy();
             cb(err, rows, fields);
         });
     });
