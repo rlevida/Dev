@@ -21,7 +21,12 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id  } });
+        let taskListInterval = setInterval(()=>{
+            if(this.props.workstream.Selected.id){
+                this.props.socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id  } });
+                clearInterval(taskListInterval)
+            }
+        },1000)
         this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
