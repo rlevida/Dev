@@ -126,7 +126,7 @@ export default class FormComponent extends React.Component {
 
     render() {
         let { dispatch, task, status, workstream, global, loggedUser } = this.props;
-        let statusList = [], typeList = [], taskList = [], projectUserList = [];
+        let statusList = [], typeList = [], taskList = [{id:"",name:"Select..."}], projectUserList = [];
         let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
         let allowEdit = (loggedUser.data.userRole == 5 || loggedUser.data.userRole == 6) && (loggedUser.data.userType == "External") ? false : true;
 

@@ -78,7 +78,7 @@ export default class List extends React.Component {
                     {
                         task.List.map((data, index) => {
                             return <tr key={index}>
-                                <td>{data.status_status}</td>
+                                <td></td>
                                 <td>{data.project_project}</td>
                                 <td>{data.workstream_workstream}</td>
                                 <td>{data.task}</td>
