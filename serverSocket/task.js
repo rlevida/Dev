@@ -135,5 +135,5 @@ var init = exports.init = (socket) => {
                 }
             })
         })
-    })
+    }) 
 }

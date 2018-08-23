@@ -211,7 +211,8 @@ export default class FormComponent extends React.Component {
                             { ( workstream.SelectedLink == "" || workstream.SelectedLink == "document") &&
                                 <Document/>
                             }
-                            { ( workstream.SelectedLink == "member") &&
+
+                            { ( workstream.SelectedLink == "" || workstream.SelectedLink == "member") &&
                                 <Member/>
                             }
                             
