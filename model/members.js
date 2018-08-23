@@ -202,13 +202,17 @@ var getProjectMemberList = exports.getProjectMemberList = ( tablename, data, adv
 
     query = `
              SELECT * FROM (
-                SELECT users.* FROM (
+                SELECT users.* , role.role FROM (
                         SELECT * FROM (` + query + `) as prjMembersUsers WHERE usersType = "users") as tb1
                 LEFT JOIN users ON tb1.userTypeLinkId = users.id
+                LEFT JOIN users_role ON users.id = users_role.usersId
+                LEFT JOIN role ON users_role.roleId = role.id
                 UNION ALL
-                SELECT users.* FROM  ( SELECT * FROM (` + query + `) as prjMembersTeam WHERE usersType = "team") as tb2
+                SELECT users.* , role.role FROM  ( SELECT * FROM (` + query + `) as prjMembersTeam WHERE usersType = "team") as tb2
                 LEFT JOIN users_team ON tb2.userTypeLinkId = users_team.teamId
-                LEFT JOIN users ON users_team.usersId = users.id
+                LEFT JOIN users ON users_team.usersId = users.id 
+                LEFT JOIN users_role ON users.id = users_role.usersId
+                LEFT JOIN role ON users_role.roleId = role.id
              ) as mainTable GROUP BY id
 
     `;

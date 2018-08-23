@@ -7,11 +7,8 @@ import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
-        task: store.task,
         workstream: store.workstream,
-        loggedUser: store.loggedUser,
-        members: store.members,
-        users : store.users
+        global : store.global
     }
 })
 export default class List extends React.Component {
@@ -21,7 +18,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { task, dispatch, socket , members , users , workstream } = this.props;
+        let { workstream , global } = this.props;
         return <div>
             <h3>&nbsp;&nbsp;&nbsp;&nbsp;Members</h3>
             <table id="dataTable" class="table responsive-table">
@@ -39,6 +36,19 @@ export default class List extends React.Component {
                                 <td>{`${data.firstName} ${data.lastName}`}</td>
                                 <td>{`${data.role}`}</td>
                             </tr>
+                        })
+                    }
+                    { workstream.Selected.taskMemberList.length > 0 && global.SelectList.ProjectMemberList.length > 0 &&
+                       global.SelectList.ProjectMemberList.map((data , index)=>{
+                            if(data.id == workstream.Selected.responsible){
+                                return(
+                                     <tr>
+                                        <td><i class="fa fa-user"></i></td>
+                                        <td>{`${data.firstName} ${data.lastName}`}</td>
+                                        <td>{`${data.role} ${data.role}`}</td>
+                                    </tr>
+                                )
+                            }
                         })
                     }
                 </tbody>
