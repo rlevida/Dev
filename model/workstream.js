@@ -84,7 +84,7 @@ var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
                             ( SELECT projectId,
                                      workstreamId,
                                      IF(SUM(IF(dueDate<CURDATE(),1,0))>0,0,SUM(IF(dueDate>=CURDATE(),1,0))) as OnTrack, 
-                                     SUM(IF(dueDate<CURDATE(),1,0)) as Issues FROM task WHERE projectId = ? AND isActive = 1 AND status != "Completed"
+                                     SUM(IF(dueDate<CURDATE(),1,0)) as Issues FROM task WHERE projectId = ? AND isActive = 1 AND (status != "Completed" OR status IS NULL )
                                 GROUP BY workstreamId ) as tbpt) as tb2
                 ON tb.projectId = tb2.projectId
                         `;
@@ -234,9 +234,9 @@ var getWorkstreamList = exports.getWorkstreamList = ( tablename, data, advance ,
         LEFT JOIN 
             ( SELECT 
                 workstreamId,
-                SUM(IF(task.status="Completed",1,0)) as Completed, 
-                SUM(IF(task.status!="Completed" AND task.dueDate>=CURDATE(),1,0)) as OnTrack,
-                SUM(IF(task.status!="Completed" AND task.dueDate<CURDATE() AND task.dueDate>"1970-01-01",1,0)) as Issues 
+                SUM(IF(task.status="Completed",1,0 )) as Completed, 
+                SUM(IF((task.status!="Completed" OR task.status IS NULL)AND task.dueDate>=CURDATE(),1,0)) as OnTrack,
+                SUM(IF((task.status!="Completed" OR task.status IS NULL) AND task.dueDate<CURDATE() AND task.dueDate>"1970-01-01",1,0)) as Issues 
                 FROM task GROUP BY workstreamId) as tasktable
             ON primaryTable.id = tasktable.workstreamId 
         `;

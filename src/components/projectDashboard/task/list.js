@@ -23,7 +23,7 @@ export default class List extends React.Component {
     componentWillMount() {
         let intervalLoggedUser = setInterval(()=>{
             if(typeof this.props.loggedUser.data.id != "undefined"){
-                let filter = {projectId: project}
+                let filter = { filter:{projectId: project}}
                 if(this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2"){
                     filter = {filter:{projectId: project, id: {name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN "}}}
                 }
@@ -31,7 +31,6 @@ export default class List extends React.Component {
                 clearInterval(intervalLoggedUser)
             }
         },1000)
-        this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
         this.props.socket.emit("GET_USER_LIST",{});
