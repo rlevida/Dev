@@ -6,7 +6,7 @@ var init = exports.init = (socket) => {
     socket.on("GET_TASK_LIST",(d) => {
         let task = global.initModel("task")
         let filter = (typeof d.filter != "undefined")?d.filter:{};
-        task.getData("task",filter,{},(c)=>{
+        task.getTaskList("task",filter,{},(c)=>{
             if(c.status) {
                 socket.emit("FRONT_TASK_LIST",c.data)
             }else{
