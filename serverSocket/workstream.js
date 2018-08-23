@@ -50,10 +50,24 @@ var init = exports.init = (socket) => {
                 if(e.data.length > 0){
                     data.responsible = e.data[0].userTypeLinkId;
                 }
-
-                socket.emit("FRONT_WORKSTREAM_SELECTED",data)
+                nextThen(data)
             })
             
+        }).then((nextThen,data)=>{
+            let members = global.initModel("members")
+                let filter = (typeof d.filter != "undefined")?d.filter:{};
+                    members.getWorkstreamTaskMembers({ id : d.id},(c)=>{
+                        if(c.status) {
+                            if(c.data.length > 0){
+                                data.taskMemberList = c.data
+                                socket.emit("FRONT_WORKSTREAM_SELECTED",data)
+                            }else{
+                                socket.emit("FRONT_WORKSTREAM_SELECTED",data)
+                            }
+                        }else{
+                            socket.emit("RETURN_ERROR_MESSAGE","Delete failed. Please try again later.")
+                        }
+                    })
         })
     })
 

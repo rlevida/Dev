@@ -20,29 +20,24 @@ export default class List extends React.Component {
 
     }
 
-    componentWillMount() {
-        this.props.socket.emit("GET_MEMBERS_LIST",{ filter : { linkId : project, linkType: "project" } })
-    }
-
     render() {
-        let { task, dispatch, socket , members , users } = this.props;
+        let { task, dispatch, socket , members , users , workstream } = this.props;
         return <div>
             <h3>&nbsp;&nbsp;&nbsp;&nbsp;Members</h3>
             <table id="dataTable" class="table responsive-table">
                 <tbody>
                     {
-                        (members.List.length == 0) &&
+                        (workstream.Selected.taskMemberList.length == 0) &&
                         <tr>
                             <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
                         </tr>
                     }
                     {
-                        members.List.map((data, index) => {
-                            let userDetail = users.List.filter( e =>{ return e.id == data.userTypeLinkId })
+                        workstream.Selected.taskMemberList.map((data, index) => {
                             return <tr key={index}>
                                 <td><i class="fa fa-user"></i></td>
-                                <td>{`${userDetail[0].firstName} ${userDetail[0].lastName}`}</td>
-                                <td>{`${userDetail[0].role[0].role_role}`}</td>
+                                <td>{`${data.firstName} ${data.lastName}`}</td>
+                                <td>{`${data.role}`}</td>
                             </tr>
                         })
                     }
