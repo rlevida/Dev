@@ -43,14 +43,19 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { workstream, dispatch, socket } = this.props;
+        let { workstream, dispatch, socket , loggedUser } = this.props;
         return <div>
             
             <WorkstreamStatus style={{float:"right",padding:"20px"}} />
             <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })} >
-                    <span>New Workstream</span>
-                </li>
+            { (loggedUser.data.userRole == 1 
+                || loggedUser.data.userRole == 2 
+                || loggedUser.data.userRole == 3 
+                || loggedUser.data.userRole == 4) &&
+                    <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })} >
+                        <span>New Workstream</span>
+                    </li>
+            }
             </HeaderButtonContainer>
             <table id="dataTable" class="table responsive-table">
                 <tbody>
@@ -63,7 +68,12 @@ export default class List extends React.Component {
                         <th style={{textAlign:"center"}}>New Docs</th>
                         <th style={{textAlign:"center"}}>Members</th>
                         <th style={{textAlign:"center"}}>Type</th>
-                        <th></th>
+                        { (loggedUser.data.userRole == 1 
+                            || loggedUser.data.userRole == 2 
+                            || loggedUser.data.userRole == 3 
+                            || loggedUser.data.userRole == 4) &&
+                                <th></th>
+                        }
                     </tr>
                     {
                         (workstream.List.length == 0) &&
@@ -83,17 +93,22 @@ export default class List extends React.Component {
                                 <td><span style={{color:"#46b8da"}}><i class="fa fa-user fa-lg"></i></span>&nbsp;&nbsp;<span style={{color:"#006400"}}><i class="fa fa-user fa-lg"></i></span></td>
                                 <td><span class={data.type_type=="Project - Output base"?"fa fa-calendar":"glyphicon glyphicon-time"}></span></td>
                                 <td><span><i class="fa fa-users fa-lg"></i></span></td>
-                                <td class="text-center">
-                                    <a href="javascript:void(0);" data-tip="EDIT"
-                                        onClick={(e) => socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id })}
-                                        class="btn btn-info btn-sm">
-                                        <span class="glyphicon glyphicon-pencil"></span></a>
-                                    <a href="javascript:void(0);" data-tip="DELETE"
-                                        onClick={e => this.deleteData(data.id)}
-                                        class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                        <span class="glyphicon glyphicon-trash"></span></a>
-                                    <Tooltip />
-                                </td>
+                                { (loggedUser.data.userRole == 1 
+                                    || loggedUser.data.userRole == 2 
+                                    || loggedUser.data.userRole == 3 
+                                    || loggedUser.data.userRole == 4) &&
+                                        <td class="text-center">
+                                            <a href="javascript:void(0);" data-tip="EDIT"
+                                                onClick={(e) => socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id })}
+                                                class="btn btn-info btn-sm">
+                                                <span class="glyphicon glyphicon-pencil"></span></a>
+                                            <a href="javascript:void(0);" data-tip="DELETE"
+                                                onClick={e => this.deleteData(data.id)}
+                                                class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                <span class="glyphicon glyphicon-trash"></span></a>
+                                            <Tooltip />
+                                        </td>
+                                }
                             </tr>
                         })
                     }
