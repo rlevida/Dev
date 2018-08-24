@@ -92,7 +92,7 @@ var init = exports.init = (socket) => {
         }).then((nextThen,retData)=>{
             let project = global.initModel("project")
             project.getProjectAllowedAccess("project",{usersId:retData.id, userRole: retData.userRole},{},(e)=>{
-                retData.projectIds = e.data.map((f) => { return f.projectId })
+                    retData.projectIds = e.data.map((f) => { return f.projectId })
                 nextThen(retData)
             })
         }).then((nextThen,retData)=>{
