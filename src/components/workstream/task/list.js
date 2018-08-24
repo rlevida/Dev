@@ -15,7 +15,7 @@ import { connect } from "react-redux"
 export default class List extends React.Component {
     constructor(props) {
         super(props)
-
+       
         this.deleteData = this.deleteData.bind(this)
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
@@ -47,41 +47,75 @@ export default class List extends React.Component {
         }
     }
 
+    followTask(){
+       let { socket , loggedUser } = this.props;
+       let { SelectedTask } = this.state;
+       socket.emit("SAVE_OR_UPDATE_MEMBERS",{ data : { usersType : "users" , userTypeLinkId : loggedUser.data.id , linkType : "task" , linkId : SelectedTask.id , memberType : "Follower" }})
+    }
+
+    unFollowTask(id){
+        let { socket , loggedUser } = this.props;
+        let { SelectedTask } = this.state;
+        socket.emit("DELETE_MEMBERS",{ id : id })
+     }
+
     render() {
-        let { task, dispatch, socket } = this.props;
-        
+        let { task, dispatch, socket , global , loggedUser } = this.props;
         return <div>
-            <h3>&nbsp;&nbsp;&nbsp;&nbsp;Task</h3>
-            <table id="dataTable" class="table responsive-table">
-                <tbody>
-                    <tr>
-                        <th></th>
-                        <th style={{textAlign:"center"}}>Description</th>
-                        <th style={{textAlign:"center"}}>Due Date</th>
-                        <th style={{textAlign:"center"}}>Assignee</th>
-                        <th style={{textAlign:"center"}}>Status</th>
-                        <th style={{textAlign:"center"}}>Follower</th>
-                    </tr>
-                    {
-                        (task.List.length == 0) &&
-                        <tr>
-                            <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                        </tr>
-                    }
-                    {
-                        task.List.map((data, index) => {
-                            return <tr key={index}>
-                                <td><span class={(data.currentState=="Completed")?"glyphicon glyphicon-ok-circle":(data.currentState=="Incomplete")?"glyphicon glyphicon-question-sign":"fa fa-circle"}></span></td>
-                                <td>{data.task}</td>
-                                <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
-                                <td>{(data.assignedById)?<span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span>:""}</td>
-                                <td>{data.status}</td>
-                                <td></td>
+            <div class="row">
+                <div class={ typeof task.Selected.id != "undefined" ? "col-lg-6 col-md-6" : "col-lg-12 col-md-12"}>
+                    <h3>&nbsp;&nbsp;&nbsp;&nbsp;Task</h3>
+                    <table id="dataTable" class="table responsive-table">
+                        <tbody>
+                            <tr>
+                                <th></th>
+                                <th style={{textAlign:"center"}}>Description</th>
+                                <th style={{textAlign:"center"}}>Due Date</th>
+                                <th style={{textAlign:"center"}}>Assignee</th>
+                                <th style={{textAlign:"center"}}>Status</th>
+                                <th style={{textAlign:"center"}}>Follower</th>
                             </tr>
-                        })
-                    }
-                </tbody>
-            </table>
+                            {
+                                (task.List.length == 0) &&
+                                <tr>
+                                    <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
+                                </tr>
+                            }
+                            {
+                                task.List.map((data, index) => {
+                                    return <tr key={index} style={{cursor:"pointer"}} onClick={()=>  socket.emit("GET_TASK_DETAIL", { id: data.id }) }>
+                                        <td><span class={(data.currentState=="Completed")?"glyphicon glyphicon-ok-circle":(data.currentState=="Incomplete")?"glyphicon glyphicon-question-sign":"fa fa-circle"}></span></td>
+                                        <td>{data.task}</td>
+                                        <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
+                                        <td>{(data.assignedById)?<span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span>:""}</td>
+                                        <td>{data.status}</td>
+                                        <td>
+                                            <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
+                                             <Tooltip id={`follower${index}`}>
+                                                <ul style={{listItemStyle:"none", marginLeft:"0px;", paddingLeft:"0px;"}} >
+                                                    {( data.followersName != null) && data.followersName.split(",").map( e =>{ return <li>{e}</li>})}
+                                                </ul>
+                                             </Tooltip>
+                                        </td>
+                                    </tr>
+                                })
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                {(typeof task.Selected.id != "undefined") && 
+                    <div class="col-lg-6 col-md-6">
+                        <span class="pull-right" style={{cursor:"pointer"}} onClick={()=> dispatch({ type: "SET_TASK_SELECTED", Selected : {}})}><i class="fa fa-times-circle fa-lg"></i></span>
+                        <div class="form-group text-center" >
+                                <a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}}>Mark Task as Completed</a>
+                                { (task.Selected.followersName != null && task.Selected.followersIds.split(",").filter( e => {return e == loggedUser.data.id}).length > 0 ) 
+                                        ? <a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}} onClick={()=> this.unFollowTask( loggedUser.data.id )}>Unfollow Task</a>
+                                            :<a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}} onClick={()=> this.followTask()}>Follow Task</a>
+                                }
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
     }
 }

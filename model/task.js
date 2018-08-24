@@ -336,12 +336,24 @@ var getTaskList = exports.getTaskList = ( tablename, data, advance , cb ) => {
                         )
                     )
                 ) as currentState,
-                members.firstName as assignedBy,
-                members.id as assignedById
+                assignedTo.firstName as assignedBy,
+                assignedTo.id as assignedById,
+                follower.followersName,
+                follower.followersIds
                 FROM (` + query + `) as prj 
                 LEFT JOIN task ON prj.linkTaskId = task.id
-                LEFT JOIN (SELECT users.*,members.linkId FROM members LEFT JOIN users ON members.userTypeLinkId = users.id AND members.usersType="users" and members.linkType="task" GROUP BY members.linkId ) as members 
-                ON prj.id = members.linkId
+                LEFT JOIN (SELECT users.*,members.linkId FROM members 
+                                LEFT JOIN users ON members.userTypeLinkId = users.id 
+                                    AND members.memberType = "assignedTo" 
+                                    AND members.usersType="users" 
+                                    AND members.linkType="task" 
+                                    GROUP BY members.linkId ) as assignedTo ON prj.id = assignedTo.linkId
+                LEFT JOIN (SELECT members.linkId,GROUP_CONCAT(users.id) as followersIds,GROUP_CONCAT(users.firstName) as followersName FROM members 
+                                LEFT JOIN users ON members.userTypeLinkId = users.id 
+                                    AND members.memberType = "Follower" 
+                                    AND members.usersType="users" 
+                                    AND members.linkType="task" 
+                                    GROUP BY members.linkId ) as follower ON prj.id = follower.linkId
             ` 
     /**
      * Manage Query Connection

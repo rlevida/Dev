@@ -42,7 +42,7 @@ var init = exports.init = (socket) => {
     socket.on("GET_TASK_DETAIL",(d) => {
         sequence.create().then((nextThen)=>{
             let task = global.initModel("task")
-            task.getData("task",{id:d.id},{},(c)=>{
+            task.getTaskList("task",{id:d.id},{},(c)=>{
                 if(c.data.length > 0) {
                     nextThen(c.data[0])
                 }
