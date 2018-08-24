@@ -27,9 +27,11 @@ export default class Component extends React.Component {
                 <div class="row">
                     <Task />
                 </div>
-                <div class="row">
-                    <div class="col-md-8" style={{padding:"35px"}}>
-                        <h3>Workstream</h3><a style={{float:"right"}}  href={"/project/processes/"+project}>+ More</a>
+                <div class="row" style={{padding:"20px"}}>
+                    <div class="col-md-6" >
+                    <h3>Workstream 
+                        <a class="pull-right" style={{fontSize: "14px" , marginTop: "10px" , textDecoration: "none"}} href={"/project/processes/"+project}> + More</a>
+                    </h3>
                         <WorkstreamStatus />
                     </div>
                 </div>
