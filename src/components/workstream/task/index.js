@@ -1,6 +1,7 @@
 import React from "react"
 
 import List from "./list"
+import Form from "./form"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -31,7 +32,13 @@ export default class Component extends React.Component {
 
         return (
             <div>
-                <List />
+                {task.FormActive == "List" &&
+                    <List />
+                }
+
+                {task.FormActive == "Form" &&
+                    <Form />
+                }
             </div>
         )
     }

@@ -1,10 +1,10 @@
 var mysql = require('mysql');
 
 var connectionCredentials = exports.connectionCredentials = {
-    host: process.env.MYSQL_SERVICE_HOST || '192.168.10.13',
+    host: process.env.MYSQL_SERVICE_HOST || 'localhost',
     port: process.env.MYSQL_SERVICE_PORT || '3306',
     user:  process.env.MYSQL_USER || 'root',
-    password: process.env.MYSQL_ROOT_PASSWORD || 'Z1x2c3V42015',
+    password: process.env.MYSQL_ROOT_PASSWORD || '1234',
     database: process.env.MYSQL_DATABASE || 'cloud_cfo',
     charset : 'utf8mb4'
 };

@@ -63,9 +63,9 @@ var init = exports.init = (socket) => {
 
     socket.on("DELETE_MEMBERS", (d) => {
         let members = global.initModel("members")
-
-        members.getData("members", {}, {}, (b) => {
-            members.deleteData("members", { id: d.id }, (c) => {
+        let filter = (typeof d.filter != "undefined") ? d.filter : {};
+        members.getData("members", filter, {}, (b) => {
+            members.deleteData("members", filter, (c) => {
                 if (c.status) {
                     socket.emit("FRONT_MEMBERS_DELETED", { id: d.id, type: d.type })
                 } else {

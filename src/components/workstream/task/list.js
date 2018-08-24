@@ -48,16 +48,25 @@ export default class List extends React.Component {
     }
 
     followTask(){
-       let { socket , loggedUser } = this.props;
-       let { SelectedTask } = this.state;
-       socket.emit("SAVE_OR_UPDATE_MEMBERS",{ data : { usersType : "users" , userTypeLinkId : loggedUser.data.id , linkType : "task" , linkId : SelectedTask.id , memberType : "Follower" }})
+       let { dispatch , socket , loggedUser ,task , workstream } = this.props;
+       socket.emit("SAVE_OR_UPDATE_MEMBERS",{ data : { usersType : "users" , userTypeLinkId : loggedUser.data.id , linkType : "task" , linkId : task.Selected.id , memberType : "Follower" }})
+       socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
+       dispatch({ type: "SET_TASK_SELECTED", Selected : {}})
     }
 
     unFollowTask(id){
-        let { socket , loggedUser } = this.props;
-        let { SelectedTask } = this.state;
-        socket.emit("DELETE_MEMBERS",{ id : id })
+        let { dispatch , socket , loggedUser ,task , workstream } = this.props;
+        socket.emit("DELETE_MEMBERS", {filter : {userTypeLinkId : loggedUser.data.id , linkId : task.Selected.id , memberType : "Follower"}})
+        socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
+        dispatch({ type: "SET_TASK_SELECTED", Selected : {}})
      }
+
+    selectedTask(id){
+        let{ socket , dispatch  } = this.props;
+        dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task"})
+        socket.emit("GET_TASK_DETAIL", { id: id })
+    }
+
 
     render() {
         let { task, dispatch, socket , global , loggedUser } = this.props;
@@ -83,7 +92,7 @@ export default class List extends React.Component {
                             }
                             {
                                 task.List.map((data, index) => {
-                                    return <tr key={index} style={{cursor:"pointer"}} onClick={()=>  socket.emit("GET_TASK_DETAIL", { id: data.id }) }>
+                                    return <tr key={index} style={{cursor:"pointer"}} onClick={()=> this.selectedTask(data.id) }>
                                         <td><span class={(data.currentState=="Completed")?"glyphicon glyphicon-ok-circle":(data.currentState=="Incomplete")?"glyphicon glyphicon-question-sign":"fa fa-circle"}></span></td>
                                         <td>{data.task}</td>
                                         <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
@@ -103,18 +112,18 @@ export default class List extends React.Component {
                         </tbody>
                     </table>
                 </div>
-                {(typeof task.Selected.id != "undefined") && 
+                {/* {(typeof task.Selected.id != "undefined") && 
                     <div class="col-lg-6 col-md-6">
                         <span class="pull-right" style={{cursor:"pointer"}} onClick={()=> dispatch({ type: "SET_TASK_SELECTED", Selected : {}})}><i class="fa fa-times-circle fa-lg"></i></span>
                         <div class="form-group text-center" >
                                 <a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}}>Mark Task as Completed</a>
                                 { (task.Selected.followersName != null && task.Selected.followersIds.split(",").filter( e => {return e == loggedUser.data.id}).length > 0 ) 
-                                        ? <a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}} onClick={()=> this.unFollowTask( loggedUser.data.id )}>Unfollow Task</a>
+                                        ? <a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}} onClick={()=> this.unFollowTask()}>Unfollow Task</a>
                                             :<a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}} onClick={()=> this.followTask()}>Follow Task</a>
                                 }
                         </div>
                     </div>
-                }
+                } */}
             </div>
         </div>
     }
