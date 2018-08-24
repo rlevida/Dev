@@ -340,7 +340,7 @@ var getTaskList = exports.getTaskList = ( tablename, data, advance , cb ) => {
                 members.id as assignedById
                 FROM (` + query + `) as prj 
                 LEFT JOIN task ON prj.linkTaskId = task.id
-                LEFT JOIN (SELECT users.*,members.linkId FROM members LEFT JOIN users ON members.userTypeLinkId = users.id AND members.usersType="users" and members.linkType="task" GROUP BY members.linkType ) as members 
+                LEFT JOIN (SELECT users.*,members.linkId FROM members LEFT JOIN users ON members.userTypeLinkId = users.id AND members.usersType="users" and members.linkType="task" GROUP BY members.linkId ) as members 
                 ON prj.id = members.linkId
             ` 
     /**
@@ -351,7 +351,7 @@ var getTaskList = exports.getTaskList = ( tablename, data, advance , cb ) => {
         params, 
         function(err,row,fields){
             if(err) { cb({ status : false, error : err, data : row }); return; }
-
+            
             cb({  status : true, error : err, data : row });
         }
     );

@@ -27,7 +27,6 @@ export default class TaskStatus extends React.Component {
                 if(this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2"){
                     filter = {filter:{userId:this.props.loggedUser.data.id}}
                 }
-                console.log("pass here");
                 this.props.socket.emit("GET_ALL_TASK_COUNT_LIST",filter)
                 clearInterval(intervalLoggedUser)
             }
@@ -44,7 +43,6 @@ export default class TaskStatus extends React.Component {
                         DueToday: (typeof e.DueToday != "undefined")?e.DueToday:0, 
                         Issues: (typeof e.Issues != "undefined")?e.Issues:0}
         })
-        console.log("pass");
 
         return <div style={this.props.style}>
                 <table>
