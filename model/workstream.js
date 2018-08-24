@@ -239,6 +239,18 @@ var getWorkstreamList = exports.getWorkstreamList = ( tablename, data, advance ,
                 SUM(IF((task.status!="Completed" OR task.status IS NULL) AND task.dueDate<CURDATE() AND task.dueDate>"1970-01-01",1,0)) as Issues 
                 FROM task GROUP BY workstreamId) as tasktable
             ON primaryTable.id = tasktable.workstreamId 
+        LEFT JOIN (
+            SELECT GROUP_CONCAT(tb2.id) as memberIds,GROUP_CONCAT(tb2.firstName) as memberNames,tb2.workstreamId FROM (
+                SELECT * FROM (
+                SELECT users.id,users.firstName, IF(members.linkType="workstream",members.linkId,task.workstreamId) as workstreamId FROM members 
+                LEFT JOIN task ON members.linkId = task.id AND members.linkType = 'task'
+                LEFT JOIN users ON members.usersType = "users" AND members.userTypeLinkId = users.Id
+                WHERE members.usersType = 'users'
+                    AND ( linkType = 'task' || linkType = 'workstream' )
+                    AND users.id IS NOT NULL
+            ) as tb1 GROUP BY tb1.workstreamId,tb1.id
+            )  as tb2 GROUP BY tb2.workstreamId
+        ) as finalMembers ON primaryTable.id = finalMembers.workstreamId
         `;
 
 
@@ -265,7 +277,7 @@ var getWorkstreamList = exports.getWorkstreamList = ( tablename, data, advance ,
     if(typeof advance.offset != "undefined"){
          query += " OFFSET " + advance.offset
     }
-              
+
     /**
      * Manage Query Connection
      */
