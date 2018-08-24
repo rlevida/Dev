@@ -347,12 +347,14 @@ var getTaskList = exports.getTaskList = ( tablename, data, advance , cb ) => {
                                     AND members.memberType = "assignedTo" 
                                     AND members.usersType="users" 
                                     AND members.linkType="task" 
+                                    WHERE users.id IS NOT NULL
                                     GROUP BY members.linkId ) as assignedTo ON prj.id = assignedTo.linkId
                 LEFT JOIN (SELECT members.linkId,GROUP_CONCAT(users.id) as followersIds,GROUP_CONCAT(users.firstName) as followersName FROM members 
                                 LEFT JOIN users ON members.userTypeLinkId = users.id 
                                     AND members.memberType = "Follower" 
                                     AND members.usersType="users" 
                                     AND members.linkType="task" 
+                                    WHERE users.id IS NOT NULL
                                     GROUP BY members.linkId ) as follower ON prj.id = follower.linkId
             ` 
     /**
