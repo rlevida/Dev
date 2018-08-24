@@ -61,7 +61,7 @@ export default class List extends React.Component {
             <table id="dataTable" class="table responsive-table">
                 <tbody>
                     <tr>
-                        <th></th>
+                        <th style={{textAlign:"center"}}>Status</th>
                         <th style={{textAlign:"center"}}>Project</th>
                         <th style={{textAlign:"center"}}>Workstream</th>
                         <th style={{textAlign:"center"}}>Task Name</th>
@@ -77,17 +77,24 @@ export default class List extends React.Component {
                     }
                     {
                         task.List.map((data, index) => {
+                            let taskStatus = 0;
+                            if(new Date().getTime() > new Date( data.dueDate ).getTime()){
+                                taskStatus = 2 
+                            }else if(new Date() == new Date( data.dueDate )){
+                                taskStatus = 1
+                            }
+
                             return <tr key={index}>
-                                <td></td>
+                                <td>
+                                    { (taskStatus == 0) && <span class="fa fa-circle fa-lg" style={{color:"green"}}></span> }
+                                    { (taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{color:"#dee054d9"}}></span> }
+                                    { (taskStatus == 2) && <span class="fa fa-exclamation-circle fa-lg" style={{color:"#d4a2a2"}}></span> }
+                                </td>
                                 <td>{data.project_project}</td>
                                 <td>{data.workstream_workstream}</td>
                                 <td>{data.task}</td>
                                 <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
-                                <td></td>
-                                <td></td>
                                 <td>{(data.assignedById)?<span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span>:""}</td>
-                                <td>{data.type_type}</td>
-                                <td></td>
                                 <td class="text-center">
                                     <a href="javascript:void(0);" data-tip="EDIT"
                                         onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id })}
