@@ -73,8 +73,19 @@ export default class List extends React.Component {
                     }
                     {
                         task.List.map((data, index) => {
+                           let taskStatus = 0;
+                            if(new Date().getTime() > new Date( data.dueDate ).getTime()){
+                                taskStatus = 2 
+                            }else if(new Date() == new Date( data.dueDate )){
+                                taskStatus = 1
+                            }
+
                             return <tr key={index}>
-                                <td></td>
+                                <td>
+                                    { (taskStatus == 0) && <span class="fa fa-circle fa-lg" style={{color:"green"}}></span> }
+                                    { (taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{color:"#dee054d9"}}></span> }
+                                    { (taskStatus == 2) && <span class="fa fa-exclamation-circle fa-lg" style={{color:"#d4a2a2"}}></span> }
+                                </td>
                                 <td>{data.workstream_workstream}</td>
                                 <td>{data.task}</td>
                                 <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
