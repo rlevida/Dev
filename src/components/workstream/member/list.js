@@ -45,7 +45,7 @@ export default class List extends React.Component {
                                      <tr>
                                         <td><i class="fa fa-user"></i></td>
                                         <td>{`${data.firstName} ${data.lastName}`}</td>
-                                        <td>{`${data.role} ${data.role}`}</td>
+                                        <td>{`${data.role}`}</td>
                                     </tr>
                                 )
                             }
