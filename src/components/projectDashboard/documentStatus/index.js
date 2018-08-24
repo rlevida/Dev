@@ -42,7 +42,7 @@ export default class DocumentStatus extends React.Component {
 
         return  <div class="col-lg-6 col-md-6 col-sm-6">
                     <h3>Documents 
-                        <a class="pull-right" style={{fontSize: "12px" , marginTop: "10px" , textDecoration: "none"}} href={"/project/documents/"+project}> + More</a>
+                        <a class="pull-right" style={{fontSize: "14px" , marginTop: "10px" , textDecoration: "none"}} href={"/project/documents/"+project}> + More</a>
                     </h3>
                     <table>
                         <tr>

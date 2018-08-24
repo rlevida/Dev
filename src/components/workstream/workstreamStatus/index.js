@@ -59,13 +59,13 @@ export default class WorkstreamStatus extends React.Component {
                 <table>
                     <tr>
                         <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
-                            <a href="javascript:void(0)" onClick={()=>this.showModal("isActive")} ><span style={{float:"left",color:"white"}}>Active</span><span style={{float:"right",color:"white"}}>{data.Active}</span></a>
+                           <span style={{float:"left",color:"white"}}>Active</span><span style={{float:"right",color:"white"}}>{data.Active}</span>
                         </td>
                         <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#9eca9f",color:"white"}}>
-                          <a href="javascript:void(0)" onClick={()=>this.showModal("onTime")}><span style={{float:"left",color:"white"}}>On Time</span><span style={{float:"right",color:"white"}}>{data.OnTrack}</span></a>
+                            <span style={{float:"left",color:"white"}}>On Time</span><span style={{float:"right",color:"white"}}>{data.OnTrack}</span>
                         </td>
-                        <td style={{padding:"10px 5px",width:"80px",backgroundColor:"#d4a2a2",color:"white"}}>
-                        <a href="javascript:void(0)" onClick={()=>this.showModal("Issues")}><span style={{float:"left",color:"white"}}>Issues</span><span style={{float:"right",color:"white"}}>{data.Issues}</span></a>
+                        <td style={{padding:"10px 5px",width:"80px",backgroundColor:"#d4a2a2",color:"white",cursor:"pointer"}} onClick={()=>this.showModal("Issues")}>
+                            <span style={{float:"left",color:"white"}}>Issues</span><span style={{float:"right",color:"white"}}>{data.Issues}</span>
                         </td>
                     </tr>
                 </table>
@@ -74,7 +74,7 @@ export default class WorkstreamStatus extends React.Component {
                     <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="workstreamStatusModalLabel"></h5>
+                                <h5 class="modal-title" id="workstreamStatusModalLabel">Issues</h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                                 </button>
@@ -86,6 +86,7 @@ export default class WorkstreamStatus extends React.Component {
                                             <th style={{textAlign:"center"}}>Workstream</th>
                                             <th style={{textAlign:"center"}}>Task</th>
                                             <th style={{textAlign:"center"}}>Due date</th>
+                                            <th style={{textAlign:"center"}}>Assignees</th>
                                          
                                             <th></th>
                                         </tr>
@@ -96,6 +97,7 @@ export default class WorkstreamStatus extends React.Component {
                                                     <td>{data.workstream_workstream}</td>
                                                     <td>{data.task}</td>
                                                     <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
+                                                    <td>{(data.assignedBy !=  null) ? data.assignedBy : ''}</td>
                                                 </tr>
                                                )
                                             })
