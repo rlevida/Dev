@@ -37,6 +37,9 @@ export default class List extends React.Component {
                     <li style={{width:"60px"}}>&nbsp;&nbsp;<span class="fa fa-tag" title="tag"></span></li>
                     <li style={{width:"100x"}}>&nbsp;&nbsp;<span class="label label-success" style={{margin:"5px"}}>{workstream.Selected.workstream}</span></li>
                 </ul>
+                <ul  class="list-inline" style={{margin:"20px"}}>
+                    <li>{workstream.Selected.projectDescription}</li>
+                </ul>
             </div>
         </div>
     }
