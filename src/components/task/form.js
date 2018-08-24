@@ -180,7 +180,7 @@ export default class FormComponent extends React.Component {
                                         { task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
                                             <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
                                         }
-                                        { ((task.Selected.status == "" || task.Selected.status == "In Progress")
+                                        { ((!task.Selected.status || task.Selected.status == "In Progress")
                                         ) &&
                                             <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
                                         }
