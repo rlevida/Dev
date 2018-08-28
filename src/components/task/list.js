@@ -73,6 +73,7 @@ export default class List extends React.Component {
                     }
                     {
                         task.List.map((data, index) => {
+                            console.log(data)
                            let taskStatus = 0;
                             if(new Date().getTime() > new Date( data.dueDate ).getTime()){
                                 taskStatus = 2 
@@ -90,7 +91,18 @@ export default class List extends React.Component {
                                 <td>{data.task}</td>
                                 <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                 <td>{(data.assignedById)?<span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span>:""}</td>
-                                <td><span><i class="fa fa-user fa-lg"></i></span></td>
+                                <td>
+                                    {( data.followersName != null) &&
+                                        <div>
+                                            <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
+                                            <Tooltip id={`follower${index}`}>
+                                                        {data.followersName.split(",").map( e =>{ 
+                                                            return <p>{ e != null ? e : "" } <br/></p>
+                                                    })}
+                                            </Tooltip>
+                                        </div>
+                                    }
+                                </td>
                                 <td class="text-center">
                                     <a href="javascript:void(0);" data-tip="EDIT"
                                         onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id })}

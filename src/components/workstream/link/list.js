@@ -18,12 +18,19 @@ export default class List extends React.Component {
         super(props)
     }
 
+    selectedLink(link){
+        let { dispatch } = this.props;
+            if(link == "task"){
+                dispatch({type:"SET_WORKSTREAM_SELECTED_LINK", SelectedLink: link }) 
+                dispatch({type:"SET_TASK_FORM_ACTIVE", FormActive: "List" })
+            }
+    }
     render() {
         let { workstream, projectData, dispatch , task } = this.props
         return <div>
             <div>
                 <ul class="list-inline" style={{margin:"20px"}}>
-                    <li class="list-inline-item"><a href="javascript:void(0)" onClick={() => dispatch({type:"SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" })}>List</a>&nbsp;&nbsp;</li>|
+                    <li class="list-inline-item"><a href="javascript:void(0)"  onClick={() => this.selectedLink("task")}>List</a>&nbsp;&nbsp;</li>|
                     <li class="list-inline-item" style={{color:"gray"}}>Calendar&nbsp;&nbsp;</li>|
                     <li class="list-inline-item" style={{color:"gray"}}>Timeline&nbsp;&nbsp;</li>|
                     <li class="list-inline-item"><a href="javascript:void(0)" onClick={() => dispatch({type:"SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "member" })}>Members</a>&nbsp;&nbsp;</li>|
