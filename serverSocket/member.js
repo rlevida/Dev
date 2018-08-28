@@ -33,7 +33,7 @@ var init = exports.init = (socket) => {
                 if (c.status) {
                     members.getData("members", { id: id }, {}, (e) => {
                         if (e.data.length > 0) {
-                            socket.emit("FRONT_MEMBERS_EDIT", e.data[0])
+                            socket.emit("FRONT_MEMBERS_EDIT", { data : e.data[0] , type : d.type })
                             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
                         } else {
                             socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." })
@@ -48,7 +48,7 @@ var init = exports.init = (socket) => {
                 if (typeof c.id != "undefined" && c.id > 0) {
                     members.getData("members", { id: c.id }, {}, (e) => {
                         if (e.data.length > 0) {
-                            socket.emit("FRONT_MEMBERS_ADD", e.data)
+                            socket.emit("FRONT_MEMBERS_ADD", { data : e.data , type : d.type })
                             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
                         } else {
                             socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
@@ -63,11 +63,11 @@ var init = exports.init = (socket) => {
 
     socket.on("DELETE_MEMBERS", (d) => {
         let members = global.initModel("members")
-
-        members.getData("members", {}, {}, (b) => {
-            members.deleteData("members", { id: d.id }, (c) => {
+        let filter = (typeof d.filter != "undefined") ? d.filter : {};
+        members.getData("members", filter, {}, (b) => {
+            members.deleteData("members", filter, (c) => {
                 if (c.status) {
-                    socket.emit("FRONT_MEMBERS_DELETED", { id: d.id, type: d.type })
+                    socket.emit("FRONT_MEMBERS_DELETED", { id: d.id, type: d.usersType , type : d.type})
                 } else {
                     socket.emit("RETURN_ERROR_MESSAGE", "Delete failed. Please try again later.")
                 }
