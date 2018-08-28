@@ -38,7 +38,7 @@ export default class List extends React.Component {
                             </tr>
                         })
                     }
-                    { workstream.Selected.taskMemberList.length > 0 && global.SelectList.ProjectMemberList.length > 0 &&
+                    {/* { workstream.Selected.taskMemberList.length > 0 && global.SelectList.ProjectMemberList.length > 0 &&
                        global.SelectList.ProjectMemberList.map((data , index)=>{
                             if(data.id == workstream.Selected.responsible){
                                 return(
@@ -50,7 +50,7 @@ export default class List extends React.Component {
                                 )
                             }
                         })
-                    }
+                    } */}
                 </tbody>
             </table>
         </div>
