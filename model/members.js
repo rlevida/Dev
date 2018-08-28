@@ -251,7 +251,8 @@ var getWorkstreamTaskMembers = exports.getWorkstreamTaskMembers = (data , cb ) =
                                     LEFT JOIN users_role ON users.id = users_role.usersId 
                                         LEFT JOIN role ON users_role.roleId = role.id
                     ) as finalTable 
-                WHERE finalTable.linkType = "task" ) as memberTask ON task.id = memberTask.linkId WHERE memberTask.id IS NOT NULL ${filter}` 
+                WHERE finalTable.linkType = "task" ) as memberTask ON task.id = memberTask.linkId WHERE memberTask.id IS NOT NULL ${filter}
+                GROUP BY memberTask.id` 
                       ;
     db.query(
         query,
