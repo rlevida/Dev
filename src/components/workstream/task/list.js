@@ -47,19 +47,19 @@ export default class List extends React.Component {
         }
     }
 
-    followTask(){
-       let { dispatch , socket , loggedUser ,task , workstream } = this.props;
-       socket.emit("SAVE_OR_UPDATE_MEMBERS",{ data : { usersType : "users" , userTypeLinkId : loggedUser.data.id , linkType : "task" , linkId : task.Selected.id , memberType : "Follower" }})
-       socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
-       dispatch({ type: "SET_TASK_SELECTED", Selected : {}})
-    }
+    // followTask(){
+    //    let { dispatch , socket , loggedUser ,task , workstream } = this.props;
+    //     socket.emit("SAVE_OR_UPDATE_MEMBERS",{ data : { usersType : "users" , userTypeLinkId : loggedUser.data.id , linkType : "task" , linkId : task.Selected.id , memberType : "Follower" , test : "test"} , types : "workstream"})
+    //     socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
+    //     dispatch({ type: "SET_TASK_SELECTED", Selected : {}})
+    // }
 
-    unFollowTask(id){
-        let { dispatch , socket , loggedUser ,task , workstream } = this.props;
-        socket.emit("DELETE_MEMBERS", {filter : {userTypeLinkId : loggedUser.data.id , linkId : task.Selected.id , memberType : "Follower"}})
-        socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
-        dispatch({ type: "SET_TASK_SELECTED", Selected : {}})
-     }
+    // unFollowTask(id){
+    //     let { dispatch , socket , loggedUser ,task , workstream } = this.props;
+    //         socket.emit("DELETE_MEMBERS", { filter : {userTypeLinkId : loggedUser.data.id , linkId : task.Selected.id , memberType : "Follower"} ,  types : "workstream" })
+    //         socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
+    //         dispatch({ type: "SET_TASK_SELECTED", Selected : {}})
+    //  }
 
     selectedTask(id){
         let{ socket , dispatch  } = this.props;
@@ -72,7 +72,7 @@ export default class List extends React.Component {
         let { task, dispatch, socket , global , loggedUser } = this.props;
         return <div>
             <div class="row">
-                <div class={ typeof task.Selected.id != "undefined" ? "col-lg-6 col-md-6" : "col-lg-12 col-md-12"}>
+                <div class="col-lg-12 col-md-12">
                     <h3>&nbsp;&nbsp;&nbsp;&nbsp;Task</h3>
                     <table id="dataTable" class="table responsive-table">
                         <tbody>
@@ -99,12 +99,16 @@ export default class List extends React.Component {
                                         <td>{(data.assignedById)?<span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span>:""}</td>
                                         <td>{data.status}</td>
                                         <td>
-                                            <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
-                                             <Tooltip id={`follower${index}`}>
-                                                <ul style={{listItemStyle:"none", marginLeft:"0px;", paddingLeft:"0px;"}} >
-                                                    {( data.followersName != null) && data.followersName.split(",").map( e =>{ return <li>{e}</li>})}
-                                                </ul>
-                                             </Tooltip>
+                                        {( data.followersName != null) &&
+                                            <div>
+                                                <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
+                                                <Tooltip id={`follower${index}`}>
+                                                            {data.followersName.split(",").map( e =>{ 
+                                                                return <p>{ e != null ? e : "" } <br/></p>
+                                                        })}
+                                                </Tooltip>
+                                             </div>
+                                        }
                                         </td>
                                     </tr>
                                 })

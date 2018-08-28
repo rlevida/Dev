@@ -28,8 +28,15 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_MEMBERS_ADD", (data) => {
-            dispatch({ type: "SET_MEMBERS_LIST", list: [...this.props.members.List, data[0]] })
-            dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} })
+            if(data.type == "workstream"){
+                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
+                dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
+            }else{
+                dispatch({ type: "SET_MEMBERS_LIST", list: [...this.props.members.List, data[0]] })
+                dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} })
+                dispatch({ type: "SET_MEMBERS_FORM_ACTIVE", FormActive: "List" });
+            }
         })
 
         socket.on("FRONT_MEMBERS_EDIT", (data) => {
@@ -39,8 +46,15 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_MEMBERS_DELETED", (data) => {
-            dispatch({ type: "REMOVE_DELETED_MEMBERS_LIST", id: data.id, List: this.props.members.List })
-            showToast("success", "Member already deleted.")
+            if(data.type == "workstream"){
+                dispatch({ type: "REMOVE_DELETED_MEMBERS_LIST", id: data.id, List: this.props.members.List })
+                dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
+                showToast("success", "Successfully updated.")
+            }else{
+                dispatch({ type: "REMOVE_DELETED_MEMBERS_LIST", id: data.id, List: this.props.members.List })
+                showToast("success", "Member already deleted.")
+            }
         })
 
         socket.on("FRONT_MEMBERS_ACTIVE", (data) => {

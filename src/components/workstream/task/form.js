@@ -126,16 +126,19 @@ export default class FormComponent extends React.Component {
 
     followTask(){
         let { dispatch , socket , loggedUser ,task , workstream } = this.props;
-        socket.emit("SAVE_OR_UPDATE_MEMBERS",{ data : { usersType : "users" , userTypeLinkId : loggedUser.data.id , linkType : "task" , linkId : task.Selected.id , memberType : "Follower" }})
-        socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
-        dispatch({ type: "SET_TASK_SELECTED", Selected : {}})
+            socket.emit("SAVE_OR_UPDATE_MEMBERS",{ data : { usersType : "users" , userTypeLinkId : loggedUser.data.id , linkType : "task" , linkId : task.Selected.id , memberType : "Follower" } ,  type : "workstream"})
+            setTimeout(()=>{
+                socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
+            },500)
+           
     }
  
      unFollowTask(id){
          let { dispatch , socket , loggedUser ,task , workstream } = this.props;
-         socket.emit("DELETE_MEMBERS", {filter : {userTypeLinkId : loggedUser.data.id , linkId : task.Selected.id , memberType : "Follower"}})
-         socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
-         dispatch({ type: "SET_TASK_SELECTED", Selected : {}})
+            socket.emit("DELETE_MEMBERS", {filter : {userTypeLinkId : loggedUser.data.id , linkId : task.Selected.id , memberType : "Follower"} , type : "workstream"})
+            setTimeout(()=>{
+                socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
+            },500)
     }
 
     render() {
