@@ -73,7 +73,6 @@ export default class List extends React.Component {
                     }
                     {
                         task.List.map((data, index) => {
-                            console.log(data)
                            let taskStatus = 0;
                             if(new Date().getTime() > new Date( data.dueDate ).getTime()){
                                 taskStatus = 2 
