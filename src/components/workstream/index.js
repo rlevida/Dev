@@ -27,9 +27,9 @@ export default class Component extends React.Component {
         let { workstream, projectData, dispatch , task } = this.props
         let Component = <div>
                 <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/"+project} style={{color:"#000",textDecortion:"none"}}>{projectData.Selected.project}</a></h3>
-                {workstream.FormActive == "Form" && 
+                { (workstream.FormActive == "Form" && typeof workstream.Selected.id != "undefined") &&
                     <Link/>
-                }
+                } 
                
                 {workstream.FormActive == "List" &&
                     <List />
