@@ -3,6 +3,7 @@ import ReactDOM from "react-dom"
 import axios from "axios"
 import { showToast } from '../../globalFunction'
 import ForgotPassword from  "../global/forgotPassword"
+import Captcha from 'react-captcha';
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -14,9 +15,12 @@ import { connect } from "react-redux"
 export default class Component extends React.Component {
     constructor(props) {
         super(props)
-
+        this.state = {
+            captchaPayload: ""
+        }
         this.checkRememberMe = this.checkRememberMe.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
+        this.handleCaptcha = this.handleCaptcha.bind(this)
     }
 
     componentDidMount() {
@@ -37,14 +41,43 @@ export default class Component extends React.Component {
     handleSubmit(e) {
         let { socket, Login, dispatch } = this.props;
         e.preventDefault();
+
+        if(Login.username == "" || Login.password == ""){
+            showToast("error", "Username/Password is required.", 360000)
+            return;
+        }
+
+        if(this.state.captchaPayload == ""){
+            showToast("error", "Please confirm your not a robot.", 360000)
+            return;
+        }
         showToast("success", "Logging in, please wait ...", 360000)
         localStorage.setItem('username', Login.username)
         localStorage.setItem('rememberMe', Login.rememberMe)
+
         socket.emit("USER_LOGGED_IN",{username:Login.username,password:Login.password});
+    }
+
+    handleCaptcha(value) {
+        if(value && value.length > 0) {
+            this.setState({
+                captchaPayload : value
+            });
+        }
     }
 
     render() {
         let { Login, dispatch } = this.props;
+        let captchaUI = null;
+        if(!this.state.inLocal) {
+            captchaUI = <Captcha 
+                                sitekey='6LcMDCkUAAAAACMIvPdL65Tf-SFcMXZBMPQEjxAg'
+                                lang='en'
+                                theme='light'
+                                type='image'
+                                callback={ this.handleCaptcha } 
+                            />
+        }
         return <div class="form-signin">
                     <div class="text-center">
                         <h3>Cloud CFO</h3>
@@ -58,6 +91,7 @@ export default class Component extends React.Component {
                                 </p>
                                 <input type="text" placeholder="Username" name="UserName" value={Login.username} onChange={(e)=>dispatch({type:"SET_LOGIN_DATA" , name : "username", value : e.target.value})} class="form-control top" />
                                 <input type="password" placeholder="Password" name="Password" value={Login.password} onChange={(e)=>dispatch({type:"SET_LOGIN_DATA" , name : "password", value : e.target.value})} class="form-control bottom" />
+                                { captchaUI }
                                 <p>
                                     <span><input type="checkbox" checked={Login.rememberMe} onChange={()=>dispatch({type:"SET_LOGIN_DATA" , name : "rememberMe", value : (Login.rememberMe)?false:true})} /> Remember Me</span>
                                     <a href="#" style={{float:'right'}} type="button" data-toggle="modal" data-target="#modal">
