@@ -73,9 +73,9 @@ export default class Component extends React.Component {
     render() {
         let { Login, dispatch } = this.props;
         let captchaUI = null;
-        if(!this.state.inLocal) {
+        if(process.env.NODE_ENV != "development") {
             captchaUI = <Captcha 
-                                sitekey='6LcMDCkUAAAAACMIvPdL65Tf-SFcMXZBMPQEjxAg'
+                                sitekey='6LeTGG0UAAAAAJNrNp2uNlwYiwGf39V4lJyCdBwg'
                                 lang='en'
                                 theme='light'
                                 type='image'
