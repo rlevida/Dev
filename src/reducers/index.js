@@ -18,6 +18,7 @@ import document from "./document"
 import settings from "./settings"
 import conversation from "./conversation"
 import starred from "./starred"
+import folder from "./folder"
 
 export default combineReducers({
     socket,
@@ -39,5 +40,6 @@ export default combineReducers({
     global,
     settings,
     conversation,
-    starred
+    starred,
+    folder
 })

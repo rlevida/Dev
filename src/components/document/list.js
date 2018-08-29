@@ -42,6 +42,7 @@ export default class List extends React.Component {
         let { socket } = this.props
             socket.emit("GET_USER_LIST",{});
             socket.emit("GET_SETTINGS", {});
+            socket.emit("GET_FOLDER_LIST",{filter:{projectId: project }})
             socket.emit("GET_TASK_LIST", { filter: { projectId: project }});
             socket.emit("GET_STARRED_LIST",{ filter : { linkType : "project" } })
             socket.emit("GET_WORKSTREAM_LIST", { filter : { projectId : project } });

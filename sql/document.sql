@@ -5,6 +5,7 @@ CREATE TABLE `document` (
     `origin` TEXT,
     `uploadedBy` BIGINT,
     `type` VARCHAR(20),
+    `folderId` BIGINT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `isDeleted` TINYINT(1) DEFAULT '0',

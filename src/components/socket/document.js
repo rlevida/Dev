@@ -67,6 +67,14 @@ export default class Socket extends React.Component {
         socket.on("FRONT_DELETE_STARRED" , (data) =>{
             dispatch({type:"REMOVE_DELETED_STARRED_LIST", id : data.id })
         })
+
+        socket.on("FRONT_FOLDER_ADD",(data)=>{
+            dispatch({ type:"ADD_FOLDER_LIST", list: data })
+        })
+
+        socket.on("FRONT_FOLDER_LIST",(data)=>{
+            dispatch({ type:"SET_FOLDER_LIST", list: data })
+        })
     }
 
     render() { return <div> </div> }

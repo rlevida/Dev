@@ -18,7 +18,8 @@ import { connect } from "react-redux"
         starred : store.starred,
         global : store.global,
         task : store.task,
-        projectData : store.project
+        projectData : store.project,
+        folder : store.folder
 
     }
 })
@@ -30,19 +31,16 @@ export default class DocumentLibrary extends React.Component {
             upload : false,
             loading : false,
             tags : [],
-            files : []
+            files : [],
+            folderAction : "",
+            folderName : ""
         }
     }
 
     componentWillMount() {
         let { socket } = this.props
-            socket.emit("GET_USER_LIST",{});
-            socket.emit("GET_SETTINGS", {});
-            socket.emit("GET_TASK_LIST", { filter: { projectId: project }});
-            socket.emit("GET_STARRED_LIST",{ filter : { linkType : "project" } })
-            socket.emit("GET_WORKSTREAM_LIST", { filter : { projectId : project } });
-            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
-            socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linkType : "project" }});
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "folderList" , filter : { projectId : project } })
+            socket.emit("GET_FOLDER_LIST",{filter:{ projectId : project }})
     }
 
     updateActiveStatus(id,active){
@@ -116,8 +114,15 @@ export default class DocumentLibrary extends React.Component {
             dispatch({type:"SET_DOCUMENT_EDIT_TYPE" , EditType: type })
     }
 
+    addFolder(){
+        let { socket , global } = this.props;
+        let { folderName } = this.state;
+            socket.emit("SAVE_OR_UPDATE_FOLDER", { data:{ projectId: project , name: folderName }})
+            this.setState({ folderAction : "" , folderName : "" })
+    }
+
     render() {
-        let { document , workstream , settings , starred , global , task } = this.props;
+        let { document , workstream , settings , starred , global , task , folder , dispatch } = this.props;
         let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] ;
 
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
@@ -146,10 +151,21 @@ export default class DocumentLibrary extends React.Component {
                     }
                 })
             }
-
         return  <div>
                     <div class="col-lg-12 col-md-12">
-                        <h3>Library</h3>
+                        <h3>Library { typeof folder.Selected.name != "undefined" && ` > ${folder.Selected.name}` } </h3>
+                        { this.state.folderAction == "" &&
+                            <a href="javascript:void(0)" title="New Folder" style={{textDecoration:"none"}} onClick={()=> this.setState({ folderAction : "create" })}><span class="fa fa-folder fa-2x"></span></a>
+                        }
+                        { this.state.folderAction == "create" &&
+                            <form class="form-inline">
+                                <div class="form-group">
+                                    <input class="form-control" type="text" name="folderName" placeholder="Enter folder name" onChange={(e)=> this.setState({ [e.target.name] : e.target.value })} value={this.state.folderName}/>
+                                    <a href="javascript:void(0)" class="btn btn-primary" style={{margin:"5px"}} onClick={()=> this.addFolder()}>Add</a>
+                                    <a href="javascript:void(0)" class="btn btn-primary" style={{margin:"5px"}} onClick={()=> this.setState({ folderAction : "" })}>Cancel</a>
+                                </div>
+                            </form>
+                        }
                         <table id="dataTable" class="table responsive-table table-bordered document-table" ref={el => (this.componentRef = el)}>
                             <tbody>
                                 <tr>
@@ -162,10 +178,23 @@ export default class DocumentLibrary extends React.Component {
                                     <th></th>
                                 </tr>
                                 {
-                                    (documentList.library.length == 0) &&
+                                    (documentList.library.length == 0 && folder.List.length == 0) &&
                                     <tr>
                                         <td colSpan={8}>No Record Found!</td>
                                     </tr>
+                                }
+                               
+                                {
+                                    folder.List.map((data, index) => {
+                                        return (
+                                            <tr>
+                                                <td><input type="checkbox"/></td>
+                                                <td><span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span></td>
+                                                <td><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_FOLDER_SELECTED" , Selected : data })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{data.name}</a></td>
+                                                <td>{moment(data.dateUpdated).format('L')}</td>
+                                            </tr>
+                                        )
+                                    })
                                 }
 
                                 {
