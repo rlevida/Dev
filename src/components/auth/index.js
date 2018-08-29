@@ -50,8 +50,7 @@ export default class Component extends React.Component {
             showToast("error", "Username/Password is required.", 360000)
             return;
         }
-
-        if(this.state.captchaPayload == ""){
+        if(this.state.captchaPayload == "" && process.env.NODE_ENV != "development"){
             showToast("error", "Please confirm your not a robot.", 360000)
             return;
         }
