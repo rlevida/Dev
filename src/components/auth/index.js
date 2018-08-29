@@ -16,7 +16,8 @@ export default class Component extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            captchaPayload: ""
+            captchaPayload: "",
+            yourIp : ""
         }
         this.checkRememberMe = this.checkRememberMe.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
@@ -24,6 +25,9 @@ export default class Component extends React.Component {
     }
 
     componentDidMount() {
+        $.getJSON('https://api.ipify.org?format=json', (data)=>{
+            this.setState({yourIp:data.ip})
+        });
         this.checkRememberMe()
     }
 
@@ -41,7 +45,7 @@ export default class Component extends React.Component {
     handleSubmit(e) {
         let { socket, Login, dispatch } = this.props;
         e.preventDefault();
-
+        
         if(Login.username == "" || Login.password == ""){
             showToast("error", "Username/Password is required.", 360000)
             return;
@@ -55,7 +59,7 @@ export default class Component extends React.Component {
         localStorage.setItem('username', Login.username)
         localStorage.setItem('rememberMe', Login.rememberMe)
 
-        socket.emit("USER_LOGGED_IN",{username:Login.username,password:Login.password});
+        socket.emit("USER_LOGGED_IN",{username:Login.username,password:Login.password,ipAddress:this.state.yourIp});
     }
 
     handleCaptcha(value) {

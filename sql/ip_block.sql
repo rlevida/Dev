@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS `ip_block`;
+
+CREATE TABLE `ip_block` (
+  `id` int(11) UNSIGNED AUTO_INCREMENT,
+  `ipAddress` VARCHAR(30),
+  `failedTimes` INT(2),
+  `dateFailed` DATETIME,
+  `dateAdded` DATETIME,
+  `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=INNODB;
