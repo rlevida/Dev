@@ -9,5 +9,18 @@ var schedule = require('node-schedule'),
  * 
  **/
 var j = schedule.scheduleJob('0 0 * * *', () => {
-    console.log("Run due today reminder");
+    let task = global.initModel("task")
+    let reminder = global.initModel("reminder")
+    let dateToday = new Date();
+    task.getTaskDueToday((ret)=>{
+        if ( ret.data.length > 0 ) {
+            ret.data.map((e,i)=>{
+                reminder.postData("reminder",{
+                    taskId:e.id,
+                    usersId:e.usersId,
+                    reminderDetail: "Task Due Today"
+                },()=>{})
+            })
+        }
+    })
 })

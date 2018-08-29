@@ -5,17 +5,17 @@ var field = exports.field = {
     'id' : {type : 'bigint' , access : "public" },
 
     /**
-     * companyName (VARCHAR 30)
+     * ipAddress (VARCHAR 30)
      */
     'ipAddress' : {type : 'string' , access : "public" },
 
     /**
-     * industry (Int 2)
+     * failedTimes (Int 2)
      */
     'failedTimes' : {type : 'int' , access : "public" },
 
     /**
-     * isActive (DATETIME)
+     * dateFailed (DATETIME)
      */
     'dateFailed' : {type : 'tinyint' , access : "public" },
 

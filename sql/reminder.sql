@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS `reminder`;
 CREATE TABLE `reminder` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `reminderDetail` VARCHAR(50),
-    `userId` BIGINT,
+    `usersId` BIGINT,
     `taskId` BIGINT,
     `seen` TINYINT(1) DEFAULT '0',
     `dateAdded` DATETIME,

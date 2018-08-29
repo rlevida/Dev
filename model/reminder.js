@@ -11,9 +11,9 @@ var field = exports.field = {
     'reminderDetail' : {type : 'string' , access : "public" },
 
      /**
-     * userId (BIGINT)
+     * usersId (BIGINT)
      */
-    'userId' : {type : 'int' , access : "public" },
+    'usersId' : {type : 'int' , access : "public" },
 
     /**
      * taskId (BIGINT)
