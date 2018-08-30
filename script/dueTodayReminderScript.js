@@ -1,6 +1,6 @@
 var schedule = require('node-schedule'),
     sequence = require("sequence").Sequence; 
-
+    
 /**
  * 
  * Comment : Manage reminder for due today

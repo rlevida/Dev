@@ -19,6 +19,7 @@ import settings from "./settings"
 import conversation from "./conversation"
 import starred from "./starred"
 import folder from "./folder"
+import reminder from "./reminder"
 
 export default combineReducers({
     socket,
@@ -41,5 +42,6 @@ export default combineReducers({
     settings,
     conversation,
     starred,
-    folder
+    folder,
+    reminder
 })

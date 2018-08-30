@@ -85,5 +85,6 @@ var socketIo = exports.socketIo = function(server) {
         require("./conversation").init(socket);
         require("./starred").init(socket);
         require("./folder").init(socket);
+        require("./reminder").init(socket);
     });
 }
