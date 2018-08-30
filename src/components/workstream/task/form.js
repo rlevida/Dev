@@ -57,7 +57,7 @@ export default class FormComponent extends React.Component {
  
      unFollowTask(id){
          let { dispatch , socket , loggedUser ,task , workstream } = this.props;
-            socket.emit("DELETE_MEMBERS", {filter : {userTypeLinkId : loggedUser.data.id , linkId : task.Selected.id , memberType : "Follower"} , type : "workstream"})
+            socket.emit("DELETE_MEMBERS", { filter : {userTypeLinkId : loggedUser.data.id , linkId : task.Selected.id , memberType : "Follower"} , type : "workstream"})
             setTimeout(()=>{
                 socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
             },500)

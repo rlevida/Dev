@@ -43,7 +43,7 @@ export default class FormComponent extends React.Component {
     deleteData(params) {
         let { socket } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_MEMBERS", params)
+            socket.emit("DELETE_MEMBERS", {filter: { id : params.id }})
         }
     }
 

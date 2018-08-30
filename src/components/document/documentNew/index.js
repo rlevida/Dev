@@ -113,7 +113,7 @@ export default class DocumentNew extends React.Component {
     }
 
     render() {
-        let { document, users , settings , starred } = this.props;
+        let { document, users , settings , starred , loggedUser } = this.props;
         let documentList = { newUpload : [] , library : [] } 
 
             if( document.List.length > 0 ){
@@ -143,8 +143,11 @@ export default class DocumentNew extends React.Component {
                                     <th></th>
                                 </tr>
 
-                                { (documentList.newUpload.length == 0) && <tr><td colSpan={8}>No Record Found!</td></tr> }
+                                {(documentList.newUpload.length == 0) && <tr><td colSpan={8}>No Record Found!</td></tr> }
                                 { documentList.newUpload.map((data, index) => {
+                                    if(loggedUser.data.userRole == 6 && data.uploadedBy != loggedUser.data.id ){
+                                        return ;
+                                    }else{
                                         return (
                                             <tr key={index}>
                                                 <td> 
@@ -173,7 +176,9 @@ export default class DocumentNew extends React.Component {
                                                                         :  <a href="javascript:void(0)" data-tip="Star" onClick={()=> this.starDocument( data , 0 )}>Star</a>
                                                                 }
                                                             </li>
-                                                            <li><a href="javascript:void(0)" data-tip="Move to library" onClick={()=> this.moveToLibrary(data)}>Move to library</a></li>
+                                                            {(loggedUser.data.userRole != 6) && // temporary disabled for external users
+                                                                <li><a href="javascript:void(0)" data-tip="Move to library" onClick={()=> this.moveToLibrary(data)}>Move to library</a></li>
+                                                            }
                                                             <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data.id)}>Delete</a></li>
                                                             <li><a href="javascript:void(0)" data-tip="View" onClick={()=> this.viewDocument(data)}>View</a></li>
                                                             
@@ -181,7 +186,8 @@ export default class DocumentNew extends React.Component {
                                                     </div>
                                                 </td>
                                             </tr>
-                                        )
+                                            )
+                                        }
                                     })
                                 }
                             </tbody>
