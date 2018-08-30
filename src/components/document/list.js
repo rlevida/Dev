@@ -98,7 +98,11 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { dispatch, projectData} = this.props;
+        let { workstream  , task , dispatch , projectData } = this.props;
+        let tagOptions = [] ;
+
+            workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
+            task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
 
         return <div>
                 <HeaderButtonContainer  withMargin={true}>

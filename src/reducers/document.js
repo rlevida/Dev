@@ -3,7 +3,9 @@ export default function reducer(state={
     FormActive : "List",
     Selected : {},
     SelectedId : [],
-    EditType : ""
+    EditType : "",
+    DocumentToMove : {},
+    DocumentToMoveType : ""
 },action){
     switch (action.type) {
 
@@ -43,7 +45,9 @@ export default function reducer(state={
                 })
             return {...state, List: List }
         }
-        
+        case "SET_DOCUMENT_TO_MOVE":{
+            return {...state , DocumentToMove : action.DocumentToMove , DocumentToMoveType : action.DocType  }
+        }
 
         //UPDATE
         case "UPDATE_DATA_DOCUMENT_LIST" : {

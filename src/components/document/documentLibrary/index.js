@@ -1,12 +1,13 @@
 import React from "react";
-import Tooltip from "react-tooltip";
-import { showToast,displayDate,numberFormat } from '../../../globalFunction';
-import { HeaderButtonContainer,HeaderButton, DropDown, OnOffSwitch } from "../../../globalComponents";
 import moment from 'moment'
-import FileUpload from 'react-fileupload';
-import Dropzone from 'react-dropzone';
+import LibraryDocument from './libraryDocument'
+import HTML5Backend from 'react-dnd-html5-backend';
+import { DragDropContext } from 'react-dnd';
 
 import { connect } from "react-redux"
+
+@DragDropContext(HTML5Backend)
+
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -23,6 +24,8 @@ import { connect } from "react-redux"
 
     }
 })
+
+
 export default class DocumentLibrary extends React.Component {
     constructor(props) {
         super(props)
@@ -35,12 +38,6 @@ export default class DocumentLibrary extends React.Component {
             folderAction : "",
             folderName : ""
         }
-    }
-
-    componentWillMount() {
-        let { socket } = this.props
-            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "folderList" , filter : { projectId : project } })
-            socket.emit("GET_FOLDER_LIST",{filter:{ projectId : project }})
     }
 
     updateActiveStatus(id,active){
@@ -121,6 +118,34 @@ export default class DocumentLibrary extends React.Component {
             this.setState({ folderAction : "" , folderName : "" })
     }
 
+    moveItem(id,type){
+        let { socket , document , loggedUser } = this.props; 
+            if(typeof document.DocumentToMove.id != "undefined"){
+                if(confirm("Do you really want to move this file?")){
+                    if(type == "document"){
+                        socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data: document.DocumentToMove , userId : loggedUser.data.id, project: project } )
+                    }else{
+
+                    }
+                }
+            }
+    }
+
+    documentToMove(data){
+        let { dispatch } = this.props;
+            if(Object.keys(data).length > 0){
+                dispatch({ type : "SET_DOCUMENT_TO_MOVE" , DocumentToMove : data  })
+            }else{
+                dispatch({ type : "SET_DOCUMENT_TO_MOVE" , DocumentToMove : {} })
+            }
+    }
+
+    moveTo(folderData , documentData){
+        let { socket } = this.props;
+            socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data :{ ...documentData , folderId : folderData.id } , type : "project"})
+    }
+    
+
     render() {
         let { document , workstream , settings , starred , global , task , folder , dispatch } = this.props;
         let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] ;
@@ -128,12 +153,20 @@ export default class DocumentLibrary extends React.Component {
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
 
-            if( document.List.length > 0 ){
+            if(typeof folder.Selected.id == "undefined"){
+                if( document.List.length > 0 ){
+                    document.List.filter( e =>{
+                        if( e.status == "new" && e.isCompleted != 1 ){
+                            documentList.newUpload.push(e)
+                        }
+                        if( e.status == "library" && e.isCompleted != 1 && e.folderId == null){
+                            documentList.library.push(e)
+                        }
+                    })
+                }
+            }else{
                 document.List.filter( e =>{
-                    if( e.status == "new" && e.isCompleted != 1 ){
-                        documentList.newUpload.push(e)
-                    }
-                    if( e.status == "library" && e.isCompleted != 1 ){
+                    if( e.status == "library" && e.isCompleted != 1 && e.folderId == folder.Selected.id){
                         documentList.library.push(e)
                     }
                 })
@@ -151,9 +184,10 @@ export default class DocumentLibrary extends React.Component {
                     }
                 })
             }
+
         return  <div>
                     <div class="col-lg-12 col-md-12">
-                        <h3>Library { typeof folder.Selected.name != "undefined" && ` > ${folder.Selected.name}` } </h3>
+                        <h3 style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_FOLDER_SELECTED" , Selected : {} })}>Library { typeof folder.Selected.name != "undefined" && ` > ${folder.Selected.name}` } </h3>
                         { this.state.folderAction == "" &&
                             <a href="javascript:void(0)" title="New Folder" style={{textDecoration:"none"}} onClick={()=> this.setState({ folderAction : "create" })}><span class="fa fa-folder fa-2x"></span></a>
                         }
@@ -184,14 +218,18 @@ export default class DocumentLibrary extends React.Component {
                                     </tr>
                                 }
                                
-                                {
+                                { (typeof folder.Selected.id == "undefined") &&
                                     folder.List.map((data, index) => {
                                         return (
+                                            // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id , "folder")} documentToMove={(data)=> this.documentToMove(data)} docType="folder"/>
                                             <tr>
                                                 <td><input type="checkbox"/></td>
                                                 <td><span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span></td>
                                                 <td><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_FOLDER_SELECTED" , Selected : data })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{data.name}</a></td>
                                                 <td>{moment(data.dateUpdated).format('L')}</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
                                             </tr>
                                         )
                                     })
@@ -200,6 +238,7 @@ export default class DocumentLibrary extends React.Component {
                                 {
                                     documentList.library.map((data, index) => {
                                         return (
+                                            // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id ,"document")} documentToMove={(data)=> this.documentToMove(data)} docType="document"/>
                                             <tr key={index}>
                                                 <td> 
                                                     <input type="checkbox" 
@@ -230,6 +269,16 @@ export default class DocumentLibrary extends React.Component {
                                                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                         <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
                                                             <li><a href="javascript:void(0)" onClick={()=> this.viewDocument(data)}>View</a></li>
+                                                            <li class="dropdown dropdown-library">
+                                                                    <span class="test" style={{marginLeft : "20px" , color :"#333" , lineHeight: "1.42857143",cursor:"pointer"}}>Move to</span>
+                                                                    <div class="dropdown-content">
+                                                                        { folder.List.map((f) => {
+                                                                            return (
+                                                                                <a href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
+                                                                            )
+                                                                        })}
+                                                                    </div>
+                                                            </li>
                                                             <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
                                                             <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
                                                             <li>

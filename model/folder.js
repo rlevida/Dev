@@ -30,6 +30,11 @@ var field = exports.field = {
      * isDeleted (tinyint )
      */
     'isDeleted' :  {type : 'date' , access : "public" },
+    
+    /**
+     * isFolder (tinyint )
+     */
+    'isFolder' : {type:'tinyint' , access : "public"}
 }
 
 var { getData, putData, postData, deleteData } = require("./index");

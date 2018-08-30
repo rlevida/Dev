@@ -85,7 +85,7 @@ var init = exports.init = (socket) => {
                     }
                 })
             }).then((nextThen,result) => {
-                if(typeof newTags != "undefined"){
+                if(typeof newTags != "undefined" && newTags != null){
                     let tag = global.initModel("tag");
                         tag.deleteData("tag",filter,(res)=>{
                             if(res.status){
@@ -99,7 +99,7 @@ var init = exports.init = (socket) => {
                 }
             }).then((nextThen,result) =>{
                 let tagId = [];
-                if(typeof newTags != "undefined" && JSON.parse(newTags).length > 0 ){
+                if(typeof newTags != "undefined" && newTags != null && JSON.parse(newTags).length > 0 ){
                     let tag = global.initModel("tag");
                         JSON.parse(newTags).map( t => {
                             let tagData = { linkType : t.value.split("-")[0], linkId : t.value.split("-")[1] , tagType : "document" , tagTypeId : id }
