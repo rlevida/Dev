@@ -13,7 +13,8 @@ import { connect } from "react-redux"
         teams: store.teams,
         loggedUser: store.loggedUser,
         role: store.role,
-        global: store.global
+        global: store.global,
+        loggedUser: store.loggedUser
     }
 })
 
@@ -52,9 +53,9 @@ export default class FormComponent extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, teams } = this.props
-
+        let { socket, teams, loggedUser } = this.props
         let result = true;
+        
         $('.form-container *').validator('validate');
         $('.form-container .form-group').each(function(){
             if($(this).hasClass('has-error')){
@@ -69,6 +70,9 @@ export default class FormComponent extends React.Component {
         if(typeof teams.Selected.avatar == "undefined" || !teams.Selected.avatar ){
             teams.Selected.avatar = "https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png";
         }
+
+        teams['Selected'].usersId = loggedUser.data.id;
+
         socket.emit("SAVE_OR_UPDATE_TEAM",{data:teams.Selected});
     }
     
