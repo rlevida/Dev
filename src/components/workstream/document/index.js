@@ -17,7 +17,8 @@ import { connect } from "react-redux"
         settings: store.settings,
         starred : store.starred,
         global : store.global,
-        task : store.task
+        task : store.task,
+        folder : store.folder
 
     }
 })
@@ -49,6 +50,7 @@ export default class WorkstreamDocumentViewer extends React.Component {
 
             socket.emit("GET_USER_LIST",{});
             socket.emit("GET_SETTINGS", {});
+            socket.emit("GET_FOLDER_LIST",{filter:{projectId: project }})
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "documentList"})
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamList"})
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamList"})
@@ -144,9 +146,19 @@ export default class WorkstreamDocumentViewer extends React.Component {
             dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
     }
 
+    goToFolder(data){
+        let { dispatch , folder } = this.props;
+            if(data.id != null){
+                let documentFolder = folder.List.filter( e =>{
+                    return e.id == data.folderId
+                })
+                dispatch({type:"SET_FOLDER_SELECTED" , Selected : documentFolder[0] })
+            }
+    }
+
     render() {
-        let { document, dispatch, workstream , users , loggedUser , settings , starred , global , task } = this.props;
-        let data = [] , tempData = [] , workstreamList = [] , tagList = [] , tagOptions = [];
+        let { document, dispatch, workstream , users , settings , starred , global , task , folder} = this.props;
+        let tagList = [] , tagOptions = [];
 
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
@@ -169,72 +181,91 @@ export default class WorkstreamDocumentViewer extends React.Component {
                     <br/>
                     <div class="col-lg-12 col-md-12">  
                         <h3>Documents linked to this workstream</h3>
-                        <table id="dataTable" class="table responsive-table table-bordered document-table">
-                            <tbody>
-                                <tr>
-                                    <th></th>
-                                    <th></th>
-                                    <th>Name</th>
-                                    <th>Uploaded date</th>
-                                    <th>Uploaded by</th>
-                                    <th>Tags</th>
-                                    <th></th>
-                                </tr>
 
-                                {
-                                    (document.List.length == 0) &&
-                                    <tr><td colSpan={8}>No Record Found!</td></tr>
-                                }
+                        {(typeof folder.Selected.id == "undefined") &&
+                            <table id="dataTable" class="table responsive-table table-bordered document-table">
+                                <tbody>
+                                    <tr>
+                                        <th></th>
+                                        <th></th>
+                                        <th>Name</th>
+                                        <th>Uploaded date</th>
+                                        <th>Uploaded by</th>
+                                        <th>Tags</th>
+                                        <th></th>
+                                    </tr>
 
-                                {
-                                    document.List.map((data, index) => {
-                                        return (
-                                            <tr key={index}>
-                                                <td> 
-                                                    <input type="checkbox" 
-                                                        // onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }
-                                                    />
-                                                </td>
-                                                <td> 
-                                                    {
-                                                        starred.List.filter( s => { return s.linkId == data.id }).length > 0 
-                                                            ? <span class="glyphicon glyphicon-star" onClick={()=> this.starDocument( data , 1 )} style={{ cursor:"pointer" }}></span>
-                                                                : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
-                                                    }
-                                                </td>
-                                                <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
-                                                <td>{ moment(data.dateAdded).format('L') }</td>
-                                                <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
-                                                <td> 
-                                                    { (tagList.length > 0) &&
-                                                        tagList.map((t,tIndex) =>{
-                                                            if(t.tagTypeId == data.id){
-                                                                return <span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span>
-                                                            }
-                                                        })
-                                                    }
-                                                </td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                                        <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
-                                                            <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "rename" , tagList )}>Rename</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
-                                                            <li>{ starred.List.filter( s => { return s.linkId == data.id }).length > 0 
-                                                                    ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
-                                                                        :  <a href="javascript:void(0)" data-tip="Star" onClick={()=> this.starDocument( data , 0 )}>Star</a>
+                                    {
+                                        (document.List.length == 0) &&
+                                        <tr><td colSpan={8}>No Record Found!</td></tr>
+                                    }
+
+                                    {
+                                        document.List.map((data, index) => {
+                                            return (
+                                                <tr key={index}>
+                                                    <td> 
+                                                        <input type="checkbox" 
+                                                            // onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }
+                                                        />
+                                                    </td>
+                                                    <td> 
+                                                        {
+                                                            starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                                ? <span class="glyphicon glyphicon-star" onClick={()=> this.starDocument( data , 1 )} style={{ cursor:"pointer" }}></span>
+                                                                    : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
+                                                        }
+                                                    </td>
+                                                    <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
+                                                    <td>{ moment(data.dateAdded).format('L') }</td>
+                                                    <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
+                                                    <td> 
+                                                        { (tagList.length > 0) &&
+                                                            tagList.map((t,tIndex) =>{
+                                                                if(t.tagTypeId == data.id){
+                                                                    return <span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span>
                                                                 }
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })
-                                }
-                            </tbody>
-                        </table>
+                                                            })
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                                            <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                                <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
+                                                                <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "rename" , tagList )}>Rename</a></li>
+                                                                <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
+                                                                <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.goToFolder( data )}>Go to folder</a></li>
+                                                                <li>{ starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                                        ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
+                                                                            :  <a href="javascript:void(0)" data-tip="Star" onClick={()=> this.starDocument( data , 0 )}>Star</a>
+                                                                    }
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        {(typeof folder.Selected.id != "undefined") &&
+                            <table id="dataTable" class="table responsive-table table-bordered document-table">
+                                <tbody>
+                                <tr>
+                                    <td><input type="checkbox"/></td>
+                                    <td><span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( folder.Selected , 0 )} style={{ cursor:"pointer" }}></span></td>
+                                    <td><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_FOLDER_SELECTED" , Selected : {} })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{folder.Selected.name}</a></td>
+                                    <td>{moment(folder.Selected.dateUpdated).format('L')}</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        }
                     </div>
                 </div>
                 <div class="modal fade" id="workstreamDocumentModal" tabIndex="-1" role="dialog" aria-labelledby="workstreamDocumentModal" aria-hidden="true">
