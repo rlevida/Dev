@@ -1,24 +1,30 @@
 var field = exports.field = {
+
     /**
      *  Id (Primary Key)
      */
     'id' : {type : 'bigint' , access : "public" },
 
     /**
-     * ipAddress (VARCHAR 30)
+     * reminderDetail (VARCHAR(50))
      */
-    'ipAddress' : {type : 'string' , access : "public" },
+    'reminderDetail' : {type : 'string' , access : "public" },
+
+     /**
+     * usersId (BIGINT)
+     */
+    'usersId' : {type : 'int' , access : "public" },
 
     /**
-     * failedTimes (Int 2)
+     * taskId (BIGINT)
      */
-    'failedTimes' : {type : 'int' , access : "public" },
+    'taskId' : {type : 'int' , access : "public" },
 
     /**
-     * dateFailed (DATETIME)
+     * seen (TINYINT)
      */
-    'dateFailed' : {type : 'tinyint' , access : "public" },
-
+    'seen' : {type : 'int' , access : "public" },
+    
     /**
      * dateAdded (DATETIME)
      */
@@ -28,7 +34,6 @@ var field = exports.field = {
      * dateUpdated (TIMESTAMP)
      */
     'dateUpdated' :  {type : 'date' , access : "public" }
-
 }
 
 var { getData, putData, postData, deleteData } = require("./index");

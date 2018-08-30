@@ -15,6 +15,8 @@ var http = require('http')
 var config = require('./config');
 var serverAuth = require('./auth');
 require('./backup')
+require('./script/dueTodayReminderScript');
+require('./script/overdueReminderScript');
 // get
 var index = require('./routes');
 var project = require('./routes/project');

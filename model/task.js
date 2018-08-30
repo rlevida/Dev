@@ -370,3 +370,41 @@ var getTaskList = exports.getTaskList = ( tablename, data, advance , cb ) => {
         }
     );
 }
+
+var getTaskDueToday = exports.getTaskDueToday = (cb) => {
+    let db = global.initDB();
+    let params = [];
+
+    let query = ` SELECT task.*,members.userTypeLinkId as usersId FROM task 
+                    LEFT JOIN members ON task.id = members.linkId AND members.linkType = "task" AND usersType = "users"
+                    WHERE DATE_FORMAT(task.dueDate,"%Y%m%d") = DATE_FORMAT(NOW(),"%Y%m%d") 
+                    AND ( members.userTypeLinkId IS NOT NULL || members.userTypeLinkId != "" )  `;
+    db.query(
+        query,
+        params, 
+        function(err,row,fields){
+            if(err) { cb({ status : false, error : err, data : row }); return; }
+
+            cb({  status : true, error : err, data : row });
+        }
+    );
+}
+
+var getTaskDueToday = exports.getTaskOverdue = (cb) => {
+    let db = global.initDB();
+    let params = [];
+
+    let query = ` SELECT task.*,members.userTypeLinkId as usersId FROM task 
+                    LEFT JOIN members ON task.id = members.linkId AND members.linkType = "task" AND usersType = "users"
+                    WHERE DATE_FORMAT(task.dueDate,"%Y%m%d") < DATE_FORMAT(NOW(),"%Y%m%d") 
+                    AND ( members.userTypeLinkId IS NOT NULL || members.userTypeLinkId != "" )`;
+    db.query(
+        query,
+        params, 
+        function(err,row,fields){
+            if(err) { cb({ status : false, error : err, data : row }); return; }
+
+            cb({  status : true, error : err, data : row });
+        }
+    );
+}
