@@ -70,6 +70,7 @@ var init = exports.init = (socket) => {
             modelList["tagList"] = "tag";
             modelList["ProjectMemberList"] = "members";
             modelList["taskList"] = "task";
+            modelList["folderList"] = "folder";
         
         modelName = modelList[d.selectName];
         if(modelName != ""){

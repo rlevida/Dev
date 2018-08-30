@@ -48,7 +48,10 @@ var field = exports.field = {
          * isCompleted (tinyint)
          */
         'isCompleted' : {type : 'tinyint' , access : "public" },
-
+        /**
+         * folderId (tinyint)
+         */
+        'folderId': {type : 'tinyint' , access : "public"}
 
 }
 

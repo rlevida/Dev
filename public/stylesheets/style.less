@@ -938,3 +938,31 @@ ul.dropdown-menu {
 .user-profile :hover{
   color: #bababa
 }
+
+
+.dropdown-library {
+  position: relative;
+  display: inline-block;
+  background-color: #fff;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #fff;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  margin-left: 20px;
+}
+
+.dropdown-content a {
+  color: #333;
+  padding: 6px 8px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {background-color: #ddd;}
+
+.dropdown-library:hover .dropdown-content {display: block;}

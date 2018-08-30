@@ -85,17 +85,21 @@ var init = exports.init = (socket) => {
                     }
                 })
             }).then((nextThen,result) => {
-                let tag = global.initModel("tag");
-                tag.deleteData("tag",filter,(res)=>{
-                    if(res.status){
-                        nextThen(result)
-                    }else{
-                        socket.emit("RETURN_ERROR_MESSAGE",{message:"Delete failed. Please Try again later."})
-                    }
-                })
+                if(typeof newTags != "undefined" && newTags != null){
+                    let tag = global.initModel("tag");
+                        tag.deleteData("tag",filter,(res)=>{
+                            if(res.status){
+                                nextThen(result)
+                            }else{
+                                socket.emit("RETURN_ERROR_MESSAGE",{message:"Delete failed. Please Try again later."})
+                            }
+                        })
+                }else{
+                    nextThen(result)
+                }
             }).then((nextThen,result) =>{
                 let tagId = [];
-                if(JSON.parse(newTags).length > 0){
+                if(typeof newTags != "undefined" && newTags != null && JSON.parse(newTags).length > 0 ){
                     let tag = global.initModel("tag");
                         JSON.parse(newTags).map( t => {
                             let tagData = { linkType : t.value.split("-")[0], linkId : t.value.split("-")[1] , tagType : "document" , tagTypeId : id }
@@ -115,6 +119,7 @@ var init = exports.init = (socket) => {
                     socket.emit("FRONT_DOCUMENT_EDIT",result)
                     socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
                 }
+
                 if(d.type == "workstream"){
                     let tag = global.initModel("tag")
                         tag.getData("tag",{ linkId : d.linkId ,tagType : d.tagType , linkType : d.linkType}, {} ,(tagRes)=>{
