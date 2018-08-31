@@ -65,6 +65,7 @@ export default class List extends React.Component {
                     {
                         users.List.map((data, index) => {
                             let toBeEditedByAdmin = data.role.filter(e => e.roleId == 2 || e.roleId == 3 || e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
+                            let toBeEditedByManager = data.role.filter(e => e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
 
                             return <tr key={index}>
                                 <td>{data.id}</td>
@@ -73,7 +74,7 @@ export default class List extends React.Component {
                                 <td>{data.userType}</td>
                                 <td class="text-center">
                                     {
-                                        (loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 && toBeEditedByAdmin.length > 0) && <div>
+                                        (loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 && toBeEditedByAdmin.length > 0 || loggedUser.data.userRole == 3 && toBeEditedByManager.length > 0) && <div>
                                             <a href="javascript:void(0);" data-tip="EDIT"
                                                 onClick={(e) => socket.emit("GET_USER_DETAIL", { id: data.id })}
                                                 class="btn btn-info btn-sm">
