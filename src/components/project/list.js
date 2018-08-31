@@ -66,9 +66,9 @@ export default class List extends React.Component {
                             <th>Project</th>
                             <th>Type</th>
                             <th>New Docs</th>
-                            <th>Notification</th>
-                            <th>Active Workstream</th>
-                            <th>Late Workstream</th>
+                            <th>Notifications</th>
+                            <th>Active Workstreams</th>
+                            <th>Late Workstreams</th>
                             { (loggedUser.data.userRole == 1 
                                         || loggedUser.data.userRole == 2 
                                         || loggedUser.data.userRole == 3 
