@@ -16,7 +16,6 @@ import { connect } from "react-redux"
         document: store.document,
         loggedUser: store.loggedUser,
         workstream: store.workstream,
-        users : store.users,
         settings: store.settings,
         starred : store.starred,
         global : store.global,
@@ -40,13 +39,13 @@ export default class List extends React.Component {
 
     componentWillMount() {
         let { socket } = this.props
-            socket.emit("GET_USER_LIST",{});
             socket.emit("GET_SETTINGS", {});
             socket.emit("GET_FOLDER_LIST",{filter:{projectId: project }})
             socket.emit("GET_TASK_LIST", { filter: { projectId: project }});
             socket.emit("GET_STARRED_LIST",{ filter : { linkType : "project" } })
             socket.emit("GET_WORKSTREAM_LIST", { filter : { projectId : project } });
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "ProjectMemberList" , filter : { linkId : project, linkType: "project" } })
             socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linkType : "project" }});
     }
 

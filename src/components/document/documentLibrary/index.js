@@ -3,6 +3,7 @@ import moment from 'moment'
 import LibraryDocument from './libraryDocument'
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DragDropContext } from 'react-dnd';
+import { DropDown } from "../../../globalComponents"
 
 import { connect } from "react-redux"
 
@@ -159,9 +160,27 @@ export default class DocumentLibrary extends React.Component {
         }
     }
 
+    selectShare(e , data){
+        let { dispatch , document } = this.props;
+        let Selected = Object.assign({},document.Selected);
+            Selected["share"] = JSON.stringify(e)
+            dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
+    }
+
+    share(){
+        let { socket , document } = this.props;
+            socket.emit("SAVE_OR_UPDATE_SHARED_DOCUMENT", { 
+                data: document.Selected.share , 
+                linkType: "project" ,
+                linkId : project , 
+                shareType : "document", 
+                shareId : document.Selected.id
+            })
+    }
+
     render() {
-        let { document , workstream , settings , starred , global , task , folder , dispatch } = this.props;
-        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] ;
+        let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser } = this.props;
+        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [];
 
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
@@ -196,6 +215,14 @@ export default class DocumentLibrary extends React.Component {
                             tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : taskName , linkId : t.linkId });
                     }
                 })
+            }
+
+           if(typeof global.SelectList.ProjectMemberList != "undefined"){
+                global.SelectList.ProjectMemberList.map(e =>{ 
+                    if(e.userType == "External"){
+                        shareOptions.push({ id: e.id , name : `${e.firstName} ${e.lastName}` })
+                    }
+                }) 
             }
 
         return  <div>
@@ -290,6 +317,9 @@ export default class DocumentLibrary extends React.Component {
                                                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                         <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
                                                             <li><a href="javascript:void(0)" onClick={()=> this.viewDocument(data)}>View</a></li>
+                                                            { (loggedUser.data.userType == "Internal") &&
+                                                                <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={()=>dispatch({type:"SET_DOCUMENT_SELECTED", Selected:data })}>Share</a></li>
+                                                            }
                                                             <li class="dropdown dropdown-library">
                                                                     <span class="test" style={{marginLeft : "20px" , color :"#333" , lineHeight: "1.42857143",cursor:"pointer"}}>Move to</span>
                                                                     <div class="dropdown-content">
@@ -303,8 +333,7 @@ export default class DocumentLibrary extends React.Component {
                                                             <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
                                                             <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
                                                             <li>
-                                                            {
-                                                                starred.List.filter( s => { return s.linkId == data.id }).length > 0 
+                                                            { starred.List.filter( s => { return s.linkId == data.id }).length > 0 
                                                                     ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>
                                                                         :  <a href="javascript:void(0)" data-tip="Star" onClick={()=> this.starDocument( data , 0 )}>Star</a>
                                                             }
@@ -320,6 +349,40 @@ export default class DocumentLibrary extends React.Component {
                                 }
                             </tbody>
                         </table>
+                        <div class="modal fade" id="shareModal" tabIndex="-1" role="dialog" aria-labelledby="shareModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="shareModal">Share</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <div class="col-md-12 col-xs-12">
+                                            <DropDown 
+                                                name="share"
+                                                multiple={true}
+                                                required={false}
+                                                options={ shareOptions } 
+                                                selected={ ( document.Selected.share != null ) ? JSON.parse(document.Selected.share) : []  } 
+                                                onChange={(e)=>this.selectShare(e , document.Selected )} 
+                                                /> 
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                    <br/>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    { ( document.Selected.share != null) && 
+                                        <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={ () => this.share() }>Share</button>
+                                    }
+                                </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
     }

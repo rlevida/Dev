@@ -227,4 +227,19 @@ var init = exports.init = (socket) => {
             }
         })
     })
+
+
+    socket.on("SAVE_OR_UPDATE_SHARED_DOCUMENT",(d)=>{
+        let users = JSON.parse(d.data)
+        let share = global.initModel("share")
+            delete d.data
+            users.map( e =>{
+                let data = Object.assign({},d)
+                    data.userTypeLinkId = e.value
+                    data.usersType = "users"
+                    share.postData("share",data,(c)=>{
+                        console.log(c)
+                    })
+            })
+    })
 }

@@ -5,7 +5,8 @@ CREATE TABLE `share` (
     `userTypeLinkId` BIGINT,
     `linkType` ENUM("project","workstream","task"),
     `linkId` BIGINT,
-    `documentId` BIGINT,
+    `shareType` ENUM("document","folder"),
+    `shareId` BIGINT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)
