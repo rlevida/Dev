@@ -205,7 +205,13 @@ export default class FormComponent extends React.Component {
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Team Members</label>
                                     <div class="col-md-7 col-xs-12">
-                                      
+                                        <DropDown multiple={false}
+                                            required={true}
+                                            options={userTeamMembers.map(e => { return { id: e.id, name: e.users_firstName + ' ' + e.users_lastName } })}
+                                            selected={userTeamMembers.map(e => { return { value: e.id, label: e.users_firstName + ' ' + e.users_lastName } })}
+                                            multiple={true}
+                                            disabled
+                                        />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
