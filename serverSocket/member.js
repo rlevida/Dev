@@ -67,7 +67,7 @@ var init = exports.init = (socket) => {
         members.getData("members", filter, {}, (b) => {
             members.deleteData("members", filter, (c) => {
                 if (c.status) {
-                    socket.emit("FRONT_MEMBERS_DELETED", { id: d.id, type: d.usersType , type : d.type})
+                    socket.emit("FRONT_MEMBERS_DELETED", filter )
                 } else {
                     socket.emit("RETURN_ERROR_MESSAGE", "Delete failed. Please try again later.")
                 }

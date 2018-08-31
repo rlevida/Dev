@@ -97,12 +97,10 @@ export default class MembersForm extends React.Component {
             if( project.Selected.typeId == 1 ){
                 userList.push({ id: e.id, name: e.firstName + ' ' + e.lastName })
             }else{
-                if(typeof e.role != "undefined" && e.role.length > 0 && e.userType == "Internal"){
+                if(typeof e.role != "undefined" && e.role.length > 0 ){
                     userList.push({ id: e.id, name: e.firstName + ' ' + e.lastName })
                 }
             }
-
-            
         });
         let userMemberListIds = _(members.List)
             .filter((o) => { 

@@ -222,7 +222,7 @@ export default class DocumentLibrary extends React.Component {
                                     folder.List.map((data, index) => {
                                         return (
                                             // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id , "folder")} documentToMove={(data)=> this.documentToMove(data)} docType="folder"/>
-                                            <tr>
+                                            <tr key={index}>
                                                 <td><input type="checkbox"/></td>
                                                 <td><span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span></td>
                                                 <td><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_FOLDER_SELECTED" , Selected : data })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{data.name}</a></td>
@@ -252,7 +252,7 @@ export default class DocumentLibrary extends React.Component {
                                                                 : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
                                                     }
                                                 </td>
-                                            <td><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
+                                                <td><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
                                                 <td>{ moment(data.dateUpdated).format('L') }</td>
                                                 <td><i class="fa fa-users"></i></td>
                                                 <td> 
@@ -272,9 +272,9 @@ export default class DocumentLibrary extends React.Component {
                                                             <li class="dropdown dropdown-library">
                                                                     <span class="test" style={{marginLeft : "20px" , color :"#333" , lineHeight: "1.42857143",cursor:"pointer"}}>Move to</span>
                                                                     <div class="dropdown-content">
-                                                                        { folder.List.map((f) => {
+                                                                        { folder.List.map((f,fIndex) => {
                                                                             return (
-                                                                                <a href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
+                                                                                <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
                                                                             )
                                                                         })}
                                                                     </div>
