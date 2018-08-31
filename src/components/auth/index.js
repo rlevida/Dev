@@ -50,10 +50,10 @@ export default class Component extends React.Component {
             showToast("error", "Username/Password is required.", 360000)
             return;
         }
-        if(this.state.captchaPayload == "" && process.env.NODE_ENV != "development"){
-            showToast("error", "Please confirm your not a robot.", 360000)
-            return;
-        }
+        // if(this.state.captchaPayload == "" && process.env.NODE_ENV != "development"){
+        //     showToast("error", "Please confirm your not a robot.", 360000)
+        //     return;
+        // }
         showToast("success", "Logging in, please wait ...", 360000)
         localStorage.setItem('username', Login.username)
         localStorage.setItem('rememberMe', Login.rememberMe)
@@ -72,15 +72,15 @@ export default class Component extends React.Component {
     render() {
         let { Login, dispatch } = this.props;
         let captchaUI = null;
-        if(process.env.NODE_ENV != "development") {
-            captchaUI = <Captcha 
-                                sitekey='6LeTGG0UAAAAAJNrNp2uNlwYiwGf39V4lJyCdBwg'
-                                lang='en'
-                                theme='light'
-                                type='image'
-                                callback={ this.handleCaptcha } 
-                            />
-        }
+        // if(process.env.NODE_ENV != "development") {
+        //     captchaUI = <Captcha 
+        //                         sitekey='6LeTGG0UAAAAAJNrNp2uNlwYiwGf39V4lJyCdBwg'
+        //                         lang='en'
+        //                         theme='light'
+        //                         type='image'
+        //                         callback={ this.handleCaptcha } 
+        //                     />
+        // }
         return <div class="form-signin">
                     <div class="text-center">
                         <h3>Cloud CFO</h3>

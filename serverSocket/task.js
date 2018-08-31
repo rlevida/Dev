@@ -53,8 +53,8 @@ var init = exports.init = (socket) => {
                 if(e.data.length > 0){
                     data.assignedTo = e.data[0].userTypeLinkId;
                 }
-
-                socket.emit("FRONT_TASK_SELECTED",data)
+                let dataObject = {...data, ...((typeof d.action != 'undefined') ? {action:d.action} : {})}
+                socket.emit("FRONT_TASK_SELECTED",dataObject)
             })
         })
     })

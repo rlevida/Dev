@@ -8,7 +8,7 @@ var field = exports.field = {
         /**
          * usersId (BIGINT)
          */
-        'usersId' : {type : 'bigint' , access : "public" },
+        'usersId' : {type : 'bigint' , access : "public", database: "users" , relation: "one-to-one" },
         
         /**
          * teamId (BIGINT)

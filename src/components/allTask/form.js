@@ -41,10 +41,10 @@ export default class FormComponent extends React.Component {
         if (typeof task.Selected.id != 'undefined') {
             this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
         }
-        if(typeof task.Selected.workstreamId != "undefined"){
-            this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "taskList" , filter : { "|||and|||": [{ name: "workstreamId", value: task.Selected.workstreamId },{ name: "id", value: task.Selected.id, condition : " != " }] }})
+        if (typeof task.Selected.workstreamId != "undefined") {
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "taskList", filter: { "|||and|||": [{ name: "workstreamId", value: task.Selected.workstreamId }, { name: "id", value: task.Selected.id, condition: " != " }] } })
         }
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "ProjectMemberList" , filter : { linkId : task.Selected.projectId, linkType: "project" } })
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: task.Selected.projectId, linkType: "project" } })
     }
 
     componentDidUpdate() {
@@ -59,11 +59,11 @@ export default class FormComponent extends React.Component {
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
-    handleCheckbox(name,value) {
+    handleCheckbox(name, value) {
         let { socket, dispatch, task } = this.props
-        let Selected = Object.assign({},task.Selected)
+        let Selected = Object.assign({}, task.Selected)
         Selected[name] = value;
-        dispatch({type:"SET_TASK_SELECTED",Selected:Selected})
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
     handleChange(e) {
@@ -80,11 +80,11 @@ export default class FormComponent extends React.Component {
             socket.emit("DELETE_MEMBERS", params)
         }
     }
-    
+
     updateActiveStatus() {
-        let {task, socket, dispatch } = this.props;
+        let { task, socket, dispatch } = this.props;
         let status = "Completed"
-        if( task.Selected.task_id && task.Selected.task_status != "Completed" ){
+        if (task.Selected.task_id && task.Selected.task_status != "Completed") {
             status = "For Approval"
         }
 
@@ -113,9 +113,9 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, task.Selected)
         Selected[name] = value;
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
-        
-        if(name == "workstreamId"){
-            this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "taskList" , filter : { "|||and|||": [{ name: "workstreamId", value: value },{ name: "id", value: task.Selected.id, condition : " != " }] }})
+
+        if (name == "workstreamId") {
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "taskList", filter: { "|||and|||": [{ name: "workstreamId", value: value }, { name: "id", value: task.Selected.id, condition: " != " }] } })
         }
     }
 
@@ -131,13 +131,13 @@ export default class FormComponent extends React.Component {
         let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
-        if(typeof this.props.global.SelectList.taskList != "undefined"){
-            this.props.global.SelectList["taskList"].map((e)=>{
-                taskList.push({id:e.id,name:e.task})
+        if (typeof this.props.global.SelectList.taskList != "undefined") {
+            this.props.global.SelectList["taskList"].map((e) => {
+                taskList.push({ id: e.id, name: e.task })
             })
         }
-        if(typeof global.SelectList.ProjectMemberList != "undefined"){
-            global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })  })
+        if (typeof global.SelectList.ProjectMemberList != "undefined") {
+            global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName }) })
         }
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -148,11 +148,14 @@ export default class FormComponent extends React.Component {
                     }} >
                     <span>Back</span>
                 </li>
-                <li class="btn btn-info" onClick={this.handleSubmit} >
-                    <span>Save</span>
-                </li>
+                {
+                    (typeof task.Selected.action == 'undefined' || task.Selected.action != 'view') && <li class="btn btn-info" onClick={this.handleSubmit} >
+                        <span>Save</span>
+                    </li>
+                }
+
             </HeaderButtonContainer>
-            
+
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">
                     <div class="panel panel-default">
@@ -160,26 +163,30 @@ export default class FormComponent extends React.Component {
                             <h3 class="panel-title">Task {(task.Selected.id) ? " > Edit > ID: " + task.Selected.id : " > Add"}</h3>
                         </div>
                         <div class="panel-body">
-                            <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
+                            <form
+                                onSubmit={this.handleSubmit}
+                                class="form-horizontal form-container"
+                                style={{ pointerEvents: (typeof task.Selected.action != 'undefined' && task.Selected.action == 'view') ? 'none' : 'auto' }}
+                            >
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <input type="checkbox" 
+                                        <input type="checkbox"
                                             style={{ width: "15px", marginTop: "10px" }}
-                                            checked={ task.Selected.isActive?true:false  }
-                                            onChange={()=>{}}
-                                            onClick={(f)=>{ this.handleCheckbox("isActive",(task.Selected.isActive)?0:1) }}
-                                        /> 
+                                            checked={task.Selected.isActive ? true : false}
+                                            onChange={() => { }}
+                                            onClick={(f) => { this.handleCheckbox("isActive", (task.Selected.isActive) ? 0 : 1) }}
+                                        />
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label"></label>
                                     <div class="col-md-7 col-xs-12">
-                                        <span style={{padding:"10px"}}>{(task.Selected.status)?task.Selected.status:"In Progress"}</span>
-                                        { task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
+                                        <span style={{ padding: "10px" }}>{(task.Selected.status) ? task.Selected.status : "In Progress"}</span>
+                                        {task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
                                             <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
                                         }
-                                        { ((task.Selected.status == "" || task.Selected.status == "In Progress")
+                                        {((task.Selected.status == "" || task.Selected.status == "In Progress")
                                         ) &&
                                             <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
                                         }

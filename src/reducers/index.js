@@ -20,6 +20,7 @@ import conversation from "./conversation"
 import starred from "./starred"
 import folder from "./folder"
 import reminder from "./reminder"
+import usersTeam from "./usersTeam"
 
 export default combineReducers({
     socket,
@@ -43,5 +44,6 @@ export default combineReducers({
     conversation,
     starred,
     folder,
-    reminder
+    reminder,
+    usersTeam
 })
