@@ -29,9 +29,6 @@ export default function reducer(state={
         // case "SET_DOCUMENT_ID": {
         //     return { ...state, SelectedId: action.SelectedId }
         // }
-        // case "SET_DOCUMENT_EDIT_TYPE":{
-        //     return { ...state, EditType : action.EditType }
-        // }
         // case "SET_DOCUMENT_STATUS": {
         //     let List = state.List.map((e,i)=>{
         //             if(e.id == action.record.id){
@@ -44,28 +41,27 @@ export default function reducer(state={
         //     return {...state, List: List }
         // }
         
-
         // //UPDATE
-        // case "UPDATE_DATA_DOCUMENT_LIST" : {
-        //     let tempList = action.List.map((e,i)=>{
-        //         if(e.id == action.UpdatedData.id){
-        //             return action.UpdatedData
-        //         }
-        //         return e
-        //     })
-        //     return { ...state, List: tempList }
-        // }
+        case "UPDATE_DATA_FOLDER_LIST" : {
+            let tempList = action.List.map((e,i)=>{
+                if(e.id == action.UpdatedData.id){
+                    return action.UpdatedData
+                }
+                return e
+            })
+            return { ...state, List: tempList }
+        }
         
         // //REMOVE
-        // case "REMOVE_DELETED_DOCUMENT_LIST" : {
-        //     let tempList = [];
-        //     action.List.map((e,i)=>{
-        //         if(action.id != e.id){
-        //             tempList.push(e)
-        //         }
-        //     })
-        //     return { ...state, List: tempList }
-        // }
+        case "REMOVE_DELETED_FOLDER_LIST" : {
+            let tempList = [];
+            action.List.map((e,i)=>{
+                if(action.id != e.id){
+                    tempList.push(e)
+                }
+            })
+            return { ...state, List: tempList }
+        }
       
         default:
             return state;

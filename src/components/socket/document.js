@@ -7,7 +7,8 @@ import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
-        document: store.document
+        document: store.document,
+        folder: store.folder
     }
 })
 export default class Socket extends React.Component {
@@ -72,8 +73,18 @@ export default class Socket extends React.Component {
             dispatch({ type:"ADD_FOLDER_LIST", list: data })
         })
 
+        socket.on("FRONT_FOLDER_EDIT",(data)=>{
+            dispatch({type:"UPDATE_DATA_FOLDER_LIST",UpdatedData:data, List: this.props.folder.List})
+            dispatch({type:"SET_DOCUMENT_SELECTED",Selected : {}})
+            dispatch({type:"SET_DOCUMENT_FORM_ACTIVE",FormActive : "List"})
+        })
+
         socket.on("FRONT_FOLDER_LIST",(data)=>{
             dispatch({ type:"SET_FOLDER_LIST", list: data })
+        })
+
+        socket.on("FRONT_DELETE_FOLDER" , (data) =>{
+            dispatch({type:"REMOVE_DELETED_FOLDER_LIST", id : data.id , List: this.props.folder.List})
         })
     }
 

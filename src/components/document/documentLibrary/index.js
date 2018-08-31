@@ -144,7 +144,20 @@ export default class DocumentLibrary extends React.Component {
         let { socket } = this.props;
             socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data :{ ...documentData , folderId : folderData.id } , type : "project"})
     }
-    
+
+    editFolder(data , type){
+        let { dispatch } = this.props;
+            dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" });
+            dispatch({type:"SET_DOCUMENT_SELECTED" , Selected: data })
+            dispatch({type:"SET_DOCUMENT_EDIT_TYPE" , EditType: type })
+    }
+
+    deleteFolder(id){
+        let { socket } = this.props;
+        if(confirm("Do you really want to delete this folder?")){
+            socket.emit("DELETE_FOLDER",{ filter :{ id:id , projectId:project }});
+        }
+    }
 
     render() {
         let { document , workstream , settings , starred , global , task , folder , dispatch } = this.props;
@@ -229,7 +242,15 @@ export default class DocumentLibrary extends React.Component {
                                                 <td>{moment(data.dateUpdated).format('L')}</td>
                                                 <td></td>
                                                 <td></td>
-                                                <td></td>
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                                        <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editFolder(data , "folder")}>Rename</a></li>
+                                                            <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteFolder(data.id)}>Delete</a></li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         )
                                     })
