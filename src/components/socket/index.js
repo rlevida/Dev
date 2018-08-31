@@ -13,6 +13,7 @@ import Member from "./member"
 import Document from "./document"
 import Workstream from "./workstream"
 import Task from "./task"
+import Reminder from "./reminder"
 
 export default class Socket extends React.Component {
     render() {
@@ -30,6 +31,7 @@ export default class Socket extends React.Component {
                     <Member />
                     <Document/>
                     <Task />
+                    <Reminder/>
                 </div>
     }
 }

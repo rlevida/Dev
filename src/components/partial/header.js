@@ -9,7 +9,8 @@ import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
-        user: store.loggedUser.data
+        user: store.loggedUser.data,
+        reminder : store.reminder
     }
 })
 export default class Component extends React.Component {
@@ -18,7 +19,9 @@ export default class Component extends React.Component {
         this.state = {
             miniSideMenu: (getCookie("sidemenu"))?getCookie("sidemenu"):"false",
             showLeft: false,
-            showMore: ""
+            showMore: "",
+            reminderCount : 0,
+            getReminder : true
         }
         this.showLeft = this.showLeft.bind(this)
     }
@@ -32,11 +35,10 @@ export default class Component extends React.Component {
             $("body").addClass("sidebar-left-opened");
         }
     }
+   
     componentDidMount(){
-        let { dispatch, socket } = this.props;
-        
+        let { dispatch, socket , user } = this.props;
         socket.emit("LOGGED_USER",{});
-
         socket.emit("GET_SETTINGS",{});
 
         if(window.innerHeight <= 550){
@@ -59,6 +61,15 @@ export default class Component extends React.Component {
         });
     }
 
+    componentWillReceiveProps(props){
+        let {socket , user , reminder } = props;
+        let { getReminder } = this.state
+            if( reminder.List.length == 0 && getReminder && typeof user.id != "undefined"){
+                socket.emit("GET_REMINDER_LIST", { filter:{ usersId : user.id , seen : 0 }} )
+                this.setState({ getReminder : false })
+            }
+    }
+
     setSideMenuState(status) {
         this.setState({miniSideMenu:status})
         setCookie("sidemenu",status,1);
@@ -77,17 +88,39 @@ export default class Component extends React.Component {
         this.setState({showMore:type})
     }
 
+    seenReminder(){
+        let { reminder } = this.props;
+    }
     render() {
-        let { user } = this.props
+        let { user , reminder , dispatch } = this.props
         let userView = "";
-        if(user.username != "" ){
-            userView = <div class="headAccess"> Welcome : {user.username}</div>;
-        }
+            if(user.username != "" ){
+                userView = <div class="headAccess"> Welcome : {user.username}</div>;
+            }
         return <div>
             <div class={((this.state.miniSideMenu=="true")?"sidebar-left-mini":"")+" bg-dark dk "} id="wrap">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse" onClick={this.showLeft}>
-                    <span class="glyphicon glyphicon-align-justify"></span> 
-                </button>
+                    <div class="dropdown pull-right" style={{marginTop:"10px",marginRight:"10px"}}>
+                        <a class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                            <span class="fa fa-bell"></span>
+                            <span class="label label-danger" style={{marginLeft:"5px" , display :reminder.List.length ? "inline-block" : "none"}}>{reminder.List.length}</span> 
+                        </a>
+                        <ul class="dropdown-menu" >
+                            { reminder.List.map((data,index) => {
+                                    return (
+                                        <li><a href={"/reminder"} key={index} style={{textDecoration:"none"}}>{data.reminderDetail}</a></li>
+                                    )
+                                })
+                            }
+                        </ul>
+                    </div>
+                    <div class="pull-right" style={{marginTop:"10px"}}>
+                        <div class="btn-group">
+                            <a  data-tip="profile" href={"/profile"} class="btn btn-default ">
+                                <i class="glyphicon glyphicon-user"></i>
+                            </a>
+                        </div>
+                    </div>
+
                 <header class="head">
                     <div class="search-bar">
                         <h3>Cloud CFO</h3>
@@ -96,10 +129,7 @@ export default class Component extends React.Component {
                         <h3>
                             <i class="glyphicon glyphicon-dashboard"></i>&nbsp;
                            {this.props.page}{this.props.form?" > "+this.props.form:""}{(this.props.form) == "Form"?(this.props.formId > 0?" > Edit ":" > Add "):""}
-                            <span class="pull-right" style={{marginRight:"40px"}}>
-                                <a class="user-link user-profile" data-tip="profile" href={"/profile"}><i class="glyphicon glyphicon-user"></i>
-                                </a>
-                            </span>
+                         
                         </h3>
                     </div>
                 </header>

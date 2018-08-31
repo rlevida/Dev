@@ -80,4 +80,7 @@ switch (page) {
     case "profile":
         require('./container/profile');
         break;
+    case "reminder":
+        require('./container/reminder');
+        break;
 }

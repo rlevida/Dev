@@ -85,4 +85,12 @@ router.get('/profile',function (req,res,next){
         page: 'profile'
     });
 })
+
+router.get('/reminder',function(req,res,next){
+    res.render('index',{
+        title: global.site_name + ' - Reminder',
+        body: './template/index',
+        page: 'reminder'
+    })
+})
 module.exports = router;
