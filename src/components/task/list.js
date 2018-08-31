@@ -61,7 +61,7 @@ export default class List extends React.Component {
                         <th style={{textAlign:"center"}}>Workstream</th>
                         <th style={{textAlign:"center"}}>Task Name</th>
                         <th style={{textAlign:"center"}}>Due Date</th>
-                        <th style={{textAlign:"center"}}>Assigned to</th>
+                        <th style={{textAlign:"center"}}>Assigned</th>
                         <th style={{textAlign:"center"}}>Followed By</th>
                         <th style={{textAlign:"center"}}></th>
                     </tr>
