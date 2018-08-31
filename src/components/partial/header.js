@@ -99,9 +99,28 @@ export default class Component extends React.Component {
             }
         return <div>
             <div class={((this.state.miniSideMenu=="true")?"sidebar-left-mini":"")+" bg-dark dk "} id="wrap">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse" onClick={this.showLeft}>
-                    <span class="glyphicon glyphicon-align-justify"></span> 
-                </button>
+                    <div class="dropdown pull-right" style={{marginTop:"10px",marginRight:"10px"}}>
+                        <a class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                            <span class="fa fa-bell"></span>
+                            <span class="label label-danger" style={{marginLeft:"5px" , display :reminder.List.length ? "inline-block" : "none"}}>{reminder.List.length}</span> 
+                        </a>
+                        <ul class="dropdown-menu" >
+                            { reminder.List.map((data,index) => {
+                                    return (
+                                        <li><a href={"/reminder"} key={index} style={{textDecoration:"none"}}>{data.reminderDetail}</a></li>
+                                    )
+                                })
+                            }
+                        </ul>
+                    </div>
+                    <div class="pull-right" style={{marginTop:"10px"}}>
+                        <div class="btn-group">
+                            <a  data-tip="profile" href={"/profile"} class="btn btn-default ">
+                                <i class="glyphicon glyphicon-user"></i>
+                            </a>
+                        </div>
+                    </div>
+
                 <header class="head">
                     <div class="search-bar">
                         <h3>Cloud CFO</h3>
@@ -110,21 +129,7 @@ export default class Component extends React.Component {
                         <h3>
                             <i class="glyphicon glyphicon-dashboard"></i>&nbsp;
                            {this.props.page}{this.props.form?" > "+this.props.form:""}{(this.props.form) == "Form"?(this.props.formId > 0?" > Edit ":" > Add "):""}
-                            <span class="pull-right" style={{marginRight:"40px"}}>
-                                <div class="btn-group">
-                                    <a data-placement="bottom" data-tip="profile" href={"/profile"} class="btn btn-default btn-sm">
-                                        <i class="glyphicon glyphicon-user"></i>
-                                    </a>
-                                </div>
-                                <div class="btn-group">
-                                    <a data-placement="bottom" data-original-title="reminder" href={"/reminder"} data-tip="reminder" class="btn btn-default btn-sm">
-                                        <i class="fa fa-bell"></i>
-                                        { reminder.List.length > 0 && 
-                                            <span class="label label-danger" style={{marginLeft:"5px"}}>{reminder.List.length}</span> 
-                                        }
-                                    </a> 
-                                </div>
-                            </span>
+                         
                         </h3>
                     </div>
                 </header>
