@@ -47,7 +47,7 @@ export default class TaskStatus extends React.Component {
         return <div style={this.props.style}>
                 <table>
                     <tr>
-                        <td style={{padding:"10px 5px",width:"120px"}}>Assigned To</td>
+                        <td style={{padding:"10px 5px",width:"120px"}}>Assigned</td>
                         <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
                             <span style={{float:"left"}}>Active</span><span style={{float:"right"}}>{data.assignedTo.Active}</span>
                         </td>

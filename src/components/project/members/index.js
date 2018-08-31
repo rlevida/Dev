@@ -88,7 +88,7 @@ export default class MembersForm extends React.Component {
     render() {
         let { users, members, teams, project } = this.props;
         let typeList = [
-            { id: 'assignedTo', name: 'Assigned To' },
+            { id: 'assignedTo', name: 'Assigned' },
             { id: 'Follower', name: 'Follower' },
             { id: 'responsible', name: 'Responsible' },
         ];
