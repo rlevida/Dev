@@ -74,9 +74,12 @@ export default class List extends React.Component {
                     {
                         task.List.map((data, index) => {
                            let taskStatus = 0;
-                            if(new Date().getTime() > new Date( data.dueDate ).getTime()){
+                           let dueDate = moment(data.dueDate);
+                           let currentDate = moment(new Date());
+
+                            if(dueDate.diff(currentDate, 'days') < 0){
                                 taskStatus = 2 
-                            }else if(new Date() == new Date( data.dueDate )){
+                            }else if(dueDate.diff(currentDate, 'days') == 0){
                                 taskStatus = 1
                             }
 
