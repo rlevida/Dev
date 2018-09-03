@@ -2,10 +2,8 @@ import React from "react"
 
 import { showToast, setDatePicker, displayDate } from '../../globalFunction'
 import { HeaderButtonContainer, DropDown } from "../../globalComponents"
-import Tooltip from "react-tooltip";
 import { connect } from "react-redux"
 import moment from 'moment'
-import MembersForm from "../global/members/membersForm";
 
 @connect((store) => {
     return {
@@ -41,8 +39,8 @@ export default class FormComponent extends React.Component {
         if (typeof task.Selected.id != 'undefined') {
             this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
         }
-        if(typeof task.Selected.workstreamId != "undefined"){
-            this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "taskList" , filter : { "|||and|||": [{ name: "workstreamId", value: task.Selected.workstreamId },{ name: "id", value: task.Selected.id, condition : " != " }] }})
+        if (typeof task.Selected.workstreamId != "undefined") {
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "taskList", filter: { "|||and|||": [{ name: "workstreamId", value: task.Selected.workstreamId }, { name: "id", value: task.Selected.id, condition: " != " }] } })
         }
     }
 
@@ -51,18 +49,19 @@ export default class FormComponent extends React.Component {
     }
 
     handleDate(e) {
-        let { dispatch, task } = this.props
+        let { dispatch, task } = this.props;
         let Selected = Object.assign({}, task.Selected)
+        let selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
 
-        Selected[e.target.name] = e.target.value + " UTC";
-        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
+        Selected[e.target.name] = selectedDate;
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
     }
 
-    handleCheckbox(name,value) {
+    handleCheckbox(name, value) {
         let { socket, dispatch, task } = this.props
-        let Selected = Object.assign({},task.Selected)
+        let Selected = Object.assign({}, task.Selected)
         Selected[name] = value;
-        dispatch({type:"SET_TASK_SELECTED",Selected:Selected})
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
     handleChange(e) {
@@ -79,11 +78,11 @@ export default class FormComponent extends React.Component {
             socket.emit("DELETE_MEMBERS", params)
         }
     }
-    
+
     updateActiveStatus() {
-        let {task, socket, dispatch } = this.props;
+        let { task, socket, dispatch } = this.props;
         let status = "Completed"
-        if( task.Selected.task_id && task.Selected.task_status != "Completed" ){
+        if (task.Selected.task_id && task.Selected.task_status != "Completed") {
             status = "For Approval"
         }
 
@@ -91,7 +90,7 @@ export default class FormComponent extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, task } = this.props
+        let { socket, task, dispatch } = this.props
 
         let result = true;
         $('.form-container *').validator('validate');
@@ -105,6 +104,7 @@ export default class FormComponent extends React.Component {
             return;
         }
         socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...task.Selected, projectId: project, dueDate: moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') } });
+        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
     }
 
     setDropDown(name, value) {
@@ -112,9 +112,9 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, task.Selected)
         Selected[name] = value;
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
-        
-        if(name == "workstreamId"){
-            this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "taskList" , filter : { "|||and|||": [{ name: "workstreamId", value: value },{ name: "id", value: task.Selected.id, condition : " != " }] }})
+
+        if (name == "workstreamId") {
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "taskList", filter: { "|||and|||": [{ name: "workstreamId", value: value }, { name: "id", value: task.Selected.id, condition: " != " }] } })
         }
     }
 
@@ -126,20 +126,20 @@ export default class FormComponent extends React.Component {
 
     render() {
         let { dispatch, task, status, workstream, global, loggedUser } = this.props;
-        let statusList = [], typeList = [], taskList = [{id:"",name:"Select..."}], projectUserList = [];
+        let statusList = [], typeList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [];
         let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
         let allowEdit = (loggedUser.data.userRole == 5 || loggedUser.data.userRole == 6) && (loggedUser.data.userType == "External") ? false : true;
 
-            status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
+        status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
-            if(typeof this.props.global.SelectList.taskList != "undefined"){
-                this.props.global.SelectList["taskList"].map((e)=>{
-                    taskList.push({id:e.id,name:e.task})
-                })
-            }
-            if(typeof global.SelectList.ProjectMemberList != "undefined"){
-                global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })  })
-            }
+        if (typeof this.props.global.SelectList.taskList != "undefined") {
+            this.props.global.SelectList["taskList"].map((e) => {
+                taskList.push({ id: e.id, name: e.task })
+            })
+        }
+        if (typeof global.SelectList.ProjectMemberList != "undefined") {
+            global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName }) })
+        }
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -165,22 +165,22 @@ export default class FormComponent extends React.Component {
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <input type="checkbox" 
+                                        <input type="checkbox"
                                             style={{ width: "15px", marginTop: "10px" }}
-                                            checked={ task.Selected.isActive?true:false  }
-                                            onChange={()=>{}}
-                                            onClick={(f)=>{ this.handleCheckbox("isActive",(task.Selected.isActive)?0:1) }}
-                                        /> 
+                                            checked={task.Selected.isActive ? true : false}
+                                            onChange={() => { }}
+                                            onClick={(f) => { this.handleCheckbox("isActive", (task.Selected.isActive) ? 0 : 1) }}
+                                        />
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label"></label>
                                     <div class="col-md-7 col-xs-12">
-                                        <span style={{padding:"10px"}}>{(task.Selected.status)?task.Selected.status:"In Progress"}</span>
-                                        { task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
+                                        <span style={{ padding: "10px" }}>{(task.Selected.status) ? task.Selected.status : "In Progress"}</span>
+                                        {task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
                                             <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
                                         }
-                                        { ((!task.Selected.status || task.Selected.status == "In Progress")
+                                        {((!task.Selected.status || task.Selected.status == "In Progress")
                                         ) &&
                                             <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
                                         }
@@ -193,16 +193,16 @@ export default class FormComponent extends React.Component {
                                             required={false}
                                             options={workstreamList}
                                             selected={(typeof task.Selected.workstreamId == "undefined") ? "" : task.Selected.workstreamId}
-                                            onChange={(e) => this.setDropDown("workstreamId", e.value)} 
+                                            onChange={(e) => this.setDropDown("workstreamId", e.value)}
                                             disabled={!allowEdit}
-                                            />
+                                        />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Task Name *</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} disabled={!allowEdit}/>
+                                        <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} disabled={!allowEdit} />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
@@ -213,9 +213,9 @@ export default class FormComponent extends React.Component {
                                             required={false}
                                             options={taskList}
                                             selected={(typeof task.Selected.linkTaskId == "undefined") ? "" : task.Selected.linkTaskId}
-                                            onChange={(e) => this.setDropDown("linkTaskId", e.value)} 
+                                            onChange={(e) => this.setDropDown("linkTaskId", e.value)}
                                             disabled={!allowEdit}
-                                            />
+                                        />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
@@ -228,7 +228,7 @@ export default class FormComponent extends React.Component {
                                                 style={{ backgroundColor: "#eee" }}
                                                 id="dueDate"
                                                 name="dueDate"
-                                                value={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate) ? displayDate(task.Selected.dueDate) : ""}
+                                                value={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != '') ? displayDate(task.Selected.dueDate) : ""}
                                                 onChange={() => { }}
                                                 required={false}
                                                 disabled={!allowEdit}
@@ -248,9 +248,9 @@ export default class FormComponent extends React.Component {
                                             selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
                                             onChange={(e) => {
                                                 this.setDropDown("assignedTo", e.value);
-                                            }} 
+                                            }}
                                             disabled={!allowEdit}
-                                            />
+                                        />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
