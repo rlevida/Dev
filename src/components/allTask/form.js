@@ -52,11 +52,12 @@ export default class FormComponent extends React.Component {
     }
 
     handleDate(e) {
-        let { dispatch, task } = this.props
+        let { dispatch, task } = this.props;
         let Selected = Object.assign({}, task.Selected)
+        let selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
 
-        Selected[e.target.name] = e.target.value + " UTC";
-        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
+        Selected[e.target.name] = selectedDate;
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
     }
 
     handleCheckbox(name, value) {
@@ -92,7 +93,7 @@ export default class FormComponent extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, task } = this.props
+        let { socket, task, dispatch } = this.props
 
         let result = true;
         $('.form-container *').validator('validate');
@@ -106,6 +107,7 @@ export default class FormComponent extends React.Component {
             return;
         }
         socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...task.Selected, dueDate: moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') } });
+        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
     }
 
     setDropDown(name, value) {
