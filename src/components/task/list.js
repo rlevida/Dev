@@ -84,7 +84,7 @@ export default class List extends React.Component {
                                 <td>
                                     { (taskStatus == 0) && <span class="fa fa-circle fa-lg" style={{color:"#27ae60"}}></span> }
                                     { (taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{color:"#f39c12"}}></span> }
-                                    { (taskStatus == 2) && <span class="fa fa-circle fa-lg" style={{color:"#16a085"}}></span> }
+                                    { (taskStatus == 2) && <span class="fa fa-circle fa-lg" style={{color:"#c0392b"}}></span> }
                                 </td>
                                 <td>{data.workstream_workstream}</td>
                                 <td>{data.task}</td>

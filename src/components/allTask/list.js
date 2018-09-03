@@ -55,8 +55,6 @@ export default class List extends React.Component {
 
     render() {
         let { task, socket, loggedUser } = this.props;
-        console.log(loggedUser)
-
         return <div>
             <TaskStatus style={{ float: "right", padding: "20px" }} />
             <table id="dataTable" class="table responsive-table">
