@@ -53,15 +53,17 @@ export default class FormComponent extends React.Component {
                 showToast("error","Form did not fullfill the required value.")
                 return;
             }
-            
-            socket.emit("SAVE_OR_UPDATE_DOCUMENT",{ data:document.Selected , filter :{ tagTypeId:document.Selected.id , tagType: "document" } , type : "project" });
+            if(document.EditType != "folder"){
+                socket.emit("SAVE_OR_UPDATE_DOCUMENT",{ data:document.Selected , filter :{ tagTypeId:document.Selected.id , tagType: "document" } , type : "project" });
+            }else{
+                socket.emit("SAVE_OR_UPDATE_FOLDER",{ data:document.Selected , filter :{ tagTypeId:document.Selected.id , tagType: "document" } , type : "project" });
+            }
     }
 
     selectTag(e,data){
         let { dispatch , document } = this.props;
         let Selected = Object.assign({},document.Selected);
             Selected["tags"] = JSON.stringify(e)
-            Selected["status"] = "library"
             dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
     }
     
@@ -141,6 +143,15 @@ export default class FormComponent extends React.Component {
                                                 selected={ ( document.Selected.tags != null ) ? JSON.parse(document.Selected.tags) : []  } 
                                                 onChange={(e)=>this.selectTag(e , document.Selected )} 
                                                 /> 
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                }
+                                {(document.EditType == "folder") && 
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Folder Name *</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <input type="text" name="name" required value={(typeof document.Selected.name == "undefined")?"":document.Selected.name} class="form-control" placeholder="Document" onChange={this.handleChange} />
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>

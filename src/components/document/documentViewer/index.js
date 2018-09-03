@@ -18,7 +18,8 @@ import { connect } from "react-redux"
         loggedUser: store.loggedUser,
         users: store.users,
         settings: store.settings,
-        conversation: store.conversation
+        conversation: store.conversation,
+        global: store.global
     }
 })
 
@@ -92,10 +93,10 @@ export default class DocumentViewerComponent extends React.Component {
     }
 
     render() {
-        let { dispatch , document, users , settings , conversation } = this.props , 
+        let { dispatch , document, users , settings , conversation , global } = this.props , 
             { comment , suggestions , editorState} = this.state ,
             isDocument = true , ext = "";
-        let uploadedBy =  users.List.filter( e =>{ return e.id == document.Selected.uploadedBy});
+        let uploadedBy =  global.SelectList.ProjectMemberList.filter( e =>{ return e.id == document.Selected.uploadedBy});
             ext = getFilePathExtension(document.Selected.name);
             if( ext == "jpeg" || ext == "png"){
                 isDocument = false;
@@ -148,7 +149,7 @@ export default class DocumentViewerComponent extends React.Component {
                                                 return (
                                                     <span key={i}>
                                                         <p>{ Parser(e.comment) } </p>
-                                                        <p><i> By { users.List.filter( f => { return f.id == e.usersId})[0].emailAddress } , { moment(e.dateAdded).format('L') }</i></p>
+                                                        <p><i> By { global.SelectList.ProjectMemberList.filter( f => { return f.id == e.usersId})[0].emailAddress } , { moment(e.dateAdded).format('L') }</i></p>
                                                         <br/>
                                                     </span>
                                                 )

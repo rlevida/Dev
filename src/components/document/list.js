@@ -16,7 +16,6 @@ import { connect } from "react-redux"
         document: store.document,
         loggedUser: store.loggedUser,
         workstream: store.workstream,
-        users : store.users,
         settings: store.settings,
         starred : store.starred,
         global : store.global,
@@ -39,15 +38,19 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        let { socket } = this.props
-            socket.emit("GET_USER_LIST",{});
+        let { socket , loggedUser } = this.props
             socket.emit("GET_SETTINGS", {});
+            socket.emit("GET_USER_LIST",{});
             socket.emit("GET_FOLDER_LIST",{filter:{projectId: project }})
             socket.emit("GET_TASK_LIST", { filter: { projectId: project }});
             socket.emit("GET_STARRED_LIST",{ filter : { linkType : "project" } })
             socket.emit("GET_WORKSTREAM_LIST", { filter : { projectId : project } });
+            socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linkType : "project" , userTypeLinkId : loggedUser.data.id }});
+
+            // SELECT LIST
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
-            socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linkType : "project" }});
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "shareList" , filter : { linkType: "project" , linkId : project } })
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "ProjectMemberList" , filter : { linkId : project, linkType: "project" } })
     }
 
     saveDocument(){
@@ -62,7 +65,7 @@ export default class List extends React.Component {
     selectTag(e , index){
         let { tempData }  = this.state;
             tempData[index].tags = JSON.stringify(e);
-            tempData[index].status = "library";
+            tempData[index].status = "new";
             this.setState({ tempData : tempData });
     }
 
@@ -105,11 +108,6 @@ export default class List extends React.Component {
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
 
         return <div>
-                <HeaderButtonContainer  withMargin={true}>
-                    <li class="btn btn-info" onClick={(e)=>dispatch({type:"SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })} >
-                        <span>New Document</span>
-                    </li>
-                </HeaderButtonContainer>
                 <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/"+project} style={{color:"#000",textDecortion:"none"}}>{projectData.Selected.project}</a></h3>
                 <div style={{paddingBottom:"50px",paddingRight:"20px"}}>
                     <div class="form-group">

@@ -63,7 +63,7 @@ exports.deleteData = deleteData;
 
 var getProjectDocument = exports.getProjectDocument = (filter,data,cb) =>{
     let db = global.initDB();
-        let query = `select * from document WHERE id IN (${data.join(",")})`;
+        let query = `SELECT * FROM document WHERE id IN (${data.join(",")})`;
         let params = [];
         let tempFilter = Object.keys(filter);
         if(tempFilter.length>0){
@@ -79,7 +79,7 @@ var getProjectDocument = exports.getProjectDocument = (filter,data,cb) =>{
             query,
             params,
             function(err,row,fields){
-            if(err) { cb({ status : false, error : err, data : row }); return; }
+                if(err) { cb({ status : false, error : err, data : row }); return; }
                 cb({  status : true, error : err, data : row });
             }
         );
