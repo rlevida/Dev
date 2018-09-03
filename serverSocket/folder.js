@@ -15,15 +15,6 @@ var init = exports.init = (socket) => {
         })
     })
 
-    socket.on("GET_MEMBERS_DETAIL", (d) => {
-        let members = global.initModel("members")
-        members.getData("members", { id: d.id }, {}, (c) => {
-            if (c.data.length > 0) {
-                socket.emit("FRONT_MEMBERS_SELECTED", c.data[0])
-            }
-        })
-    })
-
     socket.on("SAVE_OR_UPDATE_FOLDER", (d) => {
         let folder = global.initModel("folder")
         if (typeof d.data.id != "undefined" && d.data.id != "") {
@@ -33,7 +24,7 @@ var init = exports.init = (socket) => {
                 if (c.status) {
                     folder.getData("folder", { id: id }, {}, (e) => {
                         if (e.data.length > 0) {
-                            socket.emit("FRONT_MEMBERS_EDIT", { data : e.data[0] , type : d.type })
+                            socket.emit("FRONT_FOLDER_EDIT", e.data[0] )
                             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
                         } else {
                             socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." })
@@ -48,7 +39,7 @@ var init = exports.init = (socket) => {
                 if (typeof c.id != "undefined" && c.id > 0) {
                     folder.getData("folder", { id: c.id }, {}, (e) => {
                         if (e.data.length > 0) {
-                            socket.emit("FRONT_FOLDER_ADD", { data : e.data , type : d.type })
+                            socket.emit("FRONT_FOLDER_ADD", e.data )
                             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully Added" })
                         } else {
                             socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
@@ -61,17 +52,18 @@ var init = exports.init = (socket) => {
         }
     })
 
-    // socket.on("DELETE_MEMBERS", (d) => {
-    //     let members = global.initModel("members")
-    //     let filter = (typeof d.filter != "undefined") ? d.filter : {};
-    //     members.getData("members", filter, {}, (b) => {
-    //         members.deleteData("members", filter, (c) => {
-    //             if (c.status) {
-    //                 socket.emit("FRONT_MEMBERS_DELETED", { id: d.id, type: d.usersType , type : d.type})
-    //             } else {
-    //                 socket.emit("RETURN_ERROR_MESSAGE", "Delete failed. Please try again later.")
-    //             }
-    //         })
-    //     })
-    // })
+    socket.on("DELETE_FOLDER", (d) => {
+        let folder = global.initModel("folder")
+        let filter = (typeof d.filter != "undefined") ? d.filter : {};
+            folder.getData("folder", filter, {}, (b) => {
+                folder.deleteData("folder", filter, (c) => {
+                    if (c.status) {
+                        socket.emit("FRONT_DELETE_FOLDER", { id: d.filter.id })
+                        socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully Deleted" })
+                    } else {
+                        socket.emit("RETURN_ERROR_MESSAGE", "Delete failed. Please try again later.")
+                    }
+                })
+            })
+    })
 }

@@ -71,6 +71,7 @@ var init = exports.init = (socket) => {
             modelList["ProjectMemberList"] = "members";
             modelList["taskList"] = "task";
             modelList["folderList"] = "folder";
+            modelList["shareList"] = "share"
         
         modelName = modelList[d.selectName];
         if(modelName != ""){
@@ -82,6 +83,16 @@ var init = exports.init = (socket) => {
                 case "ProjectMemberList" : {
                     model.getProjectMemberList(modelName, filter, {}, (c) => {
                         if (c.status) {
+                            socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:c.data,name:d.selectName})
+                        } else {
+                            socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:[],name:d.selectName})
+                        }
+                    })
+                    break;
+                }
+                case "shareList":{
+                    model.getShareList(modelName,filter,{},(c)=>{
+                        if(c.status){
                             socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:c.data,name:d.selectName})
                         } else {
                             socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:[],name:d.selectName})
