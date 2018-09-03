@@ -45,9 +45,9 @@ export default class List extends React.Component {
             <table id="dataTable" class="table responsive-table">
                 <tbody>
                     <tr>
-                        <th>ID</th>
-                        <th>Team</th>
-                        <th></th>
+                        <th class="text-center">ID</th>
+                        <th class="text-left">Team</th>
+                        <th class="text-center"></th>
                     </tr>
                     {
                         (teams.List.length == 0) &&
@@ -57,18 +57,9 @@ export default class List extends React.Component {
                     }
                     {
                         teams.List.map((data, index) => {
-                            if (typeof loggedUser.data.team != 'undefined') {
-                                console.log(loggedUser.data.id)
-                                console.log(loggedUser.data.team)
-                                console.log(filter(JSON.parse(loggedUser.data.team), (o) => { return o.value == data.id }))
-                                console.log(loggedUser.data.id == data.usersId)
-                                console.log((typeof loggedUser.data.team != 'undefined' && (filter(JSON.parse(loggedUser.data.team), (o) => { return o.value == data.id })).length > 0))
-
-                            }
-
                             return <tr key={index}>
-                                <td>{data.id}</td>
-                                <td>{data.team}</td>
+                                <td class="text-center">{data.id}</td>
+                                <td class="text-left">{data.team}</td>
                                 <td class="text-center">
                                     {
                                         (

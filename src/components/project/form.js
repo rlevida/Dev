@@ -260,7 +260,7 @@ export default class FormComponent extends React.Component {
                                             <table id="dataTable" class="table responsive-table mt30">
                                                 <tbody>
                                                     <tr>
-                                                        <th class="text-center">Member Name</th>
+                                                        <th class="text-left">Member Name</th>
                                                         <th class="text-center">Type</th>
                                                         <th class="text-center">Role</th>
                                                         <th></th>
@@ -275,7 +275,7 @@ export default class FormComponent extends React.Component {
                                                         userMemberList.map((data, index) => {
                                                             return (
                                                                 <tr key={index}>
-                                                                    <td>{data.user.firstName + ' ' + data.user.lastName}</td>
+                                                                    <td class="text-left">{data.user.firstName + ' ' + data.user.lastName}</td>
                                                                     <td>{data.user.userType}</td>
                                                                     <td>{((typeof data.user.role != 'undefined' && data.user.role).length > 0) ? data.user.role[0].role_role : ''}</td>
                                                                     <td class="text-center">
