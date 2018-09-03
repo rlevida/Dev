@@ -57,21 +57,18 @@ export default class List extends React.Component {
                     }
                     {
                         teams.List.map((data, index) => {
-                            if (typeof loggedUser.data.team != 'undefined') {
-                                console.log(loggedUser.data.id)
-                                console.log(loggedUser.data.team)
-                                console.log(filter(JSON.parse(loggedUser.data.team), (o) => { return o.value == data.id }))
-                                console.log(loggedUser.data.id == data.usersId)
-                                console.log((typeof loggedUser.data.team != 'undefined' && (filter(JSON.parse(loggedUser.data.team), (o) => { return o.value == data.id })).length > 0))
-
-                            }
-
                             return <tr key={index}>
                                 <td>{data.id}</td>
                                 <td>{data.team}</td>
                                 <td class="text-center">
                                     {
-                                        (loggedUser.data.id == data.usersId || (typeof loggedUser.data.team != 'undefined' && (filter(JSON.parse(loggedUser.data.team), (o) => { return o.value == data.id })).length > 0)) && <div>
+                                        (
+                                            (loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2)
+                                            ||
+                                            (loggedUser.data.id == data.usersId)
+                                            ||
+                                            (typeof loggedUser.data.team != 'undefined' && (filter(JSON.parse(loggedUser.data.team), (o) => { return o.value == data.id })).length > 0)
+                                        ) && <div>
                                             <a href="javascript:void(0);" data-tip="EDIT"
                                                 onClick={(e) => socket.emit("GET_TEAM_DETAIL", { id: data.id })}
                                                 class="btn btn-info btn-sm">

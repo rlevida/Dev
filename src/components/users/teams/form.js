@@ -5,7 +5,8 @@ import { DropDown } from "../../../globalComponents"
 
 import { connect } from "react-redux";
 import {
-    filter
+    filter,
+    findIndex
 } from "lodash";
 
 @connect((store) => {
@@ -56,31 +57,36 @@ export default class FormComponent extends React.Component {
     handleSubmit(e) {
         let { socket, teams, loggedUser, dispatch } = this.props
         let result = true;
-
-        // $('.form-container *').validator('validate');
-        // $('.form-container .form-group').each(function () {
-        //     if ($(this).hasClass('has-error')) {
-        //         result = false;
-        //     }
-        // });
-        // if (!result) {
-        //     showToast("error", "Form did not fullfill the required value.")
-        //     return;
-        // }
-
-        // if (typeof teams.Selected.avatar == "undefined" || !teams.Selected.avatar) {
-        //     teams.Selected.avatar = "https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png";
-        // }
-
-        // teams['Selected'].usersId = (teams.Selected.usersId == loggedUser.data.id) ? loggedUser.data.id : teams.Selected.usersId;
-
-        // socket.emit("SAVE_OR_UPDATE_TEAM", { data: teams.Selected });
-        if(filter(JSON.parse(teams.Selected.users), (o) => {return o.value == loggedUser.data.id}).length > 0){
-            console.log(loggedUser)
+        let myCurrentTeam = JSON.parse(loggedUser.data.team);
+        let myTeamIndex = findIndex(myCurrentTeam, (o) => { return o.value == teams.Selected.id });
+        let selectedTeamMembers = JSON.parse(teams.Selected.users);
+        $('.form-container *').validator('validate');
+        $('.form-container .form-group').each(function () {
+            if ($(this).hasClass('has-error')) {
+                result = false;
+            }
+        });
+        if (!result) {
+            showToast("error", "Form did not fullfill the required value.")
+            return;
         }
-        // if (loggedUser.data.id) {
-        //     dispatch({ type: "SET_LOGGED_USER_DATA", data: tempData })
-        // }
+
+        if (typeof teams.Selected.avatar == "undefined" || !teams.Selected.avatar) {
+            teams.Selected.avatar = "https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png";
+        }
+
+        teams['Selected'].usersId = (teams.Selected.usersId == loggedUser.data.id) ? loggedUser.data.id : teams.Selected.usersId;
+
+        socket.emit("SAVE_OR_UPDATE_TEAM", { data: teams.Selected });
+
+        if (myTeamIndex >= 0) {
+            if (filter(selectedTeamMembers, (o) => { return o.value == loggedUser.data.id }).length == 0) {
+                let myUpdatedTeam = filter(myCurrentTeam, (o) => { return o.value != teams.Selected.id });
+                let updatedProfile = { ...loggedUser.data, team: JSON.stringify(myUpdatedTeam) }
+                dispatch({ type: "SET_LOGGED_USER_DATA", data: updatedProfile })
+
+            }
+        }
     }
 
     setDropDown(name, value) {

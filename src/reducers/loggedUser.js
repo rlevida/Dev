@@ -1,14 +1,14 @@
-export default function reducer(state={
+export default function reducer(state = {
     data: {
-        username : "",
+        username: "",
         emailAddress: "",
         userType: ""
     }
-},action){
+}, action) {
     switch (action.type) {
         //Set 
         case "SET_LOGGED_USER_DATA": {
-            return { ...state, data : action.data }
+            return { ...state, data: action.data }
         }
         default:
             return state;
