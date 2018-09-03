@@ -2,7 +2,7 @@ import React from "react"
 import ReactDOM from "react-dom"
 import ToolTip from "react-tooltip"
 
-import { showToast,displayDate,setCookie,getCookie,NationalityList,CountryList } from '../../globalFunction'
+import { showToast, displayDate, setCookie, getCookie, NationalityList, CountryList } from '../../globalFunction'
 import Menu from "./menu"
 
 import { connect } from "react-redux"
@@ -10,126 +10,126 @@ import { connect } from "react-redux"
     return {
         socket: store.socket.container,
         user: store.loggedUser.data,
-        reminder : store.reminder
+        reminder: store.reminder
     }
 })
 export default class Component extends React.Component {
-    constructor(props){
+    constructor(props) {
         super(props)
         this.state = {
-            miniSideMenu: (getCookie("sidemenu"))?getCookie("sidemenu"):"false",
+            miniSideMenu: (getCookie("sidemenu")) ? getCookie("sidemenu") : "false",
             showLeft: false,
             showMore: "",
-            reminderCount : 0,
-            getReminder : true
+            reminderCount: 0,
+            getReminder: true
         }
         this.showLeft = this.showLeft.bind(this)
     }
 
     showLeft() {
-        if(this.state.showLeft){
-            this.setState({showLeft:false})
+        if (this.state.showLeft) {
+            this.setState({ showLeft: false })
             $("body").removeClass("sidebar-left-opened");
-        }else{
-            this.setState({showLeft:true})
+        } else {
+            this.setState({ showLeft: true })
             $("body").addClass("sidebar-left-opened");
         }
     }
-   
-    componentDidMount(){
-        let { dispatch, socket , user } = this.props;
-        socket.emit("LOGGED_USER",{});
-        socket.emit("GET_SETTINGS",{});
 
-        if(window.innerHeight <= 550){
-            this.setState({showMore:""})
-            $("body").css("overflow-y","auto").css("min-height","550px")
+    componentDidMount() {
+        let { dispatch, socket, user } = this.props;
+        socket.emit("LOGGED_USER", {});
+        socket.emit("GET_SETTINGS", {});
+
+        if (window.innerHeight <= 550) {
+            this.setState({ showMore: "" })
+            $("body").css("overflow-y", "auto").css("min-height", "550px")
             $("html").scrollTop(0);
-        }else{
-            this.setState({showMore:"bottom"})
+        } else {
+            this.setState({ showMore: "bottom" })
         }
         $(window).resize(() => {
-            if(window.innerHeight <= 550){
-                this.setState({showMore:""})
-                $("#menu").css("overflow","hidden").css("margin-top","0px")
-                $("body").css("overflow-y","auto").css("min-height","550px")
-            }else{
-                this.setState({showMore:"bottom"})
-                $("body").css("overflow-y","").css("min-height","")
+            if (window.innerHeight <= 550) {
+                this.setState({ showMore: "" })
+                $("#menu").css("overflow", "hidden").css("margin-top", "0px")
+                $("body").css("overflow-y", "auto").css("min-height", "550px")
+            } else {
+                this.setState({ showMore: "bottom" })
+                $("body").css("overflow-y", "").css("min-height", "")
                 $("html").scrollTop(0);
             }
         });
     }
 
-    componentWillReceiveProps(props){
-        let {socket , user , reminder } = props;
+    componentWillReceiveProps(props) {
+        let { socket, user, reminder } = props;
         let { getReminder } = this.state
-            if( reminder.List.length == 0 && getReminder && typeof user.id != "undefined"){
-                socket.emit("GET_REMINDER_LIST", { filter:{ usersId : user.id , seen : 0 }} )
-                this.setState({ getReminder : false })
-            }
+        if (reminder.List.length == 0 && getReminder && typeof user.id != "undefined") {
+            socket.emit("GET_REMINDER_LIST", { filter: { usersId: user.id, seen: 0 } })
+            this.setState({ getReminder: false })
+        }
     }
 
     setSideMenuState(status) {
-        this.setState({miniSideMenu:status})
-        setCookie("sidemenu",status,1);
-    } 
-
-    setShowMore(type){
-        if(type=="top"){
-            $("#menu").css( "overflow", "hidden" )
-                      .css( "margin-top",
-                            "-"+(((window.innerHeight)<767)
-                                ? ( 767 - window.innerHeight)
-                                : 0 ) + "px" )
-        }else{
-            $("#menu").css("overflow","hidden").css("margin-top","0px")
-        }
-        this.setState({showMore:type})
+        this.setState({ miniSideMenu: status })
+        setCookie("sidemenu", status, 1);
     }
 
-    seenReminder(){
+    setShowMore(type) {
+        if (type == "top") {
+            $("#menu").css("overflow", "hidden")
+                .css("margin-top",
+                    "-" + (((window.innerHeight) < 767)
+                        ? (767 - window.innerHeight)
+                        : 0) + "px")
+        } else {
+            $("#menu").css("overflow", "hidden").css("margin-top", "0px")
+        }
+        this.setState({ showMore: type })
+    }
+
+    seenReminder() {
         let { reminder } = this.props;
     }
     render() {
-        let { user , reminder , dispatch } = this.props
+        let { user, reminder, dispatch } = this.props
         let userView = "";
-            if(user.username != "" ){
-                userView = <div class="headAccess"> Welcome : {user.username}</div>;
-            }
+        if (user.username != "") {
+            userView = <div class="headAccess"> Welcome : {user.username}</div>;
+        }
         return <div>
-            <div class={((this.state.miniSideMenu=="true")?"sidebar-left-mini":"")+" bg-dark dk "} id="wrap">
-                    <div class="dropdown pull-right" style={{marginTop:"10px",marginRight:"10px"}}>
-                        <a class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                            <span class="fa fa-bell"></span>
-                            <span class="label label-danger" style={{marginLeft:"5px" , display :reminder.List.length ? "inline-block" : "none"}}>{reminder.List.length}</span> 
+            <div class={((this.state.miniSideMenu == "true") ? "sidebar-left-mini" : "") + " bg-dark dk "} id="wrap">
+                <div class="dropdown pull-right" style={{ marginTop: "10px", marginRight: "10px" }}>
+                    <a class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                        <span class="fa fa-bell"></span>
+                        <span class="label label-danger" style={{ marginLeft: "5px", display: reminder.List.length ? "inline-block" : "none" }}>{reminder.List.length}</span>
+                    </a>
+                    <ul class="dropdown-menu" >
+                        {reminder.List.map((data, index) => {
+                            return (
+                                <li><a href={"/reminder"} key={index} style={{ textDecoration: "none" }}>{data.reminderDetail}</a></li>
+                            )
+                        })
+                        }
+                    </ul>
+                </div>
+                <div class="pull-right" style={{ marginTop: "10px" }}>
+                    <div class="btn-group">
+                        <a data-tip="profile" href={"/profile"} class="btn btn-default ">
+                            <i class="glyphicon glyphicon-user"></i>
                         </a>
-                        <ul class="dropdown-menu" >
-                            { reminder.List.map((data,index) => {
-                                    return (
-                                        <li><a href={"/reminder"} key={index} style={{textDecoration:"none"}}>{data.reminderDetail}</a></li>
-                                    )
-                                })
-                            }
-                        </ul>
                     </div>
-                    <div class="pull-right" style={{marginTop:"10px"}}>
-                        <div class="btn-group">
-                            <a  data-tip="profile" href={"/profile"} class="btn btn-default ">
-                                <i class="glyphicon glyphicon-user"></i>
-                            </a>
-                        </div>
-                    </div>
+                </div>
 
                 <header class="head">
                     <div class="search-bar">
                         <h3>Cloud CFO</h3>
                     </div>
                     <div class="main-bar">
-                        <h3>
+                        <h3 style={{ 'text-transform': 'capitalize' }}>
                             <i class="glyphicon glyphicon-dashboard"></i>&nbsp;
-                           {this.props.page}{this.props.form?" > "+this.props.form:""}{(this.props.form) == "Form"?(this.props.formId > 0?" > Edit ":" > Add "):""}
-                         
+                           {(this.props.page)}{this.props.form ? " > " + this.props.form : ""}{(this.props.form) == "Form" ? (this.props.formId > 0 ? " > Edit " : " > Add ") : ""}
+
                         </h3>
                     </div>
                 </header>
@@ -142,12 +142,12 @@ export default class Component extends React.Component {
                             <a class="user-link" href={"/profile"}>
                                 <img class="media-object img-thumbnail user-img" alt="User Picture" src="/images/user.gif" />
                             </a>
-                    
+
                             <div class="media-body">
-                                <h5 class="media-heading"><p style={{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",width:"120px"}} title={user.username}>{user.username}</p></h5>
+                                <h5 class="media-heading"><p style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "120px" }} title={user.username}>{user.username}</p></h5>
                                 <ul class="list-unstyled user-info">
                                     <li>{user.userType}</li>
-                                    <li>Last Updated: <br/>
+                                    <li>Last Updated: <br />
                                         <small><i class="glyphicon glyphicon-calendar"></i>&nbsp;{displayDate(user.date_updated)}</small>
                                     </li>
                                 </ul>
@@ -155,28 +155,28 @@ export default class Component extends React.Component {
                         </div>
                     </div>
                     <div class="side-menu-navigator">
-                        { this.state.miniSideMenu == "false" &&
-                            <a data-tip="Hide Menu" href="javascript:void(0);" onClick={e=>this.setSideMenuState("true")} ><span class="glyphicon glyphicon-menu-left"></span><ToolTip /></a>
+                        {this.state.miniSideMenu == "false" &&
+                            <a data-tip="Hide Menu" href="javascript:void(0);" onClick={e => this.setSideMenuState("true")} ><span class="glyphicon glyphicon-menu-left"></span><ToolTip /></a>
                         }
-                        { this.state.miniSideMenu == "true" &&
-                            <a data-tip="Show Menu" href="javascript:void(0);" onClick={e=>this.setSideMenuState("false")}><span class="glyphicon glyphicon-menu-right"></span><ToolTip /></a>
+                        {this.state.miniSideMenu == "true" &&
+                            <a data-tip="Show Menu" href="javascript:void(0);" onClick={e => this.setSideMenuState("false")}><span class="glyphicon glyphicon-menu-right"></span><ToolTip /></a>
                         }
                     </div>
                     <div class="side-menu-navigator">
-                        { this.state.showMore == "bottom" &&
-                            <a data-tip="Show Bottom Menu" href="javascript:void(0);" onClick={e=>this.setShowMore("top")} ><span class="glyphicon glyphicon-chevron-up"></span><ToolTip /></a>
+                        {this.state.showMore == "bottom" &&
+                            <a data-tip="Show Bottom Menu" href="javascript:void(0);" onClick={e => this.setShowMore("top")} ><span class="glyphicon glyphicon-chevron-up"></span><ToolTip /></a>
                         }
                     </div>
                     <Menu miniSideMenu={this.state.miniSideMenu} />
                     <div class="side-menu-navigator">
-                        { this.state.showMore == "top" &&
-                            <a data-tip="Show Top Menu" href="javascript:void(0);" onClick={e=>this.setShowMore("bottom")}><span class="glyphicon glyphicon-chevron-down"></span><ToolTip /></a>
+                        {this.state.showMore == "top" &&
+                            <a data-tip="Show Top Menu" href="javascript:void(0);" onClick={e => this.setShowMore("bottom")}><span class="glyphicon glyphicon-chevron-down"></span><ToolTip /></a>
                         }
                     </div>
                 </div>
                 <div id="content">
-                    <div class="outer" style={{minHeight:"400px"}}>
-                        <div class="inner bgcolor-gray lter" style={{minHeight:"500px"}}>
+                    <div class="outer" style={{ minHeight: "400px" }}>
+                        <div class="inner bgcolor-gray lter" style={{ minHeight: "500px" }}>
                             <div>{this.props.component}</div>
                             <footer class="Footer bg-dark">
                                 <p>© 2013-{(new Date()).getFullYear()} All Rights Reserved. - Powered by <a class="red-text text-lighten-1" href="http://www.mobbizsolutions.com/" target="_blank">Mobbiz Solutions</a></p>

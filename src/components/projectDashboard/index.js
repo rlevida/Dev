@@ -45,7 +45,6 @@ export default class Component extends React.Component {
                     <DocumentStatus />
                 </div>
             </div>
-
         </div>
         return (
             <Header component={Component} page={"Project"} />

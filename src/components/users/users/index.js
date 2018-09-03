@@ -55,7 +55,6 @@ export default class Component extends React.Component {
         let { socket, users, dispatch } = this.props
         return (
             <div>
-                <h1>Users</h1>
                 {users.FormActive == "List" &&
                     <List />
                 }

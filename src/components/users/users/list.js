@@ -46,8 +46,7 @@ export default class List extends React.Component {
         let { users, dispatch, socket, loggedUser } = this.props;
 
         return <div>
-            <a class="btn btn-primary" style={{ float: "right", cursor: "pointer", margin: "10px" }} onClick={(e) => dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })} ><span>New Users</span></a>
-            <table id="dataTable" class="table responsive-table">
+            <table id="dataTable" class="table responsive-table m0">
                 <tbody>
                     <tr>
                         <th class="text-center">ID</th>

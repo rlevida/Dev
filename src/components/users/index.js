@@ -13,16 +13,24 @@ import { connect } from "react-redux"
     }
 })
 export default class Component extends React.Component {
-    constructor(props) {
-        super(props) 
-    }
-
     render() {
-        let { socket, users, dispatch } = this.props
+        let { dispatch } = this.props
         let Component = <div>
-                <Team />
-                <User />
+            <div class="row pdl20 pdr20 mb20">
+                <div class="col-md-6">
+                    <h4 class="mt20 mb20">Team</h4>
+                    <a class="more" onClick={(e) => dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "Form" })} >Add Team</a>
+                    <Team />
+                </div>
             </div>
+            <div class="row pdl20 pdr20 mb20">
+                <div class="col-md-12">
+                    <h4 class="mt20 mb20">Users</h4>
+                    <a class="more" onClick={(e) => dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })} >Add User</a>
+                    <User />
+                </div>
+            </div>
+        </div>
         return (
             <Header component={Component} page={"Teams"} />
         )

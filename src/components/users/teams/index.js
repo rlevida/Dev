@@ -38,7 +38,6 @@ export default class Component extends React.Component {
         let { socket, teams, dispatch } = this.props
         return (
             <div>
-                <h1>Teams</h1>
                 {teams.FormActive == "List" &&
                     <List />
                 }
