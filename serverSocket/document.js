@@ -231,15 +231,29 @@ var init = exports.init = (socket) => {
 
     socket.on("SAVE_OR_UPDATE_SHARED_DOCUMENT",(d)=>{
         let users = JSON.parse(d.data)
+        let tempResData = [] ;
         let share = global.initModel("share")
             delete d.data
             users.map( e =>{
-                let data = Object.assign({},d)
-                    data.userTypeLinkId = e.value
-                    data.usersType = "users"
-                    share.postData("share",data,(c)=>{
-                        console.log(c)
-                    })
+                tempResData.push( new Promise((resolve,reject) => {
+                    let data = Object.assign({},d)
+                        data.userTypeLinkId = e.value
+                        data.usersType = "users"
+                        share.postData("share",data,(c)=>{
+                            if(c.status){
+                                resolve(c.data)
+                            }else{
+                                socket.emit("RETURN_ERROR_MESSAGE",{message:"Share failed. Please Try again later."})
+                                resolve();
+                            }
+                        })
+                }))
+            })
+            Promise.all(tempResData).then((values)=>{
+                let resData = []
+                if(values.length){
+                    socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully Shared"})
+                }
             })
     })
 }

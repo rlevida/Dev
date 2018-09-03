@@ -35,12 +35,6 @@ export default class DocumentNew extends React.Component {
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
 
-    componentWillMount() {
-        let { socket } = this.props
-            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
-            socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linkType : "project" }});
-    }
-
     updateActiveStatus(id,active){
         let { socket, dispatch } = this.props;
             dispatch({type:"SET_DOCUMENT_STATUS",record:{id:id,status:(active==1)?0:1}});
@@ -109,7 +103,7 @@ export default class DocumentNew extends React.Component {
 
     moveToLibrary(data){
         let { socket } = this.props;
-            socket.emit("SAVE_OR_UPDATE_DOCUMENT" , { data : { status : "library" , id : data.id } , type : "project"})
+            socket.emit("SAVE_OR_UPDATE_DOCUMENT" , { data : { status : "library" , id : data.id , isCompleted : 1 } , type : "project"})
     }
 
     render() {

@@ -7,6 +7,7 @@ CREATE TABLE `share` (
     `linkId` BIGINT,
     `shareType` ENUM("document","folder"),
     `shareId` BIGINT,
+    `sharedBy` BIGINT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)

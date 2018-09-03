@@ -35,6 +35,11 @@ var field = exports.field = {
      */
     'shareId' : {type : 'bigint' , access : "public" },
 
+     /**
+     * shareId (BIGINT)
+     */
+    'sharedBy' : {type : 'bigint' , access : "public" },
+
     /**
      * dateAdded (DATETIME)
      */
@@ -47,9 +52,23 @@ var field = exports.field = {
 
 }
 
-var { getData, putData, postData, deleteData, countData, getPublicField } = require("./index");
+var { getData, putData, postData, deleteData } = require("./index");
 exports.getData = getData;
 exports.putData = putData;
 exports.postData = postData;
 exports.deleteData = deleteData;
-exports.countData = countData;
+
+var getShareList = exports.getShareList = (tableName,filter,data,cb) =>{
+    let db = global.initDB();
+        let query = `SELECT * FROM share WHERE linkType = '${filter.linkType}' AND linkId = '${filter.linkId}' GROUP by shareId`;
+        let params = [];
+      
+        db.query(
+            query,
+            params,
+            function(err,row,fields){
+                if(err) { cb({ status : false, error : err, data : row }); return; }
+                cb({  status : true, error : err, data : row });
+            }
+        );
+}

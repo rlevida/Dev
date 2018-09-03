@@ -40,7 +40,7 @@ export default class DocumentLibrary extends React.Component {
             folderName : ""
         }
     }
-
+   
     updateActiveStatus(id,active){
         let { socket, dispatch } = this.props;
             dispatch({type:"SET_DOCUMENT_STATUS",record:{id:id,status:(active==1)?0:1}});
@@ -168,13 +168,14 @@ export default class DocumentLibrary extends React.Component {
     }
 
     share(){
-        let { socket , document } = this.props;
+        let { socket , document , loggedUser } = this.props;
             socket.emit("SAVE_OR_UPDATE_SHARED_DOCUMENT", { 
                 data: document.Selected.share , 
                 linkType: "project" ,
                 linkId : project , 
                 shareType : "document", 
-                shareId : document.Selected.id
+                shareId : document.Selected.id,
+                sharedBy : loggedUser.data.id
             })
     }
 
@@ -188,23 +189,41 @@ export default class DocumentLibrary extends React.Component {
             if(typeof folder.Selected.id == "undefined"){
                 if( document.List.length > 0 ){
                     document.List.filter( e =>{
-                        if( e.status == "new" && e.isCompleted != 1 ){
-                            documentList.newUpload.push(e)
-                        }
-                        if( e.status == "library" && e.isCompleted != 1 && e.folderId == null){
-                            documentList.library.push(e)
+                        if( loggedUser.data.userType == "Internal"){
+                            if( e.status == "new" && e.isCompleted != 1 ){
+                                documentList.newUpload.push(e)
+                            }
+                            if( e.status == "library" && e.folderId == null){
+                                documentList.library.push(e)
+                            }
+                        }else{
+                            if(e.status == "library" && e.folderId == null){
+                                let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? true : false ;
+                                    if(isShared){
+                                        documentList.library.push(e)
+                                    }
+                                }
                         }
                     })
                 }
             }else{
                 document.List.filter( e =>{
-                    if( e.status == "library" && e.isCompleted != 1 && e.folderId == folder.Selected.id){
-                        documentList.library.push(e)
+                    if(loggedUser.data.userType == "Internal"){
+                        if( e.status == "library" && e.folderId == folder.Selected.id){
+                            documentList.library.push(e)
+                        }
+                    }else{
+                        if(e.status == "library" && e.folderId == folder.Selected.id){
+                            let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? true : false ;
+                                if(isShared){
+                                    documentList.library.push(e)
+                                }
+                            }
                     }
                 })
             }
 
-            if(typeof global.SelectList.tagList != "undefined"){
+            if(typeof global.SelectList.tagList != "undefined"){ // FOR TAG OPTIONS
                 global.SelectList.tagList.map( t => {
                     if(workstream.List.filter( w => { return w.id == t.linkId && t.linkType == "workstream"} ).length > 0 ){
                         let workstreamName =  workstream.List.filter( w => { return w.id == t.linkId})[0].workstream;
@@ -217,7 +236,7 @@ export default class DocumentLibrary extends React.Component {
                 })
             }
 
-           if(typeof global.SelectList.ProjectMemberList != "undefined"){
+           if(typeof global.SelectList.ProjectMemberList != "undefined"){ // FOR SHARE OPTIONS
                 global.SelectList.ProjectMemberList.map(e =>{ 
                     if(e.userType == "External"){
                         shareOptions.push({ id: e.id , name : `${e.firstName} ${e.lastName}` })
@@ -282,7 +301,6 @@ export default class DocumentLibrary extends React.Component {
                                         )
                                     })
                                 }
-
                                 {
                                     documentList.library.map((data, index) => {
                                         return (
