@@ -17,29 +17,36 @@ import { connect } from "react-redux"
 })
 export default class Component extends React.Component {
     constructor(props) {
-        super(props) 
+        super(props)
     }
 
     render() {
         let { socket, projectData, dispatch } = this.props
-        let Component = <div>
-                <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/"+project} style={{color:"#000",textDecortion:"none"}}>{projectData.Selected.project}</a></h3>
-                <div class="row">
+        let Component = <div class="pd20">
+            <h3 class="m0"><a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>
+            <div class="row pdl20 pdr20 mb20">
+                <div class="col-md-6">
+                    <h4 class="mt20 mb20">My Tasks</h4>
+                    <a class="more" href={"/project/tasks/" + project}>+ More</a>
                     <Task />
                 </div>
-                <div class="row" style={{padding:"20px"}}>
-                    <div class="col-md-6" >
-                    <h3>Workstream 
-                        <a class="pull-right" style={{fontSize: "14px" , marginTop: "10px" , textDecoration: "none"}} href={"/project/processes/"+project}> + More</a>
-                    </h3>
-                        <WorkstreamStatus />
-                    </div>
-                </div>
-                <div class="row"  style={{padding:"20px"}}>
-                    <DocumentStatus/>
-                </div>
-                
             </div>
+            <div class="row pdl20 pdr20 mb20">
+                <div class="col-md-6">
+                    <h4 class="mt20 mb20">Workstream</h4>
+                    <a class="more" href={"/project/processes/" + project}> + More</a>
+                    <WorkstreamStatus />
+                </div>
+            </div>
+            <div class="row pdl20 pdr20">
+                <div class="col-md-6">
+                    <h4 class="mt20 mb20">Documents</h4>
+                    <a class="more" href={"/project/documents/"+project}> + More</a>
+                    <DocumentStatus />
+                </div>
+            </div>
+
+        </div>
         return (
             <Header component={Component} page={"Project"} />
         )

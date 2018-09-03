@@ -13,16 +13,16 @@ import { connect } from "react-redux"
 })
 export default class Component extends React.Component {
     constructor(props) {
-        super(props) 
+        super(props)
         this.editData = this.editData.bind(this)
     }
 
     editData(id) {
         let { socket, dispatch } = this.props
-        if(id == ""){
-            dispatch({type:"SET_workspace_FORM_ACTIVE", FormActive: "Form" })
-        }else{
-            socket.emit("GET_TASK_DETAIL",id)
+        if (id == "") {
+            dispatch({ type: "SET_workspace_FORM_ACTIVE", FormActive: "Form" })
+        } else {
+            socket.emit("GET_TASK_DETAIL", id)
         }
     }
 
@@ -30,9 +30,7 @@ export default class Component extends React.Component {
         let { socket, task, project, dispatch } = this.props
 
         return (
-            <div class="col-md-8">
-                <List />
-            </div>
+            <List />
         )
     }
 }

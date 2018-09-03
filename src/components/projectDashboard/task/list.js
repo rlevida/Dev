@@ -21,20 +21,20 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        let intervalLoggedUser = setInterval(()=>{
-            if(typeof this.props.loggedUser.data.id != "undefined"){
-                let filter = { filter:{projectId: project}}
-                if(this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2"){
-                    filter = {filter:{projectId: project, id: {name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN "}}}
+        let intervalLoggedUser = setInterval(() => {
+            if (typeof this.props.loggedUser.data.id != "undefined") {
+                let filter = { filter: { projectId: project } }
+                if (this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2") {
+                    filter = { filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
                 }
-                this.props.socket.emit("GET_TASK_LIST",filter);
+                this.props.socket.emit("GET_TASK_LIST", filter);
                 clearInterval(intervalLoggedUser)
             }
-        },1000)
+        }, 1000)
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
-        this.props.socket.emit("GET_USER_LIST",{});
-        this.props.socket.emit("GET_TEAM_LIST",{});
+        this.props.socket.emit("GET_USER_LIST", {});
+        this.props.socket.emit("GET_TEAM_LIST", {});
     }
 
     updateActiveStatus(id, active) {
@@ -52,15 +52,14 @@ export default class List extends React.Component {
 
     render() {
         let { task, dispatch, socket } = this.props;
-        
-        return <div>
-            <h3>&nbsp;&nbsp;&nbsp;&nbsp;My Tasks </h3><a style={{float:"right"}}  href={"/project/tasks/"+project}>+ More</a>
-            <table id="dataTable" class="table responsive-table">
+
+        return (
+            <table id="dataTable" class="table responsive-table m0">
                 <tbody>
                     <tr>
-                        <th style={{textAlign:"center"}}>WorkStream</th>
-                        <th style={{textAlign:"center"}}>Task</th>
-                        <th style={{textAlign:"center"}}>Due Date</th>
+                        <th class="text-left">WorkStream</th>
+                        <th class="text-left">Task</th>
+                        <th class="text-center">Due Date</th>
                     </tr>
                     {
                         (task.List.length == 0) &&
@@ -71,14 +70,14 @@ export default class List extends React.Component {
                     {
                         task.List.map((data, index) => {
                             return <tr key={index}>
-                                <td>{data.workstream_workstream}</td>
-                                <td>{data.task}</td>
-                                <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
+                                <td class="text-left">{data.workstream_workstream}</td>
+                                <td class="text-left">{data.task}</td>
+                                <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                             </tr>
                         })
                     }
                 </tbody>
             </table>
-        </div>
+        )
     }
 }
