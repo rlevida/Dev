@@ -57,6 +57,15 @@ export default class List extends React.Component {
                     }
                     {
                         teams.List.map((data, index) => {
+                            if (typeof loggedUser.data.team != 'undefined') {
+                                console.log(loggedUser.data.id)
+                                console.log(loggedUser.data.team)
+                                console.log(filter(JSON.parse(loggedUser.data.team), (o) => { return o.value == data.id }))
+                                console.log(loggedUser.data.id == data.usersId)
+                                console.log((typeof loggedUser.data.team != 'undefined' && (filter(JSON.parse(loggedUser.data.team), (o) => { return o.value == data.id })).length > 0))
+
+                            }
+
                             return <tr key={index}>
                                 <td>{data.id}</td>
                                 <td>{data.team}</td>
