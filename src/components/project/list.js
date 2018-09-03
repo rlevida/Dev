@@ -66,9 +66,9 @@ export default class List extends React.Component {
                             <th>Project</th>
                             <th>Type</th>
                             <th>New Docs</th>
-                            <th>Notification</th>
-                            <th>Active Workstream</th>
-                            <th>Late Workstream</th>
+                            <th>Notifications</th>
+                            <th>Active Workstreams</th>
+                            <th>Late Workstreams</th>
                             { (loggedUser.data.userRole == 1 
                                         || loggedUser.data.userRole == 2 
                                         || loggedUser.data.userRole == 3 
@@ -88,7 +88,7 @@ export default class List extends React.Component {
                                     // if user is client the he can only see client project
                                 }else{
                                     return <tr key={index}>
-                                        <td>{(data.isActive == 0) && <span class="fa fa-circle" style={{color:"#000"}}></span>}{(data.isActive == 1)?<span class="fa fa-exclamation-circle fa-lg" style={{color:(data.Issues>0)?"#d4a2a2":(data.OnTrack>0)?"#dee054d9":"#9eca9f"}}></span>:""}</td>
+                                        <td>{(data.isActive == 0) && <span class="fa fa-circle" style={{color:"#000"}}></span>}{(data.isActive == 1)?<span class="fa fa-circle fa-lg" style={{color:(data.Issues>0)?"#c0392b":(data.OnTrack>0)?"#f39c12":"#27ae60"}}></span>:""}</td>
                                         <td><a href={"/project/"+data.id}>{data.project}</a></td>
                                         <td><span class={(data.type_type=="Client")?"fa fa-users":(data.type_type=="Private")?"fa fa-lock":"fa fa-cloud"}></span></td>
                                         <td>{(data.newDocCount>0)?<span class="fa fa-file"></span>:""} {data.newDocCount}</td>
