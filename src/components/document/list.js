@@ -65,7 +65,7 @@ export default class List extends React.Component {
     selectTag(e , index){
         let { tempData }  = this.state;
             tempData[index].tags = JSON.stringify(e);
-            tempData[index].status = "library";
+            tempData[index].status = "new";
             this.setState({ tempData : tempData });
     }
 
