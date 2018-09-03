@@ -4,6 +4,7 @@ import LibraryDocument from './libraryDocument'
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DragDropContext } from 'react-dnd';
 import { DropDown } from "../../../globalComponents"
+import Tooltip from "react-tooltip";
 
 import { connect } from "react-redux"
 
@@ -173,7 +174,7 @@ export default class DocumentLibrary extends React.Component {
                 data: document.Selected.share , 
                 linkType: "project" ,
                 linkId : project , 
-                shareType : "document", 
+                shareType : document.Selected.isFolder ? "folder" : "document", 
                 shareId : document.Selected.id,
                 sharedBy : loggedUser.data.id
             })
@@ -181,7 +182,8 @@ export default class DocumentLibrary extends React.Component {
 
     render() {
         let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser } = this.props;
-        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [];
+        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [] ;
+        let folderList = [];
 
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
@@ -198,7 +200,7 @@ export default class DocumentLibrary extends React.Component {
                             }
                         }else{
                             if(e.status == "library" && e.folderId == null){
-                                let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? true : false ;
+                                let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? 1 : 0 ;
                                     if(isShared){
                                         documentList.library.push(e)
                                     }
@@ -214,7 +216,7 @@ export default class DocumentLibrary extends React.Component {
                         }
                     }else{
                         if(e.status == "library" && e.folderId == folder.Selected.id){
-                            let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? true : false ;
+                            let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id && s.shareType == "document" }).length ? 1 : 0 ;
                                 if(isShared){
                                     documentList.library.push(e)
                                 }
@@ -236,12 +238,29 @@ export default class DocumentLibrary extends React.Component {
                 })
             }
 
-           if(typeof global.SelectList.ProjectMemberList != "undefined"){ // FOR SHARE OPTIONS
+            if(typeof global.SelectList.ProjectMemberList != "undefined"){ // FOR SHARE OPTIONS
                 global.SelectList.ProjectMemberList.map(e =>{ 
                     if(e.userType == "External"){
                         shareOptions.push({ id: e.id , name : `${e.firstName} ${e.lastName}` })
                     }
                 }) 
+            }
+
+            if(folder.List.length > 0){
+                if(loggedUser.data.userType == "Internal"){
+                    folder.List.map( e =>{
+                        folderList.push(e)
+                    })
+                }else{
+                    if(typeof global.SelectList.shareList != "undefined" && typeof loggedUser.data.id != "undefined"){
+                        folder.List.map( e =>{
+                            let isShared = global.SelectList.shareList.filter( s =>{ return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id &&  s.shareType == "folder"}).length ? 1 : 0
+                                if(isShared){
+                                    folderList.push(e)
+                                }
+                        })
+                    }
+                }
             }
 
         return  <div>
@@ -278,7 +297,7 @@ export default class DocumentLibrary extends React.Component {
                                 }
                                
                                 { (typeof folder.Selected.id == "undefined") &&
-                                    folder.List.map((data, index) => {
+                                    folderList.map((data, index) => {
                                         return (
                                             // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id , "folder")} documentToMove={(data)=> this.documentToMove(data)} docType="folder"/>
                                             <tr key={index}>
@@ -292,6 +311,9 @@ export default class DocumentLibrary extends React.Component {
                                                     <div class="dropdown">
                                                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                         <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                            { (loggedUser.data.userType == "Internal") &&
+                                                                <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={()=>dispatch({type:"SET_DOCUMENT_SELECTED", Selected:data })}>Share</a></li>
+                                                            }
                                                             <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editFolder(data , "folder")}>Rename</a></li>
                                                             <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteFolder(data.id)}>Delete</a></li>
                                                         </ul>
@@ -320,7 +342,25 @@ export default class DocumentLibrary extends React.Component {
                                                 </td>
                                                 <td><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
                                                 <td>{ moment(data.dateUpdated).format('L') }</td>
-                                                <td><i class="fa fa-users"></i></td>
+                                                <td>
+                                                    <div>
+                                                        <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
+                                                        <Tooltip id={`follower${index}`}>
+                                                            { global.SelectList.ProjectMemberList.map((e,mIndex) => {
+                                                                if( e.userType == "Internal"){
+                                                                    return <p key={mIndex}>{ `${e.firstName} ${e.lastName}`} <br/></p>
+                                                                }else{
+                                                                    if(global.SelectList.shareList.length > 0){
+                                                                        let isShared =  global.SelectList.shareList.filter(s => {return s.userTypeLinkId == e.id && data.id == s.shareId && s.shareType == "document"}).length ? 1 : 0
+                                                                            if(isShared){
+                                                                                return <p key={mIndex}>{ `${e.firstName} ${e.lastName}`} <br/></p>
+                                                                            }
+                                                                    }
+                                                                }
+                                                            })}
+                                                        </Tooltip>
+                                                    </div>
+                                                </td>
                                                 <td> 
                                                     { (tagList.length > 0) &&
                                                         tagList.map((t,tIndex) =>{

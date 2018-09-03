@@ -60,7 +60,7 @@ exports.deleteData = deleteData;
 
 var getShareList = exports.getShareList = (tableName,filter,data,cb) =>{
     let db = global.initDB();
-        let query = `SELECT * FROM share WHERE linkType = '${filter.linkType}' AND linkId = '${filter.linkId}' GROUP by shareId`;
+        let query = `SELECT * FROM share WHERE linkType = '${filter.linkType}' AND linkId = '${filter.linkId}' GROUP by shareId , shareType`;
         let params = [];
       
         db.query(
