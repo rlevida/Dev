@@ -51,13 +51,13 @@ export default class List extends React.Component {
                     <tbody>
                         <tr>
                             <th></th>
-                            <th style={{ textAlign: "center" }}>Workstream</th>
-                            <th style={{ textAlign: "center" }}>Pending</th>
-                            <th style={{ textAlign: "center" }}>Completed</th>
-                            <th style={{ textAlign: "center" }}>Issues</th>
-                            <th style={{ textAlign: "center" }}>New Docs</th>
-                            <th style={{ textAlign: "center" }}>Members</th>
-                            <th style={{ textAlign: "center" }}>Type</th>
+                            <th class="text-left">Workstream</th>
+                            <th class="text-center">Pending</th>
+                            <th class="text-center">Completed</th>
+                            <th class="text-center">Issues</th>
+                            <th class="text-center">New Docs</th>
+                            <th class="text-center">Members</th>
+                            <th class="text-center">Type</th>
                             <th></th>
                             {(loggedUser.data.userRole == 1
                                 || loggedUser.data.userRole == 2
@@ -77,7 +77,7 @@ export default class List extends React.Component {
                                 return (
                                     <tr key={index}>
                                         <td>{(data.isActive == 0) && <span class="fa fa-circle fa-lg" style={{ color: "#000" }}></span>}{(data.isActive == 1) ? <span class="fa fa-circle fa-lg" style={{ color: (data.Issues > 0) ? "#c0392b" : (data.OnTrack > 0) ? "#f39c12" : "#16a085" }}></span> : ""}</td>
-                                        <td>{data.workstream}</td>
+                                        <td  class="text-left">{data.workstream}</td>
                                         <td>{data.OnTrack}</td>
                                         <td>{data.Completed}</td>
                                         <td>{data.Issues}</td>

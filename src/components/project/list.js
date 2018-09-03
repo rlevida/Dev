@@ -62,13 +62,13 @@ export default class List extends React.Component {
                             <th colSpan={8}> <ProjectFilter /> </th>
                         </tr>
                         <tr>
-                            <th>Status</th>
+                            <th></th>
                             <th>Project</th>
-                            <th>Type</th>
-                            <th>New Docs</th>
-                            <th>Notifications</th>
-                            <th>Active Workstreams</th>
-                            <th>Late Workstreams</th>
+                            <th class="text-center">Type</th>
+                            <th class="text-center">New Docs</th>
+                            <th class="text-center">Notifications</th>
+                            <th class="text-center">Active Workstreams</th>
+                            <th class="text-center">Late Workstreams</th>
                             { (loggedUser.data.userRole == 1 
                                         || loggedUser.data.userRole == 2 
                                         || loggedUser.data.userRole == 3 
@@ -89,12 +89,12 @@ export default class List extends React.Component {
                                 }else{
                                     return <tr key={index}>
                                         <td>{(data.isActive == 0) && <span class="fa fa-circle" style={{color:"#000"}}></span>}{(data.isActive == 1)?<span class="fa fa-circle fa-lg" style={{color:(data.Issues>0)?"#c0392b":(data.OnTrack>0)?"#f39c12":"#27ae60"}}></span>:""}</td>
-                                        <td><a href={"/project/"+data.id}>{data.project}</a></td>
-                                        <td><span class={(data.type_type=="Client")?"fa fa-users":(data.type_type=="Private")?"fa fa-lock":"fa fa-cloud"}></span></td>
-                                        <td>{(data.newDocCount>0)?<span class="fa fa-file"></span>:""} {data.newDocCount}</td>
-                                        <td><span><i class="fa fa-file-alt"></i></span></td>
-                                        <td>{(!data.Active)?"":data.Active}</td>
-                                        <td>{(!data.Issues)?"":data.Issues}</td>
+                                        <td class="text-left"><a href={"/project/"+data.id}>{data.project}</a></td>
+                                        <td class="text-center"><span class={(data.type_type=="Client")?"fa fa-users":(data.type_type=="Private")?"fa fa-lock":"fa fa-cloud"}></span></td>
+                                        <td class="text-center">{(data.newDocCount>0)?<span class="fa fa-file"></span>:""} {data.newDocCount}</td>
+                                        <td class="text-center"><span><i class="fa fa-file-alt"></i></span></td>
+                                        <td class="text-center">{(!data.Active)?"":data.Active}</td>
+                                        <td class="text-center">{(!data.Issues)?"":data.Issues}</td>
                                         { (loggedUser.data.userRole == 1 
                                         || loggedUser.data.userRole == 2 
                                         || loggedUser.data.userRole == 3 

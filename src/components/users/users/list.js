@@ -50,11 +50,11 @@ export default class List extends React.Component {
             <table id="dataTable" class="table responsive-table">
                 <tbody>
                     <tr>
-                        <th>ID</th>
-                        <th>User Id</th>
-                        <th>Email Address</th>
-                        <th>Type</th>
-                        <th></th>
+                        <th class="text-center">ID</th>
+                        <th class="text-left">User Id</th>
+                        <th class="text-left">Email Address</th>
+                        <th class="text-center">Type</th>
+                        <th class="text-center"></th>
                     </tr>
                     {
                         (users.List.length == 0) &&
@@ -68,10 +68,10 @@ export default class List extends React.Component {
                             let toBeEditedByManager = data.role.filter(e => e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
 
                             return <tr key={index}>
-                                <td>{data.id}</td>
-                                <td>{data.username}</td>
-                                <td>{data.emailAddress}</td>
-                                <td>{data.userType}</td>
+                                <td class="text-center">{data.id}</td>
+                                <td class="text-left">{data.username}</td>
+                                <td class="text-left">{data.emailAddress}</td>
+                                <td class="text-center">{data.userType}</td>
                                 <td class="text-center">
                                     {
                                         (loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 && toBeEditedByAdmin.length > 0 || loggedUser.data.userRole == 3 && toBeEditedByManager.length > 0) && <div>

@@ -60,13 +60,13 @@ export default class List extends React.Component {
             <table id="dataTable" class="table responsive-table">
                 <tbody>
                     <tr>
-                        <th style={{textAlign:"center"}}>Status</th>
-                        <th style={{textAlign:"center"}}>Project</th>
-                        <th style={{textAlign:"center"}}>Workstream</th>
-                        <th style={{textAlign:"center"}}>Task Name</th>
-                        <th style={{textAlign:"center"}}>Due Date</th>
-                        <th style={{textAlign:"center"}}>Assigned</th>
-                        <th style={{textAlign:"center"}}></th>
+                        <th></th>
+                        <th class="text-left">Project</th>
+                        <th class="text-left">Workstream</th>
+                        <th class="text-left">Task Name</th>
+                        <th class="text-center">Due Date</th>
+                        <th class="text-center">Assigned</th>
+                        <th class="text-center"></th>
                     </tr>
                     {
                         (task.List.length == 0) &&
@@ -89,11 +89,11 @@ export default class List extends React.Component {
                                     {(taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
                                     {(taskStatus == 2) && <span class="fa fa-circle fa-lg" style={{ color: "#c0392b" }}></span>}
                                 </td>
-                                <td>{data.project_project}</td>
-                                <td>{data.workstream_workstream}</td>
-                                <td>{data.task}</td>
-                                <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
-                                <td>{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
+                                <td class="text-left">{data.project_project}</td>
+                                <td class="text-left">{data.workstream_workstream}</td>
+                                <td class="text-left">{data.task}</td>
+                                <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
+                                <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                 <td class="text-center">
                                     {
                                         (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External') && <div>
