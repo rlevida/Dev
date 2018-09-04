@@ -25,7 +25,7 @@ export default class Component extends React.Component {
         let Component = <div class="pd20">
             <h3 class="m0"><a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>
             <div class="row pdl20 pdr20 mb20">
-                <div class="col-md-6">
+                <div class="col-md-8">
                     <h4 class="mt20 mb20">My Tasks</h4>
                     <a class="more" href={"/project/tasks/" + project}>+ More</a>
                     <Task />
