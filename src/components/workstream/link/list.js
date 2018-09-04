@@ -41,11 +41,9 @@ export default class List extends React.Component {
         let statusChecker = map(task.List, (o) => {
             let dueDate = moment(o.dueDate);
             let currentDate = moment(new Date());
-            let taskStatus = "";
+            let taskStatus = 0;
 
-            if (o.status == "Completed") {
-                taskStatus = 0
-            } else if (dueDate.diff(currentDate, 'days') < 0) {
+            if (dueDate.diff(currentDate, 'days') < 0) {
                 taskStatus = 2
             } else if (dueDate.diff(currentDate, 'days') == 0) {
                 taskStatus = 1
