@@ -64,8 +64,8 @@ export default class List extends React.Component {
     selectedTask(data){
         let{ socket , dispatch  } = this.props;
             dispatch({type:"SET_TASK_SELECTED" , Selected : data })
-        // dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task"})
-        // socket.emit("GET_TASK_DETAIL", { id: id })
+            // dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task"})
+            // socket.emit("GET_TASK_DETAIL", { id: id })
     }
 
 

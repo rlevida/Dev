@@ -50,24 +50,31 @@ export default class FormComponent extends React.Component {
         let { dispatch , socket , loggedUser ,task , workstream } = this.props;
             socket.emit("SAVE_OR_UPDATE_MEMBERS",{ data : { usersType : "users" , userTypeLinkId : loggedUser.data.id , linkType : "task" , linkId : task.Selected.id , memberType : "Follower" } ,  type : "workstream"})
             setTimeout(()=>{
-                socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
+                socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id } , type : "workstream" });
             },500)
            
     }
  
      unFollowTask(id){
          let { dispatch , socket , loggedUser ,task , workstream } = this.props;
-            socket.emit("DELETE_MEMBERS", { filter : {userTypeLinkId : loggedUser.data.id , linkId : task.Selected.id , memberType : "Follower"} , type : "workstream"})
+            socket.emit("DELETE_MEMBERS", { filter : { userTypeLinkId : loggedUser.data.id , linkId : task.Selected.id , memberType : "Follower"} , type : "workstream"})
             setTimeout(()=>{
                 socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id  } });
             },500)
     }
 
+    markTaskAsCompleted(){
+        let { socket , task } = this.props;
+            let status = "Completed"
+            if (task.Selected.task_id && task.Selected.task_status != "Completed") {
+                status = "For Approval"
+            }
+            socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
+    }
+
     render() {
-        let { dispatch, task, status, workstream, global, loggedUser , document } = this.props;
-        let statusList = [], typeList = [], taskList = [{id:"",name:"Select..."}], projectUserList = [];
-        let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
-        let allowEdit = (loggedUser.data.userRole == 5 || loggedUser.data.userRole == 6) && (loggedUser.data.userType == "External") ? false : true;
+        let { dispatch, task, status, global, loggedUser , document } = this.props;
+        let statusList = [], taskList = [{id:"",name:"Select..."}], projectUserList = [];
 
             status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
@@ -105,7 +112,9 @@ export default class FormComponent extends React.Component {
                                     {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
                                 </h4>
                                 <div class="form-group text-center" >
-                                    <a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}} title="not yet implemented">Mark Task as Completed</a>
+                                    { (task.Selected.status != "Completed") &&
+                                        <a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}} title="Mark Task as Completed" onClick={()=> this.markTaskAsCompleted()}>Mark Task as Completed</a>
+                                    }
                                     { (task.Selected.followersName != null && task.Selected.followersIds.split(",").filter( e => {return e == loggedUser.data.id}).length > 0 ) 
                                             ? <a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}} title="Unfollow task" onClick={()=> this.unFollowTask()}>Unfollow Task</a>
                                                 :<a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}} title="Follow task" onClick={()=> this.followTask()}>Follow Task</a>
