@@ -97,8 +97,7 @@ export default class List extends React.Component {
                                         <td class="text-center">{(!data.Issues)?"":data.Issues}</td>
                                         { (loggedUser.data.userRole == 1 
                                         || loggedUser.data.userRole == 2 
-                                        || loggedUser.data.userRole == 3 
-                                        || loggedUser.data.userRole == 4) &&
+                                        || loggedUser.data.userRole == 3) &&
                                             <td class="text-center">
                                                 <a href="javascript:void(0);" data-tip="EDIT" 
                                                     onClick={(e) => socket.emit("GET_PROJECT_DETAIL",{id:data.id})}

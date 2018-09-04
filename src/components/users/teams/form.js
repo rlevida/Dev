@@ -4,10 +4,7 @@ import { showToast } from '../../../globalFunction'
 import { DropDown } from "../../../globalComponents"
 
 import { connect } from "react-redux";
-import {
-    filter,
-    findIndex
-} from "lodash";
+import _ from "lodash";
 
 @connect((store) => {
     return {
@@ -58,7 +55,7 @@ export default class FormComponent extends React.Component {
         let { socket, teams, loggedUser, dispatch } = this.props
         let result = true;
         let myCurrentTeam = JSON.parse(loggedUser.data.team);
-        let myTeamIndex = findIndex(myCurrentTeam, (o) => { return o.value == teams.Selected.id });
+        let myTeamIndex = _.findIndex(myCurrentTeam, (o) => { return o.value == teams.Selected.id });
         let selectedTeamMembers = JSON.parse(teams.Selected.users);
         $('.form-container *').validator('validate');
         $('.form-container .form-group').each(function () {
@@ -75,13 +72,13 @@ export default class FormComponent extends React.Component {
             teams.Selected.avatar = "https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png";
         }
 
-        teams['Selected'].usersId = (teams.Selected.usersId == loggedUser.data.id) ? loggedUser.data.id : teams.Selected.usersId;
+        teams['Selected'].usersId = (teams.Selected.usersId == loggedUser.data.id || typeof teams.Selected.usersId == 'undefined') ? loggedUser.data.id : teams.Selected.usersId;
 
         socket.emit("SAVE_OR_UPDATE_TEAM", { data: teams.Selected });
 
         if (myTeamIndex >= 0) {
-            if (filter(selectedTeamMembers, (o) => { return o.value == loggedUser.data.id }).length == 0) {
-                let myUpdatedTeam = filter(myCurrentTeam, (o) => { return o.value != teams.Selected.id });
+            if (_.filter(selectedTeamMembers, (o) => { return o.value == loggedUser.data.id }).length == 0) {
+                let myUpdatedTeam = _.filter(myCurrentTeam, (o) => { return o.value != teams.Selected.id });
                 let updatedProfile = { ...loggedUser.data, team: JSON.stringify(myUpdatedTeam) }
                 dispatch({ type: "SET_LOGGED_USER_DATA", data: updatedProfile })
 
@@ -104,14 +101,12 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, teams, loggedUser, role, global } = this.props
-
-        let usersList = []
-        if (typeof global.SelectList["usersList"] != "undefined") {
-            global.SelectList["usersList"].map((e, i) => {
-                usersList.push({ id: e.id, name: e.firstName + " " + e.lastName })
-            })
-        }
+        let { dispatch, teams, global } = this.props
+        let usersList = (typeof global.SelectList["usersList"] != "undefined") ? _(global.SelectList["usersList"])
+            .filter((user) => { return user.userType == "Internal"; })
+            .map((user) => { return { id: user.id, name: user.firstName + " " + user.lastName } })
+            .value()
+            : [];
 
         return <div style={{ marginBottom: "50px" }}>
             <div class="row mt10">
@@ -130,7 +125,7 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Team *</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Members</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={true}
                                             required={false}

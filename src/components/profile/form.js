@@ -1,8 +1,9 @@
 import React from "react";
 import { showToast } from '../../globalFunction';
 import { HeaderButtonContainer, DropDown } from "../../globalComponents";
+import { connect } from "react-redux";
+import _ from 'lodash';
 
-import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -66,18 +67,14 @@ export default class FormComponent extends React.Component {
 
     render() {
         let { project, loggedUser, teams, role, workstream, usersTeam } = this.props;
-        let user = loggedUser.data, userRole = "", userTeam = "", userProjects = [], userWorkstream = [], userTeamMembers = [];
+        let user = loggedUser.data, userRole = "", userTeam = [], userProjects = [], userWorkstream = [], userTeamMembers = [];
 
         if (typeof user.id != "undefined" && role.List.length > 0) {
             userRole = role.List.filter(e => { return e.id == user.userRole })[0].role
         }
 
         if (typeof user.id != "undefined" && teams.List.length > 0) {
-            const userTeamStack = teams.List.filter(e => { return e.id == JSON.parse(user.team)[0].value })[0];
-            const teamMembers = usersTeam.List.filter(e => { return e.teamId == JSON.parse(user.team)[0].value });
-
-            userTeam = userTeamStack.team;
-            userTeamMembers = teamMembers;
+            userTeam = JSON.parse(user.team);
         }
 
         if (typeof user.id != "undefined" && project.List.length > 0) {
@@ -94,7 +91,6 @@ export default class FormComponent extends React.Component {
                 }
             })
         }
-
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 {/* <li class="btn btn-info" style={{marginRight:"2px"}} 
@@ -104,9 +100,9 @@ export default class FormComponent extends React.Component {
                     }} >
                     <span>Back</span>
                 </li> */}
-                <li class="btn btn-info" onClick={this.handleSubmit} >
+                {/* <li class="btn btn-info" onClick={this.handleSubmit} >
                     <span>Save</span>
-                </li>
+                </li> */}
             </HeaderButtonContainer>
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">
@@ -115,107 +111,107 @@ export default class FormComponent extends React.Component {
                             <h3 class="panel-title">My Profile</h3>
                         </div>
                         <div class="panel-body">
-                            <form class="form-horizontal form-container">
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Name</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="firstName" value="" class="form-control" placeholder="Name" value={user.firstName} onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
+                            <div class="row pdl20 pdr20 mb20">
+                                <div class="col-md-6">
+                                    <h4 class="mt20 mb20">Personal Details</h4>
+                                    <form style={{ pointerEvents: 'none' }}>
+                                        <div class="form-group">
+                                            <label for="firstName">First Name:</label>
+                                            <input type="text" name="firstName" value="" class="form-control" placeholder="Name" value={user.firstName} onChange={this.handleChange} />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="firstName">Last Name:</label>
+                                            <input type="text" name="lastName" value="" class="form-control" placeholder="FamilyName" value={user.lastName} onChange={this.handleChange} />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="firstName">Email Address:</label>
+                                            <input type="email" name="emailAddress" value="" class="form-control" placeholder="Email" value={user.emailAddress} onChange={this.handleChange} />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="firstName">Phone Number:</label>
+                                            <input type="number" name="phoneNumber" value="" class="form-control" placeholder="Phone number" value={user.phoneNumber != null ? user.phoneNumber : ""} onChange={this.handleChange} />
+                                        </div>
+                                    </form>
                                 </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Family Name</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="lastName" value="" class="form-control" placeholder="FamilyName" value={user.lastName} onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
+                            </div>
+                            <div class="row pdl20 pdr20 mb20">
+                                <div class="col-md-6">
+                                    <h4 class="mt20 mb20">Projects</h4>
+                                    <table id="dataTable" class="table responsive-table mt30">
+                                        <tbody>
+                                            <tr>
+                                                <th class="text-left">Project</th>
+                                                <th class="text-center">Type</th>
+                                            </tr>
+                                            {
+                                                _.map(project.List, (data) => {
+                                                    return (
+                                                        <tr>
+                                                            <td class="text-left"><a href={"/project/" + data.id}>{data.project}</a></td>
+                                                            <td class="text-center"><span class={(data.type_type == "Client") ? "fa fa-users" : (data.type_type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></span></td>
+                                                        </tr>
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Email</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="email" name="emailAddress" value="" class="form-control" placeholder="Email" value={user.emailAddress} onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
+                            </div>
+                            <div class="row pdl20 pdr20 mb20">
+                                <div class="col-md-6">
+                                    <h4 class="mt20 mb20">Workstream</h4>
+                                    <table id="dataTable" class="table responsive-table mt30">
+                                        <tbody>
+                                            <tr>
+                                                <th class="text-left">Workstream</th>
+                                                <th class="text-center">Type</th>
+                                            </tr>
+                                            {
+                                                _.map(workstream.List, (data) => {
+                                                    return (
+                                                        <tr>
+                                                            <td class="text-left">{data.workstream}</td>
+                                                            <td><span class={data.type_type == "Project - Output base" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
+                                                        </tr>
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Phone number</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="number" name="phoneNumber" value="" class="form-control" placeholder="Phone number" value={user.phoneNumber != null ? user.phoneNumber : ""} onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
+                            </div>
+                            <div class="row pdl20 pdr20 mb20">
+                                <div class="col-md-8">
+                                    <h4 class="mt20 mb20">Teams</h4>
+                                    <table id="dataTable" class="table responsive-table mt30">
+                                        <tbody>
+                                            <tr>
+                                                <th class="text-left">Team</th>
+                                                <th class="text-left">Members</th>
+                                            </tr>
+                                            {
+                                                _.map(userTeam, (team) => {
+                                                    let teamMembers = _(usersTeam.List)
+                                                        .filter(e => { return e.teamId == team.value })
+                                                        .map(e => { return e.users_firstName + ' ' + e.users_lastName })
+                                                        .value();
+
+                                                    return (
+                                                        <tr>
+                                                            <td class="text-left">{team.label}</td>
+                                                            <td class="text-left">
+                                                                {
+                                                                    (teamMembers).join(", ")
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Company</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="number" name="company" value="" class="form-control" placeholder="Company" onChange={this.handleChange} disabled />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Position</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="position" value="" class="form-control" placeholder="Position"
-                                            value={userRole}
-                                            disabled
-                                            onChange={this.handleChange}
-                                        />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                            </form>
-                            <hr />
-                            <form class="form-horizontal form-container">
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Projects</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false}
-                                            required={true}
-                                            options={project.List.map(e => { return { id: e.id, name: e.project } })}
-                                            selected={userProjects}
-                                            multiple={true}
-                                            // onChange={(e)=>this.setDropDown("typeId",e.value)} 
-                                            disabled />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Workstream</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false}
-                                            required={true}
-                                            options={workstream.List.map(e => { return { id: e.id, name: e.workstream } })}
-                                            selected={userWorkstream}
-                                            multiple={true}
-                                            // onChange={(e)=>this.setDropDown("typeId",e.value)} 
-                                            disabled />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Teams</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="position" value="" class="form-control" placeholder="Position"
-                                            value={userTeam}
-                                            disabled
-                                            onChange={{}}
-                                        />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Team Members</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false}
-                                            required={true}
-                                            options={userTeamMembers.map(e => { return { id: e.id, name: e.users_firstName + ' ' + e.users_lastName } })}
-                                            selected={userTeamMembers.map(e => { return { value: e.id, label: e.users_firstName + ' ' + e.users_lastName } })}
-                                            multiple={true}
-                                            disabled
-                                        />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>

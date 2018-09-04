@@ -76,7 +76,7 @@ export default class List extends React.Component {
                             workstream.List.map((data, index) => {
                                 return (
                                     <tr key={index}>
-                                        <td>{(data.isActive == 0) && <span class="fa fa-circle fa-lg" style={{ color: "#000" }}></span>}{(data.isActive == 1) ? <span class="fa fa-circle fa-lg" style={{ color: (data.Issues > 0) ? "#c0392b" : (data.OnTrack > 0) ? "#f39c12" : "#16a085" }}></span> : ""}</td>
+                                        <td>{(data.isActive == 0) && <span class="fa fa-circle fa-lg" style={{ color: "#000" }}></span>}{(data.isActive == 1) ? <span className={(data.Issues>0) ? "fa fa-exclamation-circle fa-lg": "fa fa-circle fa-lg"} style={{ color: (data.Issues > 0) ? "#c0392b" : (data.OnTrack > 0) ? "#f39c12" : "#16a085" }}></span> : ""}</td>
                                         <td  class="text-left">{data.workstream}</td>
                                         <td>{data.OnTrack}</td>
                                         <td>{data.Completed}</td>

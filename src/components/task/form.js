@@ -150,9 +150,12 @@ export default class FormComponent extends React.Component {
                     }} >
                     <span>Back</span>
                 </li>
-                <li class="btn btn-info" onClick={this.handleSubmit} >
-                    <span>Save</span>
-                </li>
+                {
+                    (typeof task.Selected.action == 'undefined' || task.Selected.action != 'view') && <li class="btn btn-info" onClick={this.handleSubmit} >
+                        <span>Save</span>
+                    </li>
+                }
+
             </HeaderButtonContainer>
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">
@@ -161,7 +164,11 @@ export default class FormComponent extends React.Component {
                             <h3 class="panel-title">Task {(task.Selected.id) ? " > Edit > ID: " + task.Selected.id : " > Add"}</h3>
                         </div>
                         <div class="panel-body">
-                            <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
+                            <form 
+                                onSubmit={this.handleSubmit}
+                                class="form-horizontal form-container"
+                                style={{ pointerEvents: (typeof task.Selected.action != 'undefined' && task.Selected.action == 'view') ? 'none' : 'auto' }}
+                            >
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
                                     <div class="col-md-7 col-xs-12">

@@ -297,7 +297,7 @@ export default class FormComponent extends React.Component {
                             }
                             {
                                 (typeof project.Selected.id != 'undefined') && <div class="row pd20">
-                                    <h3>Workstreams</h3>
+                                    <h3>Workstream</h3>
                                     <Workstreams />
                                 </div>
                             }
