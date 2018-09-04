@@ -55,7 +55,7 @@ export default class FormComponent extends React.Component {
         let { socket, teams, loggedUser, dispatch } = this.props
         let result = true;
         let myCurrentTeam = JSON.parse(loggedUser.data.team);
-        let myTeamIndex = findIndex(myCurrentTeam, (o) => { return o.value == teams.Selected.id });
+        let myTeamIndex = _.findIndex(myCurrentTeam, (o) => { return o.value == teams.Selected.id });
         let selectedTeamMembers = JSON.parse(teams.Selected.users);
         $('.form-container *').validator('validate');
         $('.form-container .form-group').each(function () {
@@ -72,13 +72,13 @@ export default class FormComponent extends React.Component {
             teams.Selected.avatar = "https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png";
         }
 
-        teams['Selected'].usersId = (teams.Selected.usersId == loggedUser.data.id) ? loggedUser.data.id : teams.Selected.usersId;
+        teams['Selected'].usersId = (teams.Selected.usersId == loggedUser.data.id || typeof teams.Selected.usersId == 'undefined') ? loggedUser.data.id : teams.Selected.usersId;
 
         socket.emit("SAVE_OR_UPDATE_TEAM", { data: teams.Selected });
 
         if (myTeamIndex >= 0) {
-            if (filter(selectedTeamMembers, (o) => { return o.value == loggedUser.data.id }).length == 0) {
-                let myUpdatedTeam = filter(myCurrentTeam, (o) => { return o.value != teams.Selected.id });
+            if (_.filter(selectedTeamMembers, (o) => { return o.value == loggedUser.data.id }).length == 0) {
+                let myUpdatedTeam = _.filter(myCurrentTeam, (o) => { return o.value != teams.Selected.id });
                 let updatedProfile = { ...loggedUser.data, team: JSON.stringify(myUpdatedTeam) }
                 dispatch({ type: "SET_LOGGED_USER_DATA", data: updatedProfile })
 

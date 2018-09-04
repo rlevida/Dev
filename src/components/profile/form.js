@@ -73,10 +73,10 @@ export default class FormComponent extends React.Component {
         }
 
         if (typeof user.id != "undefined" && teams.List.length > 0) {
-            const userTeamStack = teams.List.filter(e => { return e.id == JSON.parse(user.team)[0].value })[0];
+            const userTeamStack = teams.List.filter(e => { return e.id == JSON.parse(user.team)[0].value });
             const teamMembers = usersTeam.List.filter(e => { return e.teamId == JSON.parse(user.team)[0].value });
 
-            userTeam = userTeamStack.team;
+            userTeam = (userTeamStack.length > 0) ? userTeamStack[0].team : [];
             userTeamMembers = teamMembers;
         }
 
@@ -94,7 +94,6 @@ export default class FormComponent extends React.Component {
                 }
             })
         }
-
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 {/* <li class="btn btn-info" style={{marginRight:"2px"}} 
@@ -194,7 +193,7 @@ export default class FormComponent extends React.Component {
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Teams</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="position" value="" class="form-control" placeholder="Position"
+                                        <input type="text" name="position" value="" class="form-control" placeholder="Team"
                                             value={userTeam}
                                             disabled
                                             onChange={{}}
