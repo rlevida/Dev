@@ -25,9 +25,9 @@ export default class List extends React.Component {
         this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
-        this.props.socket.emit("GET_USER_LIST",{});
-        this.props.socket.emit("GET_TEAM_LIST",{});
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "ProjectMemberList" , filter : { linkId : project, linkType: "project" } })
+        this.props.socket.emit("GET_USER_LIST", {});
+        this.props.socket.emit("GET_TEAM_LIST", {});
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
     }
 
     updateActiveStatus(id, active) {
@@ -44,11 +44,11 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { task, dispatch, socket } = this.props;
-        
+        let { task, dispatch, socket, loggedUser } = this.props;
+
         return <div>
-            
-            <TaskStatus style={{float:"right",padding:"20px"}} />
+
+            <TaskStatus style={{ float: "right", padding: "20px" }} />
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })} >
                     <span>New Task</span>
@@ -73,47 +73,59 @@ export default class List extends React.Component {
                     }
                     {
                         task.List.map((data, index) => {
-                           let taskStatus = 0;
-                           let dueDate = moment(data.dueDate);
-                           let currentDate = moment(new Date());
+                            let taskStatus = 0;
+                            let dueDate = moment(data.dueDate);
+                            let currentDate = moment(new Date());
 
-                            if(dueDate.diff(currentDate, 'days') < 0){
-                                taskStatus = 2 
-                            }else if(dueDate.diff(currentDate, 'days') == 0){
+                            if (dueDate.diff(currentDate, 'days') < 0) {
+                                taskStatus = 2
+                            } else if (dueDate.diff(currentDate, 'days') == 0) {
                                 taskStatus = 1
                             }
                             return <tr key={index}>
                                 <td>
-                                    { (taskStatus == 0) && <span class="fa fa-circle fa-lg" style={{color:"#27ae60"}}></span> }
-                                    { (taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{color:"#f39c12"}}></span> }
-                                    { (taskStatus == 2) && <span class="fa fa-exclamation-circle fa-lg" style={{color:"#c0392b"}}></span> }
+                                    {(taskStatus == 0) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60" }}></span>}
+                                    {(taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
+                                    {(taskStatus == 2) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
                                 </td>
                                 <td class="text-left">{data.workstream_workstream}</td>
                                 <td class="text-left">{data.task}</td>
                                 <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
-                                <td class="text-center">{(data.assignedById)?<span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span>:""}</td>
+                                <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                 <td class="text-center">
-                                    {( data.followersName != null) &&
+                                    {(data.followersName != null) &&
                                         <div>
                                             <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
                                             <Tooltip id={`follower${index}`}>
-                                                        {data.followersName.split(",").map( e =>{ 
-                                                            return <p>{ e != null ? e : "" } <br/></p>
-                                                    })}
+                                                {data.followersName.split(",").map(e => {
+                                                    return <p>{e != null ? e : ""} <br /></p>
+                                                })}
                                             </Tooltip>
                                         </div>
                                     }
                                 </td>
                                 <td class="text-center">
-                                    <a href="javascript:void(0);" data-tip="EDIT"
-                                        onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id })}
-                                        class="btn btn-info btn-sm">
-                                        <span class="glyphicon glyphicon-pencil"></span></a>
-                                    <a href="javascript:void(0);" data-tip="DELETE"
-                                        onClick={e => this.deleteData(data.id)}
-                                        class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                        <span class="glyphicon glyphicon-trash"></span></a>
-                                    <Tooltip />
+                                    {
+                                        (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External') && <div>
+                                            <a href="javascript:void(0);" data-tip="EDIT"
+                                                onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id })}
+                                                class="btn btn-info btn-sm">
+                                                <span class="glyphicon glyphicon-pencil"></span></a>
+                                            <a href="javascript:void(0);" data-tip="DELETE"
+                                                onClick={e => this.deleteData(data.id)}
+                                                class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                <span class="glyphicon glyphicon-trash"></span></a>
+                                            <Tooltip />
+                                        </div>
+                                    }
+                                     {
+                                        (typeof loggedUser.data != 'undefined' && loggedUser.data.userType == 'External') && <div>
+                                            <a href="javascript:void(0);" data-tip="VIEW"
+                                                onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'view' })}
+                                                class="btn btn-success btn-sm">
+                                                <span class="glyphicon glyphicon-eye-open"></span></a>
+                                        </div>
+                                    }
                                 </td>
                             </tr>
                         })
