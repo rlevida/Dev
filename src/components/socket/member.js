@@ -29,9 +29,10 @@ export default class Socket extends React.Component {
 
         socket.on("FRONT_MEMBERS_ADD", (data) => {
             if(data.type == "workstream"){
-                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
+                dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
                 dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
-                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
+                showToast("success", "Successfully updated.")
+
             }else{
                 dispatch({ type: "SET_MEMBERS_LIST", list: [...this.props.members.List, data[0]] })
                 dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} })
@@ -47,9 +48,8 @@ export default class Socket extends React.Component {
 
         socket.on("FRONT_MEMBERS_DELETED", (data) => {
             if(data.type == "workstream"){
-                dispatch({ type: "REMOVE_DELETED_MEMBERS_LIST", id: data.id, List: this.props.members.List })
+                dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
                 dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
-                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
                 showToast("success", "Successfully updated.")
             }else{
                 dispatch({ type: "REMOVE_DELETED_MEMBERS_LIST", id: data.id, List: this.props.members.List })

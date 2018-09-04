@@ -8,7 +8,7 @@ var init = exports.init = (socket) => {
         let filter = (typeof d.filter != "undefined")?d.filter:{};
         task.getTaskList("task",filter,{},(c)=>{
             if(c.status) {
-                socket.emit("FRONT_TASK_LIST",c.data)
+                socket.emit("FRONT_TASK_LIST", { data : c.data , type : d.type })
             }else{
                 if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
             }
