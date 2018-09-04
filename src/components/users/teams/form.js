@@ -56,7 +56,8 @@ export default class FormComponent extends React.Component {
         let result = true;
         let myCurrentTeam = JSON.parse(loggedUser.data.team);
         let myTeamIndex = _.findIndex(myCurrentTeam, (o) => { return o.value == teams.Selected.id });
-        let selectedTeamMembers = JSON.parse(teams.Selected.users);
+        let selectedTeamMembers = (typeof teams.Selected.users != 'undefined') ? JSON.parse(teams.Selected.users) : [];
+        
         $('.form-container *').validator('validate');
         $('.form-container .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
@@ -76,12 +77,14 @@ export default class FormComponent extends React.Component {
 
         socket.emit("SAVE_OR_UPDATE_TEAM", { data: teams.Selected });
 
+        dispatch({type:"SET_TEAM_FORM_ACTIVE", FormActive: "List" });
+        dispatch({type:"SET_USER_SELECTED", Selected: {} });
+
         if (myTeamIndex >= 0) {
             if (_.filter(selectedTeamMembers, (o) => { return o.value == loggedUser.data.id }).length == 0) {
                 let myUpdatedTeam = _.filter(myCurrentTeam, (o) => { return o.value != teams.Selected.id });
                 let updatedProfile = { ...loggedUser.data, team: JSON.stringify(myUpdatedTeam) }
                 dispatch({ type: "SET_LOGGED_USER_DATA", data: updatedProfile })
-
             }
         }
     }

@@ -38,8 +38,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { teams, dispatch, socket, loggedUser } = this.props;
-
+        let { teams, socket, loggedUser } = this.props;
         return <div>
             <table id="dataTable" class="table responsive-table m0">
                 <tbody>

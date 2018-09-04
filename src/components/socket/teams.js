@@ -7,7 +7,8 @@ import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
-        users: store.users
+        users: store.users,
+        teams: store.teams
     }
 })
 export default class Socket extends React.Component {
@@ -36,13 +37,13 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_TEAM_EDIT",(data) => {
-            dispatch({type:"UPDATE_DATA_TEAM_LIST",UpdatedData:data, List: this.props.users.List})
+            dispatch({type:"UPDATE_DATA_TEAM_LIST",UpdatedData:data, List: this.props.teams.List})
             dispatch({type:"SET_TEAM_SELECTED",Selected : {}})
             dispatch({type:"SET_TEAM_FORM_ACTIVE",FormActive : "List"})
         })
 
         socket.on("FRONT_TEAM_DELETED",(data) => {
-            dispatch({type:"REMOVE_DELETED_TEAM_LIST",id : data.id, List: this.props.users.List})
+            dispatch({type:"REMOVE_DELETED_TEAM_LIST",id : data.id, List: this.props.teams.List})
             showToast("success","User already deleted.")
         })
 
