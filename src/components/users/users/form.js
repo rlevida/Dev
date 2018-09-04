@@ -57,7 +57,7 @@ export default class FormComponent extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, users } = this.props
+        let { socket, users, dispatch } = this.props
 
         let result = true;
         $('.form-container *').validator('validate');
@@ -77,6 +77,9 @@ export default class FormComponent extends React.Component {
         users.Selected.firstName = users.Selected.firstName.trim()
         users.Selected.lastName = users.Selected.lastName.trim()
         socket.emit("SAVE_OR_UPDATE_USER",{data:users.Selected});
+        
+        dispatch({type:"SET_USER_FORM_ACTIVE", FormActive: "List" });
+        dispatch({type:"SET_USER_SELECTED", Selected: {} });
     }
     
     setDropDown(name,value) {
@@ -104,7 +107,6 @@ export default class FormComponent extends React.Component {
         let userRole = []
         role.List.map((e,i)=>{
             if( e.roleType == users.Selected.userType ){
-                console.log(e.id,loggedUser.data.userRole,loggedUser.data.userRole == 3, (e.id == 1 || e.id == 2 || e.id == 3 ));
                 if(loggedUser.data.userRole == 2 && e.id == 1){ 
                     // master admin can be created by master admin only
                 }else if(loggedUser.data.userRole == 3 && (e.id == 1 || e.id == 2 || e.id == 3 )){ 
