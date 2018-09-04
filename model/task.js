@@ -148,7 +148,7 @@ var getTaskAllowedAccess = exports.getTaskAllowedAccess = ( tablename, data, adv
                             LEFT JOIN users ON users_team.usersId = users.id
                             WHERE members.usersType = "team"  AND users.id = ? ) as finalTbl1 
                         LEFT JOIN task on task.id = finalTbl1.linkId
-                    WHERE finalTbl1.linkType = "task" AND task.status != "Completed" AND task.id IS NOT NULL 
+                    WHERE finalTbl1.linkType = "task" AND (task.status != "Completed" || task.status  IS NULL) AND task.id IS NOT NULL 
                     UNION ALL
                     SELECT task.id as taskId FROM ( SELECT members.linkType,members.linkId,members.memberType,users.id as usersId FROM members 
                         LEFT JOIN users ON members.userTypeLinkId = users.id
@@ -159,7 +159,7 @@ var getTaskAllowedAccess = exports.getTaskAllowedAccess = ( tablename, data, adv
                             LEFT JOIN users ON users_team.usersId = users.id
                             WHERE members.usersType = "team" AND users.id = ? ) as finalTbl2 
                         LEFT JOIN task on task.workstreamId = finalTbl2.linkId
-                    WHERE finalTbl2.linkType = "workstream" AND task.status != "Completed" AND task.id IS NOT NULL ) as tbl
+                    WHERE finalTbl2.linkType = "workstream" AND (task.status != "Completed" || task.status  IS NULL) AND task.id IS NOT NULL ) as tbl
                     GROUP BY tbl.taskId
                 `;
     if( data.userRole == 1 || data.userRole == 2 ){
