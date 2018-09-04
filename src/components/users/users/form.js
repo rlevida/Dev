@@ -77,7 +77,7 @@ export default class FormComponent extends React.Component {
         users.Selected.firstName = users.Selected.firstName.trim()
         users.Selected.lastName = users.Selected.lastName.trim()
         socket.emit("SAVE_OR_UPDATE_USER",{data:users.Selected});
-        
+
         dispatch({type:"SET_USER_FORM_ACTIVE", FormActive: "List" });
         dispatch({type:"SET_USER_SELECTED", Selected: {} });
     }
@@ -193,7 +193,7 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Team *</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Team</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={true} 
                                             required={false}
