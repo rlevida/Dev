@@ -84,3 +84,20 @@ var getProjectDocument = exports.getProjectDocument = (filter,data,cb) =>{
             }
         );
 }
+
+var getWorkstreamDocumentList = exports.getWorkstreamDocumentList = (tableName,filter,data,cb)=>{
+    let db = global.initDB();
+    let query = `SELECT document.* ,tag.* , workstream.id as workstreamId FROM document 
+                    LEFT JOIN tag ON document.id = tag.tagTypeId 
+                        LEFT JOIN workstream ON tag.linkId = workstream.id WHERE status = 'new'
+                        `
+    let params = [];
+        db.query(
+            query,
+            {},
+            function(err,row,fields){
+                if(err) { cb({ status : false, error : err, data : row }); return; }
+                cb({  status : true, error : err, data : row });
+            }
+        );
+}

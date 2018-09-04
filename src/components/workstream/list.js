@@ -8,7 +8,8 @@ import { connect } from "react-redux"
     return {
         socket: store.socket.container,
         workstream: store.workstream,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        global: store.global
     }
 })
 export default class List extends React.Component {
@@ -27,6 +28,7 @@ export default class List extends React.Component {
         this.props.socket.emit("GET_TEAM_LIST",{});
         this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
         this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "ProjectMemberList" , filter : { linkId : project, linkType: "project" } })
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamDocumentList", filter : { isDeleted : 0 , linkId : project , linkType : "project" , status : "new" }});
     }
 
     updateActiveStatus(id, active) {
@@ -43,7 +45,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { workstream, dispatch, socket , loggedUser } = this.props;
+        let { workstream, dispatch, socket , loggedUser , global } = this.props;
         return <div>
             
             <WorkstreamStatus style={{float:"right",padding:"20px"}} />
@@ -84,15 +86,19 @@ export default class List extends React.Component {
                     {
                         workstream.List.map((data, index) => {
                             return <tr key={index}>
-                                <td>{(data.isActive == 0) && <span class="fa fa-exclamation-circle fa-lg" style={{color:"#000"}}></span>}{(data.isActive == 1)?<span class="fa fa-exclamation-circle fa-lg" style={{color:(data.Issues>0)?"#d4a2a2":(data.OnTrack>0)?"#dee054d9":"#9eca9f"}}></span>:""}</td>
-                                <td>{data.workstream}</td>
-                                <td>{data.OnTrack}</td>
-                                <td>{data.Completed}</td>
-                                <td>{data.Issues}</td>
-                                <td></td>
-                                <td>{(data.memberNames)?<span style={{color:"#46b8da"}} title={data.memberNames}><i class="fa fa-user fa-lg"></i></span>:""}   {/*&nbsp;&nbsp;<span style={{color:"#006400"}}><i class="fa fa-user fa-lg"></i></span>*/}</td>
-                                <td><span class={data.type_type=="Project - Output base"?"fa fa-calendar":"glyphicon glyphicon-time"}></span></td>
-                                <td><span><i class="fa fa-users fa-lg"></i></span></td>
+                                <td>{(data.isActive == 0) && <span class="fa fa-circle fa-lg" style={{color:"#000"}}></span>}{(data.isActive == 1)?<span className={(data.Issues>0) ? "fa fa-exclamation-circle fa-lg": "fa fa-circle fa-lg"} style={{color:(data.Issues>0)?"#c0392b":(data.OnTrack>0)?"#f39c12":"#16a085"}}></span>:""}</td>
+                                <td class="text-left">{data.workstream}</td>
+                                <td class="text-center">{data.OnTrack}</td>
+                                <td class="text-center">{data.Completed}</td>
+                                <td class="text-center">{data.Issues}</td>
+                                <td class="text-center">
+                                    { (typeof global.SelectList.workstreamDocumentList != "undefined") &&
+                                        global.SelectList.workstreamDocumentList.filter(t =>{return t.workstreamId == data.id && t.linkType == "workstream"}).length 
+                                    }
+                                </td>
+                                <td class="text-center">{(data.memberNames)?<span style={{color:"#46b8da"}} title={data.memberNames}><i class="fa fa-user fa-lg"></i></span>:""}   {/*&nbsp;&nbsp;<span style={{color:"#006400"}}><i class="fa fa-user fa-lg"></i></span>*/}</td>
+                                <td class="text-center"><span class={data.type_type=="Project - Output base"?"fa fa-calendar":"glyphicon glyphicon-time"}></span></td>
+                                <td class="text-center"><span><i class="fa fa-users fa-lg"></i></span></td>
                                 { (loggedUser.data.userRole == 1 
                                     || loggedUser.data.userRole == 2 
                                     || loggedUser.data.userRole == 3 
