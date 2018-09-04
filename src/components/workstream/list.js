@@ -8,7 +8,8 @@ import { connect } from "react-redux"
     return {
         socket: store.socket.container,
         workstream: store.workstream,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        global: store.global
     }
 })
 export default class List extends React.Component {
@@ -27,6 +28,7 @@ export default class List extends React.Component {
         this.props.socket.emit("GET_TEAM_LIST",{});
         this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
         this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "ProjectMemberList" , filter : { linkId : project, linkType: "project" } })
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamDocumentList", filter : { isDeleted : 0 , linkId : project , linkType : "project" , status : "new" }});
     }
 
     updateActiveStatus(id, active) {
@@ -43,7 +45,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { workstream, dispatch, socket , loggedUser } = this.props;
+        let { workstream, dispatch, socket , loggedUser , global } = this.props;
         return <div>
             
             <WorkstreamStatus style={{float:"right",padding:"20px"}} />
@@ -89,7 +91,11 @@ export default class List extends React.Component {
                                 <td class="text-center">{data.OnTrack}</td>
                                 <td class="text-center">{data.Completed}</td>
                                 <td class="text-center">{data.Issues}</td>
-                                <td class="text-center"></td>
+                                <td class="text-center">
+                                    { (typeof global.SelectList.workstreamDocumentList != "undefined") &&
+                                        global.SelectList.workstreamDocumentList.filter(t =>{return t.workstreamId == data.id && t.linkType == "workstream"}).length 
+                                    }
+                                </td>
                                 <td class="text-center">{(data.memberNames)?<span style={{color:"#46b8da"}} title={data.memberNames}><i class="fa fa-user fa-lg"></i></span>:""}   {/*&nbsp;&nbsp;<span style={{color:"#006400"}}><i class="fa fa-user fa-lg"></i></span>*/}</td>
                                 <td class="text-center"><span class={data.type_type=="Project - Output base"?"fa fa-calendar":"glyphicon glyphicon-time"}></span></td>
                                 <td class="text-center"><span><i class="fa fa-users fa-lg"></i></span></td>

@@ -5,7 +5,6 @@ CREATE TABLE `project` (
     `statusId` BIGINT,
     `typeId` BIGINT,
     `projectType` VARCHAR(50),
-    `classification` VARCHAR(50),
     `tinNo` VARCHAR(50),
     `companyAddress` VARCHAR(50),
     `classification` VARCHAR(50),
