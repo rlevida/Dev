@@ -4,10 +4,7 @@ import { showToast } from '../../../globalFunction'
 import { DropDown } from "../../../globalComponents"
 
 import { connect } from "react-redux";
-import {
-    filter,
-    findIndex
-} from "lodash";
+import _ from "lodash";
 
 @connect((store) => {
     return {
@@ -104,14 +101,12 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, teams, loggedUser, role, global } = this.props
-
-        let usersList = []
-        if (typeof global.SelectList["usersList"] != "undefined") {
-            global.SelectList["usersList"].map((e, i) => {
-                usersList.push({ id: e.id, name: e.firstName + " " + e.lastName })
-            })
-        }
+        let { dispatch, teams, global } = this.props
+        let usersList = (typeof global.SelectList["usersList"] != "undefined") ? _(global.SelectList["usersList"])
+            .filter((user) => { return user.userType == "Internal"; })
+            .map((user) => { return { id: user.id, name: user.firstName + " " + user.lastName } })
+            .value()
+            : [];
 
         return <div style={{ marginBottom: "50px" }}>
             <div class="row mt10">
