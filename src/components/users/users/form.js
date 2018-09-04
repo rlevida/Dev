@@ -151,14 +151,14 @@ export default class FormComponent extends React.Component {
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">First Name *</label>
                                     <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="firstName" required value={(typeof users.Selected.firstName != "undefined" && users.Selected.firstName) ? users.Selected.firstName : ""} class="form-control" placeholder="Name" onChange={this.handleChange} />
+                                        <input type="text" name="firstName" required value={(typeof users.Selected.firstName != "undefined" && users.Selected.firstName) ? users.Selected.firstName : ""} class="form-control" placeholder="First Name" onChange={this.handleChange} />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Last Name</label>
                                     <div class="col-md-7 col-xs-text">
-                                        <input type="text" name="lastName" value={(typeof users.Selected.lastName != "undefined" && users.Selected.lastName) ? users.Selected.lastName : ""} class="form-control" placeholder="Family Name" onChange={this.handleChange} />
+                                        <input type="text" name="lastName" value={(typeof users.Selected.lastName != "undefined" && users.Selected.lastName) ? users.Selected.lastName : ""} class="form-control" placeholder="Last Name" onChange={this.handleChange} />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
