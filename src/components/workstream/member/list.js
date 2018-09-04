@@ -35,6 +35,7 @@ export default class List extends React.Component {
                                 <td><i class="fa fa-user"></i></td>
                                 <td>{`${data.firstName} ${data.lastName}`}</td>
                                 <td>{`${data.role}`}</td>
+                                <td> { data.memberType == "assignedTo" ? "Assigned" : data.memberType}</td>
                             </tr>
                         })
                     }
@@ -42,10 +43,11 @@ export default class List extends React.Component {
                        global.SelectList.ProjectMemberList.map((data , index)=>{
                             if(data.id == workstream.Selected.responsible){
                                 return(
-                                     <tr>
+                                     <tr key={index}>
                                         <td><i class="fa fa-user"></i></td>
                                         <td>{`${data.firstName} ${data.lastName}`}</td>
                                         <td>{`${data.role}`}</td>
+                                        <td>Responsible</td>
                                     </tr>
                                 )
                             }
