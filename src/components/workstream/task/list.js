@@ -2,7 +2,7 @@ import React from "react";
 import Tooltip from "react-tooltip";
 import { HeaderButtonContainer } from "../../../globalComponents";
 import moment from 'moment'
-
+import Form from "./form"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
@@ -61,10 +61,11 @@ export default class List extends React.Component {
     //         dispatch({ type: "SET_TASK_SELECTED", Selected : {}})
     //  }
 
-    selectedTask(id){
+    selectedTask(data){
         let{ socket , dispatch  } = this.props;
-        dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task"})
-        socket.emit("GET_TASK_DETAIL", { id: id })
+            dispatch({type:"SET_TASK_SELECTED" , Selected : data })
+        // dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task"})
+        // socket.emit("GET_TASK_DETAIL", { id: id })
     }
 
 
@@ -72,7 +73,7 @@ export default class List extends React.Component {
         let { task, dispatch, socket , global , loggedUser } = this.props;
         return <div>
             <div class="row">
-                <div class="col-lg-12 col-md-12">
+                <div class={typeof task.Selected.id == "undefined" ? "col-lg-12 col-md-12" : "col-lg-6 col-md-6" }>
                     <h3>&nbsp;&nbsp;&nbsp;&nbsp;Task</h3>
                     <table id="dataTable" class="table responsive-table">
                         <tbody>
@@ -92,7 +93,7 @@ export default class List extends React.Component {
                             }
                             {
                                 task.List.map((data, index) => {
-                                    return <tr key={index} style={{cursor:"pointer"}} onClick={()=> this.selectedTask(data.id) }>
+                                    return <tr key={index} style={{cursor:"pointer"}} onClick={()=> this.selectedTask(data) }>
                                         <td><span class={(data.currentState=="Completed")?"glyphicon glyphicon-ok-circle":(data.currentState=="Incomplete")?"glyphicon glyphicon-question-sign":"fa fa-circle"}></span></td>
                                         <td>{data.task}</td>
                                         <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
@@ -116,18 +117,12 @@ export default class List extends React.Component {
                         </tbody>
                     </table>
                 </div>
-                {/* {(typeof task.Selected.id != "undefined") && 
-                    <div class="col-lg-6 col-md-6">
-                        <span class="pull-right" style={{cursor:"pointer"}} onClick={()=> dispatch({ type: "SET_TASK_SELECTED", Selected : {}})}><i class="fa fa-times-circle fa-lg"></i></span>
-                        <div class="form-group text-center" >
-                                <a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}}>Mark Task as Completed</a>
-                                { (task.Selected.followersName != null && task.Selected.followersIds.split(",").filter( e => {return e == loggedUser.data.id}).length > 0 ) 
-                                        ? <a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}} onClick={()=> this.unFollowTask()}>Unfollow Task</a>
-                                            :<a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}} onClick={()=> this.followTask()}>Follow Task</a>
-                                }
-                        </div>
+                
+                {(typeof task.Selected.id != "undefined") && 
+                    <div class="col-lg-6 col-md-6" style={{borderLeft: "solid #000000"}}>
+                        <Form />
                     </div>
-                } */}
+                }
             </div>
         </div>
     }
