@@ -76,14 +76,14 @@ var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
                     workstreamId,
                     SUM(isActive) as Active, 
                     SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, 
-                    SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM task WHERE projectId = ? AND status != "Completed"  AND isActive = 1
+                    SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM task WHERE ( status != "Completed" || status is NULL) AND projectId = 1 AND isActive = 1
                 `;
     db.query(
         query,
         params, 
         function(err,row,fields){
             if(err) { cb({ status : false, error : err, data : row }); return; }
-
+            
             cb({  status : true, error : err, data : row });
         }
     );
