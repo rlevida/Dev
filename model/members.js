@@ -242,11 +242,11 @@ var getWorkstreamTaskMembers = exports.getWorkstreamTaskMembers = (data , cb ) =
     }
 
     let query = `SELECT memberTask.* FROM task LEFT JOIN (SELECT * FROM (
-                    SELECT users.* , members.linkId , members.linkType , role.role FROM members LEFT JOIN users ON members.userTypeLinkId = users.id AND members.usersType = "users"
+                    SELECT users.* , members.linkId , members.linkType , role.role , members.memberType FROM members LEFT JOIN users ON members.userTypeLinkId = users.id AND members.usersType = "users"
                         LEFT JOIN users_role ON users.id = users_role.usersId 
                             LEFT JOIN role ON users_role.roleId = role.id
                         UNION ALL
-                            SELECT users.* , members.linkId , members.linkType , role.role FROM members LEFT JOIN users_team ON members.userTypeLinkId = users_team.teamId AND members.usersType = "team" 
+                            SELECT users.* , members.linkId , members.linkType , role.role , members.memberType FROM members LEFT JOIN users_team ON members.userTypeLinkId = users_team.teamId AND members.usersType = "team" 
                                 LEFT JOIN users ON users_team.usersId = users.id 
                                     LEFT JOIN users_role ON users.id = users_role.usersId 
                                         LEFT JOIN role ON users_role.roleId = role.id
