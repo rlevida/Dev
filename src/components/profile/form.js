@@ -67,8 +67,7 @@ export default class FormComponent extends React.Component {
 
     render() {
         let { project, loggedUser, teams, role, workstream, usersTeam } = this.props;
-        let user = loggedUser.data, userRole = "", userTeam = [], userProjects = [], userWorkstream = [], userTeamMembers = [];
-
+        let user = loggedUser.data, userRole = "", userTeam = [], userProjects = [], userWorkstream = [];
         if (typeof user.id != "undefined" && role.List.length > 0) {
             userRole = role.List.filter(e => { return e.id == user.userRole })[0].role
         }
@@ -134,29 +133,31 @@ export default class FormComponent extends React.Component {
                                     </form>
                                 </div>
                             </div>
-                            <div class="row pdl20 pdr20 mb20">
-                                <div class="col-md-6">
-                                    <h4 class="mt20 mb20">Projects</h4>
-                                    <table id="dataTable" class="table responsive-table mt30">
-                                        <tbody>
-                                            <tr>
-                                                <th class="text-left">Project</th>
-                                                <th class="text-center">Type</th>
-                                            </tr>
-                                            {
-                                                _.map(project.List, (data) => {
-                                                    return (
-                                                        <tr>
-                                                            <td class="text-left"><a href={"/project/" + data.id}>{data.project}</a></td>
-                                                            <td class="text-center"><span class={(data.type_type == "Client") ? "fa fa-users" : (data.type_type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></span></td>
-                                                        </tr>
-                                                    )
-                                                })
-                                            }
-                                        </tbody>
-                                    </table>
+                            {
+                                (user.userType == 'Internal') && <div class="row pdl20 pdr20 mb20">
+                                    <div class="col-md-6">
+                                        <h4 class="mt20 mb20">Projects</h4>
+                                        <table id="dataTable" class="table responsive-table mt30">
+                                            <tbody>
+                                                <tr>
+                                                    <th class="text-left">Project</th>
+                                                    <th class="text-center">Type</th>
+                                                </tr>
+                                                {
+                                                    _.map(project.List, (data) => {
+                                                        return (
+                                                            <tr>
+                                                                <td class="text-left"><a href={"/project/" + data.id}>{data.project}</a></td>
+                                                                <td class="text-center"><span class={(data.type_type == "Client") ? "fa fa-users" : (data.type_type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></span></td>
+                                                            </tr>
+                                                        )
+                                                    })
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
+                            }
                             <div class="row pdl20 pdr20 mb20">
                                 <div class="col-md-6">
                                     <h4 class="mt20 mb20">Workstream</h4>
@@ -180,38 +181,40 @@ export default class FormComponent extends React.Component {
                                     </table>
                                 </div>
                             </div>
-                            <div class="row pdl20 pdr20 mb20">
-                                <div class="col-md-8">
-                                    <h4 class="mt20 mb20">Teams</h4>
-                                    <table id="dataTable" class="table responsive-table mt30">
-                                        <tbody>
-                                            <tr>
-                                                <th class="text-left">Team</th>
-                                                <th class="text-left">Members</th>
-                                            </tr>
-                                            {
-                                                _.map(userTeam, (team) => {
-                                                    let teamMembers = _(usersTeam.List)
-                                                        .filter(e => { return e.teamId == team.value })
-                                                        .map(e => { return e.users_firstName + ' ' + e.users_lastName })
-                                                        .value();
+                            {
+                                (user.userType == 'Internal') && <div class="row pdl20 pdr20 mb20">
+                                    <div class="col-md-8">
+                                        <h4 class="mt20 mb20">Teams</h4>
+                                        <table id="dataTable" class="table responsive-table mt30">
+                                            <tbody>
+                                                <tr>
+                                                    <th class="text-left">Team</th>
+                                                    <th class="text-left">Members</th>
+                                                </tr>
+                                                {
+                                                    _.map(userTeam, (team) => {
+                                                        let teamMembers = _(usersTeam.List)
+                                                            .filter(e => { return e.teamId == team.value })
+                                                            .map(e => { return e.users_firstName + ' ' + e.users_lastName })
+                                                            .value();
 
-                                                    return (
-                                                        <tr>
-                                                            <td class="text-left">{team.label}</td>
-                                                            <td class="text-left">
-                                                                {
-                                                                    (teamMembers).join(", ")
-                                                                }
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })
-                                            }
-                                        </tbody>
-                                    </table>
+                                                        return (
+                                                            <tr>
+                                                                <td class="text-left">{team.label}</td>
+                                                                <td class="text-left">
+                                                                    {
+                                                                        (teamMembers).join(", ")
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                        )
+                                                    })
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
+                            }
                         </div>
                     </div>
                 </div>
