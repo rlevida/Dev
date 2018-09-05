@@ -100,7 +100,7 @@ var init = exports.init = (socket) => {
                          data.assignedTo = e.data[0].userTypeLinkId
                     }else{
                         members.deleteData("members",{linkType:"task",linkId:id,usersType:"users",memberType:"assignedTo"},(c)=>{
-                            let assignedTo = {linkType:"task",linkId:data.id,usersType:"users",userTypeLinkId:d.data.assignedTo,memberType:"assignedTo"};
+                            let assignedTo = {linkType:"task",linkId:data[0].id,usersType:"users",userTypeLinkId:d.data.assignedTo,memberType:"assignedTo"};
                             members.postData("members",assignedTo,(c)=>{
                                 data.assignedTo = d.data.assignedTo
                                 nextThen(type,data)
