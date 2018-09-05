@@ -75,7 +75,7 @@ export default class FormComponent extends React.Component {
             users.Selected.avatar = "https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png";
         }
         users.Selected.firstName = users.Selected.firstName.trim()
-        users.Selected.lastName = users.Selected.lastName.trim()
+        users.Selected.lastName = (typeof users.Selected.lastName != 'undefined') ? users.Selected.lastName.trim() : '';
         socket.emit("SAVE_OR_UPDATE_USER", { data: users.Selected });
 
         dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" });
