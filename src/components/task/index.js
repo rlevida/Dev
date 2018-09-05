@@ -34,20 +34,23 @@ export default class Component extends React.Component {
         let { task, projectData} = this.props;
         let Component = <div>
                 <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/"+project} style={{color:"#000",textDecortion:"none"}}>{projectData.Selected.project}</a></h3>
-                <Link/>
                 {
                     (typeof task.Selected.id != "undefined") && <ul class="list-inline" style={{margin:"20px"}}>
                         <li style={{width:"60px"}}>&nbsp;&nbsp;<span class="fa fa-tag" title="tag"></span></li>
                         <li style={{width:"100x"}}>&nbsp;&nbsp;<span class="label label-success" style={{margin:"5px"}}>{task.Selected.workstream_workstream}</span></li>
                     </ul>
                 }
-
-                {task.FormActive == "List" &&
-                    <List />
+                {
+                    (task.FormActive == "List") &&
+                        <Link />
                 }
-
-                {task.FormActive == "Form" &&
-                    <Form />
+                {
+                    (task.FormActive == "List") &&
+                        <List />
+                }
+                {
+                    (task.FormActive == "Form") &&
+                        <Form />
                 }
             </div>
         return (
