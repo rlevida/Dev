@@ -141,125 +141,133 @@ export default class FormComponent extends React.Component {
         if (typeof global.SelectList.ProjectMemberList != "undefined") {
             global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName }) })
         }
-        return <div>
-            <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" style={{ marginRight: "2px" }}
-                    onClick={(e) => {
-                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
-                        dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
-                    }} >
-                    <span>Back</span>
-                </li>
-                {
-                    (typeof task.Selected.action == 'undefined' || task.Selected.action != 'view') && <li class="btn btn-info" onClick={this.handleSubmit} >
-                        <span>Save</span>
+
+        return (
+            <div>
+                <HeaderButtonContainer withMargin={true}>
+                    <li class="btn btn-info" style={{ marginRight: "2px" }}
+                        onClick={(e) => {
+                            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+                            dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
+                        }} >
+                        <span>Back</span>
                     </li>
-                }
+                    {
+                        (typeof task.Selected.action == 'undefined' || task.Selected.action != 'view') && <li class="btn btn-info" onClick={this.handleSubmit} >
+                            <span>Save</span>
+                        </li>
+                    }
 
-            </HeaderButtonContainer>
+                </HeaderButtonContainer>
 
-            <div class="row mt10">
-                <div class="col-lg-12 col-md-12 col-xs-12">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Task {(task.Selected.id) ? " > Edit > ID: " + task.Selected.id : " > Add"}</h3>
-                        </div>
-                        <div class="panel-body">
-                            <form
-                                onSubmit={this.handleSubmit}
-                                class="form-horizontal form-container"
-                                style={{ pointerEvents: (typeof task.Selected.action != 'undefined' && task.Selected.action == 'view') ? 'none' : 'auto' }}
-                            >
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="checkbox"
-                                            style={{ width: "15px", marginTop: "10px" }}
-                                            checked={task.Selected.isActive ? true : false}
-                                            onChange={() => { }}
-                                            onClick={(f) => { this.handleCheckbox("isActive", (task.Selected.isActive) ? 0 : 1) }}
-                                        />
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label"></label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <span style={{ padding: "10px" }}>{(task.Selected.status) ? task.Selected.status : "In Progress"}</span>
-                                        {task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
-                                            <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
-                                        }
-                                        {((task.Selected.status == "" || task.Selected.status == "In Progress")
-                                        ) &&
-                                            <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
-                                        }
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Workstream</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false}
-                                            required={false}
-                                            options={workstreamList}
-                                            selected={(typeof task.Selected.workstreamId == "undefined") ? "" : task.Selected.workstreamId}
-                                            onChange={(e) => this.setDropDown("workstreamId", e.value)} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Task Name *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Dependent to task</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false}
-                                            required={false}
-                                            options={taskList}
-                                            selected={(typeof task.Selected.linkTaskId == "undefined") ? "" : task.Selected.linkTaskId}
-                                            onChange={(e) => this.setDropDown("linkTaskId", e.value)} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Due Date: </label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <div class="input-group date">
-                                            <input type="text"
-                                                class="form-control datepicker"
-                                                style={{ backgroundColor: "#eee" }}
-                                                id="dueDate"
-                                                name="dueDate"
-                                                value={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate) ? displayDate(task.Selected.dueDate) : ""}
+                <div class="row mt10">
+                    <div class="col-lg-12 col-md-12 col-xs-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Task {(task.Selected.id) ? " > Edit > ID: " + task.Selected.id : " > Add"}</h3>
+                            </div>
+                            <div class="panel-body">
+                                <form
+                                    onSubmit={this.handleSubmit}
+                                    class="form-horizontal form-container"
+                                    style={{ pointerEvents: (typeof task.Selected.action != 'undefined' && task.Selected.action == 'view') ? 'none' : 'auto' }}
+                                >
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <input type="checkbox"
+                                                style={{ width: "15px", marginTop: "10px" }}
+                                                checked={task.Selected.isActive ? true : false}
                                                 onChange={() => { }}
-                                                required={false}
+                                                onClick={(f) => { this.handleCheckbox("isActive", (task.Selected.isActive) ? 0 : 1) }}
                                             />
-                                            <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
-                                            </span>
                                         </div>
                                     </div>
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label pt0">Assigned *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false}
-                                            required={true}
-                                            options={projectUserList}
-                                            selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
-                                            onChange={(e) => {
-                                                this.setDropDown("assignedTo", e.value);
-                                            }} />
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label"></label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <span style={{ padding: "10px" }}>{(task.Selected.status) ? task.Selected.status : "In Progress"}</span>
+                                            {task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
+                                                <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
+                                            }
+                                            {
+                                                (
+                                                    (task.Selected.status == null || task.Selected.status == "In Progress" || task.Selected.status == "")
+                                                    &&
+                                                    (typeof task.Selected.isActive == 'undefined' || task.Selected.isActive == 1)
+                                                ) && <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Workstream</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <DropDown multiple={false}
+                                                required={false}
+                                                options={workstreamList}
+                                                selected={(typeof task.Selected.workstreamId == "undefined") ? "" : task.Selected.workstreamId}
+                                                onChange={(e) => this.setDropDown("workstreamId", e.value)} />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Task Name *</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Dependent to task</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <DropDown multiple={false}
+                                                required={false}
+                                                options={taskList}
+                                                selected={(typeof task.Selected.linkTaskId == "undefined") ? "" : task.Selected.linkTaskId}
+                                                onChange={(e) => this.setDropDown("linkTaskId", e.value)} />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Due Date: </label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <div class="input-group date">
+                                                <input type="text"
+                                                    class="form-control datepicker"
+                                                    style={{ backgroundColor: "#eee" }}
+                                                    id="dueDate"
+                                                    name="dueDate"
+                                                    value={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate) ? displayDate(task.Selected.dueDate) : ""}
+                                                    onChange={() => { }}
+                                                    required={false}
+                                                />
+                                                <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
+                                                </span>
+                                            </div>
+                                        </div>
                                         <div class="help-block with-errors"></div>
                                     </div>
-                                </div>
-                            </form>
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label pt0">Assigned</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <DropDown multiple={false}
+                                                required={false}
+                                                options={projectUserList}
+                                                selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
+                                                onChange={(e) => {
+                                                    this.setDropDown("assignedTo", (e == null) ? "" : e.value);
+                                                }}
+                                                isClearable={true}
+                                                />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        )
     }
 }

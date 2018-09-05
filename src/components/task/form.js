@@ -90,8 +90,7 @@ export default class FormComponent extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, task, dispatch } = this.props
-
+        let { socket, task, dispatch } = this.props;
         let result = true;
         $('.form-container *').validator('validate');
         $('.form-container .form-group').each(function () {
@@ -164,7 +163,7 @@ export default class FormComponent extends React.Component {
                             <h3 class="panel-title">Task {(task.Selected.id) ? " > Edit > ID: " + task.Selected.id : " > Add"}</h3>
                         </div>
                         <div class="panel-body">
-                            <form 
+                            <form
                                 onSubmit={this.handleSubmit}
                                 class="form-horizontal form-container"
                                 style={{ pointerEvents: (typeof task.Selected.action != 'undefined' && task.Selected.action == 'view') ? 'none' : 'auto' }}
@@ -187,9 +186,8 @@ export default class FormComponent extends React.Component {
                                         {task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
                                             <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
                                         }
-                                        {((!task.Selected.status || task.Selected.status == "In Progress")
-                                        ) &&
-                                            <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
+                                        {
+                                            ((task.Selected.status == null || task.Selected.status == "In Progress" || task.Selected.status == "") && (typeof task.Selected.isActive == 'undefined' || task.Selected.isActive == 1)) && <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
                                         }
                                     </div>
                                 </div>
@@ -247,16 +245,17 @@ export default class FormComponent extends React.Component {
                                     <div class="help-block with-errors"></div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label pt0">Assigned *</label>
+                                    <label class="col-md-3 col-xs-12 control-label pt0">Assigned</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={false}
-                                            required={true}
+                                            required={false}
                                             options={projectUserList}
                                             selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
                                             onChange={(e) => {
-                                                this.setDropDown("assignedTo", e.value);
+                                                this.setDropDown("assignedTo", (e == null) ? "" : e.value);
                                             }}
                                             disabled={!allowEdit}
+                                            isClearable={true}
                                         />
                                         <div class="help-block with-errors"></div>
                                     </div>

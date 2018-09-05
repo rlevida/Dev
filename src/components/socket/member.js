@@ -28,7 +28,7 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_MEMBERS_ADD", (data) => {
-            if(data.type == "workstream"){
+           if(data.type == "workstream"){
                 dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
                 dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
                 showToast("success", "Successfully updated.")

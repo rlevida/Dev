@@ -114,9 +114,10 @@ export default class FormComponent extends React.Component {
                 }
             }
         })
-
         let userMemberList = _(members.List)
-            .filter((member) => { return member.usersType == 'users' })
+            .filter((member) => { 
+                return member.usersType == 'users' 
+            })
             .map((member) => {
                 let returnObject = member;
                 let userMember = (users.List).filter((o) => { return o.id == member.userTypeLinkId });
