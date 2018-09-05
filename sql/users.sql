@@ -16,6 +16,7 @@ CREATE TABLE `users` (
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `isActive` TINYINT(1) DEFAULT '1',
     `isDeleted` TINYINT(1) DEFAULT '0',
+    `company`VARCHAR(50),
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;
 /* password : volenday */
