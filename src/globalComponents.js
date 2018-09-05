@@ -42,7 +42,6 @@ export const DropDown = React.createClass({
         }
     },
     render: function () {
-
         var self = this;
 
         var handleChange = function (option) {
@@ -55,7 +54,7 @@ export const DropDown = React.createClass({
                 options={self.state.records}
                 style={this.props.style}
                 value={this.state.selected} onChange={handleChange}
-                clearable={false}
+                clearable={(typeof this.props.isClearable != 'undefined') ? this.props.isClearable : false}
                 required={this.props.required}
             />
         );

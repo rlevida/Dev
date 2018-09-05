@@ -248,15 +248,17 @@ export default class FormComponent extends React.Component {
                                         <div class="help-block with-errors"></div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label pt0">Assigned *</label>
+                                        <label class="col-md-3 col-xs-12 control-label pt0">Assigned</label>
                                         <div class="col-md-7 col-xs-12">
                                             <DropDown multiple={false}
-                                                required={true}
+                                                required={false}
                                                 options={projectUserList}
                                                 selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
                                                 onChange={(e) => {
-                                                    this.setDropDown("assignedTo", e.value);
-                                                }} />
+                                                    this.setDropDown("assignedTo", (e == null) ? "" : e.value);
+                                                }}
+                                                isClearable={true}
+                                                />
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
