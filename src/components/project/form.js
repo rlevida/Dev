@@ -253,7 +253,7 @@ export default class FormComponent extends React.Component {
                                             </table>
                                         </div>
                                     }
-
+                                    
                                     {
                                         (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") && <div class="row pd20">
                                             <h3>Members</h3>
@@ -271,22 +271,24 @@ export default class FormComponent extends React.Component {
                                                             <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
                                                         </tr>
                                                     }
-                                                    {
+                                                    { (userMemberList.length > 0) &&
                                                         userMemberList.map((data, index) => {
-                                                            return (
-                                                                <tr key={index}>
-                                                                    <td class="text-left">{data.user.firstName + ' ' + data.user.lastName}</td>
-                                                                    <td>{data.user.userType}</td>
-                                                                    <td>{((typeof data.user.role != 'undefined' && data.user.role).length > 0) ? data.user.role[0].role_role : ''}</td>
-                                                                    <td class="text-center">
-                                                                        <a href="javascript:void(0);" data-tip="DELETE"
-                                                                            onClick={e => this.deleteData({ id: data.id, type: 'team' })}
-                                                                            class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                                            <span class="glyphicon glyphicon-trash"></span></a>
-                                                                        <Tooltip />
-                                                                    </td>
-                                                                </tr>
-                                                            )
+                                                            if(typeof data.user != "undefined"){
+                                                                return (
+                                                                    <tr key={index}>
+                                                                        <td class="text-left">{data.user.firstName + ' ' + data.user.lastName}</td>
+                                                                        <td>{data.user.userType}</td>
+                                                                        <td>{((typeof data.user.role != 'undefined' && data.user.role).length > 0) ? data.user.role[0].role_role : ''}</td>
+                                                                        <td class="text-center">
+                                                                            <a href="javascript:void(0);" data-tip="DELETE"
+                                                                                onClick={e => this.deleteData({ id: data.id, type: 'team' })}
+                                                                                class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                                                <span class="glyphicon glyphicon-trash"></span></a>
+                                                                            <Tooltip />
+                                                                        </td>
+                                                                    </tr>
+                                                                )
+                                                            }
                                                         })
                                                     }
                                                 </tbody>

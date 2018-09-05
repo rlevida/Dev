@@ -18,13 +18,36 @@ router.use(function (req, res, next) {
 });
 
 router.get('/', function (req, res, next) {
-    res.render('project', {
-        title: global.site_name,
-        page: 'project',
-        subpage: '',
-        project: "",
-        body: "./template/index"
-    });
+    if(req.userDetails.users_userType != "External"){
+        res.render('project', {
+            title: global.site_name,
+            page: 'project',
+            subpage: '',
+            project: "",
+            body: "./template/index"
+        });
+    }else{
+        let members = global.initModel("members")
+            members.getData("members", { userTypeLinkId : req.userDetails.usersId , linkType : "project" }, {}, (c) => {
+                if (c.status) {
+                    if(c.data.length){
+                        if(c.data.length > 1){
+                            res.render('project', {
+                                title: global.site_name,
+                                page: 'project',
+                                subpage: '',
+                                project: "",
+                                body: "./template/index"
+                            });
+                        }else{
+                            res.redirect(`/project/${c.data[0].linkId}`);
+                        }
+                    }
+                } else {
+                    if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
+                }
+            })
+    }
 });
 
 router.get('/:project', function (req, res, next) {

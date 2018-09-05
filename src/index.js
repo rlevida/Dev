@@ -66,7 +66,9 @@ switch (page) {
     case "pageNotAvailable":
         require('./container/pageNotAvailable');
         break;
-    
+    case "noProjectAvailable":
+        require('./container/noProjectAvailable')
+        break
         
     /** ========================================================================================
      * 
