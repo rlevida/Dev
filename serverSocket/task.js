@@ -64,7 +64,6 @@ var init = exports.init = (socket) => {
             if( typeof d.data.id != "undefined" && d.data.id != "" ){
                 let id = d.data.id
                 delete d.data.id
-                console.log(id)
                 task.putData("task",d.data,{id:id},(c)=>{
                     if(c.status) {
                         task.getData("task",{id:id},{},(e)=>{
@@ -98,7 +97,8 @@ var init = exports.init = (socket) => {
             if(typeof d.data.assignedTo != 'undefined' && d.data.assignedTo != ''){
                 members.getData("members",{linkType:"task",linkId:d.data.id,usersType:"users",userTypeLinkId:d.data.assignedTo,memberType:"assignedTo"},{},(e)=>{
                     if(e.data.length > 0){
-                         data.assignedTo = e.data[0].userTypeLinkId
+                         data.assignedTo = e.data[0].userTypeLinkId;
+                         nextThen(type,data)
                     }else{
                         members.deleteData("members",{linkType:"task",linkId:id,usersType:"users",memberType:"assignedTo"},(c)=>{
                             let assignedTo = {linkType:"task",linkId:id,usersType:"users",userTypeLinkId:d.data.assignedTo,memberType:"assignedTo"};

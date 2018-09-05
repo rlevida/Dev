@@ -64,8 +64,8 @@ export default class FormComponent extends React.Component {
 
     handleSubmit(e) {
         let { socket, project, loggedUser } = this.props
-
         let result = true;
+
         $('.form-container *').validator('validate');
         $('.form-container .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
@@ -98,9 +98,8 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, project, loggedUser, members, status, type, users, teams, workstream } = this.props
-
-        let statusList = [], typeList = []
+        let { dispatch, project, loggedUser, members, status, type, users, teams, workstream } = this.props;
+        let statusList = [], typeList = [];
         status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
         type.List.map((e, i) => {
             if (e.linkType == "project") {
@@ -114,10 +113,19 @@ export default class FormComponent extends React.Component {
                 }
             }
         });
-        
+
+        let projectManagerFilter = _.filter(members.List, (o) => { return o.memberType == "project manager" });
+        let projectManager = '';
+
+        if (typeof project.Selected.projectManagerId != "undefined") {
+            projectManager = project.Selected.projectManagerId;
+        } else if (projectManagerFilter.length > 0) {
+            projectManager = projectManagerFilter[0].userTypeLinkId;
+        }
+
         let userMemberList = _(members.List)
-            .filter((member) => { 
-                return member.usersType == 'users' 
+            .filter((member) => {
+                return member.usersType == 'users' && member.memberType != "project manager";
             })
             .map((member) => {
                 let returnObject = member;
@@ -125,6 +133,7 @@ export default class FormComponent extends React.Component {
                 return { ...member, 'user': userMember[0] };
             })
             .value();
+
         let teamMemberList = _(members.List)
             .filter((member) => { return member.usersType == 'team' })
             .map((member) => {
@@ -202,7 +211,8 @@ export default class FormComponent extends React.Component {
                                                         required={true}
                                                         options={typeList}
                                                         selected={(typeof project.Selected.typeId == "undefined") ? "" : project.Selected.typeId}
-                                                        onChange={(e) => this.setDropDown("typeId", e.value)} />
+                                                        onChange={(e) => this.setDropDown("typeId", e.value)}
+                                                    />
                                                     <div class="help-block with-errors"></div>
                                                 </div>
                                             </div>
@@ -226,8 +236,11 @@ export default class FormComponent extends React.Component {
                                                     <DropDown multiple={false}
                                                         required={false}
                                                         options={projectManagerUsers}
-                                                    // selected={(typeof task.Selected.workstreamId == "undefined") ? "" : task.Selected.workstreamId}
-                                                    // onChange={(e) => this.setDropDown("workstreamId", e.value)}
+                                                        isClearable={(projectManagerUsers.length > 0)}
+                                                        selected={projectManager}
+                                                        onChange={(e) => {
+                                                            this.setDropDown("projectManagerId", (e == null) ? "" : e.value);
+                                                        }}
                                                     />
                                                     <div class="help-block with-errors"></div>
                                                 </div>

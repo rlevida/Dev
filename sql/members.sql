@@ -5,7 +5,7 @@ CREATE TABLE `members` (
     `userTypeLinkId` BIGINT,
     `linkType` ENUM("project","workstream","task"),
     `linkId` BIGINT,
-    `memberType` ENUM("assignedTo","Follower","responsible"),
+    `memberType` ENUM("assignedTo","Follower","responsible", "project manager"),
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)
