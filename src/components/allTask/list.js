@@ -18,6 +18,7 @@ export default class List extends React.Component {
 
         this.deleteData = this.deleteData.bind(this)
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
+        this.renderStatus = this.renderStatus.bind(this)
     }
 
     componentWillMount() {
@@ -53,6 +54,29 @@ export default class List extends React.Component {
         }
     }
 
+    renderStatus(data) {
+        const { isActive, taskStatus } = { ...data };
+        let className = "";
+        let statusColor = "#000";
+
+        if (isActive == 0) {
+            className = "fa fa-circle";
+        } else if (taskStatus == 0) {
+            className = "fa fa-circle";
+            statusColor = "#27ae60"
+        } else if (taskStatus == 1) {
+            className = "fa fa-circle";
+            statusColor = "#f39c12"
+        } else if (taskStatus == 2) {
+            className = "fa fa-circle";
+            statusColor = "#c0392b"
+        }
+
+        return (
+            <span className={className} style={{ color: statusColor }}></span>
+        );
+    }
+
     render() {
         let { task, socket, loggedUser } = this.props;
         return <div>
@@ -85,9 +109,7 @@ export default class List extends React.Component {
 
                             return <tr key={index}>
                                 <td>
-                                    {(taskStatus == 0) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60" }}></span>}
-                                    {(taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
-                                    {(taskStatus == 2) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
+                                    {this.renderStatus({ ...data, taskStatus })}
                                 </td>
                                 <td class="text-left">{data.project_project}</td>
                                 <td class="text-left">{data.workstream_workstream}</td>
