@@ -182,14 +182,15 @@ export default class FormComponent extends React.Component {
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
-                                { users.Selected.userType == "External" && 
-                                    <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Company</label>
-                                        <div class="col-md-7 col-xs-12">
-                                            <input type="text" name="company" value={(typeof users.Selected.company == "undefined") ? "" : users.Selected.company} class="form-control" placeholder="Company" onChange={this.handleChange} />
-                                            <div class="help-block with-errors"></div>
+                                { 
+                                    (users.Selected.userType == "External") && 
+                                        <div class="form-group">
+                                            <label class="col-md-3 col-xs-12 control-label">Company</label>
+                                            <div class="col-md-7 col-xs-12">
+                                                <input type="text" name="company" value={(typeof users.Selected.company == "undefined") ? "" : users.Selected.company} class="form-control" placeholder="Company" onChange={this.handleChange} />
+                                                <div class="help-block with-errors"></div>
+                                            </div>
                                         </div>
-                                    </div>
                                 }
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">User Role *</label>

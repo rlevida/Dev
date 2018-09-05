@@ -130,6 +130,10 @@ export default class FormComponent extends React.Component {
                                             <label for="firstName">Phone Number:</label>
                                             <input type="number" name="phoneNumber" value="" class="form-control" placeholder="Phone number" value={user.phoneNumber != null ? user.phoneNumber : ""} onChange={this.handleChange} />
                                         </div>
+                                        <div class="form-group">
+                                            <label for="company">Company:</label>
+                                            <input type="company" name="company" value="" class="form-control" placeholder="Company" value={user.company != null ? user.company : ""} onChange={this.handleChange} />
+                                        </div>
                                     </form>
                                 </div>
                             </div>
