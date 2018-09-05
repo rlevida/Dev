@@ -34,7 +34,13 @@ var field = exports.field = {
     /**
      * isFolder (tinyint )
      */
-    'isFolder' : {type:'tinyint' , access : "public"}
+    'isFolder' : {type:'tinyint' , access : "public"},
+
+     /**
+     * createdBy (BIGINT )
+     */
+    'createdBy' : {type:'bigint' , access : "public"}
+
 }
 
 var { getData, putData, postData, deleteData } = require("./index");
