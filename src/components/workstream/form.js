@@ -50,15 +50,18 @@ export default class FormComponent extends React.Component {
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: Selected })
     }
 
-    handleCheckbox(name,value) {
+    handleCheckbox(name, value) {
         let { socket, dispatch, workstream } = this.props
-        let Selected = Object.assign({},workstream.Selected)
+        let Selected = Object.assign({}, workstream.Selected)
         Selected[name] = value;
-        dispatch({type:"SET_WORKSTREAM_SELECTED",Selected:Selected})
+        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: Selected })
     }
 
     handleSubmit() {
-        let { socket, workstream } = this.props
+        let { socket, workstream } = this.props;
+        let isActive = (typeof workstream.Selected.isActive == 'undefined') ? 1 : workstream.Selected.isActive;
+
+        workstream.Selected.isActive = isActive;
 
         let result = true;
         $('.form-container *').validator('validate');
@@ -67,12 +70,12 @@ export default class FormComponent extends React.Component {
                 result = false;
             }
         });
-        
+
         if (!result) {
             showToast("error", "Form did not fullfill the required value.")
             return;
         }
-        
+
         socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { ...workstream.Selected, projectId: project, numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0 } });
     }
 
@@ -97,20 +100,20 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, workstream, status, type, global , users } = this.props
+        let { dispatch, workstream, status, type, global, users } = this.props
         let statusList = [], typeList = [], projectUserList = [];
 
         status.List.map((e, i) => { if (e.linkType == "workstream") { statusList.push({ id: e.id, name: e.status }) } })
         type.List.map((e, i) => { if (e.linkType == "workstream") { typeList.push({ id: e.id, name: e.type }) } })
-        if(typeof global.SelectList.ProjectMemberList != "undefined"){
-            global.SelectList.ProjectMemberList.map((e, i) => { 
+        if (typeof global.SelectList.ProjectMemberList != "undefined") {
+            global.SelectList.ProjectMemberList.map((e, i) => {
                 let roleId = users.List.filter(u => { return u.id == e.id })[0].role[0].role_id;
-                    if( roleId == 1 || roleId == 2 || roleId == 3 || roleId == 4){
-                        projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })  
-                    }
+                if (roleId == 1 || roleId == 2 || roleId == 3 || roleId == 4) {
+                    projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })
+                }
             })
         }
-        
+
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
@@ -122,7 +125,7 @@ export default class FormComponent extends React.Component {
                     }} >
                     <span>Back</span>
                 </li>
-                <li class="btn btn-info" onClick={()=>this.handleSubmit()} >
+                <li class="btn btn-info" onClick={() => this.handleSubmit()} >
                     <span>Save</span>
                 </li>
             </HeaderButtonContainer>
@@ -133,17 +136,17 @@ export default class FormComponent extends React.Component {
                             <h3 class="panel-title">Workstream {(workstream.Selected.id) ? " > Edit > ID: " + workstream.Selected.id : " > Add"}</h3>
                         </div>
                         <div class="panel-body">
-                            { ( workstream.SelectedLink == "") && 
+                            {(workstream.SelectedLink == "") &&
                                 <form class="form-horizontal form-container">
                                     <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
                                         <div class="col-md-7 col-xs-12">
-                                            <input type="checkbox" 
+                                            <input type="checkbox"
                                                 style={{ width: "15px", marginTop: "10px" }}
-                                                checked={ workstream.Selected.isActive?true:false  }
-                                                onChange={()=>{}}
-                                                onClick={(f)=>{ this.handleCheckbox("isActive",(workstream.Selected.isActive)?0:1) }}
-                                            /> 
+                                                checked={(workstream.Selected.isActive || typeof workstream.Selected.isActive == 'undefined') ? true : false}
+                                                onChange={() => { }}
+                                                onClick={(f) => { this.handleCheckbox("isActive", (workstream.Selected.isActive || typeof workstream.Selected.isActive == 'undefined') ? 0 : 1) }}
+                                            />
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -205,16 +208,16 @@ export default class FormComponent extends React.Component {
                                 </form>
                             }
 
-                            { ( workstream.SelectedLink == "task") &&
+                            {(workstream.SelectedLink == "task") &&
                                 <Task />
                             }
-                            { ( workstream.SelectedLink == "document") &&
-                                <Document/>
+                            {(workstream.SelectedLink == "document") &&
+                                <Document />
                             }
-                            { ( workstream.SelectedLink == "member") &&
-                                <Member/>
+                            {(workstream.SelectedLink == "member") &&
+                                <Member />
                             }
-                            
+
                         </div>
                     </div>
                 </div>
