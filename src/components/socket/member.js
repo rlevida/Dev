@@ -34,7 +34,7 @@ export default class Socket extends React.Component {
                 showToast("success", "Successfully updated.")
 
             }else{
-                dispatch({ type: "SET_MEMBERS_LIST", list: [...this.props.members.List, data[0]] })
+                dispatch({ type: "SET_MEMBERS_LIST", list: [...this.props.members.List, data.data[0]] })
                 dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} })
                 dispatch({ type: "SET_MEMBERS_FORM_ACTIVE", FormActive: "List" });
             }
