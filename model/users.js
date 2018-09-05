@@ -73,7 +73,12 @@ var field = exports.field = {
     /**
      * isDeleted (tinyint )
      */
-    'isDeleted' :  {type : 'date' , access : "public" }
+    'isDeleted' :  {type : 'date' , access : "public" },
+
+    /**
+     * company (VARCHAR 50 )
+     */
+    'company' :  {type : 'string' , access : "public" }
 
 }
 
