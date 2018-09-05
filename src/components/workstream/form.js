@@ -107,8 +107,7 @@ export default class FormComponent extends React.Component {
         type.List.map((e, i) => { if (e.linkType == "workstream") { typeList.push({ id: e.id, name: e.type }) } })
         if (typeof global.SelectList.ProjectMemberList != "undefined") {
             global.SelectList.ProjectMemberList.map((e, i) => {
-                let roleId = users.List.filter(u => { return u.id == e.id })[0].role[0].role_id;
-                if (roleId == 1 || roleId == 2 || roleId == 3 || roleId == 4) {
+                if (e.roleId == 1 || e.roleId == 2 || e.roleId == 3 || e.roleId == 5) {
                     projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })
                 }
             })
