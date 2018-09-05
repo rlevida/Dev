@@ -164,7 +164,7 @@ export default class FormComponent extends React.Component {
                             <h3 class="panel-title">Task {(task.Selected.id) ? " > Edit > ID: " + task.Selected.id : " > Add"}</h3>
                         </div>
                         <div class="panel-body">
-                            <form 
+                            <form
                                 onSubmit={this.handleSubmit}
                                 class="form-horizontal form-container"
                                 style={{ pointerEvents: (typeof task.Selected.action != 'undefined' && task.Selected.action == 'view') ? 'none' : 'auto' }}
@@ -187,9 +187,8 @@ export default class FormComponent extends React.Component {
                                         {task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
                                             <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
                                         }
-                                        {((!task.Selected.status || task.Selected.status == "In Progress")
-                                        ) &&
-                                            <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
+                                        {
+                                            ((!task.Selected.status || task.Selected.status == "In Progress") && (typeof task.Selected.isActive == 'undefined' || task.Selected.isActive == 1)) && <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
                                         }
                                     </div>
                                 </div>
