@@ -201,10 +201,10 @@ export default class DocumentLibrary extends React.Component {
                         }else{
                             if(e.status == "library" && e.folderId == null){
                                 let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? 1 : 0 ;
-                                    if(isShared){
+                                    if(isShared || e.uploadedBy == loggedUser.data.id ){
                                         documentList.library.push(e)
                                     }
-                                }
+                            }
                         }
                     })
                 }
