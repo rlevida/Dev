@@ -3,6 +3,7 @@ import Tooltip from "react-tooltip";
 import { HeaderButtonContainer } from "../../globalComponents";
 import moment from 'moment'
 import TaskStatus from "./taskStatus"
+import _ from "lodash";
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -69,6 +70,12 @@ export default class List extends React.Component {
 
     render() {
         let { task, dispatch, socket, loggedUser } = this.props;
+        let taskList = _(task.List)
+            .map((o) => {
+                return { ...o, due_date_int: moment(o.dueDate).format('YYYYMMDD') }
+            })
+            .orderBy(['due_date_int'], ['asc'])
+            .value();
 
         return <div>
 
@@ -90,13 +97,13 @@ export default class List extends React.Component {
                         <th class="text-center"></th>
                     </tr>
                     {
-                        (task.List.length == 0) &&
+                        (taskList.length == 0) &&
                         <tr>
                             <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
                         </tr>
                     }
                     {
-                        task.List.map((data, index) => {
+                        taskList.map((data, index) => {
                             let taskStatus = 0;
                             let dueDate = moment(data.dueDate);
                             let currentDate = moment(new Date());

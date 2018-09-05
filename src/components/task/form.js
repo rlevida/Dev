@@ -255,7 +255,7 @@ export default class FormComponent extends React.Component {
                                                 this.setDropDown("assignedTo", (e == null) ? "" : e.value);
                                             }}
                                             disabled={!allowEdit}
-                                            isClearable={true}
+                                            isClearable={(projectUserList.length > 0)}
                                         />
                                         <div class="help-block with-errors"></div>
                                     </div>

@@ -257,7 +257,7 @@ export default class FormComponent extends React.Component {
                                                 onChange={(e) => {
                                                     this.setDropDown("assignedTo", (e == null) ? "" : e.value);
                                                 }}
-                                                isClearable={true}
+                                                isClearable={projectUserList.length > 0}
                                                 />
                                             <div class="help-block with-errors"></div>
                                         </div>

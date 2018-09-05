@@ -64,7 +64,7 @@ var init = exports.init = (socket) => {
             if( typeof d.data.id != "undefined" && d.data.id != "" ){
                 let id = d.data.id
                 delete d.data.id
-                
+                console.log(id)
                 task.putData("task",d.data,{id:id},(c)=>{
                     if(c.status) {
                         task.getData("task",{id:id},{},(e)=>{
@@ -95,14 +95,13 @@ var init = exports.init = (socket) => {
             }
         }).then((nextThen,id,type,data)=>{
             let members = global.initModel("members")
-
             if(typeof d.data.assignedTo != 'undefined' && d.data.assignedTo != ''){
                 members.getData("members",{linkType:"task",linkId:d.data.id,usersType:"users",userTypeLinkId:d.data.assignedTo,memberType:"assignedTo"},{},(e)=>{
                     if(e.data.length > 0){
                          data.assignedTo = e.data[0].userTypeLinkId
                     }else{
                         members.deleteData("members",{linkType:"task",linkId:id,usersType:"users",memberType:"assignedTo"},(c)=>{
-                            let assignedTo = {linkType:"task",linkId:data[0].id,usersType:"users",userTypeLinkId:d.data.assignedTo,memberType:"assignedTo"};
+                            let assignedTo = {linkType:"task",linkId:id,usersType:"users",userTypeLinkId:d.data.assignedTo,memberType:"assignedTo"};
                             members.postData("members",assignedTo,(c)=>{
                                 data.assignedTo = d.data.assignedTo
                                 nextThen(type,data)
@@ -111,7 +110,7 @@ var init = exports.init = (socket) => {
                     }
                 })
             }else{
-                members.deleteData("members",{linkType:"task",linkId:d.data.task_linkTaskId,usersType:"users",memberType:"assignedTo"},(c)=>{
+                members.deleteData("members",{linkType:"task",linkId:id,usersType:"users",memberType:"assignedTo"},(c)=>{
                     nextThen(type,data)
                 });
             }
