@@ -188,7 +188,7 @@ export default class FormComponent extends React.Component {
                                             <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
                                         }
                                         {
-                                            ((!task.Selected.status || task.Selected.status == "In Progress") && (typeof task.Selected.isActive == 'undefined' || task.Selected.isActive == 1)) && <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
+                                            ((task.Selected.status == null || task.Selected.status == "In Progress" || task.Selected.status == "") && (typeof task.Selected.isActive == 'undefined' || task.Selected.isActive == 1)) && <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
                                         }
                                     </div>
                                 </div>
