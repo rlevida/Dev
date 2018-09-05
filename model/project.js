@@ -325,7 +325,6 @@ var getProjectList = exports.getProjectList = ( tablename, data, advance , cb ) 
     /**
      * Manage Query Connection
      */
-    console.log(query)
     db.query(
         query,
         params, 
