@@ -174,7 +174,7 @@ export default class DocumentNew extends React.Component {
                                                                 : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
                                                     }
                                                 </td>
-                                                <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
+                                                <td class="new-document"> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
                                                 <td>{ moment(data.dateAdded).format('L') }</td>
                                                 <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
                                                 <td>
@@ -182,7 +182,7 @@ export default class DocumentNew extends React.Component {
                                                         { (tagList.length > 0) &&
                                                             tagList.map((t,tIndex) =>{
                                                                 if(t.tagTypeId == data.id){
-                                                                    return <li><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
+                                                                    return <li key={tIndex}><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
                                                                 }
                                                             })
                                                         }
