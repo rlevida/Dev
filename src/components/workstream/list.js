@@ -102,7 +102,7 @@ export default class List extends React.Component {
                                     }
                                 </td>
                                 <td class="text-center">{(data.memberNames)?<span style={{color:"#46b8da"}} title={data.memberNames}><i class="fa fa-user fa-lg"></i></span>:""}   {/*&nbsp;&nbsp;<span style={{color:"#006400"}}><i class="fa fa-user fa-lg"></i></span>*/}</td>
-                                <td class="text-center"><span class={data.type_type=="Project - Output base"?"fa fa-calendar":"glyphicon glyphicon-time"}></span></td>
+                                <td class="text-center"><span class={data.type_type=="Output base"?"fa fa-calendar":"glyphicon glyphicon-time"}></span></td>
                                 <td class="text-center"><span><i class="fa fa-users fa-lg"></i></span></td>
                                 { (loggedUser.data.userRole == 1 
                                     || loggedUser.data.userRole == 2 
