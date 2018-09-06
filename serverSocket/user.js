@@ -33,16 +33,28 @@ var init = exports.init = (socket) => {
         let users = global.initModel("users")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
         let usersRole = global.initModel("users_role");
+        let usersTeam = global.initModel("users_team")
 
         users.getData("users", filter, {}, (c) => {
             if (c.status) {
-                usersRole.getData("users_role", { }, {}, (e) => {
-                    c.data = c.data.map((f,j)=>{
-                        f.role = e.data.filter(g=>g.usersId == f.id)
-                        return f
-                    })
-                    socket.emit("FRONT_USER_LIST", c.data)
-                });
+                async.map(c.data, (user, mapCallback) => {
+                    async.parallel({
+                        role: function (parallelCallback) {
+                            usersRole.getData("users_role", { usersId: user.id }, {}, (role) => {
+                                parallelCallback(null, role.data)
+                            });
+                        },
+                        team: function (parallelCallback) {
+                            usersTeam.getData("users_team", { usersId: user.id }, {}, (team) => {
+                                parallelCallback(null, team.data)
+                            });
+                        }
+                    }, function (err, { role, team }) {
+                        mapCallback(null, { ...user, role, team })
+                    });
+                }, function (err, usersResult) {
+                    socket.emit("FRONT_USER_LIST", usersResult)
+                })
             } else {
                 if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
             }
@@ -56,13 +68,13 @@ var init = exports.init = (socket) => {
 
                 let usersRole = global.initModel("users_role")
 
-                usersRole.getData("users_role",{usersId:c.data[0].id},{},(e)=>{
-                    c.data[0].userRole = (e.data.length > 0)?e.data[0].roleId:0;
+                usersRole.getData("users_role", { usersId: c.data[0].id }, {}, (e) => {
+                    c.data[0].userRole = (e.data.length > 0) ? e.data[0].roleId : 0;
 
                     let usersTeam = global.initModel("users_team")
-                    usersTeam.getData("users_team",{usersId:c.data[0].id},{},(e)=>{
-                        c.data[0].team = JSON.stringify(e.data.map((e,i)=>{ return {value:e.teamId,label:e.team_team}; }));
-                        socket.emit("FRONT_USER_SELECTED",c.data[0]);
+                    usersTeam.getData("users_team", { usersId: c.data[0].id }, {}, (e) => {
+                        c.data[0].team = JSON.stringify(e.data.map((e, i) => { return { value: e.teamId, label: e.team_team }; }));
+                        socket.emit("FRONT_USER_SELECTED", c.data[0]);
                     })
                 })
             } else {
@@ -75,11 +87,11 @@ var init = exports.init = (socket) => {
         let users = global.initModel("users")
         let usersRole = global.initModel("users_role")
         sequence.create().then(function (nextThen) {
-            usersRole.getData("users_role",{roleId:1},{},(b)=>{
-                if( b.data.length == 1 && b.data[0].usersId == d.data.id && ( typeof d.data.isActive != "undefined" && d.data.isActive == "0" ) ){
-                    socket.emit("RETURN_ERROR_MESSAGE",{message:"Cant set to inactive, Last Master admin user."})
-                    socket.emit("FRONT_USER_ACTIVE",{id:d.data.id,status:1})
-                }else{
+            usersRole.getData("users_role", { roleId: 1 }, {}, (b) => {
+                if (b.data.length == 1 && b.data[0].usersId == d.data.id && (typeof d.data.isActive != "undefined" && d.data.isActive == "0")) {
+                    socket.emit("RETURN_ERROR_MESSAGE", { message: "Cant set to inactive, Last Master admin user." })
+                    socket.emit("FRONT_USER_ACTIVE", { id: d.data.id, status: 1 })
+                } else {
                     nextThen()
                 }
             })
@@ -114,14 +126,14 @@ var init = exports.init = (socket) => {
                         socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." })
                     }
                 })
-            }else{
-                users.postData("users",d.data,(c)=>{
-                    if(typeof c.id != "undefined" && c.id > 0) {
-                        users.getData("users",{id:c.id},{},(e)=>{
-                            if(e.data.length > 0) {
-                                nextThen({id:c.id,type:"add",data:e.data,message:"Successfully added."})
-                            }else{
-                                socket.emit("RETURN_ERROR_MESSAGE",{message:"Saving failed. Please Try again later."})
+            } else {
+                users.postData("users", d.data, (c) => {
+                    if (typeof c.id != "undefined" && c.id > 0) {
+                        users.getData("users", { id: c.id }, {}, (e) => {
+                            if (e.data.length > 0) {
+                                nextThen({ id: c.id, type: "add", data: e.data, message: "Successfully added." })
+                            } else {
+                                socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
                             }
                         })
                     } else {
@@ -142,12 +154,12 @@ var init = exports.init = (socket) => {
                     model.postData("users_role", { usersId: retData.id, roleId: d.data.userRole }, () => { })
                 })
             }
-            if( typeof d.data.team != "undefined" ){
+            if (typeof d.data.team != "undefined") {
                 let model = global.initModel("users_team");
-                model.deleteData("users_team",{usersId:retData.id},(a)=>{
+                model.deleteData("users_team", { usersId: retData.id }, (a) => {
                     let teams = JSON.parse(d.data.team);
-                    teams.map((e,i)=>{
-                        model.postData("users_team",{usersId:retData.id,teamId:e.value},()=>{ })
+                    teams.map((e, i) => {
+                        model.postData("users_team", { usersId: retData.id, teamId: e.value }, () => { })
                     })
                 })
             }

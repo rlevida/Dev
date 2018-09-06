@@ -17,21 +17,17 @@ import { connect } from "react-redux"
 })
 export default class Component extends React.Component {
     constructor(props) {
-        super(props) 
+        super(props)
         this.editData = this.editData.bind(this)
         this.savePassword = this.savePassword.bind(this)
     }
 
-    componentWillMount() {
-
-    }
-
     editData(id) {
         let { socket, dispatch } = this.props
-        if(id == ""){
-            dispatch({type:"SET_USER_FORM_ACTIVE", FormActive: "Form" })
-        }else{
-            socket.emit("GET_USER_DETAIL",id)
+        if (id == "") {
+            dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })
+        } else {
+            socket.emit("GET_USER_DETAIL", id)
         }
     }
 
@@ -47,7 +43,7 @@ export default class Component extends React.Component {
         } else {
             let token = localStorage.getItem('token');
             data.Id = users.SelectedId;
-            socket.emit("CHANGE_USER_PASSWORD",data);
+            socket.emit("CHANGE_USER_PASSWORD", data);
         }
     }
 
@@ -63,9 +59,9 @@ export default class Component extends React.Component {
                     <Form />
                 }
                 {users.FormActive == "ChangePassword" &&
-                    <ChangePassword onSubmitForm={this.savePassword} backToList={()=>{
-                        dispatch({type:"SET_USER_ID", SelectedId : ""}) 
-                        dispatch({type: "SET_USER_FORM_ACTIVE", FormActive: "List" })
+                    <ChangePassword onSubmitForm={this.savePassword} backToList={() => {
+                        dispatch({ type: "SET_USER_ID", SelectedId: "" })
+                        dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" })
                     }} />
                 }
             </div>

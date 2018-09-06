@@ -37,7 +37,7 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_TEAM_EDIT",(data) => {
-            dispatch({type:"UPDATE_DATA_TEAM_LIST",UpdatedData:data, List: this.props.teams.List})
+            dispatch({type:"UPDATE_DATA_TEAM_LIST",List: data})
             dispatch({type:"SET_TEAM_SELECTED",Selected : {}})
             dispatch({type:"SET_TEAM_FORM_ACTIVE",FormActive : "List"})
         })
