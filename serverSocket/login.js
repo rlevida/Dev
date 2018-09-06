@@ -110,7 +110,7 @@ var init = exports.init = (socket) => {
                 members.getData("members", { userTypeLinkId : userDetails.id , linkType : "project" }, {}, (c) => {
                     if (c.status) {
                         if(c.data.length){
-
+                            
                             socket.emit("AUTHENTICATION_RETURN",{ data : c.data , type : userDetails.userType } )
                             socket.emit("RETURN_SUCCESS_MESSAGE",{ message:"Successfully Login"})
 

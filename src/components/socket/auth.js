@@ -24,15 +24,20 @@ export default class Socket extends React.Component {
                     window.location.replace('/');
                 }, 1000);
             }else{
-                if(res.data.length > 1){
-                    setTimeout(() => {
-                        window.location.replace(`/project/`);
-                    }, 1000);
+                if(res.data.length){
+                    if(res.data.length > 1){
+                        setTimeout(() => {
+                            window.location.replace(`/project/`);
+                        }, 1000);
+                    }else{
+                        setTimeout(() => {
+                            window.location.replace(`/project/${res.data[0].linkId}`);
+                        }, 1000);
+                    }
                 }else{
                     setTimeout(() => {
-                        window.location.replace(`/project/${res.data[0].linkId}`);
+                        window.location.replace('/');
                     }, 1000);
-                   
                 }
             }
         })
