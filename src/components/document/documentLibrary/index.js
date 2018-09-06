@@ -305,7 +305,23 @@ export default class DocumentLibrary extends React.Component {
                                                 <td><span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span></td>
                                                 <td><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_FOLDER_SELECTED" , Selected : data })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{data.name}</a></td>
                                                 <td>{moment(data.dateUpdated).format('L')}</td>
-                                                <td></td>
+                                                <td>
+                                                    <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
+                                                    <Tooltip id={`follower${index}`}>
+                                                        { global.SelectList.ProjectMemberList.map((e,mIndex) => {
+                                                            if( e.userType == "Internal"){
+                                                                return <p key={mIndex}>{ `${e.firstName} ${e.lastName}`} <br/></p>
+                                                            }else{
+                                                                if(global.SelectList.shareList.length > 0){
+                                                                    let isShared =  global.SelectList.shareList.filter(s => {return s.userTypeLinkId == e.id && data.id == s.shareId && s.shareType == "folder"}).length ? 1 : 0
+                                                                        if(isShared){
+                                                                            return <p key={mIndex}>{ `${e.firstName} ${e.lastName}`} <br/></p>
+                                                                        }
+                                                                }
+                                                            }
+                                                        })}
+                                                    </Tooltip>
+                                                </td>
                                                 <td></td>
                                                 <td>
                                                     <div class="dropdown">
@@ -362,13 +378,15 @@ export default class DocumentLibrary extends React.Component {
                                                     </div>
                                                 </td>
                                                 <td> 
-                                                    { (tagList.length > 0) &&
-                                                        tagList.map((t,tIndex) =>{
-                                                            if(t.tagTypeId == data.id){
-                                                                return <span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span>
-                                                            }
-                                                        })
-                                                    }
+                                                    <ul style={{listStyleType: "none",padding : "0"}}>  
+                                                        { (tagList.length > 0) &&
+                                                            tagList.map((t,tIndex) =>{
+                                                                if(t.tagTypeId == data.id){
+                                                                    return <li><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
+                                                                }
+                                                            })
+                                                        }
+                                                    </ul>
                                                 </td>
                                                 <td>
                                                     <div class="dropdown">

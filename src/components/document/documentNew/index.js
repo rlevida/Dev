@@ -177,13 +177,17 @@ export default class DocumentNew extends React.Component {
                                                 <td> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
                                                 <td>{ moment(data.dateAdded).format('L') }</td>
                                                 <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
-                                                { (tagList.length > 0) &&
-                                                        tagList.map((t,tIndex) =>{
-                                                            if(t.tagTypeId == data.id){
-                                                                return <span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span>
-                                                            }
-                                                        })
-                                                    }
+                                                <td>
+                                                    <ul style={{listStyleType: "none",padding : "0"}}>
+                                                        { (tagList.length > 0) &&
+                                                            tagList.map((t,tIndex) =>{
+                                                                if(t.tagTypeId == data.id){
+                                                                    return <li><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
+                                                                }
+                                                            })
+                                                        }
+                                                    </ul>
+                                                </td>
                                                 <td>
                                                     <div class="dropdown">
                                                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
