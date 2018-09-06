@@ -57,7 +57,7 @@ export default class FormComponent extends React.Component {
         if((typeof Selected.startDate != "undefined" && typeof Selected.dueDate != "undefined") || (e.target.name == "startDate" && typeof Selected.dueDate != "undefined")){
             let startDate = e.target.name == "startDate" ? selectedDate : Selected.startDate
             
-          if( new Date(Selected.dueDate).getTime() < new Date(startDate).getTime() ){
+            if( new Date(Selected.dueDate).getTime() < new Date(startDate).getTime() ){
                 showToast("error", "Start date is always before the due date", 360000)
             }else{
                 Selected[e.target.name] = selectedDate;
@@ -114,7 +114,7 @@ export default class FormComponent extends React.Component {
             showToast("error", "Form did not fullfill the required value.")
             return;
         }
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...task.Selected, projectId: project, dueDate: moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') } });
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...task.Selected, projectId: project, dueDate: moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00')  , startDate : moment(task.Selected.startDate).format('YYYY-MM-DD 00:00:00')} });
         dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
     }
 
