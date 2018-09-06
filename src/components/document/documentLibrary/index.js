@@ -266,10 +266,10 @@ export default class DocumentLibrary extends React.Component {
         return  <div>
                     <div class="col-lg-12 col-md-12">
                         <h3 style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_FOLDER_SELECTED" , Selected : {} })}>Library { typeof folder.Selected.name != "undefined" && ` > ${folder.Selected.name}` } </h3>
-                        { this.state.folderAction == "" &&
+                        { (this.state.folderAction == "" && typeof folder.Selected.id == "undefined") &&
                             <a href="javascript:void(0)" title="New Folder" style={{textDecoration:"none"}} onClick={()=> this.setState({ folderAction : "create" })}><span class="fa fa-folder fa-2x"></span></a>
                         }
-                        { this.state.folderAction == "create" &&
+                        { (this.state.folderAction == "create") &&
                             <form class="form-inline">
                                 <div class="form-group">
                                     <input class="form-control" type="text" name="folderName" placeholder="Enter folder name" onChange={(e)=> this.setState({ [e.target.name] : e.target.value })} value={this.state.folderName}/>
@@ -382,7 +382,7 @@ export default class DocumentLibrary extends React.Component {
                                                         { (tagList.length > 0) &&
                                                             tagList.map((t,tIndex) =>{
                                                                 if(t.tagTypeId == data.id){
-                                                                    return <li><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
+                                                                    return <li key={tIndex}><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
                                                                 }
                                                             })
                                                         }
@@ -399,10 +399,21 @@ export default class DocumentLibrary extends React.Component {
                                                             <li class="dropdown dropdown-library">
                                                                     <span class="test" style={{marginLeft : "20px" , color :"#333" , lineHeight: "1.42857143",cursor:"pointer"}}>Move to</span>
                                                                     <div class="dropdown-content">
+                                                                        {(typeof folder.Selected.id != "undefined") &&
+                                                                            <a href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo({id: null},data)}>Library</a>
+                                                                        }
                                                                         { folder.List.map((f,fIndex) => {
-                                                                            return (
-                                                                                <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
-                                                                            )
+                                                                            if(typeof folder.Selected.id == "undefined"){
+                                                                                return (
+                                                                                    <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
+                                                                                )
+                                                                            }else{
+                                                                                if(folder.Selected.id != f.id){
+                                                                                    return (
+                                                                                        <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
+                                                                                    )
+                                                                                }
+                                                                            }
                                                                         })}
                                                                     </div>
                                                             </li>

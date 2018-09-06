@@ -182,7 +182,7 @@ export default class DocumentNew extends React.Component {
                                                         { (tagList.length > 0) &&
                                                             tagList.map((t,tIndex) =>{
                                                                 if(t.tagTypeId == data.id){
-                                                                    return <li><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
+                                                                    return <li key={tIndex}><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
                                                                 }
                                                             })
                                                         }
