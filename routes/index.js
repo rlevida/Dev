@@ -17,12 +17,44 @@ router.use(function (req, res, next) {
     })
 });
 
+router.use(function (req,res,next){
+    if(req.userDetails.users_userType == "External"){
+        let members = global.initModel("members")
+            members.getData("members", { userTypeLinkId : req.userDetails.usersId , linkType : "project" }, {}, (c) => {
+                if (c.status) {
+                    if(c.data.length){
+                        req.memberDetails = c.data
+                        next()
+                    }else{
+                        res.render('index', {
+                            title: global.site_name,
+                            page: 'noProjectAvailable',
+                            body: "./template/index"
+                        });
+                    }
+                } else {
+                    if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
+                }
+            })
+    }else{
+        next()
+    }
+})
+
 router.get('/', function (req, res, next) {
-    res.render('index', {
-        title: global.site_name,
-        page: 'index',
-        body: "./template/index"
-    });
+    if(req.userDetails.users_userType != "External"){
+        res.render('index', {
+            title: global.site_name,
+            page: 'index',
+            body: "./template/index"
+        });
+    }else{
+        if(req.memberDetails.length > 1){
+            res.redirect(`/project/`)
+        }else{
+            res.redirect(`/project/${req.memberDetails[0].linkId}`)
+        }
+    }
 });
 
 

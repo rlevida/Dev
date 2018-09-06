@@ -74,8 +74,7 @@ var init = exports.init = (socket) => {
                                 delete user.data[0].password;
                                 delete user.data[0].salt;
                                 session.postData("session",{usersId:user.data[0].id,session:socket.request.cookies["app.sid"],data:JSON.stringify(user.data[0]),dateAdded:new Date()},()=>{
-                                    socket.emit("AUTHENTICATION_RETURN",{token:socket.request.cookies["app.sid"]})
-                                    socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully Login"})
+                                    nextThen(user.data[0])
                                     return;
                                 })
                             }else{
@@ -86,8 +85,7 @@ var init = exports.init = (socket) => {
                                     {session:socket.request.cookies["app.sid"],data:JSON.stringify(user.data[0]),dateAdded:new Date()},
                                     {id:sess.data[0].id},
                                     ()=>{
-                                        socket.emit("AUTHENTICATION_RETURN",{token:socket.request.cookies["app.sid"]})
-                                        socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully Login"})
+                                        nextThen(user.data[0])
                                         return;
                                 })
                             }
@@ -106,8 +104,30 @@ var init = exports.init = (socket) => {
                     return;
                 }
             })
+        }).then((nextThen,userDetails)=>{
+            if(userDetails.userType == "External"){
+                let members = global.initModel("members")
+                members.getData("members", { userTypeLinkId : userDetails.id , linkType : "project" }, {}, (c) => {
+                    if (c.status) {
+                        if(c.data.length){
+                            
+                            socket.emit("AUTHENTICATION_RETURN",{ data : c.data , type : userDetails.userType } )
+                            socket.emit("RETURN_SUCCESS_MESSAGE",{ message:"Successfully Login"})
+
+                        }else{
+                            socket.emit("AUTHENTICATION_RETURN",{data : c.data , type : userDetails.userType })
+                            socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully Login"})
+                        }
+                    } else {
+                        if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
+                    }
+                })
+            }else{
+                socket.emit("AUTHENTICATION_RETURN",{ type : userDetails.userType })
+                socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully Login"})
+            }
         })
-        
+
     });
 
     socket.on('LOGGED_USER', function (data) {
