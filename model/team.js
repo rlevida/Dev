@@ -11,6 +11,11 @@ var field = exports.field = {
     'usersId' : {type : 'usersId' , access : "public" },
 
     /**
+     *  teamLeaderId (BIGINT)
+     */
+    'teamLeaderId' : {type : 'teamLeaderId' , access : "public", database: "users", relation: "one-to-one"  },
+
+    /**
      * team (VARCHAR(50))
      */
     'team' : {type : 'string' , access : "public" },

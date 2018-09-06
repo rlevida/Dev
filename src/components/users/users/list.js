@@ -42,7 +42,7 @@ export default class List extends React.Component {
 
     renderArrayTd(arr) {
         return (
-            arr.join(", ")
+            arr.join("\r\n")
         );
     }
 
@@ -55,7 +55,7 @@ export default class List extends React.Component {
                 <table id="dataTable" class="table responsive-table m0">
                     <tbody>
                         <tr>
-                            <th class="text-center">ID</th>
+                            <th class="text-left">User Id</th>
                             <th class="text-left">First Name</th>
                             <th class="text-left">Last Name</th>
                             <th class="text-center">Type</th>
@@ -70,7 +70,7 @@ export default class List extends React.Component {
 
                                 return (
                                     <tr key={index}>
-                                        <td class="text-center">{user.id}</td>
+                                        <td class="text-left">{user.username}</td>
                                         <td class="text-left">{user.firstName}</td>
                                         <td class="text-left">{user.lastName}</td>
                                         <td class="text-center">{user.userType}</td>

@@ -124,7 +124,6 @@ export default class FormComponent extends React.Component {
                 teamList.push({ id: e.id, name: e.team })
             })
         }
-
         return <div>
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">

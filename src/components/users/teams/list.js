@@ -18,6 +18,7 @@ export default class List extends React.Component {
 
         this.deleteData = this.deleteData.bind(this)
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
+        this.renderArrayTd = this.renderArrayTd.bind(this)
     }
 
     componentWillMount() {
@@ -39,14 +40,21 @@ export default class List extends React.Component {
         }
     }
 
+    renderArrayTd(arr) {
+        return (
+            arr.join("\r\n")
+        );
+    }
+
     render() {
         let { teams, socket, loggedUser } = this.props;
         return <div>
             <table id="dataTable" class="table responsive-table m0">
                 <tbody>
                     <tr>
-                        <th class="text-center">ID</th>
                         <th class="text-left">Team</th>
+                        <th class="text-left">Team Leader</th>
+                        <th class="text-left">Members</th>
                         <th class="text-center"></th>
                     </tr>
                     {
@@ -58,8 +66,9 @@ export default class List extends React.Component {
                     {
                         teams.List.map((data, index) => {
                             return <tr key={index}>
-                                <td class="text-center">{data.id}</td>
                                 <td class="text-left">{data.team}</td>
+                                <td class="text-left">{data.users_username}</td>
+                                <td class="text-left">{this.renderArrayTd(_.map(data.members, (el) => { return el.users_username }))}</td>
                                 <td class="text-center">
                                     {
                                         (
