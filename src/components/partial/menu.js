@@ -43,7 +43,7 @@ export default class Component extends React.Component {
                     <li class="dropdown">
                         <a href="/project" class="dropdown-toggle" data-toggle="dropdown">
                             <i class="fa fa-calendar"></i>
-                            <span class="link-title">&nbsp; Project</span> 
+                            <span class="link-title">&nbsp; Projects</span> 
                             <span class="fa arrow"></span> 
                         </a> 
                         <ul class="collapse in">
@@ -95,7 +95,7 @@ export default class Component extends React.Component {
                         <ul class="collapse in">
                             <li class={page == "project" && subpage=="processes"?"active":""}>
                                 <a href={"/project/processes/"+project}>
-                                <i class="fa fa-angle-right"></i>&nbsp; Workstream </a> 
+                                <i class="fa fa-angle-right"></i>&nbsp; Workstreams </a> 
                             </li>
                             <li class={page == "project" && subpage=="task"?"active":""}>
                                 <a href={"/project/tasks/"+project}>
