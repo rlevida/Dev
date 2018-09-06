@@ -5,6 +5,7 @@ CREATE TABLE `task` (
     `task` TEXT,
     `workstreamId` BIGINT,
     `dueDate` DATETIME,
+    `startDate` DATETIME,
     `status` ENUM("In Progress","For Approval","Completed"),
     `typeId` BIGINT,
     `linkTaskId` BIGINT,

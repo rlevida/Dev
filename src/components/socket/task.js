@@ -38,7 +38,7 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_TASK_ADD", (data) => {
-            dispatch({ type: "SET_TASK_SELECTED", Selected: data[0] })
+            dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive : true } })
         })
 
         socket.on("FRONT_TASK_EDIT", (data) => {

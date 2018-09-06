@@ -82,7 +82,7 @@ var init = exports.init = (socket) => {
                     if(typeof c.id != "undefined" && c.id > 0) {
                         task.getData("task",{id:c.id},{},(e)=>{
                             if(e.data.length > 0) {
-                                nextThen(e.data.id,"add",e.data)
+                                nextThen(e.data[0].id,"add",e.data)
                             }else{
                                 socket.emit("RETURN_ERROR_MESSAGE",{message:"Saving failed. Please Try again later."})
                             }
