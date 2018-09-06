@@ -107,7 +107,7 @@ export default class FormComponent extends React.Component {
         type.List.map((e, i) => { if (e.linkType == "workstream") { typeList.push({ id: e.id, name: e.type }) } })
         if (typeof global.SelectList.ProjectMemberList != "undefined") {
             global.SelectList.ProjectMemberList.map((e, i) => {
-                if (e.roleId == 1 || e.roleId == 2 || e.roleId == 3 || e.roleId == 5) {
+                if ((e.roleId == 1 || e.roleId == 2 || e.roleId == 3) && e.userType == "Internal") {
                     projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })
                 }
             })
@@ -138,7 +138,7 @@ export default class FormComponent extends React.Component {
                             {(workstream.SelectedLink == "") &&
                                 <form class="form-horizontal form-container">
                                     <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
+                                        <label class="col-md-3 col-xs-12 control-label">Active?</label>
                                         <div class="col-md-7 col-xs-12">
                                             <input type="checkbox"
                                                 style={{ width: "15px", marginTop: "10px" }}
@@ -177,15 +177,15 @@ export default class FormComponent extends React.Component {
                                             </div>
                                         </div>
                                     }
-                                    <div class="form-group">
+                                    {/* <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Project Name *</label>
                                         <div class="col-md-7 col-xs-12">
                                             <input type="text" name="projectName" required value={(typeof workstream.Selected.projectName == "undefined") ? "" : workstream.Selected.projectName} class="form-control" placeholder="Project Name" onChange={this.handleChange} />
                                             <div class="help-block with-errors"></div>
                                         </div>
-                                    </div>
+                                    </div> */}
                                     <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Project Description</label>
+                                        <label class="col-md-3 col-xs-12 control-label">Description</label>
                                         <div class="col-md-7 col-xs-12">
                                             <textarea name="projectDescription" value={(typeof workstream.Selected.projectDescription == "undefined") ? "" : workstream.Selected.projectDescription} class="form-control" placeholder="Project Description" onChange={this.handleChange} />
                                             <div class="help-block with-errors"></div>
