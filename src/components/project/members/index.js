@@ -92,25 +92,36 @@ export default class MembersForm extends React.Component {
             { id: 'Follower', name: 'Follower' },
             { id: 'responsible', name: 'Responsible' },
         ];
-        let userList = [];
-        users.List.map((e, i) => { 
-            if( project.Selected.typeId == 1 ){
-                userList.push({ id: e.id, name: e.firstName + ' ' + e.lastName })
-            }else{
-                if(typeof e.role != "undefined" && e.role.length > 0 ){
-                    userList.push({ id: e.id, name: e.firstName + ' ' + e.lastName })
+        let projectManagerId = (typeof this.props.type.data.Selected.projectManagerId != 'undefined') ? this.props.type.data.Selected.projectManagerId : 0;
+        let userList = _(users.List)
+            .filter((o) => { return o.id != projectManagerId })
+            .map((e, i) => {
+                if (project.Selected.typeId == 1) {
+                    return { id: e.id, name: e.firstName + ' ' + e.lastName }
+                } else {
+                    if (typeof e.role != "undefined" && e.role.length > 0) {
+                        return { id: e.id, name: e.firstName + ' ' + e.lastName }
+                    }
                 }
-            }
-        });
+            })
+            .orderBy(['name'])
+            .value();
+
         let userMemberListIds = _(members.List)
-            .filter((o) => { 
-                return o.usersType == 'users' 
+            .filter((o) => {
+                return o.usersType == 'users' && o.id != projectManagerId
             })
             .map((o) => { return o.userTypeLinkId })
             .value();
+
         userList = userList.filter((e, i) => { return (userMemberListIds).indexOf(e.id) === -1 });
 
-        let teamList = teams.List.map((e, i) => { return { id: e.id, name: e.team } });
+        let teamList = _(teams.List)
+            .map((e, i) => { return { id: e.id, name: e.team } })
+            .orderBy(['name'])
+            .value();
+
+
         let teamMemberListIds = _(members.List)
             .filter((o) => { return o.usersType == 'team' })
             .map((o) => { return o.userTypeLinkId })
@@ -118,7 +129,7 @@ export default class MembersForm extends React.Component {
         teamList = teamList.filter((e, i) => { return (teamMemberListIds).indexOf(e.id) === -1 });
 
         let memberList = (members.Selected.type == 'team') ? teamList : (members.Selected.type == 'users') ? userList : [];
-       
+
         return (
             <div>
                 <HeaderButtonContainer withMargin={true}>

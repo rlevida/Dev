@@ -150,6 +150,10 @@ export default class FormComponent extends React.Component {
                 let canBeProjectManager = _.findIndex(role, function (o) { return o.roleId == 2 || o.roleId == 3 || o.roleId == 5; });
                 return canBeProjectManager >= 0;
             })
+            .filter((user) => {
+                let alreadyMember = _.findIndex(userMemberList, function (o) { return o.userTypeLinkId == user.id; });
+                return alreadyMember < 0;
+            })
             .map((user) => {
                 return { id: user.id, name: user.firstName + ' ' + user.lastName }
             })
