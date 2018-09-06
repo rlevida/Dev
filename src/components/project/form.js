@@ -185,7 +185,7 @@ export default class FormComponent extends React.Component {
                                     (_.isEmpty(workstream.Selected)) && <div>
                                         <form class="form-horizontal form-container">
                                             <div class="form-group">
-                                                <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
+                                                <label class="col-md-3 col-xs-12 control-label">Active?</label>
                                                 <div class="col-md-7 col-xs-12">
                                                     <input type="checkbox"
                                                         style={{ width: "15px", marginTop: "10px" }}
@@ -253,7 +253,7 @@ export default class FormComponent extends React.Component {
                                                 (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") && <div class="form-group">
                                                     <label class="col-md-3 col-xs-12 control-label pt0">Members</label>
                                                     <div class="col-md-7 col-xs-12">
-                                                        <a href="#" type="button" data-toggle="modal" data-target="#modal">
+                                                        <a href="#" type="button" data-toggle="modal" data-target="#projectModal">
                                                             Add Members
                                             </a>
                                                     </div>
@@ -346,7 +346,7 @@ export default class FormComponent extends React.Component {
                                         <Workstreams />
                                     </div>
                                 }
-                                <div class="modal fade" id="modal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
+                                <div class="modal fade" id="projectModal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
                                     <div class="modal-dialog modal-md" role="document">
                                         <div class="modal-content">
                                             <div class="modal-header">

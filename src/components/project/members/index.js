@@ -98,14 +98,19 @@ export default class MembersForm extends React.Component {
             .map((e, i) => {
                 if (project.Selected.typeId == 1) {
                     return { id: e.id, name: e.firstName + ' ' + e.lastName }
-                } else {
+                } else if(project.Selected.typeId == 2){
+                    if( typeof e.role != "undefined" && e.userType == "Internal"){
+                        return { id: e.id, name: e.firstName + ' ' + e.lastName }
+                    }
+                } else{
                     if (typeof e.role != "undefined" && e.role.length > 0) {
                         return { id: e.id, name: e.firstName + ' ' + e.lastName }
                     }
                 }
             })
+            .filter(e => {  return typeof e != "undefined" })
             .orderBy(['name'])
-            .value();
+            .value()
 
         let userMemberListIds = _(members.List)
             .filter((o) => {
@@ -115,7 +120,7 @@ export default class MembersForm extends React.Component {
             .value();
 
         userList = userList.filter((e, i) => { return (userMemberListIds).indexOf(e.id) === -1 });
-
+       
         let teamList = _(teams.List)
             .map((e, i) => { return { id: e.id, name: e.team } })
             .orderBy(['name'])
@@ -133,7 +138,7 @@ export default class MembersForm extends React.Component {
         return (
             <div>
                 <HeaderButtonContainer withMargin={true}>
-                    <li class="btn btn-info" onClick={this.handleSubmit} >
+                    <li class="btn btn-info" onClick={this.handleSubmit} data-toggle="modal" data-target="#projectModal">
                         <span>Save</span>
                     </li>
                 </HeaderButtonContainer>
