@@ -302,8 +302,8 @@ export default class DocumentLibrary extends React.Component {
                                             // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id , "folder")} documentToMove={(data)=> this.documentToMove(data)} docType="folder"/>
                                             <tr key={index}>
                                                 <td><input type="checkbox"/></td>
-                                                <td><span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span></td>
-                                                <td><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_FOLDER_SELECTED" , Selected : data })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{data.name}</a></td>
+                                                <td ><span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span></td>
+                                                <td class="library-document"><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_FOLDER_SELECTED" , Selected : data })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{data.name}</a></td>
                                                 <td>{moment(data.dateUpdated).format('L')}</td>
                                                 <td>
                                                     <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
@@ -356,7 +356,7 @@ export default class DocumentLibrary extends React.Component {
                                                                 : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
                                                     }
                                                 </td>
-                                                <td><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
+                                                <td  class="library-document"><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
                                                 <td>{ moment(data.dateUpdated).format('L') }</td>
                                                 <td>
                                                     <div>
