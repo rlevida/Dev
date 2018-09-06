@@ -36,6 +36,7 @@ export default class FormComponent extends React.Component {
         let { task } = this.props
         $(".form-container").validator();
         setDatePicker(this.handleDate, "dueDate");
+        setDatePicker(this.handleDate, "startDate");
         if (typeof task.Selected.id != 'undefined') {
             this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
         }
@@ -52,9 +53,20 @@ export default class FormComponent extends React.Component {
         let { dispatch, task } = this.props;
         let Selected = Object.assign({}, task.Selected)
         let selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
-
-        Selected[e.target.name] = selectedDate;
-        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
+       
+        if((typeof Selected.startDate != "undefined" && typeof Selected.dueDate != "undefined") || (e.target.name == "startDate" && typeof Selected.dueDate != "undefined")){
+            let startDate = e.target.name == "startDate" ? selectedDate : Selected.startDate
+            
+          if( new Date(Selected.dueDate).getTime() < new Date(startDate).getTime() ){
+                showToast("error", "Start date is always before the due date", 360000)
+            }else{
+                Selected[e.target.name] = selectedDate;
+                dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
+            }
+        }else{
+            Selected[e.target.name] = selectedDate;
+            dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
+        }
     }
 
     handleCheckbox(name, value) {
@@ -169,7 +181,7 @@ export default class FormComponent extends React.Component {
                                 style={{ pointerEvents: (typeof task.Selected.action != 'undefined' && task.Selected.action == 'view') ? 'none' : 'auto' }}
                             >
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Active?</label>
                                     <div class="col-md-7 col-xs-12">
                                         <input type="checkbox"
                                             style={{ width: "15px", marginTop: "10px" }}
@@ -179,18 +191,21 @@ export default class FormComponent extends React.Component {
                                         />
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label"></label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <span style={{ padding: "10px" }}>{(task.Selected.status) ? task.Selected.status : "In Progress"}</span>
-                                        {task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
-                                            <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
-                                        }
-                                        {
-                                            ((task.Selected.status == null || task.Selected.status == "In Progress" || task.Selected.status == "") && (typeof task.Selected.isActive == 'undefined' || task.Selected.isActive == 1)) && <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
-                                        }
+                                { (task.FormAction == "") &&
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label"></label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <span style={{ padding: "10px" }}>{(task.Selected.status) ? task.Selected.status : "In Progress"}</span>
+                                            {task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
+                                                <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
+                                            }
+                                            {
+                                                ((task.Selected.status == null || task.Selected.status == "In Progress" || task.Selected.status == "") && (typeof task.Selected.isActive == 'undefined' || task.Selected.isActive == 1)) && <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
+                                            }
+                                        </div>
                                     </div>
-                                </div>
+                                }
+
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Workstream</label>
                                     <div class="col-md-7 col-xs-12">
@@ -223,6 +238,26 @@ export default class FormComponent extends React.Component {
                                         />
                                         <div class="help-block with-errors"></div>
                                     </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Start Date: </label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <div class="input-group date">
+                                            <input type="text"
+                                                class="form-control datepicker"
+                                                style={{ backgroundColor: "#eee" }}
+                                                id="startDate"
+                                                name="startDate"
+                                                value={(typeof task.Selected.startDate != "undefined" && task.Selected.startDate != '') ? displayDate(task.Selected.startDate) : ""}
+                                                onChange={() => { }}
+                                                required={false}
+                                                disabled={!allowEdit}
+                                            />
+                                            <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="help-block with-errors"></div>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Due Date: </label>

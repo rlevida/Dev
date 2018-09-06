@@ -81,7 +81,7 @@ export default class List extends React.Component {
 
             <TaskStatus style={{ float: "right", padding: "20px" }} />
             <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })} >
+                <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" , FormAction : "Create"})} >
                     <span>New Task</span>
                 </li>
             </HeaderButtonContainer>

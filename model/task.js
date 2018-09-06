@@ -25,6 +25,11 @@ var field = exports.field = {
      */
     'dueDate' : {type : 'date' , access : "public" },
 
+     /**
+     * startDate (DATETIME)
+     */
+    'startDate' : {type : 'date' , access : "public" },
+
     /**
      * status (ENUM("In Progress","For Approval","Completed"))
      */

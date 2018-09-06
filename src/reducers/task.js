@@ -7,6 +7,7 @@ export default function reducer(state = {
         isActive: true
     },
     SelectedId: [],
+    FormAction : ""
 }, action) {
     switch (action.type) {
         case "SET_TASK_LIST": {
@@ -19,7 +20,7 @@ export default function reducer(state = {
             return { ...state, AllCountList: action.list }
         }
         case "SET_TASK_FORM_ACTIVE": {
-            return { ...state, FormActive: action.FormActive }
+            return { ...state, FormActive: action.FormActive , FormAction : action.FormAction }
         }
         case "SET_TASK_SELECTED": {
             return { ...state, Selected: action.Selected }
