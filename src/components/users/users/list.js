@@ -59,6 +59,7 @@ export default class List extends React.Component {
                             <th class="text-left">User Id</th>
                             <th class="text-left">First Name</th>
                             <th class="text-left">Last Name</th>
+                            <th class="text-left">Email Address</th>
                             <th class="text-center">Type</th>
                             <th class="text-left">Role/s</th>
                             <th class="text-left">Team/s</th>
@@ -75,6 +76,7 @@ export default class List extends React.Component {
                                         <td class="text-left">{user.username}</td>
                                         <td class="text-left">{user.firstName}</td>
                                         <td class="text-left">{user.lastName}</td>
+                                        <td class="text-left">{user.emailAddress}</td>
                                         <td class="text-center">{user.userType}</td>
                                         <td class="text-left">{this.renderArrayTd(_.map(user.role, (el) => { return el.role_role }))}</td>
                                         <td class="text-left">{this.renderArrayTd(_.map(user.team, (el) => { return el.team_team }))}</td>
