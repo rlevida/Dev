@@ -38,22 +38,27 @@ export default class List extends React.Component {
     }
     render() {
         let { workstream, projectData, dispatch, task } = this.props;
-        let statusChecker = map(task.List, (o) => {
+
+        let completeChecker = _.filter(task.List, (o) => {
             let dueDate = moment(o.dueDate);
             let currentDate = moment(new Date());
-            let taskStatus = 0;
-
-            if (dueDate.diff(currentDate, 'days') < 0) {
-                taskStatus = 2
-            } else if (dueDate.diff(currentDate, 'days') == 0) {
-                taskStatus = 1
-            }
-
-            return taskStatus;
+            return o.status == "Completed" || dueDate.diff(currentDate, 'days') > 0
         });
 
-        let workStreamStatus = ((filter(statusChecker, function (o) { return o == 2 })).length > 0) ? 2 : ((filter(statusChecker, function (o) { return o == 1 })).length > 0) ? 1 : ((filter(statusChecker, function (o) { return o == 0 })).length > 0) ? 0 : '';
+        let isDueToday = _.filter(task.List, (o) => {
+            let dueDate = moment(o.dueDate);
+            let currentDate = moment(new Date());
+            return o.status != "Completed" && dueDate.diff(currentDate, 'days') == 0
+        });
 
+        let isLate = _.filter(task.List, (o) => {
+            let dueDate = moment(o.dueDate);
+            let currentDate = moment(new Date());
+            return o.status != "Completed" && dueDate.diff(currentDate, 'days') < 0
+        });
+
+        let workStreamStatus = (isLate.length > 0) ? 2 : (isDueToday.length > 0) ? 1 : (completeChecker.length == (task.List).length) ? 0 : '';
+        
         return (
             <div>
                 <div>
@@ -66,7 +71,10 @@ export default class List extends React.Component {
                     <li class="list-inline-item" style={{ color: "gray" }}>Conversation</li>
                     </ul>
                     <ul class="list-inline" style={{ margin: "20px" }}>
-                        <li style={{ width: "40px" }}><span className={(workStreamStatus == 2) ? "fa fa-exclamation-circle" : "fa fa-circle"} style={{ color: (workStreamStatus == 2) ? '#c0392b' : (workStreamStatus == 1) ? '#f39c12' : (workStreamStatus == 1) ? '#27ae60' : '' }}></span></li>
+                        <li style={{ width: "40px" }}>
+                            {(workstream.Selected.isActive == 1) && <span className={(workStreamStatus == 2) ? "fa fa-exclamation-circle" : "fa fa-circle"} style={{ color: (workStreamStatus == 2) ? '#c0392b' : (workStreamStatus == 1) ? '#f39c12' : (workStreamStatus == 0) ? '#27ae60' : '' }}></span> }
+                            {(workstream.Selected.isActive == 0) && <span className={"fa fa-circle"}></span> }
+                        </li>
                         <li style={{ width: "100px" }}>Status: {task.List.filter(e => { if (e.status == "Completed") { return e } }).length} / {task.List.length}</li>
                         <li style={{ width: "100px" }}>Type:&nbsp;&nbsp; <span class={ /* Project Based or Time Based */ workstream.Selected.typeId == 4 ? "fa fa-calendar" : "glyphicon glyphicon-time"} title={workstream.Selected.typeId == 4 ? "Output base" : "Time based"}></span> </li>
                         <li style={{ width: "60px" }}>&nbsp;&nbsp;<span class="fa fa-tag" title="tag"></span></li>

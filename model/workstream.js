@@ -234,8 +234,10 @@ var getWorkstreamList = exports.getWorkstreamList = ( tablename, data, advance ,
         LEFT JOIN 
             ( SELECT 
                 workstreamId,
+                SUM(IF(task.status!="",1,0 )) as TasksNumber, 
                 SUM(IF(task.status="Completed",1,0 )) as Completed, 
                 SUM(IF((task.status!="Completed" OR task.status IS NULL)AND task.dueDate>=CURDATE(),1,0)) as OnTrack,
+                SUM(IF((task.status!="Completed" OR task.status IS NULL)AND task.dueDate=CURDATE(),1,0)) as OnDue,
                 SUM(IF((task.status!="Completed" OR task.status IS NULL) AND task.dueDate<CURDATE() AND task.dueDate>"1970-01-01",1,0)) as Issues 
                 FROM task GROUP BY workstreamId) as tasktable
             ON primaryTable.id = tasktable.workstreamId 

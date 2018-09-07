@@ -24,11 +24,11 @@ export default class List extends React.Component {
         this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
-        this.props.socket.emit("GET_USER_LIST",{});
-        this.props.socket.emit("GET_TEAM_LIST",{});
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "ProjectMemberList" , filter : { linkId : project, linkType: "project" } })
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamDocumentList", filter : { isDeleted : 0 , linkId : project , linkType : "project" , status : "new" }});
+        this.props.socket.emit("GET_USER_LIST", {});
+        this.props.socket.emit("GET_TEAM_LIST", {});
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } })
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
     }
 
     updateActiveStatus(id, active) {
@@ -45,19 +45,19 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { workstream, dispatch, socket , loggedUser , global } = this.props;
+        let { workstream, dispatch, socket, loggedUser, global } = this.props;
         return <div>
-            
-            <WorkstreamStatus style={{float:"right",padding:"20px"}} />
+
+            <WorkstreamStatus style={{ float: "right", padding: "20px" }} />
             <HeaderButtonContainer withMargin={true}>
-            { (loggedUser.data.userRole == 1 
-                || loggedUser.data.userRole == 2 
-                || loggedUser.data.userRole == 3 
-                || loggedUser.data.userRole == 4) &&
+                {(loggedUser.data.userRole == 1
+                    || loggedUser.data.userRole == 2
+                    || loggedUser.data.userRole == 3
+                    || loggedUser.data.userRole == 4) &&
                     <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })} >
                         <span>New Workstream</span>
                     </li>
-            }
+                }
             </HeaderButtonContainer>
             <table id="dataTable" class="table responsive-table">
                 <tbody>
@@ -70,11 +70,11 @@ export default class List extends React.Component {
                         <th class="text-center">New Docs</th>
                         <th class="text-center">Members</th>
                         <th class="text-center">Type</th>
-                        { (loggedUser.data.userRole == 1 
-                            || loggedUser.data.userRole == 2 
-                            || loggedUser.data.userRole == 3 
+                        {(loggedUser.data.userRole == 1
+                            || loggedUser.data.userRole == 2
+                            || loggedUser.data.userRole == 3
                             || loggedUser.data.userRole == 4) &&
-                                <th></th>
+                            <th></th>
                         }
                     </tr>
                     {
@@ -85,29 +85,35 @@ export default class List extends React.Component {
                     }
                     {
                         workstream.List.map((data, index) => {
-                            return <tr key={index}>
-                                <td>{(data.isActive == 0) && <span class="fa fa-circle fa-lg" style={{color:"#000"}}></span>}{(data.isActive == 1)?<span className={(data.Issues>0) ? "fa fa-exclamation-circle fa-lg": "fa fa-circle fa-lg"} style={{color:(data.Issues>0)?"#c0392b":(data.OnTrack>0)?"#f39c12":"#16a085"}}></span>:""}</td>
-                                <td class="text-left" style={{cursor:"pointer"}} 
-                                    onClick={(e) => { 
-                                        socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id })
-                                        dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" })
-                                    }}> {data.workstream}
-                                </td>
-                                <td class="text-center">{data.OnTrack}</td>
-                                <td class="text-center">{data.Completed}</td>
-                                <td class="text-center">{data.Issues}</td>
-                                <td class="text-center">
-                                    { (typeof global.SelectList.workstreamDocumentList != "undefined") &&
-                                        global.SelectList.workstreamDocumentList.filter(t =>{return t.workstreamId == data.id && t.linkType == "workstream"}).length 
-                                    }
-                                </td>
-                                <td class="text-center">{(data.memberNames)?<span style={{color:"#46b8da"}} title={data.memberNames}><i class="fa fa-user fa-lg"></i></span>:""}   {/*&nbsp;&nbsp;<span style={{color:"#006400"}}><i class="fa fa-user fa-lg"></i></span>*/}</td>
-                                <td class="text-center"><span class={data.type_type=="Output base"?"fa fa-calendar":"glyphicon glyphicon-time"}></span></td>
-                                <td class="text-center"><span><i class="fa fa-users fa-lg"></i></span></td>
-                                { (loggedUser.data.userRole == 1 
-                                    || loggedUser.data.userRole == 2 
-                                    || loggedUser.data.userRole == 3 
-                                    || loggedUser.data.userRole == 4) &&
+                            let workStreamStatus = (data.Issues > 0) ? 2 : (data.OnDue > 0) ? 1 : (data.Completed == data.TasksNumber || data.OnTrack > 0) ? 0 : '';
+                            
+                            return (
+                                <tr key={index}>
+                                    <td>
+                                        {(data.isActive == 1) && <span className={(workStreamStatus == 2) ? "fa fa-exclamation-circle" : "fa fa-circle"} style={{ color: (workStreamStatus == 2) ? '#c0392b' : (workStreamStatus == 1) ? '#f39c12' : (workStreamStatus == 0) ? '#27ae60' : '' }}></span>}
+                                        {(data.isActive == 0) && <span className={"fa fa-circle"}></span>}
+                                    </td>
+                                    <td class="text-left" style={{ cursor: "pointer" }}
+                                        onClick={(e) => {
+                                            socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id })
+                                            dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" })
+                                        }}> {data.workstream}
+                                    </td>
+                                    <td class="text-center">{data.OnTrack}</td>
+                                    <td class="text-center">{data.Completed}</td>
+                                    <td class="text-center">{data.Issues}</td>
+                                    <td class="text-center">
+                                        {(typeof global.SelectList.workstreamDocumentList != "undefined") &&
+                                            global.SelectList.workstreamDocumentList.filter(t => { return t.workstreamId == data.id && t.linkType == "workstream" }).length
+                                        }
+                                    </td>
+                                    <td class="text-center">{(data.memberNames) ? <span style={{ color: "#46b8da" }} title={data.memberNames}><i class="fa fa-user fa-lg"></i></span> : ""}   {/*&nbsp;&nbsp;<span style={{color:"#006400"}}><i class="fa fa-user fa-lg"></i></span>*/}</td>
+                                    <td class="text-center"><span class={data.type_type == "Output base" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
+                                    <td class="text-center"><span><i class="fa fa-users fa-lg"></i></span></td>
+                                    {(loggedUser.data.userRole == 1
+                                        || loggedUser.data.userRole == 2
+                                        || loggedUser.data.userRole == 3
+                                        || loggedUser.data.userRole == 4) &&
                                         <td class="text-center">
                                             <a href="javascript:void(0);" data-tip="EDIT"
                                                 onClick={(e) => socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id })}
@@ -119,8 +125,9 @@ export default class List extends React.Component {
                                                 <span class="glyphicon glyphicon-trash"></span></a>
                                             <Tooltip />
                                         </td>
-                                }
-                            </tr>
+                                    }
+                                </tr>
+                            )
                         })
                     }
                 </tbody>
