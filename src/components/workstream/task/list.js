@@ -54,6 +54,29 @@ export default class List extends React.Component {
             dispatch({type:"SET_TASK_SELECTED" , Selected : data })
     }
 
+    renderStatus(data) {
+        const { isActive, taskStatus } = { ...data };
+        let className = "";
+        let statusColor = "#000";
+
+        if (isActive == 0) {
+            className = "fa fa-circle";
+        } else if (taskStatus == 0) {
+            className = "fa fa-circle";
+            statusColor = "#27ae60"
+        } else if (taskStatus == 1) {
+            className = "fa fa-circle";
+            statusColor = "#f39c12"
+        } else if (taskStatus == 2) {
+            className = "fa fa-circle";
+            statusColor = "#c0392b"
+        }
+
+        return (
+            <span className={className} style={{ color: statusColor }}></span>
+        );
+    }
+
     render() {
         let { task } = this.props;
         return <div>
@@ -78,9 +101,20 @@ export default class List extends React.Component {
                             }
                             {
                                 _.orderBy(task.List, ['dueDate', 'asc']).map((data, index) => {
+
+                                    let taskStatus = 0;
+                                    let dueDate = moment(data.dueDate);
+                                    let currentDate = moment(new Date());
+
+                                    if (dueDate.diff(currentDate, 'days') < 0) {
+                                        taskStatus = 2
+                                    } else if (dueDate.diff(currentDate, 'days') == 0) {
+                                        taskStatus = 1
+                                    }
+                                    
                                     return (
                                         <tr key={index} style={{cursor:"pointer"}} onClick={()=> this.selectedTask(data) }>
-                                            <td><span class={(data.currentState=="Completed")?"glyphicon glyphicon-ok-circle":(data.currentState=="Incomplete")?"glyphicon glyphicon-question-sign":"fa fa-circle"}></span></td>
+                                            <td>{this.renderStatus({ ...data, taskStatus })}</td>
                                             <td>{data.task}</td>
                                             <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                             <td>{(data.assignedById)?<span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span>:""}</td>
