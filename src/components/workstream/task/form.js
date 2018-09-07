@@ -74,7 +74,7 @@ export default class FormComponent extends React.Component {
 
     render() {
         let { dispatch, task, status, global, loggedUser , document } = this.props;
-        let statusList = [], taskList = [{id:"",name:"Select..."}], projectUserList = [];
+        let statusList = [], taskList = [{id:"",name:"Select..."}], projectUserList = [], isVisible = false;
 
             status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
@@ -93,6 +93,14 @@ export default class FormComponent extends React.Component {
                 }else if(new Date() == new Date( task.Selected.dueDate )){
                     taskStatus = 1
                 }
+            if((task.Selected.status != "Completed" && task.Selected.assignedUserType != "Internal")){
+                isVisible = true
+            }else if((task.Selected.status != "Completed" && task.Selected.assignedUserType == "Internal")){
+                let userData = loggedUser.data
+                    if(loggedUser.data.userType == "Internal" && (userData.userRole == 1 || userData.userRole == 2 || userData.userRole == 3 || task.Selected.assignedById == userData.id ) ){
+                        isVisible = true;
+                    }
+            }
                    
         return <div>
                     <span class="pull-right" style={{cursor:"pointer"}} onClick={()=> dispatch({ type: "SET_TASK_SELECTED", Selected : {}})}><i class="fa fa-times-circle fa-lg"></i></span>
@@ -112,7 +120,7 @@ export default class FormComponent extends React.Component {
                                     {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
                                 </h4>
                                 <div class="form-group text-center" >
-                                    { (task.Selected.status != "Completed") &&
+                                    { (isVisible) &&
                                         <a href="javascript:void(0);" class="btn btn-primary" style={{margin:"30px"}} title="Mark Task as Completed" onClick={()=> this.markTaskAsCompleted()}>Mark Task as Completed</a>
                                     }
                                     { (task.Selected.followersName != null && task.Selected.followersIds.split(",").filter( e => {return e == loggedUser.data.id}).length > 0 ) 

@@ -343,6 +343,7 @@ var getTaskList = exports.getTaskList = ( tablename, data, advance , cb ) => {
                 ) as currentState,
                 assignedTo.firstName as assignedBy,
                 assignedTo.id as assignedById,
+                assignedTo.userType as assignedUserType,
                 follower.followersName,
                 follower.followersIds
                 FROM (` + query + `) as prj 
