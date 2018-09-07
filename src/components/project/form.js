@@ -32,6 +32,7 @@ export default class FormComponent extends React.Component {
         this.setDropDown = this.setDropDown.bind(this)
         this.handleCheckbox = this.handleCheckbox.bind(this)
         this.deleteData = this.deleteData.bind(this)
+        this.renderArrayTd = this.renderArrayTd.bind(this)
     }
 
     componentDidMount() {
@@ -97,9 +98,16 @@ export default class FormComponent extends React.Component {
         });
     }
 
+    renderArrayTd(arr) {
+        return (
+            arr.join("\r\n")
+        );
+    }
+
     render() {
         let { dispatch, project, loggedUser, members, status, type, users, teams, workstream } = this.props;
         let statusList = [], typeList = [];
+
         status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
         type.List.map((e, i) => {
             if (e.linkType == "project") {
@@ -123,6 +131,7 @@ export default class FormComponent extends React.Component {
             projectManager = projectManagerFilter[0].userTypeLinkId;
         }
 
+        //console.log(users)
         let userMemberList = _(members.List)
             .filter((member) => {
                 return member.usersType == 'users' && member.memberType != "project manager";
@@ -137,13 +146,13 @@ export default class FormComponent extends React.Component {
         let teamMemberList = _(members.List)
             .filter((member) => { return member.usersType == 'team' })
             .map((member) => {
-                let returnObject = member;
-                let teamMember = (teams.List).filter((o) => { return o.id == member.userTypeLinkId });
-                return { ...member, 'team': teamMember[0] };
+                let team = _(teams.List).filter((o) => { return o.id == member.userTypeLinkId }).value();
+                let teamMembers = _(users.List).filter((o) => { return _.findIndex(o.team, (e) => { return e.teamId == member.userTypeLinkId }) >= 0 }).value();
+
+                return { ...member, members: teamMembers, team: (team.length > 0) ? team[0] : ''  };
             })
             .value();
-
-
+        
         let projectManagerUsers = _(users.List)
             .filter((user) => {
                 let { role } = { ...user };
@@ -266,10 +275,14 @@ export default class FormComponent extends React.Component {
                                                 <table id="dataTable" class="table responsive-table mt30">
                                                     <tbody>
                                                         <tr>
-                                                            <th class="text-center">Team Name</th>
-                                                            {
+                                                            <th class="text-center">Id</th>
+                                                            <th class="text-left">Team</th>
+                                                            <th class="text-left">Team Leader</th>
+                                                            <th class="text-left">Members</th>
+                                                            <th class="text-center"></th>
+                                                            {/* {
                                                                 (teamMemberList.length > 0) && <th></th>
-                                                            }
+                                                            } */}
                                                         </tr>
                                                         {
                                                             <tr>
@@ -282,7 +295,10 @@ export default class FormComponent extends React.Component {
                                                             teamMemberList.map((data, index) => {
                                                                 return (
                                                                     <tr key={index}>
-                                                                        <td>{data.team.team}</td>
+                                                                        <td class="text-center">{(typeof data.team.id != 'undefined') ? data.team.id: ''}</td>
+                                                                        <td class="text-left">{(typeof data.team.id != 'undefined') ? data.team.team : ''}</td>
+                                                                        <td class="text-left">{(typeof data.team.teamLeaderId != 'undefined') ? data.team.users_username : ''}</td>
+                                                                        <td class="text-left">{this.renderArrayTd(_.map(data.members, (el) => { return el.username }))}</td>
                                                                         <td class="text-center">
                                                                             <a href="javascript:void(0);" data-tip="DELETE"
                                                                                 onClick={e => this.deleteData({ id: data.id, type: 'team' })}
@@ -305,24 +321,33 @@ export default class FormComponent extends React.Component {
                                                 <table id="dataTable" class="table responsive-table mt30">
                                                     <tbody>
                                                         <tr>
-                                                            <th class="text-left">Member Name</th>
+                                                            <th class="text-center">Id</th>
+                                                            <th class="text-left">User Id</th>
+                                                            <th class="text-left">First Name</th>
+                                                            <th class="text-left">Last Name</th>
+                                                            <th class="text-left">Email Address</th>
                                                             <th class="text-center">Type</th>
-                                                            <th class="text-center">Role</th>
-                                                            <th></th>
+                                                            <th class="text-left">Role/s</th>
+                                                            <th class="text-left">Team/s</th>
+                                                            <th class="text-center"></th>
                                                         </tr>
                                                         {
-                                                            (userMemberList.length == 0) &&
-                                                            <tr>
-                                                                <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
+                                                            (userMemberList.length == 0) && <tr>
+                                                                <td style={{ textAlign: "center" }} colSpan={9}>No Record Found!</td>
                                                             </tr>
                                                         }
                                                         {
-                                                            userMemberList.map((data, index) => {
+                                                            (userMemberList.length > 0) && userMemberList.map((data, index) => {
                                                                 return (
                                                                     <tr key={index}>
-                                                                        <td class="text-left">{data.user.firstName + ' ' + data.user.lastName}</td>
-                                                                        <td>{data.user.userType}</td>
-                                                                        <td>{((typeof data.user.role != 'undefined' && data.user.role).length > 0) ? data.user.role[0].role_role : ''}</td>
+                                                                        <td class="text-center">{data.user.id}</td>
+                                                                        <td class="text-left">{data.user.username}</td>
+                                                                        <td class="text-left">{data.user.firstName}</td>
+                                                                        <td class="text-left">{data.user.lastName}</td>
+                                                                        <td class="text-left">{data.user.emailAddress}</td>
+                                                                        <td class="text-center">{data.user.userType}</td>
+                                                                        <td class="text-left">{this.renderArrayTd(_.map(data.user.role, (el) => { return el.role_role }))}</td>
+                                                                        <td class="text-left">{this.renderArrayTd(_.map(data.user.team, (el) => { return el.team_team }))}</td>
                                                                         <td class="text-center">
                                                                             <a href="javascript:void(0);" data-tip="DELETE"
                                                                                 onClick={e => this.deleteData({ id: data.id, type: 'team' })}
