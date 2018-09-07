@@ -51,8 +51,8 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { task, dispatch, socket } = this.props;
-
+        let { task, dispatch, socket ,loggedUser } = this.props;
+        let taskList = task.List.filter( e => { return e.status != "Completed" && e.assignedById == loggedUser.data.id})
         return (
             <table id="dataTable" class="table responsive-table m0">
                 <tbody>
@@ -62,13 +62,14 @@ export default class List extends React.Component {
                         <th class="text-center">Due Date</th>
                     </tr>
                     {
-                        (task.List.length == 0) &&
+                        (taskList.length == 0) &&
                         <tr>
                             <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
                         </tr>
                     }
+
                     {
-                        task.List.map((data, index) => {
+                       _.orderBy(taskList, ['dueDate', 'asc']).map((data, index) => {
                             return <tr key={index}>
                                 <td class="text-left">{data.workstream_workstream}</td>
                                 <td class="text-left">{data.task}</td>
