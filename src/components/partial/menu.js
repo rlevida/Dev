@@ -29,6 +29,13 @@ export default class Component extends React.Component {
             this.props.socket.emit("GET_PROJECT_DETAIL",{id:project})
         }
         this.setState({miniSideMenu:this.props.miniSideMenu})
+
+        if(!window.location.href.includes("document") && !window.location.href.includes("trash")){
+            $(".has-submenu ul").hide();
+        }
+        $(".has-submenu > a").click(function() {
+        $(this).next("ul").toggle();
+        });
     }
 
     componentWillReceiveProps(props){
@@ -39,24 +46,24 @@ export default class Component extends React.Component {
         let { loggedUser } = this.props
         let Menu = <ul id="menu" class="bg-dark dker">
                     <li class="nav-header">Menu</li>
-                    <li data-tip={(this.state.miniSideMenu=="true")?"Home":""} class={page=="index"?"active":""}><a href="/" class="menu-list"><i class="fa fa-home" aria-hidden="true"></i><span class="link-title">&nbsp; Home</span></a></li>
-                    <li class="dropdown">
+                    <li data-tip={(this.state.miniSideMenu=="true")?"Home":""} class={page=="index"?"active":""}><a href="/" class="menu-list"><i class="fa fa-home" aria-hidden="true"></i><span class="link-title">&nbsp; My Dashboard</span></a></li>
+                    {/* <li class="dropdown">
                         <a href="/project" class="dropdown-toggle" data-toggle="dropdown">
                             <i class="fa fa-calendar"></i>
                             <span class="link-title">&nbsp; Projects</span> 
                             <span class="fa arrow"></span> 
                         </a> 
-                        <ul class="collapse in">
+                        <ul class="collapse in"> */}
                             <li class={page == "project" && subpage==""?"active":""}>
                                 <a href="/project">
-                                <i class="fa fa-angle-right"></i>&nbsp; Dashboard </a> 
+                                <i class="fa fa-calendar"></i>&nbsp; Project </a> 
                             </li>
                             <li class={page == "mytask" && subpage==""?"active":""}>
                                 <a href="/mytask">
-                                <i class="fa fa-angle-right"></i>&nbsp; My Tasks </a> 
+                                <i class="fa fa-tasks"></i>&nbsp; My Tasks </a> 
                             </li>
-                        </ul>
-                    </li>
+                        {/* </ul>
+                    </li> */}
                     { (loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
                         <li data-tip={(this.state.miniSideMenu=="true")?"Teams":""} class={page=="users"?"active":""}><a href="/users" class="menu-list"><i class="fa fa-users" aria-hidden="true"></i><span class="link-title">&nbsp; Teams</span></a></li>
                     }
@@ -68,38 +75,33 @@ export default class Component extends React.Component {
         if(page=="project" && subpage != ""){
             Menu = <ul id="menu" class="bg-dark dker">
                     <li class="nav-header">Menu</li>
-                    <li data-tip={(this.state.miniSideMenu=="true")?"Home":""} class={page=="index"?"active":""}><a href="/" class="menu-list"><i class="fa fa-home" aria-hidden="true"></i><span class="link-title">&nbsp; Home</span></a></li>
-                    <li class="dropdown">
-                        <a href={"/project/"+project} class="dropdown-toggle" data-toggle="dropdown">
+                    <li data-tip={(this.state.miniSideMenu=="true")?"Home":""} class={page=="index"?"active":""}><a href="/" class="menu-list"><i class="fa fa-home" aria-hidden="true"></i><span class="link-title">&nbsp; My Dashboard</span></a></li>
+                    <li class={page == "project" && subpage=="home"?"active":""}>
+                        <a href={`/project/${project}`}>
+                        <i class="fa fa-dashboard"></i>&nbsp; Project Dashboard </a> 
+                    </li>
+                    <li class={page == "project" && subpage=="processes"?"active":""}>
+                        <a href={"/project/processes/"+project}>
+                        <i class="fa fa-wpforms"></i>&nbsp; Workstreams </a> 
+                    </li>
+                    <li class={page == "project" && subpage=="task"?"active":""}>
+                        <a href={"/project/tasks/"+project}>
+                        <i class="fa fa-tasks"></i>&nbsp; Tasks </a> 
+                    </li>
+                    <li class="has-submenu">
+                        <a href={"/project/"+project} class="dropdown-toggle has-submenu" data-toggle="dropdown" aria-expanded="true">
                             <i class="fa fa-calendar"></i>
                             <span class="link-title">&nbsp; Documents</span> 
                             <span class="fa arrow"></span> 
                         </a> 
-                        <ul class="collapse in">
-                            <li class={page == "project" && subpage=="documents"?"active":""}>
+                        <ul>
+                            <li style={{backgroundColor: window.location.href.includes("document") ? "#201e1e" : "" }}>
                                 <a href={"/project/documents/"+project}>
-                                <i class="fa fa-angle-right"></i>&nbsp; Library </a> 
+                                <i class="fa fa-book"></i>&nbsp; Library </a> 
                             </li>
-                            <li class={page == "project" && subpage=="trash"?"active":""}>
+                            <li style={{backgroundColor: window.location.href.includes("trash") ? "#201e1e" : "" }}>
                                 <a href={"/project/trash/"+project}>
-                                <i class="fa fa-angle-right"></i>&nbsp; Trash </a> 
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a href={"/project/documents"+project} class="dropdown-toggle" data-toggle="dropdown">
-                            <i class="fa fa-calendar"></i>
-                            <span class="link-title">&nbsp; Processes</span> 
-                            <span class="fa arrow"></span> 
-                        </a> 
-                        <ul class="collapse in">
-                            <li class={page == "project" && subpage=="processes"?"active":""}>
-                                <a href={"/project/processes/"+project}>
-                                <i class="fa fa-angle-right"></i>&nbsp; Workstreams </a> 
-                            </li>
-                            <li class={page == "project" && subpage=="task"?"active":""}>
-                                <a href={"/project/tasks/"+project}>
-                                <i class="fa fa-angle-right"></i>&nbsp; Tasks </a> 
+                                <i class="fa fa-trash"></i>&nbsp; Trash </a> 
                             </li>
                         </ul>
                     </li>
