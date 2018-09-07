@@ -229,20 +229,24 @@ export default class FormComponent extends React.Component {
                                                     <div class="help-block with-errors"></div>
                                                 </div>
                                             </div>
-                                            <div class="form-group">
-                                                <label class="col-md-3 col-xs-12 control-label">Tin No.</label>
-                                                <div class="col-md-7 col-xs-12">
-                                                    <input type="text" name="tinNo" value={(typeof project.Selected.tinNo == "undefined") ? "" : project.Selected.tinNo} class="form-control" placeholder="Tin No." onChange={this.handleChange} />
-                                                    <div class="help-block with-errors"></div>
+                                            { (typeof project.Selected.typeId == "undefined" || project.Selected.typeId == 1) &&
+                                                <div class="form-group">
+                                                    <label class="col-md-3 col-xs-12 control-label">Tin No.</label>
+                                                    <div class="col-md-7 col-xs-12">
+                                                        <input type="text" name="tinNo" value={(typeof project.Selected.tinNo == "undefined") ? "" : project.Selected.tinNo} class="form-control" placeholder="Tin No." onChange={this.handleChange} />
+                                                        <div class="help-block with-errors"></div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="col-md-3 col-xs-12 control-label">Company Address</label>
-                                                <div class="col-md-7 col-xs-12">
-                                                    <input type="text" name="companyAddress" value={(typeof project.Selected.companyAddress == "undefined") ? "" : project.Selected.companyAddress} class="form-control" placeholder="Company Address" onChange={this.handleChange} />
-                                                    <div class="help-block with-errors"></div>
+                                            }
+                                            { (typeof project.Selected.typeId == "undefined"  || project.Selected.typeId == 1) &&
+                                                <div class="form-group">
+                                                    <label class="col-md-3 col-xs-12 control-label">Company Address</label>
+                                                    <div class="col-md-7 col-xs-12">
+                                                        <input type="text" name="companyAddress" value={(typeof project.Selected.companyAddress == "undefined") ? "" : project.Selected.companyAddress} class="form-control" placeholder="Company Address" onChange={this.handleChange} />
+                                                        <div class="help-block with-errors"></div>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            }
                                             <div class="form-group">
                                                 <label class="col-md-3 col-xs-12 control-label">Project Manager</label>
                                                 <div class="col-md-7 col-xs-12">
