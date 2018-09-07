@@ -44,6 +44,32 @@ export default class List extends React.Component {
         }
     }
 
+    renderStatus(data) {
+        const { isActive, taskStatus } = { ...data };
+        let className = "";
+        let statusColor = "#000";
+
+            if(data.status == "Completed"){
+                className = "fa fa-circle"
+                statusColor = "#27ae60"
+            } else if (isActive == 0) {
+                className = "fa fa-circle";
+            } else if (taskStatus == 0) {
+                className = "fa fa-circle";
+                statusColor = "#27ae60"
+            } else if (taskStatus == 1) {
+                className = "fa fa-circle";
+                statusColor = "#f39c12"
+            } else if (taskStatus == 2) {
+                className = "fa fa-circle";
+                statusColor = "#c0392b"
+            }
+
+            return (
+                <span className={className} style={{ color: statusColor }}></span>
+            );
+    }
+
     render() {
         let { workstream, dispatch, socket, loggedUser, global } = this.props;
         return <div>
@@ -86,7 +112,7 @@ export default class List extends React.Component {
                     {
                         workstream.List.map((data, index) => {
                             let workStreamStatus = (data.Issues > 0) ? 2 : (data.OnDue > 0) ? 1 : (data.Completed == data.TasksNumber || data.OnTrack > 0) ? 0 : '';
-                            
+
                             return (
                                 <tr key={index}>
                                     <td>
