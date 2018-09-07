@@ -53,7 +53,7 @@ export default class List extends React.Component {
             <table id="dataTable" class="table responsive-table m0">
                 <tbody>
                     <tr>
-                        <th class="text-left">Id</th>
+                        <th class="text-center">Id</th>
                         <th class="text-left">Team</th>
                         <th class="text-left">Team Leader</th>
                         <th class="text-left">Members</th>
@@ -74,7 +74,7 @@ export default class List extends React.Component {
                                 .value();
                             return (
                                 <tr key={index}>
-                                    <td class="text-left">{data.id}</td>
+                                    <td class="text-center">{data.id}</td>
                                     <td class="text-left">{data.team}</td>
                                     <td class="text-left">{data.users_username}</td>
                                     <td class="text-left">{this.renderArrayTd(_.map(teamMembers, (el) => { return el.username }))}</td>
