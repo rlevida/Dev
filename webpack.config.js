@@ -7,7 +7,7 @@ module.exports = {
         'app': [`${__dirname}/src`]
     },
     module : {
-        loaders : [
+        rules : [
             {
                 test: /\.js$/,
                 exclude:/(node_modules|bower_components)/,
