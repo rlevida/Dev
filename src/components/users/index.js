@@ -17,7 +17,7 @@ export default class Component extends React.Component {
         let { dispatch } = this.props
         let Component = <div>
             <div class="row pdl20 pdr20 mb20">
-                <div class="col-md-6">
+                <div class="col-md-8">
                     <h4 class="mt20 mb20">Team</h4>
                     <a class="more" onClick={(e) => dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "Form" })} >Add Team</a>
                     <Team />

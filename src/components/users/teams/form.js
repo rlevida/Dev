@@ -11,9 +11,9 @@ import _ from "lodash";
         socket: store.socket.container,
         teams: store.teams,
         loggedUser: store.loggedUser,
-        role: store.role,
         global: store.global,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        users: store.users
     }
 })
 
@@ -57,7 +57,7 @@ export default class FormComponent extends React.Component {
         let myCurrentTeam = JSON.parse(loggedUser.data.team);
         let myTeamIndex = _.findIndex(myCurrentTeam, (o) => { return o.value == teams.Selected.id });
         let selectedTeamMembers = (typeof teams.Selected.users != 'undefined') ? JSON.parse(teams.Selected.users) : [];
-        
+
         $('.form-container *').validator('validate');
         $('.form-container .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
@@ -77,8 +77,8 @@ export default class FormComponent extends React.Component {
 
         socket.emit("SAVE_OR_UPDATE_TEAM", { data: teams.Selected });
 
-        dispatch({type:"SET_TEAM_FORM_ACTIVE", FormActive: "List" });
-        dispatch({type:"SET_USER_SELECTED", Selected: {} });
+        dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "List" });
+        dispatch({ type: "SET_USER_SELECTED", Selected: {} });
 
         if (myTeamIndex >= 0) {
             if (_.filter(selectedTeamMembers, (o) => { return o.value == loggedUser.data.id }).length == 0) {
@@ -104,12 +104,26 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, teams, global } = this.props
+        let { dispatch, teams, global, users } = this.props;
         let usersList = (typeof global.SelectList["usersList"] != "undefined") ? _(global.SelectList["usersList"])
-            .filter((user) => { return user.userType == "Internal"; })
+            .filter((user) => {
+                return user.userType == "Internal" && user.id != teams.Selected.teamLeaderId;
+            })
             .map((user) => { return { id: user.id, name: user.firstName + " " + user.lastName } })
+            .orderBy(['name'], ['asc'])
             .value()
             : [];
+
+        let teamLeaderList = _(users.List)
+            .filter((user) => {
+                let alreadyMember = (typeof teams.Selected.users == "undefined") ? [] : JSON.parse(teams.Selected.users);
+                let canBeTeamLeader = _.findIndex(user.role, (o) => { return o.roleId == 1 || o.roleId == 2 || o.roleId == 3 });
+
+                return user.userType == "Internal" && _.findIndex(alreadyMember, (o) => { return o.value == user.id }) < 0 && canBeTeamLeader >= 0;
+            })
+            .map((user) => { return { id: user.id, name: user.firstName + " " + user.lastName } })
+            .orderBy(['name'], ['asc'])
+            .value();
 
         return <div style={{ marginBottom: "50px" }}>
             <div class="row mt10">
@@ -124,6 +138,21 @@ export default class FormComponent extends React.Component {
                                     <label class="col-md-3 col-xs-12 control-label">Team *</label>
                                     <div class="col-md-7 col-xs-12">
                                         <input type="text" name="team" required value={(typeof teams.Selected.team == "undefined") ? "" : teams.Selected.team} class="form-control" placeholder="Team" onChange={this.handleChange} />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Team Leader</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <DropDown multiple={false}
+                                            required={false}
+                                            options={teamLeaderList}
+                                            selected={(typeof teams.Selected.teamLeaderId == "undefined") ? "" : teams.Selected.teamLeaderId}
+                                            onChange={(e) => {
+                                                this.setDropDown("teamLeaderId", (e == null) ? "" : e.value);
+                                            }}
+                                            isClearable={(teamLeaderList.length > 0)}
+                                        />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
