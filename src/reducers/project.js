@@ -2,7 +2,7 @@ export default function reducer(state={
         List : [],
         CountList : [],
         FormActive : "List",
-        Selected : {},
+        Selected : { isActive: true },
         SelectedId: [],
     },action){
         switch (action.type) {

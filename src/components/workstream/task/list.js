@@ -59,22 +59,25 @@ export default class List extends React.Component {
         let className = "";
         let statusColor = "#000";
 
-        if (isActive == 0) {
-            className = "fa fa-circle";
-        } else if (taskStatus == 0) {
-            className = "fa fa-circle";
-            statusColor = "#27ae60"
-        } else if (taskStatus == 1) {
-            className = "fa fa-circle";
-            statusColor = "#f39c12"
-        } else if (taskStatus == 2) {
-            className = "fa fa-circle";
-            statusColor = "#c0392b"
-        }
+            if(data.status == "Completed"){
+                className = "fa fa-circle"
+                statusColor = "#27ae60"
+            } else if (isActive == 0) {
+                className = "fa fa-circle";
+            } else if (taskStatus == 0) {
+                className = "fa fa-circle";
+                statusColor = "#27ae60"
+            } else if (taskStatus == 1) {
+                className = "fa fa-circle";
+                statusColor = "#f39c12"
+            } else if (taskStatus == 2) {
+                className = "fa fa-circle";
+                statusColor = "#c0392b"
+            }
 
-        return (
-            <span className={className} style={{ color: statusColor }}></span>
-        );
+            return (
+                <span className={className} style={{ color: statusColor }}></span>
+            );
     }
 
     render() {
