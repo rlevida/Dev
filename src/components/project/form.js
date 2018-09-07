@@ -287,7 +287,7 @@ export default class FormComponent extends React.Component {
                                                         {
                                                             <tr>
                                                                 {
-                                                                    (teamMemberList.length == 0) && <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
+                                                                    (teamMemberList.length == 0) && <td style={{ textAlign: "center" }} colSpan={5}>No Record Found!</td>
                                                                 }
                                                             </tr>
                                                         }
