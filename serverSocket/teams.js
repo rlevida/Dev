@@ -13,7 +13,7 @@ var init = exports.init = (socket) => {
             if (c.status) {
                 async.map(c.data, (team, mapCallback) => {
                     usersTeam.getData("users_team", { teamId: team.id }, {}, (c) => {
-                        mapCallback(null, { ...team, members: c.data })
+                        mapCallback(null, team)
                     });
                 }, function (err, teamResults) {
                     socket.emit("FRONT_TEAM_LIST",teamResults)

@@ -9,7 +9,8 @@ import {
     return {
         socket: store.socket.container,
         teams: store.teams,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        users: store.users
     }
 })
 export default class List extends React.Component {
@@ -23,8 +24,8 @@ export default class List extends React.Component {
 
     componentWillMount() {
         let { teams } = { ...this.props };
-        this.props.socket.emit("GET_TEAM_LIST", {});
         this.props.socket.emit("GET_USER_LIST", {});
+        this.props.socket.emit("GET_TEAM_LIST", {});
     }
 
     updateActiveStatus(id, active) {
@@ -47,7 +48,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { teams, socket, loggedUser } = this.props;
+        let { teams, socket, loggedUser, users } = this.props;
         return <div>
             <table id="dataTable" class="table responsive-table m0">
                 <tbody>
@@ -65,32 +66,39 @@ export default class List extends React.Component {
                     }
                     {
                         teams.List.map((data, index) => {
-                            return <tr key={index}>
-                                <td class="text-left">{data.team}</td>
-                                <td class="text-left">{data.users_username}</td>
-                                <td class="text-left">{this.renderArrayTd(_.map(data.members, (el) => { return el.users_username }))}</td>
-                                <td class="text-center">
-                                    {
-                                        (
-                                            (loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2)
-                                            ||
-                                            (loggedUser.data.id == data.usersId)
-                                            ||
-                                            (typeof loggedUser.data.team != 'undefined' && (filter(JSON.parse(loggedUser.data.team), (o) => { return o.value == data.id })).length > 0)
-                                        ) && <div>
-                                            <a href="javascript:void(0);" data-tip="EDIT"
-                                                onClick={(e) => socket.emit("GET_TEAM_DETAIL", { id: data.id })}
-                                                class="btn btn-info btn-sm">
-                                                <span class="glyphicon glyphicon-pencil"></span></a>
-                                            <a href="javascript:void(0);" data-tip="DELETE"
-                                                onClick={e => this.deleteData(data.id)}
-                                                class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                <span class="glyphicon glyphicon-trash"></span></a>
-                                            <Tooltip />
-                                        </div>
-                                    }
-                                </td>
-                            </tr>
+                            let teamMembers = _(users.List).
+                                filter((user) => {
+                                    return _.findIndex(user.team, (o) => { return o.teamId == data.id }) >= 0;
+                                })
+                                .value();
+                            return (
+                                <tr key={index}>
+                                    <td class="text-left">{data.team}</td>
+                                    <td class="text-left">{data.users_username}</td>
+                                    <td class="text-left">{this.renderArrayTd(_.map(teamMembers, (el) => { return el.username }))}</td>
+                                    <td class="text-center">
+                                        {
+                                            (
+                                                (loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2)
+                                                ||
+                                                (loggedUser.data.id == data.usersId)
+                                                ||
+                                                (typeof loggedUser.data.team != 'undefined' && (filter(JSON.parse(loggedUser.data.team), (o) => { return o.value == data.id })).length > 0)
+                                            ) && <div>
+                                                <a href="javascript:void(0);" data-tip="EDIT"
+                                                    onClick={(e) => socket.emit("GET_TEAM_DETAIL", { id: data.id })}
+                                                    class="btn btn-info btn-sm">
+                                                    <span class="glyphicon glyphicon-pencil"></span></a>
+                                                <a href="javascript:void(0);" data-tip="DELETE"
+                                                    onClick={e => this.deleteData(data.id)}
+                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                    <span class="glyphicon glyphicon-trash"></span></a>
+                                                <Tooltip />
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                            )
                         })
                     }
                 </tbody>
