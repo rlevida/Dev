@@ -102,13 +102,11 @@ var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
                                             IF(Issues>0,1,0) as Issues,
                                             IF(Issues>0,0,IF(OnTrack>0,1,0)) as OnTrack 
                                         FROM `+projectTb+`
-                            LEFT JOIN (SELECT projectId,
-                                                SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, 
-                                                SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM task WHERE status != "Completed" AND isActive = 1 GROUP BY projectId) as tbTask 
+                            LEFT JOIN (SELECT projectId, SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM task WHERE (status <> "Completed" OR status IS NULL) AND isActive = 1 GROUP BY projectId) as tbTask 
                                     ON project.id = tbTask.projectId) as tbpt 
                                     GROUP BY typeId) as taskStatus ON tb.typeId = taskStatus.typeId;
     `;
-    
+
     db.query(
         query,
         params, 
@@ -312,16 +310,15 @@ var getProjectList = exports.getProjectList = ( tablename, data, advance , cb ) 
                             WHERE document.status = 'new' AND !document.isDeleted 
                             GROUP BY document_link.documentId ) as docs
                         GROUP BY docs.projectId ) as docsCount ON prj.id = docsCount.projectId 
-                LEFT JOIN ( SELECT ws.projectId, Active, tk.Issues, IF(tk.Issues=0,tk.OnTrack,0) as OnTrack,  IF(tk.Issues=0,tk.OnDue,0) as OnDue  FROM (
+                LEFT JOIN ( SELECT ws.projectId, Active, tk.Issues, IF(tk.Issues=0,tk.OnTrack,0) as OnTrack, IF(tk.Issues=0,tk.OnDue,0) as OnDue  FROM (
 	                            SELECT projectId,sum(IF(isActive="1",1,0)) as Active FROM workstream GROUP BY workstream.projectId 
                             ) as ws
                             LEFT JOIN ( SELECT tb1.projectId,workstreamId, SUM(IF(Issues>0,1,0)) as Issues, SUM(IF(OnTrack>0,1,0)) as OnTrack, SUM(IF(OnDue>0,1,0)) as OnDue  FROM 
-			                    (SELECT projectId, workstreamId, SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, SUM(IF(dueDate=CURDATE(),1,0)) as OnDue, SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM task 			
+                            (SELECT projectId, workstreamId, SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, SUM(IF((status <> "Completed" OR status IS NULL) AND dueDate=CURDATE(),1,0)) as OnDue, SUM(IF((status <> "Completed" OR status IS NULL) AND dueDate<CURDATE() AND duedate > "1970-01-01",1,0 )) as Issues FROM task 			
                                     GROUP BY task.workstreamId) as tb1 GROUP BY tb1.projectId) as tk 
                             ON ws.projectId = tk.projectId
                 ) as wsStatus ON prj.id = wsStatus.projectId
             ` 
-
     /**
      * Manage Query Connection
      */

@@ -114,7 +114,7 @@ var getUserTaskDataCount = exports.getUserTaskDataCount = ( tablename, data, adv
                             LEFT JOIN users ON users_team.usersId = users.id
                             WHERE members.usersType = "team" ) as finalTbl1 
                         LEFT JOIN task on finalTbl1.linkId = task.id
-                    WHERE finalTbl1.linkType = "task"  AND task.status != "Completed" AND task.isActive = 1 `+filter+`
+                    WHERE finalTbl1.linkType = "task"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 `+filter+`
                     UNION ALL
                     SELECT finalTbl2.*,task.id as taskId,task.dueDate,task.isActive,task.status FROM ( SELECT members.linkType,members.linkId,members.memberType,users.id as usersId FROM members 
                         LEFT JOIN users ON members.userTypeLinkId = users.id
@@ -125,7 +125,7 @@ var getUserTaskDataCount = exports.getUserTaskDataCount = ( tablename, data, adv
                             LEFT JOIN users ON users_team.usersId = users.id
                             WHERE members.usersType = "team" ) as finalTbl2 
                         LEFT JOIN task on finalTbl2.linkId = task.workstreamId
-                    WHERE finalTbl2.linkType = "workstream"  AND task.status != "Completed" AND task.isActive = 1 `+filter2+` ) as tbl
+                    WHERE finalTbl2.linkType = "workstream"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 `+filter2+` ) as tbl
                     GROUP BY linkType;
                 `;
     db.query(

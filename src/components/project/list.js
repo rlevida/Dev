@@ -89,8 +89,11 @@ export default class List extends React.Component {
                                     // if user is client the he can only see client project
                                 } else {
                                     return <tr key={index}>
-                                        <td>{(data.isActive == 0) && <span class="fa fa-circle" style={{ color: "#000" }}></span>}{(data.isActive == 1) ? <span className={(data.Issues > 0) ? "fa fa-exclamation-circle fa-lg" : "fa fa-circle fa-lg"} style={{ color: (data.Issues > 0) ? "#c0392b" : (data.OnDue > 0) ? "#f39c12" : "#27ae60" }}></span> : ""}</td>
-                                        <td class="text-left"><a href={"/project/" + data.id} target="_blank">{data.project}</a></td>
+                                        <td>
+                                            {(data.isActive == 0) && <span class="fa fa-circle"></span>}
+                                            {(data.isActive == 1) ? <span className={(data.Issues > 0) ? "fa fa-exclamation-circle fa-lg" : "fa fa-circle fa-lg"} style={{ color: (data.Issues > 0) ? "#c0392b" : (data.OnDue > 0) ? "#f39c12" : "#27ae60" }}></span> : ""}
+                                        </td>
+                                        <td class="text-left"><a href={"/project/" + data.id}>{data.project}</a></td>
                                         <td class="text-center"><span class={(data.type_type == "Client") ? "fa fa-users" : (data.type_type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></span></td>
                                         <td class="text-center">{(data.newDocCount > 0) ? <span class="fa fa-file"></span> : ""} {data.newDocCount}</td>
                                         <td class="text-center"><span><i class="fa fa-file-alt"></i></span></td>

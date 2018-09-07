@@ -57,8 +57,8 @@ export default class List extends React.Component {
             <table id="dataTable" class="table responsive-table m0">
                 <tbody>
                     <tr>
-                        <th class="text-left">WorkStream</th>
                         <th class="text-left">Task</th>
+                        <th class="text-left">WorkStream</th>
                         <th class="text-center">Due Date</th>
                     </tr>
                     {
@@ -71,8 +71,8 @@ export default class List extends React.Component {
                     {
                        _.orderBy(taskList, ['dueDate', 'asc']).map((data, index) => {
                             return <tr key={index}>
-                                <td class="text-left">{data.workstream_workstream}</td>
                                 <td class="text-left">{data.task}</td>
+                                <td class="text-left">{data.workstream_workstream}</td>
                                 <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                             </tr>
                         })

@@ -49,25 +49,25 @@ export default class List extends React.Component {
         let className = "";
         let statusColor = "#000";
 
-            if(data.status == "Completed"){
-                className = "fa fa-circle"
-                statusColor = "#27ae60"
-            } else if (isActive == 0) {
-                className = "fa fa-circle";
-            } else if (taskStatus == 0) {
-                className = "fa fa-circle";
-                statusColor = "#27ae60"
-            } else if (taskStatus == 1) {
-                className = "fa fa-circle";
-                statusColor = "#f39c12"
-            } else if (taskStatus == 2) {
-                className = "fa fa-circle";
-                statusColor = "#c0392b"
-            }
+        if (data.status == "Completed") {
+            className = "fa fa-circle"
+            statusColor = "#27ae60"
+        } else if (isActive == 0) {
+            className = "fa fa-circle";
+        } else if (taskStatus == 0) {
+            className = "fa fa-circle";
+            statusColor = "#27ae60"
+        } else if (taskStatus == 1) {
+            className = "fa fa-circle";
+            statusColor = "#f39c12"
+        } else if (taskStatus == 2) {
+            className = "fa fa-circle";
+            statusColor = "#c0392b"
+        }
 
-            return (
-                <span className={className} style={{ color: statusColor }}></span>
-            );
+        return (
+            <span className={className} style={{ color: statusColor }}></span>
+        );
     }
 
     render() {
@@ -119,11 +119,14 @@ export default class List extends React.Component {
                                         {(data.isActive == 1) && <span className={(workStreamStatus == 2) ? "fa fa-exclamation-circle" : "fa fa-circle"} style={{ color: (workStreamStatus == 2) ? '#c0392b' : (workStreamStatus == 1) ? '#f39c12' : (workStreamStatus == 0) ? '#27ae60' : '' }}></span>}
                                         {(data.isActive == 0) && <span className={"fa fa-circle"}></span>}
                                     </td>
-                                    <td class="text-left" style={{ cursor: "pointer" }}
-                                        onClick={(e) => {
+                                    <td class="text-left" style={{ cursor: "pointer" }}>
+
+                                        <a href="javascript:void(0);" onClick={(e) => {
                                             socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id })
                                             dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" })
-                                        }}> {data.workstream}
+                                        }} >
+                                            {data.workstream}
+                                        </a>
                                     </td>
                                     <td class="text-center">{data.OnTrack}</td>
                                     <td class="text-center">{data.Completed}</td>
