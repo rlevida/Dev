@@ -11,9 +11,9 @@ import _ from "lodash";
         socket: store.socket.container,
         teams: store.teams,
         loggedUser: store.loggedUser,
-        role: store.role,
         global: store.global,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        users: store.users
     }
 })
 
@@ -104,25 +104,27 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, teams, global } = this.props;
+        let { dispatch, teams, global, users } = this.props;
         let usersList = (typeof global.SelectList["usersList"] != "undefined") ? _(global.SelectList["usersList"])
-            .filter((user) => { 
-                return user.userType == "Internal" && user.id != teams.Selected.teamLeaderId; 
+            .filter((user) => {
+                return user.userType == "Internal" && user.id != teams.Selected.teamLeaderId;
             })
             .map((user) => { return { id: user.id, name: user.firstName + " " + user.lastName } })
-            .orderBy(['name'],['asc'])
+            .orderBy(['name'], ['asc'])
             .value()
             : [];
-        let teamLeaderList = (typeof global.SelectList["usersList"] != "undefined") ? _(global.SelectList["usersList"])
+
+        let teamLeaderList = _(users.List)
             .filter((user) => {
                 let alreadyMember = (typeof teams.Selected.users == "undefined") ? [] : JSON.parse(teams.Selected.users);
-                return user.userType == "Internal" && _.findIndex(alreadyMember, (o) => { return o.value == user.id }) < 0;
+                let canBeTeamLeader = _.findIndex(user.role, (o) => { return o.roleId == 1 || o.roleId == 2 || o.roleId == 3 });
+
+                return user.userType == "Internal" && _.findIndex(alreadyMember, (o) => { return o.value == user.id }) < 0 && canBeTeamLeader >= 0;
             })
             .map((user) => { return { id: user.id, name: user.firstName + " " + user.lastName } })
-            .orderBy(['name'],['asc'])
-            .value()
-            : [];
-        console.log(teams.Selected)
+            .orderBy(['name'], ['asc'])
+            .value();
+
         return <div style={{ marginBottom: "50px" }}>
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">
