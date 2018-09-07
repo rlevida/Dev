@@ -59,7 +59,7 @@ export default class List extends React.Component {
             className = "fa fa-circle";
             statusColor = "#f39c12"
         } else if (taskStatus == 2) {
-            className = "fa fa-circle";
+            className = "fa fa-exclamation-circle";
             statusColor = "#c0392b"
         }
 
@@ -108,9 +108,9 @@ export default class List extends React.Component {
                             let dueDate = moment(data.dueDate);
                             let currentDate = moment(new Date());
 
-                            if (dueDate.diff(currentDate, 'days') < 0) {
+                            if (dueDate.diff(currentDate, 'days') < 0  && data.status != 'Completed') {
                                 taskStatus = 2
-                            } else if (dueDate.diff(currentDate, 'days') == 0) {
+                            } else if (dueDate.diff(currentDate, 'days') == 0  && data.status != 'Completed') {
                                 taskStatus = 1
                             }
                             return <tr key={index}>
