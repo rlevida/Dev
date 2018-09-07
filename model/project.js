@@ -102,13 +102,11 @@ var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
                                             IF(Issues>0,1,0) as Issues,
                                             IF(Issues>0,0,IF(OnTrack>0,1,0)) as OnTrack 
                                         FROM `+projectTb+`
-                            LEFT JOIN (SELECT projectId,
-                                                SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, 
-                                                SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM task WHERE status != "Completed" AND isActive = 1 GROUP BY projectId) as tbTask 
+                            LEFT JOIN (SELECT projectId, SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM task WHERE (status <> "Completed" OR status IS NULL) AND isActive = 1 GROUP BY projectId) as tbTask 
                                     ON project.id = tbTask.projectId) as tbpt 
                                     GROUP BY typeId) as taskStatus ON tb.typeId = taskStatus.typeId;
     `;
-    
+
     db.query(
         query,
         params, 
