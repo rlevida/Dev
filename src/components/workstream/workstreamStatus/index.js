@@ -32,7 +32,7 @@ export default class WorkstreamStatus extends React.Component {
         let issueList = []
         if(status == "Issues"){
             task.List.map( e =>{
-                if(new Date().getTime() > new Date( e.dueDate ).getTime()){
+                if(new Date().getTime() > new Date( e.dueDate ).getTime() && e.status != "Completed" && moment(new Date().getTime()).format('L') != moment( e.dueDate ).format('L')){
                     issueList.push(e)
                 }
             })
@@ -65,8 +65,10 @@ export default class WorkstreamStatus extends React.Component {
                             <span style={{float:"left",color:"white"}}>On Time</span><span style={{float:"right",color:"white"}}>{data.OnTrack}</span>
                         </td>
                         <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#d4a2a2",color:"white",cursor:"pointer"}} onClick={()=>this.showModal("Issues")}>
-                           <span style={{float:"left",color:"white"}}>Issues</span><span style={{float:"right",color:"white"}}>{ data.Issues > 0 && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{marginRight:"5px"}}></i>}{data.Issues}</span>
+                            <span style={{float:"left",color:"white"}}>Issues</span><span style={{float:"right",color:"white"}}>{ data.Issues > 0 && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{marginRight:"5px"}}></i>}{data.Issues}</span>
                         </td>
+                      
+                       
                     </tr>
                 </table>
 
