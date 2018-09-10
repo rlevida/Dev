@@ -187,15 +187,9 @@ export default class FormComponent extends React.Component {
                                         <label class="col-md-3 col-xs-12 control-label"></label>
                                         <div class="col-md-7 col-xs-12">
                                             <span style={{ padding: "10px" }}>{(task.Selected.status) ? task.Selected.status : "In Progress"}</span>
-                                            {task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
-                                                <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
-                                            }
                                             {
-                                                (
-                                                    (task.Selected.status == null || task.Selected.status == "In Progress" || task.Selected.status == "")
-                                                    &&
-                                                    (typeof task.Selected.isActive == 'undefined' || task.Selected.isActive == 1)
-                                                ) && <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
+                                                task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
+                                                <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
                                             }
                                         </div>
                                     </div>
