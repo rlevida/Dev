@@ -42,10 +42,10 @@ export default class List extends React.Component {
         this.props.socket.emit("GET_TEAM_LIST", {});
     }
 
-    updateActiveStatus(id, active) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_TASK_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: id, active: (active == 1) ? 0 : 1 } })
+    updateActiveStatus(id) {
+        let { socket } = this.props;
+
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: id, status: "Completed" } })
     }
 
     deleteData(id) {
@@ -86,7 +86,7 @@ export default class List extends React.Component {
             })
             .orderBy(['due_date_int'], ['asc'])
             .value();
-       
+
         return (
             <div>
                 <TaskStatus style={{ float: "right", padding: "20px" }} />
@@ -112,46 +112,59 @@ export default class List extends React.Component {
                                 let taskStatus = 0;
                                 let dueDate = moment(data.dueDate);
                                 let currentDate = moment(new Date());
-    
-                                if (dueDate.diff(currentDate, 'days') < 0  && data.status != 'Completed') {
+
+                                if (dueDate.diff(currentDate, 'days') < 0 && data.status != 'Completed') {
                                     taskStatus = 2
-                                } else if (dueDate.diff(currentDate, 'days') == 0  && data.status != 'Completed') {
+                                } else if (dueDate.diff(currentDate, 'days') == 0 && data.status != 'Completed') {
                                     taskStatus = 1
                                 }
 
-                                return <tr key={index}>
-                                    <td>
-                                        {this.renderStatus({ ...data, taskStatus })}
-                                    </td>
-                                    <td class="text-left">{data.project_project}</td>
-                                    <td class="text-left">{data.workstream_workstream}</td>
-                                    <td class="text-left">{data.task}</td>
-                                    <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
-                                    <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
-                                    <td class="text-center">
-                                        {
-                                            (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External') && <div>
-                                                <a href="javascript:void(0);" data-tip="EDIT"
-                                                    onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'edit' })}
-                                                    class="btn btn-info btn-sm">
-                                                    <span class="glyphicon glyphicon-pencil"></span></a>
-                                                <a href="javascript:void(0);" data-tip="DELETE"
-                                                    onClick={e => this.deleteData(data.id)}
-                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                    <span class="glyphicon glyphicon-trash"></span></a>
-                                            </div>
-                                        }
-                                        {
-                                            (typeof loggedUser.data != 'undefined' && loggedUser.data.userType == 'External') && <div>
-                                                <a href="javascript:void(0);" data-tip="VIEW"
-                                                    onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'view' })}
-                                                    class="btn btn-success btn-sm">
-                                                    <span class="glyphicon glyphicon-eye-open"></span></a>
-                                            </div>
-                                        }
-                                        <Tooltip />
-                                    </td>
-                                </tr>
+                                return (
+                                    <tr key={index}>
+                                        <td>
+                                            {this.renderStatus({ ...data, taskStatus })}
+                                        </td>
+                                        <td class="text-left">{data.project_project}</td>
+                                        <td class="text-left">{data.workstream_workstream}</td>
+                                        <td class="text-left">{data.task}</td>
+                                        <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
+                                        <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
+                                        <td class="text-left">
+                                            {
+                                                (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External') && <div>
+                                                    <a href="javascript:void(0);" data-tip="EDIT"
+                                                        onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'edit' })}
+                                                        class="btn btn-info btn-sm">
+                                                        <span class="glyphicon glyphicon-pencil"></span></a>
+                                                    <a href="javascript:void(0);" data-tip="DELETE"
+                                                        onClick={e => this.deleteData(data.id)}
+                                                        class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                        <span class="glyphicon glyphicon-trash"></span></a>
+
+                                                    {
+                                                        (
+                                                            (data.status == null || data.status == "In Progress" || data.status == "")
+                                                            &&
+                                                            (typeof data.isActive == 'undefined' || data.isActive == 1)
+                                                        ) && <a href="javascript:void(0);" data-tip="COMPLETE"
+                                                            onClick={e => this.updateActiveStatus(data.id)}
+                                                            class="btn btn-success btn-sm ml10">
+                                                            <span class="glyphicon glyphicon-check"></span></a>
+                                                    }
+                                                </div>
+                                            }
+                                            {
+                                                (typeof loggedUser.data != 'undefined' && loggedUser.data.userType == 'External') && <div>
+                                                    <a href="javascript:void(0);" data-tip="VIEW"
+                                                        onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'view' })}
+                                                        class="btn btn-success btn-sm">
+                                                        <span class="glyphicon glyphicon-eye-open"></span></a>
+                                                </div>
+                                            }
+                                            <Tooltip />
+                                        </td>
+                                    </tr>
+                                )
                             })
                         }
                     </tbody>
