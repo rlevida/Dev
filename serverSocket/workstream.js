@@ -29,7 +29,6 @@ var init = exports.init = (socket) => {
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
         workstream.getDataCount("workstream", filter, {}, (c) => {
             if (c.status) {
-                console.log(c.data)
                 socket.emit("FRONT_WORKSTREAM_COUNT_LIST", c.data)
             } else {
                 if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }

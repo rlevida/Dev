@@ -84,10 +84,10 @@ export default class DocumentNew extends React.Component {
             
             if(typeof list != "undefined"){
                 list.map( e =>{
-                    if( e.tagTypeId == data.id && e.linkType == "workstream"){
+                    if( e.tagTypeId == data.id && e.linkType == "workstream" && e.tagType == "document"){
                         tempTags.push( { value : `workstream-${e.linkId}` , label: e.name })
                     }
-                    if( e.tagTypeId == data.id && e.linkType == "task"){
+                    if( e.tagTypeId == data.id && e.linkType == "task" && e.tagType == "document"){
                         tempTags.push( { value : `task-${e.linkId}` , label: e.name })
                     }
                 }) 
@@ -144,11 +144,11 @@ export default class DocumentNew extends React.Component {
                 global.SelectList.tagList.map( t => {
                     if(workstream.List.filter( w => { return w.id == t.linkId && t.linkType == "workstream"} ).length > 0 ){
                         let workstreamName =  workstream.List.filter( w => { return w.id == t.linkId})[0].workstream;
-                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : workstreamName , linkId : t.linkId });
+                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : workstreamName , linkId : t.linkId , tagType : t.tagType });
                     }
                     if(task.List.filter( w => { return w.id == t.linkId && t.linkType == "task"} ).length > 0){
                         let taskName =  task.List.filter( w => { return w.id == t.linkId})[0].task;
-                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : taskName , linkId : t.linkId });
+                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : taskName , linkId : t.linkId ,  tagType : t.tagType});
                     }
                 })
             }
@@ -194,7 +194,7 @@ export default class DocumentNew extends React.Component {
                                                     <ul style={{listStyleType: "none",padding : "0"}}>
                                                         { (tagList.length > 0) &&
                                                             tagList.map((t,tIndex) =>{
-                                                                if(t.tagTypeId == data.id){
+                                                                if(t.tagTypeId == data.id && t.tagType == "document"){
                                                                     return <li key={tIndex}><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
                                                                 }
                                                             })

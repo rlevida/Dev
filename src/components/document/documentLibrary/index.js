@@ -94,16 +94,26 @@ export default class DocumentLibrary extends React.Component {
     editDocument(data , type , list ){
         let { dispatch } = this.props;
         let newData = { ...data } , tempTags = [];
-            
             if(typeof list != "undefined"){
-                list.map( e =>{
-                    if( e.tagTypeId == data.id && e.linkType == "workstream"){
-                        tempTags.push( { value : `workstream-${e.linkId}` , label: e.name })
-                    }
-                    if( e.tagTypeId == data.id && e.linkType == "task"){
-                        tempTags.push( { value : `task-${e.linkId}` , label: e.name })
-                    }
-                }) 
+                if(data.isFolder){
+                    list.map( e =>{
+                        if( e.tagTypeId == data.id && e.linkType == "workstream" && e.tagType == "folder"){
+                            tempTags.push( { value : `workstream-${e.linkId}` , label: e.name })
+                        }
+                        if( e.tagTypeId == data.id && e.linkType == "task" && e.tagType == "folder"){
+                            tempTags.push( { value : `task-${e.linkId}` , label: e.name })
+                        }
+                    })
+                }else{
+                    list.map( e =>{
+                        if( e.tagTypeId == data.id && e.linkType == "workstream"){
+                            tempTags.push( { value : `workstream-${e.linkId}` , label: e.name })
+                        }
+                        if( e.tagTypeId == data.id && e.linkType == "task"){
+                            tempTags.push( { value : `task-${e.linkId}` , label: e.name })
+                        }
+                    }) 
+                }
             }     
 
             newData = { ...data , tags: JSON.stringify(tempTags) } 
@@ -231,11 +241,11 @@ export default class DocumentLibrary extends React.Component {
                 global.SelectList.tagList.map( t => {
                     if(workstream.List.filter( w => { return w.id == t.linkId && t.linkType == "workstream"} ).length > 0 ){
                         let workstreamName =  workstream.List.filter( w => { return w.id == t.linkId})[0].workstream;
-                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : workstreamName , linkId : t.linkId });
+                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : workstreamName , linkId : t.linkId , tagType : t.tagType });
                     }
                     if(task.List.filter( w => { return w.id == t.linkId && t.linkType == "task"} ).length > 0){
                         let taskName =  task.List.filter( w => { return w.id == t.linkId})[0].task;
-                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : taskName , linkId : t.linkId });
+                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : taskName , linkId : t.linkId , tagType : t.tagType });
                     }
                 })
             }
@@ -325,15 +335,13 @@ export default class DocumentLibrary extends React.Component {
                                                     </Tooltip>
                                                 </td>
                                                 <td> 
-                                                    <ul style={{listStyleType: "none",padding : "0"}}>  
-                                                        { (tagList.length > 0) &&
-                                                            tagList.map((t,tIndex) =>{
-                                                                if(t.tagTypeId == data.id){
-                                                                    return <li key={tIndex}><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
-                                                                }
-                                                            })
-                                                        }
-                                                    </ul>
+                                                    { (tagList.length > 0) &&
+                                                        tagList.map((t,tIndex) =>{
+                                                            if(t.tagTypeId == data.id && t.tagType == "folder"){
+                                                                return <span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span>
+                                                            }
+                                                        })
+                                                    }
                                                 </td>
                                                 <td>
                                                     <div class="dropdown">
