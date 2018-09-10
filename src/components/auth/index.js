@@ -72,15 +72,15 @@ export default class Component extends React.Component {
     render() {
         let { Login, dispatch } = this.props;
         let captchaUI = null;
-        // if(process.env.NODE_ENV != "development") {
-        //     captchaUI = <Captcha 
-        //                         sitekey='6LeTGG0UAAAAAJNrNp2uNlwYiwGf39V4lJyCdBwg'
-        //                         lang='en'
-        //                         theme='light'
-        //                         type='image'
-        //                         callback={ this.handleCaptcha } 
-        //                     />
-        // }
+        if(process.env.NODE_ENV != "development") {
+            captchaUI = <Captcha 
+                                sitekey='6LeTGG0UAAAAAJNrNp2uNlwYiwGf39V4lJyCdBwg'
+                                lang='en'
+                                theme='light'
+                                type='image'
+                                callback={ this.handleCaptcha } 
+                            />
+        }
         return <div class="form-signin">
                     <div class="text-center">
                         <h3>Cloud CFO</h3>
