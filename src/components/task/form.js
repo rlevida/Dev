@@ -53,19 +53,19 @@ export default class FormComponent extends React.Component {
         let { dispatch, task } = this.props;
         let Selected = Object.assign({}, task.Selected)
         let selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
-       
-        if((typeof Selected.startDate != "undefined" && typeof Selected.dueDate != "undefined") || (e.target.name == "startDate" && typeof Selected.dueDate != "undefined")){
+
+        if ((typeof Selected.startDate != "undefined" && typeof Selected.dueDate != "undefined") || (e.target.name == "startDate" && typeof Selected.dueDate != "undefined")) {
             let startDate = e.target.name == "startDate" ? selectedDate : Selected.startDate
-            
-            if( new Date(Selected.dueDate).getTime() < new Date(startDate).getTime() ){
+
+            if (new Date(Selected.dueDate).getTime() < new Date(startDate).getTime()) {
                 showToast("error", "Start date is always before the due date.")
                 Selected[e.target.name] = undefined;
                 dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
-            }else{
+            } else {
                 Selected[e.target.name] = selectedDate;
                 dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
             }
-        }else{
+        } else {
             Selected[e.target.name] = selectedDate;
             dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
         }
@@ -94,7 +94,7 @@ export default class FormComponent extends React.Component {
     }
 
     updateActiveStatus() {
-        let { task, socket, dispatch } = this.props;
+        let { task, socket } = this.props;
         let status = "Completed"
         if (task.Selected.task_id && task.Selected.task_status != "Completed") {
             status = "For Approval"
@@ -116,15 +116,17 @@ export default class FormComponent extends React.Component {
             showToast("error", "Form did not fullfill the required value.")
             return;
         }
-        if(typeof task.Selected.startDate != "undefined"){
-            socket.emit("SAVE_OR_UPDATE_TASK", { 
-                data: { ...task.Selected, 
-                    projectId: project, 
-                    dueDate: moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00'), 
-                    startDate :moment(task.Selected.startDate).format('YYYY-MM-DD 00:00:00') } 
+        if (typeof task.Selected.startDate != "undefined") {
+            socket.emit("SAVE_OR_UPDATE_TASK", {
+                data: {
+                    ...task.Selected,
+                    projectId: project,
+                    dueDate: moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00'),
+                    startDate: moment(task.Selected.startDate).format('YYYY-MM-DD 00:00:00')
+                }
             });
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
-        }else{
+        } else {
             showToast("error", "Startdate is required.")
         }
     }
@@ -202,16 +204,14 @@ export default class FormComponent extends React.Component {
                                         />
                                     </div>
                                 </div>
-                                { (task.FormAction == "") &&
+                                {(task.FormAction == "") &&
                                     <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label"></label>
                                         <div class="col-md-7 col-xs-12">
                                             <span style={{ padding: "10px" }}>{(task.Selected.status) ? task.Selected.status : "In Progress"}</span>
-                                            {task.Selected.status == "For Approval" && task.Selected.task_status == "Completed" && task.Selected.task_id &&
-                                                <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
-                                            }
                                             {
-                                                ((task.Selected.status == null || task.Selected.status == "In Progress" || task.Selected.status == "") && (typeof task.Selected.isActive == 'undefined' || task.Selected.isActive == 1)) && <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Complete</a>
+                                                (task.Selected.status == "For Approval" && task.Selected.status == "Completed" && task.Selected.task_id) &&
+                                                <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
                                             }
                                         </div>
                                     </div>
@@ -267,7 +267,7 @@ export default class FormComponent extends React.Component {
                                             <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
                                             </span>
                                         </div>
-                                        
+
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>

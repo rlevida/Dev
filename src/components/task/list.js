@@ -20,6 +20,7 @@ export default class List extends React.Component {
         this.deleteData = this.deleteData.bind(this)
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
         this.renderStatus = this.renderStatus.bind(this)
+        this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
 
     componentWillMount() {
@@ -32,10 +33,10 @@ export default class List extends React.Component {
         this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
     }
 
-    updateActiveStatus(id, active) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_TASK_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: id, active: (active == 1) ? 0 : 1 } })
+    updateActiveStatus(id) {
+        let { socket } = this.props;
+
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: id, status: "Completed" } })
     }
 
     deleteData(id) {
@@ -81,7 +82,7 @@ export default class List extends React.Component {
 
             <TaskStatus style={{ float: "right", padding: "20px" }} />
             <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" , FormAction : "Create"})} >
+                <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form", FormAction: "Create" })} >
                     <span>New Task</span>
                 </li>
             </HeaderButtonContainer>
@@ -108,9 +109,9 @@ export default class List extends React.Component {
                             let dueDate = moment(data.dueDate);
                             let currentDate = moment(new Date());
 
-                            if (dueDate.diff(currentDate, 'days') < 0  && data.status != 'Completed') {
+                            if (dueDate.diff(currentDate, 'days') < 0 && data.status != 'Completed') {
                                 taskStatus = 2
-                            } else if (dueDate.diff(currentDate, 'days') == 0  && data.status != 'Completed') {
+                            } else if (dueDate.diff(currentDate, 'days') == 0 && data.status != 'Completed') {
                                 taskStatus = 1
                             }
                             return <tr key={index}>
@@ -133,7 +134,7 @@ export default class List extends React.Component {
                                         </div>
                                     }
                                 </td>
-                                <td class="text-center">
+                                <td class="text-left">
                                     {
                                         (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External') && <div>
                                             <a href="javascript:void(0);" data-tip="EDIT"
@@ -144,6 +145,16 @@ export default class List extends React.Component {
                                                 onClick={e => this.deleteData(data.id)}
                                                 class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
                                                 <span class="glyphicon glyphicon-trash"></span></a>
+                                            {
+                                                (
+                                                    (data.status == null || data.status == "In Progress" || data.status == "")
+                                                    &&
+                                                    (typeof data.isActive == 'undefined' || data.isActive == 1)
+                                                ) && <a href="javascript:void(0);" data-tip="COMPLETE"
+                                                    onClick={e => this.updateActiveStatus(data.id)}
+                                                    class="btn btn-success btn-sm ml10">
+                                                    <span class="glyphicon glyphicon-check"></span></a>
+                                            }
                                             <Tooltip />
                                         </div>
                                     }
