@@ -77,19 +77,19 @@ export default class FormComponent extends React.Component {
         }
 
         if (typeof user.id != "undefined" && project.List.length > 0) {
-            project.List.filter(e => {
-                if (user.projectIds.indexOf(e.id) > -1) {
-                    userProjects.push({ value: e.id, label: e.project })
-                }
+            userProjects = _(project.List)
+                .filter((e) => {
+                    return _.findIndex(user.projectIds, (o) => { return o == e.id }) > -1;
+                })
+                .value();
+
+            userWorkstream = _(workstream.List)
+            .filter((e) => {
+                return _.findIndex(user.projectIds, (o) => { return o == e.projectId }) > -1;
             })
+            .value();
         }
-        if (typeof user.id != "undefined" && workstream.List.length > 0) {
-            workstream.List.filter(e => {
-                if (user.projectIds.indexOf(e.projectId) > -1) {
-                    userWorkstream.push({ value: e.id, label: e.workstream })
-                }
-            })
-        }
+        
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 {/* <li class="btn btn-info" style={{marginRight:"2px"}} 
@@ -130,12 +130,12 @@ export default class FormComponent extends React.Component {
                                             <label for="firstName">Phone Number:</label>
                                             <input type="number" name="phoneNumber" value="" class="form-control" placeholder="Phone number" value={user.phoneNumber != null ? user.phoneNumber : ""} onChange={this.handleChange} />
                                         </div>
-                                        { 
+                                        {
                                             (user.userType == "External") &&
-                                                <div class="form-group">
-                                                    <label for="company">Company:</label>
-                                                    <input type="company" name="company" value="" class="form-control" placeholder="Company" value={user.company != null ? user.company : ""} onChange={this.handleChange} />
-                                                </div>
+                                            <div class="form-group">
+                                                <label for="company">Company:</label>
+                                                <input type="company" name="company" value="" class="form-control" placeholder="Company" value={user.company != null ? user.company : ""} onChange={this.handleChange} />
+                                            </div>
                                         }
                                     </form>
                                 </div>
@@ -151,7 +151,7 @@ export default class FormComponent extends React.Component {
                                                     <th class="text-center">Type</th>
                                                 </tr>
                                                 {
-                                                    _.map(project.List, (data) => {
+                                                    _.map(userProjects, (data) => {
                                                         return (
                                                             <tr>
                                                                 <td class="text-left"><a href={"/project/" + data.id}>{data.project}</a></td>
@@ -175,7 +175,7 @@ export default class FormComponent extends React.Component {
                                                 <th class="text-center">Type</th>
                                             </tr>
                                             {
-                                                _.map(workstream.List, (data) => {
+                                                _.map(userWorkstream, (data) => {
                                                     return (
                                                         <tr>
                                                             <td class="text-left">{data.workstream}</td>
