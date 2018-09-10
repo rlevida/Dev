@@ -324,7 +324,17 @@ export default class DocumentLibrary extends React.Component {
                                                         })}
                                                     </Tooltip>
                                                 </td>
-                                                <td></td>
+                                                <td> 
+                                                    <ul style={{listStyleType: "none",padding : "0"}}>  
+                                                        { (tagList.length > 0) &&
+                                                            tagList.map((t,tIndex) =>{
+                                                                if(t.tagTypeId == data.id){
+                                                                    return <li key={tIndex}><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
+                                                                }
+                                                            })
+                                                        }
+                                                    </ul>
+                                                </td>
                                                 <td>
                                                     <div class="dropdown">
                                                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
@@ -332,8 +342,9 @@ export default class DocumentLibrary extends React.Component {
                                                             { (loggedUser.data.userType == "Internal") &&
                                                                 <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={()=>dispatch({type:"SET_DOCUMENT_SELECTED", Selected:data })}>Share</a></li>
                                                             }
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editFolder(data , "folder")}>Rename</a></li>
+                                                            {/* <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editFolder(data , "folder")}>Rename</a></li> */}
                                                             <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteFolder(data.id)}>Delete</a></li>
+                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
                                                         </ul>
                                                     </div>
                                                 </td>

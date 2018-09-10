@@ -48,7 +48,7 @@ export default class List extends React.Component {
             socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linkType : "project" , userTypeLinkId : loggedUser.data.id }});
 
             // SELECT LIST
-            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
+            
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "shareList" , filter : { linkType: "project" , linkId : project } })
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "ProjectMemberList" , filter : { linkId : project, linkType: "project" } })
     }

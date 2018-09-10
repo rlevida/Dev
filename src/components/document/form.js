@@ -53,10 +53,16 @@ export default class FormComponent extends React.Component {
                 showToast("error","Form did not fullfill the required value.")
                 return;
             }
-            if(document.EditType != "folder"){
-                socket.emit("SAVE_OR_UPDATE_DOCUMENT",{ data:document.Selected , filter :{ tagTypeId:document.Selected.id , tagType: "document" } , type : "project" });
+            if(document.Selected.isFolder){
+                if(document.EditType == "tags"){
+                    socket.emit("SAVE_OR_UPDATE_FOLDER_TAG",{ data : document.Selected , filter:{ tagTypeId:document.Selected.id , tagType : "folder" }, type : "project"})
+                }
             }else{
-                socket.emit("SAVE_OR_UPDATE_FOLDER",{ data:document.Selected , filter :{ tagTypeId:document.Selected.id , tagType: "document" } , type : "project" });
+                if(document.EditType != "folder"){
+                    socket.emit("SAVE_OR_UPDATE_DOCUMENT",{ data:document.Selected , filter :{ tagTypeId:document.Selected.id , tagType: "document" }, type : "project" });
+                }else{
+                    socket.emit("SAVE_OR_UPDATE_FOLDER",{ data:document.Selected , filter :{ tagTypeId:document.Selected.id , tagType: "document" }, type : "project" });
+                }
             }
     }
 

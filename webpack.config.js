@@ -23,6 +23,7 @@ module.exports = {
         path : `${__dirname}/public/javascripts`,
         filename : '[name].min.js'
     },
+    mode: (debug)?"development":"production",
     plugins:debug ? [
             new webpack.DefinePlugin({
                 'process.env': {
