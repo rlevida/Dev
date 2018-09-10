@@ -32,7 +32,7 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_WORKSTREAM_ADD", (data) => {
-            dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: data[0] })
+            dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} })
             dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" })
         })
 
@@ -43,6 +43,7 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_WORKSTREAM_DELETED", (data) => {
+            socket.emit("GET_WORKSTREAM_COUNT_LIST", { filter: { projectId: data.projectId } });
             dispatch({ type: "REMOVE_DELETED_WORKSTREAM_LIST", id: data.id, List: this.props.workstream.List })
             showToast("success", "Workstream already deleted.")
         })
