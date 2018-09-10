@@ -216,7 +216,9 @@ export default class DocumentLibrary extends React.Component {
                         }
                     }else{
                         if(e.status == "library" && e.folderId == folder.Selected.id){
-                            let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id && s.shareType == "document" }).length ? 1 : 0 ;
+                            let isShared = global.SelectList.shareList.filter( s => { 
+                                                return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.Selected.id) && (s.shareType == "document" || s.shareType == "folder") 
+                                            }).length ? 1 : 0 ;
                                 if(isShared){
                                     documentList.library.push(e)
                                 }
