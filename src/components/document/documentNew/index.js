@@ -115,14 +115,27 @@ export default class DocumentNew extends React.Component {
     render() {
         let { document, users , settings , starred , loggedUser , workstream , global , task , folder } = this.props;
         let documentList = { newUpload : [] , library : [] } , tagList = [];
-
             if( document.List.length > 0 ){
                 document.List.filter( e =>{
-                    if( e.status == "new" && e.isCompleted != 1 ){
-                        documentList.newUpload.push(e)
-                    }
-                    if( e.status == "library" && e.isCompleted != 1 ){
-                        documentList.library.push(e)
+                    if( loggedUser.data.userType == "Internal"){
+                        if( e.status == "new" && e.isCompleted != 1 ){
+                            documentList.newUpload.push(e)
+                        }
+                        if( e.status == "library" && e.folderId == null){
+                            documentList.library.push(e)
+                        }
+                    }else{
+                        if(e.status == "library" && e.folderId == null){
+                            let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? 1 : 0 ;
+                                if(isShared || e.uploadedBy == loggedUser.data.id ){
+                                    documentList.library.push(e)
+                                }
+                        }else if(e.status == "new" && e.folderId == null){
+                            let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? 1 : 0 ;
+                                if(isShared || e.uploadedBy == loggedUser.data.id ){
+                                    documentList.newUpload.push(e)
+                                }
+                        }
                     }
                 })
             }
