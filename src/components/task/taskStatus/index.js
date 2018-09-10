@@ -36,13 +36,13 @@ export default class TaskStatus extends React.Component {
                 <table>
                     <tr>
                         <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
-                            <span style={{float:"left"}}>Active</span><span style={{float:"right"}}>{data.Active}</span>
+                           <span style={{float:"left",color:"white"}}>Active</span><span style={{float:"right",color:"white"}}>{(data.Active - data.Issues) + data.Issues}</span>
                         </td>
                         <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#9eca9f",color:"white"}}>
-                            <span style={{float:"left"}}>On Time</span><span style={{float:"right"}}>{data.OnTrack}</span>
+                            <span style={{float:"left",color:"white"}}>On Time</span><span style={{float:"right",color:"white"}}>{data.Active - data.Issues}</span>
                         </td>
-                        <td style={{padding:"10px 5px",width:"80px",backgroundColor:"#d4a2a2",color:"white"}}>
-                            <span style={{float:"left"}}>Issues</span><span style={{float:"right"}}>{data.Issues}</span>
+                        <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#d4a2a2",color:"white",cursor:"pointer"}} onClick={()=>this.showModal("Issues")}>
+                            <span style={{float:"left",color:"white"}}>Issues</span><span style={{float:"right",color:"white"}}>{ data.Issues > 0 && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{marginRight:"5px"}}></i>}{data.Issues}</span>
                         </td>
                     </tr>
                 </table>
