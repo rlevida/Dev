@@ -40,7 +40,7 @@ export default class List extends React.Component {
     deleteData(id) {
         let { socket } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_WORKSTREAM", { id: id })
+            socket.emit("DELETE_WORKSTREAM", { id: id, projectId: project })
         }
     }
 
