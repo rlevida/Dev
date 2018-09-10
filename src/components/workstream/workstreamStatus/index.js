@@ -59,7 +59,7 @@ export default class WorkstreamStatus extends React.Component {
                 <table>
                     <tr>
                         <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
-                           <span style={{float:"left",color:"white"}}>Active</span><span style={{float:"right",color:"white"}}>{data.Active}</span>
+                           <span style={{float:"left",color:"white"}}>Active</span><span style={{float:"right",color:"white"}}>{data.OnTrack + data.Issues}</span>
                         </td>
                         <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#9eca9f",color:"white"}}>
                             <span style={{float:"left",color:"white"}}>On Time</span><span style={{float:"right",color:"white"}}>{data.OnTrack}</span>

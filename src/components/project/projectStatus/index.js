@@ -50,7 +50,7 @@ export default class ProjectStatus extends React.Component {
                     <tr>
                         <td style={{padding:"10px 5px",width:"120px"}}>Client</td>
                         <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
-                            <span style={{float:"left"}}>Active</span><span style={{float:"right"}}>{data.Client.Active}</span>
+                            <span style={{float:"left"}}>Active</span><span style={{float:"right"}}>{data.Client.OnTrack+data.Client.Issues}</span>
                         </td>
                         <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#9eca9f",color:"white"}}>
                             <span style={{float:"left"}}>On-track</span><span style={{float:"right"}}>{data.Client.OnTrack}</span>
@@ -67,7 +67,7 @@ export default class ProjectStatus extends React.Component {
                         <tr>
                             <td style={{padding:"10px 5px",width:"120px"}}>Internal</td>
                             <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
-                                <span style={{float:"left"}}>Active</span><span style={{float:"right"}}>{data.Internal.Active}</span>
+                                <span style={{float:"left"}}>Active</span><span style={{float:"right"}}>{data.Internal.OnTrack+data.Internal.Issues}</span>
                             </td>
                             <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#9eca9f",color:"white"}}>
                                 <span style={{float:"left"}}>On-track</span><span style={{float:"right"}}>{data.Internal.OnTrack}</span>
@@ -85,7 +85,7 @@ export default class ProjectStatus extends React.Component {
                             <tr>
                                 <td style={{padding:"10px 5px",width:"120px"}}>Private</td>
                                 <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
-                                    <span style={{float:"left"}}>Active</span><span style={{float:"right"}}>{data.Private.Active}</span>
+                                    <span style={{float:"left"}}>Active</span><span style={{float:"right"}}>{data.Private.OnTrack+data.Private.Issues}</span>
                                 </td>
                                 <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#9eca9f",color:"white"}}>
                                     <span style={{float:"left"}}>On-track</span><span style={{float:"right"}}>{data.Private.OnTrack}</span>

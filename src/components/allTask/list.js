@@ -1,7 +1,7 @@
 import React from "react";
 import Tooltip from "react-tooltip";
 import { HeaderButtonContainer } from "../../globalComponents";
-import moment from 'moment'
+import moment from 'moment';
 import TaskStatus from './taskStatus'
 import _ from "lodash";
 
@@ -110,9 +110,12 @@ export default class List extends React.Component {
                         {
                             taskList.map((data, index) => {
                                 let taskStatus = 0;
-                                if (new Date().getTime() > new Date(data.dueDate).getTime() && data.status != 'Completed') {
+                                let dueDate = moment(data.dueDate);
+                                let currentDate = moment(new Date());
+    
+                                if (dueDate.diff(currentDate, 'days') < 0  && data.status != 'Completed') {
                                     taskStatus = 2
-                                } else if (new Date() == new Date(data.dueDate) && data.status != 'Completed') {
+                                } else if (dueDate.diff(currentDate, 'days') == 0  && data.status != 'Completed') {
                                     taskStatus = 1
                                 }
 
