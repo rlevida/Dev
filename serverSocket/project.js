@@ -39,7 +39,7 @@ var init = exports.init = (socket) => {
 
     socket.on("SAVE_OR_UPDATE_PROJECT", (d) => {
         let project = global.initModel("project");
-
+        
         sequence.create().then((nextThen) => {
             if (typeof d.data.id != "undefined" && d.data.id != "") {
                 let id = d.data.id;

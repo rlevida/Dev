@@ -134,7 +134,7 @@ export default class FormComponent extends React.Component {
         //console.log(users)
         let userMemberList = _(members.List)
             .filter((member) => {
-                return member.usersType == 'users' && member.memberType != "project manager";
+                return member.usersType == 'users';
             })
             .map((member) => {
                 let returnObject = member;
@@ -158,12 +158,7 @@ export default class FormComponent extends React.Component {
                 let { role } = { ...user };
                 let canBeProjectManager = _.findIndex(role, function (o) { return o.roleId == 1 || o.roleId == 2 || o.roleId == 3 || o.roleId == 5; });
                 return canBeProjectManager >= 0;
-            })
-            .filter((user) => {
-                let alreadyMember = _.findIndex(userMemberList, function (o) { return o.userTypeLinkId == user.id; });
-                return alreadyMember < 0;
-            })
-            .map((user) => {
+            }).map((user) => {
                 return { id: user.id, name: user.firstName + ' ' + user.lastName }
             })
             .orderBy(['name'])

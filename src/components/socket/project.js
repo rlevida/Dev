@@ -7,7 +7,8 @@ import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
-        company: store.company
+        company: store.company,
+        project: store.project
     }
 })
 export default class Socket extends React.Component {
@@ -32,6 +33,9 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_PROJECT_ADD",(data) => {
+            if (typeof this.props.project.Selected.id != 'undefined') {
+                this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: this.props.project.Selected.id, linkType: 'project' } });
+            }
             dispatch({type:"SET_PROJECT_SELECTED",Selected : data})
             dispatch({type:"SET_PROJECT_FORM_ACTIVE",FormActive : "Form"})
         })
