@@ -21,7 +21,7 @@ export default class Socket extends React.Component {
 
         socket.on("FRONT_DOCUMENT_LIST",(data) => {
             dispatch({type:"SET_DOCUMENT_LIST",list : data })
-            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" })
         })
 
         socket.on("FRONT_DOCUMENT_SELECTED",(data) => {
@@ -76,7 +76,6 @@ export default class Socket extends React.Component {
         socket.on("FRONT_FOLDER_EDIT",(data)=>{
             dispatch({type:"UPDATE_DATA_FOLDER_LIST",UpdatedData:data, List: this.props.folder.List})
             dispatch({type:"SET_DOCUMENT_SELECTED",Selected : {}})
-            dispatch({type:"SET_DOCUMENT_FORM_ACTIVE",FormActive : "List"})
         })
 
         socket.on("FRONT_FOLDER_LIST",(data)=>{
@@ -85,6 +84,11 @@ export default class Socket extends React.Component {
 
         socket.on("FRONT_DELETE_FOLDER" , (data) =>{
             dispatch({type:"REMOVE_DELETED_FOLDER_LIST", id : data.id , List: this.props.folder.List})
+        })
+
+        socket.on("FRONT_SAVE_OR_UPDATE_FOLDER_TAG",(data)=>{
+            dispatch({type:"SET_DOCUMENT_FORM_ACTIVE",FormActive : "List"})
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" })
         })
     }
 
