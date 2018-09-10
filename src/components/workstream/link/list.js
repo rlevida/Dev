@@ -76,7 +76,7 @@ export default class List extends React.Component {
                             {(workstream.Selected.isActive == 0) && <span className={"fa fa-circle"}></span> }
                         </li>
                         <li style={{ width: "100px" }}>Status: {task.List.filter(e => { if (e.status == "Completed") { return e } }).length} / {task.List.length}</li>
-                        <li style={{ width: "100px" }}>Type:&nbsp;&nbsp; <span class={ /* Project Based or Time Based */ workstream.Selected.typeId == 4 ? "fa fa-calendar" : "glyphicon glyphicon-time"} title={workstream.Selected.typeId == 4 ? "Output base" : "Time based"}></span> </li>
+                        <li style={{ width: "100px" }}>Type:&nbsp;&nbsp; <span class={ /* Project Based or Time Based */ workstream.Selected.typeId == 4 ? "fa fa-calendar" : "glyphicon glyphicon-time"} title={workstream.Selected.typeId == 4 ? "Output based" : "Time based"}></span> </li>
                         <li style={{ width: "60px" }}>&nbsp;&nbsp;<span class="fa fa-tag" title="tag"></span></li>
                         <li style={{ width: "100x" }}>&nbsp;&nbsp;<span class="label label-success" style={{ margin: "5px" }}>{workstream.Selected.workstream}</span></li>
                     </ul>

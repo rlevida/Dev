@@ -179,7 +179,7 @@ export default class FormComponent extends React.Component {
                                                     return (
                                                         <tr>
                                                             <td class="text-left">{data.workstream}</td>
-                                                            <td><span class={data.type_type == "Output base" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
+                                                            <td><span class={data.type_type == "Output based" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
                                                         </tr>
                                                     )
                                                 })
