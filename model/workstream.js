@@ -76,7 +76,7 @@ var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
                         Active, 
                         tb2.Issues, 
                        tb2.OnTrack
-                    FROM (select projectId,sum(IF(isActive="1",1,0)) as Active FROM workstream WHERE projectId = ? ) as tb
+                    FROM (select projectId,sum(IF(isActive="1",1,0)) as Active FROM workstream WHERE projectId = ? AND isActive = 1 ) as tb
                     LEFT JOIN
                 (SELECT projectId,
                         SUM(IF(Issues>0,1,0))  as Issues,
@@ -88,7 +88,6 @@ var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
                                 GROUP BY workstreamId ) as tbpt) as tb2
                 ON tb.projectId = tb2.projectId
                         `;
-
     db.query(
         query,
         params, 
