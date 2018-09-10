@@ -8,6 +8,7 @@ CREATE TABLE `project` (
     `tinNo` VARCHAR(50),
     `companyAddress` VARCHAR(50),
     `classification` VARCHAR(50),
+    `projectNameCount` INT(11) NOT NULL DEFAULT '0',
     `createdBy` BIGINT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -31,6 +31,11 @@ var field = exports.field = {
         'typeId' : {type : 'bigint' , access : "public", database: "type", relation: "one-to-one" },
 
         /**
+         * projectNameCount (INT)
+         */
+        'projectNameCount' : {type : 'int' , access : "public" },
+
+        /**
          * createdBy (BIGINT)
          */
         'createdBy' : {type : 'bigint' , access : "public"},

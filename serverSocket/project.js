@@ -41,6 +41,19 @@ var init = exports.init = (socket) => {
         let project = global.initModel("project");
         
         sequence.create().then((nextThen) => {
+            project.getData("project", { project: d.data.project }, {orderBy:[{fieldname:"projectNameCount",type:"DESC"}]}, (c) => {
+                if (c.data.length > 0) {
+                    let existingData = c.data.filter(f=>f.id == d.data.id)
+                    if(existingData.length == 0 ){
+                         d.data.projectNameCount = c.data[0].projectNameCount + 1
+                    }
+                    nextThen()
+                }else{
+                    d.data.projectNameCount = 0;
+                    nextThen()
+                }
+            })
+        }).then((nextThen) => {
             if (typeof d.data.id != "undefined" && d.data.id != "") {
                 let id = d.data.id;
                 delete d.data.id;
