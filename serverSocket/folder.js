@@ -66,4 +66,45 @@ var init = exports.init = (socket) => {
                 })
             })
     })
+
+    socket.on("SAVE_OR_UPDATE_FOLDER_TAG",(d) =>{
+        let tag = global.initModel("tag")
+        let filter = (typeof d.filter != "undefined") ? d.filter : {};
+            sequence.create().then((nextThen) => {
+                tag.deleteData("tag",filter,(c)=>{
+                    if(c.status){
+                        nextThen(d.data)
+                    }
+                })
+            }).then((nextThen,data) => {
+                let hasError = false , errorMessage = "" , tempResData = []
+                if(JSON.parse(data.tags).length){
+                    JSON.parse(data.tags).map( e => {
+                        let tagData = { linkType : e.value.split("-")[0], linkId : e.value.split("-")[1] , tagType : "folder" , tagTypeId : data.id }
+                            tempResData.push( new Promise((resolve,reject) => {
+                                tag.postData("tag",tagData,(res) =>{
+                                    if(res.status){
+                                        resolve(res)
+                                    }else{
+                                        hasError = true
+                                        reject()
+                                    }
+                                })
+                            }))
+                    })
+                    Promise.all(tempResData).then((values)=>{
+                        let resData = []
+                        if(values.length){
+                            socket.emit("FRONT_SAVE_OR_UPDATE_FOLDER_TAG",{})
+                            socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully Updated"})
+                        }else{
+                            socket.emit("RETURN_ERROR_MESSAGE",{message:"Updating failed. Please Try again later."})
+                        }
+                    })
+                }else{
+                    socket.emit("FRONT_SAVE_OR_UPDATE_FOLDER_TAG", {})
+                }
+            })
+    })
 }
+

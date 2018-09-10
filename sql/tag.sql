@@ -4,7 +4,7 @@ CREATE TABLE `tag` (
     `indicator` VARCHAR(50),
     `linkType` ENUM("user","workstream","task","conversation","document","others"),
     `linkId` BIGINT,
-    `tagType` ENUM("user","workstream","task","conversation","document"),
+    `tagType` ENUM("user","workstream","task","conversation","document","folder"),
     `tagTypeId` BIGINT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

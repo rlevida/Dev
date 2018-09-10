@@ -20,7 +20,7 @@ var field = exports.field = {
     'linkId' : {type : 'bigint' , access : "public" },
 
     /**
-     * tagType ENUM("user","workstream","task","conversation","document")
+     * tagType ENUM("user","workstream","task","conversation","document","folder")
      */
     'tagType' : {type : 'string' , access : "public" },
     
