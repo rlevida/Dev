@@ -20,7 +20,6 @@ export default class List extends React.Component {
         this.deleteData = this.deleteData.bind(this)
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
         this.renderStatus = this.renderStatus.bind(this)
-        this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
 
     componentWillMount() {
