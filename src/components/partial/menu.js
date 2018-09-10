@@ -56,7 +56,7 @@ export default class Component extends React.Component {
                         <ul class="collapse in"> */}
                             <li class={page == "project" && subpage==""?"active":""}>
                                 <a href="/project">
-                                <i class="fa fa-calendar"></i>&nbsp; Project </a> 
+                                <i class="fa fa-calendar"></i>&nbsp; Projects </a> 
                             </li>
                             <li class={page == "mytask" && subpage==""?"active":""}>
                                 <a href="/mytask">
