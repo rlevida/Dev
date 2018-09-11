@@ -247,3 +247,9 @@ export const EditableCellDisplay = React.createClass({
         }
     }
 });
+
+export const Loading = () => {
+    return (
+        <p style={{ fontSize: 16, textAlign: 'center' }}><i class="fa fa-circle-o-notch fa-spin fa-fw"></i> Loading...</p>
+    )
+}

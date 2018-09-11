@@ -47,7 +47,7 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_PROJECT_DELETED",(data) => {
-            dispatch({type:"REMOVE_DELETED_PROJECT_LIST",id : data.id, List: this.props.company.List})
+            dispatch({type:"REMOVE_DELETED_PROJECT_LIST",id : data.id})
             showToast("success","Company already deleted.")
         })
 

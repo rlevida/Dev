@@ -1,7 +1,6 @@
 import React from "react";
 import Tooltip from "react-tooltip";
-import { showToast, displayDate, numberFormat } from '../../globalFunction';
-import { HeaderButtonContainer, HeaderButton, DropDown, OnOffSwitch } from "../../globalComponents";
+import { Loading } from "../../globalComponents";
 import ProjectFilter from "./projectFilter"
 import ProjectStatus from "./projectStatus"
 
@@ -54,6 +53,7 @@ export default class List extends React.Component {
 
     render() {
         let { project, socket, loggedUser } = this.props;
+        
         return (
             <div>
                 <ProjectStatus style={{ float: "right", padding: "20px" }} />
@@ -78,14 +78,8 @@ export default class List extends React.Component {
                             }
                         </tr>
                         {
-                            (project.List.length == 0) &&
-                            <tr>
-                                <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                            </tr>
-                        }
-                        {
                             project.List.map((data, index) => {
-                                if ((data.typeId == 2 || data.typeId == 3) && (loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3 && loggedUser.data.userRole != 4  && loggedUser.data.userRole != 5 && loggedUser.data.userRole != 6)) {
+                                if ((data.typeId == 2 || data.typeId == 3) && (loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3 && loggedUser.data.userRole != 4 && loggedUser.data.userRole != 5 && loggedUser.data.userRole != 6)) {
                                     // if user is client the he can only see client project
                                 } else {
                                     return <tr key={index}>
@@ -93,7 +87,7 @@ export default class List extends React.Component {
                                             {(data.isActive == 0) && <span class="fa fa-circle"></span>}
                                             {(data.isActive == 1) ? <span className={(data.Issues > 0) ? "fa fa-exclamation-circle fa-lg" : "fa fa-circle fa-lg"} style={{ color: (data.Issues > 0) ? "#c0392b" : (data.OnDue > 0) ? "#f39c12" : "#27ae60" }}></span> : ""}
                                         </td>
-                                        <td class="text-left"><a href={"/project/" + data.id} target="_blank">{data.project + ((data.projectNameCount>0)?" ("+data.projectNameCount+")":"")}</a></td>
+                                        <td class="text-left"><a href={"/project/" + data.id} target="_blank">{data.project + ((data.projectNameCount > 0) ? " (" + data.projectNameCount + ")" : "")}</a></td>
                                         <td class="text-center"><span class={(data.type_type == "Client") ? "fa fa-users" : (data.type_type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></span></td>
                                         <td class="text-center">{(data.newDocCount > 0) ? <span class="fa fa-file"></span> : ""} {data.newDocCount}</td>
                                         <td class="text-center"><span><i class="fa fa-file-alt"></i></span></td>
@@ -121,6 +115,12 @@ export default class List extends React.Component {
                         }
                     </tbody>
                 </table>
+                {
+                    (project.Loading) && <Loading />
+                }
+                {
+                    (project.List.length == 0 && project.Loading == false) && <p class="text-center">No Record Found!</p>
+                }
             </div>
         )
     }
