@@ -277,8 +277,8 @@ export default class DocumentLibrary extends React.Component {
                 let parentFolder = folderList.filter(e=>e.id == folderParentId);
                 folderParentId = null;
                 if(parentFolder.length > 0){
-                    folderName.unshift(<a onClick={()=>dispatch({type:"SET_FOLDER_SELECTED" , Selected : parentFolder[0] })}>{
-                    ((typeof parentFolder[0].name != "undefined")?` > ${parentFolder[0].name}`:"")}</a>)
+                    folderName.unshift(<span> > <a style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_FOLDER_SELECTED" , Selected : parentFolder[0] })}>{
+                    ((typeof parentFolder[0].name != "undefined")?`${parentFolder[0].name}`:"")}</a></span>)
                     folderParentId = parentFolder[0].parentId;
                 }
             }
