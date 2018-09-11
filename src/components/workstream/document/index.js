@@ -148,16 +148,16 @@ export default class WorkstreamDocumentViewer extends React.Component {
 
     goToFolder(data){
         let { dispatch , folder } = this.props;
-            if(data.id != null){
-                if(data.status == "new"){
-                    window.location.replace(`/project/documents/${project}`);
-                }else{
-                    let documentFolder = folder.List.filter( e =>{
-                        return e.id == data.folderId
-                    })
-                    dispatch({type:"SET_FOLDER_SELECTED" , Selected : documentFolder[0] })
-                }
+        if(data.id != null){
+            let documentFolder = folder.List.filter( e =>{
+                return e.id == data.folderId
+            })
+            let folderParams = ""
+            if(data.folderId){
+                folderParams = "?folder="+data.folderId
             }
+            window.location.replace(`/project/documents/${project}`+folderParams);
+        }
     }
 
     render() {

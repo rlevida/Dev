@@ -41,6 +41,21 @@ export default class DocumentLibrary extends React.Component {
             folderName : ""
         }
     }
+
+    componentDidMount(){
+        // automatically move to selected folder
+        if(folderParams){
+            let folderSelectedInterval = setInterval(()=>{
+                if(this.props.folder.List.length > 0){
+                    clearInterval(folderSelectedInterval)
+                    let folderData = this.props.folder.List.filter(e=>e.id == folderParams)
+                    if(folderData.length > 0){
+                        this.props.dispatch({type:"SET_FOLDER_SELECTED" , Selected : folderData[0] })
+                    }
+                }
+            },1000)
+        }
+    }
    
     updateActiveStatus(id,active){
         let { socket, dispatch } = this.props;
