@@ -2,6 +2,7 @@ var express = require('express');
 var sess = require('express-session');
 var jwt = require('jsonwebtoken');
 var router = express();
+var download = require('download-file')
 
 router.use(function (req, res, next) {
     let session = global.initModel("session");
@@ -15,6 +16,70 @@ router.use(function (req, res, next) {
         }
     })
 });
+router.get('/downloadFolder',(req,res,next)=>{
+    var fs = global.initRequire('fs'),
+        AWS = global.initAWS();
+
+    let fileList = JSON.parse(req.query.data)
+    let folderName = req.query.folderName
+    let tempFolderName = new Date().getTime()
+    let path = `${folderName}`
+    fs.mkdir(path,function(e){
+      
+        let promise = new Promise(function(resolve,reject){
+            fileList.map( file =>{
+                var s3 = new AWS.S3();
+                let fileStream = fs.createWriteStream( `${path}/${file.origin}` ) ;
+                    s3.getObject({
+                        Bucket: global.AWSBucket,
+                        Key: global.environment + "/upload/" + file.name,
+                    }, (err,data) => {
+                        if(err){
+                            console.log("Error in Uploading to AWS. [" + err + "]");
+                        }else{
+                            fileStream.write(data.Body)
+                            resolve(folderName)
+                            fileStream.end()
+                        }
+                    });
+            })}
+        )
+        promise.then((data)=>{
+            var tar = require("tar")
+            var writeStream  = tar.c(
+                {
+                    gzip: "gzip",
+                },
+                [`${folderName}`]
+            ).pipe(fs.createWriteStream(`${folderName}.tgz`))
+            writeStream.on('finish', () => {
+
+                var deleteFolderRecursive = function(path) { // remove temp files
+                    if( fs.existsSync(path) ) {
+                        fs.readdirSync(path).forEach(function(file,index){
+                            var curPath = path + "/" + file;
+                            if(fs.lstatSync(curPath).isDirectory()) { // recurse
+                            deleteFolderRecursive(curPath);
+                            } else { // delete file
+                            fs.unlinkSync(curPath);
+                            }
+                        });
+                        fs.rmdirSync(path);
+                    }
+                  };
+                  deleteFolderRecursive(path)
+                
+                res.download(`${folderName}.tgz` , `${folderName}.tgz`,(c)=>{
+                    fs.unlink(`${folderName}.tgz`,(t)=>{
+                    })
+                })
+            })
+        }).catch((err)=>{
+            console.log(`promise error `, err )
+        })
+    })
+})
+
 
 router.post('/upload', (req, res, next) => {
     var formidable = global.initRequire("formidable"),
