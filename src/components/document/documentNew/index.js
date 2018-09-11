@@ -35,7 +35,7 @@ export default class DocumentNew extends React.Component {
         }
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
-
+    
     updateActiveStatus(id,active){
         let { socket, dispatch } = this.props;
             dispatch({type:"SET_DOCUMENT_STATUS",record:{id:id,status:(active==1)?0:1}});
@@ -191,15 +191,13 @@ export default class DocumentNew extends React.Component {
                                                 <td>{ moment(data.dateAdded).format('L') }</td>
                                                 <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
                                                 <td>
-                                                    <ul style={{listStyleType: "none",padding : "0"}}>
-                                                        { (tagList.length > 0) &&
-                                                            tagList.map((t,tIndex) =>{
-                                                                if(t.tagTypeId == data.id && t.tagType == "document"){
-                                                                    return <li key={tIndex}><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
-                                                                }
-                                                            })
-                                                        }
-                                                    </ul>
+                                                    { (tagList.length > 0) &&
+                                                        tagList.map((t,tIndex) =>{
+                                                            if(t.tagTypeId == data.id && t.tagType == "document"){
+                                                                return <span key={tIndex} ><label class="label label-primary" style={{margin:"5px"}}>{t.name}</label>{t.name.length > 16 && <br/>}</span>
+                                                            }
+                                                        })
+                                                    }
                                                 </td>
                                                 <td>
                                                     <div class="dropdown">
