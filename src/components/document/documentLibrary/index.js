@@ -195,6 +195,17 @@ export default class DocumentLibrary extends React.Component {
             })
     }
 
+    downloadFolder(folder){
+        let { document } = this.props;
+        let fileList = [];
+            document.List.filter( e => {
+                if(e.folderId == folder.id){
+                    fileList.push({ origin : e.origin , name : e.name })
+                }
+            })
+        window.open(encodeURI(`/api/downloadFolder?data=${JSON.stringify(fileList)}&folderName=${folder.name}`));
+    }
+
     render() {
         let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser } = this.props;
         let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [] ;
@@ -371,6 +382,7 @@ export default class DocumentLibrary extends React.Component {
                                                                 { (loggedUser.data.userType == "Internal") &&
                                                                     <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={()=>dispatch({type:"SET_DOCUMENT_SELECTED", Selected:data })}>Share</a></li>
                                                                 }
+                                                                <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.downloadFolder(data)}>Download</a></li>
                                                                 <li class="dropdown dropdown-library">
                                                                         <span class="test" style={{marginLeft : "20px" , color :"#333" , lineHeight: "1.42857143",cursor:"pointer"}}>Move to</span>
                                                                         <div class="dropdown-content">
