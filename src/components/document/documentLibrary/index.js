@@ -124,9 +124,9 @@ export default class DocumentLibrary extends React.Component {
     }
 
     addFolder(){
-        let { socket , global , loggedUser } = this.props;
+        let { socket , global , loggedUser, folder } = this.props;
         let { folderName } = this.state;
-            socket.emit("SAVE_OR_UPDATE_FOLDER", { data:{ projectId: project , name: folderName , createdBy: loggedUser.data.id }})
+            socket.emit("SAVE_OR_UPDATE_FOLDER", { data:{ projectId: project , name: folderName , createdBy: loggedUser.data.id, parentId: folder.Selected.id }})
             this.setState({ folderAction : "" , folderName : "" })
     }
 
@@ -155,6 +155,11 @@ export default class DocumentLibrary extends React.Component {
     moveTo(folderData , documentData){
         let { socket } = this.props;
             socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data :{ ...documentData , folderId : folderData.id } , type : "project"})
+    }
+
+    moveFolderTo(folderData , selectedFolder){
+        let { socket } = this.props;
+            socket.emit("SAVE_OR_UPDATE_FOLDER", { data :{ ...selectedFolder , parentId : folderData.id } , type : "project"})
     }
 
     editFolder(data , type){
@@ -275,10 +280,24 @@ export default class DocumentLibrary extends React.Component {
                 }
             }
 
+            let folderName = [];
+            folderName.unshift(<span>{(typeof folder.Selected.name != "undefined")?` > ${folder.Selected.name}`:""}</span>)
+            let folderParentId = folder.Selected.parentId;
+            while( folderParentId ){
+                let parentFolder = folderList.filter(e=>e.id == folderParentId);
+                folderParentId = null;
+                if(parentFolder.length > 0){
+                    folderName.unshift(<span> > <a style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_FOLDER_SELECTED" , Selected : parentFolder[0] })}>{
+                    ((typeof parentFolder[0].name != "undefined")?`${parentFolder[0].name}`:"")}</a></span>)
+                    folderParentId = parentFolder[0].parentId;
+                }
+            }
         return  <div>
                     <div class="col-lg-12 col-md-12">
-                        <h3 style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_FOLDER_SELECTED" , Selected : {} })}>Library { typeof folder.Selected.name != "undefined" && ` > ${folder.Selected.name}` } </h3>
-                        { (this.state.folderAction == "" && typeof folder.Selected.id == "undefined") &&
+                        <h3><a style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_FOLDER_SELECTED" , Selected : {} })}>Library</a>
+                        { folderName.map((e)=>{ return e; }) } 
+                        </h3>
+                        { (this.state.folderAction == "") &&
                             <a href="javascript:void(0)" title="New Folder" style={{textDecoration:"none"}} onClick={()=> this.setState({ folderAction : "create" })}><span class="fa fa-folder fa-2x"></span></a>
                         }
                         { (this.state.folderAction == "create") &&
@@ -307,57 +326,81 @@ export default class DocumentLibrary extends React.Component {
                                         <td colSpan={8}>No Record Found!</td>
                                     </tr>
                                 }
-                               
-                                { (typeof folder.Selected.id == "undefined") &&
+                               {
                                     folderList.map((data, index) => {
-                                        return (
-                                            // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id , "folder")} documentToMove={(data)=> this.documentToMove(data)} docType="folder"/>
-                                            <tr key={index}>
-                                                <td><input type="checkbox"/></td>
-                                                <td ><span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span></td>
-                                                <td class="library-document"><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_FOLDER_SELECTED" , Selected : data })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{data.name}</a></td>
-                                                <td>{moment(data.dateUpdated).format('L')}</td>
-                                                <td>
-                                                    <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
-                                                    <Tooltip id={`follower${index}`}>
-                                                        { global.SelectList.ProjectMemberList.map((e,mIndex) => {
-                                                            if( e.userType == "Internal"){
-                                                                return <p key={mIndex}>{ `${e.firstName} ${e.lastName}`} <br/></p>
-                                                            }else{
-                                                                if(global.SelectList.shareList.length > 0){
-                                                                    let isShared =  global.SelectList.shareList.filter(s => {return s.userTypeLinkId == e.id && data.id == s.shareId && s.shareType == "folder"}).length ? 1 : 0
-                                                                        if(isShared){
-                                                                            return <p key={mIndex}>{ `${e.firstName} ${e.lastName}`} <br/></p>
-                                                                        }
+                                        if( (!data.parentId && !folder.Selected.id) || (data.parentId && folder.Selected.id == data.parentId) ){
+                                            return (
+                                                // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id , "folder")} documentToMove={(data)=> this.documentToMove(data)} docType="folder"/>
+                                                <tr key={index}>
+                                                    <td><input type="checkbox"/></td>
+                                                    <td ><span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span></td>
+                                                    <td class="library-document"><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_FOLDER_SELECTED" , Selected : data })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{data.name}</a></td>
+                                                    <td>{moment(data.dateUpdated).format('L')}</td>
+                                                    <td>
+                                                        <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
+                                                        <Tooltip id={`follower${index}`}>
+                                                            { global.SelectList.ProjectMemberList.map((e,mIndex) => {
+                                                                if( e.userType == "Internal"){
+                                                                    return <p key={mIndex}>{ `${e.firstName} ${e.lastName}`} <br/></p>
+                                                                }else{
+                                                                    if(global.SelectList.shareList.length > 0){
+                                                                        let isShared =  global.SelectList.shareList.filter(s => {return s.userTypeLinkId == e.id && data.id == s.shareId && s.shareType == "folder"}).length ? 1 : 0
+                                                                            if(isShared){
+                                                                                return <p key={mIndex}>{ `${e.firstName} ${e.lastName}`} <br/></p>
+                                                                            }
+                                                                    }
                                                                 }
+                                                            })}
+                                                        </Tooltip>
+                                                    </td>
+                                                    <td> 
+                                                        <ul style={{listStyleType: "none",padding : "0"}}>  
+                                                            { (tagList.length > 0) &&
+                                                                tagList.map((t,tIndex) =>{
+                                                                    if(t.tagTypeId == data.id){
+                                                                        return <li key={tIndex}><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
+                                                                    }
+                                                                })
                                                             }
-                                                        })}
-                                                    </Tooltip>
-                                                </td>
-                                                <td> 
-                                                    { (tagList.length > 0) &&
-                                                        tagList.map((t,tIndex) =>{
-                                                            if(t.tagTypeId == data.id && t.tagType == "folder"){
-                                                                return <span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span>
-                                                            }
-                                                        })
-                                                    }
-                                                </td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                                        <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
-                                                            { (loggedUser.data.userType == "Internal") &&
-                                                                <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={()=>dispatch({type:"SET_DOCUMENT_SELECTED", Selected:data })}>Share</a></li>
-                                                            }
-                                                            {/* <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editFolder(data , "folder")}>Rename</a></li> */}
-                                                            <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteFolder(data.id)}>Delete</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
                                                         </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )
+                                                    </td>
+                                                    <td>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                                            <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                                { (loggedUser.data.userType == "Internal") &&
+                                                                    <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={()=>dispatch({type:"SET_DOCUMENT_SELECTED", Selected:data })}>Share</a></li>
+                                                                }
+                                                                <li class="dropdown dropdown-library">
+                                                                        <span class="test" style={{marginLeft : "20px" , color :"#333" , lineHeight: "1.42857143",cursor:"pointer"}}>Move to</span>
+                                                                        <div class="dropdown-content">
+                                                                            {(typeof folder.Selected.id != "undefined") &&
+                                                                                <a href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo({id: null},data)}>Library</a>
+                                                                            }
+                                                                            { folder.List.map((f,fIndex) => {
+                                                                                if(typeof folder.Selected.id == "undefined" && f.id != data.id){
+                                                                                    return (
+                                                                                        <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo(f,data)}>{f.name}</a>
+                                                                                    )
+                                                                                }else{
+                                                                                    if(folder.Selected.id != f.id &&  f.id != data.id){
+                                                                                        return (
+                                                                                            <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo(f,data)}>{f.name}</a>
+                                                                                        )
+                                                                                    }
+                                                                                }
+                                                                            })}
+                                                                        </div>
+                                                                </li>
+                                                                {/* <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editFolder(data , "folder")}>Rename</a></li> */}
+                                                                <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteFolder(data.id)}>Delete</a></li>
+                                                                <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
+                                                            </ul>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        }
                                     })
                                 }
                                 {
