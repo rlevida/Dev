@@ -24,7 +24,7 @@ var init = exports.init = (socket) => {
                     })
                 }
 
-                if(filter.linkType == "workstream"){
+                if(filter.linkType == "workstream" || d.type == "workstream"){
                     let tag = global.initModel("tag")
                         tag.getData("tag",d.filter,{},(tagRes)=>{
                             let tagId = []
