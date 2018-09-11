@@ -85,7 +85,8 @@ router.get('/documents/:project', function (req, res, next) {
                         page: 'project',
                         subpage: 'documents',
                         body: "./template/index",
-                        project: req.params.project
+                        project: req.params.project,
+                        folder: req.query.folder
                     });
                 }else{
                     res.render('index', {
