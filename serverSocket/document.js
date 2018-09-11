@@ -13,7 +13,7 @@ var init = exports.init = (socket) => {
                 if(filter.linkType == "project"){
                     let docLinkId = [];
                         c.data.map( link => {
-                            docLinkId.push(link.id)
+                            docLinkId.push(link.documentId)
                         })
 
                     let document = global.initModel("document");
