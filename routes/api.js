@@ -2,7 +2,6 @@ var express = require('express');
 var sess = require('express-session');
 var jwt = require('jsonwebtoken');
 var router = express();
-var download = require('download-file')
 
 router.use(function (req, res, next) {
     let session = global.initModel("session");
