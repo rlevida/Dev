@@ -204,10 +204,10 @@ export default class WorkstreamDocumentViewer extends React.Component {
                 <div class="row"> 
                     <br/>
                     <div class="col-lg-12 col-md-12">  
-                        <h3>Documents linked to this workstream</h3>
+                        <h3 class="m0">Documents</h3>
 
                         {(typeof folder.Selected.id == "undefined") &&
-                            <table id="dataTable" class="table responsive-table table-bordered document-table">
+                            <table id="dataTable" class="table responsive-table document-table mt30">
                                 <tbody>
                                     <tr>
                                         <th></th>
@@ -276,7 +276,7 @@ export default class WorkstreamDocumentViewer extends React.Component {
                             </table>
                         }
                         {(typeof folder.Selected.id != "undefined") &&
-                            <table id="dataTable" class="table responsive-table table-bordered document-table">
+                            <table id="dataTable" class="table responsive-table document-table mt30">
                                 <tbody>
                                 <tr>
                                     <td><input type="checkbox"/></td>

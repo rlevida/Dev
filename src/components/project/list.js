@@ -64,7 +64,7 @@ export default class List extends React.Component {
                         </tr>
                         <tr>
                             <th></th>
-                            <th>Project</th>
+                            <th>Projects</th>
                             <th class="text-center">Type</th>
                             <th class="text-center">New Docs</th>
                             <th class="text-center">Notifications</th>

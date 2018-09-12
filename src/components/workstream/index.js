@@ -16,28 +16,32 @@ import { connect } from "react-redux"
 })
 export default class Component extends React.Component {
     constructor(props) {
-        super(props) 
+        super(props)
     }
 
     render() {
-        let { workstream } = this.props
+        let { workstream } = this.props;
+        console.log(workstream)
         let Component = <div>
-                { (workstream.FormActive == "Form" && typeof workstream.Selected.id != "undefined") &&
-                    <Link/>
-                } 
-               
-                {workstream.FormActive == "List" &&
-                    <List />
-                }
+            {
+                (
+                    (workstream.FormActive == "Form" && typeof workstream.Selected.id != "undefined") &&
+                    (typeof workstream.SelectedLink != "undefined" && workstream.SelectedLink != "")
+                ) && <Link />
+            }
 
-                {workstream.FormActive == "Form" &&
-                    <Form />
-                }
-                
-                {workstream.FormActive == "WorkstreamDocumentViewer" &&
-                    <WorkstreamDocumentViewer/>
-                }
-            </div>
+            {workstream.FormActive == "List" &&
+                <List />
+            }
+
+            {workstream.FormActive == "Form" &&
+                <Form />
+            }
+
+            {workstream.FormActive == "WorkstreamDocumentViewer" &&
+                <WorkstreamDocumentViewer />
+            }
+        </div>
         return (
             <Header component={Component} page={"Workstream"} />
         )

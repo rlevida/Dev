@@ -32,6 +32,7 @@ export default class FormComponent extends React.Component {
         this.setDropDown = this.setDropDown.bind(this)
         this.deleteData = this.deleteData.bind(this)
         this.handleCheckbox = this.handleCheckbox.bind(this)
+        this.resetData = this.resetData.bind(this)
     }
 
     componentDidMount() {
@@ -99,6 +100,15 @@ export default class FormComponent extends React.Component {
         });
     }
 
+    resetData() {
+        let { dispatch } = { ...this.props };
+        dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
+        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
+        dispatch({ type: "SET_MEMBERS_LIST", list: [] });
+        dispatch({ type: "SET_TASK_LIST", list: [] });
+        dispatch({ type: "SET_TASK_LOADING" });
+    }
+
     render() {
         let { dispatch, workstream, status, type, global, users } = this.props
         let statusList = [], typeList = [], projectUserList = [];
@@ -116,12 +126,7 @@ export default class FormComponent extends React.Component {
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
-                    onClick={(e) => {
-                        dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
-                        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
-                        dispatch({ type: "SET_MEMBERS_LIST", list: [] });
-                        dispatch({ type: "SET_SELECTED_WORKSTREAM_LINK", SelectedLink: "" });
-                    }} >
+                    onClick={this.resetData} >
                     <span>Back</span>
                 </li>
                 <li class="btn btn-info" onClick={() => this.handleSubmit()} >
@@ -177,13 +182,6 @@ export default class FormComponent extends React.Component {
                                             </div>
                                         </div>
                                     }
-                                    {/* <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Project Name *</label>
-                                        <div class="col-md-7 col-xs-12">
-                                            <input type="text" name="projectName" required value={(typeof workstream.Selected.projectName == "undefined") ? "" : workstream.Selected.projectName} class="form-control" placeholder="Project Name" onChange={this.handleChange} />
-                                            <div class="help-block with-errors"></div>
-                                        </div>
-                                    </div> */}
                                     <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Description</label>
                                         <div class="col-md-7 col-xs-12">
