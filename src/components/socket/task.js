@@ -17,19 +17,19 @@ export default class Socket extends React.Component {
         var { socket, dispatch } = this.props;
 
         socket.on("FRONT_TASK_LIST", (data) => {
-            if(data.type == "workstream"){
+            if (data.type == "workstream") {
                 dispatch({ type: "SET_TASK_LIST", list: data.data })
-            }else{
+            } else {
                 dispatch({ type: "SET_TASK_LIST", list: data.data })
             }
         })
 
-        socket.on("FRONT_ALL_TASK_COUNT_LIST",(data) => {
-            dispatch({type:"SET_ALL_TASK_COUNT_LIST",list : data})
+        socket.on("FRONT_ALL_TASK_COUNT_LIST", (data) => {
+            dispatch({ type: "SET_ALL_TASK_COUNT_LIST", list: data })
         })
 
-        socket.on("FRONT_TASK_COUNT_LIST",(data) => {
-            dispatch({type:"SET_TASK_COUNT_LIST",list : data})
+        socket.on("FRONT_TASK_COUNT_LIST", (data) => {
+            dispatch({ type: "SET_TASK_COUNT_LIST", list: data })
         })
 
         socket.on("FRONT_TASK_SELECTED", (data) => {
@@ -38,13 +38,14 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_TASK_ADD", (data) => {
-            dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive : true } })
+            dispatch({ type: "UPDATE_DATA_TASK_LIST", data: data })
+            dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } })
         })
 
         socket.on("FRONT_TASK_EDIT", (data) => {
-            dispatch({ type: "UPDATE_DATA_TASK_LIST", UpdatedData: data, List: this.props.task.List })
-            dispatch({ type: "SET_TASK_SELECTED", Selected: data })
-            // dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" })
+            dispatch({ type: "UPDATE_DATA_TASK_LIST", data: data });
+            dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
+            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" })
         })
 
         socket.on("FRONT_TASK_DELETED", (data) => {

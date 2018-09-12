@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 export default function reducer(state = {
     List: [],
     CountList: [],
@@ -21,7 +23,7 @@ export default function reducer(state = {
             return { ...state, AllCountList: action.list }
         }
         case "SET_TASK_FORM_ACTIVE": {
-            return { ...state, FormActive: action.FormActive , FormAction : action.FormAction }
+            return { ...state, FormActive: action.FormActive, FormAction: action.FormAction }
         }
         case "SET_TASK_SELECTED": {
             return { ...state, Selected: action.Selected }
@@ -30,13 +32,16 @@ export default function reducer(state = {
             return { ...state, SelectedId: action.SelectedId }
         }
         case "UPDATE_DATA_TASK_LIST": {
-            let tempList = action.List.map((e, i) => {
-                if (e.id == action.UpdatedData.id) {
-                    return action.UpdatedData
-                }
-                return e
-            })
-            return { ...state, List: tempList }
+            const { List } = { ...state };
+            const index = _.findIndex(List, { id: action.data.id });
+            
+            if (index >= 0) {
+                List.splice(index, 1, action.data);
+            } else {
+                List.push(action.data)
+            }
+
+            return { ...state, List }
         }
         case "REMOVE_DELETED_TASK_LIST": {
             let tempList = [];

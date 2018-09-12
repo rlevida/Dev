@@ -4,7 +4,7 @@ import { showToast, setDatePicker, displayDate } from '../../globalFunction'
 import { HeaderButtonContainer, DropDown } from "../../globalComponents"
 import { connect } from "react-redux"
 import moment from 'moment'
-import { map, isNumber, toNumber } from "lodash";
+import { map, isNumber, toNumber, isEmpty } from "lodash";
 
 @connect((store) => {
     return {
@@ -35,77 +35,66 @@ export default class FormComponent extends React.Component {
     }
 
     componentDidMount() {
-        let { task } = this.props
+        let { task, dispatch } = this.props
         $(".form-container").validator();
         setDatePicker(this.handleDate, "dueDate");
         setDatePicker(this.handleDate, "startDate");
+
         if (typeof task.Selected.id != 'undefined') {
             this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
         }
+
         if (typeof task.Selected.workstreamId != "undefined") {
             this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "taskList", filter: { "|||and|||": [{ name: "workstreamId", value: task.Selected.workstreamId }, { name: "id", value: task.Selected.id, condition: " != " }] } })
         }
     }
 
     componentDidUpdate() {
-        setDatePicker(this.handleDate, "dueDate");
+        setDatePicker(this.handleDate, "dueDate", new Date(2019, 3, 20));
     }
 
     handleDate(e) {
         let { dispatch, task } = this.props;
-        let Selected = Object.assign({}, task.Selected)
+        let Selected = Object.assign({}, { ...task.Selected })
         let selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
+        if ((typeof Selected.startDate != "undefined" || typeof Selected.dueDate != "undefined") && (Selected.startDate != "" || Selected.dueDate != "")) {
+            
+            let startDate = moment(Selected.startDate);
+            let dueDate = moment(Selected.dueDate);
+            let comparison = (e.target.name == "startDate") ? moment(dueDate).diff(e.target.value, 'days') : moment(e.target.value).diff(startDate, 'days');
+            let errMessage = "Due Date must be after the Start Date.";
 
-        if ((typeof Selected.startDate != "undefined" && typeof Selected.dueDate != "undefined") || (e.target.name == "startDate" && typeof Selected.dueDate != "undefined")) {
-            let startDate = e.target.name == "startDate" ? selectedDate : Selected.startDate
-
-            if (new Date(Selected.dueDate).getTime() < new Date(startDate).getTime()) {
-                showToast("error", "Start date is always before the due date.")
+            if (comparison < 0) {
+                showToast("error", errMessage)
                 Selected[e.target.name] = undefined;
-                dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
             } else {
                 Selected[e.target.name] = selectedDate;
-                dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
             }
+
         } else {
             Selected[e.target.name] = selectedDate;
-            dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
         }
-
-        this.generateDueDate(Selected);
+        
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
+        
+        if (e.target.name == "startDate") {
+            this.generateDueDate(Selected);
+        }
     }
 
     generateDueDate(selected) {
-        const { task, dispatch } = this.props;
-        let addCategory = "";
+        let { dispatch } = this.props;
 
         if (
-            (typeof selected.period != "undefined" && typeof selected.periodType != "undefined") &&
-            (selected.period != "" && selected.periodType != "")
+            typeof selected.periodType != "undefined"
+            && typeof selected.startDate != "undefined"
+            && selected.startDate != ""
+            && selected.periodType != ""
         ) {
-            let Selected = Object.assign({}, selected);
+            const Selected = Object.assign({}, selected);
+            const nextDueDate = moment(selected.startDate).add(selected.periodType, toNumber(selected.period)).format('YYYY-MM-DD HH:mm:ss');
 
-            switch (selected.periodType) {
-                case "Year":
-                    addCategory = "years";
-                    break;
-                case "Month":
-                    addCategory = "months";
-                    break;
-                case "Week":
-                    addCategory = "weeks";
-                    break;
-                case "Day":
-                    addCategory = "days";
-                    break;
-                default:
-                    break;
-            };
-
-
-            const dueDate = moment(selected.startDate).add(addCategory, selected.period).format('YYYY MMM DD');
-            Selected['dueDate'] = dueDate;
-
+            Selected['dueDate'] = nextDueDate;
             dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
         }
     }
@@ -114,6 +103,11 @@ export default class FormComponent extends React.Component {
         let { socket, dispatch, task } = this.props
         let Selected = Object.assign({}, task.Selected)
         Selected[name] = value;
+
+        if (name == "periodic") {
+            Selected = { ...Selected, dueDate: '', endDate: '', taskDueDate: '', periodType: '', period: (value == 1) ? 1 : 0 }
+        }
+
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
@@ -122,6 +116,7 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, task.Selected)
 
         Selected[e.target.name] = e.target.value;
+
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
 
         if ((e.target.name == "period")
@@ -152,17 +147,22 @@ export default class FormComponent extends React.Component {
     handleSubmit(e) {
         let { socket, task, dispatch } = this.props;
         let result = true;
+
         $('.form-container *').validator('validate');
         $('.form-container .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
                 result = false;
             }
         });
+        
         if (!result) {
             showToast("error", "Form did not fullfill the required value.")
             return;
         }
-        if (typeof task.Selected.startDate != "undefined") {
+
+        if (
+            (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "") &&
+            (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "")) {
             socket.emit("SAVE_OR_UPDATE_TASK", {
                 data: {
                     ...task.Selected,
@@ -173,7 +173,7 @@ export default class FormComponent extends React.Component {
             });
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
         } else {
-            showToast("error", "Startdate is required.")
+            showToast("error", "Task's Start and Due date are required.");
         }
     }
 
@@ -314,31 +314,16 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                                 {
-                                    (task.Selected.periodic == 1) && < div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Period Type *</label>
-                                        <div class="col-md-7 col-xs-12">
-                                            <DropDown multiple={false}
-                                                required={(task.Selected.periodic == 1)}
-                                                options={_.map(['Year', 'Month', 'Week', 'Day'], (o) => { return { id: o, name: o } })}
-                                                selected={(typeof task.Selected.periodType == "undefined") ? "" : task.Selected.periodType}
-                                                onChange={(e) => this.setDropDown("periodType", e.value)}
-                                                disabled={!allowEdit}
-                                            />
-                                            <div class="help-block with-errors"></div>
-                                        </div>
-                                    </div>
-                                }
-                                {
                                     (task.Selected.periodic == 1) && <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Period *</label>
+                                        <label class="col-md-3 col-xs-12 control-label">Every *</label>
                                         <div class="col-md-7 col-xs-12">
                                             <input
                                                 type="number"
                                                 name="period"
                                                 required={task.Selected.periodic == 1}
-                                                value={(typeof task.Selected.period == "undefined") ? "" : task.Selected.period}
+                                                value={(typeof task.Selected.period == "undefined" || task.Selected.period == "") ? 1 : task.Selected.period}
                                                 class="form-control" placeholder="Period" onChange={(e) => {
-                                                    if (((e.target.value).length <= 2 && isNumber(toNumber(e.target.value))) || e.target.value == "") {
+                                                    if (((e.target.value).length <= 4 && isNumber(toNumber(e.target.value)) && e.target.value > 0) || e.target.value == "") {
                                                         this.handleChange(e);
                                                     }
                                                 }}
@@ -348,9 +333,23 @@ export default class FormComponent extends React.Component {
                                         </div>
                                     </div>
                                 }
-
+                                {
+                                    (task.Selected.periodic == 1) && < div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Period Type *</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <DropDown multiple={false}
+                                                required={(task.Selected.periodic == 1)}
+                                                options={_.map(['Year', 'Month', 'Week', 'Day'], (o) => { return { id: (o + 's').toLowerCase(), name: o } })}
+                                                selected={(typeof task.Selected.periodType == "undefined") ? "" : task.Selected.periodType}
+                                                onChange={(e) => this.setDropDown("periodType", e.value)}
+                                                disabled={!allowEdit}
+                                            />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                }
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Start Date: </label>
+                                    <label class="col-md-3 col-xs-12 control-label">Start Date *</label>
                                     <div class="col-md-7 col-xs-12">
                                         <div class="input-group date">
                                             <input type="text"
@@ -370,26 +369,38 @@ export default class FormComponent extends React.Component {
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Due Date: </label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <div class="input-group date">
-                                            <input type="text"
-                                                class="form-control datepicker"
-                                                style={{ backgroundColor: "#eee" }}
-                                                id="dueDate"
-                                                name="dueDate"
-                                                value={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != '') ? displayDate(task.Selected.dueDate) : ""}
-                                                onChange={() => { }}
-                                                required={false}
-                                                disabled={task.Selected.periodic == 1 || !allowEdit}
-                                            />
-                                            <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
-                                            </span>
+                                {
+                                    (task.Selected.periodic == 1) && <div class="row mb15">
+                                        <div class="col-md-3 col-xs-12">
+                                            <p style={{ textAlign: 'right', fontColor: '#333', fontWeight: '600' }}>Due Date</p>
+                                        </div>
+                                        <div class="col-md-7 col-xs-12">
+                                            {(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "") ? moment(task.Selected.dueDate).format('YYYY MMM DD') : ''}
                                         </div>
                                     </div>
-                                    <div class="help-block with-errors"></div>
-                                </div>
+                                }
+                                {
+                                    (typeof task.Selected.periodic == "undefined" || task.Selected.periodic != 1) && <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Due Date *</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <div class="input-group date">
+                                                <input type="text"
+                                                    class="form-control datepicker"
+                                                    style={{ backgroundColor: "#eee" }}
+                                                    id="dueDate"
+                                                    name="dueDate"
+                                                    value={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != '') ? displayDate(task.Selected.dueDate) : ""}
+                                                    onChange={() => { }}
+                                                    required={true}
+                                                    disabled={!allowEdit}
+                                                />
+                                                <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                }
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label pt0">Assigned</label>
                                     <div class="col-md-7 col-xs-12">

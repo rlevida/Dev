@@ -35,7 +35,7 @@ export default class List extends React.Component {
     updateActiveStatus(id) {
         let { socket } = this.props;
 
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: id, status: "Completed" } })
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: id, status: "Completed", action: "complete" } })
     }
 
     deleteData(id) {
@@ -107,6 +107,16 @@ export default class List extends React.Component {
                             let taskStatus = 0;
                             let dueDate = moment(data.dueDate);
                             let currentDate = moment(new Date());
+                            let displayedDueDate = dueDate;
+
+                            if (data.periodic == 1) {
+                                const endDate = moment(data.startDate).add(data.periodType, data.period).format('YYYY MMM DD');
+                                const nextDueDate = moment(data.startDate).add(data.periodType, data.period).format('YYYY MMM DD');
+                                const taskDueDate = (moment(new Date(endDate)).diff(moment(new Date(nextDueDate)), data.periodType) < 0) ? endDate : nextDueDate;
+
+                                displayedDueDate = taskDueDate;
+                            }
+
 
                             if (dueDate.diff(currentDate, 'days') < 0 && data.status != 'Completed') {
                                 taskStatus = 2
@@ -119,7 +129,7 @@ export default class List extends React.Component {
                                 </td>
                                 <td class="text-left">{data.workstream_workstream}</td>
                                 <td class="text-left">{data.task}</td>
-                                <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
+                                <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(displayedDueDate).format('YYYY MMM DD') : ''}</td>
                                 <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                 <td class="text-center">
                                     {(data.followersName != null) &&
