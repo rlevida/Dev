@@ -9,7 +9,8 @@ import { connect } from "react-redux"
         socket: store.socket.container,
         workstream: store.workstream,
         loggedUser: store.loggedUser,
-        global: store.global
+        global: store.global,
+        projectData: store.project
     }
 })
 export default class List extends React.Component {
@@ -71,9 +72,9 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { workstream, dispatch, socket, loggedUser, global } = this.props;
+        let { workstream, dispatch, socket, loggedUser, global , projectData } = this.props;
         return <div>
-
+            <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/"+project} style={{color:"#000",textDecortion:"none"}}>{projectData.Selected.project}</a></h3>
             <WorkstreamStatus style={{ float: "right", padding: "20px" }} />
             <HeaderButtonContainer withMargin={true}>
                 {(loggedUser.data.userRole == 1

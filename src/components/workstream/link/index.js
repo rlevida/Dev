@@ -22,7 +22,7 @@ export default class Component extends React.Component {
 
         return (
             <div>
-                <h4 style={{paddingLeft:"20px"}}>&nbsp;&nbsp;&nbsp;>&nbsp;{workstream.Selected.workstream}</h4>
+                <h4 style={{paddingLeft:"25px"}}>{workstream.Selected.workstream}</h4>
                 <List />
             </div>
         )
