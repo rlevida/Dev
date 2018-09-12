@@ -25,7 +25,7 @@ export default function reducer(state={
                 }
                 return e
             })
-            return { ...state, List: tempList }
+            return { ...state, List: tempList , Loading : false }
         }
         case "REMOVE_DELETED_MEMBERS_LIST" : {
             let tempList = [];
@@ -46,6 +46,9 @@ export default function reducer(state={
                     }
                 })
             return {...state, List: List }
+        }
+        case "SET_FORM_MEMBERS_LOADING":{
+            return {...state, Loading: action.Loading }
         }
         default:
             return state;

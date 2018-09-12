@@ -29,7 +29,7 @@ export default class MembersForm extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, members, type } = this.props
+        let { socket, members, type , dispatch} = this.props
         let result = true;
 
         $('.member-form-container *').validator('validate');
@@ -48,6 +48,7 @@ export default class MembersForm extends React.Component {
             return;
         }
         members.Selected.memberType = 1;
+        dispatch({type : "SET_FORM_MEMBERS_LOADING" , Loading :true})
         socket.emit("SAVE_OR_UPDATE_MEMBERS", {
             data: {
                 ...members.Selected,
