@@ -4,7 +4,7 @@ import Tooltip from "react-tooltip";
 import { connect } from "react-redux";
 import _ from "lodash";
 import { showToast } from '../../globalFunction';
-import { HeaderButtonContainer, DropDown } from "../../globalComponents";
+import { HeaderButtonContainer, DropDown, Loading} from "../../globalComponents";
 import Members from "./members";
 
 import Workstreams from "./workstream";
@@ -313,7 +313,6 @@ export default class FormComponent extends React.Component {
                                                 </table>
                                             </div>
                                         }
-
                                         {
                                             (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") && <div class="row pd20">
                                                 <h3>Members</h3>
@@ -330,13 +329,22 @@ export default class FormComponent extends React.Component {
                                                             <th class="text-left">Team/s</th>
                                                             <th class="text-center"></th>
                                                         </tr>
+
+                                                        {   
+                                                            (members.Loading) &&
+                                                                <tr>
+                                                                    <td style={{ textAlign: "center" }} colSpan={9} ><Loading/></td>
+                                                                </tr>
+                                                        }
+                                                       
                                                         {
-                                                            (userMemberList.length == 0) && <tr>
+                                                            (userMemberList.length == 0 && !members.Loading) && <tr>
                                                                 <td style={{ textAlign: "center" }} colSpan={9}>No Record Found!</td>
                                                             </tr>
                                                         }
-                                                        {
-                                                            (userMemberList.length > 0) && userMemberList.map((data, index) => {
+                                                     
+                                                       {
+                                                            (userMemberList.length > 0 && !members.Loading ) && userMemberList.map((data, index) => {
                                                                 return (
                                                                     <tr key={index}>
                                                                         <td class="text-center">{data.user.id}</td>

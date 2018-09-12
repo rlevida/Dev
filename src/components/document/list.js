@@ -1,9 +1,5 @@
 import React from "react";
-import Tooltip from "react-tooltip";
-import { showToast,displayDate,numberFormat } from '../../globalFunction';
-import { HeaderButtonContainer,HeaderButton, DropDown, OnOffSwitch } from "../../globalComponents";
-import moment from 'moment'
-import FileUpload from 'react-fileupload';
+import { DropDown } from "../../globalComponents";
 import Dropzone from 'react-dropzone';
 import DocumentStatus from "./documentStatus"
 import DocumentNew from "./documentNew"
@@ -41,9 +37,9 @@ export default class List extends React.Component {
         let { socket , loggedUser } = this.props
             socket.emit("GET_SETTINGS", {});
             socket.emit("GET_USER_LIST",{});
-            socket.emit("GET_FOLDER_LIST",{filter:{projectId: project }})
+            socket.emit("GET_FOLDER_LIST", { filter: { projectId: project }})
             socket.emit("GET_TASK_LIST", { filter: { projectId: project }});
-            socket.emit("GET_STARRED_LIST",{ filter : { linkType : "project" } })
+            socket.emit("GET_STARRED_LIST", { filter : { linkType : "project" } })
             socket.emit("GET_WORKSTREAM_LIST", { filter : { projectId : project } });
             socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linkType : "project" , userTypeLinkId : loggedUser.data.id }});
 
@@ -126,17 +122,26 @@ export default class List extends React.Component {
                 </div>
 
                 <div class="modal fade" id="uploadFileModal" tabIndex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
+                    <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="uploadFileModalLabel">Upload File</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h5 class="modal-title" id="uploadFileModalLabel">
+                                { 
+                                        (this.state.tempData.length == 0) 
+                                            ?  "Upload File"
+                                            : "Tag your files"
+                                }
+                                </h5>
+                                { (this.state.tempData.length > 0) && 
+                                    <p style={{fontStyle:"italic", margin:"15px 20px 20px 25px"}}>Tagging your files will link them to a project or workflow and will make it easier to find them later.</p>
+                                }
+                            
+                            </div>
                         <div class="modal-body">
-
-                            { (!this.state.loading) &&
+                            { (!this.state.loading && this.state.tempData.length == 0) &&
                                 <Dropzone onDrop={this.onDrop.bind(this)}
                                     class="document-file-upload"
                                 >
@@ -159,7 +164,7 @@ export default class List extends React.Component {
                                 </div>
                             }
 
-                            <table id="dataTable" class="table responsive-table">
+                            <table id="dataTable" class="table responsive-table" >
                                 <tbody>
                                 {( this.state.tempData.length == 0 && this.state.loading ) &&
                                     <tr>
@@ -170,10 +175,9 @@ export default class List extends React.Component {
                                     this.state.tempData.map((data, index) => {
                                         return  (
                                             <tr key={index}>
-                                                <td><span><i class="fa fa-file" aria-hidden="true"></i></span></td>
-                                                <td>{data.origin}</td>
-                                                <td><span><i class="fa fa-tag" aria-hidden="true"></i></span></td>
-                                                <td>   
+                                                <td style={{border:"none" , width: "20%"}}><span class="pull-left"><i class="fa fa-file" aria-hidden="true"></i>&nbsp;&nbsp;{data.origin}</span></td>
+                                                <td style={{border:"none" , width: "10%"}}><span><i class="fa fa-tag" aria-hidden="true"></i></span></td>
+                                                <td style={{border:"none"}}>   
                                                     <DropDown multiple={false} 
                                                         multiple={true}
                                                         required={false}

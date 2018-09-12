@@ -1,6 +1,6 @@
 import React from "react";
 import Tooltip from "react-tooltip";
-import { HeaderButtonContainer } from "../../globalComponents";
+import { HeaderButtonContainer , Loading } from "../../globalComponents";
 import WorkstreamStatus from "./workstreamStatus"
 
 import { connect } from "react-redux"
@@ -9,7 +9,8 @@ import { connect } from "react-redux"
         socket: store.socket.container,
         workstream: store.workstream,
         loggedUser: store.loggedUser,
-        global: store.global
+        global: store.global,
+        projectData: store.project
     }
 })
 export default class List extends React.Component {
@@ -71,9 +72,9 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { workstream, dispatch, socket, loggedUser, global } = this.props;
+        let { workstream, dispatch, socket, loggedUser, global , projectData } = this.props;
         return <div>
-
+            <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/"+project} style={{color:"#000",textDecortion:"none"}}>{projectData.Selected.project}</a></h3>
             <WorkstreamStatus style={{ float: "right", padding: "20px" }} />
             <HeaderButtonContainer withMargin={true}>
                 {(loggedUser.data.userRole == 1
@@ -85,6 +86,7 @@ export default class List extends React.Component {
                     </li>
                 }
             </HeaderButtonContainer>
+           
             <table id="dataTable" class="table responsive-table">
                 <tbody>
                     <tr>
@@ -103,13 +105,18 @@ export default class List extends React.Component {
                             <th></th>
                         }
                     </tr>
+                    {   (workstream.Loading) &&
+                            <tr>
+                                <td style={{ textAlign: "center" }} colSpan={9}><Loading/></td>
+                            </tr>
+                    }
                     {
-                        (workstream.List.length == 0) &&
+                        (workstream.List.length == 0 && !workstream.Loading) &&
                         <tr>
                             <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
                         </tr>
                     }
-                    {
+                    { (!workstream.Loading) &&
                         workstream.List.map((data, index) => {
                             let workStreamStatus = (data.Issues > 0) ? 2 : (data.OnDue > 0) ? 1 : (data.Completed == data.TasksNumber || data.OnTrack > 0) ? 0 : '';
 

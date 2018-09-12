@@ -1,10 +1,6 @@
 import React from "react";
-import Tooltip from "react-tooltip";
-import { showToast,displayDate,numberFormat } from '../../../globalFunction';
-import { HeaderButtonContainer,HeaderButton, DropDown, OnOffSwitch } from "../../../globalComponents";
+import { Loading } from "../../../globalComponents"
 import moment from 'moment'
-import FileUpload from 'react-fileupload';
-import Dropzone from 'react-dropzone';
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -114,7 +110,7 @@ export default class DocumentNew extends React.Component {
 
     render() {
         let { document, users , settings , starred , loggedUser , workstream , global , task , folder } = this.props;
-        let documentList = { newUpload : [] , library : [] } , tagList = [];
+        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagCount = 0;
             if( document.List.length > 0 ){
                 document.List.filter( e =>{
                     if( loggedUser.data.userType == "Internal"){
@@ -168,8 +164,18 @@ export default class DocumentNew extends React.Component {
                                     <th>Tags</th>
                                     <th></th>
                                 </tr>
-
-                                {(documentList.newUpload.length == 0) && <tr><td colSpan={8}>No Record Found!</td></tr> }
+                                { 
+                                    (document.Loading) &&
+                                        <tr>
+                                            <td colSpan={8}><Loading/></td>
+                                        </tr> 
+                                }
+                                {
+                                    (documentList.newUpload.length == 0 && !document.Loading) && 
+                                        <tr>
+                                            <td colSpan={8}>No Record Found!</td>
+                                        </tr> 
+                                }
                                 { documentList.newUpload.map((data, index) => {
                                     if(loggedUser.data.userRole == 6 && data.uploadedBy != loggedUser.data.id ){
                                         return ;
@@ -193,8 +199,11 @@ export default class DocumentNew extends React.Component {
                                                 <td>
                                                     { (tagList.length > 0) &&
                                                         tagList.map((t,tIndex) =>{
+                                                            tagCount += t.name.length
                                                             if(t.tagTypeId == data.id && t.tagType == "document"){
-                                                                return <span key={tIndex} ><label class="label label-primary" style={{margin:"5px"}}>{t.name}</label>{t.name.length > 16 && <br/>}</span>
+                                                                let tempCount = tagCount ; 
+                                                                    if(tagCount > 16 ){ tagCount = 0}
+                                                                    return <span key={tIndex} ><label class="label label-primary" style={{margin:"5px"}}>{t.name}</label>{tempCount > 16  && <br/>}</span>
                                                             }
                                                         })
                                                     }

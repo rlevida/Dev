@@ -7,11 +7,12 @@ export default function reducer(state = {
         isActive: true
     },
     SelectedId: [],
-    FormAction : ""
+    FormAction : "",
+    Loading : true
 }, action) {
     switch (action.type) {
         case "SET_TASK_LIST": {
-            return { ...state, List: action.list }
+            return { ...state, List: action.list , Loading : false }
         }
         case "SET_TASK_COUNT_LIST": {
             return { ...state, CountList: action.list }

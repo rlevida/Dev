@@ -39,7 +39,7 @@ export default class WorkstreamDocumentViewer extends React.Component {
     componentWillMount() {
         let { socket , workstream } = this.props
             socket.emit("GET_DOCUMENT_LIST", { 
-                filter : { isDeleted : 0 , linkId : workstream.Selected.id , linkType : "workstream", tagType: "document" }
+                filter : { isDeleted : 0 } , type : "workstream"
             });
             let taskListInterval = setInterval(()=>{
                 if(this.props.workstream.Selected.id){
@@ -52,7 +52,6 @@ export default class WorkstreamDocumentViewer extends React.Component {
             socket.emit("GET_SETTINGS", {});
             socket.emit("GET_FOLDER_LIST",{filter:{projectId: project }})
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "documentList"})
-            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamList"})
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamList"})
             socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
     }
@@ -148,21 +147,21 @@ export default class WorkstreamDocumentViewer extends React.Component {
 
     goToFolder(data){
         let { dispatch , folder } = this.props;
-            if(data.id != null){
-                if(data.status == "new"){
-                    window.location.replace(`/project/documents/${project}`);
-                }else{
-                    let documentFolder = folder.List.filter( e =>{
-                        return e.id == data.folderId
-                    })
-                    dispatch({type:"SET_FOLDER_SELECTED" , Selected : documentFolder[0] })
-                }
+        if(data.id != null){
+            let documentFolder = folder.List.filter( e =>{
+                return e.id == data.folderId
+            })
+            let folderParams = ""
+            if(data.folderId){
+                folderParams = "?folder="+data.folderId
             }
+            window.location.replace(`/project/documents/${project}`+folderParams);
+        }
     }
 
     render() {
         let { document, dispatch, workstream , users , settings , starred , global , task , folder} = this.props;
-        let tagList = [] , tagOptions = [];
+        let tagList = [] , tagOptions = [] ,  documentList = [];
 
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
@@ -180,6 +179,27 @@ export default class WorkstreamDocumentViewer extends React.Component {
                 })
             }
 
+            if(typeof global.SelectList.tagList != "undefined"){
+                let tempTagList = [];
+                    global.SelectList.tagList.map( tag => {
+                        if(tag.linkType == "workstream" && tag.linkId == workstream.Selected.id){
+                                tempTagList.push(tag)
+                        }
+
+                        if(tag.linkType == "task"){
+                            task.List.map( t =>{
+                                if(t.id == tag.linkId && t.workstreamId == workstream.Selected.id){
+                                    tempTagList.push(tag)
+                                }
+                            })
+                        }
+                    })
+                if(tempTagList.length){
+                    tempTagList.map( temp =>{
+                        document.List.map(e => { if( e.id == temp.tagTypeId){ documentList.push(e) } })
+                    })
+                }
+            }
         return <div>
                 <div class="row"> 
                     <br/>
@@ -200,12 +220,12 @@ export default class WorkstreamDocumentViewer extends React.Component {
                                     </tr>
 
                                     {
-                                        (document.List.length == 0) &&
+                                        (documentList.length == 0) &&
                                         <tr><td colSpan={8}>No Record Found!</td></tr>
                                     }
 
-                                    {
-                                        document.List.map((data, index) => {
+                                    {  (documentList.length > 0) &&
+                                        documentList.map((data, index) => {
                                             return (
                                                 <tr key={index}>
                                                     <td> 
