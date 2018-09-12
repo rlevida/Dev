@@ -331,7 +331,10 @@ export default class FormComponent extends React.Component {
                                                         </tr>
 
                                                         {   
-                                                            (members.Loading) && <Loading/> 
+                                                            (members.Loading) &&
+                                                                <tr>
+                                                                    <td style={{ textAlign: "center" }} colSpan={9} ><Loading/></td>
+                                                                </tr>
                                                         }
                                                        
                                                         {
