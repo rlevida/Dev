@@ -114,7 +114,7 @@ export default class DocumentNew extends React.Component {
 
     render() {
         let { document, users , settings , starred , loggedUser , workstream , global , task , folder } = this.props;
-        let documentList = { newUpload : [] , library : [] } , tagList = [];
+        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagCount = 0;
             if( document.List.length > 0 ){
                 document.List.filter( e =>{
                     if( loggedUser.data.userType == "Internal"){
@@ -193,8 +193,11 @@ export default class DocumentNew extends React.Component {
                                                 <td>
                                                     { (tagList.length > 0) &&
                                                         tagList.map((t,tIndex) =>{
+                                                            tagCount += t.name.length
                                                             if(t.tagTypeId == data.id && t.tagType == "document"){
-                                                                return <span key={tIndex} ><label class="label label-primary" style={{margin:"5px"}}>{t.name}</label>{t.name.length > 16 && <br/>}</span>
+                                                                let tempCount = tagCount ; 
+                                                                    if(tagCount > 16 ){ tagCount = 0}
+                                                                    return <span key={tIndex} ><label class="label label-primary" style={{margin:"5px"}}>{t.name}</label>{tempCount > 16  && <br/>}</span>
                                                             }
                                                         })
                                                     }
