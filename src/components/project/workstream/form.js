@@ -70,6 +70,7 @@ export default class FormComponent extends React.Component {
         }
 
         socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { ...workstream.Selected, projectId: project.Selected.id, numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0 } });
+        socket.emit("GET_MEMBERS_LIST", { filter: { linkId: project.Selected.id, linkType: 'project' } });
     }
 
     deleteData(params) {
@@ -93,7 +94,7 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, workstream, status, type, global, users } = this.props
+        let { socket ,dispatch, workstream, status, type, global, users } = this.props
         let statusList = [], typeList = [], projectUserList = [];
 
         status.List.map((e, i) => { if (e.linkType == "workstream") { statusList.push({ id: e.id, name: e.status }) } })
@@ -111,9 +112,9 @@ export default class FormComponent extends React.Component {
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
                     onClick={(e) => {
+                        socket.emit("GET_MEMBERS_LIST", { filter: { linkId: this.props.project.Selected.id, linkType: 'project' } });
                         dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
                         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
-                        dispatch({ type: "SET_MEMBERS_LIST", list: [] });
                         dispatch({ type: "SET_SELECTED_WORKSTREAM_LINK", SelectedLink: "" });
                     }} >
                     <span>Back</span>
@@ -166,17 +167,17 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                             }
-                            <div class="form-group">
+                            {/* <div class="form-group">
                                 <label class="col-md-3 col-xs-12 control-label">Project Name *</label>
                                 <div class="col-md-7 col-xs-12">
                                     <input type="text" name="projectName" required value={(typeof workstream.Selected.projectName == "undefined") ? "" : workstream.Selected.projectName} class="form-control" placeholder="Project Name" onChange={this.handleChange} />
                                     <div class="help-block with-errors"></div>
                                 </div>
-                            </div>
+                            </div> */}
                             <div class="form-group">
-                                <label class="col-md-3 col-xs-12 control-label">Project Description</label>
+                                <label class="col-md-3 col-xs-12 control-label">Description</label>
                                 <div class="col-md-7 col-xs-12">
-                                    <textarea name="projectDescription" value={(typeof workstream.Selected.projectDescription == "undefined") ? "" : workstream.Selected.projectDescription} class="form-control" placeholder="Project Description" onChange={this.handleChange} />
+                                    <textarea name="projectDescription" value={(typeof workstream.Selected.projectDescription == "undefined") ? "" : workstream.Selected.projectDescription} class="form-control" placeholder="Description" onChange={this.handleChange} />
                                     <div class="help-block with-errors"></div>
                                 </div>
                             </div>
