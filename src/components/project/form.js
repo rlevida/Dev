@@ -131,7 +131,6 @@ export default class FormComponent extends React.Component {
             projectManager = projectManagerFilter[0].userTypeLinkId;
         }
 
-        //console.log(users)
         let userMemberList = _(members.List)
             .filter((member) => {
                 return member.usersType == 'users';

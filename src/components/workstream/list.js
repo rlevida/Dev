@@ -1,6 +1,6 @@
 import React from "react";
 import Tooltip from "react-tooltip";
-import { HeaderButtonContainer , Loading } from "../../globalComponents";
+import { HeaderButtonContainer, Loading } from "../../globalComponents";
 import WorkstreamStatus from "./workstreamStatus"
 
 import { connect } from "react-redux"
@@ -72,9 +72,9 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { workstream, dispatch, socket, loggedUser, global , projectData } = this.props;
+        let { workstream, dispatch, socket, loggedUser, global, projectData } = this.props;
         return <div>
-            <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/"+project} style={{color:"#000",textDecortion:"none"}}>{projectData.Selected.project}</a></h3>
+            <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>
             <WorkstreamStatus style={{ float: "right", padding: "20px" }} />
             <HeaderButtonContainer withMargin={true}>
                 {(loggedUser.data.userRole == 1
@@ -86,7 +86,7 @@ export default class List extends React.Component {
                     </li>
                 }
             </HeaderButtonContainer>
-           
+
             <table id="dataTable" class="table responsive-table">
                 <tbody>
                     <tr>
@@ -105,10 +105,10 @@ export default class List extends React.Component {
                             <th></th>
                         }
                     </tr>
-                    {   (workstream.Loading) &&
-                            <tr>
-                                <td style={{ textAlign: "center" }} colSpan={9}><Loading/></td>
-                            </tr>
+                    {(workstream.Loading) &&
+                        <tr>
+                            <td style={{ textAlign: "center" }} colSpan={9}><Loading /></td>
+                        </tr>
                     }
                     {
                         (workstream.List.length == 0 && !workstream.Loading) &&
@@ -116,7 +116,7 @@ export default class List extends React.Component {
                             <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
                         </tr>
                     }
-                    { (!workstream.Loading) &&
+                    {(!workstream.Loading) &&
                         workstream.List.map((data, index) => {
                             let workStreamStatus = (data.Issues > 0) ? 2 : (data.OnDue > 0) ? 1 : (data.Completed == data.TasksNumber || data.OnTrack > 0) ? 0 : '';
 
@@ -128,10 +128,13 @@ export default class List extends React.Component {
                                     </td>
                                     <td class="text-left" style={{ cursor: "pointer" }}>
 
-                                        <a href="javascript:void(0);" onClick={(e) => {
-                                            socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id })
-                                            dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" })
-                                        }} >
+                                        <a
+                                            href="javascript:void(0);"
+                                            onClick={(e) => {
+                                                socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
+                                                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
+                                            }}
+                                        >
                                             {data.workstream}
                                         </a>
                                     </td>
@@ -151,9 +154,14 @@ export default class List extends React.Component {
                                         || loggedUser.data.userRole == 3
                                         || loggedUser.data.userRole == 4) &&
                                         <td class="text-center">
-                                            <a href="javascript:void(0);" data-tip="EDIT"
-                                                onClick={(e) => socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id })}
-                                                class="btn btn-info btn-sm">
+                                            <a href="javascript:void(0);"
+                                                data-tip="EDIT"
+                                                class="btn btn-info btn-sm"
+                                                onClick={(e) => {
+                                                    socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
+                                                    dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
+                                                }}
+                                            >
                                                 <span class="glyphicon glyphicon-pencil"></span></a>
                                             <a href="javascript:void(0);" data-tip="DELETE"
                                                 onClick={e => this.deleteData(data.id)}

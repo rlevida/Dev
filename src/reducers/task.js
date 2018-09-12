@@ -31,6 +31,9 @@ export default function reducer(state = {
         case "SET_TASK_ID": {
             return { ...state, SelectedId: action.SelectedId }
         }
+        case "SET_TASK_LOADING": {
+            return { ...state, Loading: !state.Loading }
+        }
         case "UPDATE_DATA_TASK_LIST": {
             const { List } = { ...state };
             const index = _.findIndex(List, { id: action.data.id });
