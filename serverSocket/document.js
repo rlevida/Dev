@@ -9,41 +9,44 @@ var init = exports.init = (socket) => {
         
         documentLink.getData("document_link", filter ,{},(c)=>{
             if(c.status) {
-                
-                if(filter.linkType == "project"){
-                    let docLinkId = [];
-                        c.data.map( link => {
-                            docLinkId.push(link.documentId)
-                        })
+                if(c.data.length > 0){
+                    if(filter.linkType == "project"){
+                        let docLinkId = [];
+                            c.data.map( link => {
+                                docLinkId.push(link.documentId)
+                            })
 
-                    let document = global.initModel("document");
-                    document.getProjectDocument( filter, docLinkId , ( doc )=>{
-                        if(doc.status){
-                            socket.emit("FRONT_DOCUMENT_LIST",doc.data)
-                        }
-                    })
-                }
-
-                if(filter.linkType == "workstream" || d.type == "workstream"){
-                    let tag = global.initModel("tag")
-                        tag.getData("tag",d.filter,{},(tagRes)=>{
-                            let tagId = []
-                            if(tagRes.status){
-                                tagRes.data.map(tag =>{
-                                    tagId.push(tag.tagTypeId)
-                                })
-                                if(tagId.length){
-                                    let document = global.initModel("document");
-                                    document.getProjectDocument( filter, tagId , ( doc )=>{
-                                        if(doc.status){
-                                            socket.emit("FRONT_DOCUMENT_LIST",doc.data)
-                                        }
-                                    })
-                                }else{
-                                    socket.emit("FRONT_DOCUMENT_LIST",[])
-                                }
+                        let document = global.initModel("document");
+                        document.getProjectDocument( filter, docLinkId , ( doc )=>{
+                            if(doc.status){
+                                socket.emit("FRONT_DOCUMENT_LIST",doc.data)
                             }
-                    })
+                        })
+                    }
+
+                    if(filter.linkType == "workstream" || d.type == "workstream"){
+                        let tag = global.initModel("tag")
+                            tag.getData("tag",d.filter,{},(tagRes)=>{
+                                let tagId = []
+                                if(tagRes.status){
+                                    tagRes.data.map(tag =>{
+                                        tagId.push(tag.tagTypeId)
+                                    })
+                                    if(tagId.length){
+                                        let document = global.initModel("document");
+                                        document.getProjectDocument( filter, tagId , ( doc )=>{
+                                            if(doc.status){
+                                                socket.emit("FRONT_DOCUMENT_LIST",doc.data)
+                                            }
+                                        })
+                                    }else{
+                                        socket.emit("FRONT_DOCUMENT_LIST",[])
+                                    }
+                                }
+                        })
+                    }
+                }else{
+                    socket.emit("FRONT_DOCUMENT_LIST",c.data)
                 }
                        
             }else{

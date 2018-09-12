@@ -1,10 +1,6 @@
 import React from "react";
-import Tooltip from "react-tooltip";
-import { showToast,displayDate,numberFormat } from '../../../globalFunction';
-import { HeaderButtonContainer,HeaderButton, DropDown, OnOffSwitch } from "../../../globalComponents";
+import { Loading } from "../../../globalComponents"
 import moment from 'moment'
-import FileUpload from 'react-fileupload';
-import Dropzone from 'react-dropzone';
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -168,8 +164,18 @@ export default class DocumentNew extends React.Component {
                                     <th>Tags</th>
                                     <th></th>
                                 </tr>
-
-                                {(documentList.newUpload.length == 0) && <tr><td colSpan={8}>No Record Found!</td></tr> }
+                                { 
+                                    (document.Loading) &&
+                                        <tr>
+                                            <td colSpan={8}><Loading/></td>
+                                        </tr> 
+                                }
+                                {
+                                    (documentList.newUpload.length == 0 && !document.Loading) && 
+                                        <tr>
+                                            <td colSpan={8}>No Record Found!</td>
+                                        </tr> 
+                                }
                                 { documentList.newUpload.map((data, index) => {
                                     if(loggedUser.data.userRole == 6 && data.uploadedBy != loggedUser.data.id ){
                                         return ;

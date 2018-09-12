@@ -1,9 +1,5 @@
 import React from "react";
-import Tooltip from "react-tooltip";
-import { showToast,displayDate,numberFormat } from '../../globalFunction';
-import { HeaderButtonContainer,HeaderButton, DropDown, OnOffSwitch } from "../../globalComponents";
-import moment from 'moment'
-import FileUpload from 'react-fileupload';
+import { DropDown } from "../../globalComponents";
 import Dropzone from 'react-dropzone';
 import DocumentStatus from "./documentStatus"
 import DocumentNew from "./documentNew"
@@ -41,9 +37,9 @@ export default class List extends React.Component {
         let { socket , loggedUser } = this.props
             socket.emit("GET_SETTINGS", {});
             socket.emit("GET_USER_LIST",{});
-            socket.emit("GET_FOLDER_LIST",{filter:{projectId: project }})
+            socket.emit("GET_FOLDER_LIST", { filter: { projectId: project }})
             socket.emit("GET_TASK_LIST", { filter: { projectId: project }});
-            socket.emit("GET_STARRED_LIST",{ filter : { linkType : "project" } })
+            socket.emit("GET_STARRED_LIST", { filter : { linkType : "project" } })
             socket.emit("GET_WORKSTREAM_LIST", { filter : { projectId : project } });
             socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linkType : "project" , userTypeLinkId : loggedUser.data.id }});
 

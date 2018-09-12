@@ -4,11 +4,12 @@ export default function reducer(state={
         FormActive : "List",
         Selected : {},
         SelectedId: [],
-        SelectedLink: ""
+        SelectedLink: "",
+        Loading: true
     },action){
         switch (action.type) {
             case "SET_WORKSTREAM_LIST": {
-                return { ...state, List: action.list }
+                return { ...state, List: action.list , Loading : false}
             }
             case "SET_WORKSTREAM_COUNT_LIST": {
                 return { ...state, CountList: action.list }

@@ -3,7 +3,7 @@ import moment from 'moment'
 import LibraryDocument from './libraryDocument'
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DragDropContext } from 'react-dnd';
-import { DropDown } from "../../../globalComponents"
+import { DropDown , Loading } from "../../../globalComponents"
 import Tooltip from "react-tooltip";
 
 import { connect } from "react-redux"
@@ -347,12 +347,18 @@ export default class DocumentLibrary extends React.Component {
                                     <th></th>
                                 </tr>
                                 {
-                                    (documentList.library.length == 0 && folder.List.length == 0) &&
-                                    <tr>
-                                        <td colSpan={8}>No Record Found!</td>
-                                    </tr>
+                                    (document.Loading) && 
+                                        <tr>
+                                            <td colSpan={8}><Loading/></td>
+                                        </tr>
                                 }
-                               {
+                                {
+                                    (documentList.library.length == 0 && folder.List.length == 0 && !document.Loading) &&
+                                        <tr>
+                                            <td colSpan={8}>No Record Found!</td>
+                                        </tr>
+                                }
+                                { (!document.Loading) &&
                                     folderList.map((data, index) => {
                                         if( (!data.parentId && !folder.Selected.id) || (data.parentId && folder.Selected.id == data.parentId) ){
                                             return (
@@ -430,7 +436,7 @@ export default class DocumentLibrary extends React.Component {
                                         }
                                     })
                                 }
-                                {
+                                { (!document.Loading) &&
                                     documentList.library.map((data, index) => {
                                         return (
                                             // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id ,"document")} documentToMove={(data)=> this.documentToMove(data)} docType="document"/>
