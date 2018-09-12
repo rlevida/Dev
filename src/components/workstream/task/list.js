@@ -1,6 +1,6 @@
 import React from "react";
 import Tooltip from "react-tooltip";
-import { HeaderButtonContainer } from "../../../globalComponents";
+import { Loading } from "../../../globalComponents";
 import moment from 'moment'
 import Form from "./form"
 import _ from "lodash";
@@ -96,47 +96,54 @@ export default class List extends React.Component {
                                 <th style={{textAlign:"center"}}>Status</th>
                                 <th style={{textAlign:"center"}}>Follower</th>
                             </tr>
-                            {
-                                (task.List.length == 0) &&
-                                <tr>
-                                    <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                                </tr>
+                            { 
+                                (task.Loading) &&
+                                    <tr>
+                                        <td style={{ textAlign: "center" }} colSpan={8}><Loading/></td>
+                                    </tr>
                             }
                             {
-                                _.orderBy(task.List, ['dueDate', 'asc']).map((data, index) => {
+                                (task.List.length == 0 && !task.Loading) &&
+                                    <tr>
+                                        <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
+                                    </tr>
+                            }
+                            { 
+                                (task.List.length > 0 && !task.Loading) &&
+                                    _.orderBy(task.List, ['dueDate', 'asc']).map((data, index) => {
 
-                                    let taskStatus = 0;
-                                    let dueDate = moment(data.dueDate);
-                                    let currentDate = moment(new Date());
+                                        let taskStatus = 0;
+                                        let dueDate = moment(data.dueDate);
+                                        let currentDate = moment(new Date());
 
-                                    if (dueDate.diff(currentDate, 'days') < 0) {
-                                        taskStatus = 2
-                                    } else if (dueDate.diff(currentDate, 'days') == 0) {
-                                        taskStatus = 1
-                                    }
-                                    
-                                    return (
-                                        <tr key={index} style={{cursor:"pointer"}} onClick={()=> this.selectedTask(data) }>
-                                            <td>{this.renderStatus({ ...data, taskStatus })}</td>
-                                            <td>{data.task}</td>
-                                            <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
-                                            <td>{(data.assignedById)?<span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span>:""}</td>
-                                            <td>{data.status}</td>
-                                            <td>
-                                            {( data.followersName != null) &&
-                                                <div>
-                                                    <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
-                                                    <Tooltip id={`follower${index}`}>
-                                                                {data.followersName.split(",").map( e =>{ 
-                                                                    return <p>{ e != null ? e : "" } <br/></p>
-                                                            })}
-                                                    </Tooltip>
-                                                </div>
-                                            }
-                                            </td>
-                                        </tr>
-                                    )
-                                })
+                                        if (dueDate.diff(currentDate, 'days') < 0) {
+                                            taskStatus = 2
+                                        } else if (dueDate.diff(currentDate, 'days') == 0) {
+                                            taskStatus = 1
+                                        }
+                                        
+                                        return (
+                                            <tr key={index} style={{cursor:"pointer"}} onClick={()=> this.selectedTask(data) }>
+                                                <td>{this.renderStatus({ ...data, taskStatus })}</td>
+                                                <td>{data.task}</td>
+                                                <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
+                                                <td>{(data.assignedById)?<span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span>:""}</td>
+                                                <td>{data.status}</td>
+                                                <td>
+                                                {( data.followersName != null) &&
+                                                    <div>
+                                                        <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
+                                                        <Tooltip id={`follower${index}`}>
+                                                                    {data.followersName.split(",").map( e =>{ 
+                                                                        return <p>{ e != null ? e : "" } <br/></p>
+                                                                })}
+                                                        </Tooltip>
+                                                    </div>
+                                                }
+                                                </td>
+                                            </tr>
+                                        )
+                                    })
                             }
                         </tbody>
                     </table>

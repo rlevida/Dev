@@ -3,10 +3,11 @@ export default function reducer(state={
     FormActive : "List",
     Selected : {},
     SelectedId: [],
+    Loading: true
 },action){
     switch (action.type) {
         case "SET_MEMBERS_LIST": {
-            return { ...state, List: action.list }
+            return { ...state, List: action.list , Loading : false }
         }
         case "SET_MEMBERS_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }

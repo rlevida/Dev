@@ -1,6 +1,6 @@
 import React from "react";
 import Tooltip from "react-tooltip";
-import { HeaderButtonContainer } from "../../globalComponents";
+import { HeaderButtonContainer , Loading } from "../../globalComponents";
 import WorkstreamStatus from "./workstreamStatus"
 
 import { connect } from "react-redux"
@@ -85,6 +85,7 @@ export default class List extends React.Component {
                     </li>
                 }
             </HeaderButtonContainer>
+           
             <table id="dataTable" class="table responsive-table">
                 <tbody>
                     <tr>
@@ -103,13 +104,18 @@ export default class List extends React.Component {
                             <th></th>
                         }
                     </tr>
+                    {   (workstream.Loading) &&
+                            <tr>
+                                <td style={{ textAlign: "center" }} colSpan={9}><Loading/></td>
+                            </tr>
+                    }
                     {
-                        (workstream.List.length == 0) &&
+                        (workstream.List.length == 0 && !workstream.Loading) &&
                         <tr>
                             <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
                         </tr>
                     }
-                    {
+                    { (!workstream.Loading) &&
                         workstream.List.map((data, index) => {
                             let workStreamStatus = (data.Issues > 0) ? 2 : (data.OnDue > 0) ? 1 : (data.Completed == data.TasksNumber || data.OnTrack > 0) ? 0 : '';
 
