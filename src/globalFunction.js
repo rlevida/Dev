@@ -43,7 +43,7 @@ let formatDate = exports.formatDate = function (strDate) {
     return formatDate;
 }
 
-let isNumber = exports.isNumber = function(_this,params,e) {
+let isNumber = exports.isNumber = function (_this, params, e) {
     var value = "",
         state = false;
     if (/^\d+\.\d{0,2}$/.test(e.target.value)) {
@@ -61,16 +61,16 @@ let isNumber = exports.isNumber = function(_this,params,e) {
             value = e.target.value
         }
     }
-    if(state){
-        if(params.objectName){
+    if (state) {
+        if (params.objectName) {
             var object = _this.state[params.objectName];
             object[params.name] = value;
             _this.setState({
-                [params.objectName] : object
+                [params.objectName]: object
             });
-        }else{
+        } else {
             _this.setState({
-                [params.name] : value
+                [params.name]: value
             });
         }
     }
@@ -104,11 +104,11 @@ let numberFormat = exports.numberFormat = function (number, decimals, decPoint, 
     return s.join(dec)
 }
 
-let getCookie = exports.getCookie = function(cname) {
+let getCookie = exports.getCookie = function (cname) {
     var name = cname + "=";
     var decodedCookie = decodeURIComponent(document.cookie);
     var ca = decodedCookie.split(';');
-    for(var i = 0; i <ca.length; i++) {
+    for (var i = 0; i < ca.length; i++) {
         var c = ca[i];
         while (c.charAt(0) == ' ') {
             c = c.substring(1);
@@ -120,10 +120,10 @@ let getCookie = exports.getCookie = function(cname) {
     return "";
 }
 
-let setCookie = exports.setCookie = function(cname, cvalue, exdays) {
+let setCookie = exports.setCookie = function (cname, cvalue, exdays) {
     var d = new Date();
-    d.setTime(d.getTime() + (exdays*24*60*60*1000));
-    var expires = "expires="+ d.toUTCString();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    var expires = "expires=" + d.toUTCString();
     document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
 
@@ -132,13 +132,13 @@ let checkContactNumber = exports.checkContactNumber = function (value) {
     return regEx.test(value);
 }
 
-let exportToExcel = exports.exportToExcel = function(fields){
+let exportToExcel = exports.exportToExcel = function (fields) {
     var form = document.createElement("form");
     document.body.appendChild(form);
     form.method = "POST";
     form.target = "_blank";
     form.action = "/api/exportReport";
-    Object.keys(fields).map(function(field,index){
+    Object.keys(fields).map(function (field, index) {
         var element = document.createElement("input")
         element.name = field;
         element.value = fields[field];
@@ -148,12 +148,12 @@ let exportToExcel = exports.exportToExcel = function(fields){
     form.submit();
 }
 
-let CurrencyList = exports.CurrencyList = function(cb){
+let CurrencyList = exports.CurrencyList = function (cb) {
     $.ajax({
-        url : "/json/currency.json",
-        dataType:'json',
-        type:'get',
-        success:function(currency){
+        url: "/json/currency.json",
+        dataType: 'json',
+        type: 'get',
+        success: function (currency) {
             var curs = Object.keys(currency).map(function (cur, index) {
                 return { id: cur, name: cur };
             });
@@ -163,12 +163,12 @@ let CurrencyList = exports.CurrencyList = function(cb){
 }
 
 
-let CountryList = exports.CountryList = function(cb){
+let CountryList = exports.CountryList = function (cb) {
     $.ajax({
-        url : "/json/country.json",
-        dataType:'json',
-        type:'get',
-        success:function(countries){
+        url: "/json/country.json",
+        dataType: 'json',
+        type: 'get',
+        success: function (countries) {
             var country = Object.keys(countries).map(function (country, index) {
                 return { id: country, name: countries[country] };
             });
@@ -177,30 +177,29 @@ let CountryList = exports.CountryList = function(cb){
     });
 }
 
-let NationalityList = exports.NationalityList = function(cb){
+let NationalityList = exports.NationalityList = function (cb) {
     $.ajax({
-        url : "/json/nationality.json",
-        dataType:'json',
-        type:'get',
-        success:function(nationality){
+        url: "/json/nationality.json",
+        dataType: 'json',
+        type: 'get',
+        success: function (nationality) {
             cb(nationality);
         }
     });
 }
 
 
-var setDatePicker = exports.setDatePicker = function(handleDate,Id){
-    $("#"+Id).on('change', function(e) {
+var setDatePicker = exports.setDatePicker = function (handleDate, Id) {
+    $("#" + Id).on('change', function (e) {
         handleDate(e);
     });
-
     try {
-        $('.datepicker').pickadate({
+        var picker = $('.datepicker').pickadate({
             selectMonths: true,
             selectYears: 200,
             format: 'yyyy-mm-dd',
-            onSet: function(data){
-                if(data.select != undefined){
+            onSet: function (data) {
+                if (data.select != undefined) {
                     $('.picker__close').click();
                 }
             }
@@ -210,13 +209,13 @@ var setDatePicker = exports.setDatePicker = function(handleDate,Id){
     }
 }
 
-var setTimePicker = exports.setTimePicker = function(handleDate,Id){
-    $("#"+Id).on('change', function(e) {
+var setTimePicker = exports.setTimePicker = function (handleDate, Id) {
+    $("#" + Id).on('change', function (e) {
         handleDate(e);
     });
 
     try {
-        $("#"+Id).pickatime({twelvehour: false});
+        $("#" + Id).pickatime({ twelvehour: false });
     } catch (error) {
         //console.log(error)
     }

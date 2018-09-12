@@ -41,6 +41,21 @@ var field = exports.field = {
     'typeId' : {type : 'bigint' , access : "public" },
 
     /**
+     * typeId (tinyint)
+     */
+    'periodic' : {type : 'tinyint' , access : "public" },
+
+    /**
+     * periodType (ENUM("Year","Month","Week", "Day"))
+     */
+    'periodType' : {type : 'string' , access : "public" },
+
+    /**
+     * period (int)
+     */
+    'period' : {type : 'int' , access : "public" },
+
+    /**
      * linkTaskId (BIGINT)
      */
     'linkTaskId' : {type : 'bigint' , access : "public",  database: "task", relation: "one-to-one"  },
