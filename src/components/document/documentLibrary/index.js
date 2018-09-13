@@ -417,15 +417,17 @@ export default class DocumentLibrary extends React.Component {
                                                                                 <a href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo({id: null},data)}>Library</a>
                                                                             }
                                                                             { folder.List.map((f,fIndex) => {
-                                                                                if(typeof folder.SelectedLibraryFolder.id == "undefined" && f.id != data.id){
-                                                                                    return (
-                                                                                        <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo(f,data)}>{f.name}</a>
-                                                                                    )
-                                                                                }else{
-                                                                                    if(folder.SelectedLibraryFolder.id != f.id &&  f.id != data.id){
+                                                                                if(f.type == "library"){
+                                                                                    if(typeof folder.SelectedLibraryFolder.id == "undefined" && f.id != data.id){
                                                                                         return (
                                                                                             <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo(f,data)}>{f.name}</a>
                                                                                         )
+                                                                                    }else{
+                                                                                        if(folder.SelectedLibraryFolder.id != f.id &&  f.id != data.id){
+                                                                                            return (
+                                                                                                <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo(f,data)}>{f.name}</a>
+                                                                                            )
+                                                                                        }
                                                                                     }
                                                                                 }
                                                                             })}
@@ -506,15 +508,17 @@ export default class DocumentLibrary extends React.Component {
                                                                             <a href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo({id: null},data)}>Library</a>
                                                                         }
                                                                         { folder.List.map((f,fIndex) => {
-                                                                            if(typeof folder.SelectedLibraryFolder.id == "undefined"){
-                                                                                return (
-                                                                                    <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
-                                                                                )
-                                                                            }else{
-                                                                                if(folder.SelectedLibraryFolder.id != f.id){
+                                                                            if(f.type == "librabry"){
+                                                                                if(typeof folder.SelectedLibraryFolder.id == "undefined"){
                                                                                     return (
                                                                                         <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
                                                                                     )
+                                                                                }else{
+                                                                                    if(folder.SelectedLibraryFolder.id != f.id){
+                                                                                        return (
+                                                                                            <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
+                                                                                        )
+                                                                                    }
                                                                                 }
                                                                             }
                                                                         })}
