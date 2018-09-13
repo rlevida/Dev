@@ -93,9 +93,9 @@ export default class FormComponent extends React.Component {
                 }else if(new Date() == new Date( task.Selected.dueDate )){
                     taskStatus = 1
                 }
-            if((task.Selected.status != "Completed" && task.Selected.assignedUserType != "Internal")){
+            if((task.Selected.status != "Completed" && task.Selected.assignedUserType != "Internal" && task.Selected.isActive == 1)){
                 isVisible = true
-            }else if((task.Selected.status != "Completed" && task.Selected.assignedUserType == "Internal")){
+            }else if((task.Selected.status != "Completed" && task.Selected.assignedUserType == "Internal" && task.Selected.isActive == 1)){
                 let userData = loggedUser.data
                     if(loggedUser.data.userType == "Internal" && (userData.userRole == 1 || userData.userRole == 2 || userData.userRole == 3 || task.Selected.assignedById == userData.id ) ){
                         isVisible = true;
