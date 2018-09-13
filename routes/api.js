@@ -3,7 +3,6 @@ var sess = require('express-session');
 var jwt = require('jsonwebtoken');
 var router = express();
 var mime = require('mime-types')
-var docxConverter = require('docx-pdf');
 
 router.use(function (req, res, next) {
     let session = global.initModel("session");
