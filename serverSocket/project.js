@@ -90,7 +90,7 @@ var init = exports.init = (socket) => {
                         workstream.postData("workstream", workstreamData, (f) => {
                             project.getData("project", { id: c.id }, {}, (e) => {
                                 if (e.data.length > 0) {
-                                    nextThen(e.data[0].id, "add", e.data)
+                                    nextThen(e.data[0].id, "add", e.data , c.id)
                                 } else {
                                     socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
                                 }
@@ -101,18 +101,18 @@ var init = exports.init = (socket) => {
                     }
                 });
             }
-        }).then((nextThen, id, type, data) => {
+        }).then((nextThen, id, type, data , projectId) => {
             let members = global.initModel("members");
             if (type == "add") {
                 members.postData("members", { linkType: "project", linkId: id, usersType: "users", userTypeLinkId: d.data.projectManagerId, memberType: "project manager" }, (e) => {
-                    socket.emit("FRONT_PROJECT_ADD", { ...data[0], projectManagerId: d.data.projectManagerId });
+                    socket.emit("FRONT_PROJECT_ADD", { ...data[0], projectManagerId: d.data.projectManagerId , projectId });
                     socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" });
                 });
             } else {
                 members.deleteData("members", { linkType: "project", linkId: id, usersType: "users", memberType: "project manager"}, (c) => {
                     if (typeof d.data.projectManagerId != 'undefined' && d.data.projectManagerId != '') {
                         members.postData("members", { linkType: "project", linkId: id, usersType: "users", userTypeLinkId: d.data.projectManagerId, memberType: "project manager" }, (e) => {
-                            socket.emit("FRONT_PROJECT_ADD", { ...data[0], projectManagerId: d.data.projectManagerId });
+                            socket.emit("FRONT_PROJECT_ADD", { ...data[0], projectManagerId: d.data.projectManagerId , projectId});
                             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" });
                         });
                     } else {
