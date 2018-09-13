@@ -55,8 +55,8 @@ export default class Socket extends React.Component {
             dispatch({type:"SET_PROJECT_STATUS",record:data})
         })
 
-        socket.on("FRONT_UPDATE_ACTIVE_PROJECT",(data) => {
-            dispatch({type:"UPDATE_ACTIVE_PROJECT",UpdatedData:data })
+        socket.on("FRONT_ARCHIVE_PROJECT",(data) => {
+            dispatch({type:"ARCHIVE_PROJECT",id:data.id })
         })
     }
 

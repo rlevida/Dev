@@ -124,27 +124,38 @@ var init = exports.init = (socket) => {
             }
         });
     })
-    
 
-    socket.on("SAVE_OR_UPDATE_ACTIVE_PROJECT",(d) => {
-        let project = global.initModel("project")
-        project.putData("project", d.data , { id: d.data.id }, (c) => {
-            if(c.status){
-                socket.emit("FRONT_UPDATE_ACTIVE_PROJECT", d.data )
-                socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" });
-            }else{
-                socket.emit("RETURN_ERROR_MESSAGE", { message: "Update failed. Please Try again later." })
-            }
-        })
+    socket.on("ARCHIVE_PROJECT",(d) => {
+        let id = d.data.id
+        delete d.data.id
+            sequence.create().then((nextThen) => {
+                let task = global.initModel("task")
+                task.putData("task", d.data, { projectId : id }, (c) => {
+                    if (c.status) {
+                      nextThen()
+                    }else{
+                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Archive Task failed. Please Try again later." })
+                    }
+                })
+            }).then((nextThen) => {
+                let workstream = global.initModel("workstream")
+                workstream.putData("workstream", d.data, { projectId : id }, (c) => {
+                    if (c.status) {
+                        nextThen()
+                    }else{
+                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Update Workstream failed. Please Try again later." })
+                    }
+                })
+            }).then((nextThen) =>{
+                let project = global.initModel("project")
+                project.putData("project", d.data , { id: id }, (c) => {
+                    if(c.status){
+                        socket.emit("FRONT_ARCHIVE_PROJECT", d.data )
+                        socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" });
+                    }else{
+                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Update Project failed. Please Try again later." })
+                    }
+                })
+            })
     })
-
-    // socket.on("DELETE_PROJECT", (d) => {
-    //     let project = global.initModel("project")
-    //     project.putData("project", { isActive : 0 }, { id: d.id }, (c) => {
-    //         if(c.status){
-    //             socket.emit("FRONT_PROJECT_DELETED", { id: d.id })
-    //         }
-    //     })
-
-    // })
 }

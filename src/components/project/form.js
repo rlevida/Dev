@@ -329,21 +329,14 @@ export default class FormComponent extends React.Component {
                                                             <th class="text-center"></th>
                                                         </tr>
 
-                                                        {   
-                                                            (members.Loading) &&
-                                                                <tr>
-                                                                    <td style={{ textAlign: "center" }} colSpan={9} ><Loading/></td>
-                                                                </tr>
-                                                        }
-                                                       
                                                         {
-                                                            (userMemberList.length == 0 && !members.Loading) && <tr>
+                                                            (userMemberList.length == 0) && <tr>
                                                                 <td style={{ textAlign: "center" }} colSpan={9}>No Record Found!</td>
                                                             </tr>
                                                         }
                                                      
-                                                       {
-                                                            (userMemberList.length > 0 && !members.Loading ) && userMemberList.map((data, index) => {
+                                                        {
+                                                            (userMemberList.length > 0 ) && userMemberList.map((data, index) => {
                                                                 return (
                                                                     <tr key={index}>
                                                                         <td class="text-center">{data.user.id}</td>

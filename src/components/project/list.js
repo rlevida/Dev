@@ -51,17 +51,17 @@ export default class List extends React.Component {
         }
     }
 
-    deactiveProject(id){
+    archive(id){
         let { socket } = this.props;
-        if (confirm("Do you really want to deactive this project?")) {
-            socket.emit("SAVE_OR_UPDATE_ACTIVE_PROJECT", { data : { id: id , isActive : 0 } })
+        if (confirm("Do you really want to Archive this project?")) {
+            socket.emit("ARCHIVE_PROJECT", { data : { id: id , isDeleted : 1 } })
         }
     }
 
-    activateProject(id){
-        let { socket } = this.props;
-            socket.emit("SAVE_OR_UPDATE_ACTIVE_PROJECT", { data : { id: id , isActive : 1 } })
-    }
+    // activateProject(id){
+    //     let { socket } = this.props;
+    //         socket.emit("SAVE_OR_UPDATE_ACTIVE_PROJECT", { data : { id: id , isActive : 1 } })
+    // }
 
     render() {
         let { project, socket, loggedUser } = this.props;
@@ -113,7 +113,11 @@ export default class List extends React.Component {
                                                     onClick={(e) => socket.emit("GET_PROJECT_DETAIL", { id: data.id })}
                                                     class="btn btn-info btn-sm">
                                                     <span class="glyphicon glyphicon-pencil"></span></a>
-                                                    { data.isActive 
+                                                    <a href="javascript:void(0);" data-tip="ARCHIVE"
+                                                    onClick={e => this.archive(data.id)}
+                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                    <span class="fa fa-archive"></span></a>
+                                                    {/* { data.isActive 
                                                         ?   <a href="javascript:void(0);" data-tip="DEACTIVE"
                                                             onClick={e => this. deactiveProject(data.id)}
                                                             class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
@@ -122,7 +126,7 @@ export default class List extends React.Component {
                                                             onClick={e => this. activateProject(data.id)}
                                                             class={data.allowedDelete == 0 ? 'hide' : 'btn btn-success btn-sm ml10'}>
                                                             <span class="fa fa-power-off"></span></a>
-                                                    }
+                                                    } */}
 
                                                 {/* <a href="javascript:void(0);" data-tip="DELETE"
                                                     onClick={e => this.deleteData(data.id)}

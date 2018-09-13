@@ -133,8 +133,8 @@ var getUserTaskDataCount = exports.getUserTaskDataCount = ( tablename, data, adv
                                     WHERE members.usersType = "team" 
                             ) as finalTbl1 
 
-                                LEFT JOIN task on finalTbl1.linkId = task.id LEFT JOIN project ON project.id = task.projectId
-                            WHERE finalTbl1.linkType = "task"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 AND project.isActive > 0 `+filter+`
+                                LEFT JOIN task on finalTbl1.linkId = task.id LEFT JOIN project ON project.id = task.projectId 
+                            WHERE finalTbl1.linkType = "task"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 AND task.isDeleted = 0 AND project.isActive > 0 `+filter+`
 
                     UNION ALL
 
@@ -150,7 +150,7 @@ var getUserTaskDataCount = exports.getUserTaskDataCount = ( tablename, data, adv
                             ) as finalTbl2 
 
                                 LEFT JOIN task on finalTbl2.linkId = task.workstreamId LEFT JOIN project ON project.id = task.projectId
-                            WHERE finalTbl2.linkType = "workstream"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 AND project.isActive > 0 `+filter2+` 
+                            WHERE finalTbl2.linkType = "workstream"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 AND task.isDeleted = 0 AND project.isActive > 0 `+filter2+` 
 
                     ) as tbl
                 `;

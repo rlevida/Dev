@@ -82,7 +82,7 @@ export default class List extends React.Component {
         let { task, socket, loggedUser } = this.props;
         let taskList = _(task.List)
             .map((o) => {
-                if(o.project_isActive){
+                if(o.project_isActive && !o.isDeleted){
                     return { ...o, due_date_int: moment(o.dueDate).format('YYYYMMDD') }
                 }
             })
