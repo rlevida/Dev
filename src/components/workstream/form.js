@@ -129,9 +129,12 @@ export default class FormComponent extends React.Component {
                     onClick={this.resetData} >
                     <span>Back</span>
                 </li>
-                <li class="btn btn-info" onClick={() => this.handleSubmit()} >
-                    <span>Save</span>
-                </li>
+                {
+                    (typeof workstream.SelectedLink == "undefined" || workstream.SelectedLink == "") &&
+                    <li class="btn btn-info" onClick={() => this.handleSubmit()} >
+                        <span>Save</span>
+                    </li>
+                }
             </HeaderButtonContainer>
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">
