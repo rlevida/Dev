@@ -36,6 +36,11 @@ var field = exports.field = {
      */
     'isFolder' : {type:'tinyint' , access : "public"},
 
+    /** 
+     * status (ENUM("new","library","achrive"))
+     */
+    'type' : {type : 'string' , access : "public" },
+
      /**
      * createdBy (BIGINT )
      */
