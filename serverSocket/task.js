@@ -166,7 +166,7 @@ var init = exports.init = (socket) => {
                 socket.emit("FRONT_TASK_EDIT", data.task)
                 socket.emit("FRONT_TASK_ADD", data.periodic)
             } else if (type == "add") {
-                socket.emit("FRONT_TASK_ADD", data)
+                socket.emit("FRONT_TASK_ADD", data.task)
             } else if (type == "edit") {
                 socket.emit("FRONT_TASK_EDIT", data.task)
             }
