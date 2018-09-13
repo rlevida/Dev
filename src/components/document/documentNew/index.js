@@ -34,6 +34,21 @@ export default class DocumentNew extends React.Component {
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
     
+    componentDidMount(){
+        // automatically move to selected folder
+        if(folderParams != "" && folderParamsType == "new"){
+            let folderSelectedInterval = setInterval(()=>{
+                if(this.props.folder.List.length > 0){
+                    clearInterval(folderSelectedInterval)
+                    let folderData = this.props.folder.List.filter(e=>e.id == folderParams)
+                    if(folderData.length > 0){
+                        this.props.dispatch({type:"SET_NEW_FOLDER_SELECTED" , Selected : folderData[0] })
+                    }
+                }
+            },1000)
+        }
+    }
+
     updateActiveStatus(id,active){
         let { socket, dispatch } = this.props;
             dispatch({type:"SET_DOCUMENT_STATUS",record:{id:id,status:(active==1)?0:1}});
@@ -119,7 +134,7 @@ export default class DocumentNew extends React.Component {
 
     render() {
         let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser , users } = this.props;
-        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [] ;
+        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [] , tagCount = 0;
         let folderList = [];
            
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
@@ -281,7 +296,7 @@ export default class DocumentNew extends React.Component {
                                                         <ul style={{listStyleType: "none",padding : "0"}}>  
                                                             { (tagList.length > 0) &&
                                                                 tagList.map((t,tIndex) =>{
-                                                                    if(t.tagTypeId == data.id){
+                                                                    if(t.tagTypeId == data.id && t.tagType == "folder"){
                                                                         return <li key={tIndex}><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
                                                                     }
                                                                 })
