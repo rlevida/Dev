@@ -132,7 +132,7 @@ export default class List extends React.Component {
                                             href="javascript:void(0);"
                                             onClick={(e) => {
                                                 socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
-                                                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
+                                                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
                                             }}
                                         >
                                             {data.workstream}
