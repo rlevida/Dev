@@ -109,7 +109,7 @@ var init = exports.init = (socket) => {
                     socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" });
                 });
             } else {
-                members.deleteData("members", { linkType: "project", linkId: id, usersType: "users", memberType: "projecst manager" }, (c) => {
+                members.deleteData("members", { linkType: "project", linkId: id, usersType: "users", memberType: "project manager"}, (c) => {
                     if (typeof d.data.projectManagerId != 'undefined' && d.data.projectManagerId != '') {
                         members.postData("members", { linkType: "project", linkId: id, usersType: "users", userTypeLinkId: d.data.projectManagerId, memberType: "project manager" }, (e) => {
                             socket.emit("FRONT_PROJECT_ADD", { ...data[0], projectManagerId: d.data.projectManagerId });
