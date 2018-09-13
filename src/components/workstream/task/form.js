@@ -103,7 +103,7 @@ export default class FormComponent extends React.Component {
             }
                    
         return <div>
-                    <span class="pull-right" style={{cursor:"pointer"}} onClick={()=> dispatch({ type: "SET_TASK_SELECTED", Selected : {}})}><i class="fa fa-times-circle fa-lg"></i></span>
+                    <span class="pull-right" style={{cursor:"pointer"}} onClick={()=> { dispatch({ type: "SET_TASK_SELECTED", Selected : {}});dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" }) }}><i class="fa fa-times-circle fa-lg"></i></span>
                     <Tabs>
                         <TabList>
                         <Tab>Overview</Tab>

@@ -52,6 +52,7 @@ export default class List extends React.Component {
     selectedTask(data) {
         let { dispatch } = this.props;
         dispatch({ type: "SET_TASK_SELECTED", Selected: data })
+        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })
     }
 
     renderStatus(data) {
