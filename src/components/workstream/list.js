@@ -81,7 +81,11 @@ export default class List extends React.Component {
                     || loggedUser.data.userRole == 2
                     || loggedUser.data.userRole == 3
                     || loggedUser.data.userRole == 4) &&
-                    <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })} >
+                    <li class="btn btn-info" onClick={(e) => {
+                        dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
+                        dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
+                    }}
+                    >
                         <span>New Workstream</span>
                     </li>
                 }
@@ -132,7 +136,7 @@ export default class List extends React.Component {
                                             href="javascript:void(0);"
                                             onClick={(e) => {
                                                 socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
-                                                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
+                                                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
                                             }}
                                         >
                                             {data.workstream}
