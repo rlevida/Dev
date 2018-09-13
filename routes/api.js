@@ -2,6 +2,7 @@ var express = require('express');
 var sess = require('express-session');
 var jwt = require('jsonwebtoken');
 var router = express();
+var mime = require('mime-types')
 
 router.use(function (req, res, next) {
     let session = global.initModel("session");
@@ -15,6 +16,58 @@ router.use(function (req, res, next) {
         }
     })
 });
+
+router.post('/upload', (req, res, next) => {
+    var formidable = global.initRequire("formidable"),
+        modalFunc = global.initModelFunc(),
+        func = global.initFunc();
+
+        var form = new formidable.IncomingForm();
+        var filenameList = [];
+        var files = []
+        form.multiples = true;
+
+
+        let type = (typeof req.query.type != "undefined")?req.query.type:"others";
+        let uploadType = (typeof req.query.uploadType != "undefined")?req.query.uploadType:"";
+        let uploaded = false;
+        // every time a file has been uploaded successfully copy to AWS
+        
+        files.push( new Promise((resolve,reject) =>{
+            form.on('file', function(field, file) {
+            var date = new Date();
+            var Id = func.generatePassword(date.getTime()+file.name,"attachment");
+            var filename = file.name + "_" + Id + "." + func.getFilePathExtension(file.name);
+            // var filename = file.name;
+            if(uploadType == "form"){
+                filenameList.push({filename:filename,origin:file.name,Id:Id});
+            }else{
+                filenameList.push(filename);
+            }
+                func.uploadFile({file : file, form : type, filename : filename},response =>{
+                    if(response.Message == 'Success'){
+                        resolve(filenameList)
+                    }
+                });
+            });
+        }))
+
+
+        Promise.all(files).then( e =>{
+            res.send({files : e[0], status : "end" });
+        })
+        // log any errors that occur
+        form.on('error', function(err) {
+            console.log('An error has occured: \n' + err);
+        });
+        // once all the files have been uploaded, send a response to the client
+        // form.on('end', function() {
+        //    res.send({files : filenameList, status : "end" });
+        // });
+        // parse the incoming request containing the form data
+        form.parse(req);
+});
+
 router.get('/downloadFolder',(req,res,next)=>{
     var fs = global.initRequire('fs'),
         AWS = global.initAWS();
@@ -79,56 +132,42 @@ router.get('/downloadFolder',(req,res,next)=>{
     })
 })
 
+router.get('/printDocument',(req,res,next)=>{
+    let fileName = req.query.fileName
+    let originName = req.query.fileOrigin
+    let fs = global.initRequire('fs'), AWS = global.initAWS();
+    let fileStream = fs.createWriteStream( `${originName}` ) ;
+    let s3 = new AWS.S3();
 
-router.post('/upload', (req, res, next) => {
-    var formidable = global.initRequire("formidable"),
-        modalFunc = global.initModelFunc(),
-        func = global.initFunc();
-
-        var form = new formidable.IncomingForm();
-        var filenameList = [];
-        var files = []
-        form.multiples = true;
-
-
-        let type = (typeof req.query.type != "undefined")?req.query.type:"others";
-        let uploadType = (typeof req.query.uploadType != "undefined")?req.query.uploadType:"";
-        let uploaded = false;
-        // every time a file has been uploaded successfully copy to AWS
-        
-        files.push( new Promise((resolve,reject) =>{
-            form.on('file', function(field, file) {
-            var date = new Date();
-            var Id = func.generatePassword(date.getTime()+file.name,"attachment");
-            var filename = file.name + "_" + Id + "." + func.getFilePathExtension(file.name);
-            // var filename = file.name;
-            if(uploadType == "form"){
-                filenameList.push({filename:filename,origin:file.name,Id:Id});
+    let promise = new Promise(function(resolve,reject){
+        s3.getObject({
+            Bucket: global.AWSBucket,
+            Key: global.environment + "/upload/" + fileName,
+        }, (err,data) => {
+            if(err){
+                console.log("Error in Uploading to AWS. [" + err + "]");
             }else{
-                filenameList.push(filename);
+                fileStream.write(data.Body)
+                resolve(originName)
+                fileStream.end()
+
             }
-                func.uploadFile({file : file, form : type, filename : filename},response =>{
-                    if(response.Message == 'Success'){
-                        resolve(filenameList)
-                    }
-                });
-            });
-        }))
-
-
-        Promise.all(files).then( e =>{
-            res.send({files : e[0], status : "end" });
-        })
-        // log any errors that occur
-        form.on('error', function(err) {
-            console.log('An error has occured: \n' + err);
         });
-        // once all the files have been uploaded, send a response to the client
-        // form.on('end', function() {
-        //    res.send({files : filenameList, status : "end" });
-        // });
-        // parse the incoming request containing the form data
-        form.parse(req);
-});
+    })
+    promise.then((data)=>{
+        docxConverter(`${__dirname}/../${data}`,'output.pdf',function(err,result){
+            if(err){
+              console.log(err);
+            }
+            console.log('result'+result);
+          });
+        // let fileContentType = mime.contentType(data)
+        // let file = fs.readFileSync(`${__dirname}/../${data}`);
+        //     // fs.unlink(`${data}`,(t)=>{})
+        //     res.contentType(fileContentType);
+        //     res.send(file);
+    })
+   
+})
 
 module.exports = router;

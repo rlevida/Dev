@@ -221,6 +221,10 @@ export default class DocumentLibrary extends React.Component {
         window.open(encodeURI(`/api/downloadFolder?data=${JSON.stringify(fileList)}&folderName=${folder.name}`));
     }
 
+    printDocument(file){
+      let  test =   window.open(encodeURI(`/api/printDocument?fileName=${file.name}&fileOrigin=${file.origin}`))
+      print(test)
+    }
     render() {
         let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser } = this.props;
         let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [] ;
@@ -523,7 +527,7 @@ export default class DocumentLibrary extends React.Component {
                                                             }
                                                             </li>
                                                             <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data.id)}>Delete</a></li>
-                                                            <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Print">Print</a></li>
+                                                            <li><a href="javascript:void(0);" data-tip="Print" onClick={()=>this.printDocument(data)}>Print</a></li>
                                                         </ul>
                                                     </div>
                                                 </td>
