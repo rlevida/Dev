@@ -44,13 +44,13 @@ export default class DocumentLibrary extends React.Component {
 
     componentDidMount(){
         // automatically move to selected folder
-        if(folderParams){
+        if(folderParams != "" && folderParamsType == "library"){
             let folderSelectedInterval = setInterval(()=>{
                 if(this.props.folder.List.length > 0){
                     clearInterval(folderSelectedInterval)
                     let folderData = this.props.folder.List.filter(e=>e.id == folderParams)
                     if(folderData.length > 0){
-                        this.props.dispatch({type:"SET_FOLDER_SELECTED" , Selected : folderData[0] })
+                        this.props.dispatch({type:"SET_LIBRARY_FOLDER_SELECTED" , Selected : folderData[0] })
                     }
                 }
             },1000)
@@ -141,7 +141,7 @@ export default class DocumentLibrary extends React.Component {
     addFolder(){
         let { socket , global , loggedUser, folder } = this.props;
         let { folderName } = this.state;
-            socket.emit("SAVE_OR_UPDATE_FOLDER", { data:{ projectId: project , name: folderName , createdBy: loggedUser.data.id, parentId: folder.Selected.id }})
+            socket.emit("SAVE_OR_UPDATE_FOLDER", { data:{ projectId: project , name: folderName , createdBy: loggedUser.data.id, parentId: folder.Selected.id , type : "librabry"}})
             this.setState({ folderAction : "" , folderName : "" })
     }
 
@@ -233,7 +233,7 @@ export default class DocumentLibrary extends React.Component {
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
 
-            if(typeof folder.Selected.id == "undefined"){
+            if(typeof folder.SelectedLibraryFolder.id == "undefined"){
                 if( document.List.length > 0 ){
                     document.List.filter( e =>{
                         if( loggedUser.data.userType == "Internal"){
@@ -256,13 +256,13 @@ export default class DocumentLibrary extends React.Component {
             }else{
                 document.List.filter( e =>{
                     if(loggedUser.data.userType == "Internal"){
-                        if( e.status == "library" && e.folderId == folder.Selected.id){
+                        if( e.status == "library" && e.folderId == folder.SelectedLibraryFolder.id){
                             documentList.library.push(e)
                         }
                     }else{
-                        if(e.status == "library" && e.folderId == folder.Selected.id){
+                        if(e.status == "library" && e.folderId == folder.SelectedLibraryFolder.id){
                             let isShared = global.SelectList.shareList.filter( s => { 
-                                                return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.Selected.id) && (s.shareType == "document" || s.shareType == "folder") 
+                                                return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedLibraryFolder.id) && (s.shareType == "document" || s.shareType == "folder") 
                                             }).length ? 1 : 0 ;
                                 if(isShared){
                                     documentList.library.push(e)
@@ -296,12 +296,14 @@ export default class DocumentLibrary extends React.Component {
             if(folder.List.length > 0){
                 if(loggedUser.data.userType == "Internal"){
                     folder.List.map( e =>{
-                        folderList.push(e)
+                        if(e.type == "library"){
+                            folderList.push(e)
+                        }
                     })
                 }else{
                     if(typeof global.SelectList.shareList != "undefined" && typeof loggedUser.data.id != "undefined"){
                         folder.List.map( e =>{
-                            let isShared = global.SelectList.shareList.filter( s =>{ return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id &&  s.shareType == "folder"}).length ? 1 : 0
+                            let isShared = global.SelectList.shareList.filter( s =>{ return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id &&  s.shareType == "folder" && e.type == "library" }).length ? 1 : 0
                                 if(isShared || e.createdBy == loggedUser.data.id ){
                                     folderList.push(e)
                                 }
@@ -311,8 +313,8 @@ export default class DocumentLibrary extends React.Component {
             }
 
             let folderName = [];
-            folderName.unshift(<span>{(typeof folder.Selected.name != "undefined")?` > ${folder.Selected.name}`:""}</span>)
-            let folderParentId = folder.Selected.parentId;
+            folderName.unshift(<span>{(typeof folder.SelectedLibraryFolder.name != "undefined" && folder.SelectedLibraryFolder.type == "library")?` > ${folder.SelectedLibraryFolder.name}`:""}</span>)
+            let folderParentId = folder.SelectedLibraryFolder.parentId;
             while( folderParentId ){
                 let parentFolder = folderList.filter(e=>e.id == folderParentId);
                 folderParentId = null;
@@ -324,7 +326,7 @@ export default class DocumentLibrary extends React.Component {
             }
         return  <div>
                     <div class="col-lg-12 col-md-12">
-                        <h3><a style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_FOLDER_SELECTED" , Selected : {} })}>Library</a>
+                        <h3><a style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_LIBRARY_FOLDER_SELECTED" , Selected : {} })}>Library</a>
                         { folderName.map((e)=>{ return e; }) } 
                         </h3>
                         { (this.state.folderAction == "") &&
@@ -364,13 +366,13 @@ export default class DocumentLibrary extends React.Component {
                                 }
                                 { (!document.Loading) &&
                                     folderList.map((data, index) => {
-                                        if( (!data.parentId && !folder.Selected.id) || (data.parentId && folder.Selected.id == data.parentId) ){
+                                        if( (!data.parentId && !folder.SelectedLibraryFolder.id) || (data.parentId && folder.SelectedLibraryFolder.id == data.parentId) || (folder.SelectedLibraryFolder.type != "library") ){
                                             return (
                                                 // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id , "folder")} documentToMove={(data)=> this.documentToMove(data)} docType="folder"/>
                                                 <tr key={index}>
                                                     <td><input type="checkbox"/></td>
                                                     <td ><span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span></td>
-                                                    <td class="library-document"><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_FOLDER_SELECTED" , Selected : data })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{data.name}</a></td>
+                                                    <td class="library-document"><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_LIBRARY_FOLDER_SELECTED" , Selected : data })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{data.name}</a></td>
                                                     <td>{moment(data.dateUpdated).format('L')}</td>
                                                     <td>
                                                         <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
@@ -411,19 +413,21 @@ export default class DocumentLibrary extends React.Component {
                                                                 <li class="dropdown dropdown-library">
                                                                         <span class="test" style={{marginLeft : "20px" , color :"#333" , lineHeight: "1.42857143",cursor:"pointer"}}>Move to</span>
                                                                         <div class="dropdown-content">
-                                                                            {(typeof folder.Selected.id != "undefined") &&
+                                                                            {(typeof folder.SelectedLibraryFolder.id != "undefined") &&
                                                                                 <a href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo({id: null},data)}>Library</a>
                                                                             }
                                                                             { folder.List.map((f,fIndex) => {
-                                                                                if(typeof folder.Selected.id == "undefined" && f.id != data.id){
-                                                                                    return (
-                                                                                        <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo(f,data)}>{f.name}</a>
-                                                                                    )
-                                                                                }else{
-                                                                                    if(folder.Selected.id != f.id &&  f.id != data.id){
+                                                                                if(f.type == "library"){
+                                                                                    if(typeof folder.SelectedLibraryFolder.id == "undefined" && f.id != data.id){
                                                                                         return (
                                                                                             <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo(f,data)}>{f.name}</a>
                                                                                         )
+                                                                                    }else{
+                                                                                        if(folder.SelectedLibraryFolder.id != f.id &&  f.id != data.id){
+                                                                                            return (
+                                                                                                <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo(f,data)}>{f.name}</a>
+                                                                                            )
+                                                                                        }
                                                                                     }
                                                                                 }
                                                                             })}
@@ -500,19 +504,21 @@ export default class DocumentLibrary extends React.Component {
                                                             <li class="dropdown dropdown-library">
                                                                     <span class="test" style={{marginLeft : "20px" , color :"#333" , lineHeight: "1.42857143",cursor:"pointer"}}>Move to</span>
                                                                     <div class="dropdown-content">
-                                                                        {(typeof folder.Selected.id != "undefined") &&
+                                                                        {(typeof folder.SelectedLibraryFolder.id != "undefined") &&
                                                                             <a href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo({id: null},data)}>Library</a>
                                                                         }
                                                                         { folder.List.map((f,fIndex) => {
-                                                                            if(typeof folder.Selected.id == "undefined"){
-                                                                                return (
-                                                                                    <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
-                                                                                )
-                                                                            }else{
-                                                                                if(folder.Selected.id != f.id){
+                                                                            if(f.type == "librabry"){
+                                                                                if(typeof folder.SelectedLibraryFolder.id == "undefined"){
                                                                                     return (
                                                                                         <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
                                                                                     )
+                                                                                }else{
+                                                                                    if(folder.SelectedLibraryFolder.id != f.id){
+                                                                                        return (
+                                                                                            <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
+                                                                                        )
+                                                                                    }
                                                                                 }
                                                                             }
                                                                         })}

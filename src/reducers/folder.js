@@ -3,7 +3,10 @@ export default function reducer(state={
     FormActive : "List",
     Selected : {},
     SelectedId : [],
-    EditType : ""
+    EditType : "",
+    SelectedLibraryFolder : {},
+    SelectedNewFolder : {}
+
 },action){
     switch (action.type) {
 
@@ -25,6 +28,12 @@ export default function reducer(state={
         // }
         case "SET_FOLDER_SELECTED": {
             return { ...state, Selected: action.Selected }
+        }
+        case "SET_NEW_FOLDER_SELECTED":{
+            return { ...state, SelectedNewFolder: action.Selected }
+        }
+        case "SET_LIBRARY_FOLDER_SELECTED":{
+            return { ...state, SelectedLibraryFolder: action.Selected }
         }
         // case "SET_DOCUMENT_ID": {
         //     return { ...state, SelectedId: action.SelectedId }

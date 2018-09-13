@@ -1,6 +1,7 @@
 import React from "react";
 import { Loading } from "../../../globalComponents"
 import moment from 'moment'
+import Tooltip from "react-tooltip";
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -27,11 +28,27 @@ export default class DocumentNew extends React.Component {
             upload : false,
             loading : false,
             tags : [],
-            files : []
+            files : [],
+            folderAction : ""
         }
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
     
+    componentDidMount(){
+        // automatically move to selected folder
+        if(folderParams != "" && folderParamsType == "new"){
+            let folderSelectedInterval = setInterval(()=>{
+                if(this.props.folder.List.length > 0){
+                    clearInterval(folderSelectedInterval)
+                    let folderData = this.props.folder.List.filter(e=>e.id == folderParams)
+                    if(folderData.length > 0){
+                        this.props.dispatch({type:"SET_NEW_FOLDER_SELECTED" , Selected : folderData[0] })
+                    }
+                }
+            },1000)
+        }
+    }
+
     updateActiveStatus(id,active){
         let { socket, dispatch } = this.props;
             dispatch({type:"SET_DOCUMENT_STATUS",record:{id:id,status:(active==1)?0:1}});
@@ -105,33 +122,49 @@ export default class DocumentNew extends React.Component {
 
     moveToFolder(folderData , documentData){
         let { socket } = this.props;
-            socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data :{ ...documentData , status : "library", folderId : folderData.id , isCompleted : 1 } , type : "project"})
+            socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data :{ ...documentData , status : folderData.type , folderId : folderData.id , isCompleted : 1 } , type : "project"})
+    }
+
+    addFolder(){
+        let { socket , global , loggedUser, folder } = this.props;
+        let { folderName } = this.state;
+            socket.emit("SAVE_OR_UPDATE_FOLDER", { data:{ projectId: project , name: folderName , createdBy: loggedUser.data.id, parentId: folder.SelectedNewFolder.id , type : "new" }})
+            this.setState({ folderAction : "" , folderName : "" })
     }
 
     render() {
-        let { document, users , settings , starred , loggedUser , workstream , global , task , folder } = this.props;
-        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagCount = 0;
-            if( document.List.length > 0 ){
+        let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser , users } = this.props;
+        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [] , tagCount = 0;
+        let folderList = [];
+           
+            workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
+            task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
+            
+            if(typeof folder.SelectedNewFolder.id == "undefined" || folder.SelectedNewFolder.type != "new"){
+                if( document.List.length > 0 ){
+                    document.List.filter( e =>{
+                        if( loggedUser.data.userType == "Internal"){
+                            if( e.status == "new" && e.isCompleted != 1 ){
+                                documentList.newUpload.push(e)
+                            }
+                        }
+                    })
+                }
+            }else if( folder.SelectedNewFolder.type == "new"){
                 document.List.filter( e =>{
-                    if( loggedUser.data.userType == "Internal"){
-                        if( e.status == "new" && e.isCompleted != 1 ){
+                    if(loggedUser.data.userType == "Internal"){
+                        if( e.status == "new" && e.folderId == folder.SelectedNewFolder.id){
                             documentList.newUpload.push(e)
                         }
-                        if( e.status == "library" && e.folderId == null){
-                            documentList.library.push(e)
-                        }
                     }else{
-                        if(e.status == "library" && e.folderId == null){
-                            let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? 1 : 0 ;
-                                if(isShared || e.uploadedBy == loggedUser.data.id ){
-                                    documentList.library.push(e)
-                                }
-                        }else if(e.status == "new" && e.folderId == null){
-                            let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? 1 : 0 ;
-                                if(isShared || e.uploadedBy == loggedUser.data.id ){
+                        if(e.status == "new" && e.folderId == folder.SelectedNewFolder.id){
+                            let isShared = global.SelectList.shareList.filter( s => { 
+                                                return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedNewFolder.id) && (s.shareType == "document" || s.shareType == "folder") 
+                                            }).length ? 1 : 0 ;
+                                if(isShared){
                                     documentList.newUpload.push(e)
                                 }
-                        }
+                            }
                     }
                 })
             }
@@ -144,15 +177,70 @@ export default class DocumentNew extends React.Component {
                     }
                     if(task.List.filter( w => { return w.id == t.linkId && t.linkType == "task"} ).length > 0){
                         let taskName =  task.List.filter( w => { return w.id == t.linkId})[0].task;
-                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : taskName , linkId : t.linkId ,  tagType : t.tagType});
+                            tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : taskName , linkId : t.linkId , tagType : t.tagType });
                     }
                 })
+            }
+
+            if(typeof global.SelectList.ProjectMemberList != "undefined"){ // FOR SHARE OPTIONS
+                global.SelectList.ProjectMemberList.map(e =>{ 
+                    if(e.userType == "External"){
+                        shareOptions.push({ id: e.id , name : `${e.firstName} ${e.lastName}` })
+                    }
+                }) 
+            }
+
+            if(folder.List.length > 0){
+                if(loggedUser.data.userType == "Internal"){
+                    folder.List.map( e =>{
+                        if(e.type == "new"){
+                            folderList.push(e)
+                        }
+                    })
+                }else{
+                    if(typeof global.SelectList.shareList != "undefined" && typeof loggedUser.data.id != "undefined"){
+                        folder.List.map( e =>{
+                            let isShared = global.SelectList.shareList.filter( s =>{ return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id &&  s.shareType == "folder"}).length ? 1 : 0
+                                if((isShared || e.createdBy == loggedUser.data.id) && e.type == "new" ) {
+                                    folderList.push(e)
+                                }
+                        })
+                    }
+                }
+            }
+
+            let folderName = [];
+            folderName.unshift(<span>{(typeof folder.SelectedNewFolder.name != "undefined" && folder.SelectedNewFolder.type == "new")?` > ${folder.SelectedNewFolder.name}`:""}</span>)
+            let folderParentId = folder.SelectedNewFolder.parentId;
+            while( folderParentId ){
+                let parentFolder = folderList.filter(e=>e.id == folderParentId);
+                folderParentId = null;
+                if(parentFolder.length > 0){
+                    folderName.unshift(<span> > <a style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_FOLDER_SELECTED" , Selected : parentFolder[0] })}>{
+                    ((typeof parentFolder[0].name != "undefined")?`${parentFolder[0].name}`:"")}</a></span>)
+                    folderParentId = parentFolder[0].parentId;
+                }
             }
 
         return <div>
                     <br/>
                     <div class="col-lg-12 col-md-12">  
-                        <h3>New Documents</h3>
+                    <h3>
+                        <a style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_NEW_FOLDER_SELECTED" , Selected : {} })}>New Documents</a>
+                        { folderName.map((e)=>{ return e; }) } 
+                    </h3>
+                        { (this.state.folderAction == "") &&
+                            <a href="javascript:void(0)" title="New Folder" style={{textDecoration:"none"}} onClick={()=> this.setState({ folderAction : "create" })}><span class="fa fa-folder fa-2x"></span></a>
+                        }
+                        { (this.state.folderAction == "create") &&
+                            <form class="form-inline">
+                                <div class="form-group">
+                                    <input class="form-control" type="text" name="folderName" placeholder="Enter folder name" onChange={(e)=> this.setState({ [e.target.name] : e.target.value })} value={this.state.folderName}/>
+                                    <a href="javascript:void(0)" class="btn btn-primary" style={{margin:"5px"}} onClick={()=> this.addFolder()}>Add</a>
+                                    <a href="javascript:void(0)" class="btn btn-primary" style={{margin:"5px"}} onClick={()=> this.setState({ folderAction : "" })}>Cancel</a>
+                                </div>
+                            </form>
+                        }
                         <table id="dataTable" class="table responsive-table table-bordered document-table">
                             <tbody>
                                 <tr>
@@ -171,11 +259,91 @@ export default class DocumentNew extends React.Component {
                                         </tr> 
                                 }
                                 {
-                                    (documentList.newUpload.length == 0 && !document.Loading) && 
+                                    (documentList.newUpload.length == 0 && folderList.length == 0 && !document.Loading) && 
                                         <tr>
                                             <td colSpan={8}>No Record Found!</td>
                                         </tr> 
                                 }
+                                
+                                { (!document.Loading) &&
+                                    folderList.map((data, index) => {
+                                        if( (!data.parentId && !folder.SelectedNewFolder.id) || (data.parentId && folder.SelectedNewFolder.id == data.parentId)){
+                                            return (
+                                                // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id , "folder")} documentToMove={(data)=> this.documentToMove(data)} docType="folder"/>
+                                                <tr key={index}>
+                                                    <td><input type="checkbox"/></td>
+                                                    <td ><span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span></td>
+                                                    <td class="library-document"><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_NEW_FOLDER_SELECTED" , Selected : data })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{data.name}</a></td>
+                                                    <td>{moment(data.dateUpdated).format('L')}</td>
+                                                    <td>
+                                                        <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
+                                                        <Tooltip id={`follower${index}`}>
+                                                            { global.SelectList.ProjectMemberList.map((e,mIndex) => {
+                                                                if( e.userType == "Internal"){
+                                                                    return <p key={mIndex}>{ `${e.firstName} ${e.lastName}`} <br/></p>
+                                                                }else{
+                                                                    if(global.SelectList.shareList.length > 0){
+                                                                        let isShared =  global.SelectList.shareList.filter(s => {return s.userTypeLinkId == e.id && data.id == s.shareId && s.shareType == "folder"}).length ? 1 : 0
+                                                                            if(isShared){
+                                                                                return <p key={mIndex}>{ `${e.firstName} ${e.lastName}`} <br/></p>
+                                                                            }
+                                                                    }
+                                                                }
+                                                            })}
+                                                        </Tooltip>
+                                                    </td>
+                                                    <td> 
+                                                        <ul style={{listStyleType: "none",padding : "0"}}>  
+                                                            { (tagList.length > 0) &&
+                                                                tagList.map((t,tIndex) =>{
+                                                                    if(t.tagTypeId == data.id && t.tagType == "folder"){
+                                                                        return <li key={tIndex}><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
+                                                                    }
+                                                                })
+                                                            }
+                                                        </ul>
+                                                    </td>
+                                                    <td>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                                            <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                                { (loggedUser.data.userType == "Internal") &&
+                                                                    <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={()=>dispatch({type:"SET_DOCUMENT_SELECTED", Selected:data })}>Share</a></li>
+                                                                }
+                                                                <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.downloadFolder(data)}>Download</a></li>
+                                                                <li class="dropdown dropdown-library">
+                                                                        <span class="test" style={{marginLeft : "20px" , color :"#333" , lineHeight: "1.42857143",cursor:"pointer"}}>Move to</span>
+                                                                        <div class="dropdown-content">
+                                                                            {(typeof folder.SelectedNewFolder.id != "undefined") &&
+                                                                                <a href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo({id: null},data)}>Library</a>
+                                                                            }
+                                                                            { folder.List.map((f,fIndex) => {
+                                                                                if(typeof folder.SelectedNewFolder.id == "undefined" && f.id != data.id){
+                                                                                    return (
+                                                                                        <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo(f,data)}>{f.name}</a>
+                                                                                    )
+                                                                                }else{
+                                                                                    if(folder.SelectedNewFolder.id != f.id &&  f.id != data.id){
+                                                                                        return (
+                                                                                            <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo(f,data)}>{f.name}</a>
+                                                                                        )
+                                                                                    }
+                                                                                }
+                                                                            })}
+                                                                        </div>
+                                                                </li>
+                                                                {/* <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editFolder(data , "folder")}>Rename</a></li> */}
+                                                                <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteFolder(data.id)}>Delete</a></li>
+                                                                <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
+                                                            </ul>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        }
+                                    })
+                                }
+
                                 { documentList.newUpload.map((data, index) => {
                                     if(loggedUser.data.userRole == 6 && data.uploadedBy != loggedUser.data.id ){
                                         return ;

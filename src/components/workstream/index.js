@@ -21,7 +21,6 @@ export default class Component extends React.Component {
 
     render() {
         let { workstream } = this.props;
-        console.log(workstream)
         let Component = <div>
             {
                 (

@@ -153,7 +153,7 @@ export default class WorkstreamDocumentViewer extends React.Component {
             })
             let folderParams = ""
             if(data.folderId){
-                folderParams = "?folder="+data.folderId
+                folderParams = `?folder=${data.folderId}&type=${data.status}`
             }
             window.location.replace(`/project/documents/${project}`+folderParams);
         }
