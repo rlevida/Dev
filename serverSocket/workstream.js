@@ -8,7 +8,7 @@ var init = exports.init = (socket) => {
         let workstream = global.initModel("workstream")
         let members = global.initModel("members")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
-
+        
         workstream.getWorkstreamList("workstream", filter, {}, (c) => {
             if (c.status) {
                 async.map(c.data, function (result, workstreamCallback) {

@@ -82,11 +82,13 @@ export default class List extends React.Component {
         let { task, socket, loggedUser } = this.props;
         let taskList = _(task.List)
             .map((o) => {
-                return { ...o, due_date_int: moment(o.dueDate).format('YYYYMMDD') }
+                if(o.project_isActive){
+                    return { ...o, due_date_int: moment(o.dueDate).format('YYYYMMDD') }
+                }
             })
+            .filter(e => {  return typeof e != "undefined" })
             .orderBy(['due_date_int'], ['asc'])
             .value();
-
         return (
             <div>
                 <TaskStatus style={{ float: "right", padding: "20px" }} />

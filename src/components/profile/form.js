@@ -85,7 +85,7 @@ export default class FormComponent extends React.Component {
 
             userWorkstream = _(workstream.List)
             .filter((e) => {
-                return _.findIndex(user.projectIds, (o) => { return o == e.projectId }) > -1;
+                return _.findIndex(user.projectIds, (o) => { return o == e.projectId }) > -1 && e.projectStatus > 0;
             })
             .value();
         }

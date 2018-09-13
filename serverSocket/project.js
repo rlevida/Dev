@@ -124,18 +124,27 @@ var init = exports.init = (socket) => {
             }
         });
     })
+    
 
-    socket.on("DELETE_PROJECT", (d) => {
+    socket.on("SAVE_OR_UPDATE_ACTIVE_PROJECT",(d) => {
         let project = global.initModel("project")
-
-        project.getData("project", {}, {}, (b) => {
-            project.deleteData("project", { id: d.id }, (c) => {
-                if (c.status) {
-                    socket.emit("FRONT_PROJECT_DELETED", { id: d.id })
-                } else {
-                    socket.emit("RETURN_ERROR_MESSAGE", "Delete failed. Please try again later.")
-                }
-            })
+        project.putData("project", d.data , { id: d.data.id }, (c) => {
+            if(c.status){
+                socket.emit("FRONT_UPDATE_ACTIVE_PROJECT", d.data )
+                socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" });
+            }else{
+                socket.emit("RETURN_ERROR_MESSAGE", { message: "Update failed. Please Try again later." })
+            }
         })
     })
+
+    // socket.on("DELETE_PROJECT", (d) => {
+    //     let project = global.initModel("project")
+    //     project.putData("project", { isActive : 0 }, { id: d.id }, (c) => {
+    //         if(c.status){
+    //             socket.emit("FRONT_PROJECT_DELETED", { id: d.id })
+    //         }
+    //     })
+
+    // })
 }

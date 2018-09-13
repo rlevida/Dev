@@ -33,6 +33,15 @@ export default function reducer(state = {
             })
             return { ...state, List: tempList }
         }
+        case "UPDATE_ACTIVE_PROJECT":{
+            let tempList = state.List.map((e,i) => {
+                if(action.UpdatedData.id == e.id){
+                    e.isActive = action.UpdatedData.isActive
+                }
+                return e
+            })
+            return { ...state, List: tempList }
+        }
         case "REMOVE_DELETED_PROJECT_LIST": {
             const { List } = { ...state };
             const updatedList = filter(List, (o) => { return o.id != action.id });

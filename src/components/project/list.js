@@ -51,6 +51,18 @@ export default class List extends React.Component {
         }
     }
 
+    deactiveProject(id){
+        let { socket } = this.props;
+        if (confirm("Do you really want to deactive this project?")) {
+            socket.emit("SAVE_OR_UPDATE_ACTIVE_PROJECT", { data : { id: id , isActive : 0 } })
+        }
+    }
+
+    activateProject(id){
+        let { socket } = this.props;
+            socket.emit("SAVE_OR_UPDATE_ACTIVE_PROJECT", { data : { id: id , isActive : 1 } })
+    }
+
     render() {
         let { project, socket, loggedUser } = this.props;
         
@@ -101,10 +113,21 @@ export default class List extends React.Component {
                                                     onClick={(e) => socket.emit("GET_PROJECT_DETAIL", { id: data.id })}
                                                     class="btn btn-info btn-sm">
                                                     <span class="glyphicon glyphicon-pencil"></span></a>
-                                                <a href="javascript:void(0);" data-tip="DELETE"
+                                                    { data.isActive 
+                                                        ?   <a href="javascript:void(0);" data-tip="DEACTIVE"
+                                                            onClick={e => this. deactiveProject(data.id)}
+                                                            class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                            <span class="fa fa-power-off"></span></a>
+                                                        :   <a href="javascript:void(0);" data-tip="ACTIVATE"
+                                                            onClick={e => this. activateProject(data.id)}
+                                                            class={data.allowedDelete == 0 ? 'hide' : 'btn btn-success btn-sm ml10'}>
+                                                            <span class="fa fa-power-off"></span></a>
+                                                    }
+
+                                                {/* <a href="javascript:void(0);" data-tip="DELETE"
                                                     onClick={e => this.deleteData(data.id)}
                                                     class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                    <span class="glyphicon glyphicon-trash"></span></a>
+                                                    <span class="glyphicon glyphicon-trash"></span></a> */}
                                                 {/*<OnOffSwitch Active={data.isActive} Action={()=>this.updateActiveStatus(data.id,data.isActive)} />*/}
                                                 <Tooltip />
                                             </td>
