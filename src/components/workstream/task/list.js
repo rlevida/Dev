@@ -85,8 +85,7 @@ export default class List extends React.Component {
         let { task } = this.props;
 
         return (
-
-            <div class="row pd20">
+            <div class={(task.FormActive=="Form"?"col-md-8":"row") + " pd20"}>
                 <h3 class="m0">Tasks</h3>
                 <table id="dataTable" class="table responsive-table mt30">
                     <tbody>

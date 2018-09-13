@@ -22,9 +22,7 @@ export default class Component extends React.Component {
 
         return (
             <div>
-                {task.FormActive == "List" &&
-                    <List />
-                }
+                <List />
 
                 {task.FormActive == "Form" &&
                     <Form />
