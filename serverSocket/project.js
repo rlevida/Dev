@@ -150,7 +150,7 @@ var init = exports.init = (socket) => {
                 let project = global.initModel("project")
                 project.putData("project", d.data , { id: id }, (c) => {
                     if(c.status){
-                        socket.emit("FRONT_ARCHIVE_PROJECT", d.data )
+                        socket.emit("FRONT_ARCHIVE_PROJECT", {id: id} )
                         socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" });
                     }else{
                         socket.emit("RETURN_ERROR_MESSAGE", { message: "Update Project failed. Please Try again later." })
