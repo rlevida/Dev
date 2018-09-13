@@ -252,9 +252,8 @@ var getWorkstreamList = exports.getWorkstreamList = ( tablename, data, advance ,
             ) as tb1 GROUP BY tb1.workstreamId,tb1.id
             )  as tb2 GROUP BY tb2.workstreamId
         ) as finalMembers ON primaryTable.id = finalMembers.workstreamId
+        LEFT JOIN ( SELECT isActive as projectStatus , id as projId FROM project ) as project ON project.projId = primaryTable.projectId
         `;
-
-
     if(paramStr.length > 0){
         query += " WHERE "
     }
@@ -282,6 +281,8 @@ var getWorkstreamList = exports.getWorkstreamList = ( tablename, data, advance ,
     /**
      * Manage Query Connection
      */
+
+    //  console.log(query)
     db.query(
         query,
         params, 

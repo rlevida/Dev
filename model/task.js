@@ -120,28 +120,39 @@ var getUserTaskDataCount = exports.getUserTaskDataCount = ( tablename, data, adv
     }
 
     let query = `
-                    SELECT memberType,SUM(isActive) as Active, SUM(IF(DATE_FORMAT(dueDate,"%Y-%m-%d")=CURDATE(),1,0)) as DueToday, SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM (SELECT finalTbl1.*,task.id as taskId,task.dueDate,task.isActive,task.status FROM ( SELECT members.linkType,members.linkId,members.memberType,users.id as usersId FROM members 
-                        LEFT JOIN users ON members.userTypeLinkId = users.id
-                            WHERE usersType = "users"
+                    SELECT *,SUM(isActive) as Active, SUM(IF(DATE_FORMAT(dueDate,"%Y-%m-%d")=CURDATE(),1,0)) as DueToday, SUM(IF(dueDate<CURDATE() AND duedate > "1970-01-01",1,0)) as Issues FROM ( 
+                      
+                            SELECT finalTbl1.*,task.id as taskId,task.dueDate,task.isActive,task.status, task.projectId , project.isActive as project_isActive FROM ( 
+                                    SELECT members.linkType,members.linkId,members.memberType,users.id as usersId FROM members 
+                                        LEFT JOIN users ON members.userTypeLinkId = users.id
+                                        WHERE usersType = "users"
+                                UNION ALL
+                                    SELECT members.linkType,members.linkId,members.memberType,users.id as usesrId FROM members 
+                                        LEFT JOIN users_team ON members.userTypeLinkId = users_team.teamId
+                                        LEFT JOIN users ON users_team.usersId = users.id
+                                    WHERE members.usersType = "team" 
+                            ) as finalTbl1 
+
+                                LEFT JOIN task on finalTbl1.linkId = task.id LEFT JOIN project ON project.id = task.projectId 
+                            WHERE finalTbl1.linkType = "task"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 AND task.isDeleted = 0 AND project.isActive > 0 `+filter+`
+
                     UNION ALL
-                    SELECT members.linkType,members.linkId,members.memberType,users.id as usesrId FROM members 
-                        LEFT JOIN users_team ON members.userTypeLinkId = users_team.teamId
-                            LEFT JOIN users ON users_team.usersId = users.id
-                            WHERE members.usersType = "team" ) as finalTbl1 
-                        LEFT JOIN task on finalTbl1.linkId = task.id
-                    WHERE finalTbl1.linkType = "task"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 `+filter+`
-                    UNION ALL
-                    SELECT finalTbl2.*,task.id as taskId,task.dueDate,task.isActive,task.status FROM ( SELECT members.linkType,members.linkId,members.memberType,users.id as usersId FROM members 
-                        LEFT JOIN users ON members.userTypeLinkId = users.id
-                            WHERE usersType = "users"
-                    UNION ALL
-                    SELECT members.linkType,members.linkId,members.memberType,users.id as usersId FROM members 
-                        LEFT JOIN users_team ON members.userTypeLinkId = users_team.teamId
-                            LEFT JOIN users ON users_team.usersId = users.id
-                            WHERE members.usersType = "team" ) as finalTbl2 
-                        LEFT JOIN task on finalTbl2.linkId = task.workstreamId
-                    WHERE finalTbl2.linkType = "workstream"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 `+filter2+` ) as tbl
-                    GROUP BY linkType;
+
+                            SELECT finalTbl2.*,task.id as taskId,task.dueDate,task.isActive,task.status , task.projectId , project.isActive as project_isActive FROM ( 
+                                    SELECT members.linkType,members.linkId,members.memberType,users.id as usersId FROM members 
+                                        LEFT JOIN users ON members.userTypeLinkId = users.id
+                                    WHERE usersType = "users" 
+                                UNION ALL
+                                    SELECT members.linkType,members.linkId,members.memberType,users.id as usersId FROM members 
+                                        LEFT JOIN users_team ON members.userTypeLinkId = users_team.teamId
+                                            LEFT JOIN users ON users_team.usersId = users.id
+                                    WHERE members.usersType = "team" 
+                            ) as finalTbl2 
+
+                                LEFT JOIN task on finalTbl2.linkId = task.workstreamId LEFT JOIN project ON project.id = task.projectId
+                            WHERE finalTbl2.linkType = "workstream"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 AND task.isDeleted = 0 AND project.isActive > 0 `+filter2+` 
+
+                    ) as tbl
                 `;
     db.query(
         query,

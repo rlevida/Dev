@@ -33,6 +33,12 @@ export default function reducer(state = {
             })
             return { ...state, List: tempList }
         }
+        case "ARCHIVE_PROJECT":{
+            const { List } = { ...state };
+            const updatedList = filter(List, (o) => { return o.id != action.id });
+            
+            return { ...state, List: updatedList }
+        }
         case "REMOVE_DELETED_PROJECT_LIST": {
             const { List } = { ...state };
             const updatedList = filter(List, (o) => { return o.id != action.id });

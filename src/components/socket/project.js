@@ -54,6 +54,10 @@ export default class Socket extends React.Component {
         socket.on("FRONT_PROJECT_ACTIVE",(data) => {
             dispatch({type:"SET_PROJECT_STATUS",record:data})
         })
+
+        socket.on("FRONT_ARCHIVE_PROJECT",(data) => {
+            dispatch({type:"ARCHIVE_PROJECT",id:data.id })
+        })
     }
 
     render() { return <div> </div> }
