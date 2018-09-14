@@ -410,7 +410,7 @@ var getTaskDueToday = exports.getTaskDueToday = (cb) => {
     let query = ` SELECT task.*,members.userTypeLinkId as usersId FROM task 
                     LEFT JOIN members ON task.id = members.linkId AND members.linkType = "task" AND usersType = "users"
                     WHERE DATE_FORMAT(task.dueDate,"%Y%m%d") = DATE_FORMAT(NOW(),"%Y%m%d") 
-                    AND ( members.userTypeLinkId IS NOT NULL || members.userTypeLinkId != "" )  `;
+                    AND ( members.userTypeLinkId IS NOT NULL || members.userTypeLinkId != "" ) AND task.isDelete = 0`;
     db.query(
         query,
         params, 
@@ -422,14 +422,14 @@ var getTaskDueToday = exports.getTaskDueToday = (cb) => {
     );
 }
 
-var getTaskDueToday = exports.getTaskOverdue = (cb) => {
+var getTaskOverdue = exports.getTaskOverdue = (cb) => {
     let db = global.initDB();
     let params = [];
 
     let query = ` SELECT task.*,members.userTypeLinkId as usersId FROM task 
                     LEFT JOIN members ON task.id = members.linkId AND members.linkType = "task" AND usersType = "users"
                     WHERE DATE_FORMAT(task.dueDate,"%Y%m%d") < DATE_FORMAT(NOW(),"%Y%m%d") 
-                    AND ( members.userTypeLinkId IS NOT NULL || members.userTypeLinkId != "" )`;
+                    AND ( members.userTypeLinkId IS NOT NULL || members.userTypeLinkId != "" ) AND task.isDelete = 0`;
     db.query(
         query,
         params, 

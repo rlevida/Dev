@@ -27,7 +27,7 @@ import Workstreams from "./workstream";
 export default class FormComponent extends React.Component {
     constructor(props) {
         super(props)
-
+        
         this.handleChange = this.handleChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
@@ -53,6 +53,9 @@ export default class FormComponent extends React.Component {
     handleChange(e) {
         let { socket, dispatch, project } = this.props
         let Selected = Object.assign({}, project.Selected)
+        this.setState({
+            currentProjectManager : Selected.projectManagerId
+        })
         Selected[e.target.name] = e.target.value;
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: Selected })
     }
@@ -174,16 +177,27 @@ export default class FormComponent extends React.Component {
             .uniqBy('userTypeLinkId')
             .value();
 
+
         let projectManagerUsers = _(users.List)
             .filter((user) => {
                 let { role } = { ...user };
-                let canBeProjectManager = _.findIndex(role, function (o) { return o.roleId == 1 || o.roleId == 2 || o.roleId == 3 || o.roleId == 5; });
+                let canBeProjectManager = _.findIndex(role, function (o) { return o.roleId == 1 || o.roleId == 2 || o.roleId == 3; });
                 return canBeProjectManager >= 0 && userMemberList.filter(o => o.userTypeLinkId == user.id && o.userTypeLinkId != projectManager).length == 0;
             }).map((user) => {
                 return { id: user.id, name: user.firstName + ' ' + user.lastName }
             })
             .orderBy(['name'])
             .value();
+
+        let currentPM = ""
+        if(userMemberList.filter(e =>{ return e.memberType == "project manager"}).length){
+            currentPM = userMemberList.filter(e =>{ return e.memberType == "project manager"})[0].userTypeLinkId
+        }
+        
+        if (typeof project.Selected.projectManagerId != "undefined"  && currentPM != project.Selected.projectManagerId )  {
+            userMemberList = userMemberList.filter(e =>{ return e.memberType != "project manager"})
+        }
+
         return (
             <div>
                 <HeaderButtonContainer withMargin={true}>
