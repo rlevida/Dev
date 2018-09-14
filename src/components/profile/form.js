@@ -84,12 +84,12 @@ export default class FormComponent extends React.Component {
                 .value();
 
             userWorkstream = _(workstream.List)
-            .filter((e) => {
-                return _.findIndex(user.projectIds, (o) => { return o == e.projectId }) > -1 && e.projectStatus > 0 && e.isDeleted == 0;
-            })
-            .value();
+                .filter((e) => {
+                    return _.findIndex(user.projectIds, (o) => { return o == e.projectId }) > -1 && e.projectStatus > 0 && e.isDeleted == 0;
+                })
+                .value();
         }
-        
+
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 {/* <li class="btn btn-info" style={{marginRight:"2px"}} 
@@ -141,7 +141,7 @@ export default class FormComponent extends React.Component {
                                 </div>
                             </div>
                             {
-                                (user.userType == 'Internal') && <div class="row pdl20 pdr20 mb20">
+                                (user.userType == 'Internal' || (user.userType == 'External' && userProjects.length > 1)) && <div class="row pdl20 pdr20 mb20">
                                     <div class="col-md-6">
                                         <h4 class="mt20 mb20">Projects</h4>
                                         <table id="dataTable" class="table responsive-table mt30">
