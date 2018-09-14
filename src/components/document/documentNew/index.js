@@ -395,7 +395,7 @@ export default class DocumentNew extends React.Component {
                                                         <li class="dropdown dropdown-library">
                                                             <span class="test" style={{marginLeft : "20px" , color :"#333" , lineHeight: "1.42857143",cursor:"pointer"}}>Move to</span>
                                                             <div class="dropdown-content">
-                                                                {(loggedUser.data.userRole != 6) && // temporary disabled for external users
+                                                                {(loggedUser.data.userRole != 6) &&
                                                                     <a href="javascript:void(0)" style={{textDecoration:"none"}} data-tip="Move to library" onClick={()=> this.moveToLibrary(data)}>Move to library</a>
                                                                 }
                                                                 { folder.List.map((f,fIndex) => {
