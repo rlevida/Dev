@@ -58,7 +58,7 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, { ...task.Selected })
         let selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
         if ((typeof Selected.startDate != "undefined" || typeof Selected.dueDate != "undefined") && (Selected.startDate != "" || Selected.dueDate != "")) {
-            
+
             let startDate = moment(Selected.startDate);
             let dueDate = moment(Selected.dueDate);
             let comparison = (e.target.name == "startDate") ? moment(dueDate).diff(e.target.value, 'days') : moment(e.target.value).diff(startDate, 'days');
@@ -74,9 +74,9 @@ export default class FormComponent extends React.Component {
         } else {
             Selected[e.target.name] = selectedDate;
         }
-        
+
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
-        
+
         if (e.target.name == "startDate") {
             this.generateDueDate(Selected);
         }
@@ -154,7 +154,7 @@ export default class FormComponent extends React.Component {
                 result = false;
             }
         });
-        
+
         if (!result) {
             showToast("error", "Form did not fullfill the required value.")
             return;
@@ -214,7 +214,7 @@ export default class FormComponent extends React.Component {
             })
         }
         if (typeof global.SelectList.ProjectMemberList != "undefined") {
-            global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName }) })
+            global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.firstName + " " + e.lastName }) })
         }
 
         return <div>
@@ -406,7 +406,7 @@ export default class FormComponent extends React.Component {
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={false}
                                             required={false}
-                                            options={projectUserList}
+                                            options={_.orderBy(projectUserList, ["name"], ["desc"])}
                                             selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
                                             onChange={(e) => {
                                                 this.setDropDown("assignedTo", (e == null) ? "" : e.value);

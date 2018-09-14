@@ -139,7 +139,7 @@ export default class FormComponent extends React.Component {
             })
         }
         if (typeof global.SelectList.ProjectMemberList != "undefined") {
-            global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName }) })
+            global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.firstName + " " + e.lastName }) })
         }
 
         return (
@@ -246,13 +246,13 @@ export default class FormComponent extends React.Component {
                                         <div class="col-md-7 col-xs-12">
                                             <DropDown multiple={false}
                                                 required={false}
-                                                options={projectUserList}
+                                                options={_.orderBy(projectUserList, ["name"], ["asc"])}
                                                 selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
                                                 onChange={(e) => {
                                                     this.setDropDown("assignedTo", (e == null) ? "" : e.value);
                                                 }}
                                                 isClearable={projectUserList.length > 0}
-                                                />
+                                            />
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
