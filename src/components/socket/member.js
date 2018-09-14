@@ -52,7 +52,7 @@ export default class Socket extends React.Component {
                 dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
                 showToast("success", "Successfully updated.")
             }else{
-                dispatch({ type: "REMOVE_DELETED_MEMBERS_LIST", id: data.id, List: this.props.members.List })
+                dispatch({ type: "REMOVE_DELETED_MEMBERS_LIST", id: data.id })
                 showToast("success", "Member already deleted.")
             }
         })

@@ -118,7 +118,7 @@ export default class FormComponent extends React.Component {
         if (typeof global.SelectList.ProjectMemberList != "undefined") {
             global.SelectList.ProjectMemberList.map((e, i) => {
                 if ((e.roleId == 1 || e.roleId == 2 || e.roleId == 3 || e.roleId == 4)) {
-                    projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })
+                    projectUserList.push({ id: e.id, name: e.firstName + " " + e.lastName })
                 }
             })
         }
@@ -197,7 +197,7 @@ export default class FormComponent extends React.Component {
                                         <div class="col-md-7 col-xs-12">
                                             <DropDown multiple={false}
                                                 required={true}
-                                                options={projectUserList}
+                                                options={_.orderBy(projectUserList, ["name"], ["asc"])}
                                                 selected={(typeof workstream.Selected.responsible == "undefined") ? "" : workstream.Selected.responsible}
                                                 onChange={(e) => {
                                                     this.setDropDown("responsible", e.value);

@@ -39,16 +39,16 @@ var init = exports.init = (socket) => {
 
     socket.on("SAVE_OR_UPDATE_PROJECT", (d) => {
         let project = global.initModel("project");
-        
+
         sequence.create().then((nextThen) => {
-            project.getData("project", { project: d.data.project }, {orderBy:[{fieldname:"projectNameCount",type:"DESC"}]}, (c) => {
+            project.getData("project", { project: d.data.project }, { orderBy: [{ fieldname: "projectNameCount", type: "DESC" }] }, (c) => {
                 if (c.data.length > 0) {
-                    let existingData = c.data.filter(f=>f.id == d.data.id)
-                    if(existingData.length == 0 ){
-                         d.data.projectNameCount = c.data[0].projectNameCount + 1
+                    let existingData = c.data.filter(f => f.id == d.data.id)
+                    if (existingData.length == 0) {
+                        d.data.projectNameCount = c.data[0].projectNameCount + 1
                     }
                     nextThen()
-                }else{
+                } else {
                     d.data.projectNameCount = 0;
                     nextThen()
                 }
@@ -67,7 +67,7 @@ var init = exports.init = (socket) => {
                     if (c.status) {
                         project.getData("project", { id: id }, {}, (e) => {
                             if (e.data.length > 0) {
-                                nextThen(e.data[0].id, "edit", e.data , )
+                               nextThen(e.data[0].id, "edit", e.data)
                             } else {
                                 socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
                             }
@@ -90,7 +90,7 @@ var init = exports.init = (socket) => {
                         workstream.postData("workstream", workstreamData, (f) => {
                             project.getData("project", { id: c.id }, {}, (e) => {
                                 if (e.data.length > 0) {
-                                    nextThen(e.data[0].id, "add", e.data , c.id)
+                                    nextThen(e.data[0].id, "add", e.data, c.id)
                                 } else {
                                     socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
                                 }
@@ -101,15 +101,15 @@ var init = exports.init = (socket) => {
                     }
                 });
             }
-        }).then((nextThen, id, type, data , projectId) => {
+        }).then((nextThen, id, type, data, projectId) => {
             let members = global.initModel("members");
             if (type == "add") {
                 members.postData("members", { linkType: "project", linkId: id, usersType: "users", userTypeLinkId: d.data.projectManagerId, memberType: "project manager" }, (e) => {
-                    socket.emit("FRONT_PROJECT_ADD", { ...data[0], projectManagerId: d.data.projectManagerId , projectId });
+                    socket.emit("FRONT_PROJECT_ADD", { ...data[0], projectManagerId: d.data.projectManagerId, projectId });
                     socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" });
                 });
             } else {
-                members.deleteData("members", { linkType: "project", linkId: id, usersType: "users", memberType: "project manager"}, (c) => {
+                members.deleteData("members", { linkType: "project", linkId: id, usersType: "users", memberType: "project manager" }, (c) => {
                     if (typeof d.data.projectManagerId != 'undefined' && d.data.projectManagerId != '') {
                         members.postData("members", { linkType: "project", linkId: id, usersType: "users", userTypeLinkId: d.data.projectManagerId, memberType: "project manager" }, (e) => {
                             socket.emit("FRONT_PROJECT_EDIT", { ...data[0], projectManagerId: d.data.projectManagerId });
@@ -125,37 +125,37 @@ var init = exports.init = (socket) => {
         });
     })
 
-    socket.on("ARCHIVE_PROJECT",(d) => {
+    socket.on("ARCHIVE_PROJECT", (d) => {
         let id = d.data.id
         delete d.data.id
-            sequence.create().then((nextThen) => {
-                let task = global.initModel("task")
-                task.putData("task", d.data, { projectId : id }, (c) => {
-                    if (c.status) {
-                      nextThen()
-                    }else{
-                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Archive Task failed. Please Try again later." })
-                    }
-                })
-            }).then((nextThen) => {
-                let workstream = global.initModel("workstream")
-                workstream.putData("workstream", d.data, { projectId : id }, (c) => {
-                    if (c.status) {
-                        nextThen()
-                    }else{
-                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Update Workstream failed. Please Try again later." })
-                    }
-                })
-            }).then((nextThen) =>{
-                let project = global.initModel("project")
-                project.putData("project", d.data , { id: id }, (c) => {
-                    if(c.status){
-                        socket.emit("FRONT_ARCHIVE_PROJECT", {id: id} )
-                        socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" });
-                    }else{
-                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Update Project failed. Please Try again later." })
-                    }
-                })
+        sequence.create().then((nextThen) => {
+            let task = global.initModel("task")
+            task.putData("task", d.data, { projectId: id }, (c) => {
+                if (c.status) {
+                    nextThen()
+                } else {
+                    socket.emit("RETURN_ERROR_MESSAGE", { message: "Archive Task failed. Please Try again later." })
+                }
             })
+        }).then((nextThen) => {
+            let workstream = global.initModel("workstream")
+            workstream.putData("workstream", d.data, { projectId: id }, (c) => {
+                if (c.status) {
+                    nextThen()
+                } else {
+                    socket.emit("RETURN_ERROR_MESSAGE", { message: "Update Workstream failed. Please Try again later." })
+                }
+            })
+        }).then((nextThen) => {
+            let project = global.initModel("project")
+            project.putData("project", d.data, { id: id }, (c) => {
+                if (c.status) {
+                    socket.emit("FRONT_ARCHIVE_PROJECT", { id: id })
+                    socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" });
+                } else {
+                    socket.emit("RETURN_ERROR_MESSAGE", { message: "Update Project failed. Please Try again later." })
+                }
+            })
+        })
     })
 }
