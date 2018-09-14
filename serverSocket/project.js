@@ -67,7 +67,7 @@ var init = exports.init = (socket) => {
                     if (c.status) {
                         project.getData("project", { id: id }, {}, (e) => {
                             if (e.data.length > 0) {
-                                nextThen(e.data[0].id, "edit", e.data)
+                                nextThen(e.data[0].id, "edit", e.data , )
                             } else {
                                 socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
                             }
@@ -112,11 +112,11 @@ var init = exports.init = (socket) => {
                 members.deleteData("members", { linkType: "project", linkId: id, usersType: "users", memberType: "project manager"}, (c) => {
                     if (typeof d.data.projectManagerId != 'undefined' && d.data.projectManagerId != '') {
                         members.postData("members", { linkType: "project", linkId: id, usersType: "users", userTypeLinkId: d.data.projectManagerId, memberType: "project manager" }, (e) => {
-                            socket.emit("FRONT_PROJECT_ADD", { ...data[0], projectManagerId: d.data.projectManagerId , projectId});
+                            socket.emit("FRONT_PROJECT_EDIT", { ...data[0], projectManagerId: d.data.projectManagerId });
                             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" });
                         });
                     } else {
-                        socket.emit("FRONT_PROJECT_ADD", { ...data[0], projectManagerId: '' });
+                        socket.emit("FRONT_PROJECT_EDIT", { ...data[0], projectManagerId: '' });
                         socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" });
                     }
 

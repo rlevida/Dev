@@ -124,10 +124,13 @@ export default class FormComponent extends React.Component {
 
         let projectManagerFilter = _.filter(members.List, (o) => { return o.memberType == "project manager" });
         let projectManager = '';
+        let memberListPM = ''
 
         if (typeof project.Selected.projectManagerId != "undefined") {
             projectManager = project.Selected.projectManagerId;
+            memberListPM = projectManagerFilter[0].userTypeLinkId;
         } else if (projectManagerFilter.length > 0) {
+            memberListPM = projectManagerFilter[0].userTypeLinkId;
             projectManager = projectManagerFilter[0].userTypeLinkId;
         }
         
@@ -162,7 +165,6 @@ export default class FormComponent extends React.Component {
             })
             .orderBy(['name'])
             .value();
-
         return (
             <div>
                 <HeaderButtonContainer withMargin={true}>
@@ -345,7 +347,7 @@ export default class FormComponent extends React.Component {
                                                         {
                                                             (userMemberList.length > 0) && _.orderBy(userMemberList,['memberType'],['desc'],).map((data, index) => {
                                                                 return (
-                                                                    <tr key={index} style={{ color: (data.user.id ==  projectManager) ? "green" : "" }}>
+                                                                    <tr key={index} style={{ color: (data.user.id ==  memberListPM ) ? "green" : "" }}>
                                                                         <td class="text-center">{data.user.id}</td>
                                                                         <td class="text-left">{data.user.username}</td>
                                                                         <td class="text-left">{data.user.firstName}</td>
@@ -356,7 +358,7 @@ export default class FormComponent extends React.Component {
                                                                         <td class="text-left">{this.renderArrayTd(_.map(data.user.team, (el) => { return el.team_team }))}</td>
                                                                         <td class="text-center">
                                                                         {
-                                                                            (data.user.id != projectManager) && 
+                                                                            (data.user.id != memberListPM ) && 
                                                                                 <a href="javascript:void(0);" data-tip="DELETE"
                                                                                     onClick={e => this.deleteData({ id: data.id, type: 'team' })}
                                                                                     class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
