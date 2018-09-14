@@ -29,7 +29,7 @@ export default class MembersForm extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, members, type , dispatch} = this.props
+        let { socket, members, type, dispatch, project } = this.props
         let result = true;
 
         $('.member-form-container *').validator('validate');
@@ -48,13 +48,13 @@ export default class MembersForm extends React.Component {
             return;
         }
         members.Selected.memberType = 1;
-        dispatch({type : "SET_FORM_MEMBERS_LOADING" , Loading :true})
+        dispatch({ type: "SET_FORM_MEMBERS_LOADING", Loading: true })
         socket.emit("SAVE_OR_UPDATE_MEMBERS", {
             data: {
                 ...members.Selected,
                 usersType: members.Selected.type,
-                linkType: type.label,
-                linkId: type.data.Selected.id
+                linkType: "project",
+                linkId: project.Selected.id
             }
         });
     }
@@ -88,51 +88,51 @@ export default class MembersForm extends React.Component {
 
     render() {
         let { users, members, teams, project } = this.props;
-        let typeList = [
-            { id: 'assignedTo', name: 'Assigned' },
-            { id: 'Follower', name: 'Follower' },
-            { id: 'responsible', name: 'Responsible' },
-        ];
-        let projectManagerId = (typeof this.props.type.data.Selected.projectManagerId != 'undefined') ? this.props.type.data.Selected.projectManagerId : 0;
+        let projectManagerId = (typeof project.Selected.projectManagerId != 'undefined') ? project.Selected.projectManagerId : 0;
+
         let userList = _(users.List)
             .filter((o) => { return o.id != projectManagerId })
             .map((e, i) => {
                 if (project.Selected.typeId == 1) {
                     return { id: e.id, name: e.firstName + ' ' + e.lastName }
-                } else if(project.Selected.typeId == 2){
-                    if( typeof e.role != "undefined" && e.userType == "Internal"){
+                } else if (project.Selected.typeId == 2) {
+                    if (typeof e.role != "undefined" && e.userType == "Internal") {
                         return { id: e.id, name: e.firstName + ' ' + e.lastName }
                     }
-                } else{
+                } else {
                     if (typeof e.role != "undefined" && e.role.length > 0) {
                         return { id: e.id, name: e.firstName + ' ' + e.lastName }
                     }
                 }
             })
-            .filter(e => {  return typeof e != "undefined" })
+            .filter(e => { return typeof e != "undefined" })
             .orderBy(['name'])
             .value()
 
-        let userMemberListIds = _(members.List)
+        let userMemberListIds = _(users.List)
             .filter((o) => {
-                return o.usersType == 'users' && o.id != projectManagerId
+                const memberChecker = _.filter(members.List, (m) => {
+                    let isMemberOfTeam = _.findIndex(o.team, (e) => { return e.teamId == m.userTypeLinkId && m.usersType == "team" });
+                    return (m.userTypeLinkId == o.id && m.usersType == "users") || isMemberOfTeam >= 0;
+                })
+                return memberChecker.length > 0
             })
-            .map((o) => { return o.userTypeLinkId })
+            .map((o) => { return o.id })
             .value();
 
         userList = userList.filter((e, i) => { return (userMemberListIds).indexOf(e.id) === -1 });
-       
+
         let teamList = _(teams.List)
             .map((e, i) => { return { id: e.id, name: e.team } })
             .orderBy(['name'])
             .value();
 
 
-        let teamMemberListIds = _(members.List)
+        let teamListIds = _(members.List)
             .filter((o) => { return o.usersType == 'team' })
             .map((o) => { return o.userTypeLinkId })
             .value();
-        teamList = teamList.filter((e, i) => { return (teamMemberListIds).indexOf(e.id) === -1 });
+        teamList = teamList.filter((e, i) => { return (teamListIds).indexOf(e.id) === -1 });
 
         let memberList = (members.Selected.type == 'team') ? teamList : (members.Selected.type == 'users') ? userList : [];
 

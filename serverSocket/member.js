@@ -1,5 +1,6 @@
 var func = global.initFunc(),
-    sequence = require("sequence").Sequence;
+    sequence = require("sequence").Sequence,
+    async = require("async");
 
 var init = exports.init = (socket) => {
 
@@ -33,7 +34,7 @@ var init = exports.init = (socket) => {
                 if (c.status) {
                     members.getData("members", { id: id }, {}, (e) => {
                         if (e.data.length > 0) {
-                            socket.emit("FRONT_MEMBERS_EDIT", { data : e.data[0] , type : d.type })
+                            socket.emit("FRONT_MEMBERS_EDIT", { data: e.data[0], type: d.type })
                             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
                         } else {
                             socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." })
@@ -44,20 +45,49 @@ var init = exports.init = (socket) => {
                 }
             })
         } else {
-            members.postData("members", d.data, (c) => {
-                if (typeof c.id != "undefined" && c.id > 0) {
-                    members.getData("members", { id: c.id }, {}, (e) => {
-                        if (e.data.length > 0) {
-                            socket.emit("FRONT_MEMBERS_ADD", { data : e.data , type : d.type })
-                            socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
-                        } else {
-                            socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
-                        }
-                    })
-                } else {
-                    socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
-                }
-            })
+            const insertMember = () => {
+                members.postData("members", d.data, (c) => {
+                    if (typeof c.id != "undefined" && c.id > 0) {
+                        members.getData("members", { id: c.id }, {}, (e) => {
+                            if (e.data.length > 0) {
+                                socket.emit("FRONT_MEMBERS_ADD", { data: e.data, type: d.type })
+                                socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
+                            } else {
+                                socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
+                            }
+                        })
+                    } else {
+                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
+                    }
+                })
+            };
+
+            if (d.data.usersType == "team") {
+                let usersTeam = global.initModel("users_team");
+
+                usersTeam.getData("users_team", { teamId: d.data.userTypeLinkId }, {}, (e) => {
+                    if ((e.data).length > 0) {
+                        async.each(e.data, function (mem, callback) {
+                            members.deleteData("members", { usersType: "users", userTypeLinkId: mem.usersId, linkType: d.data.linkType, linkId: d.data.linkId }, (c) => {
+                                callback(null)
+                            });
+                        }, function (err) {
+                            members.getData("members", { linkType: d.data.linkType, linkId: d.data.linkId }, {}, (c) => {
+                                if (c.status) {
+                                    socket.emit("FRONT_MEMBERS_LIST", c.data);
+                                    insertMember();
+                                } else {
+                                    if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
+                                }
+                            })
+                        });
+                    } else {
+                        insertMember();
+                    }
+                });
+            } else {
+                insertMember();
+            }
         }
     })
 
@@ -67,7 +97,7 @@ var init = exports.init = (socket) => {
         members.getData("members", filter, {}, (b) => {
             members.deleteData("members", filter, (c) => {
                 if (c.status) {
-                    socket.emit("FRONT_MEMBERS_DELETED", { id : d.type != "workstream" ? filter.id : "" , type : d.type } )
+                    socket.emit("FRONT_MEMBERS_DELETED", { id: d.type != "workstream" ? filter.userTypeLinkId : "", type: d.usersType })
                 } else {
                     socket.emit("RETURN_ERROR_MESSAGE", "Delete failed. Please try again later.")
                 }

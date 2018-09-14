@@ -4,7 +4,7 @@ import Tooltip from "react-tooltip";
 import { connect } from "react-redux";
 import _ from "lodash";
 import { showToast } from '../../globalFunction';
-import { HeaderButtonContainer, DropDown, Loading} from "../../globalComponents";
+import { HeaderButtonContainer, DropDown, Loading } from "../../globalComponents";
 import Members from "./members";
 
 import Workstreams from "./workstream";
@@ -19,7 +19,8 @@ import Workstreams from "./workstream";
         users: store.users,
         teams: store.teams,
         members: store.members,
-        workstream: store.workstream
+        workstream: store.workstream,
+        global: store.global
     }
 })
 
@@ -45,7 +46,7 @@ export default class FormComponent extends React.Component {
     deleteData(params) {
         let { socket } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_MEMBERS", { filter: { id: params.id } })
+            socket.emit("DELETE_MEMBERS", { filter: params })
         }
     }
 
@@ -105,7 +106,7 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, project, loggedUser, members, status, type, users, teams, workstream } = this.props;
+        let { dispatch, project, loggedUser, members, status, type, users, teams, workstream, global } = this.props;
         let statusList = [], typeList = [];
 
         status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
@@ -133,8 +134,32 @@ export default class FormComponent extends React.Component {
             memberListPM = projectManagerFilter[0].userTypeLinkId;
             projectManager = projectManagerFilter[0].userTypeLinkId;
         }
-        
-        let userMemberList = _(members.List)
+
+        let teamMemberList = _(members.List)
+            .filter((member) => { return member.usersType == 'team' })
+            .map((member) => {
+                let team = _(teams.List).filter((o) => {
+                    return o.id == member.userTypeLinkId
+                }).value();
+
+                let teamMembers = _(users.List).filter((o) => { return _.findIndex(o.team, (e) => { return e.teamId == member.userTypeLinkId }) >= 0 }).value();
+
+                return { ...member, members: teamMembers, team: (team.length > 0) ? team[0] : '' };
+            })
+            .value();
+
+        let membersToBeIncluded = _(teamMemberList)
+            .map((o) => { return o.members })
+            .flatten()
+            .map((e) => {
+                return {
+                    userTypeLinkId: e.id,
+                    usersType: "users",
+                    fromTeam: true
+                }
+            })
+            .value();
+        let userMemberList = _((members.List).concat(membersToBeIncluded))
             .filter((member) => {
                 return member.usersType == 'users';
             })
@@ -144,22 +169,11 @@ export default class FormComponent extends React.Component {
                 return { ...member, 'user': userMember[0] };
             })
             .value();
-
-        let teamMemberList = _(members.List)
-            .filter((member) => { return member.usersType == 'team' })
-            .map((member) => {
-                let team = _(teams.List).filter((o) => { return o.id == member.userTypeLinkId }).value();
-                let teamMembers = _(users.List).filter((o) => { return _.findIndex(o.team, (e) => { return e.teamId == member.userTypeLinkId }) >= 0 }).value();
-
-                return { ...member, members: teamMembers, team: (team.length > 0) ? team[0] : ''  };
-            })
-            .value();
-        
         let projectManagerUsers = _(users.List)
             .filter((user) => {
                 let { role } = { ...user };
                 let canBeProjectManager = _.findIndex(role, function (o) { return o.roleId == 1 || o.roleId == 2 || o.roleId == 3 || o.roleId == 5; });
-                return canBeProjectManager >= 0 && userMemberList.filter(o=>o.userTypeLinkId == user.id && o.userTypeLinkId != projectManager).length == 0;
+                return canBeProjectManager >= 0 && userMemberList.filter(o => o.userTypeLinkId == user.id && o.userTypeLinkId != projectManager).length == 0;
             }).map((user) => {
                 return { id: user.id, name: user.firstName + ' ' + user.lastName }
             })
@@ -225,7 +239,7 @@ export default class FormComponent extends React.Component {
                                                     <div class="help-block with-errors"></div>
                                                 </div>
                                             </div>
-                                            { (typeof project.Selected.typeId == "undefined" || project.Selected.typeId == 1) &&
+                                            {(typeof project.Selected.typeId == "undefined" || project.Selected.typeId == 1) &&
                                                 <div class="form-group">
                                                     <label class="col-md-3 col-xs-12 control-label">Tin No.</label>
                                                     <div class="col-md-7 col-xs-12">
@@ -234,7 +248,7 @@ export default class FormComponent extends React.Component {
                                                     </div>
                                                 </div>
                                             }
-                                            { (typeof project.Selected.typeId == "undefined"  || project.Selected.typeId == 1) &&
+                                            {(typeof project.Selected.typeId == "undefined" || project.Selected.typeId == 1) &&
                                                 <div class="form-group">
                                                     <label class="col-md-3 col-xs-12 control-label">Company Address</label>
                                                     <div class="col-md-7 col-xs-12">
@@ -280,9 +294,6 @@ export default class FormComponent extends React.Component {
                                                             <th class="text-left">Team Leader</th>
                                                             <th class="text-left">Members</th>
                                                             <th class="text-center"></th>
-                                                            {/* {
-                                                                (teamMemberList.length > 0) && <th></th>
-                                                            } */}
                                                         </tr>
                                                         {
                                                             <tr>
@@ -295,13 +306,13 @@ export default class FormComponent extends React.Component {
                                                             teamMemberList.map((data, index) => {
                                                                 return (
                                                                     <tr key={index}>
-                                                                        <td class="text-center">{(typeof data.team.id != 'undefined') ? data.team.id: ''}</td>
+                                                                        <td class="text-center">{(typeof data.team.id != 'undefined') ? data.team.id : ''}</td>
                                                                         <td class="text-left">{(typeof data.team.id != 'undefined') ? data.team.team : ''}</td>
                                                                         <td class="text-left">{(typeof data.team.teamLeaderId != 'undefined') ? data.team.users_username : ''}</td>
                                                                         <td class="text-left">{this.renderArrayTd(_.map(data.members, (el) => { return el.username }))}</td>
                                                                         <td class="text-center">
                                                                             <a href="javascript:void(0);" data-tip="DELETE"
-                                                                                onClick={e => this.deleteData({ id: data.id, type: 'team' })}
+                                                                                onClick={e => this.deleteData({ userTypeLinkId: data.team.id, usersType: 'team' })}
                                                                                 class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
                                                                                 <span class="glyphicon glyphicon-trash"></span></a>
                                                                             <Tooltip />
@@ -330,41 +341,32 @@ export default class FormComponent extends React.Component {
                                                             <th class="text-left">Team/s</th>
                                                             <th class="text-center"></th>
                                                         </tr>
-
-                                                        {/* {   
-                                                            (members.Loading) &&
-                                                                <tr>
-                                                                    <td style={{ textAlign: "center" }} colSpan={9} ><Loading/></td>
-                                                                </tr>
-                                                        } */}
-                                                       
                                                         {
                                                             (userMemberList.length == 0) && <tr>
                                                                 <td style={{ textAlign: "center" }} colSpan={9}>No Record Found!</td>
                                                             </tr>
                                                         }
-                                                       
+
                                                         {
-                                                            (userMemberList.length > 0) && _.orderBy(userMemberList,['memberType'],['desc'],).map((data, index) => {
+                                                            (userMemberList.length > 0) && _.orderBy(userMemberList, ['memberType'], ['desc']).map((data, index) => {
                                                                 return (
-                                                                    <tr key={index} style={{ color: (data.user.id ==  memberListPM ) ? "green" : "" }}>
+                                                                    <tr key={index} style={{ color: (data.user.id == memberListPM) ? "green" : "" }}>
                                                                         <td class="text-center">{data.user.id}</td>
                                                                         <td class="text-left">{data.user.username}</td>
                                                                         <td class="text-left">{data.user.firstName}</td>
                                                                         <td class="text-left">{data.user.lastName}</td>
                                                                         <td class="text-left">{data.user.emailAddress}</td>
-                                                                        <td class="text-center">{data.user.userType}</td>
+                                                                        <td class="text-center">{data.userType}</td>
                                                                         <td class="text-left">{this.renderArrayTd(_.map(data.user.role, (el) => { return el.role_role }))}</td>
                                                                         <td class="text-left">{this.renderArrayTd(_.map(data.user.team, (el) => { return el.team_team }))}</td>
                                                                         <td class="text-center">
-                                                                        {
-                                                                            (data.user.id != memberListPM ) && 
-                                                                                <a href="javascript:void(0);" data-tip="DELETE"
-                                                                                    onClick={e => this.deleteData({ id: data.id, type: 'team' })}
+                                                                            {
+                                                                                ((typeof data.fromTeam == "undefined" || data.fromTeam == "") && data.user.id != memberListPM) && <a href="javascript:void(0);" data-tip="DELETE"
+                                                                                    onClick={e => this.deleteData({ userTypeLinkId: data.user.id, usersType: 'users' })}
                                                                                     class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                                                    <span class="glyphicon glyphicon-trash"></span>
-                                                                                </a>
-                                                                        }
+                                                                                    <span class="glyphicon glyphicon-trash"></span></a>
+                                                                            }
+                                                                            <Tooltip />
                                                                         </td>
                                                                     </tr>
                                                                 )
@@ -390,11 +392,7 @@ export default class FormComponent extends React.Component {
                                                 <h4 class="modal-title" id="myModalLabel">Add Members</h4>
                                             </div>
                                             <div class="modal-body">
-                                                <Members type={
-                                                    {
-                                                        data: project,
-                                                        label: 'project'
-                                                    }} />
+                                                <Members />
                                             </div>
                                         </div>
                                     </div>
