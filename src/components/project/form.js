@@ -108,6 +108,7 @@ export default class FormComponent extends React.Component {
     render() {
         let { dispatch, project, loggedUser, members, status, type, users, teams, workstream, global } = this.props;
         let statusList = [], typeList = [];
+        let memberList = members.List;
 
         status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
         type.List.map((e, i) => {
@@ -123,19 +124,19 @@ export default class FormComponent extends React.Component {
             }
         });
 
-        let projectManagerFilter = _.filter(members.List, (o) => { return o.memberType == "project manager" });
+        let projectManagerFilter = _.filter(memberList, (o) => { return o.memberType == "project manager" }) ;
         let projectManager = '';
         let memberListPM = ''
-
+        
         if (typeof project.Selected.projectManagerId != "undefined") {
             projectManager = project.Selected.projectManagerId;
-            memberListPM = projectManagerFilter[0].userTypeLinkId;
+            memberListPM = project.Selected.projectManagerId;
         } else if (projectManagerFilter.length > 0) {
             memberListPM = projectManagerFilter[0].userTypeLinkId;
             projectManager = projectManagerFilter[0].userTypeLinkId;
         }
 
-        let teamMemberList = _(members.List)
+        let teamMemberList = _(memberList)
             .filter((member) => { return member.usersType == 'team' })
             .map((member) => {
                 let team = _(teams.List).filter((o) => {
@@ -155,11 +156,13 @@ export default class FormComponent extends React.Component {
                 return {
                     userTypeLinkId: e.id,
                     usersType: "users",
-                    fromTeam: true
+                    fromTeam: true,
+                    memberType: "assignedTo"
                 }
             })
             .value();
-        let userMemberList = _((members.List).concat(membersToBeIncluded))
+
+        let userMemberList = _((memberList).concat(membersToBeIncluded))
             .filter((member) => {
                 return member.usersType == 'users';
             })
@@ -168,7 +171,9 @@ export default class FormComponent extends React.Component {
                 let userMember = (users.List).filter((o) => { return o.id == member.userTypeLinkId });
                 return { ...member, 'user': userMember[0] };
             })
+            .uniqBy('userTypeLinkId')
             .value();
+
         let projectManagerUsers = _(users.List)
             .filter((user) => {
                 let { role } = { ...user };
@@ -356,7 +361,7 @@ export default class FormComponent extends React.Component {
                                                                         <td class="text-left">{data.user.firstName}</td>
                                                                         <td class="text-left">{data.user.lastName}</td>
                                                                         <td class="text-left">{data.user.emailAddress}</td>
-                                                                        <td class="text-center">{data.userType}</td>
+                                                                        <td class="text-center">{data.user.userType}</td>
                                                                         <td class="text-left">{this.renderArrayTd(_.map(data.user.role, (el) => { return el.role_role }))}</td>
                                                                         <td class="text-left">{this.renderArrayTd(_.map(data.user.team, (el) => { return el.team_team }))}</td>
                                                                         <td class="text-center">
