@@ -341,11 +341,11 @@ export default class FormComponent extends React.Component {
                                                                 <td style={{ textAlign: "center" }} colSpan={9}>No Record Found!</td>
                                                             </tr>
                                                         }
-                                                     
-                                                       {
-                                                            (userMemberList.length > 0) && userMemberList.map((data, index) => {
+                                                       
+                                                        {
+                                                            (userMemberList.length > 0) && _.orderBy(userMemberList,['memberType'],['desc'],).map((data, index) => {
                                                                 return (
-                                                                    <tr key={index}>
+                                                                    <tr key={index} style={{ color: (data.user.id ==  projectManager) ? "green" : "" }}>
                                                                         <td class="text-center">{data.user.id}</td>
                                                                         <td class="text-left">{data.user.username}</td>
                                                                         <td class="text-left">{data.user.firstName}</td>
@@ -355,11 +355,14 @@ export default class FormComponent extends React.Component {
                                                                         <td class="text-left">{this.renderArrayTd(_.map(data.user.role, (el) => { return el.role_role }))}</td>
                                                                         <td class="text-left">{this.renderArrayTd(_.map(data.user.team, (el) => { return el.team_team }))}</td>
                                                                         <td class="text-center">
-                                                                            <a href="javascript:void(0);" data-tip="DELETE"
-                                                                                onClick={e => this.deleteData({ id: data.id, type: 'team' })}
-                                                                                class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                                                <span class="glyphicon glyphicon-trash"></span></a>
-                                                                            <Tooltip />
+                                                                        {
+                                                                            (data.user.id != projectManager) && 
+                                                                                <a href="javascript:void(0);" data-tip="DELETE"
+                                                                                    onClick={e => this.deleteData({ id: data.id, type: 'team' })}
+                                                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                                                </a>
+                                                                        }
                                                                         </td>
                                                                     </tr>
                                                                 )
