@@ -51,55 +51,56 @@ export default class ProjectStatus extends React.Component {
 
         return <div style={this.props.style}>
             <table>
-                <tr>
-                    <td style={{ padding: "10px 5px", width: "120px" }}>Client</td>
-                    <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                        <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{(data.Client.Active - data.Client.Issues) + data.Client.Issues}</span>
-                    </td>
-                    <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                        <span style={{ float: "left" }}>On-track</span><span style={{ float: "right" }}>{data.Client.Active - data.Client.Issues}</span>
-                    </td>
-                    <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
-                        <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{data.Client.Issues}</span>
-                    </td>
-                </tr>
-                {typeof this.props.loggedUser.data.userRole != "undefined" &&
-                    (this.props.loggedUser.data.userRole == "1" ||
-                        this.props.loggedUser.data.userRole == "2" ||
-                        this.props.loggedUser.data.userRole == "3" ||
-                        this.props.loggedUser.data.userRole == "4") &&
+                <tbody>
                     <tr>
-                        <td style={{ padding: "10px 5px", width: "120px" }}>Internal</td>
+                        <td style={{ padding: "10px 5px", width: "120px" }}>Client</td>
                         <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{(data.Internal.Active - data.Internal.Issues) + data.Internal.Issues}</span>
+                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{(data.Client.Active - data.Client.Issues) + data.Client.Issues}</span>
                         </td>
                         <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                            <span style={{ float: "left" }}>On-track</span><span style={{ float: "right" }}>{data.Internal.Active - data.Internal.Issues}</span>
+                            <span style={{ float: "left" }}>On-track</span><span style={{ float: "right" }}>{data.Client.Active - data.Client.Issues}</span>
                         </td>
                         <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
-                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{data.Internal.Issues}</span>
+                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{data.Client.Issues}</span>
                         </td>
                     </tr>
-                }
-                {typeof this.props.loggedUser.data.userRole != "undefined" &&
-                    (this.props.loggedUser.data.userRole == "1" ||
-                        this.props.loggedUser.data.userRole == "2" ||
-                        this.props.loggedUser.data.userRole == "3" ||
-                        this.props.loggedUser.data.userRole == "4") &&
-                    <tr>
-                        <td style={{ padding: "10px 5px", width: "120px" }}>Private</td>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{(data.Private.Active - data.Private.Issues) + data.Private.Issues}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                            <span style={{ float: "left" }}>On-track</span><span style={{ float: "right" }}>{data.Private.Active - data.Private.Issues}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
-                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{data.Private.Issues}</span>
-                        </td>
-                    </tr>
-                }
-
+                    {typeof this.props.loggedUser.data.userRole != "undefined" &&
+                        (this.props.loggedUser.data.userRole == "1" ||
+                            this.props.loggedUser.data.userRole == "2" ||
+                            this.props.loggedUser.data.userRole == "3" ||
+                            this.props.loggedUser.data.userRole == "4") &&
+                        <tr>
+                            <td style={{ padding: "10px 5px", width: "120px" }}>Internal</td>
+                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
+                                <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{(data.Internal.Active - data.Internal.Issues) + data.Internal.Issues}</span>
+                            </td>
+                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
+                                <span style={{ float: "left" }}>On-track</span><span style={{ float: "right" }}>{data.Internal.Active - data.Internal.Issues}</span>
+                            </td>
+                            <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
+                                <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{data.Internal.Issues}</span>
+                            </td>
+                        </tr>
+                    }
+                    {typeof this.props.loggedUser.data.userRole != "undefined" &&
+                        (this.props.loggedUser.data.userRole == "1" ||
+                            this.props.loggedUser.data.userRole == "2" ||
+                            this.props.loggedUser.data.userRole == "3" ||
+                            this.props.loggedUser.data.userRole == "4") &&
+                        <tr>
+                            <td style={{ padding: "10px 5px", width: "120px" }}>Private</td>
+                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
+                                <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{(data.Private.Active - data.Private.Issues) + data.Private.Issues}</span>
+                            </td>
+                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
+                                <span style={{ float: "left" }}>On-track</span><span style={{ float: "right" }}>{data.Private.Active - data.Private.Issues}</span>
+                            </td>
+                            <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
+                                <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{data.Private.Issues}</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
             </table>
         </div>
     }

@@ -126,7 +126,7 @@ export default class Component extends React.Component {
                         <h3>Cloud CFO</h3>
                     </div>
                     <div class="main-bar">
-                        <h3 style={{ 'text-transform': 'capitalize' }}>
+                        <h3 style={{ textTransform: 'capitalize' }}>
                             <i class="glyphicon glyphicon-dashboard"></i>&nbsp;
                            {(this.props.page)}{this.props.form ? " > " + this.props.form : ""}{(this.props.form) == "Form" ? (this.props.formId > 0 ? " > Edit " : " > Add ") : ""}
 
