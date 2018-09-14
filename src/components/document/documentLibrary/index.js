@@ -141,7 +141,7 @@ export default class DocumentLibrary extends React.Component {
     addFolder(){
         let { socket , global , loggedUser, folder } = this.props;
         let { folderName } = this.state;
-            socket.emit("SAVE_OR_UPDATE_FOLDER", { data:{ projectId: project , name: folderName , createdBy: loggedUser.data.id, parentId: folder.Selected.id , type : "librabry"}})
+            socket.emit("SAVE_OR_UPDATE_FOLDER", { data:{ projectId: project , name: folderName , createdBy: loggedUser.data.id, parentId: folder.Selected.id , type : "library"}})
             this.setState({ folderAction : "" , folderName : "" })
     }
 
@@ -264,7 +264,7 @@ export default class DocumentLibrary extends React.Component {
                             let isShared = global.SelectList.shareList.filter( s => { 
                                                 return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedLibraryFolder.id) && (s.shareType == "document" || s.shareType == "folder") 
                                             }).length ? 1 : 0 ;
-                                if(isShared){
+                                if(isShared || e.uploadedBy == loggedUser.data.id){
                                     documentList.library.push(e)
                                 }
                             }

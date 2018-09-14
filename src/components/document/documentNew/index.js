@@ -400,7 +400,7 @@ export default class DocumentNew extends React.Component {
                                                                 }
                                                                 { folder.List.map((f,fIndex) => {
                                                                     return (
-                                                                        <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveToFolder(f,data)}>{f.name}</a>
+                                                                        <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveToFolder(f,data)}>{f.name} {`${ f.type == "new" ? "( new document )" : "( library )"}`}</a>
                                                                     )
                                                                 })}
                                                             </div>
