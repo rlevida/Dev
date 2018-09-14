@@ -41,9 +41,8 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_PROJECT_EDIT",(data) => {
-            dispatch({type:"UPDATE_DATA_PROJECT_LIST",UpdatedData:data, List: this.props.company.List})
-            dispatch({type:"SET_PROJECT_SELECTED",Selected : {}})
-            dispatch({type:"SET_PROJECT_FORM_ACTIVE",FormActive : "List"})
+            socket.emit("GET_MEMBERS_LIST", { filter: { linkId: data.id, linkType: 'project' } });
+            dispatch({type:"SET_PROJECT_SELECTED",Selected : data })
         })
 
         socket.on("FRONT_PROJECT_DELETED",(data) => {
