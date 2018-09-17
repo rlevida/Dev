@@ -82,7 +82,7 @@ export default class FormComponent extends React.Component {
                 })
                 .value();
 
-                userWorkstream = _(workstream.List)
+            userWorkstream = _(workstream.List)
                 .filter((e) => {
                     if (user.userType == "External") {
                         return _.findIndex(user.worksteamIds, (o) => { return o == e.id }) > -1 && e.projectStatus > 0 && e.isDeleted == 0;
@@ -165,6 +165,9 @@ export default class FormComponent extends React.Component {
                                                 }
                                             </tbody>
                                         </table>
+                                        {
+                                            (userProjects.length == 0) && <p class="text-center">No Record Found!</p>
+                                        }
                                     </div>
                                 </div>
                             }
@@ -189,6 +192,9 @@ export default class FormComponent extends React.Component {
                                             }
                                         </tbody>
                                     </table>
+                                    {
+                                        (userWorkstream.length == 0) && <p class="text-center">No Record Found!</p>
+                                    }
                                 </div>
                             </div>
                             {
@@ -222,6 +228,9 @@ export default class FormComponent extends React.Component {
                                                 }
                                             </tbody>
                                         </table>
+                                        {
+                                            (userTeam.length == 0) && <p class="text-center">No Record Found!</p>
+                                        }
                                     </div>
                                 </div>
                             }
