@@ -54,22 +54,11 @@ var field = exports.field = {
      * period (int)
      */
     'period' : {type : 'int' , access : "public" },
-
-    /**
-     * linkTaskId (BIGINT)
-     */
-    'linkTaskId' : {type : 'bigint' , access : "public",  database: "task", relation: "one-to-one"  },
-
+    
     /**
      * dateAdded (DATETIME)
      */
     'dateAdded' : {type : 'date' , access : "public" },
-
-    /**
-     * status (ENUM("Preceeding","Succeeding"))
-     */
-    'dependencyType' : {type : 'string' , access : "public" },
-
     /**
      * dateUpdated (TIMESTAMP)
      */
