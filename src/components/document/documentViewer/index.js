@@ -98,7 +98,7 @@ export default class DocumentViewerComponent extends React.Component {
             isDocument = true , ext = "";
         let uploadedBy =  global.SelectList.ProjectMemberList.filter( e =>{ return e.id == document.Selected.uploadedBy});
             ext = getFilePathExtension(document.Selected.name);
-            if( ext == "jpeg" || ext == "png"){
+            if(ext != "pdf"){
                 isDocument = false;
             }
         return (
@@ -121,24 +121,26 @@ export default class DocumentViewerComponent extends React.Component {
                             </div>
                             <div class="panel-body">
                                 <div class="row" style={{height:"500px"}}>
-                                    <div class="col-lg-6 col-md-6 col-xs-12">
+                                    <div class="col-lg-6 col-md-6 col-xs-12" style={{height:"100%"}}>
                                         <div id="documentImage" style={{textAlign:"center" , height:"100%" }}>
                                         { (isDocument) ? 
-                                            <span style={{fontSize:"100px"}} class="glyphicon glyphicon-file"></span>
-                                                : <img src={ `${settings.imageUrl }/upload/${document.Selected.name}`} width="100" height="100" /> 
+                                                <embed src={`${settings.imageUrl }/upload/${document.Selected.name}`} type="application/pdf" width="100%" height="100%">
+                                                </embed>
+                                                :  <span style={{fontSize:"100px"}} class="glyphicon glyphicon-file"></span>
                                         }
                                         </div>
                                     </div>
                                     <div class="col-lg-6 col-md-6 col-xs-12">
-                                        <a class="btn btn-primary btn-flat pull-right" style={{ cursor: "pointer" }} title="Link" target="_blank" 
+                                        { !isDocument && <a class="btn btn-primary btn-flat pull-right" style={{ cursor: "pointer" }} title="Link" target="_blank" 
                                             href={ settings.imageUrl + "/upload/" + document.Selected.name }>
                                             Download
                                         </a>
+                                        }
                                         <br/><br/>
                                         <span class="glyphicon glyphicon-file"></span>
                                         {document.Selected.origin}
                                         <br/>
-                                        Uploaded by { uploadedBy[0].emailAddress }  
+                                        Uploaded by { uploadedBy.length > 0 ? uploadedBy[0].emailAddress  : ""}  
                                         <br/> 
                                         {moment(document.Selected.dateAdded).format('L')} 
                                         <br/>
