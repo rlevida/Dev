@@ -157,10 +157,7 @@ export default class FormComponent extends React.Component {
 
         if (!result) {
             showToast("error", "Form did not fullfill the required value.")
-            return;
-        }
-
-        if (
+        } else if (
             (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "") &&
             (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "")) {
             socket.emit("SAVE_OR_UPDATE_TASK", {
@@ -216,7 +213,7 @@ export default class FormComponent extends React.Component {
         if (typeof global.SelectList.ProjectMemberList != "undefined") {
             global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.firstName + " " + e.lastName }) })
         }
-
+        
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
@@ -290,18 +287,38 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Dependent to task</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Dependency Type</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={false}
                                             required={false}
-                                            options={taskList}
-                                            selected={(typeof task.Selected.linkTaskId == "undefined") ? "" : task.Selected.linkTaskId}
-                                            onChange={(e) => this.setDropDown("linkTaskId", e.value)}
+                                            options={_.map(['Preceeding', 'Succeeding'], (o) => { return { id: o, name: o } })}
+                                            selected={(typeof task.Selected.dependencyType == "undefined") ? "" : task.Selected.dependencyType}
+                                            onChange={(e) => {
+                                                this.setDropDown("dependencyType", (e == null) ? "" : e.value);
+                                            }}
                                             disabled={!allowEdit}
+                                            isClearable={true}
                                         />
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
+                                {
+                                    (typeof task.Selected.dependencyType != "undefined"
+                                        && (task.Selected.dependencyType != "" &&
+                                            task.Selected.dependencyType != null)) && <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Dependent Task</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <DropDown multiple={false}
+                                                required={false}
+                                                options={taskList}
+                                                selected={(typeof task.Selected.linkTaskId == "undefined") ? "" : task.Selected.linkTaskId}
+                                                onChange={(e) => this.setDropDown("linkTaskId", e.value)}
+                                                disabled={!allowEdit}
+                                            />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                }
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Periodic?</label>
                                     <div class="col-md-7 col-xs-12">
@@ -334,7 +351,7 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 }
                                 {
-                                    (task.Selected.periodic == 1) && < div class="form-group">
+                                    (task.Selected.periodic == 1) && <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Period Type *</label>
                                         <div class="col-md-7 col-xs-12">
                                             <DropDown multiple={false}

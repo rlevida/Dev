@@ -66,6 +66,11 @@ var field = exports.field = {
     'dateAdded' : {type : 'date' , access : "public" },
 
     /**
+     * status (ENUM("Preceeding","Succeeding"))
+     */
+    'dependencyType' : {type : 'string' , access : "public" },
+
+    /**
      * dateUpdated (TIMESTAMP)
      */
     'dateUpdated' :  {type : 'date' , access : "public" },
