@@ -11,7 +11,7 @@ var field = exports.field = {
     'taskId' : {type : 'bigint' , access : "public" },
 
     /**
-     * dependencyType (ENUM("Preceeding","Succeeding"))
+     * dependencyType (ENUM("Preceding","Succeeding"))
      */
     'dependencyType' : {type : 'string' , access : "public" },
 
@@ -19,11 +19,6 @@ var field = exports.field = {
      * linkTaskId (BIGINT)
      */
     'linkTaskId' : {type : 'bigint' , access : "public" },
-
-    /**
-     * typeId (BIGINT)
-     */
-    'typeId' : {type : 'bigint' , access : "public" },
 
     /**
      * dateAdded (DATETIME)

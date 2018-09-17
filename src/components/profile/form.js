@@ -166,7 +166,7 @@ export default class FormComponent extends React.Component {
                                             </tbody>
                                         </table>
                                         {
-                                            (userProjects.length == 0) && <p class="text-center">No Record Found!</p>
+                                            (userProjects.length == 0) && <p class="text-center m0">No Record Found!</p>
                                         }
                                     </div>
                                 </div>
@@ -193,7 +193,7 @@ export default class FormComponent extends React.Component {
                                         </tbody>
                                     </table>
                                     {
-                                        (userWorkstream.length == 0) && <p class="text-center">No Record Found!</p>
+                                        (userWorkstream.length == 0) && <p class="text-center m0">No Record Found!</p>
                                     }
                                 </div>
                             </div>
@@ -229,7 +229,7 @@ export default class FormComponent extends React.Component {
                                             </tbody>
                                         </table>
                                         {
-                                            (userTeam.length == 0) && <p class="text-center">No Record Found!</p>
+                                            (userTeam.length == 0) && <p class="text-center m0">No Record Found!</p>
                                         }
                                     </div>
                                 </div>
