@@ -18,7 +18,7 @@ export default class Component extends React.Component {
         var Component = <div id="content">
             <div class="row pdl20 pdr20">
                 <div class="col-md-12 mb20">
-                    <h4>Project</h4>
+                    <h4>Projects</h4>
                     <ProjectStatus style={{}} />
                 </div>
                 <div class="col-md-12">

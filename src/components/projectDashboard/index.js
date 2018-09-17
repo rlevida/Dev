@@ -47,7 +47,7 @@ export default class Component extends React.Component {
             </div>
         </div>
         return (
-            <Header component={Component} page={"Project"} />
+            <Header component={Component} page={"Project Dashboard"} />
         )
     }
 }
