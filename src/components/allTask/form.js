@@ -212,16 +212,36 @@ export default class FormComponent extends React.Component {
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Dependent to task</label>
+                                        <label class="col-md-3 col-xs-12 control-label">Dependency Type</label>
                                         <div class="col-md-7 col-xs-12">
                                             <DropDown multiple={false}
                                                 required={false}
-                                                options={taskList}
-                                                selected={(typeof task.Selected.linkTaskId == "undefined") ? "" : task.Selected.linkTaskId}
-                                                onChange={(e) => this.setDropDown("linkTaskId", e.value)} />
+                                                options={_.map(['Preceeding', 'Succeeding'], (o) => { return { id: o, name: o } })}
+                                                selected={(typeof task.Selected.dependencyType == "undefined") ? "" : task.Selected.dependencyType}
+                                                onChange={(e) => {
+                                                    this.setDropDown("dependencyType", (e == null) ? "" : e.value);
+                                                }}
+                                                isClearable={true}
+                                            />
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
+                                    {
+                                        (typeof task.Selected.dependencyType != "undefined"
+                                            && (task.Selected.dependencyType != "" &&
+                                                task.Selected.dependencyType != null)) && <div class="form-group">
+                                            <label class="col-md-3 col-xs-12 control-label">Dependent Task</label>
+                                            <div class="col-md-7 col-xs-12">
+                                                <DropDown multiple={false}
+                                                    required={false}
+                                                    options={taskList}
+                                                    selected={(typeof task.Selected.linkTaskId == "undefined") ? "" : task.Selected.linkTaskId}
+                                                    onChange={(e) => this.setDropDown("linkTaskId", e.value)}
+                                                />
+                                                <div class="help-block with-errors"></div>
+                                            </div>
+                                        </div>
+                                    }
                                     <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Due Date: </label>
                                         <div class="col-md-7 col-xs-12">

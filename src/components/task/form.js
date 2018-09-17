@@ -192,9 +192,10 @@ export default class FormComponent extends React.Component {
     }
 
     setDropDownMultiple(name, values) {
-        this.setState({
-            [name]: JSON.stringify(values ? values : [])
-        });
+        let { task } = this.props
+        let Selected = Object.assign({}, task.Selected)
+
+        Selected[name] = values;
     }
 
     render() {
@@ -210,6 +211,7 @@ export default class FormComponent extends React.Component {
                 taskList.push({ id: e.id, name: e.task })
             })
         }
+
         if (typeof global.SelectList.ProjectMemberList != "undefined") {
             global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.firstName + " " + e.lastName }) })
         }
@@ -308,11 +310,11 @@ export default class FormComponent extends React.Component {
                                             task.Selected.dependencyType != null)) && <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Dependent Task</label>
                                         <div class="col-md-7 col-xs-12">
-                                            <DropDown multiple={false}
+                                            <DropDown multiple={true}
                                                 required={false}
                                                 options={taskList}
-                                                selected={(typeof task.Selected.linkTaskId == "undefined") ? "" : task.Selected.linkTaskId}
-                                                onChange={(e) => this.setDropDown("linkTaskId", e.value)}
+                                                selected={(typeof task.Selected.linkTaskId == "undefined") ? [] : task.Selected.linkTaskId}
+                                                onChange={(e) => this.setDropDownMultiple("linkTaskId", e)}
                                                 disabled={!allowEdit}
                                             />
                                             <div class="help-block with-errors"></div>
