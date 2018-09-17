@@ -57,7 +57,7 @@ var uploadFile = exports.uploadFile = (params,cb) => {
     fileStream.on('error', (err) => {
        console.log("Error in creating file stream. [" + err + "]");
     });
-
+    
     fileStream.on('open', () => {
         var s3 = new AWS.S3();
             s3.putObject({
@@ -66,7 +66,7 @@ var uploadFile = exports.uploadFile = (params,cb) => {
                 ACL: 'public-read-write',
                 Body: fileStream,
                 ContentType : params.file.type , 
-                ContentDisposition: "attachment"
+                // ContentDisposition: "attachment"
             }, (err) => {
                 if(err){
                     console.log("Error in Uploading to AWS. [" + err + "]");
