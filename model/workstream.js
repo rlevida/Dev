@@ -282,7 +282,6 @@ var getWorkstreamList = exports.getWorkstreamList = ( tablename, data, advance ,
      * Manage Query Connection
      */
 
-    //  console.log(query)
     db.query(
         query,
         params, 

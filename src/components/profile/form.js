@@ -13,7 +13,6 @@ import _ from 'lodash';
         type: store.type,
         users: store.users,
         teams: store.teams,
-        members: store.members,
         role: store.role,
         workstream: store.workstream,
         usersTeam: store.usersTeam
@@ -43,7 +42,6 @@ export default class FormComponent extends React.Component {
         let { socket, dispatch, loggedUser } = this.props
         let tempData = Object.assign({}, loggedUser.data)
         tempData[e.target.name] = e.target.value;
-        dispatch({ type: "SET_LOGGED_USER_DATA", data: tempData })
     }
 
     handleSubmit(e) {
@@ -68,6 +66,7 @@ export default class FormComponent extends React.Component {
     render() {
         let { project, loggedUser, teams, role, workstream, usersTeam } = this.props;
         let user = loggedUser.data, userRole = "", userTeam = [], userProjects = [], userWorkstream = [];
+
         if (typeof user.id != "undefined" && role.List.length > 0) {
             userRole = role.List.filter(e => { return e.id == user.userRole })[0].role
         }
@@ -83,9 +82,13 @@ export default class FormComponent extends React.Component {
                 })
                 .value();
 
-            userWorkstream = _(workstream.List)
+                userWorkstream = _(workstream.List)
                 .filter((e) => {
-                    return _.findIndex(user.projectIds, (o) => { return o == e.projectId }) > -1 && e.projectStatus > 0 && e.isDeleted == 0;
+                    if (user.userType == "External") {
+                        return _.findIndex(user.worksteamIds, (o) => { return o == e.id }) > -1 && e.projectStatus > 0 && e.isDeleted == 0;
+                    } else {
+                        return _.findIndex(user.projectIds, (o) => { return o == e.projectId }) > -1 && e.projectStatus > 0 && e.isDeleted == 0;
+                    }
                 })
                 .value();
         }
@@ -151,9 +154,9 @@ export default class FormComponent extends React.Component {
                                                     <th class="text-center">Type</th>
                                                 </tr>
                                                 {
-                                                    _.map(userProjects, (data) => {
+                                                    _.map(userProjects, (data, index) => {
                                                         return (
-                                                            <tr>
+                                                            <tr key={index}>
                                                                 <td class="text-left"><a href={"/project/" + data.id}>{data.project}</a></td>
                                                                 <td class="text-center"><span class={(data.type_type == "Client") ? "fa fa-users" : (data.type_type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></span></td>
                                                             </tr>
@@ -167,17 +170,17 @@ export default class FormComponent extends React.Component {
                             }
                             <div class="row pdl20 pdr20 mb20">
                                 <div class="col-md-6">
-                                    <h4 class="mt20 mb20">Workstream</h4>
+                                    <h4 class="mt20 mb20">Workstreams</h4>
                                     <table id="dataTable" class="table responsive-table mt30">
                                         <tbody>
                                             <tr>
-                                                <th class="text-left">Workstream</th>
+                                                <th class="text-left">Workstreams</th>
                                                 <th class="text-center">Type</th>
                                             </tr>
                                             {
-                                                _.map(userWorkstream, (data) => {
+                                                _.map(userWorkstream, (data, index) => {
                                                     return (
-                                                        <tr>
+                                                        <tr key={index}>
                                                             <td class="text-left">{data.workstream}</td>
                                                             <td><span class={data.type_type == "Output based" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
                                                         </tr>
