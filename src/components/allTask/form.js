@@ -17,7 +17,8 @@ import MembersForm from "../global/members/membersForm";
         members: store.members,
         teams: store.teams,
         users: store.users,
-        global: store.global
+        global: store.global,
+        loggedUser: store.loggedUser
     }
 })
 
@@ -122,16 +123,23 @@ export default class FormComponent extends React.Component {
     }
 
     setDropDownMultiple(name, values) {
-        this.setState({
-            [name]: JSON.stringify(values ? values : [])
-        });
+        let { task, dispatch } = this.props;
+        let Selected = Object.assign({}, task.Selected);
+
+        Selected[name] = values;
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
     render() {
-        let { dispatch, task, status, workstream, global } = this.props;
+        let { dispatch, task, status, workstream, global, loggedUser } = this.props;
         let statusList = [], typeList = [], taskList = [], projectUserList = [];
         let workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
+        let canAssignDependency = (
+            loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 ||
+            _.findIndex(task.Selected.project_manager, (o) => { return o == loggedUser.data.id }) >= 0 ||
+            _.findIndex(task.Selected.workstream_responsible, (o) => { return o == loggedUser.data.id }) >= 0
+        );
 
         if (typeof this.props.global.SelectList.taskList != "undefined") {
             this.props.global.SelectList["taskList"].map((e) => {
@@ -210,18 +218,18 @@ export default class FormComponent extends React.Component {
                                             <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} />
                                             <div class="help-block with-errors"></div>
                                         </div>
-                                    </div>
-                                    <div class="form-group">
+                                    </div> <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Dependency Type</label>
                                         <div class="col-md-7 col-xs-12">
                                             <DropDown multiple={false}
                                                 required={false}
-                                                options={_.map(['Preceeding', 'Succeeding'], (o) => { return { id: o, name: o } })}
+                                                options={_.map(['Preceding', 'Succeeding'], (o) => { return { id: o, name: o } })}
                                                 selected={(typeof task.Selected.dependencyType == "undefined") ? "" : task.Selected.dependencyType}
                                                 onChange={(e) => {
                                                     this.setDropDown("dependencyType", (e == null) ? "" : e.value);
                                                 }}
                                                 isClearable={true}
+                                                disabled={canAssignDependency == false}
                                             />
                                             <div class="help-block with-errors"></div>
                                         </div>
@@ -230,13 +238,16 @@ export default class FormComponent extends React.Component {
                                         (typeof task.Selected.dependencyType != "undefined"
                                             && (task.Selected.dependencyType != "" &&
                                                 task.Selected.dependencyType != null)) && <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Dependent Task</label>
+                                            <label class="col-md-3 col-xs-12 control-label">Dependent Tasks *</label>
                                             <div class="col-md-7 col-xs-12">
-                                                <DropDown multiple={false}
-                                                    required={false}
+                                                <DropDown multiple={true}
+                                                    required={typeof task.Selected.dependencyType != "undefined"
+                                                        && (task.Selected.dependencyType != "" &&
+                                                            task.Selected.dependencyType != null)}
                                                     options={taskList}
-                                                    selected={(typeof task.Selected.linkTaskId == "undefined") ? "" : task.Selected.linkTaskId}
-                                                    onChange={(e) => this.setDropDown("linkTaskId", e.value)}
+                                                    selected={(typeof task.Selected.linkTaskIds == "undefined") ? [] : task.Selected.linkTaskIds}
+                                                    onChange={(e) => this.setDropDownMultiple("linkTaskIds", e)}
+                                                    disabled={canAssignDependency == false}
                                                 />
                                                 <div class="help-block with-errors"></div>
                                             </div>

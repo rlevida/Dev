@@ -50,14 +50,45 @@ var init = exports.init = (socket) => {
                 }
             })
         }).then((nextThen, data) => {
-            let members = global.initModel("members")
-            members.getData("members", { linkType: "task", linkId: data.id, usersType: "users", memberType: "assignedTo" }, {}, (e) => {
-                if (e.data.length > 0) {
-                    data.assignedTo = e.data[0].userTypeLinkId;
+            const members = global.initModel("members");
+            const taskDependency = global.initModel("task_dependency");
+            async.parallel({
+                members: (parallelCallback) => {
+                    members.getData("members", { linkType: "task", linkId: data.id, usersType: "users", memberType: "assignedTo" }, {}, (e) => {
+                        if (e.data.length > 0) {
+                            parallelCallback(null, e.data[0].userTypeLinkId);
+                        } else {
+                            parallelCallback(null, "");
+                        }
+                    })
+                },
+                dependencies: (parallelCallback) => {
+                    taskDependency.getData("task_dependency", { taskId: data.id }, {}, (e) => {
+                        parallelCallback(null, e.data);
+                    })
+                },
+                responsible: (parallelCallback) => {
+                    members.getData("members", { linkType: "workstream", linkId: data.workstreamId, usersType: "users", memberType: "responsible" }, {}, (e) => {
+                        parallelCallback(null, e.data);
+                    });
+                },
+                project_manager: (parallelCallback) => {
+                    members.getData("members", { linkType: "project", linkId: data.projectId, usersType: "users", memberType: "project manager" }, {}, (e) => {
+                        parallelCallback(null, e.data);
+                    });
                 }
-                let dataObject = { ...data, ...((typeof d.action != 'undefined') ? { action: d.action } : {}) }
+            }, (err, results) => {
+                let dataObject = {
+                    ...data,
+                    ...((typeof d.action != 'undefined') ? { action: d.action } : {}),
+                    dependencyType: ((results.dependencies).length > 0) ? results.dependencies[0].dependencyType : "",
+                    linkTaskIds: (results.dependencies).map((o) => { return { value: o.linkTaskId } }),
+                    assignedTo: results.members,
+                    workstream_responsible: (results.responsible).map((o) => { return o.userTypeLinkId }),
+                    project_manager: (results.project_manager).map((o) => { return o.userTypeLinkId })
+                }
                 socket.emit("FRONT_TASK_SELECTED", dataObject)
-            })
+            });
         })
     })
     socket.on("SAVE_OR_UPDATE_TASK", (d) => {
@@ -125,42 +156,92 @@ var init = exports.init = (socket) => {
             }
         }).then((nextThen, id, type, data) => {
             const members = global.initModel("members");
+            const taskDependency = global.initModel("task_dependency");
 
-            if (typeof d.data.assignedTo != 'undefined' && d.data.assignedTo != '') {
-                members.deleteData("members", { linkType: "task", linkId: id, usersType: "users", memberType: "assignedTo" }, (c) => {
-                    let assignedTo = { linkType: "task", linkId: id, usersType: "users", userTypeLinkId: d.data.assignedTo, memberType: "assignedTo" };
+            async.parallel({
+                members: (parallelCallback) => {
+                    if (typeof d.data.assignedTo != 'undefined' && d.data.assignedTo != '') {
+                        members.deleteData("members", { linkType: "task", linkId: id, usersType: "users", memberType: "assignedTo" }, (c) => {
+                            let assignedTo = { linkType: "task", linkId: id, usersType: "users", userTypeLinkId: d.data.assignedTo, memberType: "assignedTo" };
 
-                    members.postData("members", assignedTo, (c) => {
-                        data.task.assignedById = d.data.assignedTo;
-                        nextThen(type, data);
-                    });
-                })
-            } else if (d.data.action == "complete") {
-                members.getData("members", { linkType: "task", linkId: data.task.id, memberType: "assignedTo" }, {}, (e) => {
-                    if (e.status && e.data.length > 0) {
-                        let assignedTo = { linkType: "task", linkId: data.periodic.id, usersType: "users", userTypeLinkId: e.data[0].userTypeLinkId, memberType: "assignedTo" };
-
-                        if ((typeof data.periodic != "undefined" && data.periodic != "")) {
                             members.postData("members", assignedTo, (c) => {
-                                data.periodic.assignedById = e.data[0].userTypeLinkId;
-                                data.task.assignedById = e.data[0].userTypeLinkId;
-                                nextThen(type, data)
+                                data.task.assignedById = d.data.assignedTo;
+                                parallelCallback(null, data);
                             });
-                        } else {
-                            data.task.assignedById = e.data[0].userTypeLinkId;
-                            nextThen(type, data)
-                        }
+                        })
+                    } else if (d.data.action == "complete") {
+                        members.getData("members", { linkType: "task", linkId: data.task.id, memberType: "assignedTo" }, {}, (e) => {
+                            if (e.status && e.data.length > 0) {
+                                let assignedTo = { linkType: "task", linkId: data.periodic.id, usersType: "users", userTypeLinkId: e.data[0].userTypeLinkId, memberType: "assignedTo" };
 
-                    } else {
-                        nextThen(type, data)
+                                if ((typeof data.periodic != "undefined" && data.periodic != "")) {
+                                    members.postData("members", assignedTo, (c) => {
+                                        data.periodic.assignedById = e.data[0].userTypeLinkId;
+                                        data.task.assignedById = e.data[0].userTypeLinkId;
+                                        parallelCallback(null, data)
+                                    });
+                                } else {
+                                    data.task.assignedById = e.data[0].userTypeLinkId;
+                                    parallelCallback(null, data)
+                                }
+
+                            } else {
+                                parallelCallback(null, data)
+                            }
+                        });
+                    } else if (typeof d.data.assignedTo == 'undefined' || d.data.assignedTo == '') {
+                        members.deleteData("members", { linkType: "task", linkId: id, usersType: "users", memberType: "assignedTo" }, (c) => {
+                            data.task.assignedById = "";
+                            parallelCallback(null, data)
+                        });
                     }
-                });
-            } else if (typeof d.data.assignedTo == 'undefined' || d.data.assignedTo == '') {
-                members.deleteData("members", { linkType: "task", linkId: id, usersType: "users", memberType: "assignedTo" }, (c) => {
-                    data.task.assignedById = "";
-                    nextThen(type, data)
-                });
-            }
+                },
+                dependency: (parallelCallback) => {
+                    if (typeof d.data.dependencyType != 'undefined' && d.data.dependencyType != '') {
+                        taskDependency.deleteData("task_dependency", { taskId: id }, (c) => {
+                            async.map(d.data.linkTaskIds, (taskid, mapCallback) => {
+                                taskDependency.postData("task_dependency", {
+                                    taskId: id,
+                                    dependencyType: d.data.dependencyType,
+                                    linkTaskId: taskid.value
+                                }, (c) => {
+                                    mapCallback(null)
+                                });
+                            }, (err, results) => {
+                                parallelCallback(null, results)
+                            });
+                        });
+                    } else if (d.data.action == "complete") {
+                        taskDependency.getData("task_dependency", { taskId: id }, {}, (e) => {
+                            if (e.status && e.data.length > 0) {
+                                if ((typeof data.periodic != "undefined" && data.periodic != "")) {
+                                    async.map(e.data, (task, mapCallback) => {
+                                        taskDependency.postData("task_dependency", {
+                                            taskId: data.periodic.id,
+                                            dependencyType: task.dependencyType,
+                                            linkTaskId: task.linkTaskId
+                                        }, (c) => {
+                                            mapCallback(null)
+                                        });
+                                    }, (err, results) => {
+                                        parallelCallback(null, results)
+                                    });
+                                } else {
+                                    parallelCallback(null)
+                                }
+                            } else {
+                                parallelCallback(null)
+                            }
+                        })
+                    } else if (typeof d.data.dependencyType == 'undefined' || d.data.dependencyType == '') {
+                        taskDependency.deleteData("task_dependency", { taskId: id }, (c) => {
+                            parallelCallback(null);
+                        });
+                    }
+                }
+            }, (err, results) => {
+                nextThen(type, results.members)
+            })
         }).then((nextThen, type, data) => {
             if (data.periodic != "" && type == "edit") {
                 socket.emit("FRONT_TASK_EDIT", data.task)
@@ -181,8 +262,24 @@ var init = exports.init = (socket) => {
 
         task.getData("task", {}, {}, (b) => {
             task.deleteData("task", { id: d.id }, (c) => {
+                const members = global.initModel("members");
+                const taskDependency = global.initModel("task_dependency");
+
                 if (c.status) {
-                    socket.emit("FRONT_TASK_DELETED", { id: d.id })
+                    async.parallel({
+                        members: (parallelCallback) => {
+                            members.deleteData("members", { linkType: "task", linkId: d.id, usersType: "users", memberType: "assignedTo" }, (c) => {
+                                parallelCallback(null);
+                            });
+                        },
+                        dependency: (parallelCallback) => {
+                            taskDependency.deleteData("task_dependency", { taskId: d.id }, (c) => {
+                                parallelCallback(null);
+                            });
+                        }
+                    }, (err, results) => {
+                        socket.emit("FRONT_TASK_DELETED", { id: d.id })
+                    });
                 } else {
                     socket.emit("RETURN_ERROR_MESSAGE", "Delete failed. Please try again later.")
                 }

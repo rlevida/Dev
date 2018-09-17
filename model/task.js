@@ -3,76 +3,81 @@ var field = exports.field = {
     /**
      *  Id (Primary Key)
      */
-    'id' : {type : 'bigint' , access : "public" },
+    'id': { type: 'bigint', access: "public" },
 
     /**
      * projectId (BIGINT)
      */
-    'projectId' : {type : 'bigint' , access : "public",  database: "project", relation: "one-to-one" },
+    'projectId': { type: 'bigint', access: "public", database: "project", relation: "one-to-one" },
 
     /**
      * workstream (VARCHAR(50))
      */
-    'workstreamId' : {type : 'bigint' , access : "public",  database: "workstream", relation: "one-to-one" },
+    'workstreamId': { type: 'bigint', access: "public", database: "workstream", relation: "one-to-one" },
 
-     /**
-     * task (TEXT)
-     */
-    'task' : {type : 'text' , access : "public" },
+    /**
+    * task (TEXT)
+    */
+    'task': { type: 'text', access: "public" },
 
-     /**
-     * dueDate (DATETIME)
-     */
-    'dueDate' : {type : 'date' , access : "public" },
+    /**
+    * dueDate (DATETIME)
+    */
+    'dueDate': { type: 'date', access: "public" },
 
-     /**
-     * startDate (DATETIME)
-     */
-    'startDate' : {type : 'date' , access : "public" },
+    /**
+    * startDate (DATETIME)
+    */
+    'startDate': { type: 'date', access: "public" },
 
     /**
      * status (ENUM("In Progress","For Approval","Completed"))
      */
-    'status' : {type : 'string' , access : "public" },
+    'status': { type: 'string', access: "public" },
 
     /**
      * typeId (BIGINT)
      */
-    'typeId' : {type : 'bigint' , access : "public" },
+    'typeId': { type: 'bigint', access: "public" },
+
+    /**
+     * linkTaskId (BIGINT)
+     */
+    'linkTaskId': { type: 'bigint', access: "public", database: "task", relation: "one-to-one" },
 
     /**
      * typeId (tinyint)
      */
-    'periodic' : {type : 'tinyint' , access : "public" },
+    'periodic': { type: 'tinyint', access: "public" },
 
     /**
      * periodType (ENUM("Year","Month","Week", "Day"))
      */
-    'periodType' : {type : 'string' , access : "public" },
+    'periodType': { type: 'string', access: "public" },
 
     /**
      * period (int)
      */
-    'period' : {type : 'int' , access : "public" },
-    
+    'period': { type: 'int', access: "public" },
+
     /**
      * dateAdded (DATETIME)
      */
-    'dateAdded' : {type : 'date' , access : "public" },
+    'dateAdded': { type: 'date', access: "public" },
     /**
      * dateUpdated (TIMESTAMP)
      */
-    'dateUpdated' :  {type : 'date' , access : "public" },
+    'dateUpdated': { type: 'date', access: "public" },
 
     /**
      * isActive (tinyInt)
      */
-    'isActive' : {type : 'int' , access : "public" },
+    'isActive': { type: 'int', access: "public" },
 
     /**
      * isDeleted (tinyInt)
      */
-    'isDeleted' : {type : 'int' , access : "public" },
+    'isDeleted': { type: 'int', access: "public" },
 
 }
 
@@ -82,10 +87,10 @@ exports.putData = putData;
 exports.postData = postData;
 exports.deleteData = deleteData;
 
-var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
+var getDataCount = exports.getDataCount = (tablename, data, advance, cb) => {
     let db = global.initDB();
     let params = [data.projectId];
-    
+
     let query = `SELECT projectId,
                     workstreamId,
                     SUM(isActive) as Active, 
@@ -94,21 +99,21 @@ var getDataCount = exports.getDataCount = ( tablename, data, advance , cb ) => {
                 `;
     db.query(
         query,
-        params, 
-        function(err,row,fields){
-            if(err) { cb({ status : false, error : err, data : row }); return; }
-            
-            cb({  status : true, error : err, data : row });
+        params,
+        function (err, row, fields) {
+            if (err) { cb({ status: false, error: err, data: row }); return; }
+
+            cb({ status: true, error: err, data: row });
         }
     );
 }
 
-var getUserTaskDataCount = exports.getUserTaskDataCount = ( tablename, data, advance , cb ) => {
+var getUserTaskDataCount = exports.getUserTaskDataCount = (tablename, data, advance, cb) => {
     let db = global.initDB();
     let params = [];
-    let filter = "" , filter2 = "";
-    if(data.userId){
-        params = [data.userId,data.userId]
+    let filter = "", filter2 = "";
+    if (data.userId) {
+        params = [data.userId, data.userId]
         filter = " AND finalTbl1.usersId = ? "
         filter2 = " AND finalTbl2.usersId = ? "
     }
@@ -128,7 +133,7 @@ var getUserTaskDataCount = exports.getUserTaskDataCount = ( tablename, data, adv
                             ) as finalTbl1 
 
                                 LEFT JOIN task on finalTbl1.linkId = task.id LEFT JOIN project ON project.id = task.projectId 
-                            WHERE finalTbl1.linkType = "task"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 AND task.isDeleted = 0 AND project.isActive > 0 `+filter+`
+                            WHERE finalTbl1.linkType = "task"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 AND task.isDeleted = 0 AND project.isActive > 0 `+ filter + `
 
                     UNION ALL
 
@@ -144,25 +149,25 @@ var getUserTaskDataCount = exports.getUserTaskDataCount = ( tablename, data, adv
                             ) as finalTbl2 
 
                                 LEFT JOIN task on finalTbl2.linkId = task.workstreamId LEFT JOIN project ON project.id = task.projectId
-                            WHERE finalTbl2.linkType = "workstream"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 AND task.isDeleted = 0 AND project.isActive > 0 `+filter2+` 
+                            WHERE finalTbl2.linkType = "workstream"  AND (task.status != "Completed" OR task.status IS NULL) AND task.isActive = 1 AND task.isDeleted = 0 AND project.isActive > 0 `+ filter2 + ` 
 
                     ) as tbl
                 `;
     db.query(
         query,
-        params, 
-        function(err,row,fields){
-            if(err) { cb({ status : false, error : err, data : row }); return; }
+        params,
+        function (err, row, fields) {
+            if (err) { cb({ status: false, error: err, data: row }); return; }
 
-            cb({  status : true, error : err, data : row });
+            cb({ status: true, error: err, data: row });
         }
     );
 }
 
-var getTaskAllowedAccess = exports.getTaskAllowedAccess = ( tablename, data, advance , cb ) => {
+var getTaskAllowedAccess = exports.getTaskAllowedAccess = (tablename, data, advance, cb) => {
 
     let db = global.initDB();
-    let params = [data.usersId,data.usersId,data.usersId,data.usersId];
+    let params = [data.usersId, data.usersId, data.usersId, data.usersId];
     let query = `
                     SELECT * FROM (SELECT task.id as taskId FROM ( SELECT members.linkType,members.linkId,members.memberType,users.id as usersId FROM members 
                         LEFT JOIN users ON members.userTypeLinkId = users.id
@@ -187,23 +192,23 @@ var getTaskAllowedAccess = exports.getTaskAllowedAccess = ( tablename, data, adv
                     WHERE finalTbl2.linkType = "workstream" AND (task.status != "Completed" || task.status  IS NULL) AND task.id IS NOT NULL ) as tbl
                     GROUP BY tbl.taskId
                 `;
-    if( data.userRole == 1 || data.userRole == 2 ){
+    if (data.userRole == 1 || data.userRole == 2) {
         query = "SELECT id as taskId FROM task"
         params = []
     }
-    
+
     db.query(
         query,
-        params, 
-        function(err,row,fields){
-            if(err) { cb({ status : false, error : err, data : row }); return; }
+        params,
+        function (err, row, fields) {
+            if (err) { cb({ status: false, error: err, data: row }); return; }
 
-            cb({  status : true, error : err, data : row });
+            cb({ status: true, error: err, data: row });
         }
     );
 }
 
-var getTaskList = exports.getTaskList = ( tablename, data, advance , cb ) => {
+var getTaskList = exports.getTaskList = (tablename, data, advance, cb) => {
     let db = global.initDB();
     let field = global.initModel(tablename).field;
     let dataField = Object.keys(data);
@@ -211,8 +216,8 @@ var getTaskList = exports.getTaskList = ( tablename, data, advance , cb ) => {
     /**
      * Manage primary table
      */
-    let query = " SELECT " + (getPublicField(tablename) != "" ?getPublicField(tablename)+"":"*") + " FROM " + tablename;
-    if(typeof advance.allowedPrivate != "undefined" && advance.allowedPrivate){
+    let query = " SELECT " + (getPublicField(tablename) != "" ? getPublicField(tablename) + "" : "*") + " FROM " + tablename;
+    if (typeof advance.allowedPrivate != "undefined" && advance.allowedPrivate) {
         query = " SELECT * FROM " + tablename;
     }
     query = " SELECT * FROM ( " + query + " ) as primaryTable "
@@ -222,24 +227,24 @@ var getTaskList = exports.getTaskList = ( tablename, data, advance , cb ) => {
      */
     let relationField = [];
     let fieldList = Object.keys(field);
-    fieldList.map((e,i)=>{
-        if(typeof field[e].database != "undefined" && typeof field[e].relation != "undefined"){
+    fieldList.map((e, i) => {
+        if (typeof field[e].database != "undefined" && typeof field[e].relation != "undefined") {
             field[e].fieldname = e;
             relationField.push(field[e])
         }
     })
     let relationQuery = [];
-    relationField.map((e,i)=>{
+    relationField.map((e, i) => {
         let model = global.initModel(e.database);
         let modelField = getPublicField(e.database).split(",");
-        modelField = modelField.map((f,j)=>{
+        modelField = modelField.map((f, j) => {
             return f + " as " + e.database + "_" + f
         })
         let joinField = modelField.join(",");
         let TempQuery = "";
         TempQuery += " LEFT JOIN ";
-        TempQuery += " ( SELECT " + joinField + " FROM "+ e.database +" ) as  tbl" + (""+i) + " ON " + "tbl" + (""+i)+"."+ e.database +"_id = primaryTable." + e.fieldname;
-        relationQuery.push( TempQuery )
+        TempQuery += " ( SELECT " + joinField + " FROM " + e.database + " ) as  tbl" + ("" + i) + " ON " + "tbl" + ("" + i) + "." + e.database + "_id = primaryTable." + e.fieldname;
+        relationQuery.push(TempQuery)
     })
     query = query + " " + relationQuery.join(" ");
 
@@ -248,110 +253,110 @@ var getTaskList = exports.getTaskList = ( tablename, data, advance , cb ) => {
      */
     let params = [];
     let paramStr = [];
-    dataField.map((e,i)=>{
-        if(e == "|||or|||"){
-            if( typeof data[e] == "object" ){
+    dataField.map((e, i) => {
+        if (e == "|||or|||") {
+            if (typeof data[e] == "object") {
                 let paramStrOr = [];
                 let dataFieldOr = data[e];
-                dataFieldOr.map((f,j)=>{
-                    if(typeof field[f.name] != "undefined"){
+                dataFieldOr.map((f, j) => {
+                    if (typeof field[f.name] != "undefined") {
                         let condition = " = ";
-                        if( typeof f.condition != "undefined" ){
+                        if (typeof f.condition != "undefined") {
                             condition = f.condition;
                         }
-                        if(condition.trim() == "IN"){
-                            if(data[e].value.length > 0){
-                                let dataValue = f.value.map((e)=>{ return "?" }).join(",")
+                        if (condition.trim() == "IN") {
+                            if (data[e].value.length > 0) {
+                                let dataValue = f.value.map((e) => { return "?" }).join(",")
                                 params = params.concat(f.value)
-                                paramStrOr.push( f.name + " " +condition + " ( "+dataValue+" ) " ) 
-                            }else{
-                                paramStr.push( " false " ) 
+                                paramStrOr.push(f.name + " " + condition + " ( " + dataValue + " ) ")
+                            } else {
+                                paramStr.push(" false ")
                             }
-                        }else{
-                            paramStrOr.push( f.name + " " +condition + " ?" ) 
-                            params.push((typeof f.value != "undefined")?f.value:"")
+                        } else {
+                            paramStrOr.push(f.name + " " + condition + " ?")
+                            params.push((typeof f.value != "undefined") ? f.value : "")
                         }
                     }
                 })
-                if(paramStrOr.length > 0){
+                if (paramStrOr.length > 0) {
                     paramStr.push(" ( " + paramStrOr.join(" OR ") + ")");
                 }
             }
-        }else if(e == "|||and|||"){
-            if( typeof data[e] == "object" ){
+        } else if (e == "|||and|||") {
+            if (typeof data[e] == "object") {
                 let paramStrAnd = [];
                 let dataFieldAnd = data[e];
-                dataFieldAnd.map((f,j)=>{
-                    if(typeof field[f.name] != "undefined"){
+                dataFieldAnd.map((f, j) => {
+                    if (typeof field[f.name] != "undefined") {
                         let condition = " = ";
-                        if( typeof f.condition != "undefined" ){
-                            condition =f.condition;
+                        if (typeof f.condition != "undefined") {
+                            condition = f.condition;
                         }
-                        if(condition.trim() == "IN"){
-                            if(data[e].value.length > 0){
-                                let dataValue = f.value.map((e)=>{ return "?" }).join(",")
+                        if (condition.trim() == "IN") {
+                            if (data[e].value.length > 0) {
+                                let dataValue = f.value.map((e) => { return "?" }).join(",")
                                 params = params.concat(f.value)
-                                paramStrAnd.push( f.name + " " +condition + " ( "+dataValue+" ) " ) 
-                            }else{
-                                paramStr.push( " false " ) 
+                                paramStrAnd.push(f.name + " " + condition + " ( " + dataValue + " ) ")
+                            } else {
+                                paramStr.push(" false ")
                             }
-                        }else{
-                            paramStrAnd.push( f.name + " " +condition + " ?" ) 
-                            params.push((typeof f.value != "undefined")?f.value:"")
+                        } else {
+                            paramStrAnd.push(f.name + " " + condition + " ?")
+                            params.push((typeof f.value != "undefined") ? f.value : "")
                         }
                     }
                 })
-                if(paramStrAnd.length > 0){
+                if (paramStrAnd.length > 0) {
                     paramStr.push(" ( " + paramStrAnd.join(" AND ") + ")");
                 }
             }
-        }else if(typeof field[e] != "undefined"){
-            if( typeof data[e] == "object" ){
+        } else if (typeof field[e] != "undefined") {
+            if (typeof data[e] == "object") {
                 let condition = " = ";
-                if( typeof data[e].condition != "undefined" ){
+                if (typeof data[e].condition != "undefined") {
                     condition = data[e].condition;
                 }
-                
-                if(condition.trim() == "IN"){
-                    if(data[e].value.length > 0){
-                        let dataValue = data[e].value.map((e)=>{ return "?" }).join(",")
+
+                if (condition.trim() == "IN") {
+                    if (data[e].value.length > 0) {
+                        let dataValue = data[e].value.map((e) => { return "?" }).join(",")
                         params = params.concat(data[e].value)
-                        paramStr.push( e + " " +condition + " ( "+dataValue+" ) " ) 
-                    }else{
-                        paramStr.push( " false " ) 
+                        paramStr.push(e + " " + condition + " ( " + dataValue + " ) ")
+                    } else {
+                        paramStr.push(" false ")
                     }
-                }else{
-                    paramStr.push( e + condition + " ?" ) 
-                    params.push((typeof data[e].value != "undefined")?data[e].value:"")
+                } else {
+                    paramStr.push(e + condition + " ?")
+                    params.push((typeof data[e].value != "undefined") ? data[e].value : "")
                 }
-            }else{
-                paramStr.push(e + " = ?") 
+            } else {
+                paramStr.push(e + " = ?")
                 params.push(data[e])
             }
         }
     })
-    if(paramStr.length > 0){
+    if (paramStr.length > 0) {
         query += " WHERE "
     }
     query += paramStr.join(" AND ");
 
 
-    if(typeof advance.orderBy != "undefined" && advance.orderBy.length > 0){
+    if (typeof advance.orderBy != "undefined" && advance.orderBy.length > 0) {
         query += " ORDER BY  "
-        advance.orderBy.map((e,i)=>{
-            if(typeof e.type == "undefined"){
+        advance.orderBy.map((e, i) => {
+            if (typeof e.type == "undefined") {
                 e.type = " ASC "
             }
             query += e.fieldname + "  " + e.type
         })
     }
 
-    if(typeof advance.limit != "undefined"){
-         query += " LIMIT " + advance.limit
+    if (typeof advance.limit != "undefined") {
+        query += " LIMIT " + advance.limit
     }
 
-    if(typeof advance.offset != "undefined"){
-         query += " OFFSET " + advance.offset
+    if (typeof advance.offset != "undefined") {
+        query += " OFFSET " + advance.offset
     }
 
     query = `SELECT prj.*, (
@@ -382,17 +387,17 @@ var getTaskList = exports.getTaskList = ( tablename, data, advance , cb ) => {
                                     AND members.linkType="task" 
                                     WHERE users.id IS NOT NULL
                                     GROUP BY members.linkId ) as follower ON prj.id = follower.linkId
-            ` 
+            `
     /**
      * Manage Query Connection
      */
     db.query(
         query,
-        params, 
-        function(err,row,fields){
-            if(err) { cb({ status : false, error : err, data : row }); return; }
-            
-            cb({  status : true, error : err, data : row });
+        params,
+        function (err, row, fields) {
+            if (err) { cb({ status: false, error: err, data: row }); return; }
+
+            cb({ status: true, error: err, data: row });
         }
     );
 }
@@ -407,11 +412,11 @@ var getTaskDueToday = exports.getTaskDueToday = (cb) => {
                     AND ( members.userTypeLinkId IS NOT NULL || members.userTypeLinkId != "" ) AND task.isDelete = 0`;
     db.query(
         query,
-        params, 
-        function(err,row,fields){
-            if(err) { cb({ status : false, error : err, data : row }); return; }
+        params,
+        function (err, row, fields) {
+            if (err) { cb({ status: false, error: err, data: row }); return; }
 
-            cb({  status : true, error : err, data : row });
+            cb({ status: true, error: err, data: row });
         }
     );
 }
@@ -426,11 +431,11 @@ var getTaskOverdue = exports.getTaskOverdue = (cb) => {
                     AND ( members.userTypeLinkId IS NOT NULL || members.userTypeLinkId != "" ) AND task.isDelete = 0`;
     db.query(
         query,
-        params, 
-        function(err,row,fields){
-            if(err) { cb({ status : false, error : err, data : row }); return; }
+        params,
+        function (err, row, fields) {
+            if (err) { cb({ status: false, error: err, data: row }); return; }
 
-            cb({  status : true, error : err, data : row });
+            cb({ status: true, error: err, data: row });
         }
     );
 }

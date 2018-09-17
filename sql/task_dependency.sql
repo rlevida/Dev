@@ -2,9 +2,8 @@ DROP TABLE IF EXISTS `task_dependency`;
 CREATE TABLE `task_dependency` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `taskId` BIGINT,
-    `dependencyType` ENUM("Preceeding","Succeeding"),
+    `dependencyType` ENUM("Preceding","Succeeding"),
     `linkTaskId` BIGINT,
-    `typeId` BIGINT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `isDeleted` TINYINT(1) DEFAULT '0',
