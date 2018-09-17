@@ -148,8 +148,11 @@ export default class DocumentNew extends React.Component {
                                 documentList.newUpload.push(e)
                             }
                         }else{
-                            if( e.status == "new" && e.isCompleted != 1 && e.uploadedBy == loggedUser.data.id ){
-                                documentList.newUpload.push(e)
+                            if( e.status == "new" && e.isCompleted != 1 ){
+                                let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id }).length ? 1 : 0 ;
+                                    if(isShared || e.uploadedBy == loggedUser.data.id){
+                                        documentList.newUpload.push(e)
+                                    }
                             }
                         }
                     })
@@ -225,7 +228,6 @@ export default class DocumentNew extends React.Component {
                     folderParentId = parentFolder[0].parentId;
                 }
             }
-
         return <div>
                     <br/>
                     <div class="col-lg-12 col-md-12">  
@@ -279,22 +281,7 @@ export default class DocumentNew extends React.Component {
                                                     <td ><span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span></td>
                                                     <td class="library-document"><a href="javascript:void(0)" onClick={()=> dispatch({type:"SET_NEW_FOLDER_SELECTED" , Selected : data })}><span class="fa fa-folder" style={{marginRight:"20px"}}></span>{data.name}</a></td>
                                                     <td>{moment(data.dateUpdated).format('L')}</td>
-                                                    <td>
-                                                        <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
-                                                        <Tooltip id={`follower${index}`}>
-                                                            { global.SelectList.ProjectMemberList.map((e,mIndex) => {
-                                                                if( e.userType == "Internal"){
-                                                                    return <p key={mIndex}>{ `${e.firstName} ${e.lastName}`} <br/></p>
-                                                                }else{
-                                                                    if(global.SelectList.shareList.length > 0){
-                                                                        let isShared =  global.SelectList.shareList.filter(s => {return s.userTypeLinkId == e.id && data.id == s.shareId && s.shareType == "folder"}).length ? 1 : 0
-                                                                            if(isShared){
-                                                                                return <p key={mIndex}>{ `${e.firstName} ${e.lastName}`} <br/></p>
-                                                                            }
-                                                                    }
-                                                                }
-                                                            })}
-                                                        </Tooltip>
+                                                    <td> { users.List.map((e,mIndex) => { if(data.createdBy== e.id){ return e.emailAddress} }) }
                                                     </td>
                                                     <td> 
                                                         <ul style={{listStyleType: "none",padding : "0"}}>  
