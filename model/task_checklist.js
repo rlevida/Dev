@@ -10,6 +10,11 @@ var field = exports.field = {
      */
     'completed' : {type : 'completed' , access : "public" },
 
+     /**
+     *  mandatory (TINYINT)
+     */
+    'mandatory' : {type : 'completed' , access : "public" },
+
 
     /**
      * description (TEXT)

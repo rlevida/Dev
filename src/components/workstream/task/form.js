@@ -89,9 +89,18 @@ export default class FormComponent extends React.Component {
         const { checklist, task, socket } = this.props;
         const toBeSubmitted = {
             description: checklist.Selected.checklist,
+            mandatory: (typeof checklist.Selected.mandatory != "undefined" && checklist.Selected.mandatory != "") ? checklist.Selected.mandatory : 0,
             taskId: task.Selected.id
         };
+
         socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
+    }
+
+    handleCheckbox(name, value) {
+        let { checklist, dispatch } = this.props
+        let Selected = Object.assign({}, checklist.Selected)
+        Selected[name] = value;
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected });
     }
 
     render() {
@@ -161,60 +170,6 @@ export default class FormComponent extends React.Component {
                                 && task.Selected.description != ""
                                 && task.Selected.description != null) && <p class="mt10 mb10">{task.Selected.description}</p>
                         }
-
-                        <div>
-                            <div style={{ position: 'relative' }}>
-                                <h5>Checklist</h5>
-                                <a class="task-action" onClick={() => {
-                                    dispatch({ type: "SET_CHECKLIST_ACTION", action: 'add' })
-                                }}>Add</a>
-                            </div>
-                            <div id="checklist">
-                                {
-                                    _.map(checklist.List, (o, index) => {
-                                        return (
-                                            <div className={(o.completed == 1) ? "wrapper completed" : "wrapper"} key={index} onClick={() => {
-                                                socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } })
-                                            }}>
-                                                <p>{o.description}</p>
-                                                <a class="btn btn-danger"
-                                                    onClick={() => {
-                                                        socket.emit("DELETE_CHECKLIST", { data: o.id })
-                                                    }}
-                                                >
-                                                    <span class="glyphicon glyphicon-trash"></span>
-                                                </a>
-                                            </div>
-                                        )
-                                    })
-                                }
-                            </div>
-                            {
-                                (checklist.Action == "add") && <div class="row mt10">
-                                    <div class="col-md-12">
-                                        <div class="form-group" style={{ paddingLeft: 10 }}>
-                                            <input type="text" name="checklist"
-                                                class="form-control"
-                                                placeholder="Add Item"
-                                                onChange={this.handleChange}
-                                                value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
-                                            />
-                                            <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
-                                                onClick={this.addChecklist}
-                                            >
-                                                Add
-                                            </a>
-                                            <a class="btn mt5" onClick={() => {
-                                                dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
-                                            }}>
-                                                <i class="fa fa-times fa-lg"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-
                         <table class="table responsive-table table-bordered mt10 mb10">
                             <tbody>
                                 <tr>
@@ -258,7 +213,7 @@ export default class FormComponent extends React.Component {
                                         </tr> */}
                             </tbody>
                         </table>
-                        <table class="table responsive-table table-bordered mt10 mb10">
+                        <table class="table responsive-table table-bordered mt10 mb20">
                             <tbody>
                                 <tr>
                                     <td style={{ width: "10%" }}><span class="fa fa-bell"></span></td>
@@ -267,6 +222,65 @@ export default class FormComponent extends React.Component {
                                 </tr>
                             </tbody>
                         </table>
+                        <div>
+                            <div style={{ position: 'relative' }}>
+                                <h5 class="mt0">Checklist</h5>
+                            </div>
+                            <div id="checklist">
+                                {
+                                    _.map(checklist.List, (o, index) => {
+                                        return (
+                                            <div className={(o.completed == 1) ? "wrapper completed" : "wrapper"} key={index} onClick={() => {
+                                                socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } })
+                                            }}>
+                                                <p style={{ color: (o.mandatory == 1) ? '#3498db' : '#000' }}>{o.description}</p>
+                                                <a class="btn btn-danger"
+                                                    onClick={() => {
+                                                        socket.emit("DELETE_CHECKLIST", { data: o.id })
+                                                    }}
+                                                >
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </a>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div><div class="row mt10" style={{ paddingLeft: 22 }}>
+                                <div class="col-md-12">
+                                    <div class="form-group" style={{ marginBottom: 0 }}>
+                                        <input type="text" name="checklist"
+                                            class="form-control"
+                                            placeholder="Add Item"
+                                            onChange={this.handleChange}
+                                            value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
+                                        />
+                                    </div>
+                                    <div class="form-group" style={{ marginTop: 0, marginBottom: 0 }}>
+                                        <label style={{ paddingRight: 15 }}>Mandatory?</label>
+                                        <input type="checkbox"
+                                            style={{ width: 15, marginTop: 10 }}
+                                            checked={checklist.Selected.mandatory ? true : false}
+                                            onChange={() => { }}
+                                            onClick={(f) => { this.handleCheckbox("mandatory", (checklist.Selected.mandatory) ? 0 : 1) }}
+                                        />
+                                    </div>
+                                    {
+                                        (typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") && <div>
+                                            <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
+                                                onClick={this.addChecklist}
+                                            >
+                                                Add
+                                            </a>
+                                            <a class="btn mt5" onClick={() => {
+                                                dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
+                                            }}>
+                                                <i class="fa fa-times fa-lg"></i>
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
                         <h4>Documents</h4>
                         <table class="table responsive-table table-bordered mt10 mb10">
                             <tbody>
