@@ -3,6 +3,7 @@ var sess = require('express-session');
 var jwt = require('jsonwebtoken');
 var router = express();
 var mime = require('mime-types')
+var toPdf = require("office-to-pdf")
 
 router.use(function (req, res, next) {
     let session = global.initModel("session");
@@ -154,20 +155,29 @@ router.get('/printDocument',(req,res,next)=>{
             }
         });
     })
+    
     promise.then((data)=>{
-        docxConverter(`${__dirname}/../${data}`,'output.pdf',function(err,result){
-            if(err){
-              console.log(err);
-            }
-            console.log('result'+result);
-          });
-        // let fileContentType = mime.contentType(data)
-        // let file = fs.readFileSync(`${__dirname}/../${data}`);
-        //     // fs.unlink(`${data}`,(t)=>{})
-        //     res.contentType(fileContentType);
-        //     res.send(file);
+        var wordBuffer = fs.readFileSync(`${__dirname}/../${data}`)
+        toPdf(wordBuffer).then(
+            (pdfBuffer) => {
+                let pdfdata = new Promise(function(resolve,reject){
+                    let convertedData = fs.writeFileSync(`./${data}.pdf`, pdfBuffer)
+                        resolve(convertedData)
+                })
+
+                pdfdata.then((newpdf)=>{
+                    let file = fs.readFileSync(`${__dirname}/../${data}.pdf`);
+                    let fileContentType = mime.contentType(`${data}.pdf`)
+                        res.contentType(fileContentType);
+                        fs.unlink(`${__dirname}/../${data}`,(t)=>{})
+                        fs.unlink(`./${data}.pdf`,(t)=>{})
+                        res.send(file);
+                })
+          }, (err) => {
+            console.log(err)
+          }
+        )
     })
-   
 })
 
 module.exports = router;
