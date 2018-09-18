@@ -64,7 +64,7 @@ export default class List extends React.Component {
     // }
 
     render() {
-        let { project, socket, loggedUser } = this.props;
+        let { project, socket, loggedUser , dispatch } = this.props;
         
         return (
             <div>
@@ -110,7 +110,10 @@ export default class List extends React.Component {
                                             || loggedUser.data.userRole == 3) &&
                                             <td class="text-center">
                                                 <a href="javascript:void(0);" data-tip="EDIT"
-                                                    onClick={(e) => socket.emit("GET_PROJECT_DETAIL", { id: data.id })}
+                                                    onClick={(e) => {
+                                                        dispatch({ type:"SET_PROJECT_SELECTED",Selected : data}) , 
+                                                        dispatch({type : "SET_PROJECT_FORM_ACTIVE", FormActive : "Form"})}
+                                                    }
                                                     class="btn btn-info btn-sm">
                                                     <span class="glyphicon glyphicon-pencil"></span></a>
                                                     <a href="javascript:void(0);" data-tip="ARCHIVE"
