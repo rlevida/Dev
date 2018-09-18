@@ -106,12 +106,35 @@ body {
 .navspan {
   cursor: pointer;
 }
-.task-add{
+.task-action{
   margin: auto;
   position: absolute;
   bottom: 0;
   right: 0;
   cursor: pointer;
+}
+#checklist {
+  padding-left: 10px;
+}
+#checklist .wrapper{
+  position: relative;
+  padding-top:10px;
+  padding-bottom:10px;
+  padding-left: 5px;
+  cursor: pointer;
+}
+#checklist .wrapper:hover{
+  background: #ddd;
+}
+#checklist .wrapper a {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(-50%,-50%);
+}
+#checklist p {
+  margin-right: 60px;
+  margin-bottom: 0px;
 }
 /**
   end tree view

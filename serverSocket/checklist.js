@@ -7,7 +7,8 @@ var init = exports.init = (socket) => {
     socket.on("GET_CHECK_LIST", (d) => {
         let taskCheckList = global.initModel("task_checklist")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
-        members.getData("members", filter, {}, (c) => {
+
+        taskCheckList.getData("task_checklist", filter, {}, (c) => {
             if (c.status) {
                 socket.emit("FRONT_CHECK_LIST", c.data)
             } else {
@@ -28,14 +29,18 @@ var init = exports.init = (socket) => {
     socket.on("SAVE_OR_UPDATE_CHECKLIST", (d) => {
         let taskCheckList = global.initModel("task_checklist");
 
-        if (typeof d.data.id != "undefined" && d.data.id != "") {
+        taskCheckList.postData("task_checklist", d.data, (o) => {
+            socket.emit("FRONT_SAVE_OR_UPDATE_CHECK_LIST", { ...d.data, id: o.id, completed: 0 })
+        });
+    });
 
-        } else {
-            taskCheckList.postData("task_checklist", d.data, (o) => {
-                socket.emit("FRONT_SAVE_OR_UPDATE_CHECK_LIST", { ...d.data, id: o.id, completed: 0 })
-            });
-        }
-    })
+    socket.on("DELETE_CHECKLIST", (d) => {
+        let taskCheckList = global.initModel("task_checklist");
+
+        taskCheckList.deleteData("task_checklist", { id: d.data }, (c) => {
+            socket.emit("FRONT_CHECKLIST_DELETED", { id: d.data })
+        });
+    });
 
     // socket.on("DELETE_MEMBERS", (d) => {
     //     let members = global.initModel("members")

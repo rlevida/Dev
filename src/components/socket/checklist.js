@@ -18,8 +18,17 @@ export default class Socket extends React.Component {
         var { socket, dispatch } = this.props;
 
         socket.on("FRONT_SAVE_OR_UPDATE_CHECK_LIST", (data) => {
-            dispatch({ type: "ADD_CHECKLIST", data: data })
-        })
+            dispatch({ type: "ADD_CHECKLIST", data })
+        });
+
+        socket.on("FRONT_CHECK_LIST",(data) => {
+            dispatch({type:"SET_CHECKLIST",list : data})
+        });
+
+        socket.on("FRONT_CHECKLIST_DELETED",(data) => {
+            dispatch({type:"DELETE_CHECKLIST", data})
+            showToast("success", "Checklist already deleted.")
+        });
 
         // socket.on("FRONT_MEMBERS_SELECTED", (data) => {
         //     dispatch({ type: "SET_MEMBERS_SELECTED", Selected: data })

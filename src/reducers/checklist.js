@@ -9,7 +9,7 @@ export default function reducer(state = {
     Action: undefined
 }, action) {
     switch (action.type) {
-        case "SET_CHECK_LIST": {
+        case "SET_CHECKLIST": {
             return { ...state, List: action.list, Loading: false }
         }
         case "SET_CHECKLIST_ACTION": {
@@ -22,7 +22,13 @@ export default function reducer(state = {
             const { List } = { ...state };
             List.push(action.data);
 
-            return { ...state, List };
+            return { ...state, List, Selected: {} };
+        }
+        case "DELETE_CHECKLIST": {
+            const { List } = { ...state };
+            const updatedList = _.remove(List, checklist => checklist.id != action.data.id);
+            console.log(updatedList)
+            return { ...state, List: updatedList };
         }
         // case "SET_MEMBERS_FORM_ACTIVE": {
         //     return { ...state, FormActive: action.FormActive }

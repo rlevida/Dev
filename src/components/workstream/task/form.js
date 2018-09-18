@@ -2,8 +2,9 @@ import React from "react";
 
 import { setDatePicker } from '../../../globalFunction';
 import { connect } from "react-redux";
-import moment from 'moment';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import moment from 'moment';
+import _ from 'lodash';
 
 
 @connect((store) => {
@@ -38,6 +39,7 @@ export default class FormComponent extends React.Component {
 
         if (typeof task.Selected.id != 'undefined') {
             socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
+            socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
         }
 
         if (typeof task.Selected.workstreamId != "undefined") {
@@ -93,7 +95,7 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, task, status, global, loggedUser, document, checklist } = this.props;
+        let { dispatch, task, status, global, loggedUser, document, checklist, socket } = this.props;
         let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false;
 
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
@@ -126,7 +128,6 @@ export default class FormComponent extends React.Component {
                 isVisible = true;
             }
         }
-
         return (
             <div class="pd20">
                 <span class="pull-right" style={{ cursor: "pointer" }} onClick={() => { dispatch({ type: "SET_TASK_SELECTED", Selected: {} }); dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" }) }}><i class="fa fa-times-circle fa-lg"></i></span>
@@ -164,15 +165,36 @@ export default class FormComponent extends React.Component {
                         <div>
                             <div style={{ position: 'relative' }}>
                                 <h5>Checklist</h5>
-                                <a class="task-add" onClick={() => {
+                                <a class="task-action" onClick={() => {
                                     dispatch({ type: "SET_CHECKLIST_ACTION", action: 'add' })
                                 }}>Add</a>
                             </div>
+                            <div id="checklist">
+                                {
+                                    _.map(checklist.List, (o, index) => {
+                                        return (
+                                            <div class="wrapper" key={index}>
+                                                <p>{o.description}</p>
+                                                <a class="btn btn-danger" onClick={() => {
+                                                    socket.emit("DELETE_CHECKLIST", { data: o.id })
+                                                }}>
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </a>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
                             {
-                                (checklist.Action == "add") && <div class="row">
+                                (checklist.Action == "add") && <div class="row mt10">
                                     <div class="col-md-12">
-                                        <div class="form-group">
-                                            <input type="text" name="checklist" class="form-control" placeholder="Add Item" onChange={this.handleChange} />
+                                        <div class="form-group" style={{ paddingLeft: 10 }}>
+                                            <input type="text" name="checklist"
+                                                class="form-control"
+                                                placeholder="Add Item"
+                                                onChange={this.handleChange}
+                                                value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
+                                            />
                                             <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
                                                 onClick={this.addChecklist}
                                             >
@@ -189,7 +211,7 @@ export default class FormComponent extends React.Component {
                             }
                         </div>
 
-                        <table class="table responsive-table table-bordered mt20 mb10">
+                        <table class="table responsive-table table-bordered mt10 mb10">
                             <tbody>
                                 <tr>
                                     <td style={{ width: "10%" }}><span class="fa fa-calendar"></span></td>
