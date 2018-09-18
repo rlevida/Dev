@@ -25,6 +25,9 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 export default class FormComponent extends React.Component {
     constructor(props) {
         super(props);
+
+        this.handleChange = this.handleChange.bind(this);
+        this.addChecklist = this.addChecklist.bind(this);
     }
 
     componentDidMount() {
@@ -71,6 +74,22 @@ export default class FormComponent extends React.Component {
             status = "For Approval"
         }
         socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
+    }
+
+    handleChange(e) {
+        let { checklist, dispatch } = this.props;
+        let Selected = Object.assign({}, checklist.Selected)
+        Selected[e.target.name] = e.target.value;
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected })
+    }
+
+    addChecklist() {
+        const { checklist, task, socket } = this.props;
+        const toBeSubmitted = {
+            description: checklist.Selected.checklist,
+            taskId: task.Selected.id
+        };
+        socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
     }
 
     render() {
@@ -153,11 +172,17 @@ export default class FormComponent extends React.Component {
                                 (checklist.Action == "add") && <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <input type="text" name="checkList" class="form-control" placeholder="Add Item" onChange={this.handleChange} />
-                                            <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add">Add</a>
+                                            <input type="text" name="checklist" class="form-control" placeholder="Add Item" onChange={this.handleChange} />
+                                            <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
+                                                onClick={this.addChecklist}
+                                            >
+                                                Add
+                                            </a>
                                             <a class="btn mt5" onClick={() => {
                                                 dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
-                                            }}><i class="fa fa-times fa-lg"></i></a>
+                                            }}>
+                                                <i class="fa fa-times fa-lg"></i>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>

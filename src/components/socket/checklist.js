@@ -17,8 +17,8 @@ export default class Socket extends React.Component {
     componentWillMount() {
         var { socket, dispatch } = this.props;
 
-        socket.on("FRONT_CHECK_LIST", (data) => {
-            dispatch({ type: "SET_CHECK_LIST", list: data })
+        socket.on("FRONT_SAVE_OR_UPDATE_CHECK_LIST", (data) => {
+            dispatch({ type: "ADD_CHECKLIST", data: data })
         })
 
         // socket.on("FRONT_MEMBERS_SELECTED", (data) => {

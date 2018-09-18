@@ -15,11 +15,17 @@ export default function reducer(state = {
         case "SET_CHECKLIST_ACTION": {
             return { ...state, Action: action.action }
         }
+        case "SET_CHECKLIST_SELECTED": {
+            return { ...state, Selected: action.Selected }
+        }
+        case "ADD_CHECKLIST": {
+            const { List } = { ...state };
+            List.push(action.data);
+
+            return { ...state, List };
+        }
         // case "SET_MEMBERS_FORM_ACTIVE": {
         //     return { ...state, FormActive: action.FormActive }
-        // }
-        // case "SET_MEMBERS_SELECTED": {
-        //     return { ...state, Selected: action.Selected }
         // }
         // case "SET_MEMBERS_ID": {
         //     return { ...state, SelectedId: action.SelectedId }

@@ -25,71 +25,17 @@ var init = exports.init = (socket) => {
     //     })
     // })
 
-    // socket.on("SAVE_OR_UPDATE_MEMBERS", (d) => {
-    //     let members = global.initModel("members")
-    //     if (typeof d.data.id != "undefined" && d.data.id != "") {
-    //         let id = d.data.id
-    //         delete d.data.id
-    //         members.putData("members", d.data, { id: id }, (c) => {
-    //             if (c.status) {
-    //                 members.getData("members", { id: id }, {}, (e) => {
-    //                     if (e.data.length > 0) {
-    //                         socket.emit("FRONT_MEMBERS_EDIT", { data: e.data[0], type: d.type })
-    //                         socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
-    //                     } else {
-    //                         socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." })
-    //                     }
-    //                 })
-    //             } else {
-    //                 socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." })
-    //             }
-    //         })
-    //     } else {
-    //         const insertMember = () => {
-    //             members.postData("members", d.data, (c) => {
-    //                 if (typeof c.id != "undefined" && c.id > 0) {
-    //                     members.getData("members", { id: c.id }, {}, (e) => {
-    //                         if (e.data.length > 0) {
-    //                             socket.emit("FRONT_MEMBERS_ADD", { data: e.data, type: d.type })
-    //                             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
-    //                         } else {
-    //                             socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
-    //                         }
-    //                     })
-    //                 } else {
-    //                     socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
-    //                 }
-    //             })
-    //         };
+    socket.on("SAVE_OR_UPDATE_CHECKLIST", (d) => {
+        let taskCheckList = global.initModel("task_checklist");
 
-    //         if (d.data.usersType == "team") {
-    //             let usersTeam = global.initModel("users_team");
+        if (typeof d.data.id != "undefined" && d.data.id != "") {
 
-    //             usersTeam.getData("users_team", { teamId: d.data.userTypeLinkId }, {}, (e) => {
-    //                 if ((e.data).length > 0) {
-    //                     async.each(e.data, function (mem, callback) {
-    //                         members.deleteData("members", { usersType: "users", userTypeLinkId: mem.usersId, linkType: d.data.linkType, linkId: d.data.linkId }, (c) => {
-    //                             callback(null)
-    //                         });
-    //                     }, function (err) {
-    //                         members.getData("members", { linkType: d.data.linkType, linkId: d.data.linkId }, {}, (c) => {
-    //                             if (c.status) {
-    //                                 socket.emit("FRONT_MEMBERS_LIST", c.data);
-    //                                 insertMember();
-    //                             } else {
-    //                                 if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
-    //                             }
-    //                         })
-    //                     });
-    //                 } else {
-    //                     insertMember();
-    //                 }
-    //             });
-    //         } else {
-    //             insertMember();
-    //         }
-    //     }
-    // })
+        } else {
+            taskCheckList.postData("task_checklist", d.data, (o) => {
+                socket.emit("FRONT_SAVE_OR_UPDATE_CHECK_LIST", { ...d.data, id: o.id, completed: 0 })
+            });
+        }
+    })
 
     // socket.on("DELETE_MEMBERS", (d) => {
     //     let members = global.initModel("members")
