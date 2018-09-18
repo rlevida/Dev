@@ -14,18 +14,21 @@ import { connect } from "react-redux"
 })
 export default class Component extends React.Component {
     constructor(props) {
-        super(props) 
+        super(props)
     }
 
     render() {
         let { socket, task, project, dispatch } = this.props
 
         return (
-            <div>
-                <List />
-
-                {task.FormActive == "Form" &&
-                    <Form />
+            <div class="row">
+                <div className={(task.FormActive == "Form") ? "col-lg-6 col-md-6 col-sm-12" : "col-lg-12"}>
+                    <List />
+                </div>
+                {
+                    (task.FormActive == "Form") && <div class="col-lg-6 col-md-6 col-sm-12">
+                        <Form />
+                    </div>
                 }
             </div>
         )

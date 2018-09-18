@@ -21,6 +21,11 @@ var field = exports.field = {
     'task': { type: 'text', access: "public" },
 
     /**
+    * description (TEXT)
+    */
+    'description': { type: 'text', access: "public" },
+
+    /**
     * dueDate (DATETIME)
     */
     'dueDate': { type: 'date', access: "public" },

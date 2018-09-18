@@ -85,7 +85,7 @@ export default class List extends React.Component {
         let { task } = this.props;
 
         return (
-            <div class={(task.FormActive=="Form"?"col-md-8":"row") + " pd20"}>
+            <div class="pd20">
                 <h3 class="m0">Tasks</h3>
                 <table id="dataTable" class="table responsive-table mt30">
                     <tbody>
@@ -95,7 +95,6 @@ export default class List extends React.Component {
                             <th class="text-center">Due Date</th>
                             <th class="text-center">Assigned</th>
                             <th class="text-center">Followed By</th>
-                            <th class="text-center"></th>
                         </tr>
                         {
                             (task.List.length > 0 && !task.Loading) &&
@@ -112,9 +111,16 @@ export default class List extends React.Component {
                                 }
 
                                 return (
-                                    <tr key={index} style={{ cursor: "pointer" }} onClick={() => this.selectedTask(data)}>
+                                    <tr key={index}>
                                         <td>{this.renderStatus({ ...data, taskStatus })}</td>
-                                        <td class="text-left">{data.task}</td>
+                                        <td class="text-left">
+                                            <a
+                                                href="javascript:void(0);"
+                                                onClick={() => this.selectedTask(data)}
+                                            >
+                                                {data.task}
+                                            </a>
+                                        </td>
                                         <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                         <td>{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                         <td>

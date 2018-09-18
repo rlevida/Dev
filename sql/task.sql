@@ -3,6 +3,7 @@ CREATE TABLE `task` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `projectId` BIGINT,
     `task` TEXT,
+    `description` TEXT,
     `workstreamId` BIGINT,
     `dueDate` DATETIME,
     `startDate` DATETIME,

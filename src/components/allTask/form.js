@@ -218,7 +218,14 @@ export default class FormComponent extends React.Component {
                                             <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} />
                                             <div class="help-block with-errors"></div>
                                         </div>
-                                    </div> <div class="form-group">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Description</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <textarea name="description" value={(typeof task.Selected.description == "undefined") ? "" : task.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Dependency Type</label>
                                         <div class="col-md-7 col-xs-12">
                                             <DropDown multiple={false}
