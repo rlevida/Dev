@@ -6,7 +6,8 @@ export default function reducer(state={
     EditType : "",
     DocumentToMove : {},
     DocumentToMoveType : "",
-    Loading : true
+    Loading : true,
+    DocumentToPrint :""
 },action){
     switch (action.type) {
 
@@ -49,7 +50,9 @@ export default function reducer(state={
         case "SET_DOCUMENT_TO_MOVE":{
             return {...state , DocumentToMove : action.DocumentToMove , DocumentToMoveType : action.DocType  }
         }
-
+        case "SET_DOCUMENT_TO_PRINT":{
+            return {...state , DocumentToPrint : action.DocumentToPrint }
+        }
         //UPDATE
         case "UPDATE_DATA_DOCUMENT_LIST" : {
             let tempList = action.List.map((e,i)=>{

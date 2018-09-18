@@ -5,6 +5,7 @@ import HTML5Backend from 'react-dnd-html5-backend';
 import { DragDropContext } from 'react-dnd';
 import { DropDown , Loading } from "../../../globalComponents"
 import Tooltip from "react-tooltip";
+import PrintComponent  from "../print"
 
 import { connect } from "react-redux"
 
@@ -222,8 +223,12 @@ export default class DocumentLibrary extends React.Component {
     }
 
     printDocument(file){
-      let  test =   window.open(encodeURI(`/api/printDocument?fileName=${file.name}&fileOrigin=${file.origin}`))
-      print(test)
+        let { dispatch } = this.props;
+
+        dispatch({type:"SET_DOCUMENT_TO_PRINT", DocumentToPrint: encodeURI(`/api/printDocument?fileName=${file.name}&fileOrigin=${file.origin}`)})
+        setTimeout(()=>{
+            document.getElementById('printDocument').contentWindow.print()
+        },3000)
     }
     render() {
         let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser } = this.props;
@@ -545,6 +550,7 @@ export default class DocumentLibrary extends React.Component {
                                 }
                             </tbody>
                         </table>
+                        <PrintComponent/>
                         <div class="modal fade" id="shareModal" tabIndex="-1" role="dialog" aria-labelledby="shareModalLabel" aria-hidden="true">
                             <div class="modal-dialog" role="document">
                                 <div class="modal-content">
