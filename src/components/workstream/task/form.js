@@ -4,7 +4,7 @@ import { setDatePicker } from '../../../globalFunction';
 import { connect } from "react-redux";
 import moment from 'moment';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-
+import UploadModal from "./uploadModal"
 
 @connect((store) => {
     return {
@@ -73,8 +73,8 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, task, status, global, loggedUser, document } = this.props;
-        let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false;
+        let { dispatch, task, status, global, loggedUser, document ,workstream } = this.props;
+        let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false , documentList = [];
 
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
@@ -104,6 +104,29 @@ export default class FormComponent extends React.Component {
             let userData = loggedUser.data
             if (loggedUser.data.userType == "Internal" && (userData.userRole == 1 || userData.userRole == 2 || userData.userRole == 3 || task.Selected.assignedById == userData.id)) {
                 isVisible = true;
+            }
+        }
+
+
+        if(typeof global.SelectList.tagList != "undefined"){
+            let tempTagList = [];
+                global.SelectList.tagList.map( tag => {
+                    if(tag.linkType == "workstream" && tag.linkId == workstream.Selected.id){
+                            tempTagList.push(tag)
+                    }
+
+                    if(tag.linkType == "task"){
+                        task.List.map( t =>{
+                            if(t.id == tag.linkId && t.workstreamId == workstream.Selected.id){
+                                tempTagList.push(tag)
+                            }
+                        })
+                    }
+                })
+            if(tempTagList.length){
+                tempTagList.map( temp =>{
+                    document.List.map(e => { if( e.id == temp.tagTypeId){ documentList.push(e) } })
+                })
             }
         }
 
@@ -193,11 +216,12 @@ export default class FormComponent extends React.Component {
                                 </tr>
                             </tbody>
                         </table>
-                        <h4>Documents</h4>
+                        <h4>Documents <a href="javascript:void(0)" class="pull-right"  data-toggle="modal" data-target="#uploadFileModal" >Add</a></h4>
+
                         <table class="table responsive-table table-bordered mt10 mb10">
                             <tbody>
-                                {(document.List.length > 0) &&
-                                    document.List.map((data, index) => {
+                                {(documentList.length > 0) &&
+                                    documentList.map((data, index) => {
                                         return (
                                             <tr key={index}>
                                                 <td><span class="fa fa-paperclip"></span></td>
@@ -214,6 +238,7 @@ export default class FormComponent extends React.Component {
                         <h4>Dependents</h4>
                     </TabPanel>
                 </Tabs>
+                <UploadModal/>
             </div>
         )
     }
