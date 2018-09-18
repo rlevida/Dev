@@ -173,11 +173,15 @@ export default class FormComponent extends React.Component {
                                 {
                                     _.map(checklist.List, (o, index) => {
                                         return (
-                                            <div class="wrapper" key={index}>
+                                            <div className={(o.completed == 1) ? "wrapper completed" : "wrapper"} key={index} onClick={() => {
+                                                socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } })
+                                            }}>
                                                 <p>{o.description}</p>
-                                                <a class="btn btn-danger" onClick={() => {
-                                                    socket.emit("DELETE_CHECKLIST", { data: o.id })
-                                                }}>
+                                                <a class="btn btn-danger"
+                                                    onClick={() => {
+                                                        socket.emit("DELETE_CHECKLIST", { data: o.id })
+                                                    }}
+                                                >
                                                     <span class="glyphicon glyphicon-trash"></span>
                                                 </a>
                                             </div>
