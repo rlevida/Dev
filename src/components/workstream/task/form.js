@@ -90,6 +90,7 @@ export default class FormComponent extends React.Component {
         const toBeSubmitted = {
             description: checklist.Selected.checklist,
             mandatory: (typeof checklist.Selected.mandatory != "undefined" && checklist.Selected.mandatory != "") ? checklist.Selected.mandatory : 0,
+            document: (typeof checklist.Selected.document != "undefined" && checklist.Selected.document != "") ? checklist.Selected.document : 0,
             taskId: task.Selected.id
         };
 
@@ -233,7 +234,11 @@ export default class FormComponent extends React.Component {
                                             <div className={(o.completed == 1) ? "wrapper completed" : "wrapper"} key={index} onClick={() => {
                                                 socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } })
                                             }}>
-                                                <p style={{ color: (o.mandatory == 1) ? '#3498db' : '#000' }}>{o.description}</p>
+                                                <p>{o.description}</p>
+                                                <p>
+                                                    Type: {(o.mandatory == 1) && <span class="fa fa-exclamation"></span>}
+                                                    {(o.document == 1) && <span class="fa fa-file"></span>}
+                                                </p>
                                                 <a class="btn btn-danger"
                                                     onClick={() => {
                                                         socket.emit("DELETE_CHECKLIST", { data: o.id })
@@ -262,6 +267,15 @@ export default class FormComponent extends React.Component {
                                             checked={checklist.Selected.mandatory ? true : false}
                                             onChange={() => { }}
                                             onClick={(f) => { this.handleCheckbox("mandatory", (checklist.Selected.mandatory) ? 0 : 1) }}
+                                        />
+                                    </div>
+                                    <div class="form-group" style={{ marginTop: 0, marginBottom: 0 }}>
+                                        <label style={{ paddingRight: 20 }}>Document?</label>
+                                        <input type="checkbox"
+                                            style={{ width: 15, marginTop: 10 }}
+                                            checked={checklist.Selected.document ? true : false}
+                                            onChange={() => { }}
+                                            onClick={(f) => { this.handleCheckbox("document", (checklist.Selected.document) ? 0 : 1) }}
                                         />
                                     </div>
                                     {
