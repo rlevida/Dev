@@ -15,25 +15,27 @@ import Workstream from "./workstream"
 import Task from "./task"
 import Reminder from "./reminder"
 import UsersTeam from "./usersTeam"
+import Checklist from "./checklist"
 
 export default class Socket extends React.Component {
     render() {
         return <div>
-                    <Global />
-                    <Auth />
-                    <Users />
-                    <Company />
-                    <Project />
-                    <Status />
-                    <Type />
-                    <Role />
-                    <Team />
-                    <Workstream />
-                    <Member />
-                    <Document/>
-                    <Task />
-                    <Reminder/>
-                    <UsersTeam />
-                </div>
+            <Global />
+            <Auth />
+            <Users />
+            <Company />
+            <Project />
+            <Status />
+            <Type />
+            <Role />
+            <Team />
+            <Workstream />
+            <Member />
+            <Document />
+            <Task />
+            <Reminder />
+            <UsersTeam />
+            <Checklist />
+        </div>
     }
 }

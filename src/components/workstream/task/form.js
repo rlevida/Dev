@@ -17,13 +17,14 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
         teams: store.teams,
         users: store.users,
         global: store.global,
-        document: store.document
+        document: store.document,
+        checklist: store.checklist
     }
 })
 
 export default class FormComponent extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
     }
 
     componentDidMount() {
@@ -73,7 +74,7 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, task, status, global, loggedUser, document } = this.props;
+        let { dispatch, task, status, global, loggedUser, document, checklist } = this.props;
         let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false;
 
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
@@ -113,7 +114,7 @@ export default class FormComponent extends React.Component {
                 <Tabs>
                     <TabList>
                         <Tab>Overview</Tab>
-                        <Tab>Dependent</Tab>
+                        <Tab>Dependents</Tab>
                     </TabList>
                     <TabPanel>
                         <h4 class="mt20 mb20">
@@ -141,7 +142,29 @@ export default class FormComponent extends React.Component {
                                 && task.Selected.description != null) && <p class="mt10 mb10">{task.Selected.description}</p>
                         }
 
-                        <table class="table responsive-table table-bordered mt10 mb10">
+                        <div>
+                            <div style={{ position: 'relative' }}>
+                                <h5>Checklist</h5>
+                                <a class="task-add" onClick={() => {
+                                    dispatch({ type: "SET_CHECKLIST_ACTION", action: 'add' })
+                                }}>Add</a>
+                            </div>
+                            {
+                                (checklist.Action == "add") && <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <input type="text" name="checkList" class="form-control" placeholder="Add Item" onChange={this.handleChange} />
+                                            <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add">Add</a>
+                                            <a class="btn mt5" onClick={() => {
+                                                dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
+                                            }}><i class="fa fa-times fa-lg"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <table class="table responsive-table table-bordered mt20 mb10">
                             <tbody>
                                 <tr>
                                     <td style={{ width: "10%" }}><span class="fa fa-calendar"></span></td>
