@@ -84,7 +84,7 @@ export default class FormComponent extends React.Component {
         if (!project.Selected.id) {
             project.Selected.createdBy = loggedUser.data.id;
         }
-
+        
         socket.emit("SAVE_OR_UPDATE_PROJECT", { data: project.Selected });
     }
 

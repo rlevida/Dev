@@ -64,7 +64,7 @@ export default class ProjectFilter extends React.Component {
     }
 
     render() {
-        let { status, type, loggedUser } = this.props
+        let { status, type, loggedUser , dispatch} = this.props
         let typeList = [ {id:"",name:"All Project Types"} ];
         let statusList = [
             {id:"",name:"All Status"},
@@ -101,7 +101,12 @@ export default class ProjectFilter extends React.Component {
                                         || loggedUser.data.userRole == 3 
                                         || loggedUser.data.userRole == 4) &&
                 <div class="col-md-1" >
-                    <span class="fa fa-plus-circle" title="New Project" style={{cursor:"pointer",fontSize:"20px",paddingTop:"8px"}} onClick={(e)=>this.props.dispatch({type:"SET_PROJECT_FORM_ACTIVE", FormActive: "Form" })}></span>
+                    <span class="fa fa-plus-circle" title="New Project" style={{cursor:"pointer",fontSize:"20px",paddingTop:"8px"}} 
+                        onClick={(e)=> { 
+                            dispatch({type:"SET_PROJECT_SELECTED",Selected:{}}),
+                            dispatch({type:"SET_PROJECT_FORM_ACTIVE", FormActive: "Form" })} 
+                    }>
+                    </span>
                 </div>
                 }
             </div>

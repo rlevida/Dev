@@ -322,7 +322,13 @@ var getProjectList = exports.getProjectList = ( tablename, data, advance , cb ) 
                             (SELECT projectId, workstreamId, SUM(IF(dueDate>=CURDATE(),1,0)) as OnTrack, SUM(IF((status <> "Completed" OR status IS NULL) AND dueDate=CURDATE(),1,0)) as OnDue, SUM(IF((status <> "Completed" OR status IS NULL) AND dueDate<CURDATE() AND duedate > "1970-01-01",1,0 )) as Issues FROM task 			
                                     GROUP BY task.workstreamId) as tb1 GROUP BY tb1.projectId) as tk 
                             ON ws.projectId = tk.projectId
-                ) as wsStatus ON prj.id = wsStatus.projectId WHERE prj.isDeleted = 0
+                ) as wsStatus ON prj.id = wsStatus.projectId 
+
+                LEFT JOIN ( SELECT users.id as projectManagerId , users.firstName , members.linkId as projectLinkId , users.lastName FROM users 
+                    LEFT JOIN members ON members.userTypeLinkId = users.id WHERE memberType = 'project manager'
+                    ) as member ON prj.id = member.projectLinkId  
+
+                WHERE prj.isDeleted = 0 
             ` 
     /**
      * Manage Query Connection
