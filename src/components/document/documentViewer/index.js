@@ -30,16 +30,17 @@ export default class DocumentViewerComponent extends React.Component {
             comment: "",
             contributors: [],
             suggestions: [],
-            users: [],
+            // users: [],
             mentions: [],
-            editorState : toEditorState('')
+            editorState : toEditorState(''),
+            reminderList : []
         }
     }
 
     componentWillMount() {
         let { socket  , document , users } = this.props
             socket.emit("GET_COMMENT_LIST",{ filter : { linkType : "project" , linkId : document.Selected.id }})
-            this.setState({ users : users.List  })
+            // this.setState({ users : users.List  })
     }
 
     // onChange(e){
@@ -48,19 +49,37 @@ export default class DocumentViewerComponent extends React.Component {
     // }
 
     submitComment(){
-        let { socket , loggedUser , document} = this.props;
-        let { comment } = this.state;
-
+        let { socket , loggedUser , document , global} = this.props;
+        let { comment , mentions } = this.state;
+        let reminderList = []
+            global.SelectList.ProjectMemberList.map( user =>{ 
+                let tempData = `${user.firstName}-${user.lastName}`
+                mentions.map( m =>{
+                    if(tempData == m.split("@").join("")){
+                            reminderList.push({userId :user.id})
+                    }
+                })
+            })
         socket.emit("SAVE_OR_UPDATE_CONVERSATION", { 
-                data: { comment : comment , linkType : "project" , linkId : document.Selected.id , usersId : loggedUser.data.id } 
-            });
-            this.setState({ comment : "" , editorState :toEditorState('') })
+            filter: { seen: 0 },
+            data: { comment : comment , linkType : "project" , linkId : document.Selected.id , usersId : loggedUser.data.id } ,
+            reminder : { 
+                reminderType : "document" , 
+                reminderTypeId : document.Selected.id , 
+                reminderDetail : "tagged in comment" ,
+                projectId : project
+            },
+            reminderList : JSON.stringify(reminderList)
+        });
+    //         this.setState({ comment : "" , editorState :toEditorState('') })
+    // }
     }
 
     onSearchChange = (value) => {
         const searchValue = value.toLowerCase();
-        const { mentions , users } = this.state;
-        const filtered = users.filter( e => { 
+        const { mentions } = this.state;
+        const { global } = this.props;
+        const filtered = global.SelectList.ProjectMemberList.filter( e => { 
             return (
                  `${e.firstName}-${e.lastName}`.toLowerCase().indexOf(searchValue) !== -1
                 && mentions.indexOf(`@${e.firstName}-${e.lastName}`) === -1
@@ -78,9 +97,11 @@ export default class DocumentViewerComponent extends React.Component {
     }
 
     onChange = (e) => {
-
-        const mentions = getMentions(e);
+        let { global } = this.props;
+        let { reminderList } = this.state
+        let mentions = getMentions(e);
         let newData = toString(e, { encode: true })
+
         mentions.map( t =>{
            newData =  newData.replace(t , `<a href="javascript:void(0);" >${(t.split("@").join("")).split("-").join(" ")}</a>`)
         })
@@ -88,7 +109,8 @@ export default class DocumentViewerComponent extends React.Component {
         this.setState({
             mentions : mentions,
             comment : newData,
-            editorState : e
+            editorState : e,
+            reminderList, reminderList
         });
     }
 

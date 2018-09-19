@@ -24,6 +24,21 @@ var field = exports.field = {
      * seen (TINYINT)
      */
     'seen' : {type : 'int' , access : "public" },
+
+     /**
+     * projectId (BIGINT)
+     */
+    'projectId' : {type : 'int' , access : "public" },
+
+     /**
+     * reminderTypeId (TINYINT)
+     */
+    'reminderTypeId' : {type : 'int' , access : "public" },
+    
+    /**
+     * reminderType (ENUM("task","document"))
+     */
+    'reminderType' : {type : 'string' , access : "public" },
     
     /**
      * dateAdded (DATETIME)
