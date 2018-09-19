@@ -8,6 +8,7 @@ import { connect } from "react-redux"
     return {
         socket: store.socket.container,
         task: store.task,
+        loggedUser: store.loggedUser
     }
 })
 
@@ -20,13 +21,20 @@ export default class TaskStatus extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_TASK_COUNT_LIST", { filter: { projectId: project } })
+        let { socket , loggedUser } = this.props;
+        let intervalLoggedUser = setInterval(() => {
+            if (typeof this.props.loggedUser.data.id != "undefined") {
+                let filter = { filter: { userId: this.props.loggedUser.data.id } }
+                this.props.socket.emit("GET_ALL_TASK_COUNT_LIST", filter)
+                clearInterval(intervalLoggedUser)
+            }
+        }, 1000)
     }
 
     render() {
         let data = { Active: 0, OnTrack: 0, Issues: 0 }
 
-        this.props.task.CountList.map((e, i) => {
+        this.props.task.AllCountList.map((e, i) => {
             data = {
                 Active: (typeof e.Active != "undefined" && e.Active) ? e.Active : 0,
                 OnTrack: (typeof e.OnTrack != "undefined" && e.OnTrack) ? e.OnTrack : 0,
