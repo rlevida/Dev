@@ -62,7 +62,7 @@ var getReminderList = exports.getReminderList = (data , cb ) => {
     let db = global.initDB();
     let params = []; 
     let query = `SELECT reminder.*, reminder.id as reminderId , task.* , task.workstreamId  FROM reminder 
-                    LEFT JOIN task ON reminder.taskId = task.id WHERE reminder.usersId = ${data.usersId} AND reminder.seen = 0`;
+                    LEFT JOIN task ON reminder.taskId = task.id WHERE reminder.seen = 0`;
     db.query(
         query,
         params, 

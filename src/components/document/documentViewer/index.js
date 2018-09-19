@@ -52,48 +52,55 @@ export default class DocumentViewerComponent extends React.Component {
         let { socket , loggedUser , document , global} = this.props;
         let { comment , mentions } = this.state;
         let reminderList = []
+
             global.SelectList.ProjectMemberList.map( user =>{ 
-                let tempData = `${user.firstName}-${user.lastName}`
+                let tempData = `${user.firstName.split(" ").join("")}-${user.lastName}`
                 mentions.map( m =>{
                     if(tempData == m.split("@").join("")){
                             reminderList.push({userId :user.id})
                     }
                 })
             })
-        socket.emit("SAVE_OR_UPDATE_CONVERSATION", { 
-            filter: { seen: 0 },
-            data: { comment : comment , linkType : "project" , linkId : document.Selected.id , usersId : loggedUser.data.id } ,
-            reminder : { 
-                reminderType : "document" , 
-                reminderTypeId : document.Selected.id , 
-                reminderDetail : "tagged in comment" ,
-                projectId : project
-            },
-            reminderList : JSON.stringify(reminderList)
-        });
-    //         this.setState({ comment : "" , editorState :toEditorState('') })
-    // }
+            socket.emit("SAVE_OR_UPDATE_CONVERSATION", { 
+                filter: { seen: 0 },
+                data: { comment : comment , linkType : "project" , linkId : document.Selected.id , usersId : loggedUser.data.id } ,
+                reminder : { 
+                    reminderType : "document" , 
+                    reminderTypeId : document.Selected.id , 
+                    reminderDetail : "tagged in comment" ,
+                    projectId : project
+                },
+                reminderList : JSON.stringify(reminderList)
+            });
+            this.setState({ comment : "" , editorState :toEditorState('') })
     }
 
     onSearchChange = (value) => {
         const searchValue = value.toLowerCase();
         const { mentions } = this.state;
         const { global } = this.props;
-        const filtered = global.SelectList.ProjectMemberList.filter( e => { 
-            return (
-                 `${e.firstName}-${e.lastName}`.toLowerCase().indexOf(searchValue) !== -1
-                && mentions.indexOf(`@${e.firstName}-${e.lastName}`) === -1
-            )
+
+        const filtered = global.SelectList.ProjectMemberList.filter( e => {
+              return   `${(e.firstName).split(" ").join("")}-${e.lastName}`.toLowerCase().indexOf(searchValue) !== -1
+                && mentions.indexOf(`@${(e.firstName).split(" ").join("")}-${e.lastName}`) === -1
         });
 
-        const suggestions = filtered.map(e =>
-            <Nav style={{ height: 34 }} value={ `${e.firstName}-${e.lastName}`} key={e.id} >
-              <span className="meta">{ `${e.firstName} ${e.lastName}` }</span>
-            </Nav>);
+        const suggestions = filtered.map(e =>{
+           return (  
+                <Nav style={{ height: 34 }} value={ `${(e.firstName).split(" ").join("")}-${e.lastName}`} key={e.id} >
+                    <span className="meta">{ `${e.firstName.split(" ").join("")} ${e.lastName}` }</span>
+                </Nav>
+            )});
 
-        this.setState({
-          suggestions,
-        });
+        if(suggestions.length > 0){
+            this.setState({
+                suggestions:suggestions
+            });
+        }else{
+            this.setState({
+                suggestions:suggestions
+            });
+        }
     }
 
     onChange = (e) => {
@@ -185,7 +192,7 @@ export default class DocumentViewerComponent extends React.Component {
                                             ref="mention"
                                             onSearchChange={this.onSearchChange}
                                             onChange={this.onChange}
-                                            defaultValue={toEditorState("")}
+                                            defaultValue={toEditorState("Test")}
                                             suggestions={ suggestions }
                                             value = {editorState} 
                                             prefix="@"

@@ -42,32 +42,44 @@ var init = exports.init = (socket) => {
                     conversation.getData("conversation",{id:c.id},{},(e)=>{
                         if(e.data.length > 0) {
                             nextThen(e.data , "Add")
-                            socket.emit("FRONT_COMMENT_ADD",e.data)
                         }
                     })
                 })
             }
         }).then((nextThen,result,action) => {
-          
             if(JSON.parse(d.reminderList).length){
                 let filter = (typeof d.filter != "undefined") ? d.filter : {};
                 let reminder = global.initModel("reminder");
-                JSON.parse(d.reminderList).map( r =>{
-                    let data = { ...d.reminder , usersId : r.userId } 
-                     reminder.postData("reminder", data ,(res)=>{
-                        if(res.status) {
-                            // filter.usersId = r.userId
-                            // reminder.getReminderList(filter,(e)=>{
-                            //     if(e.data.length > 0) {
-                            //         socket.emit("FRONT_REMINDER_LIST", e.data)
-                            //     }else{
-                            //         socket.emit("FRONT_REMINDER_LIST", [])
-                            //     }
-                            // })
-                        }else{
-                            socket.emit("RETURN_ERROR_MESSAGE",{message:"Update failed. Please Try again later."})
-                        }
+                let tempResData = []
+                tempResData.push( new Promise((resolve,reject) => {
+                    JSON.parse(d.reminderList).map( r =>{
+                        let data = { ...d.reminder , usersId : r.userId } 
+                        reminder.postData("reminder", data ,(res)=>{
+                            if(res.status) {
+                                filter.usersId = r.userId
+                                reminder.getReminderList(filter,(e)=>{
+                                    if(e.data.length > 0) {
+                                        resolve(e.data)
+                                    }else{
+                                        reject()
+                                    }
+                                })
+                            }else{
+                                reject()
+                            }
+                        })
                     })
+                }))
+
+                Promise.all(tempResData).then((values)=>{
+                    socket.emit("FRONT_REMINDER_LIST", values)
+                    
+                    if(action == "Edit"){
+                        socket.emit("FRONT_CONVERSATION_EDIT",result)
+                        socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
+                    }else{
+                        socket.emit("FRONT_COMMENT_ADD",result)
+                    }
                 })
             }else{
                 if(action == "Edit"){

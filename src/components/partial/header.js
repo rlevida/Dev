@@ -40,6 +40,7 @@ export default class Component extends React.Component {
         let { dispatch, socket, user } = this.props;
         socket.emit("LOGGED_USER", {});
         socket.emit("GET_SETTINGS", {});
+        socket.emit("GET_REMINDER_LIST", { filter: { seen: 0 } })
 
         if (window.innerHeight <= 550) {
             this.setState({ showMore: "" })
@@ -61,20 +62,11 @@ export default class Component extends React.Component {
         });
     }
 
-    componentWillReceiveProps(props) {
-        let { socket, user, reminder } = props;
-        let { getReminder } = this.state
-        if (reminder.List.length == 0 && getReminder && typeof user.id != "undefined") {
-            socket.emit("GET_REMINDER_LIST", { filter: { usersId: user.id, seen: 0 } })
-            this.setState({ getReminder: false })
-        }
-    }
-
     setSideMenuState(status) {
         this.setState({ miniSideMenu: status })
         setCookie("sidemenu", status, 1);
     }
-
+ 
     setShowMore(type) {
         if (type == "top") {
             $("#menu").css("overflow", "hidden")
@@ -97,15 +89,20 @@ export default class Component extends React.Component {
         if (user.username != "") {
             userView = <div class="headAccess"> Welcome : {user.username}</div>;
         }
+
+        let reminderList = _.flatten(reminder.List).filter( e =>{
+            return e.usersId == user.id
+        })
+
         return <div>
             <div class={((this.state.miniSideMenu == "true") ? "sidebar-left-mini" : "") + " bg-dark dk "} id="wrap">
                 <div class="dropdown pull-right" style={{ marginTop: "10px", marginRight: "10px" }}>
                     <a class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
                         <span class="fa fa-bell"></span>
-                        <span class="label label-danger" style={{ marginLeft: "5px", display: reminder.List.length ? "inline-block" : "none" }}>{reminder.List.length}</span>
+                        <span class="label label-danger" style={{ marginLeft: "5px", display: reminderList.length ? "inline-block" : "none" }}>{reminderList.length}</span>
                     </a>
                     <ul class="dropdown-menu" >
-                        {reminder.List.map((data, index) => {
+                        {reminderList.map((data, index) => {
                             return (
                                 <li><a href={"/reminder"} key={index} style={{ textDecoration: "none" }}>{data.reminderDetail}</a></li>
                             )
