@@ -20,7 +20,7 @@ export default class Link extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_TASK_COUNT_LIST",{filter:{projectId:project}})
+        // this.props.socket.emit("GET_TASK_COUNT_LIST",{filter:{projectId:project}})
     }
 
     render() {
