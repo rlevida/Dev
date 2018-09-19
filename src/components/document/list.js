@@ -97,7 +97,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { workstream  , task , dispatch , projectData } = this.props;
+        let { workstream  , task , dispatch , projectData , loggedUser } = this.props;
         let tagOptions = [] ;
 
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
@@ -115,7 +115,10 @@ export default class List extends React.Component {
                 </div>
                 <div style={{padding:"20px"}}>
                     <div class="row"> 
-                        <DocumentStatus/>
+                        { 
+                            (loggedUser.data.userType == "Internal") &&
+                                <DocumentStatus/>
+                        }
                         <DocumentNew/>
                         <DocumentLibrary/>
                     </div>
