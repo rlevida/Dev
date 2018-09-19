@@ -316,7 +316,10 @@ export default class FormComponent extends React.Component {
                                 </div>
                             </div>
                         </div>
-                        <h4>Documents <a href="javascript:void(0)" class="pull-right" data-toggle="modal" data-target="#uploadFileModal" >Add</a></h4>
+                        <div style={{ position: "relative" }}>
+                            <h4>Documents</h4>
+                            <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" >Add</a>
+                        </div>
                         <table class="table responsive-table table-bordered mt10 mb10">
                             <tbody>
                                 {(documentList.length > 0) &&
