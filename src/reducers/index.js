@@ -21,6 +21,7 @@ import starred from "./starred"
 import folder from "./folder"
 import reminder from "./reminder"
 import usersTeam from "./usersTeam"
+import checklist from "./checklist"
 
 export default combineReducers({
     socket,
@@ -45,5 +46,6 @@ export default combineReducers({
     starred,
     folder,
     reminder,
-    usersTeam
+    usersTeam,
+    checklist
 })

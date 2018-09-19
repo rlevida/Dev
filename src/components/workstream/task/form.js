@@ -1,10 +1,12 @@
 import React from "react";
-
 import { setDatePicker } from '../../../globalFunction';
 import { connect } from "react-redux";
-import moment from 'moment';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import UploadModal from "./uploadModal"
+import moment from 'moment';
+import _ from 'lodash';
+import { DropDown } from "../../../globalComponents";
+
 
 @connect((store) => {
     return {
@@ -17,13 +19,18 @@ import UploadModal from "./uploadModal"
         teams: store.teams,
         users: store.users,
         global: store.global,
-        document: store.document
+        document: store.document,
+        checklist: store.checklist
     }
 })
 
 export default class FormComponent extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
+
+        this.handleChange = this.handleChange.bind(this);
+        this.setDropDownMultiple = this.setDropDownMultiple.bind(this);
+        this.addChecklist = this.addChecklist.bind(this);
     }
 
     componentDidMount() {
@@ -34,6 +41,7 @@ export default class FormComponent extends React.Component {
 
         if (typeof task.Selected.id != 'undefined') {
             socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
+            socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
         }
 
         if (typeof task.Selected.workstreamId != "undefined") {
@@ -72,9 +80,41 @@ export default class FormComponent extends React.Component {
         socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
     }
 
+    handleChange(e) {
+        let { checklist, dispatch } = this.props;
+        let Selected = Object.assign({}, checklist.Selected)
+        Selected[e.target.name] = e.target.value;
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected })
+    }
+
+    addChecklist() {
+        const { checklist, task, socket } = this.props;
+        const toBeSubmitted = {
+            description: checklist.Selected.checklist,
+            types: checklist.Selected.types,
+            taskId: task.Selected.id
+        };
+        socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
+    }
+
+    handleCheckbox(name, value) {
+        let { checklist, dispatch } = this.props
+        let Selected = Object.assign({}, checklist.Selected)
+        Selected[name] = value;
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected });
+    }
+
+    setDropDownMultiple(name, values) {
+        let { checklist, dispatch } = this.props;
+        let Selected = Object.assign({}, checklist.Selected);
+
+        Selected[name] = values;
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected })
+    }
+
     render() {
-        let { dispatch, task, status, global, loggedUser, document ,workstream } = this.props;
-        let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false , documentList = [];
+        let { dispatch, task, status, global, loggedUser, document, workstream, checklist, socket } = this.props;
+        let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false, documentList = [];
 
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
@@ -107,25 +147,24 @@ export default class FormComponent extends React.Component {
             }
         }
 
-
-        if(typeof global.SelectList.tagList != "undefined"){
+        if (typeof global.SelectList.tagList != "undefined") {
             let tempTagList = [];
-                global.SelectList.tagList.map( tag => {
-                    if(tag.linkType == "workstream" && tag.linkId == workstream.Selected.id){
-                            tempTagList.push(tag)
-                    }
+            global.SelectList.tagList.map(tag => {
+                if (tag.linkType == "workstream" && tag.linkId == workstream.Selected.id) {
+                    tempTagList.push(tag)
+                }
 
-                    if(tag.linkType == "task"){
-                        task.List.map( t =>{
-                            if(t.id == tag.linkId && t.workstreamId == workstream.Selected.id){
-                                tempTagList.push(tag)
-                            }
-                        })
-                    }
-                })
-            if(tempTagList.length){
-                tempTagList.map( temp =>{
-                    document.List.map(e => { if( e.id == temp.tagTypeId){ documentList.push(e) } })
+                if (tag.linkType == "task") {
+                    task.List.map(t => {
+                        if (t.id == tag.linkId && t.workstreamId == workstream.Selected.id) {
+                            tempTagList.push(tag)
+                        }
+                    })
+                }
+            })
+            if (tempTagList.length) {
+                tempTagList.map(temp => {
+                    document.List.map(e => { if (e.id == temp.tagTypeId) { documentList.push(e) } })
                 })
             }
         }
@@ -136,7 +175,7 @@ export default class FormComponent extends React.Component {
                 <Tabs>
                     <TabList>
                         <Tab>Overview</Tab>
-                        <Tab>Dependent</Tab>
+                        <Tab>Dependents</Tab>
                     </TabList>
                     <TabPanel>
                         <h4 class="mt20 mb20">
@@ -163,7 +202,6 @@ export default class FormComponent extends React.Component {
                                 && task.Selected.description != ""
                                 && task.Selected.description != null) && <p class="mt10 mb10">{task.Selected.description}</p>
                         }
-
                         <table class="table responsive-table table-bordered mt10 mb10">
                             <tbody>
                                 <tr>
@@ -207,7 +245,7 @@ export default class FormComponent extends React.Component {
                                         </tr> */}
                             </tbody>
                         </table>
-                        <table class="table responsive-table table-bordered mt10 mb10">
+                        <table class="table responsive-table table-bordered mt10 mb20">
                             <tbody>
                                 <tr>
                                     <td style={{ width: "10%" }}><span class="fa fa-bell"></span></td>
@@ -216,8 +254,69 @@ export default class FormComponent extends React.Component {
                                 </tr>
                             </tbody>
                         </table>
-                        <h4>Documents <a href="javascript:void(0)" class="pull-right"  data-toggle="modal" data-target="#uploadFileModal" >Add</a></h4>
-
+                        <div>
+                            <div style={{ position: 'relative' }}>
+                                <h5 class="mt0">Checklist</h5>
+                            </div>
+                            <div id="checklist">
+                                {
+                                    _.map(checklist.List, (o, index) => {
+                                        return (
+                                            <div className={(o.completed == 1) ? "wrapper completed" : "wrapper"} key={index} onClick={() => {
+                                                socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } })
+                                            }}>
+                                                <p>{o.description}</p>
+                                                {
+                                                    _.map(o.types, (o, index) => {
+                                                        return (
+                                                            <span class="label label-success" key={index}>{o.value}</span>
+                                                        )
+                                                    })
+                                                }
+                                                <a class="btn btn-danger"
+                                                    onClick={() => {
+                                                        socket.emit("DELETE_CHECKLIST", { data: o.id })
+                                                    }}
+                                                >
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </a>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
+                            <div class="row mt10" style={{ paddingLeft: 22 }}>
+                                <div class="col-md-12">
+                                    <div class="form-group" style={{ marginBottom: 0 }}>
+                                        <input type="text" name="checklist"
+                                            class="form-control"
+                                            placeholder="Add Item"
+                                            onChange={this.handleChange}
+                                            value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
+                                        />
+                                    </div>
+                                    <div class="form-group" style={{ marginTop: 5, marginBottom: 0 }}>
+                                        <label style={{ paddingRight: 20 }}>Checklist type</label>
+                                        <DropDown multiple={true}
+                                            required={false}
+                                            options={_.map(['Mandatory', 'Document'], (o) => { return { id: o, name: o } })}
+                                            selected={(typeof checklist.Selected.types == "undefined") ? [] : checklist.Selected.types}
+                                            onChange={(e) => this.setDropDownMultiple("types", e)}
+                                        />
+                                    </div>
+                                    {
+                                        (typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") && <div>
+                                            <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
+                                                onClick={this.addChecklist}
+                                            >
+                                                Add
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <h4>Documents <a href="javascript:void(0)" class="pull-right" data-toggle="modal" data-target="#uploadFileModal" >Add</a></h4>
                         <table class="table responsive-table table-bordered mt10 mb10">
                             <tbody>
                                 {(documentList.length > 0) &&
@@ -238,7 +337,7 @@ export default class FormComponent extends React.Component {
                         <h4>Dependents</h4>
                     </TabPanel>
                 </Tabs>
-                <UploadModal/>
+                <UploadModal />
             </div>
         )
     }
