@@ -6,6 +6,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import moment from 'moment';
 import _ from 'lodash';
 
+import { DropDown } from "../../../globalComponents";
 
 @connect((store) => {
     return {
@@ -28,6 +29,7 @@ export default class FormComponent extends React.Component {
         super(props);
 
         this.handleChange = this.handleChange.bind(this);
+        this.setDropDownMultiple = this.setDropDownMultiple.bind(this);
         this.addChecklist = this.addChecklist.bind(this);
     }
 
@@ -89,11 +91,9 @@ export default class FormComponent extends React.Component {
         const { checklist, task, socket } = this.props;
         const toBeSubmitted = {
             description: checklist.Selected.checklist,
-            mandatory: (typeof checklist.Selected.mandatory != "undefined" && checklist.Selected.mandatory != "") ? checklist.Selected.mandatory : 0,
-            document: (typeof checklist.Selected.document != "undefined" && checklist.Selected.document != "") ? checklist.Selected.document : 0,
+            types: checklist.Selected.types,
             taskId: task.Selected.id
         };
-
         socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
     }
 
@@ -102,6 +102,14 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, checklist.Selected)
         Selected[name] = value;
         dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected });
+    }
+
+    setDropDownMultiple(name, values) {
+        let { checklist, dispatch } = this.props;
+        let Selected = Object.assign({}, checklist.Selected);
+
+        Selected[name] = values;
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected })
     }
 
     render() {
@@ -138,6 +146,7 @@ export default class FormComponent extends React.Component {
                 isVisible = true;
             }
         }
+        
         return (
             <div class="pd20">
                 <span class="pull-right" style={{ cursor: "pointer" }} onClick={() => { dispatch({ type: "SET_TASK_SELECTED", Selected: {} }); dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" }) }}><i class="fa fa-times-circle fa-lg"></i></span>
@@ -235,10 +244,13 @@ export default class FormComponent extends React.Component {
                                                 socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } })
                                             }}>
                                                 <p>{o.description}</p>
-                                                <p>
-                                                    Type: {(o.mandatory == 1) && <span class="fa fa-exclamation"></span>}
-                                                    {(o.document == 1) && <span class="fa fa-file"></span>}
-                                                </p>
+                                                {
+                                                    _.map(o.types, (o, index) => {
+                                                        return (
+                                                            <span class="label label-success" key={index}>{o.value}</span>
+                                                        )
+                                                    })
+                                                }
                                                 <a class="btn btn-danger"
                                                     onClick={() => {
                                                         socket.emit("DELETE_CHECKLIST", { data: o.id })
@@ -260,22 +272,13 @@ export default class FormComponent extends React.Component {
                                             value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
                                         />
                                     </div>
-                                    <div class="form-group" style={{ marginTop: 0, marginBottom: 0 }}>
-                                        <label style={{ paddingRight: 15 }}>Mandatory?</label>
-                                        <input type="checkbox"
-                                            style={{ width: 15, marginTop: 10 }}
-                                            checked={checklist.Selected.mandatory ? true : false}
-                                            onChange={() => { }}
-                                            onClick={(f) => { this.handleCheckbox("mandatory", (checklist.Selected.mandatory) ? 0 : 1) }}
-                                        />
-                                    </div>
-                                    <div class="form-group" style={{ marginTop: 0, marginBottom: 0 }}>
-                                        <label style={{ paddingRight: 20 }}>Document?</label>
-                                        <input type="checkbox"
-                                            style={{ width: 15, marginTop: 10 }}
-                                            checked={checklist.Selected.document ? true : false}
-                                            onChange={() => { }}
-                                            onClick={(f) => { this.handleCheckbox("document", (checklist.Selected.document) ? 0 : 1) }}
+                                    <div class="form-group" style={{ marginTop: 5, marginBottom: 0 }}>
+                                        <label style={{ paddingRight: 20 }}>Checklist type</label>
+                                        <DropDown multiple={true}
+                                            required={false}
+                                            options={_.map(['Mandatory', 'Document'], (o) => { return { id: o, name: o } })}
+                                            selected={(typeof checklist.Selected.types == "undefined") ? [] : checklist.Selected.types}
+                                            onChange={(e) => this.setDropDownMultiple("types", e)}
                                         />
                                     </div>
                                     {
@@ -284,11 +287,6 @@ export default class FormComponent extends React.Component {
                                                 onClick={this.addChecklist}
                                             >
                                                 Add
-                                            </a>
-                                            <a class="btn mt5" onClick={() => {
-                                                dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
-                                            }}>
-                                                <i class="fa fa-times fa-lg"></i>
                                             </a>
                                         </div>
                                     }

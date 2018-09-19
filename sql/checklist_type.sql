@@ -1,9 +1,8 @@
-DROP TABLE IF EXISTS `task_checklist`;
-CREATE TABLE `task_checklist` (
+DROP TABLE IF EXISTS `checklist_type`;
+CREATE TABLE `checklist_type` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
-    `completed` TINYINT(1) DEFAULT '0',
-    `description` TEXT,
-    `taskId` BIGINT,
+    `type` ENUM("Mandatory","Document"),
+    `checklistId` BIGINT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)
