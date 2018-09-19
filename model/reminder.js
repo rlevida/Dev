@@ -24,6 +24,21 @@ var field = exports.field = {
      * seen (TINYINT)
      */
     'seen' : {type : 'int' , access : "public" },
+
+     /**
+     * projectId (BIGINT)
+     */
+    'projectId' : {type : 'int' , access : "public" },
+
+     /**
+     * reminderTypeId (TINYINT)
+     */
+    'reminderTypeId' : {type : 'int' , access : "public" },
+    
+    /**
+     * reminderType (ENUM("task","document"))
+     */
+    'reminderType' : {type : 'string' , access : "public" },
     
     /**
      * dateAdded (DATETIME)
@@ -47,7 +62,7 @@ var getReminderList = exports.getReminderList = (data , cb ) => {
     let db = global.initDB();
     let params = []; 
     let query = `SELECT reminder.*, reminder.id as reminderId , task.* , task.workstreamId  FROM reminder 
-                    LEFT JOIN task ON reminder.taskId = task.id WHERE reminder.usersId = ${data.usersId} AND reminder.seen = 0`;
+                    LEFT JOIN task ON reminder.taskId = task.id WHERE reminder.seen = 0`;
     db.query(
         query,
         params, 

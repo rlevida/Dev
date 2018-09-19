@@ -30,16 +30,17 @@ export default class DocumentViewerComponent extends React.Component {
             comment: "",
             contributors: [],
             suggestions: [],
-            users: [],
+            // users: [],
             mentions: [],
-            editorState : toEditorState('')
+            editorState : toEditorState(''),
+            reminderList : []
         }
     }
 
     componentWillMount() {
         let { socket  , document , users } = this.props
             socket.emit("GET_COMMENT_LIST",{ filter : { linkType : "project" , linkId : document.Selected.id }})
-            this.setState({ users : users.List  })
+            // this.setState({ users : users.List  })
     }
 
     // onChange(e){
@@ -48,39 +49,66 @@ export default class DocumentViewerComponent extends React.Component {
     // }
 
     submitComment(){
-        let { socket , loggedUser , document} = this.props;
-        let { comment } = this.state;
+        let { socket , loggedUser , document , global} = this.props;
+        let { comment , mentions } = this.state;
+        let reminderList = []
 
-        socket.emit("SAVE_OR_UPDATE_CONVERSATION", { 
-                data: { comment : comment , linkType : "project" , linkId : document.Selected.id , usersId : loggedUser.data.id } 
+            global.SelectList.ProjectMemberList.map( user =>{ 
+                let tempData = `${user.firstName.split(" ").join("")}-${user.lastName}`
+                mentions.map( m =>{
+                    if(tempData == m.split("@").join("")){
+                            reminderList.push({userId :user.id})
+                    }
+                })
+            })
+            socket.emit("SAVE_OR_UPDATE_CONVERSATION", { 
+                filter: { seen: 0 },
+                data: { comment : comment , linkType : "project" , linkId : document.Selected.id , usersId : loggedUser.data.id } ,
+                reminder : { 
+                    reminderType : "document" , 
+                    reminderTypeId : document.Selected.id , 
+                    reminderDetail : "tagged in comment" ,
+                    projectId : project
+                },
+                reminderList : JSON.stringify(reminderList)
             });
             this.setState({ comment : "" , editorState :toEditorState('') })
     }
 
     onSearchChange = (value) => {
         const searchValue = value.toLowerCase();
-        const { mentions , users } = this.state;
-        const filtered = users.filter( e => { 
-            return (
-                 `${e.firstName}-${e.lastName}`.toLowerCase().indexOf(searchValue) !== -1
-                && mentions.indexOf(`@${e.firstName}-${e.lastName}`) === -1
-            )
+        const { mentions } = this.state;
+        const { global } = this.props;
+
+        const filtered = global.SelectList.ProjectMemberList.filter( e => {
+              return   `${(e.firstName).split(" ").join("")}-${e.lastName}`.toLowerCase().indexOf(searchValue) !== -1
+                && mentions.indexOf(`@${(e.firstName).split(" ").join("")}-${e.lastName}`) === -1
         });
 
-        const suggestions = filtered.map(e =>
-            <Nav style={{ height: 34 }} value={ `${e.firstName}-${e.lastName}`} key={e.id} >
-              <span className="meta">{ `${e.firstName} ${e.lastName}` }</span>
-            </Nav>);
+        const suggestions = filtered.map(e =>{
+           return (  
+                <Nav style={{ height: 34 }} value={ `${(e.firstName).split(" ").join("")}-${e.lastName}`} key={e.id} >
+                    <span className="meta">{ `${e.firstName.split(" ").join("")} ${e.lastName}` }</span>
+                </Nav>
+            )});
 
-        this.setState({
-          suggestions,
-        });
+        if(suggestions.length > 0){
+            this.setState({
+                suggestions:suggestions
+            });
+        }else{
+            this.setState({
+                suggestions:suggestions
+            });
+        }
     }
 
     onChange = (e) => {
-
-        const mentions = getMentions(e);
+        let { global } = this.props;
+        let { reminderList } = this.state
+        let mentions = getMentions(e);
         let newData = toString(e, { encode: true })
+
         mentions.map( t =>{
            newData =  newData.replace(t , `<a href="javascript:void(0);" >${(t.split("@").join("")).split("-").join(" ")}</a>`)
         })
@@ -88,7 +116,8 @@ export default class DocumentViewerComponent extends React.Component {
         this.setState({
             mentions : mentions,
             comment : newData,
-            editorState : e
+            editorState : e,
+            reminderList, reminderList
         });
     }
 
@@ -163,7 +192,7 @@ export default class DocumentViewerComponent extends React.Component {
                                             ref="mention"
                                             onSearchChange={this.onSearchChange}
                                             onChange={this.onChange}
-                                            defaultValue={toEditorState("")}
+                                            defaultValue={toEditorState("Test")}
                                             suggestions={ suggestions }
                                             value = {editorState} 
                                             prefix="@"
