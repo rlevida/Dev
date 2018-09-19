@@ -103,7 +103,7 @@ export default class ProjectFilter extends React.Component {
                 <div class="col-md-1" >
                     <span class="fa fa-plus-circle" title="New Project" style={{cursor:"pointer",fontSize:"20px",paddingTop:"8px"}} 
                         onClick={(e)=> { 
-                            dispatch({type:"SET_PROJECT_SELECTED",Selected:{}}),
+                            dispatch({type:"SET_PROJECT_SELECTED",Selected:{isActive : true}}),
                             dispatch({type:"SET_PROJECT_FORM_ACTIVE", FormActive: "Form" })} 
                     }>
                     </span>
