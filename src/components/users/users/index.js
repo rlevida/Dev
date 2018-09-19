@@ -22,6 +22,23 @@ export default class Component extends React.Component {
         this.savePassword = this.savePassword.bind(this)
     }
 
+    componentDidMount() {
+        let intervalLoggedUser = setInterval(() => {
+            if (typeof this.props.loggedUser.data.id != "undefined") {
+                let filter = {}
+                if (this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2") {
+                    filter = {
+                        filter: {
+                            id: { name: "id", value: this.props.loggedUser.data.projectIds, condition: " IN " }
+                        }
+                    }
+                }
+                this.props.socket.emit("GET_PROJECT_LIST", filter);
+                clearInterval(intervalLoggedUser)
+            }
+        }, 1000)
+    }
+
     editData(id) {
         let { socket, dispatch } = this.props
         if (id == "") {
@@ -48,7 +65,7 @@ export default class Component extends React.Component {
     }
 
     render() {
-        let { socket, users, dispatch } = this.props
+        let { users, dispatch } = this.props
         return (
             <div>
                 {users.FormActive == "List" &&

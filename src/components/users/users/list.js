@@ -48,8 +48,15 @@ export default class List extends React.Component {
 
     render() {
         let { users, dispatch, socket, loggedUser, teams } = this.props;
-
-
+        let userList = _.filter(users.List, (o) => {
+            if (loggedUser.data.userRole == 1) {
+                return o.id > 0;
+            } else if (loggedUser.data.userRole == 2) {
+                return (_.filter(o.role, (role) => { return role.roleId > 1 })).length > 0
+            } else if (loggedUser.data.userRole == 3) {
+                return (_.filter(o.projects, (project) => { return project.projectManagerId == loggedUser.data.id })).length > 0 && o.userType == "External"
+            }
+        });
         return (
             <div>
                 <table id="dataTable" class="table responsive-table m0">
@@ -66,7 +73,7 @@ export default class List extends React.Component {
                             <th class="text-center"></th>
                         </tr>
                         {
-                            users.List.map((user, index) => {
+                            userList.map((user, index) => {
                                 let toBeEditedByAdmin = user.role.filter(e => e.roleId == 2 || e.roleId == 3 || e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
                                 let toBeEditedByManager = user.role.filter(e => e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
 
@@ -111,6 +118,9 @@ export default class List extends React.Component {
 
                     </tbody>
                 </table>
+                {
+                    (userList.length == 0) && <p class="text-center m0">No Record Found!</p>
+                }
             </div>
         )
     }
