@@ -23,6 +23,36 @@ var field = exports.field = {
         'type' : {type : 'string' , access : "public" },
 
         /**
+         * isDeleted (tinyint )
+         */
+        'isDeleted' :  {type : 'date' , access : "public" },
+
+           /**
+         * tags (VARCHAR(50))
+         */
+        'tags' : {type : 'string' , access : "public" },
+
+        /**
+         * status (ENUM("newupload","foraction","email"))
+         */
+        'status' : {type : 'string' , access : "public" },
+
+         /**
+         * isCompleted (tinyint)
+         */
+        'isCompleted' : {type : 'tinyint' , access : "public" },
+
+        /**
+         * folderId (tinyint)
+         */
+        'folderId': {type : 'tinyint' , access : "public"},
+
+         /**
+         * documentNameCount (INT)
+         */
+        'documentNameCount': {type : 'int' , access : "public"},
+        
+         /**
          * dateAdded (DATETIME)
          */
         'dateAdded' : {type : 'date' , access : "public" },
@@ -31,28 +61,6 @@ var field = exports.field = {
          * dateUpdated (TIMESTAMP)
          */
         'dateUpdated' : {type : 'date' , access : "public" },
-
-        /**
-         * isDeleted (tinyint )
-         */
-        'isDeleted' :  {type : 'date' , access : "public" },
-           /**
-         * tags (VARCHAR(50))
-         */
-        'tags' : {type : 'string' , access : "public" },
-        /**
-         * status (ENUM("newupload","foraction","email"))
-         */
-        'status' : {type : 'string' , access : "public" },
-         /**
-         * isCompleted (tinyint)
-         */
-        'isCompleted' : {type : 'tinyint' , access : "public" },
-        /**
-         * folderId (tinyint)
-         */
-        'folderId': {type : 'tinyint' , access : "public"}
-
 }
 
 var { getData, putData, postData, deleteData } = require("./index");

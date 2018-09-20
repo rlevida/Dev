@@ -4,6 +4,7 @@ import LibraryDocument from './libraryDocument'
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DragDropContext } from 'react-dnd';
 import { DropDown , Loading } from "../../../globalComponents"
+import { getFilePathExtension } from '../../../globalFunction'
 import Tooltip from "react-tooltip";
 import PrintComponent  from "../print"
 
@@ -453,6 +454,8 @@ export default class DocumentLibrary extends React.Component {
                                 }
                                 { (!document.Loading) &&
                                     documentList.library.map((data, index) => {
+                                        let ext  = getFilePathExtension(data.origin)
+                                        let documentName = `${data.origin.split(`.${ext}`).join("")}${data.documentNameCount > 0 ? `(${data.documentNameCount}).${ext}` : `.${ext}`}`
                                         return (
                                             // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id ,"document")} documentToMove={(data)=> this.documentToMove(data)} docType="document"/>
                                             <tr key={index}>
@@ -468,7 +471,7 @@ export default class DocumentLibrary extends React.Component {
                                                                 : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
                                                     }
                                                 </td>
-                                                <td  class="library-document"><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
+                                                <td  class="library-document"><a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ documentName }</a></td>
                                                 <td>{ moment(data.dateUpdated).format('L') }</td>
                                                 <td>
                                                     <div>

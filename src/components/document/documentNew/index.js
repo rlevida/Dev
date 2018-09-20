@@ -1,5 +1,6 @@
 import React from "react";
 import { Loading } from "../../../globalComponents"
+import { getFilePathExtension } from '../../../globalFunction'
 import moment from 'moment'
 import Tooltip from "react-tooltip";
 
@@ -336,6 +337,8 @@ export default class DocumentNew extends React.Component {
                                 }
 
                                 { documentList.newUpload.map((data, index) => {
+                                    let ext  = getFilePathExtension(data.origin)
+                                    let documentName = `${data.origin.split(`.${ext}`).join("")}${data.documentNameCount > 0 ? `(${data.documentNameCount}).${ext}` : `.${ext}`}`
                                     return (
                                         <tr key={index}>
                                             <td> 
@@ -349,7 +352,7 @@ export default class DocumentNew extends React.Component {
                                                             : <span class="glyphicon glyphicon-star-empty"  onClick={()=> this.starDocument( data , 0 )} style={{ cursor:"pointer" }}></span> 
                                                 }
                                             </td>
-                                            <td class="new-document"> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ data.origin }</a></td>
+                                            <td class="new-document"> <a href="javascript:void(0)" onClick={()=> this.viewDocument(data) }><span class="glyphicon glyphicon-file"></span>{ documentName }</a></td>
                                             <td>{ moment(data.dateAdded).format('L') }</td>
                                             <td>{ (users.List .length > 0) ? users.List.filter( f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
                                             <td>
