@@ -217,58 +217,41 @@ export default class FormComponent extends React.Component {
                                 && task.Selected.description != ""
                                 && task.Selected.description != null) && <p class="mt10 mb10">{task.Selected.description}</p>
                         }
-                        <table class="table responsive-table table-bordered mt10 mb10">
-                            <tbody>
-                                <tr>
-                                    <td style={{ width: "10%" }}><span class="fa fa-calendar"></span></td>
-                                    <td style={{ width: "10%" }}><span class=""></span>Start date:</td>
-                                    <td style={{ width: "80%" }}><span class=""></span>{moment(task.Selected.startDate).format('ll')}</td>
-                                </tr>
-                                <tr>
-                                    <td style={{ width: "10%" }}><span class="fa fa-calendar"></span></td>
-                                    <td style={{ width: "10%" }}><span class=""></span>Due date:</td>
-                                    <td style={{ width: "80%" }}><span class=""></span>{moment(task.Selected.dueDate).format('ll')}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <table class="table responsive-table table-bordered mt10 mb10">
-                            <tbody>
-                                <tr>
-                                    <td style={{ width: "10%" }}><span class="fa fa-user"></span></td>
-                                    <td style={{ width: "10%" }}><span class=""></span>Follower</td>
-                                    <td style={{ width: "80%" }}>
-                                        {(task.Selected.followersName != null) &&
-                                            task.Selected.followersName.split(",").map((user, index) => {
-                                                return <span key={index}><i class="fa fa-user"> &nbsp;</i>{user}</span>
-                                            })
-                                        }
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style={{ width: "10%" }}><span class="fa fa-user"></span></td>
-                                    <td style={{ width: "10%" }}><span class=""></span>Approver</td>
-                                    <td style={{ width: "80%" }}>{/* <span class="fa fa-user"></span> */}</td>
-                                </tr>
-                                {/* <tr>
-                                            <td style={{width:"10%"}}><span class="fa fa-user"></span></td>
-                                            <td style={{width:"10%"}}>Assignee</td>
-                                            <td style={{width:"80%"}}>
-                                                { (task.Selected.assignedBy != null) && 
-                                                    <span><i class="fa fa-user"></i>{task.Selected.assignedby}</span>
-                                                }
-                                            </td>
-                                        </tr> */}
-                            </tbody>
-                        </table>
-                        <table class="table responsive-table table-bordered mt10 mb20">
-                            <tbody>
-                                <tr>
-                                    <td style={{ width: "10%" }}><span class="fa fa-bell"></span></td>
-                                    <td style={{ width: "10%" }}><span class=""></span>Reminders</td>
-                                    <td style={{ width: "80%" }}>{ /*<span class="fa fa-user"></span>*/}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="row">
+                            <div className={(task.Selected.periodic == 1) ? "col-md-6" : "col-md-12"}>
+                                <div class="details">
+                                    <span class="fa fa-calendar"></span>
+                                    <p>Start date: {moment(task.Selected.startDate).format('ll')}</p>
+                                </div>
+                            </div>
+                            {
+                                (task.Selected.periodic == 1) && <div class="col-md-6">
+                                    <div class="details">
+                                        <span class="fa fa-undo"></span>
+                                        <p>Repeat: {task.Selected.period + " " + (task.Selected.periodType).charAt(0).toUpperCase() + (task.Selected.periodType).slice(1)}</p>
+                                    </div>
+                                </div>
+                            }
+                            <div class="col-md-12">
+                                <div class="details">
+                                    <span class="fa fa-calendar"></span>
+                                    <p>Due date: {moment(task.Selected.dueDate).format('ll')}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="details">
+                                    <span class="fa fa-user"></span>
+                                    <p class="m0">Followers: {(task.Selected.followersName == null) ? "N/A" : ""} </p>
+                                </div>
+                                <ul>
+                                    {(task.Selected.followersName != null) &&
+                                        task.Selected.followersName.split(",").map((user, index) => {
+                                            return <li key={index}>{user}</li>
+                                        })
+                                    }
+                                </ul>
+                            </div>
+                        </div>
                         <div>
                             <div style={{ position: 'relative' }}>
                                 <h5 class="mt0">Checklist</h5>
@@ -301,22 +284,14 @@ export default class FormComponent extends React.Component {
                                 }
                             </div>
                             <div class="row mt10" style={{ paddingLeft: 22 }}>
-                                <div class="col-md-12">
+                                <div class="col-md-8 pdr0">
                                     <div class="form-group" style={{ marginBottom: 0 }}>
+                                        <label>Item</label>
                                         <input type="text" name="checklist"
                                             class="form-control"
                                             placeholder="Add Item"
                                             onChange={this.handleChange}
                                             value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
-                                        />
-                                    </div>
-                                    <div class="form-group" style={{ marginTop: 5, marginBottom: 0 }}>
-                                        <label style={{ paddingRight: 20 }}>Checklist type</label>
-                                        <DropDown multiple={true}
-                                            required={false}
-                                            options={_.map(['Mandatory', 'Document'], (o) => { return { id: o, name: o } })}
-                                            selected={(typeof checklist.Selected.types == "undefined") ? [] : checklist.Selected.types}
-                                            onChange={(e) => this.setDropDownMultiple("types", e)}
                                         />
                                     </div>
                                     {
@@ -329,9 +304,20 @@ export default class FormComponent extends React.Component {
                                         </div>
                                     }
                                 </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Checklist type</label>
+                                        <DropDown multiple={true}
+                                            required={false}
+                                            options={_.map(['Mandatory', 'Document'], (o) => { return { id: o, name: o } })}
+                                            selected={(typeof checklist.Selected.types == "undefined") ? [] : checklist.Selected.types}
+                                            onChange={(e) => this.setDropDownMultiple("types", e)}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div style={{ position: "relative" }}>
+                        <div style={{ position: "relative" }} class="mt20">
                             <h4>Documents</h4>
                             <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" >Add</a>
                         </div>
