@@ -46,9 +46,18 @@ export default class List extends React.Component {
             arr.join("\r\n")
         );
     }
-
     render() {
         let { teams, socket, loggedUser, users } = this.props;
+        let teamList = _.filter(teams.List, (o) => {
+            
+            if (loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) {
+                return o.id > 0
+            } else if (loggedUser.data.userRole == 3) {
+                let loggedTeam = JSON.parse(loggedUser.data.team);
+                return (o.teamLeaderId == loggedUser.data.id || o.usersId == loggedUser.data.id) || (_.filter(loggedTeam, (lt) => { return lt.value == o.id })).length > 0;
+            }
+        });
+
         return <div>
             <table id="dataTable" class="table responsive-table m0">
                 <tbody>
@@ -60,13 +69,13 @@ export default class List extends React.Component {
                         <th class="text-center"></th>
                     </tr>
                     {
-                        (teams.List.length == 0) &&
+                        (teamList.length == 0) &&
                         <tr>
                             <td style={{ textAlign: "center" }} colSpan={5}>No Record Found!</td>
                         </tr>
                     }
                     {
-                        teams.List.map((data, index) => {
+                        teamList.map((data, index) => {
                             let teamMembers = _(users.List).
                                 filter((user) => {
                                     return _.findIndex(user.team, (o) => { return o.teamId == data.id }) >= 0;
@@ -85,7 +94,7 @@ export default class List extends React.Component {
                                                 ||
                                                 (loggedUser.data.id == data.usersId)
                                                 ||
-                                                (typeof loggedUser.data.team != 'undefined' && (filter(JSON.parse(loggedUser.data.team), (o) => { return o.value == data.id })).length > 0)
+                                                (loggedUser.data.id == data.teamLeaderId)
                                             ) && <div>
                                                 <a href="javascript:void(0);" data-tip="EDIT"
                                                     onClick={(e) => socket.emit("GET_TEAM_DETAIL", { id: data.id })}

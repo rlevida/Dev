@@ -1,6 +1,7 @@
 var func = global.initFunc(),
     sequence = require("sequence").Sequence,
-    async = require("async");
+    async = require("async"),
+    _ = require("lodash");
 
 var init = exports.init = (socket) => {
 
@@ -34,6 +35,7 @@ var init = exports.init = (socket) => {
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
         let usersRole = global.initModel("users_role");
         let usersTeam = global.initModel("users_team")
+        let members = global.initModel("members")
 
         users.getData("users", filter, {}, (c) => {
             if (c.status) {
@@ -50,7 +52,13 @@ var init = exports.init = (socket) => {
                             });
                         }
                     }, function (err, { role, team }) {
-                        mapCallback(null, { ...user, role, team })
+                        let memberList = [user.id];
+                        let getMember = _.map(team, (o) => { return o.teamId });
+                        let allMember = memberList.concat(getMember);
+                        members.getProjectMember({ ids: allMember }, (result) => {
+                            mapCallback(null, { ...user, role, team, projects: result.data })
+
+                        })
                     });
                 }, function (err, usersResult) {
                     socket.emit("FRONT_USER_LIST", usersResult)
@@ -69,13 +77,30 @@ var init = exports.init = (socket) => {
                 let usersRole = global.initModel("users_role")
 
                 usersRole.getData("users_role", { usersId: c.data[0].id }, {}, (e) => {
+                    let usersTeam = global.initModel("users_team");
+                    let members = global.initModel("members");
                     c.data[0].userRole = (e.data.length > 0) ? e.data[0].roleId : 0;
 
-                    let usersTeam = global.initModel("users_team")
-                    usersTeam.getData("users_team", { usersId: c.data[0].id }, {}, (e) => {
-                        c.data[0].team = JSON.stringify(e.data.map((e, i) => { return { value: e.teamId, label: e.team_team }; }));
+                    async.parallel({
+                        usersTeam: (parallelCallback) => {
+                            usersTeam.getData("users_team", { usersId: c.data[0].id }, {}, (e) => {
+                                parallelCallback(null, e.data)
+                            });
+                        },
+                        members: (parallelCallback) => {
+                            members.getData("members", { userTypeLinkId: c.data[0].id, usersType: "users", linkType: "project", memberType: "assignedTo" }, {}, (e) => {
+                                parallelCallback(null, e.data)
+                            });
+                        }
+                    }, (err, result) => {
+                        c.data[0].team = (result.usersTeam).map((e, i) => { return { value: e.teamId, label: e.team_team }; });
+                        c.data[0].project = (result.members).map((e, i) => { return { value: e.linkId }; });
                         socket.emit("FRONT_USER_SELECTED", c.data[0]);
+
                     })
+
+
+
                 })
             } else {
                 if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
@@ -157,12 +182,23 @@ var init = exports.init = (socket) => {
             if (typeof d.data.team != "undefined") {
                 let model = global.initModel("users_team");
                 model.deleteData("users_team", { usersId: retData.id }, (a) => {
-                    let teams = JSON.parse(d.data.team);
+                    let teams = d.data.team;
                     teams.map((e, i) => {
                         model.postData("users_team", { usersId: retData.id, teamId: e.value }, () => { })
                     })
                 })
             }
+
+            if (typeof d.data.project != "undefined") {
+                let model = global.initModel("members");
+                model.deleteData("members", { usersType: "users", userTypeLinkId: retData.id, linkType: "project", memberType: "assignedTo" }, (a) => {
+                    let projects = d.data.project;
+                    projects.map((e, i) => {
+                        model.postData("members", { usersType: "users", userTypeLinkId: retData.id, linkType: "project", linkId: e.value, memberType: "assignedTo" }, () => { })
+                    })
+                })
+            }
+
         })
     })
 

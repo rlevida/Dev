@@ -1,19 +1,18 @@
-import React from "react"
-import ReactDOM from "react-dom"
-import Select from 'react-select'
-import moment from 'moment'
+import React from "react";
+import _ from 'lodash';
+import { connect } from "react-redux";
 
-import { showToast, displayDate, setDatePicker } from '../../../globalFunction'
-import { HeaderButtonContainer, HeaderButton, DropDown } from "../../../globalComponents"
+import { showToast, setDatePicker } from '../../../globalFunction';
+import { DropDown } from "../../../globalComponents";
 
-import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
         users: store.users,
         loggedUser: store.loggedUser,
         role: store.role,
-        global: store.global
+        global: store.global,
+        project: store.project
     }
 })
 
@@ -89,41 +88,48 @@ export default class FormComponent extends React.Component {
 
         if (name == "userType") {
             Selected["userRole"] = ""
-            Selected["team"] = "[]"
+            Selected["team"] = []
         }
+
         dispatch({ type: "SET_USER_SELECTED", Selected: Selected })
     }
 
     setDropDownMultiple(name, values) {
         let { socket, dispatch, users } = this.props
         let Selected = Object.assign({}, users.Selected)
-        Selected[name] = JSON.stringify(values ? values : [])
+        Selected[name] = values;
         dispatch({ type: "SET_USER_SELECTED", Selected: Selected })
     }
 
     render() {
-        let { dispatch, users, loggedUser, role, global } = this.props
-        let userType = [{ id: "Internal", name: "Internal" }, { id: "External", name: "External" }];
+        let { dispatch, users, loggedUser, role, global, project } = this.props
+        let userType = [{ id: "External", name: "External" }];
 
-        let userRole = []
-        role.List.map((e, i) => {
-            if (e.roleType == users.Selected.userType) {
-                if (loggedUser.data.userRole == 2 && e.id == 1) {
-                    // master admin can be created by master admin only
-                } else if (loggedUser.data.userRole == 3 && (e.id == 1 || e.id == 2 || e.id == 3)) {
-                    // manager can only create standard user and external user
-                } else {
-                    userRole.push({ id: e.id, name: e.role })
-                }
-            }
-        })
-
-        let teamList = []
-        if (typeof global.SelectList["teamList"] != "undefined") {
-            global.SelectList["teamList"].map((e, i) => {
-                teamList.push({ id: e.id, name: e.team })
-            })
+        if (loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) {
+            userType.push({ id: "Internal", name: "Internal" });
         }
+
+        let teamList = (typeof global.SelectList["teamList"] != "undefined") ? global.SelectList["teamList"].map((e, i) => {
+            return { id: e.id, name: e.team }
+        }) : [];
+        let userRole = _(role.List)
+            .filter((o) => {
+                if (loggedUser.data.userRole == 1) {
+                    return o.id > 0 && o.roleType == users.Selected.userType;
+                } else if (loggedUser.data.userRole == 2) {
+                    return o.id > 1 && o.roleType == users.Selected.userType;
+                } else if (loggedUser.data.userRole == 3) {
+                    return o.roleType == "External";
+                }
+            })
+            .map((e) => {
+                return { id: e.id, name: e.role }
+            })
+            .value();
+        let projectList = _.filter(project.List, (o) => {
+            return o.projectManagerId == loggedUser.data.id
+        });
+
         return <div>
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">
@@ -181,27 +187,29 @@ export default class FormComponent extends React.Component {
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
-                                { 
-                                    (users.Selected.userType == "External") && 
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Company</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <input type="text" name="company" value={(typeof users.Selected.company == "undefined") ? "" : users.Selected.company} class="form-control" placeholder="Company" onChange={this.handleChange} />
-                                                <div class="help-block with-errors"></div>
-                                            </div>
+                                {
+                                    (typeof users.Selected.userType != "undefined" && users.Selected.userType != "") && <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">User Role *</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <DropDown multiple={false}
+                                                required={true}
+                                                options={userRole}
+                                                selected={(typeof users.Selected.userRole == "undefined") ? "" : users.Selected.userRole}
+                                                onChange={(e) => this.setDropDown("userRole", e.value)} />
+                                            <div class="help-block with-errors"></div>
                                         </div>
-                                }
-                                <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">User Role *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false}
-                                            required={true}
-                                            options={userRole}
-                                            selected={(typeof users.Selected.userRole == "undefined") ? "" : users.Selected.userRole}
-                                            onChange={(e) => this.setDropDown("userRole", e.value)} />
-                                        <div class="help-block with-errors"></div>
                                     </div>
-                                </div>
+                                }
+                                {
+                                    (users.Selected.userType == "External") &&
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Company</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <input type="text" name="company" value={(typeof users.Selected.company == "undefined") ? "" : users.Selected.company} class="form-control" placeholder="Company" onChange={this.handleChange} />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                }
                                 {
                                     (users.Selected.userType == 'Internal') && <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Team</label>
@@ -209,8 +217,22 @@ export default class FormComponent extends React.Component {
                                             <DropDown multiple={true}
                                                 required={false}
                                                 options={teamList}
-                                                selected={(typeof users.Selected.team == "undefined") ? [] : JSON.parse(users.Selected.team)}
+                                                selected={(typeof users.Selected.team == "undefined") ? [] : users.Selected.team}
                                                 onChange={(e) => this.setDropDownMultiple("team", e)} />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                }
+                                {
+                                    (loggedUser.data.userRole == 3 && users.Selected.userType == "External") && <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Project</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <DropDown multiple={true}
+                                                required={true}
+                                                options={(projectList).map((o) => { return { id: o.id, name: o.project } })}
+                                                selected={(typeof users.Selected.project == "undefined") ? [] : users.Selected.project}
+                                                onChange={(e) => this.setDropDownMultiple("project", e)}
+                                            />
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
@@ -229,6 +251,6 @@ export default class FormComponent extends React.Component {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     }
 }

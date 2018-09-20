@@ -22,6 +22,23 @@ export default class Component extends React.Component {
         this.savePassword = this.savePassword.bind(this)
     }
 
+    componentDidMount() {
+        let intervalLoggedUser = setInterval(() => {
+            if (typeof this.props.loggedUser.data.id != "undefined") {
+                let filter = {}
+                if (this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2") {
+                    filter = {
+                        filter: {
+                            id: { name: "id", value: this.props.loggedUser.data.projectIds, condition: " IN " }
+                        }
+                    }
+                }
+                this.props.socket.emit("GET_PROJECT_LIST", filter);
+                clearInterval(intervalLoggedUser)
+            }
+        }, 1000)
+    }
+
     editData(id) {
         let { socket, dispatch } = this.props
         if (id == "") {
@@ -32,7 +49,7 @@ export default class Component extends React.Component {
     }
 
     savePassword(data) {
-        let { socket, users } = this.props;
+        let { socket, users, dispatch } = this.props;
 
         if (Object.keys(data).length != 2) {
             showToast('error', 'Please fill all of the necessary fields.');
@@ -44,11 +61,12 @@ export default class Component extends React.Component {
             let token = localStorage.getItem('token');
             data.Id = users.SelectedId;
             socket.emit("CHANGE_USER_PASSWORD", data);
+            dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" })
         }
     }
 
     render() {
-        let { socket, users, dispatch } = this.props
+        let { users, dispatch } = this.props
         return (
             <div>
                 {users.FormActive == "List" &&
