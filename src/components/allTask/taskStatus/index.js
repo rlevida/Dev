@@ -23,10 +23,7 @@ export default class TaskStatus extends React.Component {
     componentWillMount() {
         let intervalLoggedUser = setInterval(() => {
             if (typeof this.props.loggedUser.data.id != "undefined") {
-                let filter = {}
-                if(this.props.loggedUser.data.userRole != 1 && this.props.loggedUser.data.userRole != 2){
-                    filter = { filter: { userId: this.props.loggedUser.data.id } }
-                } 
+                let filter = { filter: { userId: this.props.loggedUser.data.id } }
                 this.props.socket.emit("GET_ALL_TASK_COUNT_LIST", filter)
                 clearInterval(intervalLoggedUser)
             }
