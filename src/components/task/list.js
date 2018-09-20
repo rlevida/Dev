@@ -23,10 +23,15 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
+        let { socket , dispatch } = this.props;
         let intervalLoggedUser = setInterval(() => {
             if (typeof this.props.loggedUser.data.id != "undefined") {
                 let filter = { filter: { projectId: project,id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
-                this.props.socket.emit("GET_TASK_LIST", filter);
+                if(typeof this.props.task.Selected.task == "undefined"){
+                    socket.emit("GET_TASK_LIST", filter);
+                }else{
+                    dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } })
+                }
                 clearInterval(intervalLoggedUser)
             }
         }, 1000)
