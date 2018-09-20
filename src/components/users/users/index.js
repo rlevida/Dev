@@ -49,7 +49,7 @@ export default class Component extends React.Component {
     }
 
     savePassword(data) {
-        let { socket, users } = this.props;
+        let { socket, users, dispatch } = this.props;
 
         if (Object.keys(data).length != 2) {
             showToast('error', 'Please fill all of the necessary fields.');
@@ -61,6 +61,7 @@ export default class Component extends React.Component {
             let token = localStorage.getItem('token');
             data.Id = users.SelectedId;
             socket.emit("CHANGE_USER_PASSWORD", data);
+            dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" })
         }
     }
 
