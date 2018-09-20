@@ -11,12 +11,16 @@ import { connect } from "react-redux"
         socket: store.socket.container,
         loggedUser: store.loggedUser,
         teams: store.teams,
-        users: store.users
+        users: store.users,
+        project: store.project
     }
 })
 export default class Component extends React.Component {
     render() {
-        let { dispatch, teams, users } = this.props
+        let { dispatch, teams, users, project, loggedUser } = this.props;
+        let projectList = _.filter(project.List, (o) => {
+            return o.projectManagerId == loggedUser.data.id
+        });
         let Component = <div>
             {
                 (users.FormActive != 'ChangePassword' && users.FormActive != "Form") && <div class="row pdl20 pdr20 mb20">
@@ -31,7 +35,9 @@ export default class Component extends React.Component {
                 (teams.FormActive != "Form") && <div class="row pdl20 pdr20 mb20">
                     <div class="col-md-12">
                         <h4 class="mt20 mb20">Users</h4>
-                        <a class="more" onClick={(e) => dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })} >Add User</a>
+                        {
+                            (projectList.length > 0) && <a class="more" onClick={(e) => dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })} >Add User</a>
+                        }
                         <User />
                     </div>
                 </div>

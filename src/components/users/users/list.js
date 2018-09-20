@@ -47,7 +47,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { users, dispatch, socket, loggedUser, teams } = this.props;
+        let { users, dispatch, socket, loggedUser } = this.props;
         let userList = _.filter(users.List, (o) => {
             if (loggedUser.data.userRole == 1) {
                 return o.id > 0;

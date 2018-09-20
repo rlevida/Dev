@@ -67,6 +67,7 @@ export default class Component extends React.Component {
 
     render() {
         let { users, dispatch } = this.props
+
         return (
             <div>
                 {users.FormActive == "List" &&
