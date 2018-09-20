@@ -14,7 +14,7 @@ export default class Socket extends React.Component {
     }
 
     componentWillMount() {
-        var { socket, dispatch } = this.props;
+        var { socket, dispatch, task } = this.props;
 
         socket.on("FRONT_TASK_LIST", (data) => {
             if (data.type == "workstream") {
@@ -55,6 +55,11 @@ export default class Socket extends React.Component {
 
         socket.on("FRONT_TASK_ACTIVE", (data) => {
             dispatch({ type: "SET_TASK_STATUS", record: data })
+        })
+
+        socket.on("FRONT_ADD_TASK_DEPENDENCY", (data) => {
+            dispatch({ type: "UPDATE_TASK_STATUS", data });
+            showToast("success", "Task dependency added.")
         })
     }
 

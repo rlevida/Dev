@@ -258,7 +258,23 @@ var init = exports.init = (socket) => {
 
             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
         })
+    })
 
+    socket.on("ADD_TASK_DEPENDENCY", (d) => {
+        const taskDependency = global.initModel("task_dependency");
+
+        async.map(d.data.task_dependencies, (task, mapCallback) => {
+            let insertData = {
+                taskId: d.data.task_id,
+                dependencyType: d.data.type,
+                linkTaskId: task.value
+            };
+            taskDependency.postData("task_dependency", insertData, (c) => {
+                mapCallback(null, { ...insertData, id: c.id })
+            });
+        }, (err, results) => {
+            socket.emit("FRONT_ADD_TASK_DEPENDENCY", results)
+        });
     })
 
     socket.on("DELETE_TASK", (d) => {

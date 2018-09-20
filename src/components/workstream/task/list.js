@@ -84,7 +84,7 @@ export default class List extends React.Component {
     render() {
         let { task } = this.props;
         return (
-            <div class="pd20">
+            <div class="pd10">
                 <h3 class="m0">Tasks</h3>
                 <table id="dataTable" class="table responsive-table mt30">
                     <tbody>

@@ -31,6 +31,7 @@ export default class FormComponent extends React.Component {
         this.handleChange = this.handleChange.bind(this);
         this.setDropDownMultiple = this.setDropDownMultiple.bind(this);
         this.addChecklist = this.addChecklist.bind(this);
+        this.addDependency = this.addDependency.bind(this);
     }
 
     componentDidMount() {
@@ -97,6 +98,16 @@ export default class FormComponent extends React.Component {
         socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
     }
 
+    addDependency() {
+        const { task, socket } = this.props;
+        const toBeSubmitted = {
+            type: task.Selected.dependencyType,
+            task_id: task.Selected.id,
+            task_dependencies: task.Selected.linkTaskIds
+        };
+        socket.emit("ADD_TASK_DEPENDENCY", { data: toBeSubmitted })
+    }
+
     handleCheckbox(name, value) {
         let { checklist, dispatch } = this.props
         let Selected = Object.assign({}, checklist.Selected)
@@ -105,11 +116,24 @@ export default class FormComponent extends React.Component {
     }
 
     setDropDownMultiple(name, values) {
-        let { checklist, dispatch } = this.props;
-        let Selected = Object.assign({}, checklist.Selected);
+        let { checklist, task, dispatch } = this.props;
 
-        Selected[name] = values;
-        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected })
+        if (name == "linkTaskIds") {
+            dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, [name]: values } })
+        } else {
+            dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...checklist.Selected, [name]: values } })
+        }
+    }
+
+    setDropDown(name, value) {
+        let { socket, dispatch, task } = this.props
+        let Selected = Object.assign({}, task.Selected)
+        Selected[name] = value;
+
+        if (name == "dependencyType" && value == "") {
+            Selected["linkTaskIds"] = [];
+        }
+        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
     render() {
@@ -184,6 +208,20 @@ export default class FormComponent extends React.Component {
             })
             .value();
 
+        let dependentTaskList = _(task.List)
+            .filter((o) => {
+                let alreadyPreceedingTask = _.findIndex(preceedingTask, (succId) => {
+                    return succId.linkTaskId == o.id
+                });
+                let alreadySuccedingTask = _.findIndex(succedingTask, (succId) => {
+                    return succId.linkTaskId == o.id
+                });
+                return alreadyPreceedingTask < 0 && alreadySuccedingTask < 0 && task.Selected.id != o.id;
+            })
+            .map((e) => {
+                return { id: e.id, name: e.task }
+            })
+            .value();
         return (
             <div class="pd20">
                 <span class="pull-right" style={{ cursor: "pointer" }} onClick={() => { dispatch({ type: "SET_TASK_SELECTED", Selected: {} }); dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" }) }}><i class="fa fa-times-circle fa-lg"></i></span>
@@ -253,7 +291,7 @@ export default class FormComponent extends React.Component {
                             </div>
                         </div>
                         <div>
-                            <div style={{ position: 'relative' }}>
+                            <div>
                                 <h5 class="mt0">Checklist</h5>
                             </div>
                             <div id="checklist">
@@ -338,14 +376,16 @@ export default class FormComponent extends React.Component {
                         </table>
                     </TabPanel>
                     <TabPanel>
-                        <h4 class="mt20 mb20">
-                            {(taskStatus == 0) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60" }}></span>}
-                            {(taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
-                            {(taskStatus == 2) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
-                            &nbsp; &nbsp;{task.Selected.task} &nbsp;&nbsp;
+                        <div style={{ position: "relative" }} class="mt10">
+                            <h4 class="mt20 mb20">
+                                {(taskStatus == 0) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60" }}></span>}
+                                {(taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
+                                {(taskStatus == 2) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
+                                &nbsp; &nbsp;{task.Selected.task} &nbsp;&nbsp;
                                     {(task.Selected.status == "Completed") && "( Completed )"}
-                            {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
-                        </h4>
+                                {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
+                            </h4>
+                        </div>
                         {
                             (typeof task.Selected.description != "undefined"
                                 && task.Selected.description != ""
@@ -379,7 +419,7 @@ export default class FormComponent extends React.Component {
                                 }
                             </div>
                         </div>
-                        <div>
+                        <div class="mb20">
                             <h5 class="mt10">Depends On</h5>
                             <div class="pdl15 pdr15">
                                 <table class="table responsive-table m0">
@@ -405,6 +445,45 @@ export default class FormComponent extends React.Component {
                                 {
                                     (succedingTask.length == 0) && <p class="text-center m0">No Record Found!</p>
                                 }
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 pdr0">
+                                <label>Dependency Type</label>
+                                <DropDown multiple={false}
+                                    required={false}
+                                    options={_.map(['Preceding', 'Succeeding'], (o) => { return { id: o, name: o } })}
+                                    selected={(typeof task.Selected.dependencyType == "undefined") ? "" : task.Selected.dependencyType}
+                                    onChange={(e) => {
+                                        this.setDropDown("dependencyType", (e == null) ? "" : e.value);
+                                    }}
+                                    isClearable={true}
+                                />
+                                {
+                                    (
+                                        (typeof task.Selected.dependencyType != "undefined" &&
+                                            typeof task.Selected.linkTaskIds != "undefined") &&
+                                        (task.Selected.dependencyType != "" &&
+                                            task.Selected.linkTaskIds != "")
+                                    ) && <div>
+                                        <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
+                                            onClick={this.addDependency}
+                                        >
+                                            Add
+                                            </a>
+                                    </div>
+                                }
+                            </div>
+                            <div class="col-md-8">
+                                <label>Dependent Tasks *</label>
+                                <DropDown multiple={true}
+                                    required={typeof task.Selected.dependencyType != "undefined"
+                                        && (task.Selected.dependencyType != "" &&
+                                            task.Selected.dependencyType != null)}
+                                    options={dependentTaskList}
+                                    selected={(typeof task.Selected.linkTaskIds == "undefined") ? [] : task.Selected.linkTaskIds}
+                                    onChange={(e) => this.setDropDownMultiple("linkTaskIds", e)}
+                                />
                             </div>
                         </div>
                     </TabPanel>
