@@ -83,7 +83,6 @@ export default class List extends React.Component {
 
     render() {
         let { task } = this.props;
-
         return (
             <div class="pd20">
                 <h3 class="m0">Tasks</h3>

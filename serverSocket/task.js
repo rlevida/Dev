@@ -7,13 +7,17 @@ var init = exports.init = (socket) => {
 
     socket.on("GET_TASK_LIST", (d) => {
         let task = global.initModel("task")
+        let taskDependencies = global.initModel("task_dependency")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
+
         task.getTaskList("task", filter, {}, (c) => {
-            if (c.status) {
-                socket.emit("FRONT_TASK_LIST", { data: c.data, type: d.type })
-            } else {
-                if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
-            }
+            async.map(c.data, (o, mapCallback) => {
+                taskDependencies.getData("task_dependency", { taskId: o.id }, {}, (results) => {
+                    mapCallback(null, { ...o, dependencies: results.data })
+                });
+            }, (err, result) => {
+                socket.emit("FRONT_TASK_LIST", { data: result, type: d.type })
+            });
         })
     })
 

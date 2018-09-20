@@ -169,6 +169,21 @@ export default class FormComponent extends React.Component {
             }
         }
 
+        let preceedingTask = _(task.Selected.dependencies)
+            .filter((o) => { return o.dependencyType == "Preceding" })
+            .map((o) => {
+                let depencyTask = _.filter(task.List, (c) => { return c.id == o.linkTaskId });
+                return { ...o, task: (depencyTask.length > 0) ? depencyTask[0] : '' }
+            })
+            .value();
+        let succedingTask = _(task.Selected.dependencies)
+            .filter((o) => { return o.dependencyType == "Succeeding" })
+            .map((o) => {
+                let depencyTask = _.filter(task.List, (c) => { return c.id == o.linkTaskId });
+                return { ...o, task: (depencyTask.length > 0) ? depencyTask[0] : '' }
+            })
+            .value();
+
         return (
             <div class="pd20">
                 <span class="pull-right" style={{ cursor: "pointer" }} onClick={() => { dispatch({ type: "SET_TASK_SELECTED", Selected: {} }); dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" }) }}><i class="fa fa-times-circle fa-lg"></i></span>
@@ -337,7 +352,75 @@ export default class FormComponent extends React.Component {
                         </table>
                     </TabPanel>
                     <TabPanel>
-                        <h4>Dependents</h4>
+                        <h4 class="mt20 mb20">
+                            {(taskStatus == 0) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60" }}></span>}
+                            {(taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
+                            {(taskStatus == 2) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
+                            &nbsp; &nbsp;{task.Selected.task} &nbsp;&nbsp;
+                                    {(task.Selected.status == "Completed") && "( Completed )"}
+                            {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
+                        </h4>
+                        {
+                            (typeof task.Selected.description != "undefined"
+                                && task.Selected.description != ""
+                                && task.Selected.description != null) && <p class="mt10 mb10">{task.Selected.description}</p>
+                        }
+                        <div>
+                            <h5 class="mt10">Precedes</h5>
+                            <div class="pdl15 pdr15">
+                                <table class="table responsive-table m0">
+                                    <tbody>
+                                        <tr>
+                                            <th>Task</th>
+                                            <th>Description</th>
+                                            <th></th>
+                                        </tr>
+                                        {
+                                            _.map(preceedingTask, (succTask, index) => {
+                                                return (
+                                                    <tr key={index}>
+                                                        <td>{succTask.task.task}</td>
+                                                        <td class="description-td text-left">{succTask.task.description}</td>
+                                                        <td></td>
+                                                    </tr>
+                                                )
+                                            })
+                                        }
+                                    </tbody>
+                                </table>
+                                {
+                                    (preceedingTask.length == 0) && <p class="text-center m0">No Record Found!</p>
+                                }
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="mt10">Depends On</h5>
+                            <div class="pdl15 pdr15">
+                                <table class="table responsive-table m0">
+                                    <tbody>
+                                        <tr>
+                                            <th>Task</th>
+                                            <th>Description</th>
+                                            <th></th>
+                                        </tr>
+                                        {
+                                            _.map(succedingTask, (succTask, index) => {
+                                                return (
+                                                    <tr key={index}>
+                                                        <td class="text-left">{succTask.task.task}</td>
+                                                        <td class="description-td text-left">{succTask.task.description}</td>
+                                                        <td></td>
+                                                    </tr>
+                                                )
+                                            })
+                                        }
+                                    </tbody>
+                                </table>
+                                {
+                                    (succedingTask.length == 0) && <p class="text-center m0">No Record Found!</p>
+                                }
+                            </div>
+                        </div>
                     </TabPanel>
                 </Tabs>
                 <UploadModal />

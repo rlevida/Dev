@@ -37,13 +37,12 @@ export default function reducer(state = {
         case "UPDATE_DATA_TASK_LIST": {
             const { List } = { ...state };
             const index = _.findIndex(List, { id: action.data.id });
-            
+
             if (index >= 0) {
                 List.splice(index, 1, action.data);
             } else {
                 List.push(action.data)
             }
-
             return { ...state, List }
         }
         case "REMOVE_DELETED_TASK_LIST": {
