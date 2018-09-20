@@ -34,15 +34,23 @@ export default class FormComponent extends React.Component {
         this.addDependency = this.addDependency.bind(this);
     }
 
+    componentWillReceiveProps(props) {
+        let { socket, task } = props;
+
+        if (this.props.task.Selected.id != task.Selected.id) {
+            socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
+            socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
+        }
+    }
+
     componentDidMount() {
         let { socket, task, workstream } = this.props
 
         $(".form-container").validator();
         setDatePicker(this.handleDate, "dueDate");
-
         if (typeof task.Selected.id != 'undefined') {
-            socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
             socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
+            socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
         }
 
         if (typeof task.Selected.workstreamId != "undefined") {
@@ -292,7 +300,7 @@ export default class FormComponent extends React.Component {
                         </div>
                         <div>
                             <div>
-                                <h5 class="mt0">Checklist</h5>
+                                <h5 class="mb0">Checklist</h5>
                             </div>
                             <div id="checklist">
                                 {
