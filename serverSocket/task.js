@@ -243,16 +243,50 @@ var init = exports.init = (socket) => {
                 nextThen(type, results.members)
             })
         }).then((nextThen, type, data) => {
-            if (data.periodic != "" && type == "edit") {
-                socket.emit("FRONT_TASK_EDIT", data.task)
-                socket.emit("FRONT_TASK_ADD", data.periodic)
-            } else if (type == "add") {
-                socket.emit("FRONT_TASK_ADD", data.task)
-            } else if (type == "edit") {
-                socket.emit("FRONT_TASK_EDIT", data.task)
+            if(type != "edit"){
+                if (data.periodic != "" && type == "edit") {
+                    socket.emit("FRONT_TASK_EDIT", data.task)
+                    socket.emit("FRONT_TASK_ADD", data.periodic)
+                } else if (type == "add") {
+                    socket.emit("FRONT_TASK_ADD", data.task)
+                } 
+                socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
+            }else{
+                nextThen(data)
             }
-
-            socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
+        }).then((nextThen,data) =>{
+            let tag = global.initModel("tag");
+                tag.getData("tag",{ linkId : data.task.id , tagType : "document" , linkType : "task"},{},(c)=>{
+                    if(c.status){
+                        if(c.data.length > 0){
+                            nextThen(data,c.data)
+                        }else{
+                            socket.emit("FRONT_TASK_EDIT", data.task)
+                            socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
+                        }
+                    }else{
+                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating document failed. Please Try again later." });
+                    }
+                })
+        }).then((nextThen,result,data)=>{
+            let document = global.initModel("document");
+            let tempDocumentRes = [];
+                tempDocumentRes.push( new Promise((resolve,reject)=>{
+                    data.map( e =>{
+                        document.putData("document",{ isCompleted : 1 },{ id : e.tagTypeId },(c)=>{
+                            if(c.status){
+                                resolve(c)
+                            }else{
+                                reject()
+                            }
+                        })
+                    })
+                }))
+                Promise.all(tempDocumentRes).then((values)=>{
+                    socket.emit("FRONT_TASK_EDIT", result.task)
+                    socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
+                    
+                })
         })
 
     })
