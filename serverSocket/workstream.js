@@ -91,7 +91,7 @@ var init = exports.init = (socket) => {
                     if (typeof c.id != "undefined" && c.id > 0) {
                         workstream.getData("workstream", { id: c.id }, {}, (e) => {
                             if (e.data.length > 0) {
-                                nextThen(e.data.id, "add", e.data)
+                                nextThen(e.data[0].id, "add", e.data)
                             } else {
                                 socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
                             }
@@ -104,12 +104,12 @@ var init = exports.init = (socket) => {
         }).then((nextThen, id, type, data) => {
             if (d.data.responsible) {
                 let members = global.initModel("members")
-                members.getData("members", { linkType: "workstream", linkId: d.data.id, usersType: "users", userTypeLinkId: d.data.responsible, memberType: "responsible" }, {}, (e) => {
+                members.getData("members", { linkType: "workstream", linkId: id, usersType: "users", userTypeLinkId: d.data.responsible, memberType: "responsible" }, {}, (e) => {
                     if (e.data.length > 0) {
                         data.responsible = e.data[0].userTypeLinkId
                     } else {
                         members.deleteData("members", { linkType: "workstream", linkId: id, usersType: "users", memberType: "responsible" }, (c) => {
-                            let responsible = { linkType: "workstream", linkId: data.id, usersType: "users", userTypeLinkId: d.data.responsible, memberType: "responsible" };
+                            let responsible = { linkType: "workstream", linkId: id, usersType: "users", userTypeLinkId: d.data.responsible, memberType: "responsible" };
                             members.postData("members", responsible, (c) => {
                                 data.responsible = d.data.responsible
                                 nextThen(type, data)
