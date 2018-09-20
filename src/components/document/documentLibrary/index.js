@@ -40,7 +40,8 @@ export default class DocumentLibrary extends React.Component {
             tags : [],
             files : [],
             folderAction : "",
-            folderName : ""
+            folderName : "",
+            selectedFilter : 0
         }
     }
 
@@ -232,9 +233,8 @@ export default class DocumentLibrary extends React.Component {
         },3000)
     }
     render() {
-        let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser } = this.props;
-        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [] ;
-        let folderList = [];
+        let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser } = this.props , { selectedFilter } = this.state;
+        let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [] ,folderList = [];
 
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
@@ -243,17 +243,26 @@ export default class DocumentLibrary extends React.Component {
                 if( document.List.length > 0 ){
                     document.List.filter( e =>{
                         if( loggedUser.data.userType == "Internal"){
-                            if( e.status == "new" && e.isCompleted != 1 ){
-                                documentList.newUpload.push(e)
-                            }
                             if( e.status == "library" && e.folderId == null){
-                                documentList.library.push(e)
+                                if(selectedFilter == 0 ){
+                                    documentList.library.push(e)
+                                }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                     documentList.library.push(e)
+                                }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                    documentList.library.push(e)
+                                }
                             }
                         }else{
                             if(e.status == "library" && e.folderId == null){
                                 let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? 1 : 0 ;
                                     if(isShared || e.uploadedBy == loggedUser.data.id ){
-                                        documentList.library.push(e)
+                                        if(selectedFilter == 0 ){
+                                            documentList.library.push(e)
+                                        }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                             documentList.library.push(e)
+                                        }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                            documentList.library.push(e)
+                                        }
                                     }
                             }
                         }
@@ -263,7 +272,13 @@ export default class DocumentLibrary extends React.Component {
                 document.List.filter( e =>{
                     if(loggedUser.data.userType == "Internal"){
                         if( e.status == "library" && e.folderId == folder.SelectedLibraryFolder.id){
-                            documentList.library.push(e)
+                            if(selectedFilter == 0 ){
+                                documentList.library.push(e)
+                            }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                 documentList.library.push(e)
+                            }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                documentList.library.push(e)
+                            }
                         }
                     }else{
                         if(e.status == "library" && e.folderId == folder.SelectedLibraryFolder.id){
@@ -271,7 +286,13 @@ export default class DocumentLibrary extends React.Component {
                                                 return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedLibraryFolder.id) && (s.shareType == "document" || s.shareType == "folder") 
                                             }).length ? 1 : 0 ;
                                 if(isShared || e.uploadedBy == loggedUser.data.id){
-                                    documentList.library.push(e)
+                                    if(selectedFilter == 0 ){
+                                        documentList.library.push(e)
+                                    }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                         documentList.library.push(e)
+                                    }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                        documentList.library.push(e)
+                                    }
                                 }
                             }
                     }
@@ -319,7 +340,6 @@ export default class DocumentLibrary extends React.Component {
                     }
                 }
             }
-
             let folderName = [];
             folderName.unshift(<span>{(typeof folder.SelectedLibraryFolder.name != "undefined" && folder.SelectedLibraryFolder.type == "library")?` > ${folder.SelectedLibraryFolder.name}`:""}</span>)
             let folderParentId = folder.SelectedLibraryFolder.parentId;
@@ -337,8 +357,25 @@ export default class DocumentLibrary extends React.Component {
                         <h3><a style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_LIBRARY_FOLDER_SELECTED" , Selected : {} })}>Library</a>
                         { folderName.map((e)=>{ return e; }) } 
                         </h3>
+
                         { (this.state.folderAction == "") &&
-                            <a href="javascript:void(0)" title="New Folder" style={{textDecoration:"none"}} onClick={()=> this.setState({ folderAction : "create" })}><span class="fa fa-folder fa-2x"></span></a>
+                            <form > 
+                                 <div class="form-group">
+                                    <div class="col-lg-1 col-md-1 col-sm-1">
+                                        <a href="javascript:void(0)" title="New Folder" style={{textDecoration:"none"}} onClick={()=> this.setState({ folderAction : "create" })}><span class="fa fa-folder fa-3x"></span></a>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-lg-2 col-md-2 col-sm-2">
+                                        <DropDown 
+                                            multiple={false} 
+                                            required={false}
+                                            options={ [{id : 0 , name : "All"},{ id : 1 ,name : "Completed"},{ id : 2 ,name : "Uncompleted"}] } 
+                                            selected={ this.state.selectedFilter } 
+                                            onChange={(e)=> this.setState({selectedFilter : e.value})} /> 
+                                    </div>
+                                </div>
+                            </form>
                         }
                         { (this.state.folderAction == "create") &&
                             <form class="form-inline">

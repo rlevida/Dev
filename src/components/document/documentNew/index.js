@@ -237,7 +237,11 @@ export default class DocumentNew extends React.Component {
                         { folderName.map((e)=>{ return e; }) } 
                     </h3>
                         { (this.state.folderAction == "") &&
-                            <a href="javascript:void(0)" title="New Folder" style={{textDecoration:"none"}} onClick={()=> this.setState({ folderAction : "create" })}><span class="fa fa-folder fa-2x"></span></a>
+                            <div class="form-group">
+                                <div class="col-lg-1 col-md-1 col-sm-1">
+                                    <a href="javascript:void(0)" title="New Folder" style={{textDecoration:"none"}} onClick={()=> this.setState({ folderAction : "create" })}><span class="fa fa-folder fa-3x"></span></a>
+                                 </div>
+                            </div>
                         }
                         { (this.state.folderAction == "create") &&
                             <form class="form-inline">
