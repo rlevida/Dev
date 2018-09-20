@@ -67,7 +67,6 @@ var init = exports.init = (socket) => {
     
     socket.on("SAVE_OR_UPDATE_DOCUMENT",(d) => {
         let document = global.initModel("document")
-        let tempResData = []
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
 
         if( typeof d.data.id != "undefined" && d.data.id != "" ){
@@ -147,57 +146,90 @@ var init = exports.init = (socket) => {
                 }
             })
         }else{
-            if(d.data.length > 0){
-                d.data.map( file => {        
-                    let tagList = file.tags
-                    delete file.tags        
-                    tempResData.push( new Promise((resolve,reject) => {
-                        document.postData("document",file,(c)=>{
-                            if(typeof c.id != "undefined" && c.id > 0) {
-                                document.getData("document",{id:c.id},{},(e)=>{
-                                    if(e.data.length > 0) {
-                                        if(typeof tagList != "undefined"){
-                                            JSON.parse(tagList).map( t => {
-                                                let tag = global.initModel("tag")
-                                                let tagData = { linkType : t.value.split("-")[0], linkId : t.value.split("-")[1] , tagType : "document" , tagTypeId : e.data[0].id }
-                                                    tag.postData("tag",tagData,(tagRes) =>{
-                                                        if(tagRes.status){
-                                                            console.log("tag success")
-                                                        }else{
-                                                            console.log("tag failed")
-                                                        }
-                                                    })
-                                            })
-                                         }
 
-                                        let documentLink = global.initModel("document_link")
-                                        let linkData = { documentId : e.data[0].id , linkType : "project", linkId: d.project } 
-                                            documentLink.postData("document_link",linkData ,(l)=>{
-                                            })
-                                        
-                                        resolve(e.data)
-                                    }else{
-                                        reject()
+            sequence.create().then((nextThen) => {
+                let newData = [];
+                if(d.data.length > 0 ){
+                    d.data.map( file => { 
+                        newData.push( new Promise((resolve,reject) => {
+                            document.getData("document", { origin: file.origin }, { orderBy: [{ fieldname: "documentNameCount", type: "DESC" }] }, (c) => {
+                                if (c.data.length > 0) {
+                                    // let tempFileExt = func.getFilePathExtension(file.origin)
+                                    // let tempFile = file.origin.split(`.${tempFileExt}`).join("")
+                                    let existingData = c.data.filter(f => f.id == d.data.id)
+                                    if (existingData.length == 0) {
+                                        file.documentNameCount = c.data[0].documentNameCount + 1
+                                        resolve(file)
                                     }
-                                })
-                            }else{
-                                reject()
-                            }
-                        })
-                    }))
-                })
-            }
-            
-            Promise.all(tempResData).then((values)=>{
-                let resData = []
-                if(values.length){
-                    values.map( e =>{ resData.push(e[0]) })
-                    socket.emit("FRONT_DOCUMENT_ADD",resData)
-                    socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
-                }else{
-                    socket.emit("RETURN_ERROR_MESSAGE",{message:"Saving failed. Please Try again later."})
+                                } else {
+                                    file.projectNameCount = 0;
+                                    resolve(file)
+                                }
+                            })
+                        }))
+                    })
+
+                    Promise.all(newData).then((values)=>{
+                        nextThen(values)
+                    })
                 }
-            })
+
+            }).then((nextThen,result) => {
+
+                let tempResData = [];
+
+                if(result.length > 0){
+                    result.map( file => {        
+                        let tagList = file.tags
+                        delete file.tags        
+                        tempResData.push( new Promise((resolve,reject) => {
+                            document.postData("document",file,(c)=>{
+                                if(typeof c.id != "undefined" && c.id > 0) {
+                                    document.getData("document",{id:c.id},{},(e)=>{
+                                        if(e.data.length > 0) {
+                                            if(typeof tagList != "undefined"){
+                                                JSON.parse(tagList).map( t => {
+                                                    let tag = global.initModel("tag")
+                                                    let tagData = { linkType : t.value.split("-")[0], linkId : t.value.split("-")[1] , tagType : "document" , tagTypeId : e.data[0].id }
+                                                        tag.postData("tag",tagData,(tagRes) =>{
+                                                            if(tagRes.status){
+                                                                console.log("tag success")
+                                                            }else{
+                                                                console.log("tag failed")
+                                                            }
+                                                        })
+                                                })
+                                             }
+    
+                                            let documentLink = global.initModel("document_link")
+                                            let linkData = { documentId : e.data[0].id , linkType : "project", linkId: d.project } 
+                                                documentLink.postData("document_link",linkData ,(l)=>{
+                                                })
+                                            
+                                            resolve(e.data)
+                                        }else{
+                                            reject()
+                                        }
+                                    })
+                                }else{
+                                    reject()
+                                }
+                            })
+                        }))
+                    })
+                }
+                
+                Promise.all(tempResData).then((values)=>{
+                    let resData = []
+                    if(values.length){
+                        values.map( e =>{ resData.push(e[0]) })
+                        socket.emit("FRONT_DOCUMENT_ADD",resData)
+                        socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
+                    }else{
+                        socket.emit("RETURN_ERROR_MESSAGE",{message:"Saving failed. Please Try again later."})
+                    }
+                })
+            })    
         }
     })
 
