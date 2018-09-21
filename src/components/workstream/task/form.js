@@ -364,24 +364,22 @@ export default class FormComponent extends React.Component {
                             </div>
                         </div>
                         <div style={{ position: "relative" }} class="mt20">
-                            <h4>Documents</h4>
+                            <h5 class="mb0">Documents</h5>
                             <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" >Add</a>
                         </div>
-                        <table class="table responsive-table table-bordered mt10 mb10">
-                            <tbody>
-                                {(documentList.length > 0) &&
-                                    documentList.map((data, index) => {
-                                        return (
-                                            <tr key={index}>
-                                                <td><span class="fa fa-paperclip"></span></td>
-                                                <td><span class="fa fa-file"></span></td>
-                                                <td>{data.origin}</td>
-                                            </tr>
-                                        )
-                                    })
-                                }
-                            </tbody>
-                        </table>
+                        <div id="documentList">
+                            {(documentList.length > 0) &&
+                                (documentList).map((data, index) => {
+                                    return (
+                                        <div class="details pt10" key={index}>
+                                            <span class="fa fa-paperclip"></span>
+                                            <span class="fa fa-file"></span>
+                                            <p class="m0">{data.origin}</p>
+                                        </div>
+                                    )
+                                })
+                            }
+                        </div>
                     </TabPanel>
                     <TabPanel>
                         <div style={{ position: "relative" }} class="mt10">
