@@ -253,3 +253,25 @@ export const Loading = () => {
         <p style={{ fontSize: 16, textAlign: 'center' }}><i class="fa fa-circle-o-notch fa-spin fa-fw"></i> Loading...</p>
     )
 }
+
+export const MentionConvert = ({ string }) => {
+    const split = (string).split(/{([^}]+)}/g).filter(Boolean);
+
+
+    return (
+        <p>
+            {
+                (split).map((o, index) => {
+                    const regEx = /\[([^\]]+)]/;
+                    if (regEx.test(o)) {
+                        let mentionString = o.replace(/[\[\]']+/g, '');
+
+                        return <span key={index} style={{ color: "#00B7FF" }}>{mentionString.replace(/[()]/g, '')}</span>
+                    } else {
+                        return o
+                    }
+                })
+            }
+        </p>
+    )
+}

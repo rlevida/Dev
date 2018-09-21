@@ -6,7 +6,7 @@ import UploadModal from "./uploadModal"
 import moment from 'moment';
 import _ from 'lodash';
 import { DropDown } from "../../../globalComponents";
-
+import TaskComment from "../comment"
 
 @connect((store) => {
     return {
@@ -233,7 +233,7 @@ export default class FormComponent extends React.Component {
         return (
             <div class="pd20">
                 <span class="pull-right" style={{ cursor: "pointer" }} onClick={() => { dispatch({ type: "SET_TASK_SELECTED", Selected: {} }); dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" }) }}><i class="fa fa-times-circle fa-lg"></i></span>
-                <Tabs>
+                <Tabs class="mb20">
                     <TabList>
                         <Tab>Overview</Tab>
                         <Tab>Dependents</Tab>
@@ -492,6 +492,17 @@ export default class FormComponent extends React.Component {
                                 />
                             </div>
                         </div>
+                    </TabPanel>
+                </Tabs>
+                <Tabs>
+                    <TabList>
+                        <Tab>Comments</Tab>
+                        <Tab>Activities</Tab>
+                    </TabList>
+                    <TabPanel>
+                        <TaskComment />
+                    </TabPanel>
+                    <TabPanel>
                     </TabPanel>
                 </Tabs>
                 <UploadModal />
