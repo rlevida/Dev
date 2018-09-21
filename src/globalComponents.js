@@ -259,14 +259,13 @@ export const MentionConvert = ({ string }) => {
 
 
     return (
-        <p>
+        <p style={{ margin: 0 }}>
             {
                 (split).map((o, index) => {
                     const regEx = /\[([^\]]+)]/;
                     if (regEx.test(o)) {
                         let mentionString = o.replace(/[\[\]']+/g, '');
-
-                        return <span key={index} style={{ color: "#00B7FF" }}>{mentionString.replace(/[()]/g, '')}</span>
+                        return <span key={index} style={{ color: "#00B7FF" }}>{mentionString.replace(/[(^0-9)]/g, '')}</span>
                     } else {
                         return o
                     }

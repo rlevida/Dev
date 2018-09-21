@@ -1,6 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import Form from "./form";
+import List from "./list";
 
 @connect(({ task }) => {
     return {
@@ -15,7 +16,10 @@ export default class TaskComment extends React.Component {
 
     render() {
         return (
-            <Form />
+            <div>
+                <List />
+                <Form />
+            </div>
         )
     }
 }

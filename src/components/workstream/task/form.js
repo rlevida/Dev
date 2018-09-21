@@ -40,6 +40,7 @@ export default class FormComponent extends React.Component {
         if (this.props.task.Selected.id != task.Selected.id) {
             socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
             socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
+            socket.emit("GET_COMMENT_LIST", { filter: { linkType: "task", linkId: task.Selected.id } })
         }
     }
 
@@ -51,6 +52,7 @@ export default class FormComponent extends React.Component {
         if (typeof task.Selected.id != 'undefined') {
             socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
             socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
+            socket.emit("GET_COMMENT_LIST", { filter: { linkType: "task", linkId: task.Selected.id } })
         }
 
         if (typeof task.Selected.workstreamId != "undefined") {
@@ -233,7 +235,7 @@ export default class FormComponent extends React.Component {
         return (
             <div class="pd20">
                 <span class="pull-right" style={{ cursor: "pointer" }} onClick={() => { dispatch({ type: "SET_TASK_SELECTED", Selected: {} }); dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" }) }}><i class="fa fa-times-circle fa-lg"></i></span>
-                <Tabs class="mb20">
+                <Tabs class="mb40">
                     <TabList>
                         <Tab>Overview</Tab>
                         <Tab>Dependents</Tab>
@@ -411,7 +413,7 @@ export default class FormComponent extends React.Component {
                                             _.map(preceedingTask, (succTask, index) => {
                                                 return (
                                                     <tr key={index}>
-                                                        <td>{succTask.task.task}</td>
+                                                        <td class="text-left">{succTask.task.task}</td>
                                                         <td class="description-td text-left">{succTask.task.description}</td>
                                                         <td></td>
                                                     </tr>
@@ -453,7 +455,7 @@ export default class FormComponent extends React.Component {
                                 }
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row" style={{ marginLeft: 7 }}>
                             <div class="col-md-4 pdr0">
                                 <label>Dependency Type</label>
                                 <DropDown multiple={false}

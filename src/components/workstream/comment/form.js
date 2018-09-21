@@ -1,7 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
 import { MentionsInput, Mention } from 'react-mentions';
-import { MentionConvert } from "../../../globalComponents";
 import _ from "lodash";
 import defaultStyle from "../../global/react-mention-style";
 
@@ -44,14 +43,14 @@ export default class Form extends React.Component {
     }
 
     handleSubmit() {
-        const { dispatch, conversation, task, loggedUser } = this.props;
+        const { socket, conversation, task, loggedUser } = this.props;
         const commentText = conversation.Selected.comment;
         const commentSplit = (commentText).split(/{([^}]+)}/g).filter(Boolean);
         const commentIds = _(commentSplit).filter((o) => {
             const regEx = /\[([^\]]+)]/;
             return regEx.test(o)
         }).map((o) => {
-            return _.toNumber(o.match(/\((.*)\)/).pop());
+            return { userId: _.toNumber(o.match(/\((.*)\)/).pop()) };
         }).value();
 
         let dataToBeSubmited = {
@@ -65,7 +64,7 @@ export default class Form extends React.Component {
             },
             reminderList: JSON.stringify(commentIds)
         };
-        console.log(dataToBeSubmited)
+        socket.emit("SAVE_OR_UPDATE_CONVERSATION", dataToBeSubmited);
     }
 
     render() {
@@ -73,9 +72,9 @@ export default class Form extends React.Component {
         let commentText = (typeof conversation.Selected.comment != "undefined") ? conversation.Selected.comment : "";
 
         return (
-            <div class="row">
+            <div class="row mt10">
                 <div class="col-md-12 col-xs-12">
-                    <div class="form-group mention">
+                    <div class="form-group mention" style={{ marginLeft: 22 }}>
                         <MentionsInput
                             value={commentText}
                             onChange={this.handleChange.bind(this, "comment")}
@@ -84,8 +83,14 @@ export default class Form extends React.Component {
                                 mentions__input: 'form-control'
                             }}
                             markup="{[__display__](__id__)}"
+                            placeholder={"Comment Here"}
                         >
-                            <Mention trigger="@" data={this.fetchUsers} appendSpaceOnAdd={true} style={{ backgroundColor: '#ecf0f1', padding: 1 }} />
+                            <Mention
+                                trigger="@"
+                                data={this.fetchUsers}
+                                appendSpaceOnAdd={true}
+                                style={{ backgroundColor: '#ecf0f1', padding: 1 }}
+                            />
                         </MentionsInput>
 
                     </div>
@@ -96,7 +101,6 @@ export default class Form extends React.Component {
                             >
                                 Add
                             </a>
-                            {/* <MentionConvert string={"{[John Aldrin1 Tapia1](1)}"} /> */}
                         </div>
                     }
                 </div>
