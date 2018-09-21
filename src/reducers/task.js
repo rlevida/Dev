@@ -35,7 +35,7 @@ export default function reducer(state = {
         case "SET_TASK_LOADING": {
             return { ...state, Loading: !state.Loading }
         }
-        case "SET_MODAL_TYPE" :{
+        case "SET_TASK_MODAL_TYPE" :{
             return { ...state, ModalType: action.ModalType }
         }
         case "UPDATE_DATA_TASK_LIST": {

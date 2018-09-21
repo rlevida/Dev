@@ -132,7 +132,7 @@ export default class FormComponent extends React.Component {
         let { checklist, task, dispatch } = this.props;
 
         if(values.filter( e =>{ return e.value == "Document"}).length &&  typeof checklist.Selected.documents == "undefined"){
-            dispatch({type:"SET_MODAL_TYPE", ModalType : "checklist"})
+            dispatch({type:"SET_TASK_MODAL_TYPE", ModalType : "checklist"})
             $('#uploadFileModal').modal({
                 backdrop: 'static',
                 keyboard: false 
@@ -410,7 +410,7 @@ export default class FormComponent extends React.Component {
                         </div>
                         <div style={{ position: "relative" }} class="mt20">
                             <h4>Documents</h4>
-                            <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" >Add</a>
+                            <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" onClick={()=> dispatch({type:"SET_TASK_MODAL_TYPE", ModalType : "task"})}>Add</a>
                         </div>
                         <table class="table responsive-table table-bordered mt10 mb10">
                             <tbody>

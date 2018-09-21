@@ -19,7 +19,6 @@ export default class Socket extends React.Component {
 
         socket.on("FRONT_SAVE_CHECK_LIST", (data) => {
             dispatch({ type: "ADD_CHECKLIST", data });
-            dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
             showToast("success", "Checklist added.");
         });
 

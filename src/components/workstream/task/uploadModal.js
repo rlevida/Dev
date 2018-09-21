@@ -57,12 +57,13 @@ export default class UploadModal extends React.Component {
                             type : task.ModalType == "checklist" ? "attachment" : "task"
                         })
                     })
-
                     if(task.ModalType == "checklist"){
                         dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...checklist.Selected, documents :tempData} })
+                        self.setState({ tempData : [] , loading : false , upload : false })
                         $(`#uploadFileModal`).modal("hide");
+                    }else{
+                        self.setState({ tempData : tempData, loading : false , upload : false })
                     }
-                    self.setState({ tempData : [] , loading : false , upload : false })
                 }
             });
     }
