@@ -9,12 +9,12 @@ export default function reducer(state = {
         isActive: true
     },
     SelectedId: [],
-    FormAction : "",
-    Loading : true
+    FormAction: "",
+    Loading: true
 }, action) {
     switch (action.type) {
         case "SET_TASK_LIST": {
-            return { ...state, List: action.list , Loading : false }
+            return { ...state, List: action.list, Loading: false }
         }
         case "SET_TASK_COUNT_LIST": {
             return { ...state, CountList: action.list }
@@ -37,13 +37,12 @@ export default function reducer(state = {
         case "UPDATE_DATA_TASK_LIST": {
             const { List } = { ...state };
             const index = _.findIndex(List, { id: action.data.id });
-            
+
             if (index >= 0) {
                 List.splice(index, 1, action.data);
             } else {
                 List.push(action.data)
             }
-
             return { ...state, List }
         }
         case "REMOVE_DELETED_TASK_LIST": {
@@ -65,6 +64,14 @@ export default function reducer(state = {
                 }
             })
             return { ...state, List: List }
+        }
+        case "UPDATE_TASK_STATUS": {
+            let currentTask = { ...state.Selected };
+            let currentTaskDependencies = currentTask.dependencies;
+            let updatedTaskDependencies = currentTaskDependencies.concat(action.data);
+            let updatedSelected = { ...currentTask, dependencies: updatedTaskDependencies, dependencyType: "", linkTaskIds: [] };
+
+            return { ...state, Selected: updatedSelected };
         }
         default:
             return state;

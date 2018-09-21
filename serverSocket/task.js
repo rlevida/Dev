@@ -7,13 +7,17 @@ var init = exports.init = (socket) => {
 
     socket.on("GET_TASK_LIST", (d) => {
         let task = global.initModel("task")
+        let taskDependencies = global.initModel("task_dependency")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
+
         task.getTaskList("task", filter, {}, (c) => {
-            if (c.status) {
-                socket.emit("FRONT_TASK_LIST", { data: c.data, type: d.type })
-            } else {
-                if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
-            }
+            async.map(c.data, (o, mapCallback) => {
+                taskDependencies.getData("task_dependency", { taskId: o.id }, {}, (results) => {
+                    mapCallback(null, { ...o, dependencies: results.data })
+                });
+            }, (err, result) => {
+                socket.emit("FRONT_TASK_LIST", { data: result, type: d.type })
+            });
         })
     })
 
@@ -288,7 +292,23 @@ var init = exports.init = (socket) => {
                     
                 })
         })
+    })
 
+    socket.on("ADD_TASK_DEPENDENCY", (d) => {
+        const taskDependency = global.initModel("task_dependency");
+
+        async.map(d.data.task_dependencies, (task, mapCallback) => {
+            let insertData = {
+                taskId: d.data.task_id,
+                dependencyType: d.data.type,
+                linkTaskId: task.value
+            };
+            taskDependency.postData("task_dependency", insertData, (c) => {
+                mapCallback(null, { ...insertData, id: c.id })
+            });
+        }, (err, results) => {
+            socket.emit("FRONT_ADD_TASK_DEPENDENCY", results)
+        });
     })
 
     socket.on("DELETE_TASK", (d) => {
