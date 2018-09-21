@@ -51,6 +51,11 @@ var field = exports.field = {
          * documentNameCount (INT)
          */
         'documentNameCount': {type : 'int' , access : "public"},
+
+         /**
+         * documentNameCount (INT)
+         */
+        'attachmentId': {type : 'int' , access : "public"},
         
          /**
          * dateAdded (DATETIME)
@@ -82,7 +87,6 @@ var getProjectDocument = exports.getProjectDocument = (filter,data,cb) =>{
                 }
             })
         }
-        
         db.query(
             query,
             params,

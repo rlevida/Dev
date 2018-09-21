@@ -68,7 +68,7 @@ var init = exports.init = (socket) => {
     socket.on("SAVE_OR_UPDATE_DOCUMENT",(d) => {
         let document = global.initModel("document")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
-
+        
         if( typeof d.data.id != "undefined" && d.data.id != "" ){
             let id = d.data.id
             let newTags = d.data.tags
@@ -146,24 +146,25 @@ var init = exports.init = (socket) => {
                 }
             })
         }else{
-
             sequence.create().then((nextThen) => {
                 let newData = [];
                 if(d.data.length > 0 ){
                     d.data.map( file => { 
                         newData.push( new Promise((resolve,reject) => {
                             document.getData("document", { origin: file.origin }, { orderBy: [{ fieldname: "documentNameCount", type: "DESC" }] }, (c) => {
-                                if (c.data.length > 0) {
-                                    // let tempFileExt = func.getFilePathExtension(file.origin)
-                                    // let tempFile = file.origin.split(`.${tempFileExt}`).join("")
-                                    let existingData = c.data.filter(f => f.id == d.data.id)
-                                    if (existingData.length == 0) {
-                                        file.documentNameCount = c.data[0].documentNameCount + 1
+                                if(c.status){
+                                    if (c.data.length > 0) {
+                                        let existingData = c.data.filter(f => f.id == d.data.id)
+                                        if (existingData.length == 0) {
+                                            file.documentNameCount = c.data[0].documentNameCount + 1
+                                            resolve(file)
+                                        }
+                                    } else {
+                                        file.projectNameCount = 0;
                                         resolve(file)
                                     }
-                                } else {
-                                    file.projectNameCount = 0;
-                                    resolve(file)
+                                }else{
+                                    reject()
                                 }
                             })
                         }))
@@ -193,7 +194,7 @@ var init = exports.init = (socket) => {
                                                     let tagData = { linkType : t.value.split("-")[0], linkId : t.value.split("-")[1] , tagType : "document" , tagTypeId : e.data[0].id }
                                                         tag.postData("tag",tagData,(tagRes) =>{
                                                             if(tagRes.status){
-                                                                console.log("tag success")
+                                                                // console.log("tag success")
                                                             }else{
                                                                 console.log("tag failed")
                                                             }

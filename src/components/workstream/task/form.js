@@ -103,7 +103,12 @@ export default class FormComponent extends React.Component {
             types: checklist.Selected.types,
             taskId: task.Selected.id
         };
-        socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
+
+        if(_.filter(checklist.Selected.types,(e) =>{ return e.label == "Document"}).length > 0 && checklist.Selected.documents.length > 0){
+            socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted , documents : checklist.Selected.documents , project : project})
+        }else{
+            socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
+        }
     }
 
     addDependency() {
@@ -125,6 +130,14 @@ export default class FormComponent extends React.Component {
 
     setDropDownMultiple(name, values) {
         let { checklist, task, dispatch } = this.props;
+
+        if(values.filter( e =>{ return e.value == "Document"}).length &&  typeof checklist.Selected.documents == "undefined"){
+            dispatch({type:"SET_TASK_MODAL_TYPE", ModalType : "checklist"})
+            $('#uploadFileModal').modal({
+                backdrop: 'static',
+                keyboard: false 
+            })
+        }
 
         if (name == "linkTaskIds") {
             dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, [name]: values } })
@@ -317,6 +330,17 @@ export default class FormComponent extends React.Component {
                                                         )
                                                     })
                                                 }
+                                                <br/>
+                                                { (o.documents != null) &&
+                                                    _.map(JSON.parse(o.documents),(o,index) => {
+                                                        let doc = _.filter(documentList,(d)=>{ return d.id == o})
+                                                        if(doc.length > 0){
+                                                            return (
+                                                                <span class="label label-primary" key={index}>{doc[0].origin}</span>
+                                                            )
+                                                        }
+                                                    })
+                                                }
                                                 <a class="btn btn-danger"
                                                     onClick={() => {
                                                         socket.emit("DELETE_CHECKLIST", { data: o.id })
@@ -340,15 +364,6 @@ export default class FormComponent extends React.Component {
                                             value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
                                         />
                                     </div>
-                                    {
-                                        (typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") && <div>
-                                            <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
-                                                onClick={this.addChecklist}
-                                            >
-                                                Add
-                                            </a>
-                                        </div>
-                                    }
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
@@ -362,10 +377,40 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                             </div>
+                           
+                            { ((typeof checklist.Selected.types != "undefined" && _.filter(checklist.Selected.types,(e) =>{ return e.label == "Document"}).length > 0 )
+                                && (typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents.length > 0) ) &&
+                                <div class="row mt10" style={{ paddingLeft: 22 }}>
+                                    <div class="col-md-12 pdr0">
+                                        <div class="form-group">
+                                            <label>Attached Documents</label>
+                                            <br/>
+                                            {
+                                                checklist.Selected.documents.map((data,index) =>{ 
+                                                    return(
+                                                        <span class="label label-primary" style={{marginRight:"5px"}} key={index}>{data.origin}</span>
+                                                    )
+                                                 })
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }  
+                            {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") && 
+                                <div class="row mt10" style={{ paddingLeft: 22 }}>
+                                    <div class="col-md-12 pdr0">
+                                        <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
+                                            onClick={this.addChecklist}
+                                        >
+                                            Add
+                                        </a>
+                                    </div>
+                                </div>
+                            }
                         </div>
                         <div style={{ position: "relative" }} class="mt20">
                             <h4>Documents</h4>
-                            <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" >Add</a>
+                            <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" onClick={()=> dispatch({type:"SET_TASK_MODAL_TYPE", ModalType : "task"})}>Add</a>
                         </div>
                         <table class="table responsive-table table-bordered mt10 mb10">
                             <tbody>
