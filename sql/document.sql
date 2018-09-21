@@ -11,6 +11,7 @@ CREATE TABLE `document` (
     `status` ENUM("new","library","archived"),
     `isCompleted` TINYINT(1) DEFAULT '0',
     `documentNameCount` INT(11) NOT NULL DEFAULT '0',
+    `attachmentId` INT(11) NOT NULL DEFAULT '0',
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)

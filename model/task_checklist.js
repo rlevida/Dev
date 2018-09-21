@@ -20,6 +20,11 @@ var field = exports.field = {
      */
     'taskId' : {type : 'bigint' , access : "public" },
     
+     /**
+     * documents (VARCHAR(50))
+     */
+    'documents' : {type : 'string' , access : "public" },
+
     /**
      * dateAdded (DATETIME)
      */
