@@ -197,10 +197,10 @@ var getTaskAllowedAccess = exports.getTaskAllowedAccess = (tablename, data, adva
                     WHERE finalTbl2.linkType = "workstream" AND (task.status != "Completed" || task.status  IS NULL) AND task.id IS NOT NULL ) as tbl
                     GROUP BY tbl.taskId
                 `;
-    if (data.userRole == 1) {
-        query = "SELECT id as taskId FROM task"
-        params = []
-    }
+    // if (data.userRole == 1) {
+    //     query = "SELECT id as taskId FROM task"
+    //     params = []
+    // }
 
     db.query(
         query,
