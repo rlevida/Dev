@@ -24,7 +24,7 @@ export default class TaskStatus extends React.Component {
         let { socket , loggedUser } = this.props;
         let intervalLoggedUser = setInterval(() => {
             if (typeof this.props.loggedUser.data.id != "undefined") {
-                if( this.props.loggedUser.data.userRole == 1 ){
+                if( this.props.loggedUser.data.userRole == 1 || this.props.loggedUser.data.userRole == 2 ){
                     this.props.socket.emit("GET_TASK_COUNT_LIST", { filter : { projectId : project }})
                 }else{ 
                     let filter = { filter: { userId: this.props.loggedUser.data.id } }
@@ -38,7 +38,7 @@ export default class TaskStatus extends React.Component {
     render() {
         let data = { Active: 0, OnTrack: 0, Issues: 0 }
             if(typeof this.props.loggedUser.data.id != "undefined"){
-                if( this.props.loggedUser.data.userRole == 1){
+                if( this.props.loggedUser.data.userRole == 1 || this.props.loggedUser.data.userRole == 2){
                     this.props.task.CountList.map((e, i) => {
                         data = {
                             Active: (typeof e.Active != "undefined" && e.Active) ? e.Active : 0,
