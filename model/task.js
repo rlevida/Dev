@@ -375,7 +375,8 @@ var getTaskList = exports.getTaskList = (tablename, data, advance, cb) => {
                 assignedTo.id as assignedById,
                 assignedTo.userType as assignedUserType,
                 follower.followersName,
-                follower.followersIds
+                follower.followersIds,
+                responsible.responsible_id
                 FROM (` + query + `) as prj 
                 LEFT JOIN task ON prj.linkTaskId = task.id
                 LEFT JOIN (SELECT users.*,members.linkId FROM members 
@@ -392,6 +393,9 @@ var getTaskList = exports.getTaskList = (tablename, data, advance, cb) => {
                                     AND members.linkType="task" 
                                     WHERE users.id IS NOT NULL
                                     GROUP BY members.linkId ) as follower ON prj.id = follower.linkId
+                LEFT JOIN ( SELECT members.userTypeLinkId as responsible_id, members.linkId as responsible_workstreamId FROM members WHERE memberType = 'responsible') as responsible ON 
+                prj.workstream_id = responsible.responsible_workstreamId
+                    
             `
     /**
      * Manage Query Connection

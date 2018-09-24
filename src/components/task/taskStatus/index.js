@@ -36,26 +36,36 @@ export default class TaskStatus extends React.Component {
     }
 
     render() {
+        let { task } = this.props;
         let data = { Active: 0, OnTrack: 0, Issues: 0 }
-            if(typeof this.props.loggedUser.data.id != "undefined"){
-                if( this.props.loggedUser.data.userRole == 1 || this.props.loggedUser.data.userRole == 2){
-                    this.props.task.CountList.map((e, i) => {
-                        data = {
-                            Active: (typeof e.Active != "undefined" && e.Active) ? e.Active : 0,
-                            OnTrack: (typeof e.OnTrack != "undefined" && e.OnTrack) ? e.OnTrack : 0,
-                            Issues: (typeof e.Issues != "undefined" && e.Issues) ? e.Issues : 0
-                        }
-                    })
-                }else{
-                    this.props.task.AllCountList.map((e, i) => {
-                        data = {
-                            Active: (typeof e.Active != "undefined" && e.Active) ? e.Active : 0,
-                            OnTrack: (typeof e.OnTrack != "undefined" && e.OnTrack) ? e.OnTrack : 0,
-                            Issues: (typeof e.Issues != "undefined" && e.Issues) ? e.Issues : 0
-                        }
-                    })
+            // if(typeof this.props.loggedUser.data.id != "undefined"){
+            //     if( this.props.loggedUser.data.userRole == 1 || this.props.loggedUser.data.userRole == 2){
+            //         this.props.task.CountList.map((e, i) => {
+            //             data = {
+            //                 Active: (typeof e.Active != "undefined" && e.Active) ? e.Active : 0,
+            //                 OnTrack: (typeof e.OnTrack != "undefined" && e.OnTrack) ? e.OnTrack : 0,
+            //                 Issues: (typeof e.Issues != "undefined" && e.Issues) ? e.Issues : 0
+            //             }
+            //         })
+            //     }else{
+            //         this.props.task.AllCountList.map((e, i) => {
+            //             data = {
+            //                 Active: (typeof e.Active != "undefined" && e.Active) ? e.Active : 0,
+            //                 OnTrack: (typeof e.OnTrack != "undefined" && e.OnTrack) ? e.OnTrack : 0,
+            //                 Issues: (typeof e.Issues != "undefined" && e.Issues) ? e.Issues : 0
+            //             }
+            //         })
+            //     }
+            // }
+
+            task.List.map((e,index)=>{
+                data.Active += 1;
+                if(moment(e.dueDate).format('L') == moment().format('L') && e.currentState != "Completed"){
+                    data.DueToday += 1;
+                }else if(moment(e.dueDate).format('LLL') < moment().format('LLL') && e.currentState != "Completed"){
+                    data.Issues += 1;
                 }
-            }
+            })
 
         return <div style={this.props.style}>
             <table>
