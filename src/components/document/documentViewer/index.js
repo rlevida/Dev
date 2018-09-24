@@ -3,10 +3,9 @@ import ReactDOM from "react-dom"
 import Select from 'react-select'
 import moment from 'moment'
 
-import { showToast,displayDate,setDatePicker , getFilePathExtension} from '../../../globalFunction'
-import { HeaderButtonContainer,HeaderButton,DropDown } from "../../../globalComponents"
-import Mention, { toString, toEditorState , getMentions } from 'rc-editor-mention';
-import Parser from 'html-react-parser'
+import { getFilePathExtension } from '../../../globalFunction'
+import { HeaderButtonContainer } from "../../../globalComponents"
+import DocumentComment from "../comment"
 const Nav = Mention.Nav;
 
 import { connect } from "react-redux"
@@ -175,35 +174,7 @@ export default class DocumentViewerComponent extends React.Component {
                                         <br/>
                                         <h4>Comments</h4>
                                         <hr/>
-                                        { (conversation.List.length > 0) && 
-                                            conversation.List.map( (e,i) =>{
-                                                return (
-                                                    <span key={i}>
-                                                        <p>{ Parser(e.comment) } </p>
-                                                        <p><i> By { global.SelectList.ProjectMemberList.filter( f => { return f.id == e.usersId})[0].emailAddress } , { moment(e.dateAdded).format('L') }</i></p>
-                                                        <br/>
-                                                    </span>
-                                                )
-                                            })
-                                        }
-                                        <div class="form-group"> 
-                                        <Mention
-                                            style={{ height: 200 }}
-                                            ref="mention"
-                                            onSearchChange={this.onSearchChange}
-                                            onChange={this.onChange}
-                                            defaultValue={toEditorState("Test")}
-                                            suggestions={ suggestions }
-                                            value = {editorState} 
-                                            prefix="@"
-                                            multiLines
-                                            noRedup
-                                        />
-                                            {/* <textarea class="form-control" name="comment" rows="4" placeholder="New comment" value={comment} onChange={(e)=>this.onChange(e)}></textarea> */}
-                                        </div> 
-                                        { (comment != "") && 
-                                            <button class="btn btn-primary btn-flat pull-right" onClick={()=> this.submitComment()}>Submit</button>
-                                        }
+                                        <DocumentComment/>
                                     </div>
                                 </div>
                             </div>
