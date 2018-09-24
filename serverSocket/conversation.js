@@ -20,23 +20,7 @@ var init = exports.init = (socket) => {
         let conversation = global.initModel("conversation")
         sequence.create().then((nextThen) => {
             if( typeof d.data.id != "undefined" && d.data.id != "" ){
-                let id = d.data.id
-                delete d.data.id
-                document.putData("conversation",d.data,{id:id},(c)=>{
-                    if(c.status) {
-                        document.getData("conversation",{id:id},{},(e)=>{
-                            if(e.data.length > 0) {
-                                nextThen(e.data[0] , "Edit")
-                                // socket.emit("FRONT_CONVERSATION_EDIT",e.data[0])
-                                // socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
-                            }else{
-                                socket.emit("RETURN_ERROR_MESSAGE",{message:"Updating failed. Please Try again later."})
-                            }
-                        })
-                    }else{
-                        socket.emit("RETURN_ERROR_MESSAGE",{message:"Updating failed. Please Try again later."})
-                    }
-                })
+              
             }else{
                 conversation.postData("conversation",d.data,(c)=>{
                     conversation.getData("conversation",{id:c.id},{},(e)=>{

@@ -6,7 +6,7 @@ import UploadModal from "./uploadModal"
 import moment from 'moment';
 import _ from 'lodash';
 import { DropDown } from "../../../globalComponents";
-
+import TaskComment from "../comment"
 
 @connect((store) => {
     return {
@@ -40,6 +40,7 @@ export default class FormComponent extends React.Component {
         if (this.props.task.Selected.id != task.Selected.id) {
             socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
             socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
+            socket.emit("GET_COMMENT_LIST", { filter: { linkType: "task", linkId: task.Selected.id } })
         }
     }
 
@@ -51,6 +52,7 @@ export default class FormComponent extends React.Component {
         if (typeof task.Selected.id != 'undefined') {
             socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
             socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
+            socket.emit("GET_COMMENT_LIST", { filter: { linkType: "task", linkId: task.Selected.id } })
         }
 
         if (typeof task.Selected.workstreamId != "undefined") {
@@ -246,7 +248,7 @@ export default class FormComponent extends React.Component {
         return (
             <div class="pd20">
                 <span class="pull-right" style={{ cursor: "pointer" }} onClick={() => { dispatch({ type: "SET_TASK_SELECTED", Selected: {} }); dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" }) }}><i class="fa fa-times-circle fa-lg"></i></span>
-                <Tabs>
+                <Tabs class="mb40">
                     <TabList>
                         <Tab>Overview</Tab>
                         <Tab>Dependents</Tab>
@@ -409,24 +411,22 @@ export default class FormComponent extends React.Component {
                             }
                         </div>
                         <div style={{ position: "relative" }} class="mt20">
-                            <h4>Documents</h4>
+                            <h5 class="mb0">Documents</h5>
                             <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" onClick={()=> dispatch({type:"SET_TASK_MODAL_TYPE", ModalType : "task"})}>Add</a>
                         </div>
-                        <table class="table responsive-table table-bordered mt10 mb10">
-                            <tbody>
-                                {(documentList.length > 0) &&
-                                    documentList.map((data, index) => {
-                                        return (
-                                            <tr key={index}>
-                                                <td><span class="fa fa-paperclip"></span></td>
-                                                <td><span class="fa fa-file"></span></td>
-                                                <td>{data.origin}</td>
-                                            </tr>
-                                        )
-                                    })
-                                }
-                            </tbody>
-                        </table>
+                        <div id="documentList">
+                            {(documentList.length > 0) &&
+                                (documentList).map((data, index) => {
+                                    return (
+                                        <div class="details pt10" key={index}>
+                                            <span class="fa fa-paperclip"></span>
+                                            <span class="fa fa-file"></span>
+                                            <p class="m0">{data.origin}</p>
+                                        </div>
+                                    )
+                                })
+                            }
+                        </div>
                     </TabPanel>
                     <TabPanel>
                         <div style={{ position: "relative" }} class="mt10">
@@ -458,7 +458,7 @@ export default class FormComponent extends React.Component {
                                             _.map(preceedingTask, (succTask, index) => {
                                                 return (
                                                     <tr key={index}>
-                                                        <td>{succTask.task.task}</td>
+                                                        <td class="text-left">{succTask.task.task}</td>
                                                         <td class="description-td text-left">{succTask.task.description}</td>
                                                         <td></td>
                                                     </tr>
@@ -500,7 +500,7 @@ export default class FormComponent extends React.Component {
                                 }
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row" style={{ marginLeft: 7 }}>
                             <div class="col-md-4 pdr0">
                                 <label>Dependency Type</label>
                                 <DropDown multiple={false}
@@ -539,6 +539,17 @@ export default class FormComponent extends React.Component {
                                 />
                             </div>
                         </div>
+                    </TabPanel>
+                </Tabs>
+                <Tabs>
+                    <TabList>
+                        <Tab>Comments</Tab>
+                        <Tab>Activities</Tab>
+                    </TabList>
+                    <TabPanel>
+                        <TaskComment />
+                    </TabPanel>
+                    <TabPanel>
                     </TabPanel>
                 </Tabs>
                 <UploadModal />
