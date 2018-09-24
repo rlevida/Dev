@@ -66,7 +66,7 @@ export default class Component extends React.Component {
         this.setState({ miniSideMenu: status })
         setCookie("sidemenu", status, 1);
     }
- 
+
     setShowMore(type) {
         if (type == "top") {
             $("#menu").css("overflow", "hidden")
@@ -90,7 +90,7 @@ export default class Component extends React.Component {
             userView = <div class="headAccess"> Welcome : {user.username}</div>;
         }
 
-        let reminderList = _.flatten(reminder.List).filter( e =>{
+        let reminderList = _.flatten(reminder.List).filter(e => {
             return e.usersId == user.id
         })
 

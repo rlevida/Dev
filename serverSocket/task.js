@@ -237,61 +237,58 @@ var init = exports.init = (socket) => {
                                 parallelCallback(null)
                             }
                         })
+
                     } else if (typeof d.data.dependencyType == 'undefined' || d.data.dependencyType == '') {
                         taskDependency.deleteData("task_dependency", { taskId: id }, (c) => {
                             parallelCallback(null);
                         });
+                    }
+                },
+                documents: (parallelCallback) => {
+                    if (d.data.action == "complete") {
+                        let tag = global.initModel("tag");
+                        let document = global.initModel("document");
+
+                        tag.getData("tag", { linkId: id, tagType: "document", linkType: "task" }, {}, (c) => {
+                            if (c.status && c.data.length > 0) {
+                                async.map(c.data, (e, mapCallback) => {
+                                    if ((typeof data.periodic != "undefined" && data.periodic != "")) {
+                                        tag.postData("tag", {
+                                            linkType: "task",
+                                            linkId: data.periodic.id,
+                                            tagType: "document",
+                                            tagTypeId: e.tagTypeId
+                                        }, (c) => {
+                                            mapCallback(null);
+                                        });
+                                    } else {
+                                        document.putData("document", { isCompleted: 1 }, { id: e.tagTypeId }, (c) => {
+                                            mapCallback(null);
+                                        });
+                                    }
+                                }, (err, o) => {
+                                    parallelCallback(null);
+                                });
+                            } else {
+                                parallelCallback(null);
+                            }
+                        })
+                    } else {
+                        parallelCallback(null);
                     }
                 }
             }, (err, results) => {
                 nextThen(type, results.members)
             })
         }).then((nextThen, type, data) => {
-            if(type != "edit"){
-                if (data.periodic != "" && type == "edit") {
-                    socket.emit("FRONT_TASK_EDIT", data.task)
-                    socket.emit("FRONT_TASK_ADD", data.periodic)
-                } else if (type == "add") {
-                    socket.emit("FRONT_TASK_ADD", data.task)
-                } 
-                socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
-            }else{
-                nextThen(data)
+            if (data.periodic != "" && type == "edit") {
+                socket.emit("FRONT_TASK_EDIT", data.task)
+                socket.emit("FRONT_TASK_ADD", data.periodic)
+            } else if (type == "add") {
+                socket.emit("FRONT_TASK_ADD", data.task)
             }
-        }).then((nextThen,data) =>{
-            let tag = global.initModel("tag");
-                tag.getData("tag",{ linkId : data.task.id , tagType : "document" , linkType : "task"},{},(c)=>{
-                    if(c.status){
-                        if(c.data.length > 0){
-                            nextThen(data,c.data)
-                        }else{
-                            socket.emit("FRONT_TASK_EDIT", data.task)
-                            socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
-                        }
-                    }else{
-                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating document failed. Please Try again later." });
-                    }
-                })
-        }).then((nextThen,result,data)=>{
-            let document = global.initModel("document");
-            let tempDocumentRes = [];
-                tempDocumentRes.push( new Promise((resolve,reject)=>{
-                    data.map( e =>{
-                        document.putData("document",{ isCompleted : 1 },{ id : e.tagTypeId },(c)=>{
-                            if(c.status){
-                                resolve(c)
-                            }else{
-                                reject()
-                            }
-                        })
-                    })
-                }))
-                Promise.all(tempDocumentRes).then((values)=>{
-                    socket.emit("FRONT_TASK_EDIT", result.task)
-                    socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
-                    
-                })
-        })
+            socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
+        });
     })
 
     socket.on("ADD_TASK_DEPENDENCY", (d) => {

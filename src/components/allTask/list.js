@@ -46,8 +46,8 @@ export default class List extends React.Component {
 
     updateActiveStatus(id) {
         let { socket } = this.props;
-
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: id, status: "Completed" } })
+        
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: id, status: "Completed", action: "complete" } })
     }
 
     deleteData(id) {
@@ -88,7 +88,7 @@ export default class List extends React.Component {
                     return { ...o, due_date_int: moment(o.dueDate).format('YYYYMMDD') }
                 }
             })
-            .filter(e => {  return typeof e != "undefined" })
+            .filter(e => {  return typeof e != "undefined" && e.status != "Completed" })
             .orderBy(['due_date_int'], ['asc'])
             .value();
         return (

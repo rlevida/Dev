@@ -11,11 +11,11 @@ export default function reducer(state = {
     SelectedId: [],
     FormAction: "",
     Loading: true,
-    ModalType : ""
+    ModalType: ""
 }, action) {
     switch (action.type) {
         case "SET_TASK_LIST": {
-            return { ...state, List: action.list, Loading: false }
+            return { ...state, List: action.list, Loading: false, Selected: { isActive: true } }
         }
         case "SET_TASK_COUNT_LIST": {
             return { ...state, CountList: action.list }
@@ -35,7 +35,7 @@ export default function reducer(state = {
         case "SET_TASK_LOADING": {
             return { ...state, Loading: !state.Loading }
         }
-        case "SET_TASK_MODAL_TYPE" :{
+        case "SET_TASK_MODAL_TYPE": {
             return { ...state, ModalType: action.ModalType }
         }
         case "UPDATE_DATA_TASK_LIST": {

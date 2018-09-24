@@ -13,6 +13,7 @@ CREATE TABLE `task` (
     `periodic` TINYINT(1) DEFAULT '0',
     `periodType` ENUM("years", "months", "weeks", "days"),
     `period` INT,
+    `periodInstance` INT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `isActive` TINYINT(1) DEFAULT '1',

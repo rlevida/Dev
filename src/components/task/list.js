@@ -23,7 +23,7 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        let { socket , dispatch } = this.props;
+        let { socket, dispatch } = this.props;
         let intervalLoggedUser = setInterval(() => {
             if (typeof this.props.loggedUser.data.id != "undefined") {
                 let filter = {};
@@ -32,7 +32,7 @@ export default class List extends React.Component {
                 }
                 if(typeof this.props.task.Selected.task == "undefined"){
                     socket.emit("GET_TASK_LIST", filter);
-                }else{
+                } else {
                     dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } })
                 }
                 clearInterval(intervalLoggedUser)
@@ -87,6 +87,13 @@ export default class List extends React.Component {
         let taskList = _(task.List)
             .map((o) => {
                 return { ...o, due_date_int: moment(o.dueDate).format('YYYYMMDD') }
+            })
+            .filter((o) => {
+                if (loggedUser.data.userRole != 1) {
+                    return o.status != "Completed"
+                } else {
+                    return o.id != 0;
+                }
             })
             .orderBy(['due_date_int'], ['asc'])
             .value();
@@ -161,7 +168,9 @@ export default class List extends React.Component {
                                     {
                                         (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External') && <div>
                                             <a href="javascript:void(0);" data-tip="EDIT"
-                                                onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id })}
+                                                onClick={(e) => {
+                                                    socket.emit("GET_TASK_DETAIL", { id: data.id })
+                                                }}
                                                 class="btn btn-info btn-sm">
                                                 <span class="glyphicon glyphicon-pencil"></span></a>
                                             <a href="javascript:void(0);" data-tip="DELETE"

@@ -44,7 +44,6 @@ export default class FormComponent extends React.Component {
         if (typeof task.Selected.id != 'undefined') {
             this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
         }
-
         if (typeof task.Selected.workstreamId != "undefined") {
             this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "taskList", filter: { "|||and|||": [{ name: "workstreamId", value: task.Selected.workstreamId }, { name: "id", value: task.Selected.id, condition: " != " }] } })
         }
@@ -106,7 +105,7 @@ export default class FormComponent extends React.Component {
         Selected[name] = value;
 
         if (name == "periodic") {
-            Selected = { ...Selected, dueDate: '', endDate: '', taskDueDate: '', periodType: '', period: (value == 1) ? 1 : 0 }
+            Selected = { ...Selected, dueDate: '', endDate: '', taskDueDate: '', periodType: '', period: (value == 1) ? 1 : 0, periodInstance: (value == 1) ? 1 : 0 }
         }
 
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
@@ -165,6 +164,8 @@ export default class FormComponent extends React.Component {
                 data: {
                     ...task.Selected,
                     projectId: project,
+                    period: _.toNumber(task.Selected.period),
+                    periodInstance: _.toNumber(task.Selected.periodInstance),
                     dueDate: moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00'),
                     startDate: moment(task.Selected.startDate).format('YYYY-MM-DD 00:00:00')
                 }
@@ -234,7 +235,6 @@ export default class FormComponent extends React.Component {
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
                     onClick={(e) => {
                         dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
-                        dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
                     }} >
                     <span>Back</span>
                 </li>
@@ -382,6 +382,27 @@ export default class FormComponent extends React.Component {
                                                 options={_.map(['Year', 'Month', 'Week', 'Day'], (o) => { return { id: (o + 's').toLowerCase(), name: o } })}
                                                 selected={(typeof task.Selected.periodType == "undefined") ? "" : task.Selected.periodType}
                                                 onChange={(e) => this.setDropDown("periodType", e.value)}
+                                                disabled={!allowEdit}
+                                            />
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                }
+                                {
+                                    (task.Selected.periodic == 1 &&
+                                        (typeof task.Selected.id == "undefined" || task.Selected.id == "")) && <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Period Instance</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <input
+                                                type="number"
+                                                name="periodInstance"
+                                                required={task.Selected.periodInstance == 1}
+                                                value={(typeof task.Selected.periodInstance == "undefined" || task.Selected.periodInstance == "") ? 1 : task.Selected.periodInstance}
+                                                class="form-control" placeholder="Period Instance" onChange={(e) => {
+                                                    if (((e.target.value).length <= 4 && isNumber(toNumber(e.target.value)) && e.target.value >= 0) || e.target.value == "") {
+                                                        this.handleChange(e);
+                                                    }
+                                                }}
                                                 disabled={!allowEdit}
                                             />
                                             <div class="help-block with-errors"></div>
