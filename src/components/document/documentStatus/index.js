@@ -74,14 +74,16 @@ export default class DocumentStatus extends React.Component {
         }
         return  <div class="pull-right">
                     <table>
-                        <tr>
-                            <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
-                                <span style={{float:"left"}}>New Uploads</span><span >{ documentList.newUpload.length }</span>
-                            </td>
-                            <td style={{ marginLeft: "20px",padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
-                                <span style={{float:"left"}}>By email</span><span style={{float:"right"}}>0</span>
-                            </td>
-                        </tr>
+                        <tbody>
+                            <tr>
+                                <td style={{padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
+                                    <span style={{float:"left"}}>New Uploads</span><span >{ documentList.newUpload.length }</span>
+                                </td>
+                                <td style={{ marginLeft: "20px",padding:"10px 5px",width:"120px",backgroundColor:"#4e9cde",color:"white"}}>
+                                    <span style={{float:"left"}}>By email</span><span style={{float:"right"}}>0</span>
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
                

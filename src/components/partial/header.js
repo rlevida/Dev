@@ -104,7 +104,7 @@ export default class Component extends React.Component {
                     <ul class="dropdown-menu" >
                         {reminderList.map((data, index) => {
                             return (
-                                <li><a href={"/reminder"} key={index} style={{ textDecoration: "none" }}>{data.reminderDetail}</a></li>
+                                <li key={index}><a href={"/reminder"} key={index} style={{ textDecoration: "none" }}>{data.reminderDetail}</a></li>
                             )
                         })
                         }

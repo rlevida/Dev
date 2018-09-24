@@ -234,7 +234,7 @@ export default class DocumentNew extends React.Component {
                     <div class="col-lg-12 col-md-12">  
                     <h3>
                         <a style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_NEW_FOLDER_SELECTED" , Selected : {} })}>New Documents</a>
-                        { folderName.map((e)=>{ return e; }) } 
+                        { folderName.map((e,index)=>{ return <span key={index}>{e}</span> }) } 
                     </h3>
                         { (this.state.folderAction == "") &&
                             <div class="form-group">
