@@ -73,6 +73,7 @@ var init = exports.init = (socket) => {
             modelList["folderList"] = "folder";
             modelList["shareList"] = "share"
             modelList["workstreamDocumentList"] = "document"
+            modelList["userFollowedTasks"] = "members"
         modelName = modelList[d.selectName];
         if(modelName != ""){
             let model = global.initModel(modelName);

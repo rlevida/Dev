@@ -10,7 +10,8 @@ import { connect } from "react-redux"
     return {
         socket: store.socket.container,
         task: store.task,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        global: store.global
     }
 })
 export default class List extends React.Component {
@@ -23,14 +24,19 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
+        let { socket , global ,loggedUser } = this.props;
         let intervalLoggedUser = setInterval(() => {
             if (typeof this.props.loggedUser.data.id != "undefined") {
-                let filter = { filter: { id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
+                let userFollowedTasks = global.SelectList.userFollowedTasks
+                    .filter((e,index) =>{ return e.userTypeLinkId == this.props.loggedUser.data.id})
+                    .map((e,index) =>{ return e.linkId })
+                let taskListId = _.merge(userFollowedTasks, this.props.loggedUser.data.taskIds)
+                let filter = { filter: { id: { name: "id", value: taskListId, condition: " IN " } } }
                 this.props.socket.emit("GET_TASK_LIST", filter);
                 clearInterval(intervalLoggedUser)
             }
         }, 1000)
-
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "userFollowedTasks" , filter: { linkType: 'task', memberType :"Follower"} })
         this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: {} });
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
