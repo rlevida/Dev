@@ -6,7 +6,6 @@ import moment from 'moment'
 import { getFilePathExtension } from '../../../globalFunction'
 import { HeaderButtonContainer } from "../../../globalComponents"
 import DocumentComment from "../comment"
-const Nav = Mention.Nav;
 
 import { connect } from "react-redux"
 
@@ -29,7 +28,6 @@ export default class DocumentViewerComponent extends React.Component {
             comment: "",
             contributors: [],
             suggestions: [],
-            // users: [],
             mentions: [],
             editorState : toEditorState(''),
             reminderList : []
@@ -39,13 +37,7 @@ export default class DocumentViewerComponent extends React.Component {
     componentWillMount() {
         let { socket  , document , users } = this.props
             socket.emit("GET_COMMENT_LIST",{ filter : { linkType : "project" , linkId : document.Selected.id }})
-            // this.setState({ users : users.List  })
     }
-
-    // onChange(e){
-    //     let { comment } = this.state;
-    //         this.setState({ [e.target.name] : e.target.value });
-    // }
 
     submitComment(){
         let { socket , loggedUser , document , global} = this.props;
@@ -72,52 +64,6 @@ export default class DocumentViewerComponent extends React.Component {
                 reminderList : JSON.stringify(reminderList)
             });
             this.setState({ comment : "" , editorState :toEditorState('') })
-    }
-
-    onSearchChange = (value) => {
-        const searchValue = value.toLowerCase();
-        const { mentions } = this.state;
-        const { global } = this.props;
-
-        const filtered = global.SelectList.ProjectMemberList.filter( e => {
-              return   `${(e.firstName).split(" ").join("")}-${e.lastName}`.toLowerCase().indexOf(searchValue) !== -1
-                && mentions.indexOf(`@${(e.firstName).split(" ").join("")}-${e.lastName}`) === -1
-        });
-
-        const suggestions = filtered.map(e =>{
-           return (  
-                <Nav style={{ height: 34 }} value={ `${(e.firstName).split(" ").join("")}-${e.lastName}`} key={e.id} >
-                    <span className="meta">{ `${e.firstName.split(" ").join("")} ${e.lastName}` }</span>
-                </Nav>
-            )});
-
-        if(suggestions.length > 0){
-            this.setState({
-                suggestions:suggestions
-            });
-        }else{
-            this.setState({
-                suggestions:suggestions
-            });
-        }
-    }
-
-    onChange = (e) => {
-        let { global } = this.props;
-        let { reminderList } = this.state
-        let mentions = getMentions(e);
-        let newData = toString(e, { encode: true })
-
-        mentions.map( t =>{
-           newData =  newData.replace(t , `<a href="javascript:void(0);" >${(t.split("@").join("")).split("-").join(" ")}</a>`)
-        })
-
-        this.setState({
-            mentions : mentions,
-            comment : newData,
-            editorState : e,
-            reminderList, reminderList
-        });
     }
 
     render() {
