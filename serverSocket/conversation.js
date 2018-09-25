@@ -56,10 +56,9 @@ var init = exports.init = (socket) => {
                 }))
 
                 Promise.all(tempResData).then((values)=>{
-                    socket.emit("FRONT_REMINDER_LIST", values)
-                    
+                    socket.broadcast.emit("FRONT_REMINDER_LIST", values)
                     if(action == "Edit"){
-                        socket.emit("FRONT_CONVERSATION_EDIT",result)
+                        socket.broadcast.emit("FRONT_CONVERSATION_EDIT",result)
                         socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
                     }else{
                         socket.emit("FRONT_COMMENT_ADD",result)
@@ -67,7 +66,7 @@ var init = exports.init = (socket) => {
                 })
             }else{
                 if(action == "Edit"){
-                    socket.emit("FRONT_CONVERSATION_EDIT",result)
+                    socket.broadcast.emit("FRONT_CONVERSATION_EDIT",result)
                     socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
                 }else{
                     socket.emit("FRONT_COMMENT_ADD",result)
