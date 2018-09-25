@@ -28,7 +28,6 @@ export default class DocumentViewerComponent extends React.Component {
             suggestions: [],
             users: [],
             mentions: [],
-            editorState : toEditorState('')
         }
     }
 
@@ -45,7 +44,6 @@ export default class DocumentViewerComponent extends React.Component {
         socket.emit("SAVE_OR_UPDATE_CONVERSATION", { 
                 data: { comment : comment , linkType : "project" , linkId : document.Selected.id , usersId : loggedUser.data.id } 
             });
-            this.setState({ comment : "" , editorState :toEditorState('') })
     }
 
     onSearchChange = (value) => {
@@ -147,7 +145,7 @@ export default class DocumentViewerComponent extends React.Component {
                                             })
                                         }
                                         <div class="form-group"> 
-                                        <Mention
+                                        {/* <Mention
                                             style={{ height: 200 }}
                                             ref="mention"
                                             onSearchChange={this.onSearchChange}
@@ -162,7 +160,7 @@ export default class DocumentViewerComponent extends React.Component {
                                         </div> 
                                         { (comment != "") && 
                                             <button class="btn btn-primary btn-flat pull-right" onClick={()=> this.submitComment()}>Submit</button>
-                                        }
+                                        } */}
                                     </div>
                                 </div>
                             </div>

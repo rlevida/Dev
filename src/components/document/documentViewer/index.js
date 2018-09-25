@@ -29,7 +29,6 @@ export default class DocumentViewerComponent extends React.Component {
             contributors: [],
             suggestions: [],
             mentions: [],
-            editorState : toEditorState(''),
             reminderList : []
         }
     }
@@ -63,7 +62,6 @@ export default class DocumentViewerComponent extends React.Component {
                 },
                 reminderList : JSON.stringify(reminderList)
             });
-            this.setState({ comment : "" , editorState :toEditorState('') })
     }
 
     render() {
