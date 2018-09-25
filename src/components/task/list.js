@@ -27,10 +27,10 @@ export default class List extends React.Component {
         let intervalLoggedUser = setInterval(() => {
             if (typeof this.props.loggedUser.data.id != "undefined") {
                 let filter = {};
-                if(this.props.loggedUser.data.id != 1  && this.props.loggedUser.data.id != 2){
-                    filter = { filter: { projectId: project,id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
+                if (this.props.loggedUser.data.id != 1 && this.props.loggedUser.data.id != 2) {
+                    filter = { filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
                 }
-                if(typeof this.props.task.Selected.task == "undefined"){
+                if (typeof this.props.task.Selected.task == "undefined") {
                     socket.emit("GET_TASK_LIST", filter);
                 } else {
                     dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } })
@@ -46,10 +46,10 @@ export default class List extends React.Component {
         this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
     }
 
-    updateActiveStatus(id) {
+    updateActiveStatus(params) {
         let { socket } = this.props;
 
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: id, status: "Completed", action: "complete" } })
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...params, status: "Completed", action: "complete" } })
     }
 
     deleteData(id) {
@@ -183,7 +183,7 @@ export default class List extends React.Component {
                                                     &&
                                                     (typeof data.isActive == 'undefined' || data.isActive == 1)
                                                 ) && <a href="javascript:void(0);" data-tip="COMPLETE"
-                                                    onClick={e => this.updateActiveStatus(data.id)}
+                                                    onClick={e => this.updateActiveStatus({ id: data.id, periodTask: data.periodTask })}
                                                     class="btn btn-success btn-sm ml10">
                                                     <span class="glyphicon glyphicon-check"></span></a>
                                             }
