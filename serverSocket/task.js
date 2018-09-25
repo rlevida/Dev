@@ -211,7 +211,7 @@ var init = exports.init = (socket) => {
         }).then((nextThen, data, type) => {
             const members = global.initModel("members");
             const taskDependency = global.initModel("task_dependency");
-            const taskDependency = global.initModel("task_dependency");
+            const tag = global.initModel("tag");
 
             const taskAttributesPromises = _.map(data, (o) => {
                 return new Promise(function (resolve, reject) {
@@ -312,6 +312,34 @@ var init = exports.init = (socket) => {
                             if (d.data.action == "complete") {
                                 let taskId = (o.periodTask == null) ? o.id : o.periodTask;
 
+                                if (o.status == "Completed") {
+                                    tag.putData("tag", { isCompleted: 1 }, { linkId: o.id, tagType: "document", linkType: "task" }, (c) => {
+                                        if (c.status && c.data.length > 0) {
+                                            parallelCallback(null);
+                                        } else {
+                                            parallelCallback(null);
+                                        }
+                                    })
+                                } else {
+                                    tag.getData("tag", { linkId: taskId, tagType: "document", linkType: "task" }, {}, (e) => {
+                                        if (e.status && e.data.length > 0) {
+                                            async.map(e.data, (tg, mapCallback) => {
+                                                tag.postData("tag", {
+                                                    linkType: "task",
+                                                    linkId: o.id,
+                                                    tagType: "document",
+                                                    tagTypeId: tg.tagTypeId
+                                                }, (c) => {
+                                                    mapCallback(null)
+                                                });
+                                            }, (err, results) => {
+                                                parallelCallback(null, results)
+                                            });
+                                        } else {
+                                            parallelCallback(null)
+                                        }
+                                    })
+                                }
                             } else {
                                 parallelCallback(null);
                             }
