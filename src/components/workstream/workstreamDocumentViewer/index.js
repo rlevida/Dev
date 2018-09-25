@@ -144,7 +144,7 @@ export default class DocumentViewerComponent extends React.Component {
                                                 )
                                             })
                                         }
-                                        <div class="form-group"> 
+                                        {/* <div class="form-group">  */}
                                         {/* <Mention
                                             style={{ height: 200 }}
                                             ref="mention"
