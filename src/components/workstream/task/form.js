@@ -1,5 +1,5 @@
 import React from "react";
-import { setDatePicker } from '../../../globalFunction';
+import { setDatePicker , showToast} from '../../../globalFunction';
 import { connect } from "react-redux";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import UploadModal from "./uploadModal"
@@ -83,12 +83,29 @@ export default class FormComponent extends React.Component {
     }
 
     markTaskAsCompleted() {
-        let { socket, task } = this.props;
-        let status = "Completed"
-        if (task.Selected.task_id && task.Selected.task_status != "Completed") {
-            status = "For Approval"
+        let { socket, task , checklist } = this.props;
+        let checklistToBeComplete = []
+        checklist.List.map((e,index)=>{
+            if(e.types.length > 0){
+                let isMandatory = e.types.filter( t => { return t.value == "Mandatory"}).length > 0 ? 1 : 0
+                    if(isMandatory){
+                        if(e.completed){
+                        }else{
+                            checklistToBeComplete.push(e)
+                        }
+                    }
+            }
+        })
+
+        if(checklistToBeComplete.length == 0){
+            let status = "Completed"
+            if (task.Selected.task_id && task.Selected.task_status != "Completed") {
+                status = "For Approval"
+            }
+            socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
+        }else{
+            showToast("error", "There are items to be completed in the checklist before completing the task.")
         }
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
     }
 
     handleChange(e) {
