@@ -5,9 +5,10 @@ CREATE TABLE `tag` (
     `linkType` ENUM("user","workstream","task","conversation","document","others"),
     `linkId` BIGINT,
     `tagType` ENUM("user","workstream","task","conversation","document","folder"),
+    `isDeleted` TINYINT(1) DEFAULT '0',
+    `isCompleted` TINYINT(1) DEFAULT '0',
     `tagTypeId` BIGINT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `isDeleted` TINYINT(1) DEFAULT '0',
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;

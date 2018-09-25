@@ -240,27 +240,30 @@ export default class DocumentLibrary extends React.Component {
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
 
             if(typeof folder.SelectedLibraryFolder.id == "undefined"){
-                if( document.List.length > 0 ){
+                if( document.List.length > 0 && typeof global.SelectList.tagList != "undefined" ){
                     document.List.filter( e =>{
-                        if( loggedUser.data.userType == "Internal"){
+                        let tagStatus = global.SelectList.tagList
+                                .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
+                        let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
+                        if( loggedUser.data.userType == "Internal" && !isCompleted ){
                             if( e.status == "library" && e.folderId == null){
                                 if(selectedFilter == 0 ){
                                     documentList.library.push(e)
-                                }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                }else if(selectedFilter == 1){
                                      documentList.library.push(e)
-                                }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                }else if(selectedFilter == 2){
                                     documentList.library.push(e)
                                 }
                             }
                         }else{
-                            if(e.status == "library" && e.folderId == null){
+                            if(e.status == "library" && e.folderId == null && !isCompleted){
                                 let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? 1 : 0 ;
                                     if(isShared || e.uploadedBy == loggedUser.data.id ){
                                         if(selectedFilter == 0 ){
                                             documentList.library.push(e)
-                                        }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                        }else if(selectedFilter == 1){
                                              documentList.library.push(e)
-                                        }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                        }else if(selectedFilter == 2){
                                             documentList.library.push(e)
                                         }
                                     }
@@ -305,7 +308,7 @@ export default class DocumentLibrary extends React.Component {
                         let workstreamName =  workstream.List.filter( w => { return w.id == t.linkId})[0].workstream;
                             tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : workstreamName , linkId : t.linkId , tagType : t.tagType });
                     }
-                    if(task.List.filter( w => { return w.id == t.linkId && t.linkType == "task"} ).length > 0){
+                    if(task.List.filter( w => { return w.id == t.linkId && t.linkType == "task" && w.status != "Completed"} ).length > 0){
                         let taskName =  task.List.filter( w => { return w.id == t.linkId})[0].task;
                             tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : taskName , linkId : t.linkId , tagType : t.tagType });
                     }
@@ -440,7 +443,7 @@ export default class DocumentLibrary extends React.Component {
                                                         <ul style={{listStyleType: "none",padding : "0"}}>  
                                                             { (tagList.length > 0) &&
                                                                 tagList.map((t,tIndex) =>{
-                                                                    if(t.tagTypeId == data.id){
+                                                                    if(t.tagTypeId == data.id && t.tagType == "document"){
                                                                         return <li key={tIndex}><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
                                                                     }
                                                                 })

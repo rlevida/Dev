@@ -244,31 +244,12 @@ var init = exports.init = (socket) => {
                         });
                     }
                 },
-                documents: (parallelCallback) => {
+                tag: (parallelCallback) => {
                     if (d.data.action == "complete") {
                         let tag = global.initModel("tag");
-                        let document = global.initModel("document");
-
-                        tag.getData("tag", { linkId: id, tagType: "document", linkType: "task" }, {}, (c) => {
+                        tag.putData("tag", { isCompleted : 1 }, { linkId: id, tagType: "document", linkType: "task" }, (c) => {
                             if (c.status && c.data.length > 0) {
-                                async.map(c.data, (e, mapCallback) => {
-                                    if ((typeof data.periodic != "undefined" && data.periodic != "")) {
-                                        tag.postData("tag", {
-                                            linkType: "task",
-                                            linkId: data.periodic.id,
-                                            tagType: "document",
-                                            tagTypeId: e.tagTypeId
-                                        }, (c) => {
-                                            mapCallback(null);
-                                        });
-                                    } else {
-                                        document.putData("document", { isCompleted: 1 }, { id: e.tagTypeId }, (c) => {
-                                            mapCallback(null);
-                                        });
-                                    }
-                                }, (err, o) => {
-                                    parallelCallback(null);
-                                });
+                                parallelCallback(null);
                             } else {
                                 parallelCallback(null);
                             }
@@ -281,9 +262,11 @@ var init = exports.init = (socket) => {
                 nextThen(type, results.members)
             })
         }).then((nextThen, type, data) => {
-            if (data.periodic != "" && type == "edit") {
+            if (type == "edit") {
+                if (data.periodic != ""){
+                    socket.emit("FRONT_TASK_ADD", data.periodic)
+                }
                 socket.emit("FRONT_TASK_EDIT", data.task)
-                socket.emit("FRONT_TASK_ADD", data.periodic)
             } else if (type == "add") {
                 socket.emit("FRONT_TASK_ADD", data.task)
             }

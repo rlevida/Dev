@@ -25,7 +25,6 @@ export default class FormComponent extends React.Component {
 
         this.handleChange = this.handleChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
-        // this.setDropDown = this.setDropDown.bind(this)
     }
 
     componentDidMount() {
@@ -33,7 +32,7 @@ export default class FormComponent extends React.Component {
     }
 
     handleChange(e) {
-        let { socket, dispatch, document } = this.props
+        let { dispatch, document } = this.props
         let Selected = Object.assign({},document.Selected)
             Selected[e.target.name] = e.target.value;
             dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
@@ -73,28 +72,11 @@ export default class FormComponent extends React.Component {
             dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
     }
     
-    // setDropDown(name,value) {
-    //     let { socket, dispatch, document } = this.props
-    //     let Selected = Object.assign({},document.Selected)
-    //     Selected[name] = value;
-    //     dispatch({type:"SET_DOCUMENT_SELECTED",Selected:Selected})
-    // }
-
-    // setDropDownMultiple(name,values) {
-    //     this.setState({
-    //         [name]: JSON.stringify(values?values:[])
-    //     });
-    // }
-
     render() {
-        let { dispatch, document, loggedUser, status, type , workstream ,task } = this.props;
-        let statusList = [], typeList = [] , tagOptions = [] ;
-
+        let { dispatch, document, workstream ,task } = this.props;
+        let tagOptions = [] ;
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })});
-            task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })});
-
-            // status.List.map((e,i)=>{ if(e.linkType=="document"){statusList.push({id:e.id,name:e.status})} });
-            // type.List.map((e,i)=>{ if(e.linkType=="document"){typeList.push({id:e.id,name:e.type})} });
+            task.List.filter(e =>{ return e.status != "Completed"}).map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })});
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -117,17 +99,6 @@ export default class FormComponent extends React.Component {
                         </div>
                         <div class="panel-body">
                             <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
-                                {/* <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Status</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false} 
-                                            required={false}
-                                            options={ statusList } 
-                                            selected={(typeof document.Selected.statusId == "undefined")?"":document.Selected.statusId} 
-                                            onChange={(e)=>this.setDropDown("statusId",e.value)} /> 
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div> */}
                                 { (document.EditType == "rename") && 
                                     <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Document Name *</label>
@@ -162,17 +133,6 @@ export default class FormComponent extends React.Component {
                                         </div>
                                     </div>
                                 }
-                                {/* <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Type</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <DropDown multiple={false} 
-                                            required={false}
-                                            options={ typeList } 
-                                            selected={(typeof document.Selected.typeId == "undefined")?"":document.Selected.typeId} 
-                                            onChange={(e)=>this.setDropDown("typeId",e.value)} /> 
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div> */}
                             </form>
                         </div>
                     </div>

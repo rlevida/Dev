@@ -141,15 +141,19 @@ export default class DocumentNew extends React.Component {
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
             
-            if(typeof folder.SelectedNewFolder.id == "undefined" || folder.SelectedNewFolder.type != "new"){
+            if(typeof folder.SelectedNewFolder.id == "undefined" && folder.SelectedNewFolder.type != "new" && typeof global.SelectList.tagList != "undefined"){
                 if( document.List.length > 0 ){
                     document.List.filter( e =>{
-                        if( loggedUser.data.userType == "Internal"){
-                            if( e.status == "new" && e.isCompleted != 1 ){
+                        let tagStatus = global.SelectList.tagList
+                            .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
+                        let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
+
+                        if( loggedUser.data.userType == "Internal" && !isCompleted){
+                            if( e.status == "new"){
                                 documentList.newUpload.push(e)
                             }
                         }else{
-                            if( e.status == "new" && e.isCompleted != 1 ){
+                            if( e.status == "new" &&  !isCompleted ){
                                 let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id }).length ? 1 : 0 ;
                                     if(isShared || e.uploadedBy == loggedUser.data.id){
                                         documentList.newUpload.push(e)
@@ -160,15 +164,19 @@ export default class DocumentNew extends React.Component {
                 }
             }else if( folder.SelectedNewFolder.type == "new"){
                 document.List.filter( e =>{
-                    if(loggedUser.data.userType == "Internal"){
+                    let tagStatus = global.SelectList.tagList
+                            .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
+                        let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
+
+                    if(loggedUser.data.userType == "Internal" && !isCompleted){
                         if( e.status == "new" && e.folderId == folder.SelectedNewFolder.id){
                             documentList.newUpload.push(e)
                         }
                     }else{
-                        if(e.status == "new" && e.folderId == folder.SelectedNewFolder.id){
-                            let isShared = global.SelectList.shareList.filter( s => { 
-                                                return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedNewFolder.id) && (s.shareType == "document" || s.shareType == "folder") 
-                                            }).length ? 1 : 0 ;
+                        if(e.status == "new" && e.folderId == folder.SelectedNewFolder.id && !isCompleted){
+                            let isShared = global.SelectList.shareList
+                                            .filter( s => { return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedNewFolder.id) && (s.shareType == "document" || s.shareType == "folder")}).length 
+                                                ? 1 : 0 ;
                                 if(isShared || e.uploadedBy == loggedUser.data.id){
                                     documentList.newUpload.push(e)
                                 }
@@ -183,12 +191,13 @@ export default class DocumentNew extends React.Component {
                         let workstreamName =  workstream.List.filter( w => { return w.id == t.linkId})[0].workstream;
                             tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : workstreamName , linkId : t.linkId , tagType : t.tagType });
                     }
-                    if(task.List.filter( w => { return w.id == t.linkId && t.linkType == "task"} ).length > 0){
+                    if(task.List.filter( w => { return w.id == t.linkId && t.linkType == "task" && w.status != "Completed"} ).length > 0){
                         let taskName =  task.List.filter( w => { return w.id == t.linkId})[0].task;
                             tagList.push({ linkType: t.linkType , tagTypeId: t.tagTypeId  , name : taskName , linkId : t.linkId , tagType : t.tagType });
                     }
                 })
             }
+            console.log(tagList)
 
             if(typeof global.SelectList.ProjectMemberList != "undefined"){ // FOR SHARE OPTIONS
                 global.SelectList.ProjectMemberList.map(e =>{ 
