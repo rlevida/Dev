@@ -197,7 +197,6 @@ export default class DocumentNew extends React.Component {
                     }
                 })
             }
-            console.log(tagList)
 
             if(typeof global.SelectList.ProjectMemberList != "undefined"){ // FOR SHARE OPTIONS
                 global.SelectList.ProjectMemberList.map(e =>{ 
