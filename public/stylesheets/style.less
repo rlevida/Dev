@@ -133,17 +133,35 @@ body {
   padding-top:10px;
   padding-bottom:10px;
   padding-left: 5px;
-  cursor: pointer;
+  // cursor: pointer;
 }
-#checklist .wrapper:hover{
-  background: #ddd;
+#checklist .wrapper-disabled{
+  position: relative;
+  padding-top:10px;
+  padding-bottom:10px;
+  padding-left: 5px;
+  background-color: #e9eadd;
+  margin:5px;
+  border-radius: 5px;
 }
-#checklist .wrapper a {
+#checklist .wrapper-disabled a {
   position: absolute;
   top: 50%;
   right: 0;
   transform: translate(-50%,-50%);
 }
+#checklist .wrapper:hover{
+  background: #ddd;
+  border-radius: 5px;
+}
+// #checklist .wrapper a {
+//   top: 50%;
+//   right: 0;
+//   transform: translate(-50%,-50%);
+//   top: 50%;
+//   right: 0;
+//   transform: translate(-50%,-50%);
+// }
 #checklist p {
   margin-right: 95px;
   margin-bottom: 0px;
@@ -165,6 +183,15 @@ body {
 }
 .completed p {
   text-decoration:line-through
+}
+#checklist .checklist-actions{
+  position:absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(-10%,-60%);
+}
+.checklist-actions a{
+ margin:2px;
 }
 /**
   end tree view

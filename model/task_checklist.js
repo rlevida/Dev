@@ -26,6 +26,11 @@ var field = exports.field = {
     'documents' : {type : 'string' , access : "public" },
 
     /**
+     *  createdBy (BIGINT)
+     */
+    'createdBy' : {type : 'bigint' , access : "public" },
+    
+    /**
      * dateAdded (DATETIME)
      */
     'dateAdded' : {type : 'date' , access : "public" },

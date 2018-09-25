@@ -5,6 +5,7 @@ CREATE TABLE `task_checklist` (
     `description` TEXT,
     `taskId` BIGINT,
     `documents` VARCHAR(50),
+    `createdBy` INT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)

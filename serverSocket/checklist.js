@@ -120,7 +120,7 @@ var init = exports.init = (socket) => {
                         socket.emit("FRONT_UPDATE_CHECK_LIST", d.data)
                     });
                 } else {
-                    taskCheckList.postData("task_checklist", { description: d.data.description, taskId: d.data.taskId , documents : documentIds}, (data) => {
+                    taskCheckList.postData("task_checklist", { description: d.data.description, taskId: d.data.taskId , documents : documentIds , createdBy: d.data.createdBy }, (data) => {
                         async.map(d.data.types, (o, mapCallback) => {
                             taskCheckListType.postData("checklist_type", { type: o.value, checklistId: data.id }, (res) => {
                                 mapCallback(null);
@@ -132,16 +132,30 @@ var init = exports.init = (socket) => {
                     });
                 }
             })    
+
         }else{
             let taskCheckList = global.initModel("task_checklist");
                     let taskCheckListType = global.initModel("checklist_type");
-
                     if (typeof d.data.id != "undefined" && d.data.id != "") {
-                        taskCheckList.putData("task_checklist", d.data, { id: d.data.id }, (c) => {
-                            socket.emit("FRONT_UPDATE_CHECK_LIST", d.data)
-                        });
+                        if(typeof d.data.completed != "undefined"){
+                            taskCheckList.putData("task_checklist", d.data, { id: d.data.id }, (c) => {
+                                socket.emit("FRONT_UPDATE_CHECK_LIST", d.data)
+                            });
+                        }else{
+                            taskCheckListType.deleteData("checklist_type", { checklistId : d.data.id }, (res) => {
+                                 taskCheckList.putData("task_checklist", d.data, { id: d.data.id }, (c) => {
+                                    async.map(d.data.types, (o, mapCallback) => {
+                                        taskCheckListType.postData("checklist_type", { type: o.value, checklistId: d.data.id }, (res) => {
+                                            mapCallback(null,c);
+                                        });
+                                    }, (err, res) => {
+                                        socket.emit("FRONT_UPDATE_CHECK_LIST", d.data)
+                                    });
+                                });
+                            })
+                        }
                     } else {
-                        taskCheckList.postData("task_checklist", { description: d.data.description, taskId: d.data.taskId }, (data) => {
+                        taskCheckList.postData("task_checklist", { description: d.data.description, taskId: d.data.taskId, createdBy: d.data.createdBy}, (data) => {
                             async.map(d.data.types, (o, mapCallback) => {
                                 taskCheckListType.postData("checklist_type", { type: o.value, checklistId: data.id }, (res) => {
                                     mapCallback(null);
