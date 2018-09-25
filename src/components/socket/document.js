@@ -56,7 +56,7 @@ export default class Socket extends React.Component {
         socket.on("FRONT_COMMENT_ADD", (data) => {
             dispatch({ type: "SET_COMMENT_SELECTED", Selected: {} })
             dispatch({ type: "ADD_COMMENT_LIST", list: data })
-            showToast("success", "Comment already deleted.")
+            // showToast("success", "Comment already deleted.")
         })
 
         socket.on("FRONT_STARRED_LIST", (data) => {
