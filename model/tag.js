@@ -28,6 +28,16 @@ var field = exports.field = {
      * tagTypeId (BIGINT)
      */
     'tagTypeId' : {type : 'bigint' , access : "public" },
+
+    /**
+     * isDeleted (tinyint )
+     */
+    'isDeleted' :  {type : 'tinyint' , access : "public" },
+    
+     /**
+     * isCompleted (tinyint )
+     */
+    'isCompleted' :  {type : 'tinyint' , access : "public" },
     
     /**
      * dateAdded (DATETIME)
@@ -37,12 +47,9 @@ var field = exports.field = {
     /**
      * dateUpdated (TIMESTAMP)
      */
-    'dateUpdated' :  {type : 'date' , access : "public" },
+    'dateUpdated' :  {type : 'date' , access : "public" }
 
-    /**
-     * isDeleted (tinyint )
-     */
-    'isDeleted' :  {type : 'tinyint' , access : "public" }
+
 }
 
 var { getData, putData, postData, deleteData } = require("./index");
