@@ -316,3 +316,43 @@ var getProjectMember = exports.getProjectMember = (data, cb) => {
         }
     );
 }
+
+var getWorkstreamResponsible = exports.getWorkstreamResponsible = (data , cb ) => {
+    let db = global.initDB();
+    let filter = "";
+    let params = [];
+
+    let query = ` SELECT members.userTypeLinkId as usersId , task.id as taskId FROM members LEFT JOIN task ON task.workstreamId = members.linkId 
+                        WHERE members.linkId in (${data.join(",")}) AND members.memberType = 'responsible'  
+                        GROUP BY members.id
+                    `;
+    db.query(
+        query,
+        params,
+        function (err, row, fields) {
+            if (err) { cb({ status: false, error: err, data: row }); return; }
+
+            cb({ status: true, error: err, data: row });
+        }
+    );
+}
+
+var getTaskFollower = exports.getTaskFollower = (data , cb ) => {
+    let db = global.initDB();
+    let filter = "";
+    let params = [];
+
+    let query = ` SELECT members.*, members.userTypeLinkId as usersId , task.id as taskId FROM members LEFT JOIN task ON task.id = members.linkId 
+                        WHERE members.linkId in (${data.join(",")}) AND members.memberType = 'Follower' AND members.linkType = 'task'
+                        GROUP BY members.id
+                    `;
+    db.query(
+        query,
+        params,
+        function (err, row, fields) {
+            if (err) { cb({ status: false, error: err, data: row }); return; }
+
+            cb({ status: true, error: err, data: row });
+        }
+    );
+}

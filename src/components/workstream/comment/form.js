@@ -35,7 +35,8 @@ export default class Form extends React.Component {
         socket.emit("GET_USER_LIST", { filter: { "|||or|||": [{ name: "firstName", condition: "LIKE", value: "%" + query + "%" }, { name: "username", condition: "LIKE", value: "%" + query + "%" }] } });
         return _(users.List)
             .filter((o, index) => {
-                return index <= 5
+                let isProjectMember = o.projects.filter( p => { return p.projectId == project }).length
+                    return index <= 5 && isProjectMember
             }).map((o) => {
                 return { display: o.firstName + " " + o.lastName, id: o.id }
             })
