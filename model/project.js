@@ -343,3 +343,21 @@ var getProjectList = exports.getProjectList = ( tablename, data, advance , cb ) 
         }
     );
 }
+
+var getProjectDetails = exports.getProjectDetails = ( tablename , data , {}, cb ) => {
+    let db = global.initDB();
+    let params = [];
+    let query = ` SELECT prj.* , members.userTypeLinkId as projectManagerId , type.type as project_type from project as prj 
+                    LEFT JOIN members ON members.linkId = ${data.projectId} AND linkType = 'project' AND memberType = 'project manager' AND prj.id = ${data.projectId}
+                    LEFT JOIN type ON type.id = prj.typeId `
+
+    db.query(
+        query,
+        params, 
+        function(err,row,fields){
+            if(err) { cb({ status : false, error : err, data : row }); return; }
+
+            cb({  status : true, error : err, data : row });
+        }
+    );
+}

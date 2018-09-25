@@ -11,7 +11,8 @@ import { connect } from "react-redux"
         socket: store.socket.container,
         task: store.task,
         workstream: store.workstream,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        global: store.global
     }
 })
 export default class List extends React.Component {
@@ -23,12 +24,24 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
+        let { global } = this.props;
         let taskListInterval = setInterval(() => {
             if (this.props.workstream.Selected.id) {
-                this.props.socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id } });
+                // let userFollowedTasks = global.SelectList.userFollowedTasks
+                //     .filter((e,index) =>{ return e.userTypeLinkId == this.props.loggedUser.data.id})
+                //     .map((e,index) =>{ return e.linkId })
+
+                // let taskListId = _.merge(userFollowedTasks, this.props.loggedUser.data.taskIds)
+                // let filter =  { filter: { id: { name: "id", value: taskListId, condition: " IN " } } }
+                
+                // if( this.props.loggedUser.data.userRole == 1 || this.props.loggedUser.data.userRole == 2){
+                    // filter = { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id } }
+                // }
+                this.props.socket.emit("GET_TASK_LIST",  { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id } } );
                 clearInterval(taskListInterval)
             }
         }, 1000)
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "userFollowedTasks" , filter: { linkType: 'task', memberType :"Follower"} })
         this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});

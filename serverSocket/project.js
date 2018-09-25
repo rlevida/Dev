@@ -30,7 +30,7 @@ var init = exports.init = (socket) => {
 
     socket.on("GET_PROJECT_DETAIL", (d) => {
         let project = global.initModel("project")
-        project.getData("project", { id: d.id }, {}, (c) => {
+        project.getProjectDetails("project", { projectId: d.id },{}, (c) => {
             if (c.data.length > 0) {
                 socket.emit("FRONT_PROJECT_SELECTED", c.data[0])
             }

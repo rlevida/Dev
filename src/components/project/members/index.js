@@ -108,7 +108,7 @@ export default class MembersForm extends React.Component {
             .filter(e => { return typeof e != "undefined" })
             .orderBy(['name'])
             .value()
-
+            
         let userMemberListIds = _(users.List)
             .filter((o) => {
                 const memberChecker = _.filter(members.List, (m) => {
