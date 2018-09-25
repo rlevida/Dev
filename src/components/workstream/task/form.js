@@ -20,7 +20,8 @@ import TaskComment from "../comment"
         users: store.users,
         global: store.global,
         document: store.document,
-        checklist: store.checklist
+        checklist: store.checklist,
+        project: store.project
     }
 })
 
@@ -204,7 +205,7 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, task, status, global, loggedUser, document, workstream, checklist, socket } = this.props;
+        let { dispatch, task, status, global, loggedUser, document, workstream, checklist, socket , project } = this.props;
         let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false, documentList = [];
 
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
@@ -363,9 +364,13 @@ export default class FormComponent extends React.Component {
                             </div>
                             { (checklist.Action != "Edit") &&
                                 <div id="checklist">
+                                {console.log(this.props)}
                                     {
                                         _.map(checklist.List, (o, index) => {
-                                            let isEditable = ( loggedUser.data.id == o.createdBy ) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 ? true : false
+                                            let isEditable = ( loggedUser.data.id == o.createdBy ) 
+                                                                || loggedUser.data.userRole == 1 
+                                                                || loggedUser.data.userRole == 2 
+                                                                || project.Selected.projectManagerId == loggedUser.data.id ? true : false
                                             return (
                                                 <div className={ isEditable ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index} 
                                                 >
@@ -427,7 +432,7 @@ export default class FormComponent extends React.Component {
                             <div class="row mt10" style={{ paddingLeft: 22 }}>
                                 <div class="col-md-8 pdr0">
                                 { 
-                                    (( task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 )  &&
+                                    (( task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id )  &&
                                         <div class="form-group" style={{ marginBottom: 0 }}>
                                             <label>Item</label>
                                             <input type="text" name="checklist"
@@ -442,7 +447,7 @@ export default class FormComponent extends React.Component {
                                 </div>
                                 <div class="col-md-4">
                                 { 
-                                    (( task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 ) &&
+                                    (( task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id ) &&
                                         <div class="form-group">
                                             <label>Checklist type</label>
                                             <DropDown multiple={true}

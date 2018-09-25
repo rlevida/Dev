@@ -6,7 +6,8 @@ import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        project: store.project
     }
 })
 export default class Component extends React.Component {
