@@ -65,7 +65,7 @@ var uploadFile = exports.uploadFile = (params,cb) => {
                 Key: global.environment + "/" + params.form + "/" + params.filename,
                 ACL: 'public-read-write',
                 Body: fileStream,
-                ContentType : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                ContentType : params.file.type, 
                 // ContentDisposition: "attachment"
             }, (err) => {
                 if(err){
