@@ -1,5 +1,6 @@
 var schedule = require('node-schedule'),
-    sequence = require("sequence").Sequence; 
+    sequence = require("sequence").Sequence,
+    async = require("async");
 
 /**
  * 
@@ -11,16 +12,53 @@ var schedule = require('node-schedule'),
 var j = schedule.scheduleJob('0 0 * * *', () => {
     let task = global.initModel("task")
     let reminder = global.initModel("reminder")
+    let members = global.initModel("members")
     let dateToday = new Date();
-    task.getTaskOverdue((ret)=>{
-        if ( ret.data.length > 0 ) {
-            ret.data.map((e,i)=>{
-                reminder.postData("reminder",{
-                    taskId:e.id,
-                    usersId:e.usersId,
-                    reminderDetail: "Task Overdue"
-                },()=>{})
+    sequence.create().then((nextThen) => {
+        task.getTaskOverdue((ret)=>{
+            if ( ret.data.length > 0 ) {
+                async.map( ret.data , (e, mapCallback) => {
+                    reminder.postData("reminder",{
+                        taskId:e.id,
+                        usersId:e.usersId,
+                        reminderDetail: "Task Overdue"
+                    },()=>{ mapCallback(null) })
+                
+                }, (err, result) => {
+                    nextThen(ret)
+                });
+            }
+        })
+    }).then((nextThen,result) => {
+        let taskIds = result.data.map((e,index)=>{ return e.workstreamId })
+            members.getWorkstreamResponsible(taskIds,(responsible)=>{
+                if(responsible.data.length > 0){
+                    async.map( responsible.data , (e, mapCallback) => {
+                        reminder.postData("reminder",{
+                            taskId:e.taskId,
+                            usersId:e.usersId,
+                            reminderDetail: "Task Overdue"
+                        },()=>{ mapCallback(null) })
+                    
+                    }, (err, res) => {
+                        nextThen(result)
+                    });
+                }
             })
-        }
+    }).then((nextThen,result)=>{
+        let taskIds = result.data.map((e,index)=>{ return e.id })
+            members.getTaskFollower(taskIds,(responsible)=>{
+                if(responsible.data.length > 0){
+                    async.map( responsible.data , (e, mapCallback) => {
+                        reminder.postData("reminder",{
+                            taskId:e.taskId,
+                            usersId:e.usersId,
+                            reminderDetail: "Task Overdue"
+                        },()=>{ mapCallback(null) })
+                    
+                    }, (err, res) => {
+                    });
+                }
+            })
     })
 })
