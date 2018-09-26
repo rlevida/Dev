@@ -158,7 +158,7 @@ var init = exports.init = (socket) => {
                     }
                 });
             } else {
-                task.postData("task", d.data, (c) => {
+                task.postData("task", { ...d.data, status: "In Progress" }, (c) => {
                     if (typeof c.id != "undefined" && c.id > 0) {
                         async.parallel({
                             instance: (parallelCallback) => {
@@ -306,42 +306,6 @@ var init = exports.init = (socket) => {
                                 taskDependency.deleteData("task_dependency", { taskId: o.id }, (c) => {
                                     parallelCallback(null, []);
                                 });
-                            }
-                        },
-                        documents: (parallelCallback) => {
-                            if (d.data.action == "complete") {
-                                let taskId = (o.periodTask == null) ? o.id : o.periodTask;
-
-                                if (o.status == "Completed") {
-                                    tag.putData("tag", { isCompleted: 1 }, { linkId: o.id, tagType: "document", linkType: "task" }, (c) => {
-                                        if (c.status && c.data.length > 0) {
-                                            parallelCallback(null);
-                                        } else {
-                                            parallelCallback(null);
-                                        }
-                                    })
-                                } else {
-                                    tag.getData("tag", { linkId: taskId, tagType: "document", linkType: "task" }, {}, (e) => {
-                                        if (e.status && e.data.length > 0) {
-                                            async.map(e.data, (tg, mapCallback) => {
-                                                tag.postData("tag", {
-                                                    linkType: "task",
-                                                    linkId: o.id,
-                                                    tagType: "document",
-                                                    tagTypeId: tg.tagTypeId
-                                                }, (c) => {
-                                                    mapCallback(null)
-                                                });
-                                            }, (err, results) => {
-                                                parallelCallback(null, results)
-                                            });
-                                        } else {
-                                            parallelCallback(null)
-                                        }
-                                    })
-                                }
-                            } else {
-                                parallelCallback(null);
                             }
                         }
                     }, (err, results) => {

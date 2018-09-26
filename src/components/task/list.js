@@ -86,7 +86,20 @@ export default class List extends React.Component {
         let { task, dispatch, socket, loggedUser } = this.props;
         let taskList = _(task.List)
             .map((o) => {
-                return { ...o, due_date_int: moment(o.dueDate).format('YYYYMMDD') }
+                let allowToComplete = true;
+
+                if (o.periodic == 1 && o.periodTask != null) {
+                    const prevDueDate = moment(o.dueDate).subtract(o.periodType, o.period).format('YYYY-MM-DD');
+                    let taskBefore = _.filter((task.List), (e) => {
+                        return moment(e.dueDate).format('YYYY-MM-DD') == prevDueDate && (e.periodTask == o.periodTask || e.periodTask == null) && o.status != "Completed"
+                    });
+
+                    if (taskBefore.length > 0) {
+                        allowToComplete = (taskBefore[0].status == "Completed") ? true : false;
+                    }
+
+                }
+                return { ...o, due_date_int: moment(o.dueDate).format('YYYYMMDD'), allowToComplete }
             })
             .filter((o) => {
                 if (loggedUser.data.userRole != 1) {
@@ -115,6 +128,7 @@ export default class List extends React.Component {
                         <th class="text-center">Due Date</th>
                         <th class="text-center">Assigned</th>
                         <th class="text-center">Followed By</th>
+                        <th class="text-left">Status</th>
                         <th class="text-center"></th>
                     </tr>
                     {
@@ -164,6 +178,7 @@ export default class List extends React.Component {
                                         </div>
                                     }
                                 </td>
+                                <td class="text-left">{data.status}</td>
                                 <td class="text-left">
                                     {
                                         (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External') && <div>
@@ -182,6 +197,7 @@ export default class List extends React.Component {
                                                     (data.status == null || data.status == "In Progress" || data.status == "")
                                                     &&
                                                     (typeof data.isActive == 'undefined' || data.isActive == 1)
+                                                    && (data.allowToComplete == true)
                                                 ) && <a href="javascript:void(0);" data-tip="COMPLETE"
                                                     onClick={e => this.updateActiveStatus({ id: data.id, periodTask: data.periodTask })}
                                                     class="btn btn-success btn-sm ml10">
