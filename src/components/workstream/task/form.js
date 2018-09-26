@@ -200,11 +200,9 @@ export default class FormComponent extends React.Component {
 
     editChecklist(value) {
         let { dispatch } = this.props;
-        let description = value.description
-        delete value.description
 
         dispatch({ type: "SET_CHECKLIST_ACTION", action: `Edit` })
-        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...value, checklist: description } })
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...value, checklist: value.description } })
     }
 
     render() {
