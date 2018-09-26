@@ -28,11 +28,12 @@ var init = exports.init = (socket) => {
     socket.on("SAVE_OR_UPDATE_MEMBERS", (d) => {
         let members = global.initModel("members")
         if (typeof d.data.id != "undefined" && d.data.id != "") {
+            let filter = (typeof d.filter != "undefined") ? d.filter : {};
             let id = d.data.id
             delete d.data.id
-            members.putData("members", d.data, { id: id }, (c) => {
+            members.putData("members", d.data, filter , (c) => {
                 if (c.status) {
-                    members.getData("members", { id: id }, {}, (e) => {
+                    members.getData("members",{ id: id }, {}, (e) => {
                         if (e.data.length > 0) {
                             socket.emit("FRONT_MEMBERS_EDIT", { data: e.data[0], type: d.type })
                             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
