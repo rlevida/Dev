@@ -24,19 +24,19 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        let { socket , global ,loggedUser } = this.props;
+        let { socket, global, loggedUser } = this.props;
         let intervalLoggedUser = setInterval(() => {
             if (typeof this.props.loggedUser.data.id != "undefined") {
                 let userFollowedTasks = global.SelectList.userFollowedTasks
-                    .filter((e,index) =>{ return e.userTypeLinkId == this.props.loggedUser.data.id})
-                    .map((e,index) =>{ return e.linkId })
+                    .filter((e, index) => { return e.userTypeLinkId == this.props.loggedUser.data.id })
+                    .map((e, index) => { return e.linkId })
                 let taskListId = _.merge(userFollowedTasks, this.props.loggedUser.data.taskIds)
                 let filter = { filter: { id: { name: "id", value: taskListId, condition: " IN " } } }
                 this.props.socket.emit("GET_TASK_LIST", filter);
                 clearInterval(intervalLoggedUser)
             }
         }, 1000)
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "userFollowedTasks" , filter: { linkType: 'task', memberType :"Follower"} })
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "userFollowedTasks", filter: { linkType: 'task', memberType: "Follower" } })
         this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: {} });
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
@@ -44,10 +44,10 @@ export default class List extends React.Component {
         this.props.socket.emit("GET_TEAM_LIST", {});
     }
 
-    updateActiveStatus(id) {
+    updateActiveStatus(params) {
         let { socket } = this.props;
-        
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: id, status: "Completed", action: "complete" } })
+
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...params, status: "Completed", action: "complete" } })
     }
 
     deleteData(id) {
@@ -84,11 +84,22 @@ export default class List extends React.Component {
         let { task, socket, loggedUser } = this.props;
         let taskList = _(task.List)
             .map((o) => {
-                if(o.project_isActive && !o.isDeleted){
-                    return { ...o, due_date_int: moment(o.dueDate).format('YYYYMMDD') }
+                let allowToComplete = true;
+
+                if (o.periodic == 1 && o.periodTask != null) {
+                    const prevDueDate = moment(o.dueDate).subtract(o.periodType, o.period).format('YYYY-MM-DD');
+                    let taskBefore = _.filter((task.List), (e) => {
+                        return moment(e.dueDate).format('YYYY-MM-DD') == prevDueDate && (e.periodTask == o.periodTask || e.periodTask == null) && o.status != "Completed"
+                    });
+
+                    if (taskBefore.length > 0) {
+                        allowToComplete = (taskBefore[0].status == "Completed") ? true : false;
+                    }
+
                 }
+                return { ...o, due_date_int: moment(o.dueDate).format('YYYYMMDD'), allowToComplete }
             })
-            .filter(e => {  return typeof e != "undefined" && e.status != "Completed" })
+            .filter(e => { return typeof e != "undefined" && e.status != "Completed" })
             .orderBy(['due_date_int'], ['asc'])
             .value();
         return (
@@ -150,8 +161,9 @@ export default class List extends React.Component {
                                                             (data.status == null || data.status == "In Progress" || data.status == "")
                                                             &&
                                                             (typeof data.isActive == 'undefined' || data.isActive == 1)
+                                                            && (data.allowToComplete == true)
                                                         ) && <a href="javascript:void(0);" data-tip="COMPLETE"
-                                                            onClick={e => this.updateActiveStatus(data.id)}
+                                                            onClick={e => this.updateActiveStatus({ id: data.id, periodTask: data.periodTask })}
                                                             class="btn btn-success btn-sm ml10">
                                                             <span class="glyphicon glyphicon-check"></span></a>
                                                     }
