@@ -102,7 +102,6 @@ var init = exports.init = (socket) => {
 
             if (typeof d.data.id != "undefined" && d.data.id != "") {
                 task.getTaskList("task", { id: d.data.id }, {}, (c) => {
-
                     if (c.status == false || c.data.length == 0) {
                         socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." });
                     } else {

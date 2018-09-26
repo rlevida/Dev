@@ -478,6 +478,17 @@ export default class FormComponent extends React.Component {
                                         <div class="help-block with-errors"></div>
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Approval Required?</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <input type="checkbox"
+                                            style={{ width: "15px", marginTop: "10px" }}
+                                            checked={task.Selected.approvalRequired ? true : false}
+                                            onChange={() => { }}
+                                            onClick={(f) => { this.handleCheckbox("approvalRequired", (task.Selected.approvalRequired) ? 0 : 1) }}
+                                        />
+                                    </div>
+                                </div>
                             </form>
                         </div>
                     </div>

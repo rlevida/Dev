@@ -74,6 +74,7 @@ var init = exports.init = (socket) => {
             modelList["shareList"] = "share"
             modelList["workstreamDocumentList"] = "document"
             modelList["userFollowedTasks"] = "members"
+            modelList["workstreamMemberList"] = "members";
         modelName = modelList[d.selectName];
         if(modelName != ""){
             let model = global.initModel(modelName);
@@ -103,6 +104,16 @@ var init = exports.init = (socket) => {
                 }
                 case "workstreamDocumentList":{
                     model.getWorkstreamDocumentList(modelName,filter,{},(c)=>{
+                        if(c.status){
+                            socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:c.data,name:d.selectName})
+                        } else {
+                            socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:[],name:d.selectName})
+                        }
+                    })
+                    break;
+                }
+                case "workstreamMemberList":{
+                    model.getWorkstreamTaskMembers(filter,(c)=>{
                         if(c.status){
                             socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:c.data,name:d.selectName})
                         } else {

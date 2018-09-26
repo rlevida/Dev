@@ -78,15 +78,6 @@ var field = exports.field = {
     /**
      * dateAdded (DATETIME)
      */
-    'dateAdded': { type: 'date', access: "public" },
-    /**
-     * dateUpdated (TIMESTAMP)
-     */
-    'dateUpdated': { type: 'date', access: "public" },
-
-    /**
-     * isActive (tinyInt)
-     */
     'isActive': { type: 'int', access: "public" },
 
     /**
@@ -94,6 +85,29 @@ var field = exports.field = {
      */
     'isDeleted': { type: 'int', access: "public" },
 
+     /**
+     * approvalRequired (tinyInt)
+     */
+    'approvalRequired': { type: 'int', access: "public" },
+    
+    /**
+     * approverId (BIGINT)
+     */
+    'approverId': { type: 'bigint', access: "public"},
+
+    /**
+     * approvalDueDate (data)
+     */
+    'approvalDueDate': { type: 'date', access: "public"},
+
+    /**
+     * dateAdded (DATETIME)
+     */
+    'dateAdded': { type: 'date', access: "public" },
+    /**
+     * dateUpdated (TIMESTAMP)
+     */
+    'dateUpdated': { type: 'date', access: "public" },
 }
 
 var { getData, putData, postData, deleteData, getPublicField } = require("./index");
