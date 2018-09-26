@@ -61,6 +61,10 @@ export default class ApprovalModal extends React.Component {
         }
     }
 
+    closeModal(){
+        $(`#approvalModal`).modal("hide");
+    }
+
     render() {
         let { socket, task, project, dispatch , workstream , global} = this.props 
         let approverOptions = []

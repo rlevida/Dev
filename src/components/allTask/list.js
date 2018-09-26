@@ -45,14 +45,14 @@ export default class List extends React.Component {
         this.props.socket.emit("GET_TEAM_LIST", {});
     }
 
-    updateActiveStatus(data , approvalRequired ) {
+    updateActiveStatus(data , approvalRequired , workstreamId , taskData ) {
         let { socket , dispatch } = this.props;
         if(approvalRequired){
-            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
-            dispatch({type:"SET_TASK_SELECTED", Selected : data })
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: workstreamId } })
+            dispatch({type:"SET_TASK_SELECTED", Selected : taskData })
             $(`#approvalModal`).modal("show")
         }else{
-            socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...params, status: "Completed", action: "complete" } })
+            socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...data, status: "Completed", action: "complete" } })
         }
     }
 
@@ -169,7 +169,7 @@ export default class List extends React.Component {
                                                             (typeof data.isActive == 'undefined' || data.isActive == 1)
                                                             && (data.allowToComplete == true)
                                                         ) && <a href="javascript:void(0);" data-tip="COMPLETE"
-                                                            onClick={e => this.updateActiveStatus({ id: data.id, periodTask: data.periodTask })}
+                                                            onClick={e => this.updateActiveStatus({ id: data.id, periodTask: data.periodTask } , data.approvalRequired , data.workstreamId , data )}
                                                             class="btn btn-success btn-sm ml10">
                                                             <span class="glyphicon glyphicon-check"></span></a>
                                                     }
