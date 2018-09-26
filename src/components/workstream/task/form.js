@@ -3,6 +3,7 @@ import { setDatePicker, showToast } from '../../../globalFunction';
 import { connect } from "react-redux";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import UploadModal from "./uploadModal"
+import ApprovalModal from "./approvalModal"
 import moment from 'moment';
 import _ from 'lodash';
 import { DropDown } from "../../../globalComponents";
@@ -87,29 +88,32 @@ export default class FormComponent extends React.Component {
     markTaskAsCompleted() {
         let { socket, task, checklist } = this.props;
         let checklistToBeComplete = []
-
-        checklist.List.map((e, index) => {
-            if (e.types.length > 0) {
-                let isMandatory = e.types.filter(t => { return t.value == "Mandatory" }).length > 0 ? 1 : 0
-                if (isMandatory) {
-                    if (e.completed) {
-                    } else {
-                        checklistToBeComplete.push(e)
+        if( task.Selected.approvalRequired ){
+            $(`#approvalModal`).modal("show");
+        } else {
+            checklist.List.map((e, index) => {
+                if (e.types.length > 0) {
+                    let isMandatory = e.types.filter(t => { return t.value == "Mandatory" }).length > 0 ? 1 : 0
+                    if (isMandatory) {
+                        if (e.completed) {
+                        } else {
+                            checklistToBeComplete.push(e)
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        if (checklistToBeComplete.length == 0) {
-            let status = "Completed"
-            if (task.Selected.task_id && task.Selected.task_status != "Completed") {
-                status = "For Approval"
-                socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
+            if (checklistToBeComplete.length == 0) {
+                let status = "Completed"
+                if (task.Selected.task_id && task.Selected.task_status != "Completed") {
+                    status = "For Approval"
+                    socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
+                } else {
+                    socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" } })
+                }
             } else {
-                socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" } })
+                showToast("error", "There are items to be completed in the checklist before completing the task.")
             }
-        } else {
-            showToast("error", "There are items to be completed in the checklist before completing the task.")
         }
     }
 
@@ -303,7 +307,6 @@ export default class FormComponent extends React.Component {
             if (taskBefore.length > 0) {
                 allowToComplete = (taskBefore[0].status == "Completed") ? true : false;
             }
-
         }
 
         return (
@@ -320,12 +323,13 @@ export default class FormComponent extends React.Component {
                             {(taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
                             {(taskStatus == 2) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
                             &nbsp; &nbsp;{task.Selected.task} &nbsp;&nbsp;
-                                    {(task.Selected.status == "Completed") && "( Completed )"}
+                            {(task.Selected.status == "Completed") && "( Completed )"}
                             {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
+                            {(task.Selected.status == "For Approval") && "( For Approval )"}
                         </h4>
 
                         <div class="form-group text-center mt20 mb20">
-                            {(isVisible && allowToComplete) &&
+                            {(isVisible && allowToComplete && (task.Selected.status != "For Approval") || task.Selected.approverId == loggedUser.data.id ) &&
                                 <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
                             }
                             {(task.Selected.followersName != null && task.Selected.followersIds.split(",").filter(e => { return e == loggedUser.data.id }).length > 0)
@@ -676,6 +680,7 @@ export default class FormComponent extends React.Component {
                     </TabPanel>
                 </Tabs>
                 <UploadModal />
+                <ApprovalModal />
             </div>
         )
     }

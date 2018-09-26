@@ -1,6 +1,6 @@
 import React from "react"
 import Dropzone from 'react-dropzone';
-import { DropDown } from "../../../globalComponents";
+import { DropDown } from "../../../../globalComponents";
 import { connect } from "react-redux"
 @connect((store) => {
     return {
