@@ -1,5 +1,5 @@
 import React from "react";
-import { setDatePicker , showToast} from '../../../globalFunction';
+import { setDatePicker, showToast } from '../../../globalFunction';
 import { connect } from "react-redux";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import UploadModal from "./uploadModal"
@@ -28,7 +28,7 @@ import TaskComment from "../comment"
 export default class FormComponent extends React.Component {
     constructor(props) {
         super(props);
-       
+
         this.handleChange = this.handleChange.bind(this);
         this.setDropDownMultiple = this.setDropDownMultiple.bind(this);
         this.addChecklist = this.addChecklist.bind(this);
@@ -85,27 +85,30 @@ export default class FormComponent extends React.Component {
     }
 
     markTaskAsCompleted() {
-        let { socket, task , checklist } = this.props;
+        let { socket, task, checklist } = this.props;
         let checklistToBeComplete = []
-        checklist.List.map((e,index)=>{
-            if(e.types.length > 0){
-                let isMandatory = e.types.filter( t => { return t.value == "Mandatory"}).length > 0 ? 1 : 0
-                    if(isMandatory){
-                        if(e.completed){
-                        }else{
-                            checklistToBeComplete.push(e)
-                        }
-                    }
-            }
-        })
 
-        if(checklistToBeComplete.length == 0){
+        checklist.List.map((e, index) => {
+            if (e.types.length > 0) {
+                let isMandatory = e.types.filter(t => { return t.value == "Mandatory" }).length > 0 ? 1 : 0
+                if (isMandatory) {
+                    if (e.completed) {
+                    } else {
+                        checklistToBeComplete.push(e)
+                    }
+                }
+            }
+        });
+
+        if (checklistToBeComplete.length == 0) {
             let status = "Completed"
             if (task.Selected.task_id && task.Selected.task_status != "Completed") {
                 status = "For Approval"
+                socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
+            } else {
+                socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" } })
             }
-            socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
-        }else{
+        } else {
             showToast("error", "There are items to be completed in the checklist before completing the task.")
         }
     }
@@ -118,17 +121,17 @@ export default class FormComponent extends React.Component {
     }
 
     addChecklist() {
-        const { checklist, task, socket ,loggedUser } = this.props;
+        const { checklist, task, socket, loggedUser } = this.props;
         const toBeSubmitted = {
             description: checklist.Selected.checklist,
             types: checklist.Selected.types,
             taskId: task.Selected.id,
-            createdBy : loggedUser.data.id
+            createdBy: loggedUser.data.id
         };
 
-        if(_.filter(checklist.Selected.types,(e) =>{ return e.label == "Document"}).length > 0 && checklist.Selected.documents.length > 0){
-            socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted , documents : checklist.Selected.documents , project : project })
-        }else{
+        if (_.filter(checklist.Selected.types, (e) => { return e.label == "Document" }).length > 0 && checklist.Selected.documents.length > 0) {
+            socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted, documents: checklist.Selected.documents, project: project })
+        } else {
             socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
         }
     }
@@ -143,18 +146,18 @@ export default class FormComponent extends React.Component {
         socket.emit("ADD_TASK_DEPENDENCY", { data: toBeSubmitted })
     }
 
-    saveChecklist(){
-        const { checklist, task, socket ,loggedUser } = this.props;
+    saveChecklist() {
+        const { checklist, task, socket, loggedUser } = this.props;
         const toBeSubmitted = {
-            id : checklist.Selected.id,
+            id: checklist.Selected.id,
             description: checklist.Selected.checklist,
             types: checklist.Selected.types,
             taskId: task.Selected.id,
-            createdBy : loggedUser.data.id
+            createdBy: loggedUser.data.id
         };
-        if(_.filter(checklist.Selected.types,(e) =>{ return e.label == "Document"}).length > 0 && checklist.Selected.documents.length > 0){
-            socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted , documents : checklist.Selected.documents , project : project })
-        }else{
+        if (_.filter(checklist.Selected.types, (e) => { return e.label == "Document" }).length > 0 && checklist.Selected.documents.length > 0) {
+            socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted, documents: checklist.Selected.documents, project: project })
+        } else {
             socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
         }
     }
@@ -169,11 +172,11 @@ export default class FormComponent extends React.Component {
     setDropDownMultiple(name, values) {
         let { checklist, task, dispatch } = this.props;
 
-        if(values.filter( e =>{ return e.value == "Document"}).length &&  typeof checklist.Selected.documents == "undefined"){
-            dispatch({type:"SET_TASK_MODAL_TYPE", ModalType : "checklist"})
+        if (values.filter(e => { return e.value == "Document" }).length && typeof checklist.Selected.documents == "undefined") {
+            dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
             $('#uploadFileModal').modal({
                 backdrop: 'static',
-                keyboard: false 
+                keyboard: false
             })
         }
 
@@ -195,17 +198,17 @@ export default class FormComponent extends React.Component {
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
-    editChecklist(value){
+    editChecklist(value) {
         let { dispatch } = this.props;
         let description = value.description
-            delete value.description
+        delete value.description
 
-            dispatch({type: "SET_CHECKLIST_ACTION", action : `Edit` })
-            dispatch({type: "SET_CHECKLIST_SELECTED" , Selected : { ...value , checklist : description } })
+        dispatch({ type: "SET_CHECKLIST_ACTION", action: `Edit` })
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...value, checklist: description } })
     }
 
     render() {
-        let { dispatch, task, status, global, loggedUser, document, workstream, checklist, socket , project } = this.props;
+        let { dispatch, task, status, global, loggedUser, document, workstream, checklist, socket, project } = this.props;
         let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false, documentList = [];
 
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
@@ -290,6 +293,21 @@ export default class FormComponent extends React.Component {
                 return { id: e.id, name: e.task }
             })
             .value();
+
+        let allowToComplete = true;
+
+        if ((task.Selected).periodic == 1 && (task.Selected).periodTask != null) {
+            const prevDueDate = moment((task.Selected).dueDate).subtract((task.Selected).periodType, (task.Selected).period).format('YYYY-MM-DD');
+            let taskBefore = _.filter((task.List), (e) => {
+                return moment(e.dueDate).format('YYYY-MM-DD') == prevDueDate && (e.periodTask == (task.Selected).periodTask || e.periodTask == null) && (task.Selected).status != "Completed"
+            });
+
+            if (taskBefore.length > 0) {
+                allowToComplete = (taskBefore[0].status == "Completed") ? true : false;
+            }
+
+        }
+
         return (
             <div class="pd20">
                 <span class="pull-right" style={{ cursor: "pointer" }} onClick={() => { dispatch({ type: "SET_TASK_SELECTED", Selected: {} }); dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" }) }}><i class="fa fa-times-circle fa-lg"></i></span>
@@ -309,8 +327,8 @@ export default class FormComponent extends React.Component {
                         </h4>
 
                         <div class="form-group text-center mt20 mb20">
-                            {(isVisible) &&
-                                <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Mark Task as Completed</a>
+                            {(isVisible && allowToComplete) &&
+                                <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
                             }
                             {(task.Selected.followersName != null && task.Selected.followersIds.split(",").filter(e => { return e == loggedUser.data.id }).length > 0)
                                 ? <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Unfollow task" onClick={() => this.unFollowTask()}>Unfollow Task</a>
@@ -362,49 +380,52 @@ export default class FormComponent extends React.Component {
                             <div>
                                 <h5 class="mb0">Checklist</h5>
                             </div>
-                            { (checklist.Action != "Edit") &&
+                            {(checklist.Action != "Edit") &&
                                 <div id="checklist">
-                                {console.log(this.props)}
                                     {
                                         _.map(checklist.List, (o, index) => {
-                                            let isEditable = ( loggedUser.data.id == o.createdBy ) 
-                                                                || loggedUser.data.userRole == 1 
-                                                                || loggedUser.data.userRole == 2 
-                                                                || project.Selected.projectManagerId == loggedUser.data.id ? true : false
+                                            let isEditable = (loggedUser.data.id == o.createdBy)
+                                                || loggedUser.data.userRole == 1
+                                                || loggedUser.data.userRole == 2
+                                                || project.Selected.projectManagerId == loggedUser.data.id ? true : false
                                             return (
-                                                <div className={ isEditable ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index} 
+                                                <div className={isEditable ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}
                                                 >
                                                     <p>{o.description}</p>
-                                                    {
-                                                        _.map(o.types, (o, index) => {
-                                                            return (
-                                                                <span class="label label-success" key={index}>{o.value}</span>
-                                                            )
-                                                        })
-                                                    }
-                                                    <br/>
-                                                    {
-                                                        (o.documents != null) &&
-                                                            _.map(JSON.parse(o.documents),(o,index) => {
-                                                                let doc = _.filter(documentList,(d)=>{ return d.id == o})
-                                                                if(doc.length > 0){
+                                                    <div id="checklist-action">
+                                                        {
+                                                            _.map(o.types, (o, index) => {
+                                                                return (
+                                                                    <span class="label label-success" key={index}>{o.value}</span>
+                                                                )
+                                                            })
+                                                        }
+                                                        <br />
+                                                        {
+                                                            (o.documents != null) &&
+                                                            _.map(JSON.parse(o.documents), (o, index) => {
+                                                                let doc = _.filter(documentList, (d) => { return d.id == o })
+                                                                if (doc.length > 0) {
                                                                     return (
                                                                         <span class="label label-primary" key={index}>{doc[0].origin}</span>
                                                                     )
                                                                 }
                                                             })
-                                                    }
-                                                    { 
-                                                        (isEditable) &&
+                                                        }
+                                                        <p style={{ marginTop: 5, fontSize: 10 }}>
+                                                            <span>By : {o.users_firstName + ' ' + o.users_lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
+                                                        </p>
+                                                        {
+                                                            (isEditable) &&
                                                             <div class="checklist-actions">
                                                                 <a class="btn btn-success"
                                                                     onClick={() => {
                                                                         socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } })
                                                                     }}
-                                                                > 
-                                                                { 
-                                                                    o.completed ? <span class="glyphicon glyphicon-unchecked"></span> :  <span class="glyphicon glyphicon-check"></span>
-                                                                }
+                                                                >
+                                                                    {
+                                                                        o.completed ? <span class="glyphicon glyphicon-unchecked"></span> : <span class="glyphicon glyphicon-check"></span>
+                                                                    }
                                                                 </a>
                                                                 <a class="btn btn-primary"
                                                                     onClick={() => {
@@ -421,8 +442,8 @@ export default class FormComponent extends React.Component {
                                                                     <span class="glyphicon glyphicon-trash"></span>
                                                                 </a>
                                                             </div>
-                                                    }   
-                                                    <span>Created by : { global.SelectList.ProjectMemberList.filter( e =>{ return o.createdBy == e.id })[0].emailAddress }</span>        
+                                                        }
+                                                    </div>
                                                 </div>
                                             )
                                         })
@@ -431,8 +452,8 @@ export default class FormComponent extends React.Component {
                             }
                             <div class="row mt10" style={{ paddingLeft: 22 }}>
                                 <div class="col-md-8 pdr0">
-                                { 
-                                    (( task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id )  &&
+                                    {
+                                        ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
                                         <div class="form-group" style={{ marginBottom: 0 }}>
                                             <label>Item</label>
                                             <input type="text" name="checklist"
@@ -440,14 +461,14 @@ export default class FormComponent extends React.Component {
                                                 placeholder="Add Item"
                                                 onChange={this.handleChange}
                                                 value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
-                                                
+
                                             />
                                         </div>
-                                }
+                                    }
                                 </div>
                                 <div class="col-md-4">
-                                { 
-                                    (( task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id ) &&
+                                    {
+                                        ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
                                         <div class="form-group">
                                             <label>Checklist type</label>
                                             <DropDown multiple={true}
@@ -457,38 +478,38 @@ export default class FormComponent extends React.Component {
                                                 onChange={(e) => this.setDropDownMultiple("types", e)}
                                             />
                                         </div>
-                                }
+                                    }
                                 </div>
                             </div>
-                           
-                            { ((typeof checklist.Selected.types != "undefined" && _.filter(checklist.Selected.types,(e) =>{ return e.label == "Document"}).length > 0 )
-                                && (typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents.length > 0) ) &&
+
+                            {((typeof checklist.Selected.types != "undefined" && _.filter(checklist.Selected.types, (e) => { return e.label == "Document" }).length > 0)
+                                && (typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents.length > 0)) &&
                                 <div class="row mt10" style={{ paddingLeft: 22 }}>
                                     <div class="col-md-12 pdr0">
                                         <div class="form-group">
                                             <label>Attached Documents</label>
-                                            <br/>
+                                            <br />
                                             {
-                                                checklist.Selected.documents.map((data,index) =>{ 
-                                                    return(
-                                                        <span class="label label-primary" style={{marginRight:"5px"}} key={index}>{data.origin}</span>
+                                                checklist.Selected.documents.map((data, index) => {
+                                                    return (
+                                                        <span class="label label-primary" style={{ marginRight: "5px" }} key={index}>{data.origin}</span>
                                                     )
-                                                 })
+                                                })
                                             }
                                         </div>
                                     </div>
                                 </div>
-                            }  
-                            {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") && 
+                            }
+                            {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
                                 <div class="row mt10" style={{ paddingLeft: 22 }}>
                                     <div class="col-md-12 pdr0">
                                         {
                                             (checklist.Action != "Edit") ?
-                                            
-                                                    <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
-                                                        onClick={this.addChecklist}
-                                                    >
-                                                        Add
+
+                                                <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
+                                                    onClick={this.addChecklist}
+                                                >
+                                                    Add
                                                     </a>
                                                 :
                                                 <div class="checklist-actions">
@@ -498,15 +519,15 @@ export default class FormComponent extends React.Component {
                                                         Save
                                                     </a>
                                                     <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
-                                                        onClick={()=>{
-                                                                dispatch({type:"SET_CHECKLIST_ACTION" , action : undefined}),
-                                                                dispatch({type:"SET_CHECKLIST_SELECTED" , Selected : {}})
+                                                        onClick={() => {
+                                                            dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined }),
+                                                                dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: {} })
                                                         }}
                                                     >
                                                         Cancel
                                                     </a>
                                                 </div>
-                                         }
+                                        }
 
                                     </div>
                                 </div>
@@ -514,8 +535,8 @@ export default class FormComponent extends React.Component {
                         </div>
                         <div style={{ position: "relative" }} class="mt20">
                             <h5 class="mb0">Documents</h5>
-                            { (( task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 ) &&
-                                <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" onClick={()=> dispatch({type:"SET_TASK_MODAL_TYPE", ModalType : "task"})}>Add</a>
+                            {((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" onClick={() => dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "task" })}>Add</a>
                             }
                         </div>
                         <div id="documentList">
