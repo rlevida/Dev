@@ -15,9 +15,12 @@ CREATE TABLE `task` (
     `period` INT,
     `periodInstance` INT DEFAULT '0',
     `periodTask` BIGINT,
-    `dateAdded` DATETIME,
-    `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `isActive` TINYINT(1) DEFAULT '1',
     `isDeleted` TINYINT(1) DEFAULT '0',
+    `approvalRequired` TINYINT(1) DEFAULT '0',
+    `approverId` BIGINT,
+    `approvalDueDate` DATETIME,
+    `dateAdded` DATETIME,
+    `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;

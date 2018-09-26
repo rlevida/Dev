@@ -3,6 +3,7 @@ import Tooltip from "react-tooltip";
 import { HeaderButtonContainer } from "../../globalComponents";
 import moment from 'moment';
 import TaskStatus from './taskStatus'
+import ApprovalModal from './approvalModal'
 import _ from "lodash";
 
 import { connect } from "react-redux"
@@ -44,10 +45,15 @@ export default class List extends React.Component {
         this.props.socket.emit("GET_TEAM_LIST", {});
     }
 
-    updateActiveStatus(params) {
-        let { socket } = this.props;
-
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...params, status: "Completed", action: "complete" } })
+    updateActiveStatus(data , approvalRequired ) {
+        let { socket , dispatch } = this.props;
+        if(approvalRequired){
+            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
+            dispatch({type:"SET_TASK_SELECTED", Selected : data })
+            $(`#approvalModal`).modal("show")
+        }else{
+            socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...params, status: "Completed", action: "complete" } })
+        }
     }
 
     deleteData(id) {
@@ -185,6 +191,7 @@ export default class List extends React.Component {
                         }
                     </tbody>
                 </table>
+                <ApprovalModal/>
             </div>
         )
     }

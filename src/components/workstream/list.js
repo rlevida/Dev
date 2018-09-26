@@ -131,7 +131,6 @@ export default class List extends React.Component {
                                         {(data.isActive == 0) && <span className={"fa fa-circle"}></span>}
                                     </td>
                                     <td class="text-left" style={{ cursor: "pointer" }}>
-
                                         <a
                                             href="javascript:void(0);"
                                             onClick={(e) => {
