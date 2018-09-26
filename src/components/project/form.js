@@ -111,7 +111,7 @@ export default class FormComponent extends React.Component {
     handleReceiveNotifacation(value){
         let { dispatch , socket } = this.props;
         let dataToSubmit = { 
-                filter : { id : value.id , linkId : value.linkId , linkType : value.linkType },
+                filter : { userTypeLinkId : value.user.id },
                 data : { id: value.id , receiveNotification : value.receiveNotification ? 0 : 1 } 
         }
             socket.emit("SAVE_OR_UPDATE_MEMBERS" ,dataToSubmit )
