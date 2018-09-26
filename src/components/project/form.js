@@ -108,6 +108,15 @@ export default class FormComponent extends React.Component {
         );
     }
 
+    handleReceiveNotifacation(value){
+        let { dispatch , socket } = this.props;
+        let dataToSubmit = { 
+                filter : { id : value.id , linkId : value.linkId , linkType : value.linkType },
+                data : { id: value.id , receiveNotification : value.receiveNotification ? 0 : 1 } 
+        }
+            socket.emit("SAVE_OR_UPDATE_MEMBERS" ,dataToSubmit )
+    }
+
     render() {
         let { dispatch, project, loggedUser, members, status, type, users, teams, workstream, global } = this.props;
         let statusList = [], typeList = [];
@@ -358,6 +367,7 @@ export default class FormComponent extends React.Component {
                                                             <th class="text-center">Type</th>
                                                             <th class="text-left">Role/s</th>
                                                             <th class="text-left">Team/s</th>
+                                                            <th class="text-center">Receive Notification</th>
                                                             <th class="text-center"></th>
                                                         </tr>
                                                         {
@@ -365,7 +375,6 @@ export default class FormComponent extends React.Component {
                                                                 <td style={{ textAlign: "center" }} colSpan={9}>No Record Found!</td>
                                                             </tr>
                                                         }
-
                                                         {
                                                             (userMemberList.length > 0) && _.orderBy(userMemberList, ['memberType'], ['desc']).map((data, index) => {
                                                                 return (
@@ -378,6 +387,7 @@ export default class FormComponent extends React.Component {
                                                                         <td class="text-center">{data.user.userType}</td>
                                                                         <td class="text-left">{this.renderArrayTd(_.map(data.user.role, (el) => { return el.role_role }))}</td>
                                                                         <td class="text-left">{this.renderArrayTd(_.map(data.user.team, (el) => { return el.team_team }))}</td>
+                                                                        <td><input type="checkbox" checked={data.receiveNotification} onChange={()=> this.handleReceiveNotifacation(data)}/> </td>
                                                                         <td class="text-center">
                                                                             {
                                                                                 ((typeof data.fromTeam == "undefined" || data.fromTeam == "") && data.user.id != memberListPM) && <a href="javascript:void(0);" data-tip="DELETE"

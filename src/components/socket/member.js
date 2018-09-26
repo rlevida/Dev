@@ -41,7 +41,7 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_MEMBERS_EDIT", (data) => {
-            dispatch({ type: "UPDATE_DATA_MEMBERS_LIST", UpdatedData: data, List: this.props.members.List })
+            dispatch({ type: "UPDATE_DATA_MEMBERS_LIST", UpdatedData: data.data, List: this.props.members.List })
             dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} })
             dispatch({ type: "SET_MEMBERS_FORM_ACTIVE", FormActive: "List" })
         })

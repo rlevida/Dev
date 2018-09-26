@@ -31,6 +31,11 @@ var field = exports.field = {
     'memberType': { type: 'string', access: "public" },
 
     /**
+     * receiveNotification (tinyint )
+     */
+    'receiveNotification' :  {type : 'tinyint' , access : "public" },
+
+    /**
      * dateAdded (DATETIME)
      */
     'dateAdded': { type: 'date', access: "public" },
