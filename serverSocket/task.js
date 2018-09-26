@@ -146,6 +146,26 @@ var init = exports.init = (socket) => {
                                 } else {
                                     parallelCallback(null, "")
                                 }
+                            },
+                            reminder: function(parallelCallback){
+                                let reminder = global.initModel("reminder");
+                                if(d.data.action == "For Approval"){
+                                    reminder.postData("reminder", d.reminder ,(c)=>{
+                                        if(c.status){
+                                            reminder.getReminderList({},(e)=>{
+                                                if(e.data.length > 0) {
+                                                    socket.broadcast.emit("FRONT_REMINDER_LIST",  e.data)
+                                                }else{
+                                                    parallelCallback(null, "")
+                                                }
+                                            })
+                                        }else{
+                                            parallelCallback(null, "")
+                                        }
+                                    })
+                                }else{
+                                    parallelCallback(null, "")
+                                }
                             }
                         }, function (err, params) {
                             let action = (typeof d.data.action != "undefined" && d.data.action == "complete") ? "complete" : "edit";

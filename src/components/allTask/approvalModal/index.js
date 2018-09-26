@@ -56,9 +56,22 @@ export default class ApprovalModal extends React.Component {
                 approvalDueDate : task.Selected.approvalDueDate,
                 action : "For Approval"
             }
-            socket.emit("SAVE_OR_UPDATE_TASK" , { data : dataToSubmit })
+            let reminderDetails = {
+                taskId : task.Selected.id,
+                seen : 0,
+                usersId : task.Selected.approverId,
+                projectId : task.Selected.projectId,
+                reminderType : "task",
+                remindertypeId : task.Selected.id,
+                reminderDetail : "Tagged as Approver"
+            }
+            socket.emit("SAVE_OR_UPDATE_TASK" , { data : dataToSubmit , reminder : reminderDetails })
             $(`#approvalModal`).modal(`hide`);
         }
+    }
+
+    closeModal(){
+        $(`#approvalModal`).modal(`hide`);
     }
 
     render() {
