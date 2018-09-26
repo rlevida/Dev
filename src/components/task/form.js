@@ -399,7 +399,7 @@ export default class FormComponent extends React.Component {
                                                 required={task.Selected.periodInstance == 1}
                                                 value={(typeof task.Selected.periodInstance == "undefined" || task.Selected.periodInstance == "") ? 1 : task.Selected.periodInstance}
                                                 class="form-control" placeholder="Period Instance" onChange={(e) => {
-                                                    if (((e.target.value).length <= 4 && isNumber(toNumber(e.target.value)) && e.target.value >= 0) || e.target.value == "") {
+                                                    if (((e.target.value).length <= 4 && isNumber(toNumber(e.target.value)) && e.target.value >= 1) || e.target.value == "") {
                                                         this.handleChange(e);
                                                     }
                                                 }}

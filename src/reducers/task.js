@@ -40,14 +40,24 @@ export default function reducer(state = {
         }
         case "UPDATE_DATA_TASK_LIST": {
             const { List } = { ...state };
-            const index = _.findIndex(List, { id: action.data.id });
+            let copyOfList = [...List];
+            let updatedList = [];
 
-            if (index >= 0) {
-                List.splice(index, 1, action.data);
+            if (action.data.action == "add") {
+                updatedList = copyOfList.concat(action.data.data);
             } else {
-                List.push(action.data)
+                _.map(action.data.data, (o) => {
+                    var updateIndex = _.findIndex(copyOfList, { id: o.id });
+                    if (updateIndex >= 0) {
+                        copyOfList.splice(updateIndex, 1, o);
+                    } else {
+                        copyOfList.push(o);
+                    }
+                })
+                updatedList = copyOfList;
             }
-            return { ...state, List }
+
+            return { ...state, List: updatedList }
         }
         case "REMOVE_DELETED_TASK_LIST": {
             let tempList = [];

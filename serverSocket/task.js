@@ -1,7 +1,8 @@
 var func = global.initFunc(),
     sequence = require("sequence").Sequence,
     async = require("async"),
-    moment = require("moment");
+    moment = require("moment"),
+    _ = require("lodash");
 
 var init = exports.init = (socket) => {
 
@@ -9,7 +10,7 @@ var init = exports.init = (socket) => {
         let task = global.initModel("task")
         let taskDependencies = global.initModel("task_dependency")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
-        
+
         task.getTaskList("task", filter, {}, (c) => {
             async.map(c.data, (o, mapCallback) => {
                 taskDependencies.getData("task_dependency", { taskId: o.id }, {}, (results) => {
@@ -105,16 +106,17 @@ var init = exports.init = (socket) => {
                     if (c.status == false || c.data.length == 0) {
                         socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." });
                     } else {
+                        let id = d.data.id;
+
                         async.parallel({
                             task: function (parallelCallback) {
-                                let id = d.data.id;
                                 delete d.data.id;
 
                                 task.putData("task", d.data, { id: id }, (c) => {
                                     if (c.status) {
                                         task.getData("task", { id: id }, {}, (e) => {
                                             if (e.data.length > 0) {
-                                                parallelCallback(null, e.data[0]);
+                                                parallelCallback(null, e.data);
                                             } else {
                                                 socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." })
                                             }
@@ -125,32 +127,80 @@ var init = exports.init = (socket) => {
                                 })
                             },
                             periodic: function (parallelCallback) {
-                                if (c.data[0].periodic == 1 && (typeof d.data.action != "undefined" && d.data.action == "complete")) {
-                                    const nextDueDate = moment(c.data[0].dueDate).add(c.data[0].periodType, c.data[0].period).format('YYYY-MM-DD HH:mm:ss');
-                                    const newPeriodTask = { ...c.data[0], id: "", startDate: c.data[0].dueDate, dueDate: nextDueDate }
+                                let taskId = (d.data.periodTask == null) ? id : d.data.periodTask;
 
-                                    task.postData("task", newPeriodTask, (c) => {
-                                        task.getData("task", { id: c.id }, {}, (e) => {
-                                            parallelCallback(null, e.data[0]);
-                                        });
-                                    })
+                                if (c.data[0].periodic == 1 && (typeof d.data.action != "undefined" && d.data.action == "complete")) {
+                                    task.getData("task", { periodTask: taskId, status: "In Progress" }, {}, (e) => {
+                                        let newTaskData = ((e.data).length > 0) ? _.orderBy(e.data, ['id'], ['desc']) : c.data;
+                                        const nextDueDate = moment(newTaskData[0].dueDate).add(newTaskData[0].periodType, newTaskData[0].period).format('YYYY-MM-DD HH:mm:ss');
+                                        const newPeriodTask = { ...newTaskData[0], id: "", startDate: newTaskData[0].dueDate, dueDate: nextDueDate, periodTask: taskId }
+
+                                        task.postData("task", newPeriodTask, (c) => {
+                                            task.getData("task", { id: c.id }, {}, (e) => {
+                                                parallelCallback(null, e.data[0]);
+                                            });
+                                        })
+                                    });
                                 } else {
                                     parallelCallback(null, "")
                                 }
                             }
                         }, function (err, params) {
-                            nextThen(params.task.id, "edit", params)
+                            let action = (typeof d.data.action != "undefined" && d.data.action == "complete") ? "complete" : "edit";
+                            let data = params.task;
+
+                            if (params.periodic != "") {
+                                data.push(params.periodic);
+                            }
+
+                            nextThen(data, action)
                         });
                     }
-                })
+                });
             } else {
-                task.postData("task", d.data, (c) => {
+                task.postData("task", { ...d.data, status: "In Progress" }, (c) => {
                     if (typeof c.id != "undefined" && c.id > 0) {
-                        task.getData("task", { id: c.id }, {}, (e) => {
-                            if (e.data.length > 0) {
-                                nextThen(e.data[0].id, "add", { task: e.data[0] })
-                            } else {
+                        async.parallel({
+                            instance: (parallelCallback) => {
+                                const taskPromises = _.times(d.data.periodInstance - 1, (o) => {
+                                    return new Promise(function (resolve, reject) {
+                                        const nextStartDate = moment(d.data.dueDate).add(d.data.periodType, o).format('YYYY-MM-DD HH:mm:ss');
+                                        const nextDueDate = moment(d.data.dueDate).add(d.data.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
+                                        const newPeriodTask = { ...d.data, id: "", startDate: nextStartDate, dueDate: nextDueDate, periodTask: c.id, status: "In Progress" }
+
+                                        task.postData("task", newPeriodTask, (c) => {
+                                            if (typeof c.id != "undefined" && c.id > 0) {
+                                                task.getData("task", { id: c.id }, {}, (e) => {
+                                                    resolve(e.data[0]);
+                                                });
+                                            } else {
+                                                reject("Task failed to be created.");
+                                            }
+                                        })
+                                    });
+                                });
+
+                                Promise.all(taskPromises).then((values) => {
+                                    parallelCallback(null, values)
+                                }).catch(function (error) {
+                                    parallelCallback(true)
+                                })
+                            },
+                            task: (parallelCallback) => {
+                                task.getData("task", { id: c.id }, {}, (e) => {
+                                    if (e.status) {
+                                        parallelCallback(null, e.data[0]);
+                                    } else {
+                                        parallelCallback(true);
+                                    }
+                                });
+                            }
+                        }, (err, data) => {
+                            if (err == true) {
                                 socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
+                            } else {
+                                (data.instance).push(data.task)
+                                nextThen(data.instance, "add");
                             }
                         })
                     } else {
@@ -158,117 +208,127 @@ var init = exports.init = (socket) => {
                     }
                 })
             }
-        }).then((nextThen, id, type, data) => {
+        }).then((nextThen, data, type) => {
             const members = global.initModel("members");
             const taskDependency = global.initModel("task_dependency");
+            const tag = global.initModel("tag");
 
-            async.parallel({
-                members: (parallelCallback) => {
-                    if (typeof d.data.assignedTo != 'undefined' && d.data.assignedTo != '') {
-                        members.deleteData("members", { linkType: "task", linkId: id, usersType: "users", memberType: "assignedTo" }, (c) => {
-                            let assignedTo = { linkType: "task", linkId: id, usersType: "users", userTypeLinkId: d.data.assignedTo, memberType: "assignedTo" };
+            const taskAttributesPromises = _.map(data, (o) => {
+                return new Promise(function (resolve, reject) {
+                    async.parallel({
+                        members: (parallelCallback) => {
+                            if (typeof d.data.assignedTo != 'undefined' && d.data.assignedTo != '') {
+                                members.deleteData("members", { linkType: "task", linkId: o.id, usersType: "users", memberType: "assignedTo" }, (c) => {
+                                    let assignedTo = { linkType: "task", linkId: o.id, usersType: "users", userTypeLinkId: d.data.assignedTo, memberType: "assignedTo" };
 
-                            members.postData("members", assignedTo, (c) => {
-                                data.task.assignedById = d.data.assignedTo;
-                                parallelCallback(null, data);
-                            });
-                        })
-                    } else if (d.data.action == "complete") {
-                        members.getData("members", { linkType: "task", linkId: data.task.id, memberType: "assignedTo" }, {}, (e) => {
-                            if (e.status && e.data.length > 0) {
-                                let assignedTo = { linkType: "task", linkId: data.periodic.id, usersType: "users", userTypeLinkId: e.data[0].userTypeLinkId, memberType: "assignedTo" };
-
-                                if ((typeof data.periodic != "undefined" && data.periodic != "")) {
                                     members.postData("members", assignedTo, (c) => {
-                                        data.periodic.assignedById = e.data[0].userTypeLinkId;
-                                        data.task.assignedById = e.data[0].userTypeLinkId;
-                                        parallelCallback(null, data)
+                                        if (c.status) {
+                                            parallelCallback(null, d.data.assignedTo);
+                                        } else {
+                                            parallelCallback(c.error.sqlMessage);
+                                        }
                                     });
-                                } else {
-                                    data.task.assignedById = e.data[0].userTypeLinkId;
-                                    parallelCallback(null, data)
-                                }
-
-                            } else {
-                                parallelCallback(null, data)
-                            }
-                        });
-                    } else if (typeof d.data.assignedTo == 'undefined' || d.data.assignedTo == '') {
-                        members.deleteData("members", { linkType: "task", linkId: id, usersType: "users", memberType: "assignedTo" }, (c) => {
-                            data.task.assignedById = "";
-                            parallelCallback(null, data)
-                        });
-                    }
-                },
-                dependency: (parallelCallback) => {
-                    if (typeof d.data.dependencyType != 'undefined' && d.data.dependencyType != '') {
-                        taskDependency.deleteData("task_dependency", { taskId: id }, (c) => {
-                            async.map(d.data.linkTaskIds, (taskid, mapCallback) => {
-                                taskDependency.postData("task_dependency", {
-                                    taskId: id,
-                                    dependencyType: d.data.dependencyType,
-                                    linkTaskId: taskid.value
-                                }, (c) => {
-                                    mapCallback(null)
+                                })
+                            } else if (d.data.action == "complete") {
+                                let taskId = (o.periodTask == null) ? o.id : o.periodTask;
+                                members.getData("members", { linkType: "task", linkId: taskId, memberType: "assignedTo" }, {}, (e) => {
+                                    if (e.status && e.data.length > 0) {
+                                        if (o.status == "Completed") {
+                                            if ((e.data).length > 0) {
+                                                parallelCallback(null, e.data[0].userTypeLinkId)
+                                            } else {
+                                                parallelCallback(null, "")
+                                            }
+                                        } else {
+                                            let assignedTo = { linkType: "task", linkId: o.id, usersType: "users", userTypeLinkId: e.data[0].userTypeLinkId, memberType: "assignedTo" };
+                                            members.postData("members", assignedTo, (c) => {
+                                                parallelCallback(null, e.data[0].userTypeLinkId);
+                                            });
+                                        }
+                                    } else {
+                                        parallelCallback(null, "")
+                                    }
                                 });
-                            }, (err, results) => {
-                                parallelCallback(null, results)
-                            });
-                        });
-                    } else if (d.data.action == "complete") {
-                        taskDependency.getData("task_dependency", { taskId: id }, {}, (e) => {
-                            if (e.status && e.data.length > 0) {
-                                if ((typeof data.periodic != "undefined" && data.periodic != "")) {
-                                    async.map(e.data, (task, mapCallback) => {
+                            } else if (typeof d.data.assignedTo == 'undefined' || d.data.assignedTo == '') {
+                                members.deleteData("members", { linkType: "task", linkId: o.id, usersType: "users", memberType: "assignedTo" }, (c) => {
+                                    parallelCallback(null, "")
+                                });
+                            }
+                        },
+                        dependency: (parallelCallback) => {
+                            if (typeof d.data.dependencyType != 'undefined' && d.data.dependencyType != '') {
+                                taskDependency.deleteData("task_dependency", { taskId: o.id }, (c) => {
+                                    async.map(d.data.linkTaskIds, (taskid, mapCallback) => {
                                         taskDependency.postData("task_dependency", {
-                                            taskId: data.periodic.id,
-                                            dependencyType: task.dependencyType,
-                                            linkTaskId: task.linkTaskId
+                                            taskId: o.id,
+                                            dependencyType: d.data.dependencyType,
+                                            linkTaskId: taskid.value
                                         }, (c) => {
-                                            mapCallback(null)
+                                            if (c.status) {
+                                                mapCallback(null, c.id);
+                                            } else {
+                                                mapCallback(c.error.sqlMessage);
+                                            }
                                         });
                                     }, (err, results) => {
-                                        parallelCallback(null, results)
+                                        if (err != null) {
+                                            parallelCallback(err);
+                                        } else {
+                                            parallelCallback(null, results)
+                                        }
                                     });
-                                } else {
-                                    parallelCallback(null)
-                                }
-                            } else {
-                                parallelCallback(null)
-                            }
-                        })
+                                });
+                            } else if (d.data.action == "complete") {
+                                let taskId = (o.periodTask == null) ? o.id : o.periodTask;
 
-                    } else if (typeof d.data.dependencyType == 'undefined' || d.data.dependencyType == '') {
-                        taskDependency.deleteData("task_dependency", { taskId: id }, (c) => {
-                            parallelCallback(null);
-                        });
-                    }
-                },
-                tag: (parallelCallback) => {
-                    if (d.data.action == "complete") {
-                        let tag = global.initModel("tag");
-                        tag.putData("tag", { isCompleted : 1 }, { linkId: id, tagType: "document", linkType: "task" }, (c) => {
-                            if (c.status && c.data.length > 0) {
-                                parallelCallback(null);
-                            } else {
-                                parallelCallback(null);
+                                taskDependency.getData("task_dependency", { taskId: taskId }, {}, (e) => {
+                                    if (e.status && e.data.length > 0) {
+                                        if (o.status == "Completed") {
+                                            parallelCallback(null, e)
+                                        } else {
+                                            async.map(e.data, (task, mapCallback) => {
+                                                taskDependency.postData("task_dependency", {
+                                                    taskId: o.id,
+                                                    dependencyType: task.dependencyType,
+                                                    linkTaskId: task.linkTaskId
+                                                }, (c) => {
+                                                    mapCallback(null)
+                                                });
+                                            }, (err, results) => {
+                                                parallelCallback(null, results)
+                                            });
+                                        }
+                                    } else {
+                                        parallelCallback(null)
+                                    }
+                                })
+                            } else if (typeof d.data.dependencyType == 'undefined' || d.data.dependencyType == '') {
+                                taskDependency.deleteData("task_dependency", { taskId: o.id }, (c) => {
+                                    parallelCallback(null, []);
+                                });
                             }
-                        })
-                    } else {
-                        parallelCallback(null);
-                    }
-                }
-            }, (err, results) => {
-                nextThen(type, results.members)
-            })
-        }).then((nextThen, type, data) => {
-            if (type == "edit") {
-                if (data.periodic != ""){
-                    socket.emit("FRONT_TASK_ADD", data.periodic)
-                }
-                socket.emit("FRONT_TASK_EDIT", data.task)
-            } else if (type == "add") {
-                socket.emit("FRONT_TASK_ADD", data.task)
+                        }
+                    }, (err, results) => {
+                        if (err != null) {
+                            reject(err);
+                        } else {
+                            resolve({ ...o, assignedById: results.members })
+                        }
+                    });
+                });
+            });
+
+            Promise.all(taskAttributesPromises).then((values) => {
+                nextThen(values, type)
+            }).catch(function (error) {
+                socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
+            });
+
+        }).then((nextThen, data, type) => {
+            if (type == "add") {
+                socket.emit("FRONT_TASK_ADD", { data: data, action: "add" })
+            } else if (type == "edit" || type == "complete") {
+                socket.emit("FRONT_TASK_EDIT", { data: data, action: "edit" })
             }
             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
         });

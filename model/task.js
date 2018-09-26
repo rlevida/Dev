@@ -71,6 +71,11 @@ var field = exports.field = {
     'periodInstance': { type: 'int', access: "public" },
 
     /**
+     * period (int)
+     */
+    'periodTask': { type: 'int', access: "public" },
+
+    /**
      * dateAdded (DATETIME)
      */
     'dateAdded': { type: 'date', access: "public" },
