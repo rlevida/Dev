@@ -382,7 +382,6 @@ export default class FormComponent extends React.Component {
                             </div>
                             {(checklist.Action != "Edit") &&
                                 <div id="checklist">
-                                    {console.log(this.props)}
                                     {
                                         _.map(checklist.List, (o, index) => {
                                             let isEditable = (loggedUser.data.id == o.createdBy)
@@ -393,54 +392,58 @@ export default class FormComponent extends React.Component {
                                                 <div className={isEditable ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}
                                                 >
                                                     <p>{o.description}</p>
-                                                    {
-                                                        _.map(o.types, (o, index) => {
-                                                            return (
-                                                                <span class="label label-success" key={index}>{o.value}</span>
-                                                            )
-                                                        })
-                                                    }
-                                                    <br />
-                                                    {
-                                                        (o.documents != null) &&
-                                                        _.map(JSON.parse(o.documents), (o, index) => {
-                                                            let doc = _.filter(documentList, (d) => { return d.id == o })
-                                                            if (doc.length > 0) {
+                                                    <div id="checklist-action">
+                                                        {
+                                                            _.map(o.types, (o, index) => {
                                                                 return (
-                                                                    <span class="label label-primary" key={index}>{doc[0].origin}</span>
+                                                                    <span class="label label-success" key={index}>{o.value}</span>
                                                                 )
-                                                            }
-                                                        })
-                                                    }
-                                                    {
-                                                        (isEditable) &&
-                                                        <div class="checklist-actions">
-                                                            <a class="btn btn-success"
-                                                                onClick={() => {
-                                                                    socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } })
-                                                                }}
-                                                            >
-                                                                {
-                                                                    o.completed ? <span class="glyphicon glyphicon-unchecked"></span> : <span class="glyphicon glyphicon-check"></span>
+                                                            })
+                                                        }
+                                                        <br />
+                                                        {
+                                                            (o.documents != null) &&
+                                                            _.map(JSON.parse(o.documents), (o, index) => {
+                                                                let doc = _.filter(documentList, (d) => { return d.id == o })
+                                                                if (doc.length > 0) {
+                                                                    return (
+                                                                        <span class="label label-primary" key={index}>{doc[0].origin}</span>
+                                                                    )
                                                                 }
-                                                            </a>
-                                                            <a class="btn btn-primary"
-                                                                onClick={() => {
-                                                                    this.editChecklist(o)
-                                                                }}
-                                                            >
-                                                                <span class="glyphicon glyphicon-pencil"></span>
-                                                            </a>
-                                                            <a class="btn btn-danger"
-                                                                onClick={() => {
-                                                                    socket.emit("DELETE_CHECKLIST", { data: o.id })
-                                                                }}
-                                                            >
-                                                                <span class="glyphicon glyphicon-trash"></span>
-                                                            </a>
-                                                        </div>
-                                                    }
-                                                    <span>Created by : {global.SelectList.ProjectMemberList.filter(e => { return o.createdBy == e.id })[0].emailAddress}</span>
+                                                            })
+                                                        }
+                                                        <p style={{ marginTop: 5, fontSize: 10 }}>
+                                                            <span>By : {o.users_firstName + ' ' + o.users_lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
+                                                        </p>
+                                                        {
+                                                            (isEditable) &&
+                                                            <div class="checklist-actions">
+                                                                <a class="btn btn-success"
+                                                                    onClick={() => {
+                                                                        socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } })
+                                                                    }}
+                                                                >
+                                                                    {
+                                                                        o.completed ? <span class="glyphicon glyphicon-unchecked"></span> : <span class="glyphicon glyphicon-check"></span>
+                                                                    }
+                                                                </a>
+                                                                <a class="btn btn-primary"
+                                                                    onClick={() => {
+                                                                        this.editChecklist(o)
+                                                                    }}
+                                                                >
+                                                                    <span class="glyphicon glyphicon-pencil"></span>
+                                                                </a>
+                                                                <a class="btn btn-danger"
+                                                                    onClick={() => {
+                                                                        socket.emit("DELETE_CHECKLIST", { data: o.id })
+                                                                    }}
+                                                                >
+                                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                                </a>
+                                                            </div>
+                                                        }
+                                                    </div>
                                                 </div>
                                             )
                                         })

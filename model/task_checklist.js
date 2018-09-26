@@ -3,42 +3,42 @@ var field = exports.field = {
     /**
      *  Id (Primary Key)
      */
-    'id' : {type : 'bigint' , access : "public" },
+    'id': { type: 'bigint', access: "public" },
 
-     /**
-     *  completed (TINYINT)
-     */
-    'completed' : {type : 'tinyint' , access : "public" },
+    /**
+    *  completed (TINYINT)
+    */
+    'completed': { type: 'tinyint', access: "public" },
 
     /**
      * description (TEXT)
      */
-    'description' : {type : 'string' , access : "public" },
+    'description': { type: 'string', access: "public" },
 
     /**
      *  taskId (Foreign Key)
      */
-    'taskId' : {type : 'bigint' , access : "public" },
-    
-     /**
-     * documents (VARCHAR(50))
-     */
-    'documents' : {type : 'string' , access : "public" },
+    'taskId': { type: 'bigint', access: "public" },
+
+    /**
+    * documents (VARCHAR(50))
+    */
+    'documents': { type: 'string', access: "public" },
 
     /**
      *  createdBy (BIGINT)
      */
-    'createdBy' : {type : 'bigint' , access : "public" },
-    
+    'createdBy': { type: 'bigint', access: "public", database: "users", relation: "one-to-one" },
+
     /**
      * dateAdded (DATETIME)
      */
-    'dateAdded' : {type : 'date' , access : "public" },
+    'dateAdded': { type: 'date', access: "public" },
 
     /**
      * dateUpdated (TIMESTAMP)
      */
-    'dateUpdated' :  {type : 'date' , access : "public" }
+    'dateUpdated': { type: 'date', access: "public" }
 
 }
 
