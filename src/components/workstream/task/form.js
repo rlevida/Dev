@@ -117,6 +117,22 @@ export default class FormComponent extends React.Component {
         }
     }
 
+    approveTask(){
+        let { socket, task, checklist } = this.props;
+        let checklistToBeComplete = []
+        if (checklistToBeComplete.length == 0) {
+            let status = "Completed"
+            if (task.Selected.task_id && task.Selected.task_status != "Completed") {
+                status = "For Approval"
+                socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
+            } else {
+                socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" } })
+            }
+        } else {
+            showToast("error", "There are items to be completed in the checklist before completing the task.")
+        }
+    }
+
     rejectTask(){
         let { socket, task, checklist } = this.props;
         let dataToBeSubmit = {
@@ -359,11 +375,14 @@ export default class FormComponent extends React.Component {
                         </h4>
 
                         <div class="form-group text-center mt20 mb20">
-                            {(isVisible && allowToComplete && (task.Selected.status != "For Approval") || task.Selected.approverId == loggedUser.data.id ) &&
+                            {(isVisible && allowToComplete && task.Selected.status != "For Approval") &&
                                 <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
                             }
                             {(task.Selected.status == "For Approval" && task.Selected.approverId == loggedUser.data.id ) && 
-                                <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Reject Task" onClick={() => this.rejectTask()}>Reject</a>
+                                <span>
+                                    <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.approveTask()}>Approve</a>
+                                    <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Reject Task" onClick={() => this.rejectTask()}>Reject</a>
+                                </span>
                             }
                             {(task.Selected.followersName != null && task.Selected.followersIds.split(",").filter(e => { return e == loggedUser.data.id }).length > 0)
                                 ? <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Unfollow task" onClick={() => this.unFollowTask()}>Unfollow Task</a>
