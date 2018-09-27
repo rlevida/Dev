@@ -113,7 +113,7 @@ var init = exports.init = (socket) => {
 
                                 task.putData("task", d.data, { id: id }, (c) => {
                                     if (c.status) {
-                                        task.getData("task", { id: id }, {}, (e) => {
+                                        task.getTaskList("task", { id: id }, {}, (e) => {
                                             if (e.data.length > 0) {
                                                 parallelCallback(null, e.data);
                                             } else {
@@ -149,18 +149,34 @@ var init = exports.init = (socket) => {
                             },
                             reminder: function(parallelCallback){
                                 let reminder = global.initModel("reminder");
-                                if(d.data.action == "For Approval"){
+
+                                if(d.data.action == "For Approval" || d.data.action == "Reject Task"){
+
                                     reminder.postData("reminder", d.reminder ,(c)=>{
                                         if(c.status){
                                             reminder.getReminderList({},(e)=>{
                                                 if(e.data.length > 0) {
                                                     socket.broadcast.emit("FRONT_REMINDER_LIST",  e.data)
+                                                    parallelCallback(null, "")
                                                 }else{
                                                     parallelCallback(null, "")
                                                 }
                                             })
+                                        }
+                                    })
+                                }else{
+                                    parallelCallback(null, "")
+                                }
+                            },
+                            task_rejected: function(parallelCallback){
+                                let task_rejected = global.initModel("task_rejected");
+                                
+                                if(d.data.action == "Reject Task"){
+                                    task_rejected.postData("task_rejected",d.data,(c)=>{
+                                        if(c.status){
+                                            parallelCallback(null,"");
                                         }else{
-                                            parallelCallback(null, "")
+                                            socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." })
                                         }
                                     })
                                 }else{
@@ -174,7 +190,6 @@ var init = exports.init = (socket) => {
                             if (params.periodic != "") {
                                 data.push(params.periodic);
                             }
-
                             nextThen(data, action)
                         });
                     }
@@ -270,6 +285,8 @@ var init = exports.init = (socket) => {
                                         parallelCallback(null, "")
                                     }
                                 });
+                            }else if(d.data.action == "For Approval" || d.data.action == "Reject Task"){
+                                parallelCallback(null, "")
                             } else if (typeof d.data.assignedTo == 'undefined' || d.data.assignedTo == '') {
                                 members.deleteData("members", { linkType: "task", linkId: o.id, usersType: "users", memberType: "assignedTo" }, (c) => {
                                     parallelCallback(null, "")
@@ -323,6 +340,8 @@ var init = exports.init = (socket) => {
                                         parallelCallback(null)
                                     }
                                 })
+                            } else if(d.data.action == "For Approval" || d.data.action == "Reject Task"){
+                                parallelCallback(null, "")
                             } else if (typeof d.data.dependencyType == 'undefined' || d.data.dependencyType == '') {
                                 taskDependency.deleteData("task_dependency", { taskId: o.id }, (c) => {
                                     parallelCallback(null, []);
@@ -333,14 +352,18 @@ var init = exports.init = (socket) => {
                         if (err != null) {
                             reject(err);
                         } else {
-                            resolve({ ...o, assignedById: results.members })
+                            if(d.data.action == "For Approval" || d.data.action == "Reject Task"){
+                                resolve({...o})
+                            }else{
+                                resolve({ ...o, assignedById: results.members })
+                            }
                         }
                     });
                 });
             });
 
             Promise.all(taskAttributesPromises).then((values) => {
-                nextThen(values, type)
+                nextThen(values, type , data )
             }).catch(function (error) {
                 socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
             });
@@ -349,6 +372,7 @@ var init = exports.init = (socket) => {
             if (type == "add") {
                 socket.emit("FRONT_TASK_ADD", { data: data, action: "add" })
             } else if (type == "edit" || type == "complete") {
+     
                 socket.emit("FRONT_TASK_EDIT", { data: data, action: "edit" })
             }
             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })

@@ -59,7 +59,7 @@ export default class FormComponent extends React.Component {
         }
 
         if (typeof task.Selected.workstreamId != "undefined") {
-            socket.emit("GET_DOCUMENT_LIST", { filter: { isDeleted: 0, linkId: workstream.Selected.id, linkType: 'project' } })
+            socket.emit("GET_DOCUMENT_LIST", { filter: { isDeleted: 0, linkId: project, linkType: 'project' } })
         }
     }
 
@@ -115,6 +115,36 @@ export default class FormComponent extends React.Component {
                 showToast("error", "There are items to be completed in the checklist before completing the task.")
             }
         }
+    }
+
+    rejectTask(){
+        let { socket, task, checklist } = this.props;
+        let dataToBeSubmit = {
+            id : task.Selected.id,
+            status : null,
+            approverId : null,
+            approvalDueDate : null ,
+            action : "Reject Task"
+        }
+        let rejectedDetails = {
+            taskId : task.Selected.id,
+            workstreamId : task.Selected.workstreamId,
+            projectId : project,
+            approvalDueDate : task.Selected.approvalDueDate,
+            approverId : task.Selected.approverId,
+        }
+
+        let reminderDetails = {
+            workstreamId : task.Selected.workstreamId,
+            projectId : project,
+            reminderDetail : `Task ${ task.Selected.task} has been rejected`,
+            seen : 0,
+            reminderType : "task",
+            reminderTypeId : task.Selected.id,
+            usersId : task.Selected.assignedById
+        }
+
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: dataToBeSubmit , rejectedData : rejectedDetails , reminder : reminderDetails})
     }
 
     handleChange(e) {
@@ -331,6 +361,9 @@ export default class FormComponent extends React.Component {
                         <div class="form-group text-center mt20 mb20">
                             {(isVisible && allowToComplete && (task.Selected.status != "For Approval") || task.Selected.approverId == loggedUser.data.id ) &&
                                 <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
+                            }
+                            {(task.Selected.status == "For Approval" && task.Selected.approverId == loggedUser.data.id ) && 
+                                <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Reject Task" onClick={() => this.rejectTask()}>Reject</a>
                             }
                             {(task.Selected.followersName != null && task.Selected.followersIds.split(",").filter(e => { return e == loggedUser.data.id }).length > 0)
                                 ? <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Unfollow task" onClick={() => this.unFollowTask()}>Unfollow Task</a>
