@@ -58,8 +58,9 @@ export default class Form extends React.Component {
             filter: { seen: 0 },
             data: { comment: commentText, linkType: "document", linkId: document.Selected.id, usersId: loggedUser.data.id },
             reminder: {
-                reminderType : "document" , 
-                reminderTypeId : document.Selected.id , 
+                linkType : "document" , 
+                linkId : document.Selected.id , 
+                type: "Tag in Comment",
                 reminderDetail : "tagged in comment" ,
                 projectId : project
             },

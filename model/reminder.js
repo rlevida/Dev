@@ -31,14 +31,25 @@ var field = exports.field = {
     'projectId' : {type : 'int' , access : "public" },
 
      /**
-     * reminderTypeId (TINYINT)
+     * linkId (TINYINT)
      */
-    'reminderTypeId' : {type : 'int' , access : "public" },
+    'linkId' : {type : 'int' , access : "public" },
     
     /**
-     * reminderType (ENUM("task","document"))
+     * linkType (ENUM("task","document"))
      */
-    'reminderType' : {type : 'string' , access : "public" },
+    'linkType' : {type : 'string' , access : "public" },
+
+    /**
+     * type (ENUM("For Approval","Task Rejected","Task Overdue","Task Due Today","Tag in Comment"))
+     */
+    'type' : {type : 'string' , access : "public" },
+
+    /**
+     * createdBy (BIGINT)
+     * 
+     */
+    'createdBy' : {type : 'int' , access : "public" },
     
     /**
      * dateAdded (DATETIME)
@@ -61,8 +72,11 @@ var getReminderList = exports.getReminderList = (data , cb ) => {
   
     let db = global.initDB();
     let params = []; 
-    let query = `SELECT reminder.*, reminder.id as reminderId , task.* , task.workstreamId  FROM reminder 
-                    LEFT JOIN task ON reminder.taskId = task.id WHERE reminder.seen = 0`;
+    let query = `SELECT reminder.*, task.task as taskName , reminder.id as reminderId , task.workstreamId , CONCAT(users.firstName," " , users.lastName) as createdByName FROM reminder 
+                    LEFT JOIN task ON reminder.linkId = task.id 
+                    LEFT JOIN users ON reminder.createdBy = users.id
+                    WHERE reminder.seen = 0 `
+                ;
     db.query(
         query,
         params, 

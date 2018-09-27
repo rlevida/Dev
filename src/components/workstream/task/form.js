@@ -2,12 +2,13 @@ import React from "react";
 import { setDatePicker, showToast } from '../../../globalFunction';
 import { connect } from "react-redux";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import UploadModal from "./uploadModal"
-import ApprovalModal from "./approvalModal"
+import UploadModal from "./uploadModal";
+import ApprovalModal from "./approvalModal";
+import RejectMessageModal from "./rejectMessageModal";
 import moment from 'moment';
 import _ from 'lodash';
 import { DropDown } from "../../../globalComponents";
-import TaskComment from "../comment"
+import TaskComment from "../comment";
 
 @connect((store) => {
     return {
@@ -134,33 +135,7 @@ export default class FormComponent extends React.Component {
     }
 
     rejectTask(){
-        let { socket, task, checklist } = this.props;
-        let dataToBeSubmit = {
-            id : task.Selected.id,
-            status : null,
-            approverId : null,
-            approvalDueDate : null ,
-            action : "Reject Task"
-        }
-        let rejectedDetails = {
-            taskId : task.Selected.id,
-            workstreamId : task.Selected.workstreamId,
-            projectId : project,
-            approvalDueDate : task.Selected.approvalDueDate,
-            approverId : task.Selected.approverId,
-        }
-
-        let reminderDetails = {
-            workstreamId : task.Selected.workstreamId,
-            projectId : project,
-            reminderDetail : `Task ${ task.Selected.task} has been rejected`,
-            seen : 0,
-            reminderType : "task",
-            reminderTypeId : task.Selected.id,
-            usersId : task.Selected.assignedById
-        }
-
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: dataToBeSubmit , rejectedData : rejectedDetails , reminder : reminderDetails})
+        $(`#rejectMessageModal`).modal("show");
     }
 
     handleChange(e) {
@@ -733,6 +708,7 @@ export default class FormComponent extends React.Component {
                 </Tabs>
                 <UploadModal />
                 <ApprovalModal />
+                <RejectMessageModal />
             </div>
         )
     }
