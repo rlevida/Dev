@@ -37,7 +37,7 @@ export default class ApprovalModal extends React.Component {
     }
 
     handleSubmit(){
-        let { dispatch , socket , task } = this.props;
+        let { dispatch , socket , task , loggedUser } = this.props;
         let result = true;
 
         $('.form-container *').validator('validate');
@@ -57,13 +57,14 @@ export default class ApprovalModal extends React.Component {
                 action : "For Approval"
             }
             let reminderDetails = {
-                taskId : task.Selected.id,
                 seen : 0,
                 usersId : task.Selected.approverId,
                 projectId : task.Selected.projectId,
-                reminderType : "task",
-                remindertypeId : task.Selected.id,
-                reminderDetail : "Tagged as Approver"
+                linkType : "task",
+                linkId : task.Selected.id,
+                type: "For Approval",
+                createdBy : loggedUser.data.id,
+                reminderDetail : "Assigned as approver"
             }
             socket.emit("SAVE_OR_UPDATE_TASK" , { data : dataToSubmit , reminder : reminderDetails })
             $(`#approvalModal`).modal(`hide`);

@@ -11,7 +11,7 @@ var field = exports.field = {
     'projectId': { type: 'bigint', access: "public", database: "project", relation: "one-to-one" },
 
     /**
-     * workstream (VARCHAR(50))
+     * workstream (BIGINT)
      */
     'workstreamId': { type: 'bigint', access: "public", database: "workstream", relation: "one-to-one" },
 
@@ -19,6 +19,11 @@ var field = exports.field = {
     * taskID (BIGINT)
     */
     'taskId': { type: 'bigint', access: "public" },
+
+    /**
+    * taskID (BIGINT)
+    */
+    'reminderId': { type: 'bigint', access: "public" },
 
     /**
      * approverId (BIGINT)
@@ -29,6 +34,11 @@ var field = exports.field = {
      * approvalDueDate (data)
      */
     'approvalDueDate': { type: 'date', access: "public"},
+
+    /**
+     * message (VARCHAR(50))
+     */
+    'message' : {type : 'string' , access : "public" },
 
     /**
      * dateAdded (DATETIME)

@@ -151,13 +151,14 @@ var init = exports.init = (socket) => {
                                 let reminder = global.initModel("reminder");
 
                                 if(d.data.action == "For Approval" || d.data.action == "Reject Task"){
-
                                     reminder.postData("reminder", d.reminder ,(c)=>{
                                         if(c.status){
                                             reminder.getReminderList({},(e)=>{
                                                 if(e.data.length > 0) {
-                                                    socket.broadcast.emit("FRONT_REMINDER_LIST",  e.data)
-                                                    parallelCallback(null, "")
+                                                    if(d.data.action == "For Approval"){
+                                                        socket.broadcast.emit("FRONT_REMINDER_LIST",  e.data)
+                                                    }
+                                                    parallelCallback(null, c.id)
                                                 }else{
                                                     parallelCallback(null, "")
                                                 }
@@ -167,30 +168,15 @@ var init = exports.init = (socket) => {
                                 }else{
                                     parallelCallback(null, "")
                                 }
-                            },
-                            task_rejected: function(parallelCallback){
-                                let task_rejected = global.initModel("task_rejected");
-                                
-                                if(d.data.action == "Reject Task"){
-                                    task_rejected.postData("task_rejected",d.data,(c)=>{
-                                        if(c.status){
-                                            parallelCallback(null,"");
-                                        }else{
-                                            socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." })
-                                        }
-                                    })
-                                }else{
-                                    parallelCallback(null, "")
-                                }
-                            }
+                            }                          
                         }, function (err, params) {
                             let action = (typeof d.data.action != "undefined" && d.data.action == "complete") ? "complete" : "edit";
                             let data = params.task;
-
+                                
                             if (params.periodic != "") {
                                 data.push(params.periodic);
                             }
-                            nextThen(data, action)
+                            nextThen(data, params.reminder,  action)
                         });
                     }
                 });
@@ -245,7 +231,7 @@ var init = exports.init = (socket) => {
                     }
                 })
             }
-        }).then((nextThen, data, type) => {
+        }).then((nextThen, data, reminderId, type) => {
             const members = global.initModel("members");
             const taskDependency = global.initModel("task_dependency");
 
@@ -346,6 +332,29 @@ var init = exports.init = (socket) => {
                                 taskDependency.deleteData("task_dependency", { taskId: o.id }, (c) => {
                                     parallelCallback(null, []);
                                 });
+                            }
+                        },
+                        task_rejected: function(parallelCallback){
+                            let task_rejected = global.initModel("task_rejected");
+                            let reminder = global.initModel("reminder");
+                            
+                            if(d.data.action == "Reject Task"){
+                                task_rejected.postData("task_rejected", { ...d.rejectedData , reminderId : reminderId },(c)=>{
+                                    if(c.status){
+                                        reminder.getReminderList({},(e)=>{
+                                            if(e.data.length > 0) {
+                                                socket.broadcast.emit("FRONT_REMINDER_LIST",  e.data)
+                                                parallelCallback(null, c.id)
+                                            }else{
+                                                parallelCallback(null, "")
+                                            }
+                                        })
+                                    }else{
+                                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving rejected task failed. Please Try again later." })
+                                    }
+                                })
+                            }else{
+                                parallelCallback(null, "")
                             }
                         }
                     }, (err, results) => {

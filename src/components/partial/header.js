@@ -101,14 +101,42 @@ export default class Component extends React.Component {
                         <span class="fa fa-bell"></span>
                         <span class="label label-danger" style={{ marginLeft: "5px", display: reminderList.length ? "inline-block" : "none" }}>{reminderList.length}</span>
                     </a>
-                    <ul class="dropdown-menu" >
-                        {reminderList.map((data, index) => {
-                            return (
-                                <li key={index}><a href={"/reminder"} key={index} style={{ textDecoration: "none" }}>{data.reminderDetail}</a></li>
-                            )
-                        })
-                        }
-                    </ul>
+                    { (reminderList.length > 0) &&
+                        <ul class="dropdown-menu" >
+                            {
+                                _.orderBy(reminderList,['dateAdded','asc']).map((data, index) => {
+                                    let label = ""
+                                    let description = ""
+                                    if(data.type == "Task Rejected"){
+                                        label = `Task`
+                                        description = `${data.taskName} has been rejected by ${data.createdByName}`
+                                    }else if (data.type == "For Approval"){
+                                        label = `Task`
+                                        description = `${data.createdByName} assigned you as approver.`
+                                    }else if (data.type == "For Overdue"){
+                                        label = `Task Overdue`
+                                        description = `${data.taskName}`
+                                    }else if (data.type == "Task Due Today"){
+                                        label = `Task Due Today`
+                                        description = `${data.taskName}`
+                                    }else if (data.type == "Tag in Comment"){
+                                        label = `Comment`
+                                        description = `${data.createdByName} tagged you in a comment.`
+                                    }
+
+                                    return (
+                                        <li key={index} style={{height:'100%'}}>
+                                            <span class="label label-primary" style={{marginLeft:'5px'}}>{label}</span>
+                                            <a href={"/reminder"} key={index} style={{ textDecoration: "none" }}>
+                                                <span>{description}</span>
+                                                <br/>
+                                            </a>
+                                        </li>
+                                    )
+                                })
+                            }
+                        </ul>
+                    }
                 </div>
                 <div class="pull-right" style={{ marginTop: "10px" }}>
                     <div class="btn-group">

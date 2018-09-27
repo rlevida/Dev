@@ -28,7 +28,10 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                                     if (ret.data.length > 0) {
                                         async.map(ret.data, (e, mapCallback) => {
                                             reminder.postData("reminder", {
-                                                taskId: e.id,
+                                                // taskId: e.id,
+                                                linkType: "task",
+                                                linkId: e.id,
+                                                type: "Task Overdue",
                                                 usersId: e.usersId,
                                                 reminderDetail: "Task Overdue"
                                             }, () => { mapCallback(null) })
@@ -44,7 +47,10 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                                     if (responsible.data.length > 0) {
                                         async.map(responsible.data, (e, mapCallback) => {
                                             reminder.postData("reminder", {
-                                                taskId: e.taskId,
+                                                // taskId: e.taskId,
+                                                linkType: "task",
+                                                linkId: e.id,
+                                                type: "Task Overdue",
                                                 usersId: e.usersId,
                                                 reminderDetail: "Task Overdue"
                                             }, () => { mapCallback(null) })
@@ -60,7 +66,10 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                                     if (responsible.data.length > 0) {
                                         async.map(responsible.data, (e, mapCallback) => {
                                             reminder.postData("reminder", {
-                                                taskId: e.taskId,
+                                                // taskId: e.taskId,
+                                                linkType: "task",
+                                                linkId: e.id,
+                                                type: "Task Overdue",
                                                 usersId: e.usersId,
                                                 reminderDetail: "Task Overdue"
                                             }, () => { mapCallback(null) })

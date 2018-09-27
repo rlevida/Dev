@@ -38,9 +38,8 @@ export default class FormComponent extends React.Component {
                     <table class="table responsive-table table-bordered">
                         <tbody>
                             <tr>
-                                <th class="text-center">Task</th>
+                                <th class="text-center"></th>
                                 <th class="text-center">Reminder Detail</th>
-                                <th class="text-center">Due Date</th>
                                 <th></th>
 
                             </tr>
@@ -48,13 +47,18 @@ export default class FormComponent extends React.Component {
                                 reminderList.map((data,index) =>{
                                     return (
                                         <tr key={index}>
-                                            <td>{data.task}</td>
+                                            <td>{data.taskName}</td>
                                             <td>{data.reminderDetail}</td>
-                                            <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                             <td><a href="javascript:void(0)" class="btn btn-primary" data-tip="View" onClick={()=> this.viewTask(data)}><span class="fa fa-eye"></span></a></td>
                                         </tr>
                                     )
                                 })
+                            }
+                            {
+                                 (reminderList.length == 0 ) &&
+                                 <tr>
+                                     <td colSpan={8}>No Reminder Found!</td>
+                                 </tr>
                             }
                         </tbody>
                     </table>

@@ -58,10 +58,12 @@ export default class Form extends React.Component {
             filter: { seen: 0 },
             data: { comment: commentText, linkType: "task", linkId: task.Selected.id, usersId: loggedUser.data.id },
             reminder: {
-                reminderType: "task",
-                reminderTypeId: task.Selected.id,
+                linkType: "task",
+                linkId: task.Selected.id,
+                type: "Tag in Comment",
                 reminderDetail: "tagged in comment",
-                projectId: task.Selected.projectId
+                projectId: task.Selected.projectId,
+                createdBy :loggedUser.data.id
             },
             reminderList: JSON.stringify(commentIds)
         };
