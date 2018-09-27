@@ -164,7 +164,11 @@ var init = exports.init = (socket) => {
         }).then((nextThen, retData) => {
             let task = global.initModel("task")
             task.getTaskAllowedAccess("task", { usersId: retData.id, userRole: retData.userRole }, {}, (e) => {
-                retData.taskIds = e.data.map((f) => { return f.taskId });
+                if(retData.userRole == 1 || retData.userRole == 2){
+                    retData.workstreamTaskIds = e.data.map((f) => { return f.taskId });
+                }else{
+                    retData.taskIds = e.data.map((f) => { return f.taskId });
+                }
 
                 async.map(e.data, (id, mapCallback) => {
                     task.getData("task", { id: id.taskId }, {}, (e) => {

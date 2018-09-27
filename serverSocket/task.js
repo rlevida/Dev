@@ -10,7 +10,7 @@ var init = exports.init = (socket) => {
         let task = global.initModel("task")
         let taskDependencies = global.initModel("task_dependency")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
-
+        
         task.getTaskList("task", filter, {}, (c) => {
             async.map(c.data, (o, mapCallback) => {
                 taskDependencies.getData("task_dependency", { taskId: o.id }, {}, (results) => {
