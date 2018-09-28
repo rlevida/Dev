@@ -231,7 +231,7 @@ var init = exports.init = (socket) => {
                     }
                 })
             }
-        }).then((nextThen, data, reminderId, type) => {
+        }).then((nextThen, data, type) => {
             const members = global.initModel("members");
             const taskDependency = global.initModel("task_dependency");
 
