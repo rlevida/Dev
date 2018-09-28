@@ -34,6 +34,7 @@ export default class FormComponent extends React.Component {
         this.addChecklist = this.addChecklist.bind(this);
         this.addDependency = this.addDependency.bind(this);
         this.saveChecklist = this.saveChecklist.bind(this);
+        this.openCheckListUploadModal = this.openCheckListUploadModal.bind(this);
     }
 
     componentWillReceiveProps(props) {
@@ -179,15 +180,13 @@ export default class FormComponent extends React.Component {
     setDropDownMultiple(name, values) {
         let { checklist, task, dispatch } = this.props;
 
-
-
         if (values.filter(e => { return e.value == "Document" }).length && typeof checklist.Selected.documents == "undefined") {
             dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
             $('#uploadFileModal').modal({
                 backdrop: 'static',
                 keyboard: false
             })
-        } 
+        }
 
         if (name == "linkTaskIds") {
             dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, [name]: values } })
@@ -214,6 +213,16 @@ export default class FormComponent extends React.Component {
 
         dispatch({ type: "SET_CHECKLIST_ACTION", action: `Edit` })
         dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...value, checklist: description, documents: (value.documents != "") ? value.documents : [] } })
+    }
+
+    openCheckListUploadModal() {
+        let { dispatch } = this.props;
+
+        dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
+        $('#uploadFileModal').modal({
+            backdrop: 'static',
+            keyboard: false
+        })
     }
 
     render() {
@@ -487,11 +496,17 @@ export default class FormComponent extends React.Component {
                                 </div>
                             </div>
 
-                            {(typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents.length > 0) &&
+                            {(typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents != "" && checklist.Selected.documents.length > 0) &&
                                 <div class="row" style={{ marginLeft: 7, marginTop: 5 }}>
                                     <div class="col-md-12 pdr0">
                                         <div class="form-group">
-                                            <label>Attached Documents</label>
+                                            <div style={{ position: "relative" }}>
+                                                <label>Attached Documents</label>
+                                                {
+                                                    (typeof checklist.Selected.id != "undefined" && _.filter(checklist.Selected.types, (o) => { return o.value == "Document" }).length > 0) &&
+                                                    <a class="task-action" onClick={this.openCheckListUploadModal}>Add</a>
+                                                }
+                                            </div>
                                             {
                                                 checklist.Selected.documents.map((data, index) => {
                                                     return (

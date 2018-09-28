@@ -106,48 +106,45 @@ var init = exports.init = (socket) => {
     })
 
     socket.on("SAVE_OR_UPDATE_CHECKLIST", (d) => {
-        if (typeof d.documents != "undefined") {
+        if (typeof d.documents != "undefined" && d.documents.length > 0) {
             let document = global.initModel("document");
             let task = global.initModel("task");
             let filter = (typeof d.filter != "undefined") ? d.filter : {};
 
             sequence.create().then((nextThen) => {
-                let newData = [];
-                if (d.documents.length > 0) {
-                    d.documents.map(file => {
-                        newData.push(new Promise((resolve, reject) => {
-                            document.getData("document", { origin: file.origin }, { orderBy: [{ fieldname: "documentNameCount", type: "DESC" }] }, (c) => {
-                                if (c.status) {
-                                    if (c.data.length > 0) {
-                                        let existingData = c.data.filter(f => f.id == d.documents.id)
-                                        if (existingData.length == 0) {
-                                            file.documentNameCount = c.data[0].documentNameCount + 1
-                                            resolve(file)
-                                        }
-                                    } else {
-                                        file.projectNameCount = 0;
+                let newData = d.documents.map(file => {
+                    return new Promise((resolve, reject) => {
+                        document.getData("document", { origin: file.origin }, { orderBy: [{ fieldname: "documentNameCount", type: "DESC" }] }, (c) => {
+                            if (c.status) {
+                                if (c.data.length > 0) {
+                                    let existingData = c.data.filter(f => f.id == d.documents.id)
+                                    if (existingData.length == 0) {
+                                        file.documentNameCount = c.data[0].documentNameCount + 1
                                         resolve(file)
                                     }
                                 } else {
-                                    reject()
+                                    file.projectNameCount = 0;
+                                    resolve(file)
                                 }
-                            })
-                        }))
-                    })
+                            } else {
+                                reject()
+                            }
+                        });
+                    });
+                });
 
-                    Promise.all(newData).then((values) => {
-                        nextThen(values)
-                    })
-                }
-
+                Promise.all(newData).then((values) => {
+                    nextThen(values);
+                });
             }).then((nextThen, result) => {
                 let tempResData = [];
+
                 if (result.length > 0) {
-                    result.map(file => {
-                        let tagList = file.tags
-                        delete file.tags
-                        tempResData.push(new Promise((resolve, reject) => {
-                            document.postData("document", file, (c) => {
+                    tempResData = result.map(file => {
+                        let tagList = file.tags;
+
+                        return new Promise((resolve, reject) => {
+                            document.postData("document", _.omit(file, ['tags']), (c) => {
                                 if (typeof c.id != "undefined" && c.id > 0) {
                                     document.getData("document", { id: c.id }, {}, (e) => {
                                         if (e.data.length > 0) {
@@ -177,8 +174,8 @@ var init = exports.init = (socket) => {
                                     reject()
                                 }
                             })
-                        }))
-                    })
+                        });
+                    });
                 }
 
                 Promise.all(tempResData).then((values) => {
@@ -189,13 +186,14 @@ var init = exports.init = (socket) => {
                     } else {
                         socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
                     }
-                });
+                }).catch((error) => {
+                    socket.emit("RETURN_ERROR_MESSAGE", { message: "Error in uploading document for the checklist." });
+                })
 
             }).then((nextThen, result) => {
                 let documentIds = result.map(e => { return e.id })
                 nextThen(result, JSON.stringify(documentIds))
             }).then((nextThen, result, documentIds) => {
-
                 let taskCheckList = global.initModel("task_checklist");
                 let taskCheckListType = global.initModel("checklist_type");
 
@@ -209,7 +207,7 @@ var init = exports.init = (socket) => {
                                     checklist: (parallelCallback) => {
                                         taskCheckListType.deleteData("checklist_type", { checklistId: d.data.id }, (res) => {
                                             if (res.status) {
-                                                taskCheckList.putData("task_checklist", d.data, { id: d.data.id }, (c) => {
+                                                taskCheckList.putData("task_checklist", { ...d.data, documents: documentIds }, { id: d.data.id }, (c) => {
                                                     if ((d.data.types).length > 0) {
                                                         const checkListType = _.map(d.data.types, (o) => {
                                                             return new Promise((resolve, reject) => {
@@ -347,7 +345,7 @@ var init = exports.init = (socket) => {
                                 });
                             });
                         } else {
-                            if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: data.error.sqlMessage }) }
+                            if (data.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: data.error.sqlMessage }) }
                         }
                     });
                 }
