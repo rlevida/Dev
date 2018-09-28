@@ -367,7 +367,7 @@ export default class FormComponent extends React.Component {
                                                             <th class="text-center">Type</th>
                                                             <th class="text-left">Role/s</th>
                                                             <th class="text-left">Team/s</th>
-                                                            <th class="text-center">Receive Notification</th>
+                                                            <th class="text-center">Send E-mail reminders</th>
                                                             <th class="text-center"></th>
                                                         </tr>
                                                         {
