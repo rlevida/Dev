@@ -52,10 +52,10 @@ app.use(function(req, res, next){
   return next()
 });
 
+app.use('/api', api);
 app.use('/forgotPassword', forgot);
 app.use('/auth', auth);
 app.use('/project', project);
-app.use('/api', api);
 app.use('/', index);
 
 app.use(function (req, res, next) {

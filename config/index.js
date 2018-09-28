@@ -22,6 +22,14 @@ global.initModel = exports.initModel = function (model) {
 }
 
 /*
+    This functions calls indicated controller to avoid require on each file
+*/
+
+global.initController = exports.initController = function (controller) {
+    return require("../controller/" + controller);
+}
+
+/*
     This function initialize database setup to avoid require on each file
 */
 
