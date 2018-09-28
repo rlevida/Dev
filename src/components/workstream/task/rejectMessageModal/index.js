@@ -25,7 +25,7 @@ export default class ModalComponent extends React.Component {
     }
 
     handleSubmit(){
-        let { dispatch , socket , task , loggedUser } = this.props;
+        let { dispatch , socket , task , loggedUser , global } = this.props;
         let dataToBeSubmit = {
             id : task.Selected.id,
             status : null,
@@ -42,6 +42,8 @@ export default class ModalComponent extends React.Component {
             message : task.Selected.rejectMessage
         }
 
+        let assignee = global.SelectList.workstreamMemberList.filter( e =>{ return e.id == task.Selected.assignedById })[0]
+
         let reminderDetails = {
             workstreamId : task.Selected.workstreamId,
             projectId : project,
@@ -53,7 +55,27 @@ export default class ModalComponent extends React.Component {
             usersId : task.Selected.assignedById,
             createdBy : loggedUser.data.id
         }
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: dataToBeSubmit , rejectedData : rejectedDetails , reminder : reminderDetails})
+
+        let mailOptions = {}
+
+        if(assignee.receiveNotification){
+            mailOptions = {
+                from: '"no-reply" <no-reply@c_cfo.com>', // sender address
+                to: `${assignee.emailAddress}`, // list of receivers
+                subject: '[CLOUD-CFO]', // Subject line
+                text: 'Task Rejected', // plain text body
+                html: task.Selected.rejectMessage // html body
+            }
+        }   
+
+        socket.emit("SAVE_OR_UPDATE_TASK", { 
+            data: dataToBeSubmit , 
+            rejectedData : rejectedDetails , 
+            reminder : reminderDetails , 
+            receiveNotification : assignee.receiveNotification ,
+            mailOptions : mailOptions 
+        })
+
         $(`#rejectMessageModal`).modal("hide");
        
     }
