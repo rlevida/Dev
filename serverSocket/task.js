@@ -158,7 +158,7 @@ var init = exports.init = (socket) => {
                                                     if(d.data.action == "For Approval"){
                                                         socket.broadcast.emit("FRONT_REMINDER_LIST",  e.data)
                                                     }
-                                                    parallelCallback(null, c.id)
+                                                    parallelCallback(null, "")
                                                 }else{
                                                     parallelCallback(null, "")
                                                 }
@@ -168,7 +168,15 @@ var init = exports.init = (socket) => {
                                 }else{
                                     parallelCallback(null, "")
                                 }
-                            }                          
+                            },
+                            sendEmailNotification : function(parallelCallback){
+                                if(d.data.action == "For Approval" || d.data.action == "Reject Task"){
+                                    if(d.receiveNotification){
+                                        global.emailtransport(d.mailOptions)
+                                        parallelCallback(null, "")
+                                    }
+                                }
+                            }                        
                         }, function (err, params) {
                             let action = (typeof d.data.action != "undefined" && d.data.action == "complete") ? "complete" : "edit";
                             let data = params.task;
@@ -176,7 +184,7 @@ var init = exports.init = (socket) => {
                             if (params.periodic != "") {
                                 data.push(params.periodic);
                             }
-                            nextThen(data, params.reminder,  action)
+                            nextThen(data, action)
                         });
                     }
                 });
@@ -333,29 +341,6 @@ var init = exports.init = (socket) => {
                                     parallelCallback(null, []);
                                 });
                             }
-                        },
-                        task_rejected: function(parallelCallback){
-                            let task_rejected = global.initModel("task_rejected");
-                            let reminder = global.initModel("reminder");
-                            
-                            if(d.data.action == "Reject Task"){
-                                task_rejected.postData("task_rejected", { ...d.rejectedData , reminderId : reminderId },(c)=>{
-                                    if(c.status){
-                                        reminder.getReminderList({},(e)=>{
-                                            if(e.data.length > 0) {
-                                                socket.broadcast.emit("FRONT_REMINDER_LIST",  e.data)
-                                                parallelCallback(null, c.id)
-                                            }else{
-                                                parallelCallback(null, "")
-                                            }
-                                        })
-                                    }else{
-                                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving rejected task failed. Please Try again later." })
-                                    }
-                                })
-                            }else{
-                                parallelCallback(null, "")
-                            }
                         }
                     }, (err, results) => {
                         if (err != null) {
@@ -372,7 +357,7 @@ var init = exports.init = (socket) => {
             });
 
             Promise.all(taskAttributesPromises).then((values) => {
-                nextThen(values, type , data )
+                nextThen(data , type )
             }).catch(function (error) {
                 socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
             });
@@ -381,7 +366,6 @@ var init = exports.init = (socket) => {
             if (type == "add") {
                 socket.emit("FRONT_TASK_ADD", { data: data, action: "add" })
             } else if (type == "edit" || type == "complete") {
-     
                 socket.emit("FRONT_TASK_EDIT", { data: data, action: "edit" })
             }
             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })

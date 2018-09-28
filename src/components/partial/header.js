@@ -113,12 +113,12 @@ export default class Component extends React.Component {
                                     }else if (data.type == "For Approval"){
                                         label = `Task`
                                         description = `${data.createdByName} assigned you as approver.`
-                                    }else if (data.type == "For Overdue"){
-                                        label = `Task Overdue`
-                                        description = `${data.taskName}`
+                                    }else if (data.type == "Task Overdue"){
+                                        label = data.linkType == "workstream" ? `Workstream Task Overdue` : `Task Overdue`
+                                        description =  `${data.reminderDetail}`
                                     }else if (data.type == "Task Due Today"){
                                         label = `Task Due Today`
-                                        description = `${data.taskName}`
+                                        description = `${data.reminderDetail}`
                                     }else if (data.type == "Tag in Comment"){
                                         label = `Comment`
                                         description = `${data.createdByName} tagged you in a comment.`
@@ -126,7 +126,7 @@ export default class Component extends React.Component {
 
                                     return (
                                         <li key={index} style={{height:'100%'}}>
-                                            <span class="label label-primary" style={{marginLeft:'5px'}}>{label}</span>
+                                            {/* <span class="label label-primary" style={{marginLeft:'5px'}}>{label}</span> */}
                                             <a href={"/reminder"} key={index} style={{ textDecoration: "none" }}>
                                                 <span>{description}</span>
                                                 <br/>

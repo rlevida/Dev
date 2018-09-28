@@ -410,7 +410,7 @@ var getTaskList = exports.getTaskList = (tablename, data, advance, cb) => {
                                     AND members.linkType="task" 
                                     WHERE users.id IS NOT NULL
                                     GROUP BY members.linkId ) as assignedTo ON prj.id = assignedTo.linkId
-                LEFT JOIN (SELECT members.linkId,GROUP_CONCAT(users.id) as followersIds,GROUP_CONCAT(users.firstName) as followersName FROM members 
+                LEFT JOIN (SELECT members.linkId,GROUP_CONCAT(users.id) as followersIds,GROUP_CONCAT(CONCAT(users.firstName," ",users.lastName)) as followersName FROM members 
                                 LEFT JOIN users ON members.userTypeLinkId = users.id 
                                     AND members.memberType = "Follower" 
                                     AND members.usersType="users" 
@@ -457,10 +457,11 @@ var getTaskOverdue = exports.getTaskOverdue = (cb) => {
     let db = global.initDB();
     let params = [];
 
-    let query = ` SELECT task.*,members.userTypeLinkId as usersId FROM task 
-                    LEFT JOIN members ON task.id = members.linkId AND members.linkType = "task" AND usersType = "users" AND members.memberType = "assignedTo"
-                    WHERE DATE_FORMAT(task.dueDate,"%Y%m%d") < DATE_FORMAT(NOW(),"%Y%m%d") 
-                    AND ( members.userTypeLinkId IS NOT NULL || members.userTypeLinkId != "" ) AND task.isDeleted = 0 AND members.receiveNotification > 0`;
+    let query = ` SELECT AllTask.* , users.emailAddress as user_emailAddress FROM ( SELECT task.*,members.userTypeLinkId as usersId , members.receiveNotification FROM task 
+                        LEFT JOIN members ON task.id = members.linkId AND members.linkType = "task" AND usersType = "users" AND members.memberType = "assignedTo"
+                            WHERE DATE_FORMAT(task.dueDate,"%Y%m%d") < DATE_FORMAT(NOW(),"%Y%m%d") AND ( members.userTypeLinkId IS NOT NULL || members.userTypeLinkId != "" ) AND task.isDeleted = 0 > 0) as AllTask
+                        LEFT JOIN users ON AllTask.usersId = users.id
+                    `;
     db.query(
         query,
         params,
