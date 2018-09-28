@@ -88,7 +88,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                                 const newPeriodTask = { ...e, id: "", startDate: e.dueDate, dueDate: nextDueDate, periodTask: taskId, status: "In Progress" };
 
 
-                                task.getData("task", { dueDate: nextDueDate, periodTask: taskId }, {}, (e) => {
+                                task.getData("task", { dueDate: nextDueDate, periodTask: taskId , isActive : 1 }, {}, (e) => {
                                     if ((e.data).length > 0) {
                                         parallelCallback(null, "");
                                     } else {

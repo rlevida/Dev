@@ -487,37 +487,39 @@ export default class FormComponent extends React.Component {
                                     }
                                 </div>
                             }
-                            <div class="row mt10" style={{ paddingLeft: 22 }}>
-                                <div class="col-md-8 pdr0">
-                                    {
-                                        ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
-                                        <div class="form-group" style={{ marginBottom: 0 }}>
-                                            <label>Item</label>
-                                            <input type="text" name="checklist"
-                                                class="form-control"
-                                                placeholder="Add Item"
-                                                onChange={this.handleChange}
-                                                value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
+                            {(task.Selected.isActive > 0) &&
+                                <div class="row mt10" style={{ paddingLeft: 22 }}>
+                                    <div class="col-md-8 pdr0">
+                                        {
+                                            ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
+                                            <div class="form-group" style={{ marginBottom: 0 }}>
+                                                <label>Item</label>
+                                                <input type="text" name="checklist"
+                                                    class="form-control"
+                                                    placeholder="Add Item"
+                                                    onChange={this.handleChange}
+                                                    value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
 
-                                            />
-                                        </div>
-                                    }
+                                                />
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="col-md-4">
+                                        {
+                                            ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
+                                            <div class="form-group m0">
+                                                <label>Checklist type</label>
+                                                <DropDown multiple={true}
+                                                    required={false}
+                                                    options={_.map(['Mandatory', 'Document'], (o) => { return { id: o, name: o } })}
+                                                    selected={(typeof checklist.Selected.types == "undefined" || checklist.Selected.types == "") ? [] : checklist.Selected.types}
+                                                    onChange={(e) => this.setDropDownMultiple("types", e)}
+                                                />
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
-                                <div class="col-md-4">
-                                    {
-                                        ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
-                                        <div class="form-group m0">
-                                            <label>Checklist type</label>
-                                            <DropDown multiple={true}
-                                                required={false}
-                                                options={_.map(['Mandatory', 'Document'], (o) => { return { id: o, name: o } })}
-                                                selected={(typeof checklist.Selected.types == "undefined" || checklist.Selected.types == "") ? [] : checklist.Selected.types}
-                                                onChange={(e) => this.setDropDownMultiple("types", e)}
-                                            />
-                                        </div>
-                                    }
-                                </div>
-                            </div>
+                            }
 
                             {(typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents.length > 0) &&
                                 <div class="row" style={{ marginLeft: 7, marginTop: 5 }}>
@@ -535,6 +537,7 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                             }
+
                             {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
                                 <div class="row" style={{ paddingLeft: 22 }}>
                                     <div class="col-md-12 pdr0">
@@ -568,12 +571,16 @@ export default class FormComponent extends React.Component {
                                 </div>
                             }
                         </div>
-                        <div style={{ position: "relative" }} class="mt20">
-                            <h5 class="mb0">Documents</h5>
-                            {((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
-                                <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" onClick={() => dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "task" })}>Add</a>
-                            }
-                        </div>
+
+                        {(task.Selected.isActive > 0) &&
+                            <div style={{ position: "relative" }} class="mt20">
+                                <h5 class="mb0">Documents</h5>
+                                {((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                    <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" onClick={() => dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "task" })}>Add</a>
+                                }
+                            </div>
+                        }
+
                         <div id="documentList">
                             {(documentList.length > 0) &&
                                 (documentList).map((data, index) => {
@@ -660,45 +667,47 @@ export default class FormComponent extends React.Component {
                                 }
                             </div>
                         </div>
-                        <div class="row" style={{ marginLeft: 7 }}>
-                            <div class="col-md-4 pdr0">
-                                <label>Dependency Type</label>
-                                <DropDown multiple={false}
-                                    required={false}
-                                    options={_.map(['Preceding', 'Succeeding'], (o) => { return { id: o, name: o } })}
-                                    selected={(typeof task.Selected.dependencyType == "undefined") ? "" : task.Selected.dependencyType}
-                                    onChange={(e) => {
-                                        this.setDropDown("dependencyType", (e == null) ? "" : e.value);
-                                    }}
-                                    isClearable={true}
-                                />
-                                {
-                                    (
-                                        (typeof task.Selected.dependencyType != "undefined" &&
-                                            typeof task.Selected.linkTaskIds != "undefined") &&
-                                        (task.Selected.dependencyType != "" &&
-                                            task.Selected.linkTaskIds != "")
-                                    ) && <div>
-                                        <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
-                                            onClick={this.addDependency}
-                                        >
-                                            Add
-                                            </a>
-                                    </div>
-                                }
+                        {(task.Selected.isActive > 0) && 
+                            <div class="row" style={{ marginLeft: 7 }}>
+                                <div class="col-md-4 pdr0">
+                                    <label>Dependency Type</label>
+                                    <DropDown multiple={false}
+                                        required={false}
+                                        options={_.map(['Preceding', 'Succeeding'], (o) => { return { id: o, name: o } })}
+                                        selected={(typeof task.Selected.dependencyType == "undefined") ? "" : task.Selected.dependencyType}
+                                        onChange={(e) => {
+                                            this.setDropDown("dependencyType", (e == null) ? "" : e.value);
+                                        }}
+                                        isClearable={true}
+                                    />
+                                    {
+                                        (
+                                            (typeof task.Selected.dependencyType != "undefined" &&
+                                                typeof task.Selected.linkTaskIds != "undefined") &&
+                                            (task.Selected.dependencyType != "" &&
+                                                task.Selected.linkTaskIds != "")
+                                        ) && <div>
+                                            <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
+                                                onClick={this.addDependency}
+                                            >
+                                                Add
+                                                </a>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col-md-8">
+                                    <label>Dependent Tasks *</label>
+                                    <DropDown multiple={true}
+                                        required={typeof task.Selected.dependencyType != "undefined"
+                                            && (task.Selected.dependencyType != "" &&
+                                                task.Selected.dependencyType != null)}
+                                        options={dependentTaskList}
+                                        selected={(typeof task.Selected.linkTaskIds == "undefined") ? [] : task.Selected.linkTaskIds}
+                                        onChange={(e) => this.setDropDownMultiple("linkTaskIds", e)}
+                                    />
+                                </div>
                             </div>
-                            <div class="col-md-8">
-                                <label>Dependent Tasks *</label>
-                                <DropDown multiple={true}
-                                    required={typeof task.Selected.dependencyType != "undefined"
-                                        && (task.Selected.dependencyType != "" &&
-                                            task.Selected.dependencyType != null)}
-                                    options={dependentTaskList}
-                                    selected={(typeof task.Selected.linkTaskIds == "undefined") ? [] : task.Selected.linkTaskIds}
-                                    onChange={(e) => this.setDropDownMultiple("linkTaskIds", e)}
-                                />
-                            </div>
-                        </div>
+                        }
                     </TabPanel>
                 </Tabs>
                 <Tabs>
