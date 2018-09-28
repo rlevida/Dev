@@ -72,7 +72,7 @@ export default class List extends React.Component {
                             <th class="text-left">Team/s</th>
                             <th class="text-center"></th>
                         </tr>
-                        {
+                        { (userList.length > 0) &&
                             userList.map((user, index) => {
                                 let toBeEditedByAdmin = user.role.filter(e => e.roleId == 2 || e.roleId == 3 || e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
                                 let toBeEditedByManager = user.role.filter(e => e.roleId == 4 || e.roleId == 5 || e.roleId == 6);

@@ -138,13 +138,30 @@ var init = exports.init = (socket) => {
                 delete d.data.id
                 users.putData("users", d.data, { id: id }, (c) => {
                     if (c.status) {
-                        users.getData("users", { id: id }, {}, (e) => {
-                            if (e.data.length > 0) {
-                                nextThen({ id: id, type: "edit", data: e.data[0], message: "Successfully updated." })
-                            } else {
-                                socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." })
+                        async.parallel({
+                            role: (parallelCallback) => {
+                                let usersRole = global.initModel("users_role")
+                                usersRole.getData("users_role", { usersId: id }, {}, (e) => {
+                                    if(e.status){
+                                        parallelCallback(null, e.data)
+                                    }else{
+                                        parallelCallback(null, "")
+                                    }
+                                })
+                            },
+                            user: (parallelCallback) => {
+                                users.getData("users", { id: id }, {}, (e) => {
+                                    if (e.data.length > 0) {
+                                        parallelCallback(null,e.data)
+                                    }else{
+                                        parallelCallback(null,"")
+                                    }
+                                })
                             }
+                        }, (err, result) => {
+                            nextThen({ id: id, type: "edit", data: { ...result.user[0] , role : result.role }, message: "Successfully updated." })
                         })
+
                     } else {
                         if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }); return; }
 
