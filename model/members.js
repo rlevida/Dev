@@ -327,9 +327,9 @@ var getWorkstreamResponsible = exports.getWorkstreamResponsible = (data , cb ) =
     let params = [];
 
     let query = ` SELECT responsible.* , users.emailAddress as user_emailAddress  FROM ( 
-                        SELECT members.userTypeLinkId as usersId , members.linkId as workstreamId FROM members 
+                        SELECT members.userTypeLinkId as usersId , members.linkId as workstreamId , members.receiveNotification FROM members 
                             LEFT JOIN task ON task.workstreamId = members.linkId 
-                        WHERE members.linkId in (${data.join(",")}) AND members.memberType = 'responsible' AND members.receiveNotification > 0 GROUP BY members.id ) as responsible
+                        WHERE members.linkId in (${data.join(",")}) AND members.memberType = 'responsible'GROUP BY members.id ) as responsible
                   LEFT JOIN users on responsible.usersId = users.id
                     `;
     db.query(
@@ -349,7 +349,7 @@ var getTaskFollower = exports.getTaskFollower = (data , cb ) => {
     let params = [];
 
     let query = ` SELECT follower.* , users.emailAddress as user_emailAddress FROM ( SELECT members.*, members.userTypeLinkId as usersId , task.id as taskId FROM members LEFT JOIN task ON task.id = members.linkId 
-                        WHERE members.linkId in (${data.join(",")}) AND members.memberType = 'Follower' AND members.linkType = 'task' AND members.receiveNotification > 0 GROUP BY members.id ) as follower
+                        WHERE members.linkId in (${data.join(",")}) AND members.memberType = 'Follower' AND members.linkType = 'task' GROUP BY members.id ) as follower
                   LEFT JOIN users ON follower.usersId = users.id
                     `;
     db.query(

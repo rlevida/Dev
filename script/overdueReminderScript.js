@@ -111,16 +111,19 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                 },
                 sendToEmail : (parallelCallback) => {
                     async.map(result.data, (e, mapCallback) => {
-                        let mailOptions = {
-                            from: '"no-reply" <no-reply@c_cfo.com>', // sender address
-                            to: `${e.user_emailAddress}`, // list of receivers
-                            subject: '[CLOUD-CFO]', // Subject line
-                            text: 'Task Overdue', // plain text body
-                            html: 'Task Overdue as assginee' // html body
+                        if(e.receiveNotification > 0){
+                            let mailOptions = {
+                                from: '"no-reply" <no-reply@c_cfo.com>', // sender address
+                                to: `${e.user_emailAddress}`, // list of receivers
+                                subject: '[CLOUD-CFO]', // Subject line
+                                text: 'Task Overdue', // plain text body
+                                html: 'Task Overdue as assginee' // html body
+                            }
+                            global.emailtransport(mailOptions)
+                            mapCallback(null)
+                        }else{
+                            mapCallback(null)
                         }
-                        global.emailtransport(mailOptions)
-                        mapCallback(null)
-
                     }, (err, ret) => { parallelCallback(null, ret); });
                 }
             },(error, asyncParallelResult) =>{
@@ -134,7 +137,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                 if (responsible.data.length > 0) {
                     async.parallel({
                         remindWorkstreamResponsible : (parallelCallback) => {
-                                async.map(responsible.data, (e, mapCallback) => {
+                            async.map(responsible.data, (e, mapCallback) => {
                                 reminder.postData("reminder", {
                                     linkType: "workstream",
                                     linkId: e.workstreamId,
@@ -142,22 +145,23 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                                     usersId: e.usersId,
                                     reminderDetail: "Task Overdue as responsible"
                                 }, () => { mapCallback(null) })
-                            }, (err, res) => {
-                                parallelCallback(null, res);
-                            });
+                            }, (err, res) => { parallelCallback(null, res); });
                         },
                         sendToEmail : (parallelCallback) => {
-                            async.map(result.data, (e, mapCallback) => {
-                                let mailOptions = {
-                                    from: '"no-reply" <no-reply@c_cfo.com>', // sender address
-                                    to: `${e.user_emailAddress}`, // list of receivers
-                                    subject: '[CLOUD-CFO]', // Subject line
-                                    text: 'Task Overdue', // plain text body
-                                    html: 'Task Overdue as responsible' // html body
+                            async.map(responsible.data, (e, mapCallback) => {
+                                if(e.receiveNotification > 0){
+                                    let mailOptions = {
+                                        from: '"no-reply" <no-reply@c_cfo.com>', // sender address
+                                        to: `${e.user_emailAddress}`, // list of receivers
+                                        subject: '[CLOUD-CFO]', // Subject line
+                                        text: 'Task Overdue', // plain text body
+                                        html: 'Task Overdue as responsible' // html body
+                                    }
+                                    global.emailtransport(mailOptions)
+                                    mapCallback(null)
+                                }else{
+                                    mapCallback(null)
                                 }
-                                global.emailtransport(mailOptions)
-                                mapCallback(null)
-        
                             }, (err, ret) => { parallelCallback(null, ret) });
                         }
                         
@@ -173,7 +177,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
             members.getTaskFollower(taskIds, (follower) => {
                 if (follower.data.length > 0) {
                     async.parallel({
-                       remindTaskFollower:()=>{ 
+                       remindTaskFollower:(parallelCallback)=>{ 
                            async.map(follower.data, (e, mapCallback) => {
                                 reminder.postData("reminder", {
                                     linkType: "task",
@@ -183,22 +187,23 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                                     reminderDetail: "Task Overdue as follower"
                                 }, () => { mapCallback(null) })
             
-                            }, (err, res) => {
-
-                            });
+                            }, (err, ret) => { parallelCallback(null, ret) });
                         },
                         sendToEmail : (parallelCallback) => {
-                            async.map(result.data, (e, mapCallback) => {
-                                let mailOptions = {
-                                    from: '"no-reply" <no-reply@c_cfo.com>', // sender address
-                                    to: `${e.user_emailAddress}`, // list of receivers
-                                    subject: '[CLOUD-CFO]', // Subject line
-                                    text: 'Task Overdue', // plain text body
-                                    html: 'Task Overdue as follower' // html body
+                            async.map(follower.data, (e, mapCallback) => {
+                                if(e.receiveNotification > 0){
+                                    let mailOptions = {
+                                        from: '"no-reply" <no-reply@c_cfo.com>', // sender address
+                                        to: `${e.user_emailAddress}`, // list of receivers
+                                        subject: '[CLOUD-CFO]', // Subject line
+                                        text: 'Task Overdue', // plain text body
+                                        html: 'Task Overdue as follower' // html body
+                                    }
+                                    global.emailtransport(mailOptions)
+                                    mapCallback(null)
+                                }else{
+                                    mapCallback(null)
                                 }
-                                global.emailtransport(mailOptions)
-                                mapCallback(null)
-        
                             }, (err, ret) => {  parallelCallback(null, ret)});
                         }
 
