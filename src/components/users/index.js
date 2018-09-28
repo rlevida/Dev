@@ -36,7 +36,7 @@ export default class Component extends React.Component {
                     <div class="col-md-12">
                         <h4 class="mt20 mb20">Users</h4>
                         {
-                            (projectList.length > 0) && <a class="more" onClick={(e) => dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })} >Add User</a>
+                            ((loggedUser.data.userType == "External" && projectList.length > 0) || loggedUser.data.userType == "Internal") && <a class="more" onClick={(e) => dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })} >Add User</a>
                         }
                         <User />
                     </div>
