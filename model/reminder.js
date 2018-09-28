@@ -36,7 +36,7 @@ var field = exports.field = {
     'linkId' : {type : 'int' , access : "public" },
     
     /**
-     * linkType (ENUM("task","document"))
+     * linkType (ENUM("task","document","workstream"))
      */
     'linkType' : {type : 'string' , access : "public" },
 
