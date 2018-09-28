@@ -171,8 +171,8 @@ export default class List extends React.Component {
                                         <div>
                                             <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
                                             <Tooltip id={`follower${index}`}>
-                                                {data.followersName.split(",").map(e => {
-                                                    return <p>{e != null ? e : ""} <br /></p>
+                                                {data.followersName.split(",").map( (e,fKey) => {
+                                                    return <p key={fKey}>{e != null ? e : ""} <br /></p>
                                                 })}
                                             </Tooltip>
                                         </div>
