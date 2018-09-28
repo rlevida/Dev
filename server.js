@@ -12,6 +12,9 @@ var http = require('http')
   , bodyParser = require('body-parser');
 
 // global configuration
+if (process.env.NODE_ENV !== "production") {
+    require('dotenv').config()
+}
 var config = require('./config');
 var serverAuth = require('./auth');
 require('./backup')

@@ -20,6 +20,7 @@
     "connect-redis": "^3.3.0",
     "cookie-parser": "^1.4.3",
     "deferred": "^0.7.5",
+    "dotenv": "^6.0.0",
     "ejs": "*",
     "excel-export": "^0.5.1",
     "express": "^4.14.0",
