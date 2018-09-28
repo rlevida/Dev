@@ -89,7 +89,7 @@ export default class FormComponent extends React.Component {
     markTaskAsCompleted() {
         let { socket, task, checklist } = this.props;
         let checklistToBeComplete = []
-        if( task.Selected.approvalRequired ){
+        if (task.Selected.approvalRequired) {
             $(`#approvalModal`).modal("show");
         } else {
             checklist.List.map((e, index) => {
@@ -118,7 +118,7 @@ export default class FormComponent extends React.Component {
         }
     }
 
-    approveTask(){
+    approveTask() {
         let { socket, task, checklist } = this.props;
         let checklistToBeComplete = []
         if (checklistToBeComplete.length == 0) {
@@ -134,7 +134,7 @@ export default class FormComponent extends React.Component {
         }
     }
 
-    rejectTask(){
+    rejectTask() {
         $(`#rejectMessageModal`).modal("show");
     }
 
@@ -205,7 +205,7 @@ export default class FormComponent extends React.Component {
     setDropDownMultiple(name, values) {
         let { checklist, task, dispatch } = this.props;
 
-        if (values.filter(e => { return e.value == "Document" }).length && typeof checklist.Selected.documents == "undefined") {
+        if (values.filter(e => { return e.value == "Document" }).length) {
             dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
             $('#uploadFileModal').modal({
                 backdrop: 'static',
@@ -349,8 +349,6 @@ export default class FormComponent extends React.Component {
             }
         }
 
-        console.log(checklist.Selected.documents)
-
         return (
             <div class="pd20">
                 <span class="pull-right" style={{ cursor: "pointer" }} onClick={() => { dispatch({ type: "SET_TASK_SELECTED", Selected: {} }); dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" }) }}><i class="fa fa-times-circle fa-lg"></i></span>
@@ -374,7 +372,7 @@ export default class FormComponent extends React.Component {
                             {(isVisible && allowToComplete && task.Selected.status != "For Approval") &&
                                 <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
                             }
-                            {(task.Selected.status == "For Approval" && task.Selected.approverId == loggedUser.data.id ) && 
+                            {(task.Selected.status == "For Approval" && task.Selected.approverId == loggedUser.data.id) &&
                                 <span>
                                     <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.approveTask()}>Approve</a>
                                     <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Reject Task" onClick={() => this.rejectTask()}>Reject</a>
@@ -530,7 +528,7 @@ export default class FormComponent extends React.Component {
                                 </div>
                             }
 
-                            {(typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents != "" && checklist.Selected.documents.length > 0) &&
+                            {(typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents != "" && checklist.Selected.documents != null) &&
                                 <div class="row" style={{ marginLeft: 7, marginTop: 5 }}>
                                     <div class="col-md-12 pdr0">
                                         <div class="form-group">
@@ -682,7 +680,7 @@ export default class FormComponent extends React.Component {
                                 }
                             </div>
                         </div>
-                        {(task.Selected.isActive > 0) && 
+                        {(task.Selected.isActive > 0) &&
                             <div class="row" style={{ marginLeft: 7 }}>
                                 <div class="col-md-4 pdr0">
                                     <label>Dependency Type</label>
