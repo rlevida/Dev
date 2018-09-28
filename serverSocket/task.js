@@ -155,9 +155,7 @@ var init = exports.init = (socket) => {
                                         if(c.status){
                                             reminder.getReminderList({},(e)=>{
                                                 if(e.data.length > 0) {
-                                                    if(d.data.action == "For Approval"){
-                                                        socket.broadcast.emit("FRONT_REMINDER_LIST",  e.data)
-                                                    }
+                                                    socket.broadcast.emit("FRONT_REMINDER_LIST",  e.data)
                                                     parallelCallback(null, "")
                                                 }else{
                                                     parallelCallback(null, "")
