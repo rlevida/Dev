@@ -1,1102 +1,717 @@
-DROP TABLE IF EXISTS `assignment`;
-CREATE TABLE IF NOT EXISTS `assignment` (
+DROP TABLE IF EXISTS `activity_feed`;
+CREATE TABLE IF NOT EXISTS `activity_feed` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) DEFAULT NULL,
-  `description` text,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `invokerUserId` bigint(20) DEFAULT NULL,
+  `linkType` enum('project','workstream','task','conversation') COLLATE utf8mb4_bin DEFAULT NULL,
+  `linkId` bigint(20) DEFAULT NULL,
+  `data` text COLLATE utf8mb4_bin,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-DROP TABLE IF EXISTS `assignment_detail`;
-CREATE TABLE IF NOT EXISTS `assignment_detail` (
+DROP TABLE IF EXISTS `activity_log`;
+CREATE TABLE IF NOT EXISTS `activity_log` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `assignmentId` bigint(20) DEFAULT NULL,
-  `code` varchar(255) DEFAULT NULL,
-  `title` varchar(255) DEFAULT NULL,
-  `description` text,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `invokerUserId` bigint(20) DEFAULT NULL,
+  `data` text COLLATE utf8mb4_bin,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-DROP TABLE IF EXISTS `branch`;
-CREATE TABLE IF NOT EXISTS `branch` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `seq` bigint(20) DEFAULT NULL,
-  `companyId` bigint(20) DEFAULT NULL,
-  `branch` varchar(50) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
-
-DROP TABLE IF EXISTS `chatbox`;
-CREATE TABLE IF NOT EXISTS `chatbox` (
+DROP TABLE IF EXISTS `checklist_type`;
+CREATE TABLE IF NOT EXISTS `checklist_type` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `type` varchar(20) DEFAULT NULL,
-  `trainingEventId` bigint(20) DEFAULT NULL,
-  `userIds` varchar(100) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `type` enum('Mandatory','Document') DEFAULT NULL,
+  `checklistId` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8;
-
-DROP TABLE IF EXISTS `chatbox_message`;
-CREATE TABLE IF NOT EXISTS `chatbox_message` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `trainingEventId` bigint(20) DEFAULT NULL,
-  `chatboxId` bigint(20) DEFAULT NULL,
-  `userId` bigint(20) DEFAULT NULL,
-  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
-  `type` varchar(30) DEFAULT NULL,
-  `isSystem` tinyint(1) DEFAULT '0',
-  `externalId` bigint(20) DEFAULT NULL,
-  `linkUserId` bigint(20) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=195 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=189 DEFAULT CHARSET=latin1;
 
 DROP TABLE IF EXISTS `company`;
 CREATE TABLE IF NOT EXISTS `company` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `companyName` varchar(50) DEFAULT NULL,
-  `industry` varchar(50) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
-
-DROP TABLE IF EXISTS `learning_group`;
-CREATE TABLE IF NOT EXISTS `learning_group` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `groupName` varchar(50) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `companyName` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `industry` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `isActive` tinyint(1) DEFAULT '1',
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-DROP TABLE IF EXISTS `learning_group_users`;
-CREATE TABLE IF NOT EXISTS `learning_group_users` (
-  `groupId` bigint(20) DEFAULT NULL,
-  `userId` bigint(20) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `application` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-DROP TABLE IF EXISTS `learning_journey`;
-CREATE TABLE IF NOT EXISTS `learning_journey` (
+DROP TABLE IF EXISTS `conversation`;
+CREATE TABLE IF NOT EXISTS `conversation` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `comment` text COLLATE utf8mb4_bin,
+  `usersId` bigint(20) DEFAULT NULL,
+  `linkType` enum('project','workstream','task') COLLATE utf8mb4_bin DEFAULT NULL,
+  `linkId` bigint(20) DEFAULT NULL,
+  `status` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-DROP TABLE IF EXISTS `learning_journey_detail`;
-CREATE TABLE IF NOT EXISTS `learning_journey_detail` (
-  `trainingModuleId` bigint(20) DEFAULT NULL,
-  `assignmentId` bigint(20) DEFAULT NULL,
-  `learningJourneyId` bigint(20) DEFAULT NULL,
-  `type` varchar(30) DEFAULT NULL,
-  `weight` double DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS `document`;
+CREATE TABLE IF NOT EXISTS `document` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` text,
+  `origin` text,
+  `uploadedBy` bigint(20) DEFAULT NULL,
+  `type` varchar(20) DEFAULT NULL,
+  `folderId` bigint(20) DEFAULT NULL,
+  `isDeleted` tinyint(1) DEFAULT '0',
+  `tags` text,
+  `status` enum('new','library','archived') DEFAULT NULL,
+  `isCompleted` tinyint(1) DEFAULT '0',
+  `documentNameCount` int(11) NOT NULL DEFAULT '0',
+  `attachmentId` int(11) NOT NULL DEFAULT '0',
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=latin1;
 
-DROP TABLE IF EXISTS `rank_position`;
-CREATE TABLE IF NOT EXISTS `rank_position` (
+DROP TABLE IF EXISTS `document_link`;
+CREATE TABLE IF NOT EXISTS `document_link` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `documentId` bigint(20) DEFAULT NULL,
+  `linkType` enum('project','workstream','task','conversation') COLLATE utf8mb4_bin DEFAULT NULL,
+  `linkId` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=108 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+DROP TABLE IF EXISTS `folder`;
+CREATE TABLE IF NOT EXISTS `folder` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` text COLLATE utf8mb4_bin,
+  `projectId` bigint(20) DEFAULT NULL,
+  `parentId` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isDeleted` tinyint(1) DEFAULT '0',
+  `isFolder` tinyint(1) DEFAULT '1',
+  `type` enum('new','library','archived') COLLATE utf8mb4_bin DEFAULT NULL,
+  `createdBy` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+DROP TABLE IF EXISTS `ip_block`;
+CREATE TABLE IF NOT EXISTS `ip_block` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `seq` bigint(20) DEFAULT NULL,
-  `companyId` bigint(20) DEFAULT NULL,
-  `position` varchar(50) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `ipAddress` varchar(30) COLLATE utf8mb4_bin DEFAULT NULL,
+  `failedTimes` int(2) DEFAULT NULL,
+  `dateFailed` datetime DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+DROP TABLE IF EXISTS `members`;
+CREATE TABLE IF NOT EXISTS `members` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `usersType` enum('users','team') DEFAULT NULL,
+  `userTypeLinkId` bigint(20) DEFAULT NULL,
+  `linkType` enum('project','workstream','task') DEFAULT NULL,
+  `linkId` bigint(20) DEFAULT NULL,
+  `memberType` enum('assignedTo','Follower','responsible','project manager') DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=220 DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `project`;
+CREATE TABLE IF NOT EXISTS `project` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `project` varchar(50) DEFAULT NULL,
+  `statusId` bigint(20) DEFAULT NULL,
+  `typeId` bigint(20) DEFAULT NULL,
+  `projectType` varchar(50) DEFAULT NULL,
+  `tinNo` varchar(50) DEFAULT NULL,
+  `companyAddress` varchar(50) DEFAULT NULL,
+  `classification` varchar(50) DEFAULT NULL,
+  `projectNameCount` int(11) NOT NULL DEFAULT '0',
+  `createdBy` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` tinyint(1) DEFAULT '1',
+  `isDeleted` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `reminder`;
+CREATE TABLE IF NOT EXISTS `reminder` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `reminderDetail` varchar(50) DEFAULT NULL,
+  `usersId` bigint(20) DEFAULT NULL,
+  `taskId` bigint(20) DEFAULT NULL,
+  `seen` tinyint(1) DEFAULT '0',
+  `projectId` bigint(20) DEFAULT NULL,
+  `reminderTypeId` bigint(20) DEFAULT NULL,
+  `reminderType` enum('task','document') DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `role`;
+CREATE TABLE IF NOT EXISTS `role` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `roleType` enum('Internal','External') COLLATE utf8mb4_bin DEFAULT NULL,
+  `role` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` tinyint(1) DEFAULT '1',
+  `isDeleted` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `session`;
 CREATE TABLE IF NOT EXISTS `session` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `session` varchar(50) DEFAULT NULL,
-  `userId` bigint(20) DEFAULT NULL,
-  `data` text,
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=536 DEFAULT CHARSET=utf8;
-
-DROP TABLE IF EXISTS `training_event`;
-CREATE TABLE IF NOT EXISTS `training_event` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `companyId` bigint(20) DEFAULT NULL,
-  `branchId` bigint(20) DEFAULT NULL,
-  `learningGroupId` bigint(20) DEFAULT NULL,
-  `learningJourneyId` bigint(20) DEFAULT NULL,
-  `userId` bigint(20) DEFAULT NULL,
-  `parallel` int(11) DEFAULT NULL,
-  `start_date` datetime DEFAULT NULL,
-  `end_date` datetime DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `session` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `usersId` bigint(20) DEFAULT NULL,
+  `data` text COLLATE utf8mb4_bin,
+  `expiredDate` datetime DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-DROP TABLE IF EXISTS `training_event_announcement`;
-CREATE TABLE IF NOT EXISTS `training_event_announcement` (
+DROP TABLE IF EXISTS `share`;
+CREATE TABLE IF NOT EXISTS `share` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `trainingEventId` bigint(20) DEFAULT NULL,
-  `announcement` text,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `usersType` enum('users','team') COLLATE utf8mb4_bin DEFAULT NULL,
+  `userTypeLinkId` bigint(20) DEFAULT NULL,
+  `linkType` enum('project','workstream','task') COLLATE utf8mb4_bin DEFAULT NULL,
+  `linkId` bigint(20) DEFAULT NULL,
+  `shareType` enum('document','folder') COLLATE utf8mb4_bin DEFAULT NULL,
+  `shareId` bigint(20) DEFAULT NULL,
+  `sharedBy` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-DROP TABLE IF EXISTS `training_event_answer`;
-CREATE TABLE IF NOT EXISTS `training_event_answer` (
+DROP TABLE IF EXISTS `starred`;
+CREATE TABLE IF NOT EXISTS `starred` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `trainingEventId` bigint(20) DEFAULT NULL,
-  `assignmentDetailId` bigint(20) DEFAULT NULL,
-  `userId` bigint(20) DEFAULT NULL,
-  `answer` text,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `usersId` bigint(20) DEFAULT NULL,
+  `linkType` enum('project','workstream','task','document','conversation') COLLATE utf8mb4_bin DEFAULT NULL,
+  `linkId` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` tinyint(1) DEFAULT '1',
+  `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-DROP TABLE IF EXISTS `training_event_comment`;
-CREATE TABLE IF NOT EXISTS `training_event_comment` (
+DROP TABLE IF EXISTS `status`;
+CREATE TABLE IF NOT EXISTS `status` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `trainingEventId` bigint(20) DEFAULT NULL,
-  `type` varchar(30) DEFAULT NULL,
-  `trainingModuleId` bigint(20) DEFAULT NULL,
-  `trainingEventAnswerId` bigint(20) DEFAULT NULL,
-  `userId` bigint(20) DEFAULT NULL,
-  `comment` text,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `status` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `linkType` enum('project','workstream','task') COLLATE utf8mb4_bin DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` tinyint(1) DEFAULT '1',
+  `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-DROP TABLE IF EXISTS `training_event_completion`;
-CREATE TABLE IF NOT EXISTS `training_event_completion` (
-  `trainingEventId` bigint(20) DEFAULT NULL,
-  `trainingModuleId` bigint(20) DEFAULT NULL,
-  `type` varchar(30) DEFAULT NULL,
-  `assignmentDetailId` bigint(20) DEFAULT NULL,
-  `userId` bigint(20) DEFAULT NULL,
-  `complete` tinyint(1) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-DROP TABLE IF EXISTS `training_event_like`;
-CREATE TABLE IF NOT EXISTS `training_event_like` (
+DROP TABLE IF EXISTS `tag`;
+CREATE TABLE IF NOT EXISTS `tag` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `trainingEventId` bigint(20) DEFAULT NULL,
-  `trainingEventAnswerId` bigint(20) DEFAULT NULL,
-  `type` varchar(30) DEFAULT NULL,
-  `trainingModuleId` bigint(20) DEFAULT NULL,
-  `assignmentDetailId` bigint(20) DEFAULT NULL,
-  `userId` bigint(20) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `indicator` varchar(50) DEFAULT NULL,
+  `linkType` enum('user','workstream','task','conversation','document','others','checklist') DEFAULT NULL,
+  `linkId` bigint(20) DEFAULT NULL,
+  `tagType` enum('user','workstream','task','conversation','document','folder','checklist') DEFAULT NULL,
+  `tagTypeId` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isCompleted` int(11) NOT NULL,
+  `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
 
-DROP TABLE IF EXISTS `training_event_saved`;
-CREATE TABLE IF NOT EXISTS `training_event_saved` (
+DROP TABLE IF EXISTS `task`;
+CREATE TABLE IF NOT EXISTS `task` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `trainingEventId` bigint(20) DEFAULT NULL,
-  `trainingEventAnswerId` bigint(20) DEFAULT NULL,
-  `type` varchar(30) DEFAULT NULL,
-  `trainingModuleId` bigint(20) DEFAULT NULL,
-  `assignmentDetailId` bigint(20) DEFAULT NULL,
-  `userId` bigint(20) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
-
-DROP TABLE IF EXISTS `training_event_users`;
-CREATE TABLE IF NOT EXISTS `training_event_users` (
-  `trainingEventId` bigint(20) DEFAULT NULL,
-  `userId` bigint(20) DEFAULT NULL,
-  `application` varchar(100) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-DROP TABLE IF EXISTS `training_modules`;
-CREATE TABLE IF NOT EXISTS `training_modules` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) DEFAULT NULL,
+  `projectId` bigint(20) DEFAULT NULL,
+  `task` text,
   `description` text,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `workstreamId` bigint(20) DEFAULT NULL,
+  `dueDate` datetime DEFAULT NULL,
+  `startDate` datetime DEFAULT NULL,
+  `status` enum('In Progress','For Approval','Completed') DEFAULT NULL,
+  `typeId` bigint(20) DEFAULT NULL,
+  `linkTaskId` bigint(20) DEFAULT NULL,
+  `periodic` tinyint(1) DEFAULT '0',
+  `periodType` enum('years','months','weeks','days') DEFAULT NULL,
+  `period` int(11) DEFAULT NULL,
+  `periodInstance` int(11) DEFAULT '0',
+  `periodTask` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` tinyint(1) DEFAULT '1',
+  `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 
-DROP TABLE IF EXISTS `user_last_seen`;
-CREATE TABLE IF NOT EXISTS `user_last_seen` (
+DROP TABLE IF EXISTS `task_checklist`;
+CREATE TABLE IF NOT EXISTS `task_checklist` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `userId` bigint(20) DEFAULT NULL,
-  `type` varchar(30) DEFAULT NULL,
-  `chatboxId` bigint(20) DEFAULT NULL,
-  `last_date_seen` datetime DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `completed` tinyint(1) DEFAULT '0',
+  `description` text,
+  `taskId` bigint(20) DEFAULT NULL,
+  `periodChecklist` bigint(20) DEFAULT NULL,
+  `documents` varchar(50) DEFAULT NULL,
+  `createdBy` int(11) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=118 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `task_dependency`;
+CREATE TABLE IF NOT EXISTS `task_dependency` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `taskId` bigint(20) DEFAULT NULL,
+  `dependencyType` enum('Preceding','Succeeding') DEFAULT NULL,
+  `linkTaskId` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isDeleted` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `team`;
+CREATE TABLE IF NOT EXISTS `team` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `teamLeaderId` int(11) NOT NULL,
+  `usersId` bigint(20) NOT NULL,
+  `team` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` tinyint(1) DEFAULT '1',
+  `isDeleted` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+DROP TABLE IF EXISTS `type`;
+CREATE TABLE IF NOT EXISTS `type` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `type` varchar(30) COLLATE utf8mb4_bin DEFAULT NULL,
+  `linkType` enum('project','workstream','task') COLLATE utf8mb4_bin DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` tinyint(1) DEFAULT '1',
+  `isDeleted` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `username` varchar(100) DEFAULT NULL,
-  `password` varchar(50) DEFAULT NULL,
-  `email` varchar(100) DEFAULT NULL,
-  `salt` varchar(50) DEFAULT NULL,
-  `firstName` varchar(50) DEFAULT NULL,
-  `middleName` varchar(50) DEFAULT NULL,
-  `lastName` varchar(50) DEFAULT NULL,
-  `userType` varchar(20) DEFAULT NULL,
-  `nationality` varchar(20) DEFAULT NULL,
-  `tel` varchar(20) DEFAULT NULL,
-  `birthday` varchar(12) DEFAULT NULL,
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `firstName` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `lastName` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `phoneNumber` varchar(20) COLLATE utf8mb4_bin DEFAULT NULL,
   `companyId` bigint(20) DEFAULT NULL,
-  `branchId` bigint(20) DEFAULT NULL,
-  `positionId` bigint(20) DEFAULT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `avatar` varchar(100) DEFAULT 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-  `oneSignalId` varchar(150) DEFAULT NULL,
+  `username` varchar(100) COLLATE utf8mb4_bin DEFAULT NULL,
+  `password` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `salt` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `userType` enum('Internal','External') COLLATE utf8mb4_bin DEFAULT NULL,
+  `avatar` text COLLATE utf8mb4_bin,
+  `emailAddress` varchar(100) COLLATE utf8mb4_bin DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` tinyint(1) DEFAULT '1',
+  `isDeleted` tinyint(1) DEFAULT '0',
+  `company` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `users_forgot_password`;
 CREATE TABLE IF NOT EXISTS `users_forgot_password` (
-  `userId` varchar(100) DEFAULT NULL,
-  `hash_word` varchar(50) DEFAULT NULL,
-  `date_added` datetime DEFAULT NULL,
-  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `usersId` varchar(100) COLLATE utf8mb4_bin DEFAULT NULL,
+  `hash` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-INSERT INTO `assignment` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (1,'Coaching','Identify a person you wish to coach on a particular issue. You need to have build report with this person and find a time where you will not be disturbed. Use the GROW model to help a \"on the job\" training situation',1,'2018-03-03 03:09:41.000','2018-03-19 15:11:38.000');
-INSERT INTO `assignment` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (2,'Path to Performance (p2p)','Identify a job you want your team to complete. Get your team together and run a p2p process for definition and completion of that job. Ensure you go through each of the six steps giving each step enough time to benefit from group synergy. The will want to rush through this to get on with the job. During brainstorming generate several ideas before you chose',1,'2018-03-02 11:10:58.000','2018-03-19 15:11:41.000');
-INSERT INTO `assignment` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (3,'Managing Difficult Conversations','Identify a conversation you need to have which is going to be difficult. Prepare some useful questions and use the 3xA to help the conversation flow from start to finish',1,'2018-04-03 05:10:41.000','2018-04-02 21:10:41.000');
-INSERT INTO `assignment` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (4,'Feedbafk','Situation, Behaviour, Impact',1,'2018-04-13 01:47:58.000','2018-04-12 17:47:58.000');
-INSERT INTO `assignment` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (5,'The difficult conversation','Difficults can sometimes get hot and your emotions tend to take over. 3XA is an easy tool to help you avoid becoming irrational during those conversations',1,'2018-04-13 01:52:04.000','2018-04-12 17:52:04.000');
+DROP TABLE IF EXISTS `users_role`;
+CREATE TABLE IF NOT EXISTS `users_role` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `usersId` bigint(20) DEFAULT NULL,
+  `roleId` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` tinyint(1) DEFAULT '1',
+  `isDeleted` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=97 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (1,1,'preAssignment','Situation and Planned Action','',1,NULL,'2018-03-19 15:34:25.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (2,1,'postAssignment1','Describe what happened','',1,NULL,'2018-03-19 15:34:27.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (3,1,'postAssignment2','Advice to Others','',1,NULL,'2018-03-19 16:15:59.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (4,2,'preAssignment','Situation and Planned Action','',1,NULL,'2018-03-19 15:34:34.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (5,2,'postAssignment1','Describe what happened','',1,NULL,'2018-03-19 15:34:36.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (6,2,'postAssignment2\r\n','Advice to Others','',1,NULL,'2018-03-20 07:34:38.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (7,2,'postAssignment2','My best advice to others','',1,'2018-04-03 04:29:46.000','2018-04-02 20:29:46.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (8,3,'preAssignment','Situation and Planned Action','',1,'2018-04-03 05:10:41.000','2018-04-02 21:10:41.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (9,3,'postAssignment1','What happened','',1,'2018-04-03 05:10:41.000','2018-04-02 21:10:41.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (10,3,'postAssignment2','My best advice to others','',1,'2018-04-03 05:10:41.000','2018-04-02 21:10:41.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (11,4,'preAssignment','Practising Feedback','Identify 3 people who you feel comfortable with giving feedback every day for a week. Ask them to prepare feedback for you as well',1,'2018-04-13 01:47:58.000','2018-04-12 17:47:58.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (12,4,'postAssignment1','Describe what happened','',1,'2018-04-13 01:47:58.000','2018-04-12 17:47:58.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (13,4,'postAssignment2','Your best advice to others','',1,'2018-04-13 01:47:58.000','2018-04-12 17:47:58.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (14,5,'preAssignment','The difficult conversation','Identify an individual where you know a difficult conversation will take place. A customer, a spouse, a friend, a colleague, a supplier etc. Use the 3XA model during this conversation',1,'2018-04-13 01:52:04.000','2018-04-12 17:52:04.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (15,5,'postAssignment2','Your best advice to others','',1,'2018-04-13 01:52:04.000','2018-04-12 17:52:04.000');
-INSERT INTO `assignment_detail` (`id`,`assignmentId`,`code`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (16,5,'postAssignment1','Describe what happened','',1,'2018-04-13 01:52:04.000','2018-04-12 17:52:04.000');
+DROP TABLE IF EXISTS `users_team`;
+CREATE TABLE IF NOT EXISTS `users_team` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `usersId` bigint(20) DEFAULT NULL,
+  `teamId` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` tinyint(1) DEFAULT '1',
+  `isDeleted` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-INSERT INTO `branch` (`id`,`seq`,`companyId`,`branch`,`active`,`date_added`,`date_updated`) VALUES (1,1,1,'HAL',1,'2018-03-20 06:59:10.000','2018-03-19 22:59:10.000');
-INSERT INTO `branch` (`id`,`seq`,`companyId`,`branch`,`active`,`date_added`,`date_updated`) VALUES (2,2,1,'AIDA Cruises',1,'2018-03-20 06:59:15.000','2018-03-19 22:59:15.000');
-INSERT INTO `branch` (`id`,`seq`,`companyId`,`branch`,`active`,`date_added`,`date_updated`) VALUES (3,1,2,'Netto',1,'2018-04-03 12:39:41.000','2018-04-03 04:39:41.000');
-INSERT INTO `branch` (`id`,`seq`,`companyId`,`branch`,`active`,`date_added`,`date_updated`) VALUES (4,2,2,'Bilka',1,'2018-04-03 04:39:58.000','2018-04-02 20:39:58.000');
-INSERT INTO `branch` (`id`,`seq`,`companyId`,`branch`,`active`,`date_added`,`date_updated`) VALUES (5,3,2,'Føtex',1,'2018-04-03 12:43:45.000','2018-04-03 04:43:45.000');
-INSERT INTO `branch` (`id`,`seq`,`companyId`,`branch`,`active`,`date_added`,`date_updated`) VALUES (7,1,4,'Manila',1,'2018-04-16 12:13:42.000','2018-04-16 04:13:42.000');
-INSERT INTO `branch` (`id`,`seq`,`companyId`,`branch`,`active`,`date_added`,`date_updated`) VALUES (8,1,7,'pilot 2',1,'2018-04-20 16:03:52.000','2018-04-20 08:03:52.000');
+DROP TABLE IF EXISTS `workstream`;
+CREATE TABLE IF NOT EXISTS `workstream` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `projectId` bigint(20) DEFAULT NULL,
+  `workstream` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `projectName` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `projectDescription` text COLLATE utf8mb4_bin,
+  `numberOfHours` bigint(20) DEFAULT NULL,
+  `statusId` bigint(20) DEFAULT NULL,
+  `typeId` bigint(20) DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `isActive` tinyint(1) DEFAULT '1',
+  `isDeleted` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (1,'eventGroup',1,NULL,1,'2018-03-20 15:44:56.000','2018-03-20 07:44:56.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (2,'eventGroup',2,NULL,1,'2018-03-20 17:52:38.000','2018-03-20 09:52:38.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (3,'peer2peer',1,'|||19|||20|||',1,'2018-03-22 18:49:16.000','2018-03-22 10:49:16.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (4,'eventGroup',3,NULL,1,'2018-03-28 15:43:45.000','2018-03-28 07:43:45.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (5,'peer2peer',2,'|||19|||20|||',1,'2018-04-13 12:57:44.000','2018-04-13 04:57:44.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (6,'peer2peer',2,'|||19|||23|||',1,'2018-04-13 15:03:39.000','2018-04-13 07:03:39.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (7,'peer2peer',2,'|||23|||20|||',1,'2018-04-13 16:18:57.000','2018-04-13 08:18:57.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (8,'peer2peer',3,'|||31|||28|||',1,'2018-04-17 09:52:02.000','2018-04-17 01:52:02.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (9,'peer2peer',3,'|||31|||27|||',1,'2018-04-20 09:54:06.000','2018-04-20 01:54:06.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (10,'peer2peer',3,'|||27|||28|||',1,'2018-04-25 17:41:35.000','2018-04-25 09:41:35.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (11,'peer2peer',3,'|||37|||28|||',1,'2018-04-26 05:19:30.000','2018-04-25 21:19:30.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (12,'peer2peer',8,'|||42|||38|||',1,'2018-04-26 19:46:26.000','2018-04-26 11:46:26.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (13,'eventGroup',8,'',1,'2018-04-26 19:46:47.000','2018-04-26 11:46:47.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (14,'peer2peer',8,'|||52|||49|||',1,'2018-04-27 11:55:56.000','2018-04-27 03:55:56.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (15,'peer2peer',3,'|||53|||31|||',1,'2018-05-03 12:43:14.000','2018-05-03 04:43:14.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (16,'eventGroup',NULL,NULL,1,'2018-05-28 06:08:30.000','2018-05-28 06:08:30.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (17,'eventGroup',NULL,NULL,1,'2018-05-28 06:08:31.000','2018-05-28 06:08:31.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (18,'eventGroup',NULL,NULL,1,'2018-05-28 06:18:21.000','2018-05-28 06:18:21.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (19,'eventGroup',NULL,NULL,1,'2018-05-28 06:22:42.000','2018-05-28 06:22:42.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (20,'eventGroup',NULL,NULL,1,'2018-05-28 06:24:53.000','2018-05-28 06:24:53.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (21,'eventGroup',NULL,NULL,1,'2018-05-28 06:28:38.000','2018-05-28 06:28:38.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (22,'eventGroup',NULL,NULL,1,'2018-05-28 06:32:44.000','2018-05-28 06:32:44.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (23,'eventGroup',NULL,NULL,1,'2018-05-28 06:34:57.000','2018-05-28 06:34:57.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (24,'eventGroup',NULL,NULL,1,'2018-05-28 06:36:35.000','2018-05-28 06:36:35.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (25,'eventGroup',NULL,NULL,1,'2018-05-28 06:36:44.000','2018-05-28 06:36:44.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (26,'eventGroup',NULL,NULL,1,'2018-05-28 06:36:48.000','2018-05-28 06:36:48.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (27,'eventGroup',NULL,NULL,1,'2018-05-28 06:36:52.000','2018-05-28 06:36:52.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (28,'eventGroup',NULL,NULL,1,'2018-05-28 06:36:56.000','2018-05-28 06:36:56.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (29,'eventGroup',NULL,NULL,1,'2018-05-28 06:37:02.000','2018-05-28 06:37:02.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (30,'eventGroup',NULL,NULL,1,'2018-05-28 06:37:07.000','2018-05-28 06:37:07.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (31,'eventGroup',NULL,NULL,1,'2018-05-28 06:37:27.000','2018-05-28 06:37:27.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (32,'eventGroup',NULL,NULL,1,'2018-05-28 06:37:37.000','2018-05-28 06:37:37.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (33,'eventGroup',NULL,NULL,1,'2018-05-28 06:37:50.000','2018-05-28 06:37:50.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (34,'eventGroup',NULL,NULL,1,'2018-05-28 06:37:56.000','2018-05-28 06:37:56.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (35,'eventGroup',NULL,NULL,1,'2018-05-28 06:38:01.000','2018-05-28 06:38:01.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (36,'eventGroup',NULL,NULL,1,'2018-05-28 06:38:11.000','2018-05-28 06:38:11.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (37,'eventGroup',NULL,NULL,1,'2018-05-28 06:40:40.000','2018-05-28 06:40:40.000');
-INSERT INTO `chatbox` (`id`,`type`,`trainingEventId`,`userIds`,`active`,`date_added`,`date_updated`) VALUES (38,'eventGroup',NULL,NULL,1,'2018-05-28 06:40:48.000','2018-05-28 06:40:48.000');
 
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (1,2,2,19,'Test',NULL,0,NULL,NULL,1,'2018-04-18 23:10:25.000','2018-04-18 15:10:25.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (2,2,2,19,'Test',NULL,0,NULL,NULL,1,'2018-04-18 23:11:51.000','2018-04-18 15:11:51.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (3,2,2,19,'Testr',NULL,0,NULL,NULL,1,'2018-04-18 23:12:11.000','2018-04-18 15:12:11.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (4,2,2,19,'Ytryrhd',NULL,0,NULL,NULL,1,'2018-04-18 23:13:35.000','2018-04-18 15:13:35.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (5,2,2,19,'Ytryrhdndndnx',NULL,0,NULL,NULL,1,'2018-04-18 23:13:37.000','2018-04-18 15:13:37.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (6,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-18 23:20:44.000','2018-04-18 15:20:44.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (7,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 00:17:36.000','2018-04-18 16:17:36.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (8,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 00:20:59.000','2018-04-18 16:20:59.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (9,2,2,20,'Twsr',NULL,0,NULL,NULL,1,'2018-04-19 00:22:11.000','2018-04-18 16:22:11.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (10,2,2,19,'Test',NULL,0,NULL,NULL,1,'2018-04-19 09:57:40.000','2018-04-19 01:57:40.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (11,2,2,19,'Test',NULL,0,NULL,NULL,1,'2018-04-19 10:18:53.000','2018-04-19 02:18:53.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (12,2,2,19,'Test',NULL,0,NULL,NULL,1,'2018-04-19 10:33:24.000','2018-04-19 02:33:24.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (13,2,2,19,'Tedt',NULL,0,NULL,NULL,1,'2018-04-19 10:33:29.000','2018-04-19 02:33:29.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (14,2,2,19,'Twst',NULL,0,NULL,NULL,1,'2018-04-19 10:33:33.000','2018-04-19 02:33:33.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (15,2,2,19,'Test',NULL,0,NULL,NULL,1,'2018-04-19 10:33:37.000','2018-04-19 02:33:37.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (16,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 13:20:49.000','2018-04-19 05:20:49.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (17,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 13:29:47.000','2018-04-19 05:29:47.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (18,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 13:30:26.000','2018-04-19 05:30:26.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (19,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 13:38:02.000','2018-04-19 05:38:02.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (20,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 13:38:08.000','2018-04-19 05:38:08.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (21,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 13:39:21.000','2018-04-19 05:39:21.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (22,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 13:40:14.000','2018-04-19 05:40:14.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (23,2,2,20,'Tesr',NULL,0,NULL,NULL,1,'2018-04-19 13:41:45.000','2018-04-19 05:41:45.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (24,2,2,20,'Terff',NULL,0,NULL,NULL,1,'2018-04-19 13:43:24.000','2018-04-19 05:43:24.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (25,2,2,20,'Ghgg',NULL,0,NULL,NULL,1,'2018-04-19 13:44:17.000','2018-04-19 05:44:17.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (26,2,2,20,'Thhfft\n\n\n\n',NULL,0,NULL,NULL,1,'2018-04-19 13:47:56.000','2018-04-19 05:47:56.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (27,2,2,20,'Gggffjjjj',NULL,0,NULL,NULL,1,'2018-04-19 13:49:47.000','2018-04-19 05:49:47.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (28,2,2,20,'Jjjjj',NULL,0,NULL,NULL,1,'2018-04-19 13:49:51.000','2018-04-19 05:49:51.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (29,2,2,20,'Gggggg',NULL,0,NULL,NULL,1,'2018-04-19 13:50:07.000','2018-04-19 05:50:07.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (30,2,2,20,'Jjjjjjjjhh',NULL,0,NULL,NULL,1,'2018-04-19 13:50:46.000','2018-04-19 05:50:46.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (31,2,2,20,'Uuhu',NULL,0,NULL,NULL,1,'2018-04-19 13:50:49.000','2018-04-19 05:50:49.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (32,2,2,20,'The ',NULL,0,NULL,NULL,1,'2018-04-19 13:51:32.000','2018-04-19 05:51:32.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (33,2,2,20,'Ghggvvv',NULL,0,NULL,NULL,1,'2018-04-19 13:54:14.000','2018-04-19 05:54:14.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (34,2,2,20,'Ghggvvv',NULL,0,NULL,NULL,1,'2018-04-19 13:54:25.000','2018-04-19 05:54:25.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (35,2,2,20,'Dfggg',NULL,0,NULL,NULL,1,'2018-04-19 13:56:41.000','2018-04-19 05:56:41.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (36,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 13:57:03.000','2018-04-19 05:57:03.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (37,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 13:57:10.000','2018-04-19 05:57:10.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (38,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 13:57:21.000','2018-04-19 05:57:21.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (39,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 13:59:20.000','2018-04-19 05:59:20.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (40,2,2,20,'Bbbbbjjjhh',NULL,0,NULL,NULL,1,'2018-04-19 13:59:31.000','2018-04-19 05:59:31.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (41,2,2,20,'Jjjjjjjhhhhhh',NULL,0,NULL,NULL,1,'2018-04-19 14:00:07.000','2018-04-19 06:00:07.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (42,2,2,20,'Ghhhhhhh',NULL,0,NULL,NULL,1,'2018-04-19 14:00:14.000','2018-04-19 06:00:14.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (43,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:00:43.000','2018-04-19 06:00:43.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (44,2,2,20,'Frfrgfffffgghh',NULL,0,NULL,NULL,1,'2018-04-19 14:13:37.000','2018-04-19 06:13:37.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (45,2,2,20,'Ghhgggg',NULL,0,NULL,NULL,1,'2018-04-19 14:19:27.000','2018-04-19 06:19:27.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (46,2,2,20,'Cvvggg',NULL,0,NULL,NULL,1,'2018-04-19 14:19:37.000','2018-04-19 06:19:37.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (47,2,2,20,'Ffggghhhhg',NULL,0,NULL,NULL,1,'2018-04-19 14:20:43.000','2018-04-19 06:20:43.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (48,2,2,20,'Cvvvvvvvvv',NULL,0,NULL,NULL,1,'2018-04-19 14:20:51.000','2018-04-19 06:20:51.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (49,2,2,20,'F',NULL,0,NULL,NULL,1,'2018-04-19 14:29:28.000','2018-04-19 06:29:28.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (50,2,2,20,'F',NULL,0,NULL,NULL,1,'2018-04-19 14:29:32.000','2018-04-19 06:29:32.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (51,2,2,20,'G',NULL,0,NULL,NULL,1,'2018-04-19 14:29:43.000','2018-04-19 06:29:43.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (52,2,2,20,'V',NULL,0,NULL,NULL,1,'2018-04-19 14:29:55.000','2018-04-19 06:29:55.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (53,2,2,20,'H',NULL,0,NULL,NULL,1,'2018-04-19 14:31:01.000','2018-04-19 06:31:01.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (54,2,2,20,'H',NULL,0,NULL,NULL,1,'2018-04-19 14:31:03.000','2018-04-19 06:31:03.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (55,2,2,20,'H',NULL,0,NULL,NULL,1,'2018-04-19 14:31:08.000','2018-04-19 06:31:08.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (56,2,2,20,'H',NULL,0,NULL,NULL,1,'2018-04-19 14:31:13.000','2018-04-19 06:31:13.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (57,2,2,20,'Gjgh',NULL,0,NULL,NULL,1,'2018-04-19 14:32:49.000','2018-04-19 06:32:49.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (58,2,2,20,'Gjgh',NULL,0,NULL,NULL,1,'2018-04-19 14:32:52.000','2018-04-19 06:32:52.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (59,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:34:42.000','2018-04-19 06:34:42.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (60,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:34:51.000','2018-04-19 06:34:51.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (61,2,2,20,'Ccvvv',NULL,0,NULL,NULL,1,'2018-04-19 14:34:58.000','2018-04-19 06:34:58.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (62,2,2,20,'Vvvvv',NULL,0,NULL,NULL,1,'2018-04-19 14:35:07.000','2018-04-19 06:35:07.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (63,2,2,20,'Njjjjj',NULL,0,NULL,NULL,1,'2018-04-19 14:35:14.000','2018-04-19 06:35:14.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (64,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:36:11.000','2018-04-19 06:36:11.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (65,2,2,20,'Hey',NULL,0,NULL,NULL,1,'2018-04-19 14:36:19.000','2018-04-19 06:36:19.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (66,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:40:40.000','2018-04-19 06:40:40.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (67,2,2,20,'Tesh',NULL,0,NULL,NULL,1,'2018-04-19 14:43:09.000','2018-04-19 06:43:09.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (68,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:44:37.000','2018-04-19 06:44:37.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (69,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:44:54.000','2018-04-19 06:44:54.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (70,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:45:02.000','2018-04-19 06:45:02.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (71,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:45:11.000','2018-04-19 06:45:11.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (72,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:46:15.000','2018-04-19 06:46:15.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (73,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:46:25.000','2018-04-19 06:46:25.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (74,2,2,20,'Yes',NULL,0,NULL,NULL,1,'2018-04-19 14:48:06.000','2018-04-19 06:48:06.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (75,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:49:28.000','2018-04-19 06:49:28.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (76,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:49:42.000','2018-04-19 06:49:42.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (77,2,2,20,'Ggggg',NULL,0,NULL,NULL,1,'2018-04-19 14:49:52.000','2018-04-19 06:49:52.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (78,2,2,20,'Lllllll',NULL,0,NULL,NULL,1,'2018-04-19 14:50:01.000','2018-04-19 06:50:01.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (79,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 14:50:46.000','2018-04-19 06:50:46.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (80,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 15:17:05.000','2018-04-19 07:17:05.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (81,2,2,20,'Ttrr',NULL,0,NULL,NULL,1,'2018-04-19 15:17:40.000','2018-04-19 07:17:40.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (82,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 15:18:45.000','2018-04-19 07:18:45.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (83,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 15:19:47.000','2018-04-19 07:19:47.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (84,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 15:24:40.000','2018-04-19 07:24:40.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (85,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 15:25:03.000','2018-04-19 07:25:03.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (86,2,2,20,'Hey',NULL,0,NULL,NULL,1,'2018-04-19 15:25:34.000','2018-04-19 07:25:34.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (87,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 15:30:23.000','2018-04-19 07:30:23.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (88,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 16:02:15.000','2018-04-19 08:02:15.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (89,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 16:02:33.000','2018-04-19 08:02:33.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (90,2,2,20,'T',NULL,0,NULL,NULL,1,'2018-04-19 16:03:09.000','2018-04-19 08:03:09.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (91,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 18:13:23.000','2018-04-19 10:13:23.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (92,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 18:15:27.000','2018-04-19 10:15:27.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (93,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-19 18:17:41.000','2018-04-19 10:17:41.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (94,3,4,27,'Wow what a busy morning competing my first assignment.  Was worth it though. ',NULL,0,NULL,NULL,1,'2018-04-20 08:02:35.000','2018-04-20 00:02:35.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (95,3,4,27,'Can’t wait for some action in here. ',NULL,0,NULL,NULL,1,'2018-04-20 08:30:40.000','2018-04-20 00:30:40.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (96,3,4,27,'Maybe we can come up with a cooler more descriptive name for this other than Activity Feed. Water cooler maybe? ',NULL,0,NULL,NULL,1,'2018-04-20 08:31:18.000','2018-04-20 00:31:18.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (97,2,5,20,'Test',NULL,0,NULL,NULL,1,'2018-04-20 08:55:17.000','2018-04-20 00:55:17.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (98,3,9,31,'We also need to add the chat icon next to each learning buddy',NULL,0,NULL,NULL,1,'2018-04-20 09:54:06.000','2018-04-20 01:54:06.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (99,3,9,31,'Do it will be clear you can chat to your peers from this screen',NULL,0,NULL,NULL,1,'2018-04-20 09:54:33.000','2018-04-20 01:54:33.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (100,3,9,31,'*so',NULL,0,NULL,NULL,1,'2018-04-20 09:54:45.000','2018-04-20 01:54:45.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (101,2,2,20,'the\nTest',NULL,0,NULL,NULL,1,'2018-04-20 10:40:33.000','2018-04-20 02:40:33.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (102,2,2,20,'The \nI’m ',NULL,0,NULL,NULL,1,'2018-04-20 10:40:45.000','2018-04-20 02:40:45.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (103,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-04-20 14:26:04.000','2018-04-20 06:26:04.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (104,3,4,28,'I am a bit nervous',NULL,0,NULL,NULL,1,'2018-04-20 14:28:47.000','2018-04-20 06:28:47.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (105,2,6,23,'Teet',NULL,0,NULL,NULL,1,'2018-04-23 20:45:11.000','2018-04-23 12:45:11.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (106,2,5,20,'Test',NULL,0,NULL,NULL,1,'2018-04-23 20:46:26.000','2018-04-23 12:46:26.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (107,2,7,23,'Test',NULL,0,NULL,NULL,1,'2018-04-23 20:51:56.000','2018-04-23 12:51:56.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (108,2,6,23,'Test',NULL,0,NULL,NULL,1,'2018-04-23 20:58:25.000','2018-04-23 12:58:25.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (109,2,6,23,'Test',NULL,0,NULL,NULL,1,'2018-04-23 20:58:34.000','2018-04-23 12:58:34.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (110,2,6,23,'Test',NULL,0,NULL,NULL,1,'2018-04-23 20:59:31.000','2018-04-23 12:59:31.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (111,2,6,23,'Test',NULL,0,NULL,NULL,1,'2018-04-23 21:17:33.000','2018-04-23 13:17:33.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (112,2,6,23,'Test',NULL,0,NULL,NULL,1,'2018-04-23 21:24:06.000','2018-04-23 13:24:06.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (113,2,6,23,'Test',NULL,0,NULL,NULL,1,'2018-04-23 21:42:27.000','2018-04-23 13:42:27.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (114,3,9,31,'Test',NULL,0,NULL,NULL,1,'2018-04-25 14:19:34.000','2018-04-25 06:19:34.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (115,3,9,31,'Test',NULL,0,NULL,NULL,1,'2018-04-25 14:19:41.000','2018-04-25 06:19:41.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (116,3,9,31,'Test',NULL,0,NULL,NULL,1,'2018-04-25 14:39:12.000','2018-04-25 06:39:12.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (117,3,9,31,'Test',NULL,0,NULL,NULL,1,'2018-04-25 14:39:30.000','2018-04-25 06:39:30.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (118,3,9,31,'Test',NULL,0,NULL,NULL,1,'2018-04-25 14:48:52.000','2018-04-25 06:48:52.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (119,3,9,31,'Test',NULL,0,NULL,NULL,1,'2018-04-25 15:47:03.000','2018-04-25 07:47:03.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (120,3,9,31,'Testing the Ivon',NULL,0,NULL,NULL,1,'2018-04-25 16:12:05.000','2018-04-25 08:12:05.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (121,3,10,27,'A direct message. How does this appear. Do you get notified?',NULL,0,NULL,NULL,1,'2018-04-25 17:41:35.000','2018-04-25 09:41:35.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (122,3,9,27,'Sending a DM. How do you learn about this?',NULL,0,NULL,NULL,1,'2018-04-25 17:41:52.000','2018-04-25 09:41:52.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (123,3,9,31,'Message received',NULL,0,NULL,NULL,1,'2018-04-25 17:58:44.000','2018-04-25 09:58:44.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (124,3,11,37,'Test',NULL,0,NULL,NULL,1,'2018-04-26 05:19:30.000','2018-04-25 21:19:30.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (125,3,9,27,'Hi Borja - just installed 1.5.1 testing now',NULL,0,NULL,NULL,1,'2018-04-26 08:35:47.000','2018-04-26 00:35:47.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (126,3,10,27,'Hi Michael',NULL,0,NULL,NULL,1,'2018-04-26 08:35:58.000','2018-04-26 00:35:58.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (127,3,4,27,'Unconnected message ',NULL,0,NULL,NULL,1,'2018-04-26 08:40:24.000','2018-04-26 00:40:24.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (128,8,12,42,'?',NULL,0,NULL,NULL,1,'2018-04-26 19:46:26.000','2018-04-26 11:46:26.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (129,8,13,49,'You can also send ‘regular’ messages to each other ',NULL,0,NULL,NULL,1,'2018-04-26 19:46:47.000','2018-04-26 11:46:47.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (130,8,13,49,'Hi team - it was great doing training with you. As mentioned, please complete the assignment by Thursday next week. And send lots of feedback on the app to my email please. ',NULL,0,NULL,NULL,1,'2018-04-26 20:13:55.000','2018-04-26 12:13:55.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (131,8,14,52,'You getting this??',NULL,0,NULL,NULL,1,'2018-04-27 11:55:56.000','2018-04-27 03:55:56.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (132,8,14,49,'Yes I am. These direct messages are a bit hard to find out about. We need to integrate in the other flow i feel.',NULL,0,NULL,NULL,1,'2018-04-27 15:47:31.000','2018-04-27 07:47:31.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (133,8,14,52,'Agree',NULL,0,NULL,NULL,1,'2018-04-30 19:54:15.000','2018-04-30 11:54:15.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (134,3,15,53,'Hi Borja',NULL,0,NULL,NULL,1,'2018-05-03 12:43:14.000','2018-05-03 04:43:14.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (135,3,15,53,'I would like to know what does the App do specifically?',NULL,0,NULL,NULL,1,'2018-05-03 12:44:03.000','2018-05-03 04:44:03.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (136,3,15,53,'And what are the target audience?',NULL,0,NULL,NULL,1,'2018-05-03 12:44:15.000','2018-05-03 04:44:15.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (137,8,14,52,'Getting this again?',NULL,0,NULL,NULL,1,'2018-05-04 00:49:33.000','2018-05-03 16:49:33.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (138,3,15,31,'I will explain you over skype ;)',NULL,0,NULL,NULL,1,'2018-05-04 10:20:54.000','2018-05-04 02:20:54.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (139,8,13,51,'I am so excited to see how you are using this! Sorry for my silence I have had some issues with getting set up but I’m here now! Really looking forward to seeing you on Monday! All the best Megan',NULL,0,NULL,NULL,1,'2018-05-04 20:37:40.000','2018-05-04 12:37:40.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (140,8,13,49,'Great to have you join the conversation, Megan. I had some issues myself getting into the assignment, but luckily the rest of the team didn’t experience that. Ida Marie and I are on a flight tomorrow, so will have to skip the live training but Michael has promised to record it for us so we can still participate in the assignments. ',NULL,0,NULL,NULL,1,'2018-05-06 08:23:01.000','2018-05-06 00:23:01.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (141,2,2,19,'Test',NULL,0,NULL,NULL,1,'2018-05-15 10:50:15.000','2018-05-15 10:50:15.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (142,2,2,19,'',NULL,0,NULL,NULL,1,'2018-05-15 10:50:20.000','2018-05-15 10:50:20.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (143,2,2,19,'No test',NULL,0,NULL,NULL,1,'2018-05-15 10:50:35.000','2018-05-15 10:50:35.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (144,2,2,19,'',NULL,0,NULL,NULL,1,'2018-05-15 10:50:40.000','2018-05-15 10:50:40.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (145,3,4,31,'Test',NULL,0,NULL,NULL,1,'2018-05-16 10:11:16.000','2018-05-16 10:11:16.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (146,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-05-16 11:44:23.000','2018-05-16 11:44:23.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (147,2,2,20,'',NULL,0,NULL,NULL,1,'2018-05-16 11:44:23.000','2018-05-16 11:44:23.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (148,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-05-16 11:47:52.000','2018-05-16 11:47:52.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (149,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-05-16 11:53:32.000','2018-05-16 11:53:32.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (150,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-05-16 12:13:51.000','2018-05-16 12:13:51.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (151,2,2,20,'',NULL,0,NULL,NULL,1,'2018-05-16 12:13:51.000','2018-05-16 12:13:51.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (152,2,2,20,'',NULL,0,NULL,NULL,1,'2018-05-16 12:13:58.000','2018-05-16 12:13:58.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (153,2,2,20,'Test2',NULL,0,NULL,NULL,1,'2018-05-16 12:14:24.000','2018-05-16 12:14:24.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (154,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-05-16 12:19:51.000','2018-05-16 12:19:51.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (155,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-05-16 12:25:46.000','2018-05-16 12:25:46.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (156,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-05-17 10:34:11.000','2018-05-17 10:34:11.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (157,2,2,20,'Test2',NULL,0,NULL,NULL,1,'2018-05-17 10:34:36.000','2018-05-17 10:34:36.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (158,2,2,20,'Test 3',NULL,0,NULL,NULL,1,'2018-05-17 10:34:44.000','2018-05-17 10:34:44.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (159,2,2,20,'Test5',NULL,0,NULL,NULL,1,'2018-05-17 10:34:57.000','2018-05-17 10:34:57.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (160,2,2,20,'Test6',NULL,0,NULL,NULL,1,'2018-05-17 10:35:26.000','2018-05-17 10:35:26.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (161,2,2,20,'Test7',NULL,0,NULL,NULL,1,'2018-05-17 10:35:52.000','2018-05-17 10:35:52.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (162,2,7,20,'Test',NULL,0,NULL,NULL,1,'2018-05-17 10:50:12.000','2018-05-17 10:50:12.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (163,2,2,23,'Test coment',NULL,0,NULL,NULL,1,'2018-05-23 09:25:09.000','2018-05-23 09:25:09.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (164,2,2,19,'Test',NULL,0,NULL,NULL,1,'2018-05-25 07:40:42.000','2018-05-25 07:40:42.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (165,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-05-28 02:39:35.000','2018-05-28 02:39:35.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (166,2,7,20,'Test',NULL,0,NULL,NULL,1,'2018-05-28 03:04:35.000','2018-05-28 03:04:35.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (167,2,7,20,'Test',NULL,0,NULL,NULL,1,'2018-05-28 03:13:20.000','2018-05-28 03:13:20.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (168,2,2,19,'Test',NULL,0,NULL,NULL,1,'2018-05-28 03:15:08.000','2018-05-28 03:15:08.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (169,2,2,19,'Test3',NULL,0,NULL,NULL,1,'2018-05-28 03:16:27.000','2018-05-28 03:16:27.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (170,2,2,19,'Test4',NULL,0,NULL,NULL,1,'2018-05-28 03:20:06.000','2018-05-28 03:20:06.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (171,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-05-28 05:45:09.000','2018-05-28 05:45:09.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (172,2,2,20,'Test',NULL,0,NULL,NULL,1,'2018-05-28 06:07:10.000','2018-05-28 06:07:10.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (173,2,2,20,'Test2',NULL,0,NULL,NULL,1,'2018-05-28 06:08:06.000','2018-05-28 06:08:06.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (174,2,7,20,'Test 2',NULL,0,NULL,NULL,1,'2018-05-28 06:08:30.000','2018-05-28 06:08:30.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (175,2,6,19,'Test',NULL,0,NULL,NULL,1,'2018-05-28 06:36:52.000','2018-05-28 06:36:52.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (176,2,7,20,'Test 3',NULL,0,NULL,NULL,1,'2018-05-28 06:44:14.000','2018-05-28 06:44:14.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (177,2,7,23,'Test 5',NULL,0,NULL,NULL,1,'2018-05-28 07:06:20.000','2018-05-28 07:06:20.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (178,2,7,20,'Test 6',NULL,0,NULL,NULL,1,'2018-05-28 07:07:11.000','2018-05-28 07:07:11.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (179,2,7,20,'Test 7',NULL,0,NULL,NULL,1,'2018-05-28 07:48:31.000','2018-05-28 07:48:31.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (180,2,2,20,'Test 3',NULL,0,NULL,NULL,1,'2018-05-28 09:11:33.000','2018-05-28 09:11:33.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (181,2,2,20,'Test 10',NULL,0,NULL,NULL,1,'2018-05-28 09:24:20.000','2018-05-28 09:24:20.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (182,2,7,20,'Test',NULL,0,NULL,NULL,1,'2018-05-28 09:24:39.000','2018-05-28 09:24:39.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (183,2,7,20,'Test',NULL,0,NULL,NULL,1,'2018-05-28 09:29:04.000','2018-05-28 09:29:04.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (184,2,5,20,'Test',NULL,0,NULL,NULL,1,'2018-05-28 09:29:12.000','2018-05-28 09:29:12.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (185,2,7,20,'Hell',NULL,0,NULL,NULL,1,'2018-05-28 09:32:57.000','2018-05-28 09:32:57.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (186,2,5,19,'Test 10',NULL,0,NULL,NULL,1,'2018-05-28 10:36:43.000','2018-05-28 10:36:43.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (187,2,5,19,'Test 11',NULL,0,NULL,NULL,1,'2018-05-28 10:36:47.000','2018-05-28 10:36:47.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (188,2,2,23,'Test',NULL,0,NULL,NULL,1,'2018-05-28 10:47:09.000','2018-05-28 10:47:09.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (189,2,2,20,'Test 11',NULL,0,NULL,NULL,1,'2018-05-29 08:47:22.000','2018-05-29 08:47:22.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (190,2,2,20,'Test 12',NULL,0,NULL,NULL,1,'2018-05-29 08:48:57.000','2018-05-29 08:48:57.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (191,2,7,20,'Test',NULL,0,NULL,NULL,1,'2018-05-29 08:55:55.000','2018-05-29 08:55:55.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (192,2,5,19,'Test 10',NULL,0,NULL,NULL,1,'2018-05-29 09:17:15.000','2018-05-29 09:17:15.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (193,2,2,19,'Test',NULL,0,NULL,NULL,1,'2018-06-19 09:50:53.000','2018-06-19 09:50:53.000');
-INSERT INTO `chatbox_message` (`id`,`trainingEventId`,`chatboxId`,`userId`,`message`,`type`,`isSystem`,`externalId`,`linkUserId`,`active`,`date_added`,`date_updated`) VALUES (194,2,2,19,'Test',NULL,0,NULL,NULL,1,'2018-06-19 09:53:18.000','2018-06-19 09:53:18.000');
 
-INSERT INTO `company` (`id`,`companyName`,`industry`,`active`,`date_added`,`date_updated`) VALUES (1,'Carnival Corporation','Cruise',1,'2018-03-20 06:57:51.000','2018-03-19 22:57:51.000');
-INSERT INTO `company` (`id`,`companyName`,`industry`,`active`,`date_added`,`date_updated`) VALUES (2,'Danish Supermarket Group','Retail',1,'2018-04-03 04:39:17.000','2018-04-02 20:39:17.000');
-INSERT INTO `company` (`id`,`companyName`,`industry`,`active`,`date_added`,`date_updated`) VALUES (3,'Marine Performer','Maritime',1,'2018-04-10 11:38:08.000','2018-04-10 03:38:08.000');
-INSERT INTO `company` (`id`,`companyName`,`industry`,`active`,`date_added`,`date_updated`) VALUES (4,'Pilot 1','Temporary Agency',1,'2018-04-13 21:10:31.000','2018-04-13 13:10:31.000');
-INSERT INTO `company` (`id`,`companyName`,`industry`,`active`,`date_added`,`date_updated`) VALUES (7,'Pilot 2','All',1,'2018-04-20 16:03:03.000','2018-04-20 08:03:03.000');
 
-INSERT INTO `learning_group` (`id`,`groupName`,`active`,`date_added`,`date_updated`) VALUES (1,'BPO Company',1,'2018-03-20 15:01:52.000','2018-03-20 07:01:52.000');
 
-INSERT INTO `learning_group_users` (`groupId`,`userId`,`active`,`date_added`,`date_updated`,`application`) VALUES (1,19,1,'2018-03-20 15:01:52.000','2018-03-20 07:01:52.000','marine-performer');
-INSERT INTO `learning_group_users` (`groupId`,`userId`,`active`,`date_added`,`date_updated`,`application`) VALUES (1,20,1,'2018-03-20 15:01:52.000','2018-03-20 07:01:52.000','marine-performer');
+INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (181,'Mandatory',27,'2018-09-27 16:45:32.000','2018-09-27 16:45:32.000');
+INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (182,'Document',27,'2018-09-27 16:45:32.000','2018-09-27 16:45:32.000');
+INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (183,'Mandatory',28,'2018-09-27 16:45:32.000','2018-09-27 16:45:32.000');
+INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (184,'Document',28,'2018-09-27 16:45:32.000','2018-09-27 16:45:32.000');
+INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (185,'Document',25,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000');
+INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (186,'Mandatory',25,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000');
+INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (187,'Document',26,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000');
+INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (188,'Mandatory',26,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000');
 
-INSERT INTO `learning_journey` (`id`,`title`,`active`,`date_added`,`date_updated`) VALUES (1,'Leading Line',1,'2018-03-18 07:03:13.000','2018-03-17 23:03:13.000');
-INSERT INTO `learning_journey` (`id`,`title`,`active`,`date_added`,`date_updated`) VALUES (2,'Store Manager Accelerator',1,'2018-04-02 20:45:55.000','2018-04-02 12:45:55.000');
-INSERT INTO `learning_journey` (`id`,`title`,`active`,`date_added`,`date_updated`) VALUES (3,'Conflict resolution',1,'2018-04-10 15:46:53.000','2018-04-10 07:46:53.000');
-INSERT INTO `learning_journey` (`id`,`title`,`active`,`date_added`,`date_updated`) VALUES (4,'Pilot',1,'2018-04-11 09:52:41.000','2018-04-11 01:52:41.000');
 
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (9,NULL,3,'trainingModule',30,1,'2018-04-10 15:46:53.000','2018-04-10 07:46:53.000');
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (10,NULL,3,'trainingModule',70,1,'2018-04-10 15:46:53.000','2018-04-10 07:46:53.000');
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (NULL,2,1,'assignment',20,1,'2018-04-10 16:00:37.000','2018-04-10 08:00:37.000');
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (NULL,1,1,'assignment',20,1,'2018-04-10 16:00:37.000','2018-04-10 08:00:37.000');
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (6,NULL,1,'trainingModule',20,1,'2018-04-10 16:00:37.000','2018-04-10 08:00:37.000');
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (NULL,3,1,'assignment',20,1,'2018-04-10 16:00:37.000','2018-04-10 08:00:37.000');
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (9,NULL,1,'trainingModule',20,1,'2018-04-10 16:00:37.000','2018-04-10 08:00:37.000');
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (NULL,4,5,'assignment',50,1,'2018-04-13 01:54:20.000','2018-04-12 17:54:20.000');
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (NULL,3,5,'assignment',50,1,'2018-04-13 01:54:20.000','2018-04-12 17:54:20.000');
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (NULL,3,4,'assignment',100,1,'2018-04-26 19:25:40.000','2018-04-26 11:25:40.000');
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (NULL,2,2,'assignment',25,1,'2018-05-23 06:24:19.000','2018-05-23 06:24:19.000');
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (NULL,3,2,'assignment',50,1,'2018-05-23 06:24:19.000','2018-05-23 06:24:19.000');
-INSERT INTO `learning_journey_detail` (`trainingModuleId`,`assignmentId`,`learningJourneyId`,`type`,`weight`,`active`,`date_added`,`date_updated`) VALUES (NULL,4,2,'assignment',25,1,'2018-05-23 06:24:19.000','2018-05-23 06:24:19.000');
 
-INSERT INTO `rank_position` (`id`,`seq`,`companyId`,`position`,`active`,`date_added`,`date_updated`) VALUES (1,1,1,'Captain',1,'2018-03-20 06:59:27.000','2018-03-19 22:59:27.000');
-INSERT INTO `rank_position` (`id`,`seq`,`companyId`,`position`,`active`,`date_added`,`date_updated`) VALUES (2,2,1,'Staff Captain',1,'2018-03-20 06:59:53.000','2018-03-19 22:59:53.000');
-INSERT INTO `rank_position` (`id`,`seq`,`companyId`,`position`,`active`,`date_added`,`date_updated`) VALUES (3,3,1,'Chief Engineer',1,'2018-04-03 12:02:49.000','2018-04-03 04:02:49.000');
-INSERT INTO `rank_position` (`id`,`seq`,`companyId`,`position`,`active`,`date_added`,`date_updated`) VALUES (4,4,1,'First Engineer',1,'2018-04-03 12:03:11.000','2018-04-03 04:03:11.000');
-INSERT INTO `rank_position` (`id`,`seq`,`companyId`,`position`,`active`,`date_added`,`date_updated`) VALUES (5,5,1,'HR Manager',1,'2018-04-03 12:03:27.000','2018-04-03 04:03:27.000');
-INSERT INTO `rank_position` (`id`,`seq`,`companyId`,`position`,`active`,`date_added`,`date_updated`) VALUES (6,1,4,'Executive Assistant',1,'2018-04-16 12:08:28.000','2018-04-16 04:08:28.000');
-INSERT INTO `rank_position` (`id`,`seq`,`companyId`,`position`,`active`,`date_added`,`date_updated`) VALUES (7,2,4,'Director',1,'2018-04-16 12:08:43.000','2018-04-16 04:08:43.000');
-INSERT INTO `rank_position` (`id`,`seq`,`companyId`,`position`,`active`,`date_added`,`date_updated`) VALUES (8,3,4,'Travel Advisor',1,'2018-04-16 12:08:57.000','2018-04-16 04:08:57.000');
+INSERT INTO `conversation` (`id`,`comment`,`usersId`,`linkType`,`linkId`,`status`,`dateAdded`,`dateUpdated`,`isDeleted`) VALUES (1,'{[Ivan Pintor](11)} \nWhy do we use it?\nIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using \'Content here, content here\', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for \'lorem ipsum\' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).',6,'task',1,NULL,'2018-09-21 16:09:17.000','2018-09-21 16:09:17.000',0);
+INSERT INTO `conversation` (`id`,`comment`,`usersId`,`linkType`,`linkId`,`status`,`dateAdded`,`dateUpdated`,`isDeleted`) VALUES (2,'{[John Aldrin1 Tapia1](1)} Testing this comment.',1,'task',3,NULL,'2018-09-26 13:02:33.000','2018-09-26 13:02:33.000',0);
 
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (74,'2DwRGbGmneNQoXZZupNZpjxzYgwyEHfYWaznybKAAwTy',29,'{\"id\":29,\"username\":\"Dan\",\"email\":\"dan_123@gmail.com\",\"firstName\":\"Daniel\",\"middleName\":null,\"lastName\":\"Garbeles\",\"userType\":\"participant\",\"nationality\":\"filipino\",\"tel\":\"123456789\",\"birthday\":\"1982 Mar 6 U\",\"companyId\":1,\"branchId\":2,\"positionId\":1,\"active\":1,\"date_added\":\"2018-03-28T07:37:13.000Z\",\"date_updated\":\"2018-04-24T06:30:45.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":null,\"rank_position_id\":1,\"rank_position_companyId\":1,\"rank_position_position\":\"Captain\",\"rank_position_seq\":1,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-03-19T22:59:27.000Z\",\"rank_position_date_updated\":\"2018-03-19T22:59:27.000Z\",\"branch_id\":2,\"branch_companyId\":1,\"branch_branch\":\"AIDA Cruises\",\"branch_seq\":2,\"branch_active\":1,\"branch_date_added\":\"2018-03-19T22:59:15.000Z\",\"branch_date_updated\":\"2018-03-19T22:59:15.000Z\",\"company_id\":1,\"company_companyName\":\"Carnival Corporation\",\"company_industry\":\"Cruise\",\"company_active\":1,\"company_date_added\":\"2018-03-19T22:57:51.000Z\",\"company_date_updated\":\"2018-03-19T22:57:51.000Z\"}','2018-04-26 19:40:18.000','2018-04-26 11:40:17.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (123,'FrFBbhTrParPPu2RePTe8USpLYpYDMd5WaYLJSRj9Hw6',25,'{\"id\":25,\"username\":\"Paul_admin\",\"email\":\"postergaard@sigrid.ai\",\"firstName\":null,\"middleName\":null,\"lastName\":null,\"userType\":\"admin\",\"nationality\":null,\"tel\":null,\"birthday\":null,\"companyId\":null,\"branchId\":null,\"positionId\":null,\"active\":1,\"date_added\":\"2018-03-28T07:30:47.000Z\",\"date_updated\":\"2018-04-10T07:14:18.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":null,\"rank_position_id\":null,\"rank_position_companyId\":null,\"rank_position_position\":null,\"rank_position_seq\":null,\"rank_position_active\":null,\"rank_position_date_added\":null,\"rank_position_date_updated\":null,\"branch_id\":null,\"branch_companyId\":null,\"branch_branch\":null,\"branch_seq\":null,\"branch_active\":null,\"branch_date_added\":null,\"branch_date_updated\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_active\":null,\"company_date_added\":null,\"company_date_updated\":null}','2018-04-26 17:26:15.000','2018-04-26 09:27:38.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (125,'Ba3AGd72mz9RZePodNpkvVqVQNCr1fybS2y6yUJxLzgS',24,'{\"id\":24,\"username\":\"Michael_admin\",\"email\":\"mhw@marineperformer.com\",\"firstName\":null,\"middleName\":null,\"lastName\":null,\"userType\":\"admin\",\"nationality\":null,\"tel\":null,\"birthday\":null,\"companyId\":null,\"branchId\":null,\"positionId\":null,\"active\":1,\"date_added\":\"2018-03-28T07:30:26.000Z\",\"date_updated\":\"2018-03-28T07:37:29.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":null,\"rank_position_id\":null,\"rank_position_companyId\":null,\"rank_position_position\":null,\"rank_position_seq\":null,\"rank_position_active\":null,\"rank_position_date_added\":null,\"rank_position_date_updated\":null,\"branch_id\":null,\"branch_companyId\":null,\"branch_branch\":null,\"branch_seq\":null,\"branch_active\":null,\"branch_date_added\":null,\"branch_date_updated\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_active\":null,\"company_date_added\":null,\"company_date_updated\":null}','2018-04-24 12:51:11.000','2018-04-26 11:28:20.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (161,'3UtKieSRv7p6gY5rtCyZoJKWq8oRoeygbxcBvJWWKyhf',37,'{\"id\":37,\"username\":\"Roger\",\"email\":\"roger@lipstickdesign.com\",\"firstName\":\"Roger\",\"middleName\":null,\"lastName\":\"Henriksen\",\"userType\":\"trainee\",\"nationality\":\"norwegian\",\"tel\":\"0000000\",\"birthday\":\"2018 Apr 11 \",\"companyId\":1,\"branchId\":2,\"positionId\":1,\"active\":1,\"date_added\":\"2018-04-12T14:08:59.000Z\",\"date_updated\":\"2018-04-12T16:24:50.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/Roger-1523550354.jpg\",\"oneSignalId\":\"a81ede26-d739-4a88-8666-5670a64a72e8\",\"rank_position_id\":1,\"rank_position_companyId\":1,\"rank_position_position\":\"Captain\",\"rank_position_seq\":1,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-03-19T22:59:27.000Z\",\"rank_position_date_updated\":\"2018-03-19T22:59:27.000Z\",\"branch_id\":2,\"branch_companyId\":1,\"branch_branch\":\"AIDA Cruises\",\"branch_seq\":2,\"branch_active\":1,\"branch_date_added\":\"2018-03-19T22:59:15.000Z\",\"branch_date_updated\":\"2018-03-19T22:59:15.000Z\",\"company_id\":1,\"company_companyName\":\"Carnival Corporation\",\"company_industry\":\"Cruise\",\"company_active\":1,\"company_date_added\":\"2018-03-19T22:57:51.000Z\",\"company_date_updated\":\"2018-03-19T22:57:51.000Z\"}','2018-04-20 22:13:05.000','2018-04-20 14:13:05.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (344,'7dyoVBjeujiRLj8X1SghZJHSSVtj8S55A9vXqYz5fdSR',1,'{\"id\":1,\"username\":\"admin\",\"email\":\"johnaldrin.tapia@volenday.com\",\"firstName\":null,\"middleName\":null,\"lastName\":null,\"userType\":\"admin\",\"nationality\":null,\"tel\":null,\"birthday\":null,\"companyId\":null,\"branchId\":null,\"positionId\":null,\"active\":1,\"date_added\":null,\"date_updated\":\"2018-06-14T01:28:16.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":null,\"rank_position_id\":null,\"rank_position_companyId\":null,\"rank_position_position\":null,\"rank_position_seq\":null,\"rank_position_active\":null,\"rank_position_date_added\":null,\"rank_position_date_updated\":null,\"branch_id\":null,\"branch_companyId\":null,\"branch_branch\":null,\"branch_seq\":null,\"branch_active\":null,\"branch_date_added\":null,\"branch_date_updated\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_active\":null,\"company_date_added\":null,\"company_date_updated\":null}','2018-06-20 15:03:21.000','2018-06-20 15:44:26.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (345,'6pbTfkgVAPapkVQb2fGYkgjUNPrcVxypKMLr2nKmsf5Z',45,'{\"id\":45,\"username\":\"Athena\",\"email\":\"adelmo@sigrid.ai\",\"firstName\":\"Athena Delmo\",\"middleName\":null,\"lastName\":null,\"userType\":\"participant\",\"nationality\":null,\"tel\":null,\"birthday\":null,\"companyId\":4,\"branchId\":7,\"positionId\":6,\"active\":1,\"date_added\":\"2018-04-13T13:24:41.000Z\",\"date_updated\":\"2018-04-26T10:17:17.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":null,\"rank_position_id\":6,\"rank_position_companyId\":4,\"rank_position_position\":\"Executive Assistant\",\"rank_position_seq\":1,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-04-16T04:08:28.000Z\",\"rank_position_date_updated\":\"2018-04-16T04:08:28.000Z\",\"branch_id\":7,\"branch_companyId\":4,\"branch_branch\":\"Manila\",\"branch_seq\":1,\"branch_active\":1,\"branch_date_added\":\"2018-04-16T04:13:42.000Z\",\"branch_date_updated\":\"2018-04-16T04:13:42.000Z\",\"company_id\":4,\"company_companyName\":\"Pilot 1\",\"company_industry\":\"Temporary Agency\",\"company_active\":1,\"company_date_added\":\"2018-04-13T13:10:31.000Z\",\"company_date_updated\":\"2018-04-13T13:10:31.000Z\"}','2018-04-26 18:58:59.000','2018-04-26 10:58:59.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (346,'FzArSkHv1ZWAcfJrzZcKeRbQPocBaFVNfoB8R6e1ECNP',42,'{\"id\":42,\"username\":\"Maria\",\"email\":\"mlaiz@sigrid.ai\",\"firstName\":\"Maria Laiz\",\"middleName\":null,\"lastName\":null,\"userType\":\"participant\",\"nationality\":\"filipino\",\"tel\":null,\"birthday\":null,\"companyId\":4,\"branchId\":7,\"positionId\":6,\"active\":1,\"date_added\":\"2018-04-13T13:19:24.000Z\",\"date_updated\":\"2018-04-26T10:15:48.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":null,\"rank_position_id\":6,\"rank_position_companyId\":4,\"rank_position_position\":\"Executive Assistant\",\"rank_position_seq\":1,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-04-16T04:08:28.000Z\",\"rank_position_date_updated\":\"2018-04-16T04:08:28.000Z\",\"branch_id\":7,\"branch_companyId\":4,\"branch_branch\":\"Manila\",\"branch_seq\":1,\"branch_active\":1,\"branch_date_added\":\"2018-04-16T04:13:42.000Z\",\"branch_date_updated\":\"2018-04-16T04:13:42.000Z\",\"company_id\":4,\"company_companyName\":\"Pilot 1\",\"company_industry\":\"Temporary Agency\",\"company_active\":1,\"company_date_added\":\"2018-04-13T13:10:31.000Z\",\"company_date_updated\":\"2018-04-13T13:10:31.000Z\"}','2018-04-26 18:59:06.000','2018-04-26 10:59:05.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (349,'DFkijk8YPQnNAEMDiDVdH9SEEoNV6Ubin1uKa3kUMg5i',52,'{\"id\":52,\"username\":\"Michael_pilot\",\"email\":\"Michael@pilot.com\",\"firstName\":\"Michael\",\"middleName\":null,\"lastName\":null,\"userType\":\"participant\",\"nationality\":null,\"tel\":null,\"birthday\":null,\"companyId\":4,\"branchId\":7,\"positionId\":7,\"active\":1,\"date_added\":\"2018-04-26T10:30:16.000Z\",\"date_updated\":\"2018-04-26T11:15:44.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":null,\"rank_position_id\":7,\"rank_position_companyId\":4,\"rank_position_position\":\"Director\",\"rank_position_seq\":2,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-04-16T04:08:43.000Z\",\"rank_position_date_updated\":\"2018-04-16T04:08:43.000Z\",\"branch_id\":7,\"branch_companyId\":4,\"branch_branch\":\"Manila\",\"branch_seq\":1,\"branch_active\":1,\"branch_date_added\":\"2018-04-16T04:13:42.000Z\",\"branch_date_updated\":\"2018-04-16T04:13:42.000Z\",\"company_id\":4,\"company_companyName\":\"Pilot 1\",\"company_industry\":\"Temporary Agency\",\"company_active\":1,\"company_date_added\":\"2018-04-13T13:10:31.000Z\",\"company_date_updated\":\"2018-04-13T13:10:31.000Z\"}','2018-04-26 19:18:57.000','2018-04-26 11:18:57.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (352,'9q3GdLzVvwDEposgrJDt7MoeUaMoopPwVmJzo7jMf4zu',46,'{\"id\":46,\"username\":\"Josua\",\"email\":\"jinfante@sigrid.ai\",\"firstName\":\"Josua Infante\",\"middleName\":null,\"lastName\":null,\"userType\":\"participant\",\"nationality\":null,\"tel\":null,\"birthday\":\"1987-04-08 U\",\"companyId\":4,\"branchId\":7,\"positionId\":6,\"active\":1,\"date_added\":\"2018-04-13T05:25:29.000Z\",\"date_updated\":\"2018-04-25T18:04:55.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":null,\"rank_position_id\":6,\"rank_position_companyId\":4,\"rank_position_position\":\"Executive Assistant\",\"rank_position_seq\":1,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-04-16T04:08:28.000Z\",\"rank_position_date_updated\":\"2018-04-16T04:08:28.000Z\",\"branch_id\":7,\"branch_companyId\":4,\"branch_branch\":\"Manila\",\"branch_seq\":1,\"branch_active\":1,\"branch_date_added\":\"2018-04-16T04:13:42.000Z\",\"branch_date_updated\":\"2018-04-16T04:13:42.000Z\",\"company_id\":4,\"company_companyName\":\"Pilot 1\",\"company_industry\":\"Temporary Agency\",\"company_active\":1,\"company_date_added\":\"2018-04-13T13:10:31.000Z\",\"company_date_updated\":\"2018-04-13T13:10:31.000Z\"}','2018-04-26 19:26:43.000','2018-04-26 11:26:43.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (353,'D3csqjuv84C3KJhcJ2RtgzXjbuyaTMSkvtywgCCkKw4c',50,'{\"id\":50,\"username\":\"Ida\",\"email\":\"idamarie@petersvaerft.com\",\"firstName\":\"Ida Marie\",\"middleName\":null,\"lastName\":null,\"userType\":\"participant\",\"nationality\":\"danish\",\"tel\":null,\"birthday\":null,\"companyId\":4,\"branchId\":7,\"positionId\":7,\"active\":1,\"date_added\":\"2018-04-23T21:20:58.000Z\",\"date_updated\":\"2018-04-26T10:19:33.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":null,\"rank_position_id\":7,\"rank_position_companyId\":4,\"rank_position_position\":\"Director\",\"rank_position_seq\":2,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-04-16T04:08:43.000Z\",\"rank_position_date_updated\":\"2018-04-16T04:08:43.000Z\",\"branch_id\":7,\"branch_companyId\":4,\"branch_branch\":\"Manila\",\"branch_seq\":1,\"branch_active\":1,\"branch_date_added\":\"2018-04-16T04:13:42.000Z\",\"branch_date_updated\":\"2018-04-16T04:13:42.000Z\",\"company_id\":4,\"company_companyName\":\"Pilot 1\",\"company_industry\":\"Temporary Agency\",\"company_active\":1,\"company_date_added\":\"2018-04-13T13:10:31.000Z\",\"company_date_updated\":\"2018-04-13T13:10:31.000Z\"}','2018-04-26 19:36:52.000','2018-04-26 11:36:51.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (354,'4T2buYcrjfpWn4XUXzfNQuyEPxzXEvyKdAuk3tw1CSeo',43,'{\"id\":43,\"username\":\"Pia\",\"email\":\"pcandoy@sigrid.ai\",\"firstName\":\"Pia Candoy\",\"middleName\":null,\"lastName\":null,\"userType\":\"participant\",\"nationality\":null,\"tel\":null,\"birthday\":null,\"companyId\":4,\"branchId\":7,\"positionId\":6,\"active\":1,\"date_added\":\"2018-04-13T13:20:15.000Z\",\"date_updated\":\"2018-04-26T10:16:24.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":null,\"rank_position_id\":6,\"rank_position_companyId\":4,\"rank_position_position\":\"Executive Assistant\",\"rank_position_seq\":1,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-04-16T04:08:28.000Z\",\"rank_position_date_updated\":\"2018-04-16T04:08:28.000Z\",\"branch_id\":7,\"branch_companyId\":4,\"branch_branch\":\"Manila\",\"branch_seq\":1,\"branch_active\":1,\"branch_date_added\":\"2018-04-16T04:13:42.000Z\",\"branch_date_updated\":\"2018-04-16T04:13:42.000Z\",\"company_id\":4,\"company_companyName\":\"Pilot 1\",\"company_industry\":\"Temporary Agency\",\"company_active\":1,\"company_date_added\":\"2018-04-13T13:10:31.000Z\",\"company_date_updated\":\"2018-04-13T13:10:31.000Z\"}','2018-04-26 19:37:55.000','2018-04-26 11:37:55.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (355,'8f6B3xdajjDWp5eqTtck7gy3S85MxM9H1uwWCABDtRsz',44,'{\"id\":44,\"username\":\"Daryl\",\"email\":\"dalmirol@sigrid.ai\",\"firstName\":\"Daryl Almirol\",\"middleName\":null,\"lastName\":null,\"userType\":\"participant\",\"nationality\":null,\"tel\":null,\"birthday\":null,\"companyId\":4,\"branchId\":7,\"positionId\":6,\"active\":1,\"date_added\":\"2018-04-13T13:24:01.000Z\",\"date_updated\":\"2018-04-26T11:39:53.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":\"8c489814-ef21-4b5f-8c3b-ea44eb652776\",\"rank_position_id\":6,\"rank_position_companyId\":4,\"rank_position_position\":\"Executive Assistant\",\"rank_position_seq\":1,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-04-16T04:08:28.000Z\",\"rank_position_date_updated\":\"2018-04-16T04:08:28.000Z\",\"branch_id\":7,\"branch_companyId\":4,\"branch_branch\":\"Manila\",\"branch_seq\":1,\"branch_active\":1,\"branch_date_added\":\"2018-04-16T04:13:42.000Z\",\"branch_date_updated\":\"2018-04-16T04:13:42.000Z\",\"company_id\":4,\"company_companyName\":\"Pilot 1\",\"company_industry\":\"Temporary Agency\",\"company_active\":1,\"company_date_added\":\"2018-04-13T13:10:31.000Z\",\"company_date_updated\":\"2018-04-13T13:10:31.000Z\"}','2018-05-06 11:33:26.000','2018-05-06 03:33:26.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (357,'5YV6EMk7nmp2reRwNzSKtxkQYhkPBmhDQbarpKaVkama',40,'{\"id\":40,\"username\":\"llalaine\",\"email\":\"lsison@sigrid.ai\",\"firstName\":\"Llalaine Sison\",\"middleName\":null,\"lastName\":null,\"userType\":\"participant\",\"nationality\":\"filipino\",\"tel\":null,\"birthday\":null,\"companyId\":4,\"branchId\":7,\"positionId\":6,\"active\":1,\"date_added\":\"2018-04-13T13:17:16.000Z\",\"date_updated\":\"2018-04-26T10:14:59.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":null,\"rank_position_id\":6,\"rank_position_companyId\":4,\"rank_position_position\":\"Executive Assistant\",\"rank_position_seq\":1,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-04-16T04:08:28.000Z\",\"rank_position_date_updated\":\"2018-04-16T04:08:28.000Z\",\"branch_id\":7,\"branch_companyId\":4,\"branch_branch\":\"Manila\",\"branch_seq\":1,\"branch_active\":1,\"branch_date_added\":\"2018-04-16T04:13:42.000Z\",\"branch_date_updated\":\"2018-04-16T04:13:42.000Z\",\"company_id\":4,\"company_companyName\":\"Pilot 1\",\"company_industry\":\"Temporary Agency\",\"company_active\":1,\"company_date_added\":\"2018-04-13T13:10:31.000Z\",\"company_date_updated\":\"2018-04-13T13:10:31.000Z\"}','2018-04-26 19:40:32.000','2018-04-26 11:40:32.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (358,'7nEQmC8FLrHMDXfrNTpZcynGBvhyc7rJqt4TkzJHoQCp',36,'{\"id\":36,\"username\":\"Sigrid\",\"email\":\"sviloria@sigrid.ai\",\"firstName\":\"Sigrid Viloria\",\"middleName\":null,\"lastName\":\"Viloria\",\"userType\":\"participant\",\"nationality\":null,\"tel\":null,\"birthday\":null,\"companyId\":4,\"branchId\":7,\"positionId\":6,\"active\":1,\"date_added\":\"2018-04-09T18:39:07.000Z\",\"date_updated\":\"2018-04-26T10:13:36.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":\"07f00f8d-89c6-4eeb-931d-3c5809a0c5e1\",\"rank_position_id\":6,\"rank_position_companyId\":4,\"rank_position_position\":\"Executive Assistant\",\"rank_position_seq\":1,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-04-16T04:08:28.000Z\",\"rank_position_date_updated\":\"2018-04-16T04:08:28.000Z\",\"branch_id\":7,\"branch_companyId\":4,\"branch_branch\":\"Manila\",\"branch_seq\":1,\"branch_active\":1,\"branch_date_added\":\"2018-04-16T04:13:42.000Z\",\"branch_date_updated\":\"2018-04-16T04:13:42.000Z\",\"company_id\":4,\"company_companyName\":\"Pilot 1\",\"company_industry\":\"Temporary Agency\",\"company_active\":1,\"company_date_added\":\"2018-04-13T13:10:31.000Z\",\"company_date_updated\":\"2018-04-13T13:10:31.000Z\"}','2018-04-26 19:44:00.000','2018-04-26 11:44:00.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (360,'CpguC9daXKfHeAm3RCGrYfD2kmAVpWBzdaYjhgxVjeiA',53,'{\"id\":53,\"username\":\"Mark\",\"email\":\"mppacheco2002@yahoo.com\",\"firstName\":\"Mark\",\"middleName\":null,\"lastName\":\"Pacheco\",\"userType\":\"participant\",\"nationality\":\"filipino\",\"tel\":\"123456789\",\"birthday\":\"2018 May 1 U\",\"companyId\":1,\"branchId\":2,\"positionId\":2,\"active\":1,\"date_added\":\"2018-05-03T03:08:36.000Z\",\"date_updated\":\"2018-05-03T03:09:48.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":null,\"rank_position_id\":2,\"rank_position_companyId\":1,\"rank_position_position\":\"Staff Captain\",\"rank_position_seq\":2,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-03-19T22:59:53.000Z\",\"rank_position_date_updated\":\"2018-03-19T22:59:53.000Z\",\"branch_id\":2,\"branch_companyId\":1,\"branch_branch\":\"AIDA Cruises\",\"branch_seq\":2,\"branch_active\":1,\"branch_date_added\":\"2018-03-19T22:59:15.000Z\",\"branch_date_updated\":\"2018-03-19T22:59:15.000Z\",\"company_id\":1,\"company_companyName\":\"Carnival Corporation\",\"company_industry\":\"Cruise\",\"company_active\":1,\"company_date_added\":\"2018-03-19T22:57:51.000Z\",\"company_date_updated\":\"2018-03-19T22:57:51.000Z\"}','2018-05-03 12:34:44.000','2018-05-03 04:34:43.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (362,'1H6FsoYMoCG63BSozD8sAwGuwjpyf7FQdaGmoYX9zYUX',51,'{\"id\":51,\"username\":\"Megan\",\"email\":\"megan@isongo.com\",\"firstName\":null,\"middleName\":null,\"lastName\":null,\"userType\":\"trainer\",\"nationality\":null,\"tel\":null,\"birthday\":null,\"companyId\":null,\"branchId\":null,\"positionId\":null,\"active\":1,\"date_added\":\"2018-04-26T10:20:38.000Z\",\"date_updated\":\"2018-05-03T09:22:18.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":\"29a8d2e1-1a20-4122-9aa2-02bef0f440ed\",\"rank_position_id\":null,\"rank_position_companyId\":null,\"rank_position_position\":null,\"rank_position_seq\":null,\"rank_position_active\":null,\"rank_position_date_added\":null,\"rank_position_date_updated\":null,\"branch_id\":null,\"branch_companyId\":null,\"branch_branch\":null,\"branch_seq\":null,\"branch_active\":null,\"branch_date_added\":null,\"branch_date_updated\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_active\":null,\"company_date_added\":null,\"company_date_updated\":null}','2018-05-04 20:35:11.000','2018-05-04 12:35:10.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (370,'3gF1cuAUTQAigp7p1syYZUbNfKaWayWyy6sZyFETJfAT',49,'{\"id\":49,\"username\":\"Paul_pilot\",\"email\":\"paul@ostergaard.com\",\"firstName\":\"Paul Henrik Ostergaard\",\"middleName\":null,\"lastName\":null,\"userType\":\"participant\",\"nationality\":null,\"tel\":null,\"birthday\":null,\"companyId\":4,\"branchId\":7,\"positionId\":7,\"active\":1,\"date_added\":\"2018-04-23T21:19:56.000Z\",\"date_updated\":\"2018-05-07T00:10:34.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"oneSignalId\":\"29a8d2e1-1a20-4122-9aa2-02bef0f440ed\",\"rank_position_id\":7,\"rank_position_companyId\":4,\"rank_position_position\":\"Director\",\"rank_position_seq\":2,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-04-16T04:08:43.000Z\",\"rank_position_date_updated\":\"2018-04-15T20:08:43.000Z\",\"branch_id\":7,\"branch_companyId\":4,\"branch_branch\":\"Manila\",\"branch_seq\":1,\"branch_active\":1,\"branch_date_added\":\"2018-04-16T04:13:42.000Z\",\"branch_date_updated\":\"2018-04-15T20:13:42.000Z\",\"company_id\":4,\"company_companyName\":\"Pilot 1\",\"company_industry\":\"Temporary Agency\",\"company_active\":1,\"company_date_added\":\"2018-04-13T13:10:31.000Z\",\"company_date_updated\":\"2018-04-13T05:10:31.000Z\"}','2018-05-07 17:14:18.000','2018-05-07 09:14:17.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (534,'Djy4PjSEntGRmHG2gyDdJhRBMVWGcoKwooB2wuWx2k9m',20,'{\"id\":20,\"username\":\"Emile\",\"email\":\"emile.test@volenday.com\",\"firstName\":\"Emile \",\"middleName\":null,\"lastName\":\"Santos\",\"userType\":\"participant\",\"nationality\":\"filipino\",\"tel\":\"099999999\",\"birthday\":\"1988 Dec 25 \",\"companyId\":1,\"branchId\":1,\"positionId\":1,\"active\":1,\"date_added\":\"2018-03-20T07:01:33.000Z\",\"date_updated\":\"2018-05-27T21:44:44.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/Emile-1523872354.jpg\",\"oneSignalId\":\"29a8d2e1-1a20-4122-9aa2-02bef0f440ed\",\"rank_position_id\":1,\"rank_position_companyId\":1,\"rank_position_position\":\"Captain\",\"rank_position_seq\":1,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-03-19T22:59:27.000Z\",\"rank_position_date_updated\":\"2018-03-19T14:59:27.000Z\",\"branch_id\":1,\"branch_companyId\":1,\"branch_branch\":\"HAL\",\"branch_seq\":1,\"branch_active\":1,\"branch_date_added\":\"2018-03-19T22:59:10.000Z\",\"branch_date_updated\":\"2018-03-19T14:59:10.000Z\",\"company_id\":1,\"company_companyName\":\"Carnival Corporation\",\"company_industry\":\"Cruise\",\"company_active\":1,\"company_date_added\":\"2018-03-19T22:57:51.000Z\",\"company_date_updated\":\"2018-03-19T14:57:51.000Z\"}','2018-05-29 17:17:29.000','2018-05-29 09:17:28.000');
-INSERT INTO `session` (`id`,`session`,`userId`,`data`,`date_added`,`date_updated`) VALUES (535,'AXP8CuRT1ghS6LAjurMdHzg2XonFYL1aSSX87QXJC5Nr',19,'{\"id\":19,\"username\":\"John\",\"email\":\"john.test@volenday.com\",\"firstName\":\"John\",\"middleName\":null,\"lastName\":\"Doe\",\"userType\":\"participant\",\"nationality\":\"filipino\",\"tel\":\"0999999999\",\"birthday\":\"1990 Mar 21 \",\"companyId\":1,\"branchId\":1,\"positionId\":1,\"active\":1,\"date_added\":\"2018-03-20T07:00:41.000Z\",\"date_updated\":\"2018-05-27T22:32:29.000Z\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/John-1521534321.jpg\",\"oneSignalId\":\"29a8d2e1-1a20-4122-9aa2-02bef0f440ed\",\"rank_position_id\":1,\"rank_position_companyId\":1,\"rank_position_position\":\"Captain\",\"rank_position_seq\":1,\"rank_position_active\":1,\"rank_position_date_added\":\"2018-03-19T22:59:27.000Z\",\"rank_position_date_updated\":\"2018-03-19T14:59:27.000Z\",\"branch_id\":1,\"branch_companyId\":1,\"branch_branch\":\"HAL\",\"branch_seq\":1,\"branch_active\":1,\"branch_date_added\":\"2018-03-19T22:59:10.000Z\",\"branch_date_updated\":\"2018-03-19T14:59:10.000Z\",\"company_id\":1,\"company_companyName\":\"Carnival Corporation\",\"company_industry\":\"Cruise\",\"company_active\":1,\"company_date_added\":\"2018-03-19T22:57:51.000Z\",\"company_date_updated\":\"2018-03-19T14:57:51.000Z\"}','2018-06-19 17:48:22.000','2018-06-19 09:48:21.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (51,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_6a4739f26fc10d892695e13cd21c2d3408147110.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,0,0,'2018-09-27 16:15:46.000','2018-09-27 16:15:46.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (52,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_6a4739f26fc10d892695e13cd21c2d3408147110.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,1,0,'2018-09-27 16:16:56.000','2018-09-27 16:16:56.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (53,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_6a4739f26fc10d892695e13cd21c2d3408147110.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,2,0,'2018-09-27 16:17:17.000','2018-09-27 16:17:17.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (54,'code_1.27.2-1536736588_amd64.deb_2d39d06d7835db04bce9524690ff03241a830457.deb','code_1.27.2-1536736588_amd64.deb',1,'attachment',NULL,0,NULL,'new',0,0,0,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (55,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_eb1144cc83bd58051cab2819cb9bea01e4bf8670.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,0,0,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (56,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_dd8a179aed1f7b887dd161bc1ebd77a48e923a69.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,0,0,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (57,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_9a5538c1e196f4a91f9ae667a7598a2e6f44c471.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,3,0,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (58,'code_1.27.2-1536736588_amd64.deb_2d39d06d7835db04bce9524690ff03241a830457.deb','code_1.27.2-1536736588_amd64.deb',1,'attachment',NULL,0,NULL,'new',0,1,0,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (59,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_eb1144cc83bd58051cab2819cb9bea01e4bf8670.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,1,0,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (60,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_dd8a179aed1f7b887dd161bc1ebd77a48e923a69.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,1,0,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (61,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_9a5538c1e196f4a91f9ae667a7598a2e6f44c471.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,4,0,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (62,'code_1.27.2-1536736588_amd64.deb_2d39d06d7835db04bce9524690ff03241a830457.deb','code_1.27.2-1536736588_amd64.deb',1,'attachment',NULL,0,NULL,'new',0,2,0,'2018-09-27 16:25:05.000','2018-09-27 16:25:05.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (63,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_eb1144cc83bd58051cab2819cb9bea01e4bf8670.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,2,0,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (64,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_dd8a179aed1f7b887dd161bc1ebd77a48e923a69.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,2,0,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (65,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_9a5538c1e196f4a91f9ae667a7598a2e6f44c471.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,5,0,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (66,'code_1.27.2-1536736588_amd64.deb_2d39d06d7835db04bce9524690ff03241a830457.deb','code_1.27.2-1536736588_amd64.deb',1,'attachment',NULL,0,NULL,'new',0,3,0,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (67,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_eb1144cc83bd58051cab2819cb9bea01e4bf8670.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,3,0,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (68,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_dd8a179aed1f7b887dd161bc1ebd77a48e923a69.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,3,0,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (69,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_9a5538c1e196f4a91f9ae667a7598a2e6f44c471.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,6,0,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (70,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_2ee9fff6f24107ce3cc4d66174db7574cd74f667.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,4,0,'2018-09-27 16:28:05.000','2018-09-27 16:28:05.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (71,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_2ee9fff6f24107ce3cc4d66174db7574cd74f667.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,5,0,'2018-09-27 16:28:58.000','2018-09-27 16:28:58.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (72,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_2ee9fff6f24107ce3cc4d66174db7574cd74f667.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,6,0,'2018-09-27 16:29:49.000','2018-09-27 16:29:49.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (73,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_05d266303325e25f5ca927c38525d03abbb7e05f.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,4,0,'2018-09-27 16:30:50.000','2018-09-27 16:30:50.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (74,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_05d266303325e25f5ca927c38525d03abbb7e05f.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,5,0,'2018-09-27 16:30:53.000','2018-09-27 16:30:53.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (75,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_05d266303325e25f5ca927c38525d03abbb7e05f.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,6,0,'2018-09-27 16:30:56.000','2018-09-27 16:30:56.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (76,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_05d266303325e25f5ca927c38525d03abbb7e05f.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,7,0,'2018-09-27 16:30:58.000','2018-09-27 16:30:58.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (77,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_05d266303325e25f5ca927c38525d03abbb7e05f.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,8,0,'2018-09-27 16:31:02.000','2018-09-27 16:31:02.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (78,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_fb79c59d682d55e40cdb78bd7c92f6d0211cb102.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,9,0,'2018-09-27 16:32:38.000','2018-09-27 16:32:38.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (79,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_fb79c59d682d55e40cdb78bd7c92f6d0211cb102.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,10,0,'2018-09-27 16:33:43.000','2018-09-27 16:33:43.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (80,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_be4b2a42cb33738dca1d38dfce5680f26949a5b3.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,7,0,'2018-09-27 16:38:03.000','2018-09-27 16:38:03.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (81,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_2282ca3f02dee32d38b8c3c25d66e104f6126933.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,11,0,'2018-09-27 16:39:59.000','2018-09-27 16:39:59.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (82,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_2282ca3f02dee32d38b8c3c25d66e104f6126933.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,12,0,'2018-09-27 16:41:34.000','2018-09-27 16:41:34.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (83,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_c90c724ab79a9f6beeaebbd58b53e40ed87b7195.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,8,0,'2018-09-27 16:42:19.000','2018-09-27 16:42:19.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (84,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_c90c724ab79a9f6beeaebbd58b53e40ed87b7195.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,9,0,'2018-09-27 16:42:30.000','2018-09-27 16:42:30.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (85,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_c90c724ab79a9f6beeaebbd58b53e40ed87b7195.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,10,0,'2018-09-27 16:42:44.000','2018-09-27 16:42:44.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (86,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_c90c724ab79a9f6beeaebbd58b53e40ed87b7195.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,11,0,'2018-09-27 16:42:47.000','2018-09-27 16:42:47.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (87,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_e4fbfad7f91ce3c2040c39c0012da3fe9d84488a.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,12,0,'2018-09-27 16:45:25.000','2018-09-27 16:45:25.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (88,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_e4fbfad7f91ce3c2040c39c0012da3fe9d84488a.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,13,0,'2018-09-27 16:45:29.000','2018-09-27 16:45:29.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (89,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_e4fbfad7f91ce3c2040c39c0012da3fe9d84488a.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,14,0,'2018-09-27 16:45:32.000','2018-09-27 16:45:32.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (90,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_c90c724ab79a9f6beeaebbd58b53e40ed87b7195.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,15,0,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000');
 
-INSERT INTO `training_event` (`id`,`companyId`,`branchId`,`learningGroupId`,`learningJourneyId`,`userId`,`parallel`,`start_date`,`end_date`,`active`,`date_added`,`date_updated`) VALUES (1,1,1,NULL,1,18,0,'2018-03-19 08:00:00.000','2018-03-30 08:00:00.000',1,'2018-03-19 23:03:42.000','2018-03-19 15:08:30.000');
-INSERT INTO `training_event` (`id`,`companyId`,`branchId`,`learningGroupId`,`learningJourneyId`,`userId`,`parallel`,`start_date`,`end_date`,`active`,`date_added`,`date_updated`) VALUES (2,1,1,NULL,2,18,0,'2018-04-16 08:00:00.000','2018-03-20 16:00:00.000',1,'2018-03-19 01:17:52.000','2018-03-18 17:17:52.000');
-INSERT INTO `training_event` (`id`,`companyId`,`branchId`,`learningGroupId`,`learningJourneyId`,`userId`,`parallel`,`start_date`,`end_date`,`active`,`date_added`,`date_updated`) VALUES (3,1,2,NULL,1,18,0,'2018-04-23 08:00:00.000',NULL,1,'2018-03-27 07:39:54.000','2018-03-26 23:39:54.000');
-INSERT INTO `training_event` (`id`,`companyId`,`branchId`,`learningGroupId`,`learningJourneyId`,`userId`,`parallel`,`start_date`,`end_date`,`active`,`date_added`,`date_updated`) VALUES (4,1,1,NULL,3,34,0,'2018-05-07 00:00:00.000',NULL,1,'2018-04-10 15:49:00.000','2018-04-10 07:49:00.000');
-INSERT INTO `training_event` (`id`,`companyId`,`branchId`,`learningGroupId`,`learningJourneyId`,`userId`,`parallel`,`start_date`,`end_date`,`active`,`date_added`,`date_updated`) VALUES (5,1,1,NULL,3,35,1,'2018-05-07 00:00:00.000',NULL,1,'2018-04-10 15:49:42.000','2018-04-10 07:49:42.000');
-INSERT INTO `training_event` (`id`,`companyId`,`branchId`,`learningGroupId`,`learningJourneyId`,`userId`,`parallel`,`start_date`,`end_date`,`active`,`date_added`,`date_updated`) VALUES (8,4,7,NULL,4,51,0,'2018-04-23 16:00:00.000',NULL,1,'2018-04-17 05:54:14.000','2018-04-16 21:54:14.000');
-INSERT INTO `training_event` (`id`,`companyId`,`branchId`,`learningGroupId`,`learningJourneyId`,`userId`,`parallel`,`start_date`,`end_date`,`active`,`date_added`,`date_updated`) VALUES (14,7,8,NULL,4,18,0,'2018-04-24 08:00:00.000',NULL,1,'2018-04-20 00:18:32.000','2018-04-19 16:18:32.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (11,4,'project',1,'2018-09-27 08:37:29.000','2018-09-27 08:37:29.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (12,5,'project',1,'2018-09-27 08:46:51.000','2018-09-27 08:46:51.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (13,6,'project',1,'2018-09-27 09:00:55.000','2018-09-27 09:00:55.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (14,7,'project',1,'2018-09-27 09:17:21.000','2018-09-27 09:17:21.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (15,8,'project',1,'2018-09-27 12:50:58.000','2018-09-27 12:50:58.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (16,9,'project',1,'2018-09-27 13:00:13.000','2018-09-27 13:00:13.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (17,10,'project',1,'2018-09-27 13:03:39.000','2018-09-27 13:03:39.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (18,1,'project',1,'2018-09-27 13:05:22.000','2018-09-27 13:05:22.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (19,2,'project',1,'2018-09-27 13:09:11.000','2018-09-27 13:09:11.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (20,3,'project',1,'2018-09-27 13:11:08.000','2018-09-27 13:11:08.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (21,4,'project',1,'2018-09-27 13:32:17.000','2018-09-27 13:32:17.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (22,5,'project',1,'2018-09-27 13:32:18.000','2018-09-27 13:32:18.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (23,6,'project',1,'2018-09-27 13:33:01.000','2018-09-27 13:33:01.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (24,7,'project',1,'2018-09-27 13:36:55.000','2018-09-27 13:36:55.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (25,8,'project',1,'2018-09-27 13:36:55.000','2018-09-27 13:36:55.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (26,9,'project',1,'2018-09-27 13:36:55.000','2018-09-27 13:36:55.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (27,10,'project',1,'2018-09-27 13:36:55.000','2018-09-27 13:36:55.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (28,11,'project',1,'2018-09-27 14:42:47.000','2018-09-27 14:42:47.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (29,12,'project',1,'2018-09-27 14:42:47.000','2018-09-27 14:42:47.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (30,13,'project',1,'2018-09-27 14:42:47.000','2018-09-27 14:42:47.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (31,14,'project',1,'2018-09-27 15:10:56.000','2018-09-27 15:10:56.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (32,15,'project',NULL,'2018-09-27 15:15:51.000','2018-09-27 15:15:51.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (33,16,'project',NULL,'2018-09-27 15:15:53.000','2018-09-27 15:15:53.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (34,17,'project',1,'2018-09-27 15:16:22.000','2018-09-27 15:16:22.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (35,18,'project',1,'2018-09-27 15:17:51.000','2018-09-27 15:17:51.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (36,19,'project',1,'2018-09-27 15:18:52.000','2018-09-27 15:18:52.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (37,20,'project',1,'2018-09-27 15:19:13.000','2018-09-27 15:19:13.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (38,21,'project',1,'2018-09-27 15:54:17.000','2018-09-27 15:54:17.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (39,22,'project',1,'2018-09-27 15:54:34.000','2018-09-27 15:54:34.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (40,23,'project',1,'2018-09-27 15:54:52.000','2018-09-27 15:54:52.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (41,24,'project',1,'2018-09-27 15:56:25.000','2018-09-27 15:56:25.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (42,25,'project',1,'2018-09-27 15:58:51.000','2018-09-27 15:58:51.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (43,26,'project',1,'2018-09-27 15:59:18.000','2018-09-27 15:59:18.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (44,27,'project',1,'2018-09-27 15:59:18.000','2018-09-27 15:59:18.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (45,28,'project',1,'2018-09-27 16:00:29.000','2018-09-27 16:00:29.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (46,29,'project',1,'2018-09-27 16:00:29.000','2018-09-27 16:00:29.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (47,30,'project',1,'2018-09-27 16:00:29.000','2018-09-27 16:00:29.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (48,31,'project',1,'2018-09-27 16:00:45.000','2018-09-27 16:00:45.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (49,32,'project',1,'2018-09-27 16:00:45.000','2018-09-27 16:00:45.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (50,33,'project',1,'2018-09-27 16:00:45.000','2018-09-27 16:00:45.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (51,34,'project',1,'2018-09-27 16:00:59.000','2018-09-27 16:00:59.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (52,35,'project',1,'2018-09-27 16:00:59.000','2018-09-27 16:00:59.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (53,36,'project',1,'2018-09-27 16:00:59.000','2018-09-27 16:00:59.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (54,37,'project',1,'2018-09-27 16:02:59.000','2018-09-27 16:02:59.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (55,38,'project',1,'2018-09-27 16:03:50.000','2018-09-27 16:03:50.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (56,39,'project',1,'2018-09-27 16:11:15.000','2018-09-27 16:11:15.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (57,40,'project',1,'2018-09-27 16:13:08.000','2018-09-27 16:13:08.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (58,41,'project',1,'2018-09-27 16:13:08.000','2018-09-27 16:13:08.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (59,42,'project',1,'2018-09-27 16:13:08.000','2018-09-27 16:13:08.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (60,43,'project',1,'2018-09-27 16:13:57.000','2018-09-27 16:13:57.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (61,44,'project',1,'2018-09-27 16:13:57.000','2018-09-27 16:13:57.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (62,45,'project',1,'2018-09-27 16:13:57.000','2018-09-27 16:13:57.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (63,46,'project',1,'2018-09-27 16:14:05.000','2018-09-27 16:14:05.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (64,47,'project',1,'2018-09-27 16:14:05.000','2018-09-27 16:14:05.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (65,48,'project',1,'2018-09-27 16:14:05.000','2018-09-27 16:14:05.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (66,49,'project',1,'2018-09-27 16:14:09.000','2018-09-27 16:14:09.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (67,50,'project',1,'2018-09-27 16:14:13.000','2018-09-27 16:14:13.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (68,51,'project',1,'2018-09-27 16:15:46.000','2018-09-27 16:15:46.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (69,52,'project',1,'2018-09-27 16:16:56.000','2018-09-27 16:16:56.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (70,53,'project',1,'2018-09-27 16:17:17.000','2018-09-27 16:17:17.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (71,54,'project',1,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (72,55,'project',1,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (73,56,'project',1,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (74,57,'project',1,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (75,58,'project',1,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (76,59,'project',1,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (77,60,'project',1,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (78,61,'project',1,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (79,62,'project',1,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (80,63,'project',1,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (81,64,'project',1,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (82,65,'project',1,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (83,66,'project',1,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (84,67,'project',1,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (85,68,'project',1,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (86,69,'project',1,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (87,70,'project',1,'2018-09-27 16:28:05.000','2018-09-27 16:28:05.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (88,71,'project',1,'2018-09-27 16:28:58.000','2018-09-27 16:28:58.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (89,72,'project',1,'2018-09-27 16:29:49.000','2018-09-27 16:29:49.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (90,73,'project',1,'2018-09-27 16:30:50.000','2018-09-27 16:30:50.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (91,74,'project',1,'2018-09-27 16:30:53.000','2018-09-27 16:30:53.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (92,75,'project',1,'2018-09-27 16:30:56.000','2018-09-27 16:30:56.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (93,76,'project',1,'2018-09-27 16:30:58.000','2018-09-27 16:30:58.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (94,77,'project',1,'2018-09-27 16:31:02.000','2018-09-27 16:31:02.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (95,78,'project',1,'2018-09-27 16:32:38.000','2018-09-27 16:32:38.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (96,79,'project',1,'2018-09-27 16:33:43.000','2018-09-27 16:33:43.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (97,80,'project',1,'2018-09-27 16:38:03.000','2018-09-27 16:38:03.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (98,81,'project',1,'2018-09-27 16:39:59.000','2018-09-27 16:39:59.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (99,82,'project',1,'2018-09-27 16:41:34.000','2018-09-27 16:41:34.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (100,83,'project',1,'2018-09-27 16:42:19.000','2018-09-27 16:42:19.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (101,84,'project',1,'2018-09-27 16:42:30.000','2018-09-27 16:42:30.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (102,85,'project',1,'2018-09-27 16:42:44.000','2018-09-27 16:42:44.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (103,86,'project',1,'2018-09-27 16:42:47.000','2018-09-27 16:42:47.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (104,87,'project',1,'2018-09-27 16:45:25.000','2018-09-27 16:45:25.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (105,88,'project',1,'2018-09-27 16:45:29.000','2018-09-27 16:45:29.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (106,89,'project',1,'2018-09-27 16:45:32.000','2018-09-27 16:45:32.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (107,90,'project',1,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000');
 
-INSERT INTO `training_event_announcement` (`id`,`trainingEventId`,`announcement`,`active`,`date_added`,`date_updated`) VALUES (1,1,'Hello everyone, before we start the training I want to let you know how excited we are to have the opportunity to work with all of you during the next 2 days. Let\'s kick off the workshop now!',1,'2018-03-19 01:38:03.000','2018-03-18 17:38:03.000');
-INSERT INTO `training_event_announcement` (`id`,`trainingEventId`,`announcement`,`active`,`date_added`,`date_updated`) VALUES (2,2,'Hi All!',1,'2018-03-20 17:52:38.000','2018-03-20 09:52:38.000');
-INSERT INTO `training_event_announcement` (`id`,`trainingEventId`,`announcement`,`active`,`date_added`,`date_updated`) VALUES (3,2,'test announcement',1,'2018-03-22 19:32:20.000','2018-03-22 11:32:20.000');
-INSERT INTO `training_event_announcement` (`id`,`trainingEventId`,`announcement`,`active`,`date_added`,`date_updated`) VALUES (4,1,'Hello Guyz. just want to check the status of your app.',1,'2018-03-21 03:46:56.000','2018-03-20 19:46:56.000');
-INSERT INTO `training_event_announcement` (`id`,`trainingEventId`,`announcement`,`active`,`date_added`,`date_updated`) VALUES (5,3,'Welcome to People Performer test session',1,'2018-03-28 15:43:44.000','2018-03-28 07:43:44.000');
+INSERT INTO `folder` (`id`,`name`,`projectId`,`parentId`,`dateAdded`,`dateUpdated`,`isDeleted`,`isFolder`,`type`,`createdBy`) VALUES (1,'someFolder',2,NULL,'2018-09-17 02:13:18.000','2018-09-17 10:13:18.000',0,1,'library',11);
+INSERT INTO `folder` (`id`,`name`,`projectId`,`parentId`,`dateAdded`,`dateUpdated`,`isDeleted`,`isFolder`,`type`,`createdBy`) VALUES (2,'otherFolder',2,NULL,'2018-09-17 02:30:39.000','2018-09-17 10:30:39.000',0,1,'new',11);
+INSERT INTO `folder` (`id`,`name`,`projectId`,`parentId`,`dateAdded`,`dateUpdated`,`isDeleted`,`isFolder`,`type`,`createdBy`) VALUES (3,'childFolder',2,2,'2018-09-17 02:31:06.000','2018-09-17 10:31:06.000',0,1,'new',11);
+INSERT INTO `folder` (`id`,`name`,`projectId`,`parentId`,`dateAdded`,`dateUpdated`,`isDeleted`,`isFolder`,`type`,`createdBy`) VALUES (4,'test 1',5,NULL,'2018-09-17 04:42:01.000','2018-09-17 12:42:01.000',0,1,'new',31);
+INSERT INTO `folder` (`id`,`name`,`projectId`,`parentId`,`dateAdded`,`dateUpdated`,`isDeleted`,`isFolder`,`type`,`createdBy`) VALUES (5,'test 2',5,4,'2018-09-17 04:42:22.000','2018-09-17 12:42:22.000',0,1,'new',31);
 
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (1,2,8,19,'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',1,'2018-04-18 21:46:40.000','2018-04-19 04:47:43.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (2,2,8,20,'This is a test',1,'2018-04-19 00:22:37.000','2018-04-26 07:27:35.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (3,2,9,20,'Test',1,'2018-04-19 00:22:41.000','2018-04-26 07:27:45.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (4,2,9,19,'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',1,'2018-04-19 11:12:00.000','2018-04-19 03:12:00.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (5,2,10,19,'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',1,'2018-04-19 11:12:06.000','2018-04-19 03:12:06.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (6,3,4,27,'In P2P I want to use our deck cleaning as a a project. I plan to test.',1,'2018-04-20 07:54:27.000','2018-04-25 06:50:12.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (7,3,5,27,'It went well. We spent much less time than we normally do. ',1,'2018-04-20 07:54:55.000','2018-04-19 23:54:55.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (8,3,7,27,'Remember the part of the training where xxx. That is super important. \n',1,'2018-04-20 07:55:14.000','2018-04-19 23:55:14.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (9,3,8,27,'Can’t wait to this. I plan to xxxx',1,'2018-04-20 08:13:04.000','2018-04-20 00:13:04.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (10,3,4,31,'This is my path to performance submission based on the planned action and situation. \n\nUpon submitting  the pre-assignment I will proceed with the post-assignment submission',1,'2018-04-20 09:33:57.000','2018-04-25 02:48:40.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (11,3,8,31,'Will use price negotiation will paul',1,'2018-04-20 14:21:12.000','2018-04-20 06:21:12.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (12,3,1,28,'I will coach My wife instead',1,'2018-04-20 15:36:37.000','2018-04-25 11:39:21.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (13,3,9,31,'This is my submission ',1,'2018-04-20 15:53:01.000','2018-04-20 07:53:01.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (14,3,10,27,'Be strong ',1,'2018-04-20 15:53:24.000','2018-04-20 07:53:24.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (15,3,9,27,'Phew',1,'2018-04-20 15:53:39.000','2018-04-20 07:53:39.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (16,2,10,20,'T',1,'2018-04-23 17:11:05.000','2018-04-23 09:11:05.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (17,2,4,20,'Test',1,'2018-04-23 18:37:21.000','2018-04-23 10:37:21.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (18,2,5,20,'Testy',1,'2018-04-23 18:37:30.000','2018-04-23 10:37:30.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (19,2,7,20,'Test',1,'2018-04-23 18:37:38.000','2018-04-23 10:37:38.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (20,2,4,19,'A',1,'2018-04-23 19:06:33.000','2018-04-23 11:06:33.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (21,2,5,19,'B',1,'2018-04-23 19:06:41.000','2018-04-23 11:06:41.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (22,2,7,19,'C',1,'2018-04-23 19:06:48.000','2018-04-23 11:06:48.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (23,3,4,28,'Will try this at next accident investigatoon meeting',1,'2018-04-25 16:49:08.000','2018-04-25 08:49:08.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (24,3,5,28,'Whoever designed this tool is a genius ',1,'2018-04-25 16:49:50.000','2018-04-25 08:49:50.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (25,3,7,28,'It works well also when you are in a hurry',1,'2018-04-25 16:50:14.000','2018-04-25 08:50:14.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (26,3,5,31,'Get\nTry\nGot\nGyg\nUgh\nHh\nYyg\n',1,'2018-04-25 17:22:52.000','2018-04-25 09:22:52.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (27,3,1,27,'Time to get this baby done ',1,'2018-04-25 17:40:33.000','2018-04-25 09:40:33.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (28,3,2,27,'Nailed it. ',1,'2018-04-25 17:40:41.000','2018-04-25 09:40:41.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (29,3,3,27,'Be good. ',1,'2018-04-25 17:40:48.000','2018-04-25 09:40:48.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (30,3,2,28,'Somebody comment on this pls',1,'2018-04-25 19:39:21.000','2018-04-25 11:39:21.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (31,3,8,28,'I will be practising this on my neighbor and our current discussions on his dog',1,'2018-04-25 21:06:33.000','2018-04-25 13:06:33.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (32,3,9,28,'He was still angry but In a more constructive way. 3xA helped staying focused on the issue',1,'2018-04-25 21:08:29.000','2018-04-25 13:08:29.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (33,8,8,49,'Test ',1,'2018-04-26 19:45:09.000','2018-04-26 11:45:09.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (34,8,9,46,'Test this',1,'2018-04-26 19:51:23.000','2018-04-26 11:51:23.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (35,8,10,46,'New',1,'2018-04-26 19:51:28.000','2018-04-26 11:51:28.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (36,8,8,40,'When there are complicated tasks that might disappointed or have disappointed the client. This may include preparing the invoice with other purchases.',1,'2018-04-26 19:51:32.000','2018-04-26 11:51:32.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (37,8,8,44,'explain a flight option provided which the client found unreasonable',1,'2018-04-27 00:19:33.000','2018-04-26 16:19:33.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (38,8,9,44,'i initially explained why the option was provided; then heard out the reasons why the client found it as an unnecessary option to provide. i then suggested some changes to the process and asked if acceptable',1,'2018-04-27 00:23:18.000','2018-04-26 16:23:18.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (39,8,10,44,'breathe before responding. sometimes we feel strongly about our opinions that we tend to not accept the ideas given by others.',1,'2018-04-27 00:26:37.000','2018-04-26 16:26:37.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (40,8,8,38,'Explaining the travel options being sent to the client. Thus created confusion.',1,'2018-04-27 00:57:22.000','2018-04-26 16:57:22.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (41,8,9,38,'We have different opinions on the options being sent to the client. We wanted to send all possible options but hus perspective is we should not send options that will not be beneficial to the client. I acknowledge his point and we gave our reasons. I admit I had a hard time explaining my side because I might say something wrong. Good thing my colleague was able to explain our side. We discussed internally before replying. ',1,'2018-04-27 01:00:10.000','2018-04-26 17:00:10.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (42,8,10,38,'Breathe first and ask help from others if you feel you are confused already. Calm down to be less emotional. ',1,'2018-04-27 01:00:14.000','2018-04-26 17:00:14.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (43,8,8,50,'I needed a talk with an employee about Quality of work. I decided to spend most of the meeting focusing on ACKNOWLEDGING and ASK questions, and then only after about an hour came up with an ANSWER. ',1,'2018-04-28 20:24:55.000','2018-04-28 12:24:55.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (44,8,9,50,'Found out the rootcause of the problem was very different from what I expected, hence would not have been able to find a good ANSWER had I not spent a considerable amount of tme on understanding where the person was coming from. It was a great meeting with a fantastic outcome. We were both happy after that conversation. ',1,'2018-04-28 20:27:44.000','2018-04-28 12:27:44.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (45,8,10,50,'Learn to listen, really listen. If you are affraid and stressed while in a conversation your brain shuts down and you don’t hear half of what is being said. That only makes the situation worse. Showing that you care by really paying attention can get you far regardless of whether you are able to come up with a solution that same day. ',1,'2018-04-28 20:32:09.000','2018-04-28 12:32:09.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (46,3,4,53,'Test planned action\n',1,'2018-05-03 12:38:12.000','2018-05-03 04:38:12.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (47,3,5,53,'Test describe what happened',1,'2018-05-03 12:38:45.000','2018-05-03 04:38:45.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (48,3,7,53,'Test my best advice\n',1,'2018-05-03 12:39:00.000','2018-05-03 04:39:00.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (49,2,4,20,'Test2',1,'2018-05-17 02:32:21.000','2018-05-17 02:32:21.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (50,2,8,20,'Test',1,'2018-05-17 03:08:52.000','2018-05-17 03:08:52.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (51,2,11,19,'My test',1,'2018-05-23 06:26:47.000','2018-05-23 06:26:47.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (52,2,12,19,'Test flight',1,'2018-05-23 06:29:13.000','2018-05-23 06:29:13.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (53,2,11,20,'Emile test',1,'2018-05-23 08:16:10.000','2018-05-23 08:16:10.000');
-INSERT INTO `training_event_answer` (`id`,`trainingEventId`,`assignmentDetailId`,`userId`,`answer`,`active`,`date_added`,`date_updated`) VALUES (54,2,13,20,'Emile test 3',1,'2018-05-23 08:16:23.000','2018-05-23 08:16:23.000');
 
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (1,2,'assignment',NULL,1,19,'Test',1,'2018-04-18 22:29:46.000','2018-04-18 14:29:46.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (2,2,'assignment',NULL,1,20,'Test',1,'2018-04-18 22:29:57.000','2018-04-18 14:29:57.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (3,2,'assignment',NULL,1,20,'Test',1,'2018-04-18 22:30:02.000','2018-04-18 14:30:02.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (4,2,'assignment',NULL,1,20,'Test',1,'2018-04-18 22:32:37.000','2018-04-18 14:32:37.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (5,2,'assignment',NULL,1,20,'Test',1,'2018-04-18 22:32:41.000','2018-04-18 14:32:41.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (6,2,'assignment',NULL,1,20,'Yesy',1,'2018-04-18 22:32:56.000','2018-04-18 14:32:56.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (7,2,'assignment',NULL,1,20,'Hey',1,'2018-04-18 22:34:31.000','2018-04-18 14:34:31.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (8,2,'assignment',NULL,1,19,'Test',1,'2018-04-19 00:17:24.000','2018-04-18 16:17:24.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (9,2,'assignment',NULL,1,20,'G',1,'2018-04-19 00:17:43.000','2018-04-18 16:17:43.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (10,2,'assignment',NULL,1,19,'Nmn\nJkhj\nHjh',1,'2018-04-19 09:51:35.000','2018-04-19 01:51:35.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (11,2,'assignment',NULL,1,19,'Hjgjgo',1,'2018-04-19 09:51:51.000','2018-04-19 01:51:51.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (12,2,'assignment',NULL,1,19,'Gkgkh',1,'2018-04-19 09:51:56.000','2018-04-19 01:51:56.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (13,2,'assignment',NULL,1,19,'Yuyi',1,'2018-04-19 09:52:01.000','2018-04-19 01:52:01.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (14,2,'assignment',NULL,1,20,'Test',1,'2018-04-19 17:46:45.000','2018-04-19 09:46:45.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (15,2,'assignment',NULL,4,20,'Testeee',1,'2018-04-19 17:55:00.000','2018-04-19 09:55:00.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (16,2,'assignment',NULL,4,20,'Testr',1,'2018-04-19 18:49:50.000','2018-04-19 10:49:50.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (17,2,'assignment',NULL,4,20,'Testr',1,'2018-04-19 18:49:55.000','2018-04-19 10:49:55.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (18,2,'assignment',NULL,1,20,'?',1,'2018-04-20 08:36:36.000','2018-04-20 00:36:36.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (19,2,'assignment',NULL,4,20,'Er',1,'2018-04-20 08:40:27.000','2018-04-20 00:40:27.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (20,2,'assignment',NULL,2,20,'Test',1,'2018-04-20 09:02:39.000','2018-04-20 01:02:39.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (21,3,'assignment',NULL,10,31,'This is my submission on ptp',1,'2018-04-20 09:34:48.000','2018-04-20 01:34:48.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (22,2,'assignment',NULL,1,20,'Test',1,'2018-04-20 12:51:37.000','2018-04-20 04:51:37.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (23,2,'assignment',NULL,1,20,'Ret',1,'2018-04-20 12:51:42.000','2018-04-20 04:51:42.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (24,2,'assignment',NULL,1,20,'Ew',1,'2018-04-20 12:51:55.000','2018-04-20 04:51:55.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (25,2,'assignment',NULL,1,20,'Fff',1,'2018-04-20 12:52:33.000','2018-04-20 04:52:33.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (26,2,'assignment',NULL,1,20,'Did',1,'2018-04-20 12:52:38.000','2018-04-20 04:52:38.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (27,2,'assignment',NULL,1,20,'Trtt',1,'2018-04-20 12:52:53.000','2018-04-20 04:52:53.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (28,2,'assignment',NULL,1,20,'Fffffff',1,'2018-04-20 12:53:17.000','2018-04-20 04:53:17.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (29,3,'assignment',NULL,10,27,'That’s a great plan. ',1,'2018-04-20 14:19:36.000','2018-04-20 06:19:36.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (30,3,'assignment',NULL,11,27,'That’s a great plan ',1,'2018-04-20 14:22:09.000','2018-04-20 06:22:09.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (31,2,'assignment',NULL,4,20,'Test',1,'2018-04-20 14:22:53.000','2018-04-20 06:22:53.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (32,2,'assignment',NULL,2,20,'Test',1,'2018-04-20 14:26:24.000','2018-04-20 06:26:24.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (33,3,'assignment',NULL,11,28,'How did you get on',1,'2018-04-20 14:26:41.000','2018-04-20 06:26:41.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (34,3,'assignment',NULL,11,28,'Anyone else have tried this with Paul??',1,'2018-04-20 14:27:54.000','2018-04-20 06:27:54.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (35,3,'assignment',NULL,6,31,'Hello ',1,'2018-04-20 15:51:53.000','2018-04-20 07:51:53.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (36,3,'assignment',NULL,6,31,'Test 2',1,'2018-04-20 15:52:17.000','2018-04-20 07:52:17.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (37,3,'assignment',NULL,23,31,'Commenting on Michael p2p submission ',1,'2018-04-25 17:37:25.000','2018-04-25 09:37:25.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (38,3,'assignment',NULL,23,27,'This is good stuff',1,'2018-04-25 17:39:59.000','2018-04-25 09:39:59.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (39,3,'assignment',NULL,23,27,'Great stuff ',1,'2018-04-25 17:56:45.000','2018-04-25 09:56:45.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (40,3,'assignment',NULL,12,27,'Wsckskent ',1,'2018-04-25 17:56:57.000','2018-04-25 09:56:57.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (41,3,'assignment',NULL,23,31,'Commenting on Michael submission for testing purposes  ',1,'2018-04-25 17:57:06.000','2018-04-25 09:57:06.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (42,8,'assignment',NULL,36,49,'Great Llalaine - you are jumping right in. I really look forward to hearing how it goes! ',1,'2018-04-26 20:14:51.000','2018-04-26 12:14:51.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (43,8,'assignment',NULL,38,49,'Dars - I have a feeling I have first hand knowledge of the situation you describe here. You handled it really well so you have obviously mastered the 3 As framework. And thanks for getting started with the assignment so soon. ',1,'2018-04-27 15:45:06.000','2018-04-27 07:45:06.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (44,8,'assignment',NULL,40,49,'Hi Kath - I have a feeling I know this situation first hand. It was handled very well so I am confident you are able to handle similar conversations really well going forward. And thanks for getting started using the app so quickly. ',1,'2018-04-27 15:46:40.000','2018-04-27 07:46:40.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (45,2,'assignment',NULL,17,20,'Test comment',1,'2018-05-23 05:46:59.000','2018-05-23 05:46:59.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (46,2,'assignment',NULL,2,20,'Test comment',1,'2018-05-23 05:47:23.000','2018-05-23 05:47:23.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (47,2,'assignment',NULL,3,20,'Test comment 2',1,'2018-05-23 05:47:33.000','2018-05-23 05:47:33.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (48,2,'assignment',NULL,51,19,'Test comment',1,'2018-05-23 06:28:31.000','2018-05-23 06:28:31.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (49,2,'assignment',NULL,52,19,'Test 2 comment',1,'2018-05-23 06:29:45.000','2018-05-23 06:29:45.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (50,2,'assignment',NULL,51,19,'Test 3',1,'2018-05-23 06:31:15.000','2018-05-23 06:31:15.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (51,2,'assignment',NULL,52,19,'Test 4',1,'2018-05-23 06:31:53.000','2018-05-23 06:31:53.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (52,2,'assignment',NULL,52,19,'Test 5',1,'2018-05-23 06:34:10.000','2018-05-23 06:34:10.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (53,2,'assignment',NULL,51,20,'Test 6',1,'2018-05-23 08:11:07.000','2018-05-23 08:11:07.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (54,2,'assignment',NULL,51,20,'T3st7',1,'2018-05-23 08:11:40.000','2018-05-23 08:11:40.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (55,2,'assignment',NULL,3,20,'Test comment 3',1,'2018-05-23 08:11:59.000','2018-05-23 08:11:59.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (56,2,'assignment',NULL,53,20,'Testb5',1,'2018-05-23 08:19:06.000','2018-05-23 08:19:06.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (57,2,'assignment',NULL,54,20,'Test',1,'2018-05-23 08:19:27.000','2018-05-23 08:19:27.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (58,2,'assignment',NULL,54,20,'Test 4',1,'2018-05-23 08:20:01.000','2018-05-23 08:20:01.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (59,2,'assignment',NULL,53,20,'Test 6',1,'2018-05-23 08:20:53.000','2018-05-23 08:20:53.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (60,2,'assignment',NULL,53,20,'Test 7',1,'2018-05-23 08:21:35.000','2018-05-23 08:21:35.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (61,2,'assignment',NULL,54,20,'Test 5',1,'2018-05-23 08:21:48.000','2018-05-23 08:21:48.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (62,2,'assignment',NULL,54,20,'Test 8',1,'2018-05-23 08:34:45.000','2018-05-23 08:34:45.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (63,2,'assignment',NULL,53,20,'Test 8',1,'2018-05-23 08:37:54.000','2018-05-23 08:37:54.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (64,2,'assignment',NULL,54,20,'Test 9',1,'2018-05-23 08:38:17.000','2018-05-23 08:38:17.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (65,2,'assignment',NULL,52,20,'Test 6',1,'2018-05-23 08:38:46.000','2018-05-23 08:38:46.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (66,2,'assignment',NULL,54,20,'Test 10',1,'2018-05-23 08:49:13.000','2018-05-23 08:49:13.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (67,2,'assignment',NULL,52,20,'Test 8',1,'2018-05-23 08:49:38.000','2018-05-23 08:49:38.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (68,2,'assignment',NULL,54,20,'Test 11',1,'2018-05-23 09:17:30.000','2018-05-23 09:17:30.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (69,2,'assignment',NULL,53,20,'Test 12',1,'2018-05-23 09:17:50.000','2018-05-23 09:17:50.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (70,2,'assignment',NULL,51,20,'Test 10',1,'2018-05-23 09:18:09.000','2018-05-23 09:18:09.000');
-INSERT INTO `training_event_comment` (`id`,`trainingEventId`,`type`,`trainingModuleId`,`trainingEventAnswerId`,`userId`,`comment`,`active`,`date_added`,`date_updated`) VALUES (71,2,'assignment',NULL,51,23,'Test comment',1,'2018-05-23 09:26:31.000','2018-05-23 09:26:31.000');
 
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',8,19,1,1,'2018-04-18 21:46:40.000','2018-04-18 13:46:40.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',8,20,1,1,'2018-04-15 16:22:37.000','2018-04-15 08:22:37.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',9,20,1,1,'2018-04-19 00:22:42.000','2018-04-18 16:22:42.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',9,19,1,1,'2018-04-19 11:12:01.000','2018-04-19 03:12:01.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',10,19,1,1,'2018-04-19 11:12:06.000','2018-04-19 03:12:06.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',4,27,1,1,'2018-04-20 07:54:27.000','2018-04-19 23:54:27.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',5,27,1,1,'2018-04-20 07:54:55.000','2018-04-19 23:54:55.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',7,27,1,1,'2018-04-20 07:55:14.000','2018-04-19 23:55:14.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',8,27,1,1,'2018-04-20 08:13:04.000','2018-04-20 00:13:04.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',4,31,1,1,'2018-04-11 01:33:57.000','2018-04-10 17:33:57.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',8,31,1,1,'2018-04-19 22:21:12.000','2018-04-19 14:21:12.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',1,28,1,1,'2018-04-20 15:36:37.000','2018-04-20 07:36:37.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',9,31,1,1,'2018-04-20 15:53:01.000','2018-04-20 07:53:01.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',10,27,1,1,'2018-04-20 15:53:24.000','2018-04-20 07:53:24.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',9,27,1,1,'2018-04-20 15:53:39.000','2018-04-20 07:53:39.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',10,20,1,1,'2018-04-23 17:11:05.000','2018-04-23 09:11:05.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',4,20,1,1,'2018-04-23 18:37:22.000','2018-04-23 10:37:22.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',5,20,1,1,'2018-04-23 18:37:31.000','2018-04-23 10:37:31.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',7,20,1,1,'2018-04-23 18:37:38.000','2018-04-23 10:37:38.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',4,19,1,1,'2018-04-19 18:55:00.000','2018-04-19 10:55:00.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',5,19,1,1,'2018-04-23 18:55:01.000','2018-04-23 10:55:01.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',7,19,1,1,'2018-04-23 18:55:02.000','2018-04-23 10:55:02.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',5,31,1,1,'2018-04-18 19:08:42.000','2018-04-25 09:22:52.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',7,31,0,1,'2018-04-18 19:08:43.000','2018-04-18 11:08:43.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',1,31,1,1,'2018-04-23 03:08:48.000','2018-04-22 19:08:48.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',2,31,1,1,'2018-04-23 03:08:48.000','2018-04-22 19:08:48.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',3,31,1,1,'2018-04-23 03:08:49.000','2018-04-22 19:08:49.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',10,31,1,1,'2018-04-23 19:12:48.000','2018-04-23 11:12:48.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,6,'trainingModule',NULL,NULL,1,1,'2018-04-07 03:12:54.000','2018-04-06 19:12:54.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,9,'trainingModule',NULL,NULL,1,1,'2018-04-17 19:12:55.000','2018-04-17 11:12:55.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',4,28,1,1,'2018-04-25 16:49:09.000','2018-04-25 08:49:09.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',5,28,1,1,'2018-04-25 16:49:53.000','2018-04-25 08:49:53.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',7,28,1,1,'2018-04-25 16:50:14.000','2018-04-25 08:50:14.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',1,27,1,1,'2018-04-25 17:40:33.000','2018-04-25 09:40:33.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',2,27,1,1,'2018-04-25 17:40:42.000','2018-04-25 09:40:42.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',3,27,1,1,'2018-04-25 17:40:48.000','2018-04-25 09:40:48.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',2,28,1,1,'2018-04-25 19:39:21.000','2018-04-25 11:39:21.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',8,28,1,1,'2018-04-25 21:06:34.000','2018-04-25 13:06:34.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',9,28,1,1,'2018-04-25 21:08:29.000','2018-04-25 13:08:29.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',8,49,1,1,'2018-04-26 19:45:09.000','2018-04-26 11:45:09.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',9,46,1,1,'2018-04-26 19:51:26.000','2018-04-26 11:51:26.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',10,46,1,1,'2018-04-26 19:51:30.000','2018-04-26 11:51:30.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',8,40,1,1,'2018-04-26 19:51:33.000','2018-04-26 11:51:33.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',8,44,1,1,'2018-04-27 00:19:34.000','2018-04-26 16:19:34.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',9,44,1,1,'2018-04-27 00:23:18.000','2018-04-26 16:23:18.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',10,44,1,1,'2018-04-27 00:26:37.000','2018-04-26 16:26:37.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',8,38,1,1,'2018-04-27 00:57:23.000','2018-04-26 16:57:23.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',9,38,1,1,'2018-04-27 01:00:11.000','2018-04-26 17:00:11.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',10,38,1,1,'2018-04-27 01:00:15.000','2018-04-26 17:00:15.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',8,50,1,1,'2018-04-28 20:24:55.000','2018-04-28 12:24:55.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',9,50,1,1,'2018-04-28 20:27:44.000','2018-04-28 12:27:44.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (8,NULL,'assignment',10,50,1,1,'2018-04-28 20:32:09.000','2018-04-28 12:32:09.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',4,53,1,1,'2018-05-03 12:38:12.000','2018-05-03 04:38:12.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',5,53,1,1,'2018-05-03 12:38:45.000','2018-05-03 04:38:45.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (3,NULL,'assignment',7,53,1,1,'2018-05-03 12:39:00.000','2018-05-03 04:39:00.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',11,19,1,1,'2018-05-23 06:26:49.000','2018-05-23 06:26:49.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',12,19,1,1,'2018-05-23 06:29:13.000','2018-05-23 06:29:13.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',11,20,1,1,'2018-05-23 08:16:12.000','2018-05-23 08:16:12.000');
-INSERT INTO `training_event_completion` (`trainingEventId`,`trainingModuleId`,`type`,`assignmentDetailId`,`userId`,`complete`,`active`,`date_added`,`date_updated`) VALUES (2,NULL,'assignment',13,20,1,1,'2018-05-23 08:16:23.000','2018-05-23 08:16:23.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (1,'team',10,'project',1,'assignedTo','2018-09-24 13:57:30.000','2018-09-24 13:57:30.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (2,'team',12,'project',1,'assignedTo','2018-09-24 13:57:36.000','2018-09-24 13:57:36.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (3,'users',23,'project',1,'project manager','2018-09-24 13:57:43.000','2018-09-24 13:57:43.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (170,'users',1,'project',1,'assignedTo','2018-09-26 10:44:59.000','2018-09-26 10:44:59.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (216,'users',1,'task',2,'assignedTo','2018-09-26 14:09:47.000','2018-09-26 14:09:47.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (217,'users',1,'task',3,'assignedTo','2018-09-26 14:09:47.000','2018-09-26 14:09:47.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (218,'users',1,'task',1,'assignedTo','2018-09-26 14:09:47.000','2018-09-26 14:09:47.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (219,'users',31,'task',4,'assignedTo','2018-09-27 09:07:58.000','2018-09-27 09:07:58.000');
 
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (2,2,1,'assignment',NULL,8,20,1,'2018-04-18 23:14:12.000','2018-05-29 09:03:36.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (3,2,1,'assignment',NULL,8,19,1,'2018-04-18 23:14:23.000','2018-05-23 03:22:52.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (4,2,3,'assignment',NULL,9,19,0,'2018-04-19 10:19:52.000','2018-05-23 05:05:59.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (5,2,2,'assignment',NULL,8,19,0,'2018-04-19 11:06:12.000','2018-05-23 05:05:43.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (6,2,4,'assignment',NULL,9,19,1,'2018-04-19 11:17:38.000','2018-04-19 03:21:04.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (7,2,2,'assignment',NULL,8,20,1,'2018-04-19 17:55:44.000','2018-05-23 06:21:23.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (8,2,4,'assignment',NULL,9,20,0,'2018-04-20 08:35:43.000','2018-05-17 10:33:41.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (9,3,9,'assignment',NULL,8,27,0,'2018-04-20 08:36:08.000','2018-04-20 00:36:20.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (10,3,9,'assignment',NULL,8,31,0,'2018-04-20 09:20:57.000','2018-04-25 09:59:28.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (11,3,10,'assignment',NULL,4,27,1,'2018-04-20 11:49:49.000','2018-04-25 09:51:30.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (12,3,9,'assignment',NULL,8,28,1,'2018-04-20 14:17:22.000','2018-04-20 06:17:22.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (13,3,6,'assignment',NULL,4,31,1,'2018-04-20 15:50:37.000','2018-04-25 08:06:02.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (14,3,12,'assignment',NULL,1,27,1,'2018-04-20 15:50:44.000','2018-04-26 00:38:15.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (15,3,11,'assignment',NULL,8,28,1,'2018-04-20 15:53:43.000','2018-04-20 07:53:55.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (16,3,23,'assignment',NULL,4,27,1,'2018-04-25 17:36:26.000','2018-04-25 09:57:33.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (17,3,23,'assignment',NULL,4,31,1,'2018-04-25 17:36:57.000','2018-04-25 09:36:57.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (18,3,12,'assignment',NULL,1,31,1,'2018-04-25 17:57:52.000','2018-04-25 09:57:52.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (19,3,11,'assignment',NULL,8,31,1,'2018-04-25 17:58:16.000','2018-04-25 09:58:16.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (20,3,31,'assignment',NULL,8,27,1,'2018-04-26 08:38:24.000','2018-04-26 00:38:24.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (21,2,20,'assignment',NULL,4,20,1,'2018-04-26 15:26:40.000','2018-04-26 07:26:40.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (22,2,17,'assignment',NULL,4,20,0,'2018-04-26 15:26:47.000','2018-05-23 05:58:06.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (23,8,33,'assignment',NULL,8,46,1,'2018-04-26 19:45:24.000','2018-04-26 11:45:24.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (24,8,33,'assignment',NULL,8,42,1,'2018-04-26 19:45:28.000','2018-04-26 11:45:28.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (25,8,33,'assignment',NULL,8,40,1,'2018-04-26 19:45:32.000','2018-04-26 11:45:32.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (26,8,33,'assignment',NULL,8,50,1,'2018-04-26 19:45:37.000','2018-04-26 11:45:37.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (27,8,33,'assignment',NULL,8,38,1,'2018-04-26 19:45:38.000','2018-04-26 11:45:38.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (28,3,31,'assignment',NULL,8,29,0,'2018-04-26 19:50:07.000','2018-04-26 11:50:10.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (29,8,34,'assignment',NULL,9,46,1,'2018-04-26 19:52:35.000','2018-04-26 11:52:35.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (30,8,36,'assignment',NULL,8,44,1,'2018-04-26 19:52:47.000','2018-04-27 06:39:50.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (31,8,36,'assignment',NULL,8,49,1,'2018-04-26 20:14:19.000','2018-04-26 12:14:19.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (32,8,36,'assignment',NULL,8,45,1,'2018-04-26 20:38:13.000','2018-04-26 12:38:13.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (33,8,37,'assignment',NULL,8,38,1,'2018-04-27 00:21:50.000','2018-04-26 16:21:50.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (34,8,38,'assignment',NULL,9,36,1,'2018-04-27 02:28:03.000','2018-04-26 18:28:03.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (35,8,41,'assignment',NULL,9,36,1,'2018-04-27 02:28:53.000','2018-04-26 18:28:53.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (36,8,40,'assignment',NULL,8,46,0,'2018-04-27 14:03:13.000','2018-04-27 06:53:38.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (37,8,40,'assignment',NULL,8,44,1,'2018-04-27 14:24:15.000','2018-04-27 06:24:15.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (38,8,37,'assignment',NULL,8,46,1,'2018-04-27 14:53:28.000','2018-04-27 06:53:28.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (39,8,37,'assignment',NULL,8,49,1,'2018-04-27 15:43:27.000','2018-04-27 07:43:27.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (40,8,38,'assignment',NULL,9,49,1,'2018-04-27 15:43:45.000','2018-04-27 07:43:45.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (41,8,40,'assignment',NULL,8,49,1,'2018-04-27 15:46:43.000','2018-04-27 07:46:43.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (42,8,44,'assignment',NULL,9,38,1,'2018-04-28 20:42:29.000','2018-04-28 12:42:29.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (43,8,43,'assignment',NULL,8,38,1,'2018-04-28 20:43:00.000','2018-04-28 12:43:00.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (44,8,43,'assignment',NULL,8,52,1,'2018-04-28 23:20:23.000','2018-04-28 15:20:23.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (45,8,44,'assignment',NULL,9,52,1,'2018-04-30 03:41:39.000','2018-04-29 19:41:39.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (46,8,43,'assignment',NULL,8,50,1,'2018-05-03 14:31:49.000','2018-05-03 06:31:49.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (47,8,40,'assignment',NULL,8,50,1,'2018-05-03 14:31:59.000','2018-05-03 06:31:59.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (48,8,38,'assignment',NULL,9,40,1,'2018-05-03 16:22:57.000','2018-05-03 08:22:57.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (49,8,40,'assignment',NULL,8,40,1,'2018-05-03 16:23:17.000','2018-05-03 08:23:17.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (50,8,43,'assignment',NULL,8,40,1,'2018-05-03 16:23:49.000','2018-05-03 08:23:49.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (51,8,44,'assignment',NULL,9,40,1,'2018-05-03 16:24:10.000','2018-05-03 08:24:10.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (52,8,43,'assignment',NULL,8,51,1,'2018-05-04 20:35:58.000','2018-05-04 12:35:58.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (53,2,2,'assignment',NULL,8,31,1,'2018-05-16 03:20:29.000','2018-05-16 03:20:29.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (54,2,18,'assignment',NULL,5,20,0,'2018-05-23 04:52:34.000','2018-05-23 05:45:24.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (55,2,17,'assignment',NULL,4,19,0,'2018-05-23 05:06:42.000','2018-05-23 05:19:57.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (56,2,18,'assignment',NULL,5,19,0,'2018-05-23 05:06:53.000','2018-05-23 05:17:37.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (57,2,3,'assignment',NULL,9,20,0,'2018-05-23 05:28:44.000','2018-05-23 05:57:00.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (58,2,51,'assignment',NULL,11,19,0,'2018-05-23 06:27:02.000','2018-05-23 06:31:25.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (59,2,52,'assignment',NULL,12,19,1,'2018-05-23 06:29:28.000','2018-05-23 06:31:34.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (60,2,51,'assignment',NULL,11,20,0,'2018-05-23 08:10:52.000','2018-05-29 09:05:07.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (61,2,53,'assignment',NULL,11,20,1,'2018-05-23 08:16:39.000','2018-05-23 08:16:39.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (62,2,54,'assignment',NULL,13,20,1,'2018-05-23 08:16:53.000','2018-05-23 09:16:10.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (63,2,52,'assignment',NULL,12,20,1,'2018-05-23 08:54:46.000','2018-05-23 08:54:46.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (64,2,51,'assignment',NULL,11,23,1,'2018-05-23 09:25:26.000','2018-05-23 09:25:26.000');
-INSERT INTO `training_event_like` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (65,2,52,'assignment',NULL,12,23,1,'2018-05-23 09:25:39.000','2018-05-23 09:25:39.000');
+INSERT INTO `project` (`id`,`project`,`statusId`,`typeId`,`projectType`,`tinNo`,`companyAddress`,`classification`,`projectNameCount`,`createdBy`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (1,'Mobbiz Solutions',NULL,2,NULL,NULL,NULL,NULL,0,6,'2018-09-20 02:13:39.000','2018-09-26 12:46:04.000',1,0);
 
-INSERT INTO `training_event_saved` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (1,2,4,'assignment',NULL,9,20,1,'2018-04-19 20:02:05.000','2018-04-19 12:02:06.000');
-INSERT INTO `training_event_saved` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (2,3,9,'assignment',NULL,8,27,1,'2018-04-20 08:36:17.000','2018-04-20 00:36:17.000');
-INSERT INTO `training_event_saved` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (3,3,6,'assignment',NULL,4,31,1,'2018-04-20 15:35:15.000','2018-04-20 07:51:42.000');
-INSERT INTO `training_event_saved` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (4,3,11,'assignment',NULL,8,31,1,'2018-04-25 17:58:19.000','2018-04-25 09:58:19.000');
-INSERT INTO `training_event_saved` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (5,8,34,'assignment',NULL,9,46,1,'2018-04-26 19:52:39.000','2018-04-26 11:52:39.000');
-INSERT INTO `training_event_saved` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (6,8,37,'assignment',NULL,8,38,0,'2018-04-27 00:27:05.000','2018-04-26 16:27:06.000');
-INSERT INTO `training_event_saved` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (7,3,10,'assignment',NULL,4,31,1,'2018-05-04 14:28:16.000','2018-05-04 06:28:16.000');
-INSERT INTO `training_event_saved` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (8,8,33,'assignment',NULL,8,38,0,'2018-05-07 08:02:18.000','2018-05-07 08:02:21.000');
-INSERT INTO `training_event_saved` (`id`,`trainingEventId`,`trainingEventAnswerId`,`type`,`trainingModuleId`,`assignmentDetailId`,`userId`,`active`,`date_added`,`date_updated`) VALUES (9,2,1,'assignment',NULL,8,20,0,'2018-05-17 10:52:42.000','2018-05-17 10:52:45.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (9,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:10:51.000','2018-09-26 09:10:51.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (10,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:11:01.000','2018-09-26 09:11:01.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (11,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:11:21.000','2018-09-26 09:11:21.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (12,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:11:30.000','2018-09-26 09:11:30.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (13,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:12:08.000','2018-09-26 09:12:08.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (14,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:13:46.000','2018-09-26 09:13:46.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (15,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:25:49.000','2018-09-26 09:25:49.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (16,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:27:16.000','2018-09-26 09:27:16.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (17,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:27:31.000','2018-09-26 09:27:31.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (18,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:27:39.000','2018-09-26 09:27:39.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (19,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:29:13.000','2018-09-26 09:29:13.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (20,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:29:27.000','2018-09-26 09:29:27.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (21,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:30:41.000','2018-09-26 09:30:41.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (22,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:32:54.000','2018-09-26 09:32:54.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (23,'Task Overdue',31,15,0,NULL,NULL,NULL,'2018-09-26 09:35:27.000','2018-09-26 09:35:27.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (24,'Task Overdue',31,15,0,NULL,NULL,NULL,'2018-09-26 09:38:29.000','2018-09-26 09:38:29.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (25,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:39:05.000','2018-09-26 09:39:05.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (26,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:39:35.000','2018-09-26 09:39:35.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (27,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:40:04.000','2018-09-26 09:40:04.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (28,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:40:17.000','2018-09-26 09:40:17.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (29,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:40:48.000','2018-09-26 09:40:48.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (30,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:41:05.000','2018-09-26 09:41:05.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (31,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:41:26.000','2018-09-26 09:41:26.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (32,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:41:31.000','2018-09-26 09:41:31.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (33,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:41:44.000','2018-09-26 09:41:44.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (34,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:42:00.000','2018-09-26 09:42:00.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (35,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:42:06.000','2018-09-26 09:42:06.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (36,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:43:37.000','2018-09-26 09:43:37.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (37,'Task Overdue',31,1,0,NULL,NULL,NULL,'2018-09-26 10:20:13.000','2018-09-26 10:20:13.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (38,'Task Overdue',31,1,0,NULL,NULL,NULL,'2018-09-26 10:37:34.000','2018-09-26 10:37:34.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (39,'Task Overdue',31,1,0,NULL,NULL,NULL,'2018-09-26 10:37:43.000','2018-09-26 10:37:43.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (40,'tagged in comment',1,NULL,0,1,3,'task','2018-09-26 13:02:33.000','2018-09-26 13:02:33.000');
 
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (2,19,'marine-performer',1,'2018-04-12 16:12:56.000','2018-04-12 08:12:56.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (2,20,'marine-performer',1,'2018-04-12 16:12:56.000','2018-04-12 08:12:56.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (2,23,'marine-performer',1,'2018-04-12 16:12:56.000','2018-04-12 08:12:56.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (11,47,'marine-performer',1,'2018-04-20 16:16:18.000','2018-04-20 08:16:18.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (14,47,'marine-performer',1,'2018-04-20 16:25:46.000','2018-04-20 08:25:46.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (14,48,'marine-performer',1,'2018-04-20 16:25:46.000','2018-04-20 08:25:46.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,36,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,39,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,43,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,40,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,44,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,42,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,41,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,45,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,49,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,50,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,38,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,46,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (8,52,'marine-performer',1,'2018-04-26 18:54:36.000','2018-04-26 10:54:36.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (3,27,'marine-performer',1,'2018-05-03 11:09:19.000','2018-05-03 03:09:19.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (3,29,'marine-performer',1,'2018-05-03 11:09:19.000','2018-05-03 03:09:19.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (3,31,'marine-performer',1,'2018-05-03 11:09:19.000','2018-05-03 03:09:19.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (3,28,'marine-performer',1,'2018-05-03 11:09:19.000','2018-05-03 03:09:19.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (3,37,'marine-performer',1,'2018-05-03 11:09:19.000','2018-05-03 03:09:19.000');
-INSERT INTO `training_event_users` (`trainingEventId`,`userId`,`application`,`active`,`date_added`,`date_updated`) VALUES (3,53,'marine-performer',1,'2018-05-03 11:09:19.000','2018-05-03 03:09:19.000');
+INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (1,'Internal','Master Admin','2018-07-27 08:43:16.000','2018-07-27 16:43:16.000',1,0);
+INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (2,'Internal','Admin','2018-07-27 08:43:16.000','2018-07-27 16:43:16.000',1,0);
+INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (3,'Internal','Manager','2018-07-27 08:43:16.000','2018-07-27 16:43:16.000',1,0);
+INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (4,'Internal','Standard User','2018-07-27 08:43:16.000','2018-07-27 16:43:16.000',1,0);
+INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (5,'External','Manager Guest','2018-07-27 08:43:16.000','2018-07-27 16:43:16.000',1,0);
+INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (6,'External','User Guest','2018-07-27 08:43:16.000','2018-07-27 16:43:16.000',1,0);
 
-INSERT INTO `training_modules` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (2,'Path To Performance','The Path To Performance is a checklist to ensure you involve your team in preparing for tasks. The steps are:\n1: Understand the Goal\n2: Gather the Facts\n3: Generate ideas\n4: Agree on idea\n5: Plan\n6: Execute',1,'2018-03-04 10:57:52.000','2018-03-04 02:57:52.000');
-INSERT INTO `training_modules` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (3,'Feedback','Feedback is a tool which enables the leader to drive the behaviour he wants to see and limit or change the behaviour he wants to limit. The SBI model is our preferred model. Situation, Behaviour, Impact',1,'2018-03-04 10:58:46.000','2018-03-04 02:58:46.000');
-INSERT INTO `training_modules` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (4,'Coaching','Coaching is a form of development in which a person called a coach supports a learner or client in achieving a specific personal or professional goal by providing training and guidance. We use the GROW model. Grow, Reality, Options, Will',1,'2018-03-04 10:59:14.000','2018-03-04 02:59:14.000');
-INSERT INTO `training_modules` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (5,'Facilitating meetings','A facilitator is a catalyst for a groups ability to achieve its goal. It can be seen as a conductor who orchestrates a group of musicians and enable them together to perform at their highest level',1,'2018-03-03 18:59:40.000','2018-03-03 10:59:40.000');
-INSERT INTO `training_modules` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (6,'Managing Difficult Conversations','Introducing a simple and practical technique to use in challenging conversations where you experience any of the following from others:\n\"\tObjections or resistance \n\"\tAggressive behaviours\n\"\tNo response\n\"\tDefensiveness\n\nThe 3 A\'s stand for Acknowledge, Ask, Answer\nTips\nAsk open questions\nListen carefully',1,'2018-04-03 04:34:07.000','2018-04-02 20:34:07.000');
-INSERT INTO `training_modules` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (7,'Customer Speed Dating','Customer Speed Dating is all about building a relationship with a customer within 30 seconds. It is not selling. During the 30 seconds you should follow the following process:',1,'2018-04-03 13:01:44.000','2018-04-03 05:01:44.000');
-INSERT INTO `training_modules` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (8,'Healthy Hierarchies','This module covers the essential ',1,'2018-04-03 13:03:41.000','2018-04-03 05:03:41.000');
-INSERT INTO `training_modules` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (9,'Conflict Ladder','How conflicts escalate',1,'2018-04-10 15:45:35.000','2018-04-10 07:45:35.000');
-INSERT INTO `training_modules` (`id`,`title`,`description`,`active`,`date_added`,`date_updated`) VALUES (10,'Conflict strategies','5 different ways of managing a conflict',1,'2018-04-10 15:45:55.000','2018-04-10 07:45:55.000');
+INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (23,'A8hCNXmoc1ZrJ3WfUy9z9KYVWSSyfG6h9AJGV7MYcLYB',33,'{\"id\":33,\"firstName\":\"externalstduser\",\"lastName\":\"\",\"phoneNumber\":null,\"companyId\":null,\"username\":\"test_external_standard_user\",\"userType\":\"External\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"afsdfadsfa@test.com\",\"dateAdded\":\"2018-09-12T01:02:42.000Z\",\"dateUpdated\":\"2018-09-12T01:14:48.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":\"someCompany\",\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-09-12 17:16:48.000','2018-09-13 01:40:03.000');
+INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (29,'9ShS3HRSZPutmzLw13RtwywsW3MuqVrBNhSUUBLRXfUw',11,'{\"id\":11,\"firstName\":\"Ivan\",\"lastName\":\"Pintor\",\"phoneNumber\":\"1234\",\"companyId\":null,\"username\":\"ivan.admin\",\"userType\":\"Internal\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"ivan.pintor@mobbizsolutions.com\",\"dateAdded\":\"2018-09-03T02:38:08.000Z\",\"dateUpdated\":\"2018-09-03T02:50:58.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-09-13 17:42:12.000','2018-09-17 18:35:23.000');
+INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (53,'GiCWPzLJU4hVKxFGnAyzWEKrXtWrBhdKH2B6QayPdXqR',1,'{\"id\":1,\"firstName\":\"John Aldrin1\",\"lastName\":\"Tapia1\",\"phoneNumber\":\"1111\",\"companyId\":null,\"username\":\"master.admin\",\"userType\":\"Internal\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"johnaldrin.tapia@volenday.com\",\"dateAdded\":\"2018-07-25T00:44:35.000Z\",\"dateUpdated\":\"2018-08-22T09:26:53.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-09-24 14:57:48.000','2018-09-27 17:00:29.000');
 
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (1,27,'chat',9,'2018-04-26 08:42:23.000',1,'2018-04-25 14:38:50.000','2018-04-26 00:40:50.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (2,27,'activity',NULL,'2018-04-25 15:58:15.000',1,'2018-04-25 14:38:58.000','2018-04-25 07:56:44.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (3,31,'activity',NULL,'2018-05-07 19:49:25.000',1,'2018-04-25 15:42:23.000','2018-05-07 11:49:08.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (4,31,'chat',9,'2018-05-16 18:13:36.000',1,'2018-04-25 15:42:55.000','2018-05-16 10:13:06.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (5,28,'activity',NULL,'2018-04-26 08:01:30.000',1,'2018-04-25 16:32:18.000','2018-04-26 05:59:58.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (6,27,'activity',NULL,'2018-05-07 15:54:31.000',1,'2018-04-25 17:11:20.000','2018-05-07 07:54:13.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (7,27,'chat',10,'2018-04-26 08:37:31.000',1,'2018-04-25 17:41:38.000','2018-04-26 00:35:59.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (8,28,'chat',10,'2018-04-25 19:51:33.000',1,'2018-04-26 01:49:51.000','2018-04-25 17:50:01.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (9,37,'activity',NULL,'2018-04-25 23:19:37.000',1,'2018-04-26 05:18:05.000','2018-04-25 21:18:05.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (10,37,'activity',NULL,'2018-04-25 23:21:49.000',1,'2018-04-26 05:18:07.000','2018-04-25 21:20:19.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (11,37,'chat',11,'2018-04-25 23:21:09.000',1,'2018-04-26 05:19:42.000','2018-04-25 21:19:42.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (12,37,'chat',11,'2018-04-25 23:21:14.000',1,'2018-04-26 05:19:44.000','2018-04-25 21:19:44.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (13,20,'chat',5,'2018-05-29 08:46:51.000',1,'2018-04-26 15:27:02.000','2018-05-29 08:46:50.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (14,19,'activity',NULL,'2018-05-15 19:03:15.000',1,'2018-04-26 15:27:03.000','2018-05-15 11:02:46.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (15,45,'activity',NULL,'2018-05-03 19:09:39.000',1,'2018-04-26 19:20:37.000','2018-05-03 11:07:52.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (16,36,'activity',NULL,'2018-04-29 08:31:12.000',1,'2018-04-26 19:25:43.000','2018-04-29 00:29:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (17,46,'activity',NULL,'2018-04-27 14:54:25.000',1,'2018-04-26 19:27:02.000','2018-04-27 06:52:52.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (18,38,'activity',NULL,'2018-05-07 16:03:45.000',1,'2018-04-26 19:28:16.000','2018-05-07 08:03:27.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (19,50,'activity',NULL,'2018-05-03 19:09:37.000',1,'2018-04-26 19:37:22.000','2018-05-03 11:07:50.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (20,49,'activity',NULL,'2018-04-27 15:48:28.000',1,'2018-04-26 19:39:57.000','2018-04-27 07:46:53.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (21,40,'activity',NULL,'2018-05-03 16:26:22.000',1,'2018-04-26 19:41:12.000','2018-05-03 08:24:35.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (22,29,'activity',NULL,'2018-05-06 20:50:46.000',1,'2018-04-26 19:41:16.000','2018-05-06 12:48:49.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (23,42,'activity',NULL,'2018-05-05 13:58:58.000',1,'2018-04-26 19:44:41.000','2018-05-05 05:57:07.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (24,52,'activity',NULL,'2018-04-26 13:51:21.000',1,'2018-04-26 19:44:41.000','2018-04-26 11:49:48.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (25,44,'activity',NULL,'2018-04-26 19:47:44.000',1,'2018-04-26 19:44:42.000','2018-04-26 11:46:11.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (26,43,'activity',NULL,'2018-05-03 16:22:47.000',1,'2018-04-26 19:44:43.000','2018-05-03 08:21:32.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (27,42,'chat',12,'2018-04-26 19:48:30.000',1,'2018-04-26 19:46:31.000','2018-04-26 11:47:00.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (28,38,'chat',12,'2018-04-26 19:48:19.000',1,'2018-04-26 19:46:46.000','2018-04-26 11:46:46.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (29,44,'activity',NULL,'2018-04-27 14:42:24.000',1,'2018-04-26 19:46:50.000','2018-04-27 06:40:48.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (30,52,'activity',NULL,'2018-05-04 18:15:10.000',1,'2018-04-26 19:53:00.000','2018-05-04 16:13:21.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (31,52,'chat',14,'2018-05-04 06:47:09.000',1,'2018-04-27 11:55:59.000','2018-05-04 04:45:21.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (32,49,'chat',14,'2018-04-27 15:49:07.000',1,'2018-04-27 15:47:30.000','2018-04-27 07:47:32.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (33,46,'activity',NULL,'2018-04-28 22:23:49.000',1,'2018-04-28 22:22:13.000','2018-04-28 14:22:13.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (34,53,'activity',NULL,'2018-05-04 06:05:22.000',1,'2018-05-03 12:35:25.000','2018-05-03 22:03:34.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (35,53,'chat',15,'2018-05-03 14:21:25.000',1,'2018-05-03 12:44:02.000','2018-05-03 06:19:38.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (36,20,'chat',7,'2018-05-29 09:18:01.000',1,'2018-05-03 15:21:07.000','2018-05-29 09:18:00.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (37,31,'chat',15,'2018-05-16 18:13:30.000',1,'2018-05-04 10:20:54.000','2018-05-16 10:13:00.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (38,51,'activity',NULL,'2018-05-04 13:40:11.000',1,'2018-05-04 20:38:21.000','2018-05-04 12:38:21.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (39,49,'activity',NULL,'2018-05-06 08:16:15.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:14:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (40,49,'activity',NULL,'2018-05-06 08:16:15.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:14:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (41,49,'activity',NULL,'2018-05-06 08:16:15.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:14:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (42,49,'activity',NULL,'2018-05-06 08:16:15.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:14:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (43,49,'activity',NULL,'2018-05-06 08:16:20.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:14:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (44,49,'activity',NULL,'2018-05-06 08:16:20.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:14:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (45,49,'activity',NULL,'2018-05-06 08:16:20.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:14:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (46,49,'activity',NULL,'2018-05-06 08:16:20.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:14:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (47,49,'activity',NULL,'2018-05-06 08:16:21.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:14:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (48,49,'activity',NULL,'2018-05-06 08:16:22.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:14:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (49,49,'activity',NULL,'2018-05-06 08:16:21.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:14:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (50,49,'activity',NULL,'2018-05-06 08:16:20.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:14:33.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (51,49,'activity',NULL,'2018-05-06 08:17:31.000',1,'2018-05-06 08:14:33.000','2018-05-06 00:15:44.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (52,49,'activity',NULL,'2018-05-07 17:06:04.000',1,'2018-05-06 08:20:54.000','2018-05-07 09:05:46.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (53,19,'activity',NULL,'2018-05-11 14:20:00.000',1,'2018-05-09 11:33:26.000','2018-05-11 06:19:36.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (54,19,'activity',NULL,'2018-05-15 10:25:16.000',1,'2018-05-15 02:24:14.000','2018-05-15 02:24:47.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (55,19,'activity',NULL,'2018-05-15 10:40:10.000',1,'2018-05-15 02:39:09.000','2018-05-15 02:39:41.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (56,19,'activity',NULL,'2018-05-15 10:42:20.000',1,'2018-05-15 02:41:40.000','2018-05-15 02:41:51.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (57,19,'activity',NULL,'2018-05-15 10:51:03.000',1,'2018-05-15 02:48:59.000','2018-05-15 02:50:35.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (58,19,'chat',5,'2018-05-29 09:17:17.000',1,'2018-05-15 02:50:14.000','2018-05-29 09:17:16.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (59,19,'chat',6,'2018-05-28 18:36:30.000',1,'2018-05-15 02:50:23.000','2018-05-28 10:36:31.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (60,19,'activity',NULL,'2018-05-15 10:52:20.000',1,'2018-05-15 02:51:41.000','2018-05-15 02:51:51.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (61,19,'activity',NULL,'2018-05-15 11:00:47.000',1,'2018-05-15 02:56:21.000','2018-05-15 03:00:18.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (62,19,'activity',NULL,'2018-05-17 13:35:47.000',1,'2018-05-15 03:01:19.000','2018-05-17 05:35:13.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (63,31,'activity',NULL,'2018-05-16 11:24:37.000',1,'2018-05-15 08:31:09.000','2018-05-16 03:24:06.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (64,31,'activity',NULL,'2018-05-16 11:21:07.000',1,'2018-05-15 08:32:39.000','2018-05-16 03:20:36.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (65,20,'activity',NULL,'2018-05-16 11:27:49.000',1,'2018-05-16 03:27:18.000','2018-05-16 03:27:18.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (66,31,'activity',NULL,'2018-05-16 13:19:48.000',1,'2018-05-16 03:28:34.000','2018-05-16 05:19:18.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (67,20,'activity',NULL,'2018-05-16 14:32:51.000',1,'2018-05-16 06:32:21.000','2018-05-16 06:32:21.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (68,20,'activity',NULL,'2018-05-16 14:34:29.000',1,'2018-05-16 06:33:58.000','2018-05-16 06:33:58.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (69,20,'activity',NULL,'2018-05-16 15:03:42.000',1,'2018-05-16 07:03:10.000','2018-05-16 07:03:11.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (70,31,'activity',NULL,'2018-05-16 15:04:21.000',1,'2018-05-16 07:03:50.000','2018-05-16 07:03:50.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (71,31,'activity',NULL,'2018-05-16 15:04:48.000',1,'2018-05-16 07:04:17.000','2018-05-16 07:04:17.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (72,20,'activity',NULL,'2018-05-23 13:58:36.000',1,'2018-05-16 07:13:50.000','2018-05-23 05:58:30.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (73,31,'activity',NULL,'2018-05-16 18:12:34.000',1,'2018-05-16 07:50:56.000','2018-05-16 10:12:03.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (74,19,'activity',NULL,'2018-05-23 17:45:19.000',1,'2018-05-17 06:03:14.000','2018-05-23 09:45:13.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (75,31,'activity',NULL,'2018-05-17 15:24:16.000',1,'2018-05-17 07:23:43.000','2018-05-17 07:23:43.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (76,19,'chat',5,'2018-05-29 09:17:17.000',1,'2018-05-22 09:44:19.000','2018-05-29 09:17:16.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (77,19,'chat',6,'2018-05-28 18:36:30.000',1,'2018-05-22 09:44:22.000','2018-05-28 10:36:31.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (78,20,'activity',NULL,'2018-05-24 10:35:09.000',1,'2018-05-23 06:09:49.000','2018-05-24 02:35:01.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (79,23,'activity',NULL,'2018-05-23 17:26:40.000',1,'2018-05-23 09:24:58.000','2018-05-23 09:26:34.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (80,19,'chat',5,'2018-05-29 09:17:17.000',1,'2018-05-25 06:09:17.000','2018-05-29 09:17:16.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (81,19,'chat',6,'2018-05-28 18:36:30.000',1,'2018-05-25 06:09:25.000','2018-05-28 10:36:31.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (82,19,'activity',NULL,'2018-05-25 14:11:03.000',1,'2018-05-25 06:11:16.000','2018-05-25 06:11:16.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (83,19,'activity',NULL,'2018-05-25 14:52:24.000',1,'2018-05-25 06:52:38.000','2018-05-25 06:52:38.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (84,19,'activity',NULL,'2018-05-28 11:17:22.000',1,'2018-05-25 07:37:21.000','2018-05-28 03:17:37.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (85,20,'activity',NULL,'2018-05-28 11:01:31.000',1,'2018-05-28 03:01:53.000','2018-05-28 03:01:53.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (86,20,'chat',7,'2018-05-29 09:18:01.000',1,'2018-05-28 03:02:19.000','2018-05-29 09:18:00.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (87,20,'chat',5,'2018-05-29 08:46:51.000',1,'2018-05-28 03:02:28.000','2018-05-29 08:46:50.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (88,20,'activity',2,'2018-05-29 09:05:11.000',1,'2018-05-28 05:52:51.000','2018-05-29 09:05:10.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (89,20,'activity',NULL,'2018-05-28 14:07:12.000',1,'2018-05-28 06:07:12.000','2018-05-28 06:07:12.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (90,20,'chat',16,'2018-05-28 06:08:30.000',1,'2018-05-28 06:08:30.000','2018-05-28 06:08:30.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (91,20,'chat',17,'2018-05-28 06:08:30.000',1,'2018-05-28 06:08:31.000','2018-05-28 06:08:31.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (92,20,'chat',18,'2018-05-28 06:18:21.000',1,'2018-05-28 06:18:21.000','2018-05-28 06:18:21.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (93,20,'chat',19,'2018-05-28 06:22:42.000',1,'2018-05-28 06:22:42.000','2018-05-28 06:22:42.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (94,20,'chat',20,'2018-05-28 06:24:52.000',1,'2018-05-28 06:24:53.000','2018-05-28 06:24:53.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (95,20,'chat',21,'2018-05-28 06:28:38.000',1,'2018-05-28 06:28:38.000','2018-05-28 06:28:38.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (96,19,'chat',22,'2018-05-28 06:32:44.000',1,'2018-05-28 06:32:44.000','2018-05-28 06:32:44.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (97,19,'chat',23,'2018-05-28 06:34:57.000',1,'2018-05-28 06:34:57.000','2018-05-28 06:34:57.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (98,19,'activity',2,'2018-06-19 09:53:02.000',1,'2018-05-28 06:36:29.000','2018-06-19 09:53:20.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (99,19,'chat',24,'2018-05-28 06:36:35.000',1,'2018-05-28 06:36:35.000','2018-05-28 06:36:35.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (100,19,'chat',25,'2018-05-28 06:36:44.000',1,'2018-05-28 06:36:44.000','2018-05-28 06:36:44.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (101,19,'chat',26,'2018-05-28 06:36:47.000',1,'2018-05-28 06:36:48.000','2018-05-28 06:36:48.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (102,19,'chat',27,'2018-05-28 06:36:52.000',1,'2018-05-28 06:36:52.000','2018-05-28 06:36:52.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (103,19,'chat',28,'2018-05-28 06:36:56.000',1,'2018-05-28 06:36:56.000','2018-05-28 06:36:56.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (104,19,'chat',29,'2018-05-28 06:37:01.000',1,'2018-05-28 06:37:02.000','2018-05-28 06:37:02.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (105,19,'chat',30,'2018-05-28 06:37:07.000',1,'2018-05-28 06:37:07.000','2018-05-28 06:37:07.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (106,19,'chat',31,'2018-05-28 06:37:27.000',1,'2018-05-28 06:37:27.000','2018-05-28 06:37:27.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (107,19,'chat',32,'2018-05-28 06:37:37.000',1,'2018-05-28 06:37:37.000','2018-05-28 06:37:37.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (108,19,'chat',33,'2018-05-28 06:37:50.000',1,'2018-05-28 06:37:50.000','2018-05-28 06:37:50.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (109,19,'chat',34,'2018-05-28 06:37:55.000',1,'2018-05-28 06:37:56.000','2018-05-28 06:37:56.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (110,19,'chat',35,'2018-05-28 06:38:01.000',1,'2018-05-28 06:38:01.000','2018-05-28 06:38:01.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (111,19,'chat',36,'2018-05-28 06:38:11.000',1,'2018-05-28 06:38:11.000','2018-05-28 06:38:11.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (112,19,'chat',37,'2018-05-28 06:40:39.000',1,'2018-05-28 06:40:40.000','2018-05-28 06:40:40.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (113,19,'chat',38,'2018-05-28 06:40:48.000',1,'2018-05-28 06:40:48.000','2018-05-28 06:40:48.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (114,19,'chat',NULL,'2018-05-28 06:42:09.000',1,'2018-05-28 06:42:10.000','2018-05-28 06:42:10.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (115,23,'chat',6,'2018-05-28 18:38:37.000',1,'2018-05-28 06:45:22.000','2018-05-28 10:38:38.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (116,23,'activity',2,'2018-05-29 09:00:57.000',1,'2018-05-28 06:45:28.000','2018-05-29 09:00:56.000');
-INSERT INTO `user_last_seen` (`id`,`userId`,`type`,`chatboxId`,`last_date_seen`,`active`,`date_added`,`date_updated`) VALUES (117,23,'chat',7,'2018-05-29 09:00:55.000',1,'2018-05-28 07:06:06.000','2018-05-29 09:00:54.000');
+INSERT INTO `share` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`shareType`,`shareId`,`sharedBy`,`dateAdded`,`dateUpdated`) VALUES (1,'users',7,'project',2,'folder',1,8,'2018-09-10 05:51:52.000','2018-09-10 13:51:52.000');
+INSERT INTO `share` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`shareType`,`shareId`,`sharedBy`,`dateAdded`,`dateUpdated`) VALUES (2,'users',7,'project',2,'folder',1,11,'2018-09-17 02:13:39.000','2018-09-17 10:13:39.000');
 
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (1,'admin','4c6a0aa97a3a7114041c4f3d2d9695f3a95ac8f9','johnaldrin.tapia@volenday.com','Y6XTKV6oobafS1JMyV4U74xsJule2d5s',NULL,NULL,NULL,'admin',NULL,NULL,NULL,NULL,NULL,NULL,1,NULL,'2018-06-14 09:28:16.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (3,'spectator1','yourpassword',NULL,'fxyF0Dz4EXYy5TJpWwdt0QwvkLTkFS8y',NULL,NULL,NULL,'spectator',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-02-27 16:48:45.000','2018-03-22 05:51:38.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (18,'Borja_trainer',NULL,'borja.celorio@volenday.com',NULL,NULL,NULL,NULL,'trainer',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-03-20 06:56:30.000','2018-03-21 21:51:37.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (19,'John','4c6a0aa97a3a7114041c4f3d2d9695f3a95ac8f9','john.test@volenday.com','Y6XTKV6oobafS1JMyV4U74xsJule2d5s','John',NULL,'Doe','participant','filipino','0999999999','1990 Mar 21 ',1,1,1,1,'2018-03-20 15:00:41.000','2018-06-19 09:48:21.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/John-1521534321.jpg','81c99127-a97d-44f6-8981-dc1c53690371');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (20,'Emile','e6c3e0ff86d233fa2466905f00d80e9a7d73af5e','emile.test@volenday.com','yO5DJXnBnoqinal7L0m5UE3cpQnbxtpr','Emile ',NULL,'Santos','participant','filipino','099999999','1988 Dec 25 ',1,1,1,1,'2018-03-20 15:01:33.000','2018-05-28 05:44:44.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/Emile-1523872354.jpg','29a8d2e1-1a20-4122-9aa2-02bef0f440ed');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (21,'spectator','yourpassword',NULL,'Id001N7tdzs8bCayrV5KsB2itBDttxbB',NULL,NULL,NULL,'spectator',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-03-20 15:03:42.000','2018-03-22 05:51:36.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (22,'test','yourpassword',NULL,'BDLukTX3ESHZKxx5kVeRFkmYcBNmyD8W',NULL,NULL,NULL,'spectator',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-03-20 17:17:52.000','2018-03-22 05:51:34.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (23,'Luis','c1a177bed5086d9586a5857c22315db03352edb2','Luis@gmail.com','An9jseqj9V54CaBMn1trQDXdW8W3Nd8X','Luis',NULL,'Llamas','participant','spanish','45454545454','1997 Mar 12 ',1,1,2,1,'2018-03-20 09:50:16.000','2018-05-23 09:23:51.000','http://s3.amazonaws.com/37assets/svn/765-default-avatar.png','29a8d2e1-1a20-4122-9aa2-02bef0f440ed');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (24,'Michael_admin','2f897be78ac2e3656166a2f9d88823567e845421','mhw@marineperformer.com','htAsd1YMJV61glKNTdMy5KWWNX2s4F3T',NULL,NULL,NULL,'admin',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-03-28 15:30:26.000','2018-03-28 07:37:29.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (25,'Paul_admin','7e06d0d2ac1943c4df8153e3fa5e8ede2af6902c','postergaard@sigrid.ai','gQOeuesexg2v7gmkGm01VPB94pC0UYH1',NULL,NULL,NULL,'admin',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-03-28 15:30:47.000','2018-04-10 07:14:18.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (26,'Daniel_admin',NULL,'dag@marineperformer.com',NULL,NULL,NULL,NULL,'admin',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-03-28 15:31:07.000','2018-03-28 07:31:07.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (27,'Paul','cacb7e9bc4afdaf1f28298042d4adecb45a3e817','Paul_123@gmail.com','txIK1BbViIHLPi5YFIC5H27wzb6D2Ce0','Paul',NULL,'Ostergaard','participant','danish','0123456789','1982 Mar 6 U',1,2,1,1,'2018-03-27 23:34:23.000','2018-05-07 07:53:35.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/Paul-1524649466.jpg','29a8d2e1-1a20-4122-9aa2-02bef0f440ed');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (28,'Michael','70d920ff30360df51fd9dfa1077b104f35685a42','Michael_123@gmail.com','MhrNGaDzBuqnUe265GJJ86tDIxVzPZUS','Michael',NULL,'Weidner','participant','norwegian','123456789','1982 Mar 6 U',1,2,1,1,'2018-03-28 15:36:24.000','2018-04-24 06:30:45.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/Michael-1524209995.jpg','eaabfd84-132c-47ab-889f-2622472a3b70');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (29,'Dan','956ef8b311ecdd6a1baa2c01d40f465f2fd5ccf1','dan_123@gmail.com','EnezhkQiweSEG0Fy9v3VrCctzLz2hXzq','Daniel',NULL,'Garbeles','participant','filipino','123456789','1982 Mar 6 U',1,2,1,1,'2018-03-28 15:37:13.000','2018-04-26 11:47:19.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','84556c5b-1b28-4cf1-a7e1-cd1f9fda8fad');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (30,'Borja_test','yourpassword',NULL,'l4TzFAi8x64LYPCNdAvcaJKDoyUVparY',NULL,NULL,NULL,'spectator',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-03-28 15:39:54.000','2018-03-28 07:41:34.000','http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (31,'Borja','cacb7e9bc4afdaf1f28298042d4adecb45a3e817','b.hernandez.celorio@gmail.com','txIK1BbViIHLPi5YFIC5H27wzb6D2Ce0','Borja',NULL,'Hernandez Celorio','participant','spanish','123456789','1982 Mar 6 U',1,2,1,1,'2018-03-28 15:41:07.000','2018-05-07 07:12:39.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/Borja-1525052847.jpg','29a8d2e1-1a20-4122-9aa2-02bef0f440ed');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (32,'Michael Weidner','85f2e60a44e72b30b7fa2594163384a9a4bfe563',NULL,'EzNHtXtJYFpPwe3vzGgLTklF4NIcWN7b',NULL,NULL,NULL,'spectator',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-04-03 12:47:32.000','2018-04-03 04:47:32.000','http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (33,'Martin Winnes','675d367ca518e771cd39d407f71117bfa3072b7a',NULL,'jpyqx4uFl3KTc7iAFD0j36ccx94HVvkz',NULL,NULL,NULL,'spectator',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-04-03 12:48:13.000','2018-04-03 04:48:13.000','http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (34,'Borja_admin','2d2befcdfd770c9541a8b59c1d7dc59cb6866356',NULL,'xMcWh1UQCcZPzjr3Dn5or5vBtCLb9jiQ',NULL,NULL,NULL,'spectator',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-04-10 15:49:00.000','2018-04-10 07:49:00.000','http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (35,'Borjarr','408cf0ed248113e8b577ed62f6ef8db79a959521',NULL,'dD0YoddynrBAcgNPqkcerf6ByWfp6Kt3',NULL,NULL,NULL,'spectator',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-04-10 15:49:42.000','2018-04-10 07:49:42.000','http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (36,'Sigrid','e3d247502eb07e9c7be86202c0aafb6fcad45661','sviloria@sigrid.ai','fELtEuh9GSeiT8B6eERmICy8HYavCga7','Sigrid Viloria',NULL,'Viloria','participant',NULL,NULL,NULL,4,7,6,1,'2018-04-10 02:39:07.000','2018-04-26 11:44:04.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','199f85a5-9335-4ae0-8988-6b27f0be074d');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (37,'Roger','c5814660f5e6327d19e6c06505b27a8c130ecf31','roger@lipstickdesign.com','kAEGg3elLe04QFe9mQstALzfOpYNXiFG','Roger',NULL,'Henriksen','participant','norwegian','0000000','2018 Apr 11 ',1,2,1,1,'2018-04-12 22:08:59.000','2018-04-24 06:30:45.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/Roger-1523550354.jpg','a81ede26-d739-4a88-8666-5670a64a72e8');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (38,'Kathleen','cacb7e9bc4afdaf1f28298042d4adecb45a3e817','ktan@sigrid.ai','txIK1BbViIHLPi5YFIC5H27wzb6D2Ce0','Kathleen',NULL,'Tan','participant','filipino',NULL,NULL,4,7,6,1,'2018-04-13 13:08:27.000','2018-05-07 07:57:47.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','acda53a7-3c1a-4348-a170-ae19a0858deb');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (39,'Melanie','3afdecc974edce7012a7011e83a44b018c512738','magento@sigrid.ai','ucdveK5gK0D225GTq5wZr9lKmcPtOIyv','Melanie Agento',NULL,NULL,'participant','filipino',NULL,NULL,4,7,6,1,'2018-04-13 21:13:20.000','2018-04-26 10:14:32.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (40,'llalaine','6d0137a6f166ab2dfe78e2747784ea7805fff404','lsison@sigrid.ai','tLvXotFRW6sZfq8sv237rNPtDa0iVGL0','Llalaine Sison',NULL,NULL,'participant','filipino',NULL,NULL,4,7,6,1,'2018-04-13 21:17:16.000','2018-04-26 11:40:36.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','52e1988e-8aa1-4ae1-95e6-8b3a04e6755b');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (41,'Daniel','25d34c25c7d48c5d483865381faca68cff5e0b36','dgarbeles@sigrid.ai','YUuvN7ovciNZEBz3olgRJa2qNnFDkMA9','Daniel Garbeles',NULL,NULL,'participant','filipino',NULL,NULL,4,7,6,1,'2018-04-13 21:18:07.000','2018-04-26 10:15:26.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (42,'Maria','5a72d663a5fc039378c65e6b1dd56e79d98542be','mlaiz@sigrid.ai','xkEW6cVUrR8B8roXjHBYb4E3pUnmSVhT','Maria Laiz',NULL,NULL,'participant','filipino',NULL,NULL,4,7,6,1,'2018-04-13 21:19:24.000','2018-04-26 10:59:10.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','c6c87771-28d8-45d0-b8a6-2ac25c50b950');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (43,'Pia','49986a376f78737620677b1dc9efc8524cb1dd28','pcandoy@sigrid.ai','zv6qdjGPeS6ZFCepcqKhAA0MQO2WO3aA','Pia Candoy',NULL,NULL,'participant',NULL,NULL,NULL,4,7,6,1,'2018-04-13 21:20:15.000','2018-04-26 11:37:59.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','6b6fba1b-fd75-43ce-b4b8-dcbc6c3efabc');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (44,'Daryl','236f644627d729c6e1951fb5c505923cde32c73f','dalmirol@sigrid.ai','xau3LRc05YLKyMl4FvYfsBw4m7f1jGLX','Daryl Almirol',NULL,NULL,'participant',NULL,NULL,NULL,4,7,6,1,'2018-04-13 21:24:01.000','2018-05-06 03:33:33.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','37602837-ace9-48d6-9771-3808cda559be');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (45,'Athena','94b9482a0bc9e2128ed00a680ee84a5ffc5e9e19','adelmo@sigrid.ai','i8g6fpNwUByaHYxf6bHpsvVeHaCs77eP','Athena Delmo',NULL,NULL,'participant',NULL,NULL,NULL,4,7,6,1,'2018-04-13 21:24:41.000','2018-04-26 10:59:03.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','27ef89ab-000b-4f61-9b14-e919ba5feced');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (46,'Josua','9757f3d259ab04ca8c4ab82274d70ae94715e2c8','jinfante@sigrid.ai','LB58LTaGXBL2eh2IucAhrwMwzZJqAUDz','Josua Infante',NULL,NULL,'participant',NULL,NULL,'1987-04-08 U',4,7,6,1,'2018-04-13 13:25:29.000','2018-04-26 11:26:48.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','8ee758a0-866a-4e28-8b26-772d37f2ea44');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (47,'Niller',NULL,'nc@wedell.dk',NULL,'Niels Christian',NULL,'Wedell','participant','danish',NULL,NULL,7,8,0,1,'2018-04-20 16:10:34.000','2018-04-24 06:30:45.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (48,'Siri',NULL,'siri.tomte@marineperformer.com',NULL,'Siri',NULL,'Tomte','participant','danish',NULL,NULL,7,8,0,1,'2018-04-20 16:25:27.000','2018-04-24 06:30:45.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png',NULL);
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (49,'Paul_pilot','cacb7e9bc4afdaf1f28298042d4adecb45a3e817','paul@ostergaard.com','txIK1BbViIHLPi5YFIC5H27wzb6D2Ce0','Paul Henrik Ostergaard',NULL,NULL,'participant',NULL,NULL,NULL,4,7,7,1,'2018-04-24 05:19:56.000','2018-05-07 08:10:34.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','29a8d2e1-1a20-4122-9aa2-02bef0f440ed');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (50,'Ida','2cf68f3a6c0499ac2c76506ec32ff7ae591d6cc4','idamarie@petersvaerft.com','865j6W39Z94mi65donovq112vUFd7Vd2','Ida Marie',NULL,NULL,'participant','danish',NULL,NULL,4,7,7,1,'2018-04-24 05:20:58.000','2018-04-26 11:36:56.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','417fc1ae-544b-447c-b8b6-693ca88c8c2b');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (51,'Megan','43cf4af02801340a69f86d0d20298b9b785e8356','megan@isongo.com','R8m9RTLOr9cKS8W8sGWpPw5I1tbevXtq',NULL,NULL,NULL,'trainer',NULL,NULL,NULL,NULL,NULL,NULL,1,'2018-04-26 18:20:38.000','2018-05-04 12:35:15.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','216d9bf5-76be-4a44-8310-d14e071fc6e9');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (52,'Michael_pilot','0da42cb1e1cdd504f10b30c57e6fe5cdedf411a6','Michael@pilot.com','1YBIinxWuHEMfupuggci33LmOkfYPU75','Michael',NULL,NULL,'participant',NULL,NULL,NULL,4,7,7,1,'2018-04-26 18:30:16.000','2018-04-26 11:25:02.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','eaabfd84-132c-47ab-889f-2622472a3b70');
-INSERT INTO `users` (`id`,`username`,`password`,`email`,`salt`,`firstName`,`middleName`,`lastName`,`userType`,`nationality`,`tel`,`birthday`,`companyId`,`branchId`,`positionId`,`active`,`date_added`,`date_updated`,`avatar`,`oneSignalId`) VALUES (53,'Mark','bafcd3b24cb7088d9dc205d77a533cfcf2a8c04e','mppacheco2002@yahoo.com','2QjRk6Fpg3Qeoij0LnV9tQjaSF0giKTw','Mark',NULL,'Pacheco','participant','filipino','123456789','2018 May 1 U',1,2,2,1,'2018-05-03 11:08:36.000','2018-05-03 04:34:48.000','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','d6f77acf-228c-4d4c-ada6-f372927de5ec');
 
-INSERT INTO `users_forgot_password` (`userId`,`hash_word`,`date_added`,`date_updated`) VALUES ('1','114da34907fafe65f126fbbc62c208cb7c40ed5c','2018-05-09 10:24:39.000','2018-05-09 10:24:39.000');
-INSERT INTO `users_forgot_password` (`userId`,`hash_word`,`date_added`,`date_updated`) VALUES ('19','d8ef4519515b94d1c74560fba9a4c2460ea16cfa','2018-05-09 11:29:03.000','2018-05-09 11:29:03.000');
+
+
+
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (1,NULL,'task',1,'document',70,'2018-09-27 16:28:05.000','2018-09-27 16:28:05.000',0,0);
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (2,NULL,'task',1,'document',71,'2018-09-27 16:28:58.000','2018-09-27 16:28:58.000',0,0);
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (3,NULL,'task',1,'document',72,'2018-09-27 16:29:49.000','2018-09-27 16:29:49.000',0,0);
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (4,NULL,'task',1,'document',73,'2018-09-27 16:30:50.000','2018-09-27 16:30:50.000',0,0);
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (5,NULL,'task',1,'document',78,'2018-09-27 16:32:38.000','2018-09-27 16:32:38.000',0,0);
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (6,NULL,'task',1,'document',79,'2018-09-27 16:33:43.000','2018-09-27 16:33:43.000',0,0);
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (7,NULL,'task',1,'document',80,'2018-09-27 16:38:03.000','2018-09-27 16:38:03.000',0,0);
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (8,NULL,'task',1,'document',81,'2018-09-27 16:39:59.000','2018-09-27 16:39:59.000',0,0);
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (9,NULL,'task',1,'document',82,'2018-09-27 16:41:34.000','2018-09-27 16:41:34.000',0,0);
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (10,NULL,'task',1,'document',83,'2018-09-27 16:42:19.000','2018-09-27 16:42:19.000',0,0);
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (11,NULL,'task',1,'document',87,'2018-09-27 16:45:25.000','2018-09-27 16:45:25.000',0,0);
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (12,NULL,'task',1,'document',90,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000',0,0);
+
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`linkTaskId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (1,1,'Stage One: Analysis','A common misconception among business owners is that the most important part of development are the design and the code. Yes, good design and solid code are both extremely important. However, they do zero good if the software doesn’t suit your business needs.\n\nIn our minds, the analysis stage is the most crucial step in software development, and the RTS Labs teams focus on this stage a lot, so we can get it right the first time. Beyond building something that is beautifully designed, user friendly, and bug free, you need a tool that will actually produce a return on your investment.\n\nAs an example of what should be happening during this crucial stage, we spend time learning your business processes, pain points, challenges, technical ecosystem, and goals. Once that information is gathered, we validate goals and present you with a scope of work.',6,'2018-10-27 00:00:00.000','2018-09-27 00:00:00.000',NULL,NULL,NULL,1,'months',1,3,NULL,'2018-09-26 14:09:47.000','2018-09-26 14:09:47.000',1,0);
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`linkTaskId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (2,1,'Stage One: Analysis','A common misconception among business owners is that the most important part of development are the design and the code. Yes, good design and solid code are both extremely important. However, they do zero good if the software doesn’t suit your business needs.\n\nIn our minds, the analysis stage is the most crucial step in software development, and the RTS Labs teams focus on this stage a lot, so we can get it right the first time. Beyond building something that is beautifully designed, user friendly, and bug free, you need a tool that will actually produce a return on your investment.\n\nAs an example of what should be happening during this crucial stage, we spend time learning your business processes, pain points, challenges, technical ecosystem, and goals. Once that information is gathered, we validate goals and present you with a scope of work.',6,'2018-11-27 00:00:00.000','2018-10-27 00:00:00.000',NULL,NULL,NULL,1,'months',1,3,1,'2018-09-26 14:09:47.000','2018-09-26 14:09:47.000',1,0);
+
+INSERT INTO `task_checklist` (`id`,`completed`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (25,1,'test24',1,NULL,'[83]',1,'2018-09-27 16:42:19.000','2018-09-27 17:00:43.000');
+INSERT INTO `task_checklist` (`id`,`completed`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (26,1,'test24',2,25,NULL,1,'2018-09-27 16:42:19.000','2018-09-27 16:59:50.000');
+INSERT INTO `task_checklist` (`id`,`completed`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (27,1,'Test334',1,NULL,'[87]',1,'2018-09-27 16:45:25.000','2018-09-27 17:00:42.000');
+INSERT INTO `task_checklist` (`id`,`completed`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (28,0,'Test334',2,27,NULL,1,'2018-09-27 16:45:25.000','2018-09-27 16:45:32.000');
+
+
+
+INSERT INTO `team` (`id`,`teamLeaderId`,`usersId`,`team`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (10,11,1,'Borja Team','2018-08-30 03:36:34.000','2018-08-30 11:36:34.000',1,0);
+INSERT INTO `team` (`id`,`teamLeaderId`,`usersId`,`team`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (11,11,6,'Team Ivan','2018-09-04 02:56:22.000','2018-09-04 10:56:22.000',1,0);
+INSERT INTO `team` (`id`,`teamLeaderId`,`usersId`,`team`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (12,5,23,'DevOps','2018-09-06 17:16:04.000','2018-09-19 01:10:15.000',1,0);
+
+INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (1,'Client','project','2018-09-10 04:53:31.000','2018-09-10 12:53:31.000',1,0);
+INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (2,'Internal','project','2018-09-10 04:53:31.000','2018-09-10 12:53:31.000',1,0);
+INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (3,'Private','project','2018-09-10 04:53:31.000','2018-09-10 12:53:31.000',1,0);
+INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (4,'Output based','workstream','2018-09-10 04:53:31.000','2018-09-10 12:53:31.000',1,0);
+INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (5,'Time based','workstream','2018-09-10 04:53:32.000','2018-09-10 12:53:32.000',1,0);
+
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (1,'John Aldrin1','Tapia1','1111',NULL,'master.admin','c08f94cdbfd13e47333a2d6e18c5ab8b6d2c3fbf','4qVnChLYBUpVWuLXQsZBKQJcYiq5ZVRn','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','johnaldrin.tapia@volenday.com','2018-07-25 08:44:35.000','2018-08-22 17:26:53.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (2,'Aldous','',NULL,NULL,'standard.user2','bfb18fbd5b92f95a22f39f559dfe0fffb9796af3','9yvvVWgkHIqNmrFkyrn1oFQoe7V77X9m','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','Aldoustester@volenday.com','2018-07-28 01:08:53.000','2018-09-19 16:47:44.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (3,'testuser2','volenday','2323',NULL,'standard.user','c7b6586d67a1860743f11898c97462624c207d43','7VvRcUa6uYqKDu6tnY9T3Pvmahub40Dv','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','testuser2@volenday.com','2018-07-28 09:19:45.000','2018-07-30 05:07:30.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (5,'Internal','Manager','090937373',NULL,'manager','0d44ef43111199b99bd49942c10968d5378b7bf8','CF7DRHEnFUwX2WhmtbJs0D94Kf4W9qma','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','testmanager@cfo.com','2018-08-06 01:14:47.000','2018-08-06 09:18:52.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (6,'test','admin','6060',NULL,'admin','7d90fd6eb269160e01cb466e18e807b76230180b','JwbvRNedPgdTbU4Jw32leTorsHoZ8he0','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','testadmin@cfo.com','2018-08-07 01:18:24.000','2018-08-07 09:19:09.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (7,'Randur','Duran','0999999999',NULL,'randur.duran','f4ce619793537995f507efb5ebf68127c9c0d4f1','YkQGb7hzWSGCtMHoL9gBbFrqIU0jiPz0','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','randurduran@volenday.com','2018-08-14 16:11:43.000','2018-08-15 00:12:00.000',1,0,'DevOps');
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (8,'Standard','User2','099999999',NULL,'test.user2','c5d605ae120c02ce74946b3691aef166e3bbd3f5','ut5IG2lLZbMx0wHViPk8l25NYY5BQaky','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','test.user2@gmail.com','2018-08-18 10:19:45.000','2018-08-21 23:33:23.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (9,'User','Guest','695932116654',NULL,'user.guest','66ef2bcfe3e396ca04aad34de0b92be59f6cd06f','I55b9DevwFvS7pm0HFLG7YSJNRfwkD6A','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','user.guest@volenday.com','2018-08-29 08:42:00.000','2018-08-29 16:42:50.000',1,0,'Test Company');
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (10,'Aian','Fajardo','24',NULL,'aian.fajardo','dcc0796f98d4f69eb72d8698b4c60e4e35c2361e','4GzyPJs7wwsKrGxpR72R4hE5b9Qfvepr','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','aian.fajardo@volenday.com','2018-09-03 07:54:33.000','2018-09-05 00:35:52.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (11,'Ivan','Pintor','1234',NULL,'ivan.admin','cc221dd2a0668b081211ac4466e1f2c39cde6ed1','c15sE5AFnXuRy8z56AZYtIdV4PL03pIG','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','ivan.pintor@mobbizsolutions.com','2018-09-03 10:38:08.000','2018-09-03 18:50:58.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (20,'Andrien','Pecson','2314651994161',NULL,'andrien.pecson','4551d20d9ea53f57226d7790033e8948d2550b5e','4rb9Xfzx4hKJvckrdEpopQ7wpqpkKNlu','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','andrien.pecson@volenday.com','2018-09-04 08:35:11.000','2018-09-04 16:35:24.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (21,'Borja','Hernandez','0946313563213',NULL,'borja.hernandez','34a00c6dfd993c60dc1812e5d2b6f82addfbd158','WEnHOypmB1WAdQdhsLHiJEZTPGN79U0n','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','borja.celorio@volenday.com','2018-09-04 17:02:34.000','2018-09-05 01:03:17.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (22,'Borja','Manager(int)','123456',NULL,'BorjaManager(int)','944a9f105ec9f597849f574c07c8fbe7457ad15e','1jKaHQWlF2AjlO35yiW5Px1EwRzgAhvR','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','BorjaManager@g.com','2018-09-05 03:38:04.000','2018-09-05 11:51:17.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (23,'Borja','Admin','1123456',NULL,'BorjaAdmin','66bbdffd219f1672e196917003930c3ce0168b97','WPUjJaw9zgX2kVSy0FpPJvbNSCz4Mzhb','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','BorjaAdmin@g.com','2018-09-05 03:38:47.000','2018-09-05 11:52:46.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (24,'Borja','MasterAdm','9999999999',NULL,'BorjaMasterAdm','56a62e8f8f582dcf85f459f6a9929d1c858d7aa3','BfxxKb5VskXaSDrc9eOhIKDVdmw9xHar','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','BorjaMasterAdm@g.com','2018-09-05 03:39:32.000','2018-09-05 11:52:35.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (25,'Borja','Standard','5555555',NULL,'BorjaStandard','82d9aaf5be997680e28e07af2c10cac940894f79','m9lrane9PV05taTN0GrT6Qaa9bEahn7A','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','BorjaStandard@g.com','2018-09-05 03:40:22.000','2018-09-05 11:52:22.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (26,'Borja','_EXT_Mng','6565656565',NULL,'Borja_EXT_Mng','058f4c1b74281c24faee0e5705249a0e8d14b428','TvbERo0LhFhJuL1l1qbNUFhsttHeLhS1','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','Borja_EXT_Mng@g.com','2018-09-05 03:41:40.000','2018-09-05 11:52:09.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (27,'Borja','_EXT_user','8888888888',NULL,'Borja_EXT_user','6e34b16c773b4e12503f3a6e098476281b0549d7','wgBY5dfDkrdLYdiYCiPEPbWlTQvfbIhc','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','Borja_EXT_user@g.com','2018-09-05 03:42:28.000','2018-09-05 11:51:58.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (28,'Mickael','',NULL,NULL,'mickael','3b12fcebde59082db6a30fc1f13702ed5dc9a8fd','M0KI0pOR5T1XdnMFIzWIR7S03qVRqWjP','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','mickael@cloudcfo.ph','2018-09-05 06:25:14.000','2018-09-05 14:25:58.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (29,'External','Manager','',NULL,'external.manager','0b649b10d60eb93ed94d3d7dc47b3d45e59e5cae','lLoQ1tOBSfKOgbxdmuhrHVMdxAyfcErO','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','external.manager@volenday.com','2018-09-06 03:00:05.000','2018-09-06 11:04:59.000',1,0,'ABC Corp');
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (31,'randur','duran','0999808909',NULL,'randur.admin','ff8e3a4e231a0a3e1a67153cbee32ea88a48547e','VvwHifgtSt87hWERdf8wLyJS1y7OO4zH','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','randur.duran@volenday.com','2018-09-07 03:18:13.000','2018-09-07 11:18:39.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (32,'Louise','Villanueva','',NULL,'marialouise.villanueva','e62ed1f722fdbd2332526a9da699aeddf68a08c9','LurrYDrPoVsAxgvJ9SEdw9PdSCq0WVHO','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','marialouise.villanueva@volenday.com','2018-09-10 01:23:33.000','2018-09-10 09:23:44.000',1,0,'Mobbiz');
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (33,'externalstduser','',NULL,NULL,'test_external_standard_user','713b3c2bb6658423bca888dc176fb449a65425cc','xOuWyp3oLEoAOtJ3RrTgT24fAba7OSlV','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','afsdfadsfa@test.com','2018-09-12 09:02:42.000','2018-09-12 17:14:48.000',1,0,'someCompany');
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (34,'Andrien','Pecson','9560729694',NULL,'andrienpecsonext','7dc091bddff5cd07f9cc7da0086d79ff09782a61','DsvgmaetOq0dSn1hKNkktNyXaPktDBIG','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','andrien.pecson@gmail.com','2018-09-19 17:22:16.000','2018-09-20 08:17:32.000',1,0,NULL);
+
+
+
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (34,3,4,'2018-08-24 01:40:06.000','2018-08-24 09:40:06.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (38,1,1,'2018-08-24 01:41:56.000','2018-08-24 09:41:56.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (47,6,2,'2018-09-04 05:36:19.000','2018-09-04 13:36:19.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (55,2,4,'2018-09-04 08:58:51.000','2018-09-04 16:58:51.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (69,10,6,'2018-09-05 00:40:40.000','2018-09-05 08:40:40.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (72,20,4,'2018-09-05 01:01:11.000','2018-09-05 09:01:11.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (75,8,4,'2018-09-05 01:04:49.000','2018-09-05 09:04:49.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (76,21,3,'2018-09-05 02:29:56.000','2018-09-05 10:29:56.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (78,22,3,'2018-09-05 03:38:04.000','2018-09-05 11:38:04.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (79,23,2,'2018-09-05 03:38:47.000','2018-09-05 11:38:47.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (80,24,1,'2018-09-05 03:39:32.000','2018-09-05 11:39:32.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (81,25,4,'2018-09-05 03:40:22.000','2018-09-05 11:40:22.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (82,26,5,'2018-09-05 03:41:40.000','2018-09-05 11:41:40.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (83,27,6,'2018-09-05 03:42:28.000','2018-09-05 11:42:28.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (85,9,6,'2018-09-05 05:07:47.000','2018-09-05 13:07:47.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (86,28,2,'2018-09-05 06:25:14.000','2018-09-05 14:25:14.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (87,29,5,'2018-09-06 03:00:05.000','2018-09-06 11:00:05.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (89,31,2,'2018-09-07 03:18:13.000','2018-09-07 11:18:13.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (90,5,3,'2018-09-07 05:56:07.000','2018-09-07 13:56:07.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (91,32,5,'2018-09-10 01:23:33.000','2018-09-10 09:23:33.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (92,11,2,'2018-09-10 05:01:33.000','2018-09-10 13:01:33.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (94,33,6,'2018-09-12 09:02:42.000','2018-09-12 17:02:42.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (95,7,5,'2018-09-19 14:11:33.000','2018-09-19 14:11:33.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (96,34,5,'2018-09-19 17:22:16.000','2018-09-19 17:22:16.000',1,0);
+
+INSERT INTO `users_team` (`id`,`usersId`,`teamId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (27,2,12,'2018-09-20 08:18:20.000','2018-09-20 08:18:20.000',1,0);
+INSERT INTO `users_team` (`id`,`usersId`,`teamId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (28,31,12,'2018-09-20 08:18:20.000','2018-09-20 08:18:20.000',1,0);
+INSERT INTO `users_team` (`id`,`usersId`,`teamId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (29,3,12,'2018-09-20 08:18:20.000','2018-09-20 08:18:20.000',1,0);
+INSERT INTO `users_team` (`id`,`usersId`,`teamId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (30,21,11,'2018-09-20 08:18:46.000','2018-09-20 08:18:46.000',1,0);
+INSERT INTO `users_team` (`id`,`usersId`,`teamId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (31,31,11,'2018-09-20 08:18:46.000','2018-09-20 08:18:46.000',1,0);
+INSERT INTO `users_team` (`id`,`usersId`,`teamId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (32,5,11,'2018-09-20 08:18:46.000','2018-09-20 08:18:46.000',1,0);
+
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (2,2,'PAYROLL',NULL,NULL,0,NULL,4,'2018-09-16 18:07:19.000','2018-09-19 15:18:16.000',1,1);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (3,3,'ws to be deleted',NULL,NULL,0,NULL,4,'2018-09-16 18:28:10.000','2018-09-17 10:29:15.000',1,1);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (4,4,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-17 02:29:51.000','2018-09-19 16:20:18.000',1,1);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (5,5,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-17 04:39:36.000','2018-09-19 16:20:20.000',1,1);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (6,1,'Software Development',NULL,'Software Development is the process of conceiving, specifying, designing, programming, documenting, testing, and bug fixing involved in creating and maintaining applications, frameworks, or other software components.',0,NULL,4,'2018-09-17 10:05:10.000','2018-09-19 17:50:04.000',1,1);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (7,2,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-19 13:25:29.000','2018-09-19 15:18:16.000',1,1);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (8,3,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-19 13:25:50.000','2018-09-19 15:18:18.000',1,1);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (9,4,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-19 15:21:59.000','2018-09-19 16:20:18.000',1,1);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (10,5,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-19 15:25:29.000','2018-09-19 16:20:20.000',1,1);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (11,6,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-20 09:56:36.000','2018-09-20 10:02:25.000',1,1);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (12,7,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-20 10:02:54.000','2018-09-20 10:10:21.000',1,1);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (13,8,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-20 10:10:32.000','2018-09-20 10:10:32.000',1,0);
