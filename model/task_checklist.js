@@ -18,7 +18,12 @@ var field = exports.field = {
     /**
      *  taskId (Foreign Key)
      */
-    'taskId': { type: 'bigint', access: "public" },
+    'taskId': { type: 'bigint', access: "public", database: "task", relation: "one-to-one" },
+
+    /**
+     *  periodChecklist (BIGINT)
+     */
+    'periodChecklist': { type: 'bigint', access: "public" },
 
     /**
     * documents (VARCHAR(50))

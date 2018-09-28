@@ -4,6 +4,7 @@ CREATE TABLE `task_checklist` (
     `completed` TINYINT(1) DEFAULT '0',
     `description` TEXT,
     `taskId` BIGINT,
+    `periodChecklist` BIGINT,
     `documents` VARCHAR(50),
     `createdBy` INT,
     `dateAdded` DATETIME,

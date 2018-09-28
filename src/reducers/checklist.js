@@ -25,26 +25,18 @@ export default function reducer(state = {
             return { ...state, List, Selected: {} };
         }
         case "UPDATE_CHECKLIST": {
-            let { List } = { ...state };
-            let newList = List.map((e,i)=>{
-                if(e.id == action.data.id){
-                    if(typeof action.data.completed != "undefined"){
-                        return { ...e , completed : action.data.completed }
-                    }else{
-                        return action.data
-                    }
-                }
-                return e
-            })
-            return { ...state, List: newList }
-            // const { List } = { ...state };
-            // const index = _.findIndex(List, { id: action.data.id });
+            const { List } = { ...state };
+            const index = _.findIndex(List, { id: action.data.id });
 
-            // if (index >= 0) {
-            //     const updatedEl = _.merge({}, List[index], action.data);
-            //     List.splice(index, 1, updatedEl);
-            // }
-            // return { ...state, List };
+            if (index >= 0) {
+                let dataToBeUpdated = action.data;
+
+                if (typeof action.data.action != "undefined" && action.data.action == "complete") {
+                    dataToBeUpdated = { ...List[index], completed: action.data.completed };
+                }
+                List.splice(index, 1, dataToBeUpdated);
+            }
+            return { ...state, List };
         }
         case "DELETE_CHECKLIST": {
             const { List } = { ...state };

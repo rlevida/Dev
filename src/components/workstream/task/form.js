@@ -58,7 +58,6 @@ export default class FormComponent extends React.Component {
             socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
             socket.emit("GET_COMMENT_LIST", { filter: { linkType: "task", linkId: task.Selected.id } })
         }
-
         if (typeof task.Selected.workstreamId != "undefined") {
             socket.emit("GET_DOCUMENT_LIST", { filter: { isDeleted: 0, linkId: project, linkType: 'project' } })
         }
@@ -149,8 +148,11 @@ export default class FormComponent extends React.Component {
         const { checklist, task, socket, loggedUser } = this.props;
         const toBeSubmitted = {
             description: checklist.Selected.checklist,
-            types: checklist.Selected.types,
+            types: (typeof checklist.Selected.types != "undefined") ? checklist.Selected.types : "",
             taskId: task.Selected.id,
+            periodTask: (task.Selected.periodTask == null) ? task.Selected.id : task.Selected.periodTask,
+            isPeriodicTask: task.Selected.periodic,
+            taskDueDate: task.Selected.dueDate,
             createdBy: loggedUser.data.id
         };
 
@@ -178,9 +180,14 @@ export default class FormComponent extends React.Component {
             description: checklist.Selected.checklist,
             types: checklist.Selected.types,
             taskId: task.Selected.id,
+            periodChecklist: checklist.Selected.periodChecklist,
+            periodTask: (task.Selected.periodTask == null) ? task.Selected.id : task.Selected.periodTask,
+            periodTask: (task.Selected.periodTask == null) ? task.Selected.id : task.Selected.periodTask,
+            isPeriodicTask: task.Selected.periodic,
+            taskDueDate: task.Selected.dueDate,
             createdBy: loggedUser.data.id
         };
-        if (_.filter(checklist.Selected.types, (e) => { return e.label == "Document" }).length > 0 && checklist.Selected.documents.length > 0) {
+        if (_.filter(checklist.Selected.types, (e) => { return e.value == "Document" }).length > 0 && checklist.Selected.documents.length > 0) {
             socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted, documents: checklist.Selected.documents, project: project })
         } else {
             socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
@@ -197,13 +204,15 @@ export default class FormComponent extends React.Component {
     setDropDownMultiple(name, values) {
         let { checklist, task, dispatch } = this.props;
 
+
+
         if (values.filter(e => { return e.value == "Document" }).length && typeof checklist.Selected.documents == "undefined") {
             dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
             $('#uploadFileModal').modal({
                 backdrop: 'static',
                 keyboard: false
             })
-        }
+        } 
 
         if (name == "linkTaskIds") {
             dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, [name]: values } })
@@ -223,15 +232,17 @@ export default class FormComponent extends React.Component {
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
-    editChecklist(value) {
-        let { dispatch } = this.props;
+    editChecklist({ ...value }) {
+        let { dispatch } = { ...this.props };
+        let description = value.description
+        delete value.description;
 
         dispatch({ type: "SET_CHECKLIST_ACTION", action: `Edit` })
-        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...value, checklist: value.description } })
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...value, checklist: description, documents: (value.documents != "") ? value.documents : [] } })
     }
 
     render() {
-        let { dispatch, task, status, global, loggedUser, document, workstream, checklist, socket, project } = this.props;
+        let { dispatch, task, status, global, loggedUser, document, workstream, checklist, socket, project } = { ...this.props };
         let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false, documentList = [];
 
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
@@ -264,7 +275,6 @@ export default class FormComponent extends React.Component {
                 isVisible = true;
             }
         }
-
         if (typeof global.SelectList.tagList != "undefined") {
             let tempTagList = [];
             global.SelectList.tagList.map(tag => {
@@ -329,6 +339,8 @@ export default class FormComponent extends React.Component {
                 allowToComplete = (taskBefore[0].status == "Completed") ? true : false;
             }
         }
+
+        console.log(checklist.Selected.documents)
 
         return (
             <div class="pd20">
@@ -425,20 +437,16 @@ export default class FormComponent extends React.Component {
                                                         {
                                                             _.map(o.types, (o, index) => {
                                                                 return (
-                                                                    <span class="label label-success" key={index}>{o.value}</span>
+                                                                    <p class="m0" key={index}><span class="label label-success">{o.value}</span></p>
                                                                 )
                                                             })
                                                         }
-                                                        <br />
                                                         {
                                                             (o.documents != null) &&
-                                                            _.map(JSON.parse(o.documents), (o, index) => {
-                                                                let doc = _.filter(documentList, (d) => { return d.id == o })
-                                                                if (doc.length > 0) {
-                                                                    return (
-                                                                        <span class="label label-primary" key={index}>{doc[0].origin}</span>
-                                                                    )
-                                                                }
+                                                            _.map(o.documents, (o, index) => {
+                                                                return (
+                                                                    <p class="m0" key={index}><span class="label label-primary">{o.origin}</span></p>
+                                                                )
                                                             })
                                                         }
                                                         <p style={{ marginTop: 5, fontSize: 10 }}>
@@ -498,12 +506,12 @@ export default class FormComponent extends React.Component {
                                 <div class="col-md-4">
                                     {
                                         ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
-                                        <div class="form-group">
+                                        <div class="form-group m0">
                                             <label>Checklist type</label>
                                             <DropDown multiple={true}
                                                 required={false}
                                                 options={_.map(['Mandatory', 'Document'], (o) => { return { id: o, name: o } })}
-                                                selected={(typeof checklist.Selected.types == "undefined") ? [] : checklist.Selected.types}
+                                                selected={(typeof checklist.Selected.types == "undefined" || checklist.Selected.types == "") ? [] : checklist.Selected.types}
                                                 onChange={(e) => this.setDropDownMultiple("types", e)}
                                             />
                                         </div>
@@ -511,17 +519,15 @@ export default class FormComponent extends React.Component {
                                 </div>
                             </div>
 
-                            {((typeof checklist.Selected.types != "undefined" && _.filter(checklist.Selected.types, (e) => { return e.label == "Document" }).length > 0)
-                                && (typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents.length > 0)) &&
-                                <div class="row mt10" style={{ paddingLeft: 22 }}>
+                            {(typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents.length > 0) &&
+                                <div class="row" style={{ marginLeft: 7, marginTop: 5 }}>
                                     <div class="col-md-12 pdr0">
                                         <div class="form-group">
                                             <label>Attached Documents</label>
-                                            <br />
                                             {
                                                 checklist.Selected.documents.map((data, index) => {
                                                     return (
-                                                        <span class="label label-primary" style={{ marginRight: "5px" }} key={index}>{data.origin}</span>
+                                                        <p key={index} style={{ marginLeft: 7, marginTop: 0, marginBottom: 0 }}>{data.origin}</p>
                                                     )
                                                 })
                                             }
@@ -530,12 +536,12 @@ export default class FormComponent extends React.Component {
                                 </div>
                             }
                             {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
-                                <div class="row mt10" style={{ paddingLeft: 22 }}>
+                                <div class="row" style={{ paddingLeft: 22 }}>
                                     <div class="col-md-12 pdr0">
                                         {
                                             (checklist.Action != "Edit") ?
 
-                                                <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
+                                                <a href="javascript:void(0);" class="btn btn-primary" title="Add"
                                                     onClick={this.addChecklist}
                                                 >
                                                     Add
@@ -549,8 +555,8 @@ export default class FormComponent extends React.Component {
                                                     </a>
                                                     <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
                                                         onClick={() => {
-                                                            dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined }),
-                                                                dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: {} })
+                                                            dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
+                                                            dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: {} })
                                                         }}
                                                     >
                                                         Cancel
