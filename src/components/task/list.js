@@ -26,7 +26,7 @@ export default class List extends React.Component {
         let { socket, dispatch } = this.props;
         let intervalLoggedUser = setInterval(() => {
             if (typeof this.props.loggedUser.data.id != "undefined") {
-                let filter = {  filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.workstreamTaskIds, condition: " IN " } }} ;
+                let filter = {  filter: { projectId: project }} ;
                 if (this.props.loggedUser.data.userRole != 1 && this.props.loggedUser.data.userRole != 2) {
                     filter = { filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
                 }
