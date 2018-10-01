@@ -62,6 +62,8 @@ exports.post = {
                 func.uploadFile({file : file, form : type, filename : filename},response =>{
                     if(response.Message == 'Success'){
                         resolve(filenameList)
+                    }else{
+                        reject()
                     }
                 });
             });
@@ -69,7 +71,11 @@ exports.post = {
 
 
         Promise.all(files).then( e =>{
-            cb({ status:true, data: e[0] })
+            if(e.length > 0){
+                cb({ status:true, data: e[0] })
+            }else{
+                cb({ status:false, data:[]})
+            }
         })
         // log any errors that occur
         form.on('error', function(err) {
