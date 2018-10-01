@@ -173,6 +173,8 @@ var init = exports.init = (socket) => {
                                         global.emailtransport(d.mailOptions)
                                         parallelCallback(null, "")
                                     }
+                                }else{
+                                    parallelCallback(null, "")
                                 }
                             }                        
                         }, function (err, params) {
