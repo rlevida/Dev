@@ -31,7 +31,9 @@ export default class List extends React.Component {
                 let userFollowedTasks = global.SelectList.userFollowedTasks
                     .filter((e, index) => { return e.userTypeLinkId == this.props.loggedUser.data.id })
                     .map((e, index) => { return e.linkId })
-                let taskListId = _.merge(userFollowedTasks, this.props.loggedUser.data.taskIds)
+                let taskListId = _.merge( userFollowedTasks, 
+                     (this.props.loggedUser.data.userRole == 1 || this.props.loggedUser.data.userRole == 2 )
+                        ? this.props.loggedUser.data.workstreamTaskIds : this.props.loggedUser.data.taskIds )
                 let filter = { filter: { id: { name: "id", value: taskListId, condition: " IN " } } }
                 this.props.socket.emit("GET_TASK_LIST", filter);
                 clearInterval(intervalLoggedUser)
