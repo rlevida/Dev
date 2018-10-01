@@ -1,5 +1,5 @@
 import React from "react";
-import { Loading } from "../../../globalComponents"
+import { DropDown , Loading } from "../../../globalComponents"
 import { getFilePathExtension } from '../../../globalFunction'
 import moment from 'moment'
 import Tooltip from "react-tooltip";
@@ -30,7 +30,8 @@ export default class DocumentNew extends React.Component {
             loading : false,
             tags : [],
             files : [],
-            folderAction : ""
+            folderAction : "",
+            selectedFilter : 0
         }
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
@@ -134,7 +135,7 @@ export default class DocumentNew extends React.Component {
     }
 
     render() {
-        let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser , users } = this.props;
+        let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser , users } = this.props , { selectedFilter } = this.state;
         let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [] , tagCount = 0;
         let folderList = [];
            
@@ -150,19 +151,32 @@ export default class DocumentNew extends React.Component {
 
                         if( loggedUser.data.userType == "Internal" && !isCompleted){
                             if( e.status == "new"){
-                                documentList.newUpload.push(e)
+                                if(selectedFilter == 0 ){
+                                    documentList.newUpload.push(e)
+                                }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                     documentList.newUpload.push(e)
+                                }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                    documentList.newUpload.push(e)
+                                }
                             }
                         }else{
                             if( e.status == "new" &&  !isCompleted ){
                                 let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id }).length ? 1 : 0 ;
                                     if(isShared || e.uploadedBy == loggedUser.data.id){
-                                        documentList.newUpload.push(e)
+                                        if(selectedFilter == 0 ){
+                                            documentList.newUpload.push(e)
+                                        }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                             documentList.newUpload.push(e)
+                                        }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                            documentList.newUpload.push(e)
+                                        }
                                     }
                             }
                         }
                     })
                 }
             }else if( folder.SelectedNewFolder.type == "new"){
+                console.log(`sokpa`)
                 document.List.filter( e =>{
                     let tagStatus = global.SelectList.tagList
                             .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
@@ -170,7 +184,13 @@ export default class DocumentNew extends React.Component {
 
                     if(loggedUser.data.userType == "Internal" && !isCompleted){
                         if( e.status == "new" && e.folderId == folder.SelectedNewFolder.id){
-                            documentList.newUpload.push(e)
+                            if(selectedFilter == 0 ){
+                                documentList.newUpload.push(e)
+                            }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                 documentList.newUpload.push(e)
+                            }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                documentList.newUpload.push(e)
+                            }
                         }
                     }else{
                         if(e.status == "new" && e.folderId == folder.SelectedNewFolder.id && !isCompleted){
@@ -178,7 +198,13 @@ export default class DocumentNew extends React.Component {
                                             .filter( s => { return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedNewFolder.id) && (s.shareType == "document" || s.shareType == "folder")}).length 
                                                 ? 1 : 0 ;
                                 if(isShared || e.uploadedBy == loggedUser.data.id){
-                                    documentList.newUpload.push(e)
+                                    if(selectedFilter == 0 ){
+                                        documentList.library.push(e)
+                                    }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                         documentList.library.push(e)
+                                    }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                        documentList.library.push(e)
+                                    }
                                 }
                             }
                     }
@@ -244,13 +270,27 @@ export default class DocumentNew extends React.Component {
                         <a style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_NEW_FOLDER_SELECTED" , Selected : {} })}>New Documents</a>
                         { folderName.map((e,index)=>{ return <span key={index}>{e}</span> }) } 
                     </h3>
+                    
                         { (this.state.folderAction == "") &&
-                            <div class="form-group">
-                                <div class="col-lg-1 col-md-1 col-sm-1">
-                                    <a href="javascript:void(0)" title="New Folder" style={{textDecoration:"none"}} onClick={()=> this.setState({ folderAction : "create" })}><span class="fa fa-folder fa-3x"></span></a>
-                                 </div>
-                            </div>
+                            <form > 
+                                 <div class="form-group">
+                                    <div class="col-lg-1 col-md-1 col-sm-1">
+                                        <a href="javascript:void(0)" title="New Folder" style={{textDecoration:"none"}} onClick={()=> this.setState({ folderAction : "create" })}><span class="fa fa-folder fa-3x"></span></a>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-lg-2 col-md-2 col-sm-2">
+                                        <DropDown 
+                                            multiple={false} 
+                                            required={false}
+                                            options={ [{id : 0 , name : "All"},{ id : 1 ,name : "Completed"},{ id : 2 ,name : "Uncompleted"}] } 
+                                            selected={ this.state.selectedFilter } 
+                                            onChange={(e)=> this.setState({selectedFilter : e.value})} /> 
+                                    </div>
+                                </div>
+                            </form>
                         }
+
                         { (this.state.folderAction == "create") &&
                             <form class="form-inline">
                                 <div class="form-group">

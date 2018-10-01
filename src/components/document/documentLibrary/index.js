@@ -249,9 +249,9 @@ export default class DocumentLibrary extends React.Component {
                             if( e.status == "library" && e.folderId == null){
                                 if(selectedFilter == 0 ){
                                     documentList.library.push(e)
-                                }else if(selectedFilter == 1){
+                                }else if(selectedFilter == 1 && e.isCompleted == 1){
                                      documentList.library.push(e)
-                                }else if(selectedFilter == 2){
+                                }else if(selectedFilter == 2 && e.isCompleted == 0){
                                     documentList.library.push(e)
                                 }
                             }
@@ -261,9 +261,9 @@ export default class DocumentLibrary extends React.Component {
                                     if(isShared || e.uploadedBy == loggedUser.data.id ){
                                         if(selectedFilter == 0 ){
                                             documentList.library.push(e)
-                                        }else if(selectedFilter == 1){
+                                        }else if(selectedFilter == 1 && e.isCompleted == 1){
                                              documentList.library.push(e)
-                                        }else if(selectedFilter == 2){
+                                        }else if(selectedFilter == 2 && e.isCompleted == 0){
                                             documentList.library.push(e)
                                         }
                                     }
@@ -380,6 +380,7 @@ export default class DocumentLibrary extends React.Component {
                                 </div>
                             </form>
                         }
+
                         { (this.state.folderAction == "create") &&
                             <form class="form-inline">
                                 <div class="form-group">
