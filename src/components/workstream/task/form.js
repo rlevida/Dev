@@ -157,8 +157,12 @@ export default class FormComponent extends React.Component {
             createdBy: loggedUser.data.id
         };
 
-        if (_.filter(checklist.Selected.types, (e) => { return e.label == "Document" }).length > 0 && checklist.Selected.documents.length > 0) {
-            socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted, documents: checklist.Selected.documents, project: project })
+        if (_.filter(checklist.Selected.types, (e) => { return e.label == "Document" }).length > 0) {
+            if(checklist.Selected.documents.length > 0){
+                socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted, documents: checklist.Selected.documents, project: project })
+            }else{
+                showToast("error", "One or more documents are missing.")
+            }
         } else {
             socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
         }
