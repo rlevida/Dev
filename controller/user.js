@@ -1,4 +1,4 @@
-const dbName = "user";
+const dbName = "users";
 var { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./")
 
 exports.get = {

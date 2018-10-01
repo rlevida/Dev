@@ -134,15 +134,21 @@ export default class DocumentNew extends React.Component {
             this.setState({ folderAction : "" , folderName : "" })
     }
 
+    deleteFolder(id){
+        let { socket } = this.props;
+        if(confirm("Do you really want to delete this folder?")){
+            socket.emit("DELETE_FOLDER",{ filter :{ id:id , projectId:project }});
+        }
+    }
+
     render() {
         let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser , users } = this.props , { selectedFilter } = this.state;
         let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [] , tagCount = 0;
         let folderList = [];
-           
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
             
-            if(typeof folder.SelectedNewFolder.id == "undefined" && folder.SelectedNewFolder.type != "new" && typeof global.SelectList.tagList != "undefined"){
+            if(typeof folder.SelectedNewFolder.id == "undefined" && folder.SelectedNewFolder.type != "new" && typeof global.SelectList.tagList != "undefined" && typeof global.SelectList.shareList != "undefined"){
                 if( document.List.length > 0 ){
                     document.List.filter( e =>{
                         let tagStatus = global.SelectList.tagList
@@ -176,7 +182,6 @@ export default class DocumentNew extends React.Component {
                     })
                 }
             }else if( folder.SelectedNewFolder.type == "new"){
-                console.log(`sokpa`)
                 document.List.filter( e =>{
                     let tagStatus = global.SelectList.tagList
                             .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})

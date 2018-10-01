@@ -225,3 +225,25 @@ var getFilePathExtension = exports.getFilePathExtension = (path) => {
     var filename = path.split('\\').pop().split('/').pop();
     return filename.substr((Math.max(0, filename.lastIndexOf(".")) || Infinity) + 1);
 }
+
+import axios from "axios"
+
+var postData = exports.postData = function (url,data,cb) {
+    axios.post(url,data)
+    .then((res)=>{ 
+        cb(res) 
+    })
+    .catch((err)=>{
+        cb(err); 
+    });
+}
+
+var getData = exports.getData = function (url,data,cb){
+    axios.get(url,data)
+    .then((res)=>{ 
+        cb(res) 
+    })
+    .catch((err)=>{
+        cb(err); 
+    });
+}

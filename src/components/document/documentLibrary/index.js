@@ -240,7 +240,7 @@ export default class DocumentLibrary extends React.Component {
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
 
             if(typeof folder.SelectedLibraryFolder.id == "undefined"){
-                if( document.List.length > 0 && typeof global.SelectList.tagList != "undefined" ){
+                if( document.List.length > 0 && typeof global.SelectList.tagList != "undefined" && typeof global.SelectList.shareList != "undefined"){
                     document.List.filter( e =>{
                         let tagStatus = global.SelectList.tagList
                                 .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
