@@ -4,6 +4,7 @@ import Dropzone from 'react-dropzone';
 import DocumentStatus from "./documentStatus"
 import DocumentNew from "./documentNew"
 import DocumentLibrary from "./documentLibrary"
+import axios from "axios"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -72,27 +73,24 @@ export default class List extends React.Component {
     uploadFile(){
         let { loggedUser } = this.props,
             { files } = this.state
-        let data = new FormData() , tempData = [] , self = this
-
+        let data = new FormData() , tempData = [];
             this.setState({ loading : true })
 
             files.map( e =>{
                 data.append("file",e)
-            } )
+            })
 
-            $.ajax({
-                url: '/api/upload?uploadType=form&type=upload',
-                type: 'post',
-                dataType: 'json',
-                data: data,
-                processData: false,
-                contentType: false,
-                success: function(res) {   
-                    res.files.map( e =>{
-                        tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id , status : "new" })
-                    })
-                    self.setState({ tempData : tempData , loading : false , upload : false })
-                }
+            axios({
+                method: 'post',
+                url: '/api/document/upload',
+                data: data ,
+                params : { uploadType : 'form' , type : 'upload' },
+                responseType: 'json'
+            }).then((response)=>{
+                response.data.map( e =>{
+                    tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id , status : "new" })
+                })
+                this.setState({ tempData : tempData , loading : false , upload : false })
             });
     }
 

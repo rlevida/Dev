@@ -42,6 +42,10 @@ router.use(function (req, res, next) {
  * GET
  * 
  */
+
+
+
+ 
 router.get('/:controller',(req,res,next)=>{
     if(!req.params.controller){
         res.status(400).send("Page Not found.")
@@ -234,10 +238,6 @@ router.delete('/:controller/:action/:id',(req,res,next)=>{
 })
 
 module.exports = router;
-
-
-
-
 
 // router.get('/taskChecklist',(req,res,next)=>{
 //     let taskCheckList = global.initModel("task_checklist")
@@ -806,54 +806,54 @@ module.exports = router;
 //  * 
 //  */
 // router.post('/upload', (req, res, next) => {
-//     var formidable = global.initRequire("formidable"),
-//         modalFunc = global.initModelFunc(),
-//         func = global.initFunc();
+    // var formidable = global.initRequire("formidable"),
+    //     modalFunc = global.initModelFunc(),
+    //     func = global.initFunc();
 
-//         var form = new formidable.IncomingForm();
-//         var filenameList = [];
-//         var files = []
-//         form.multiples = true;
+    //     var form = new formidable.IncomingForm();
+    //     var filenameList = [];
+    //     var files = []
+    //     form.multiples = true;
 
 
-//         let type = (typeof req.query.type != "undefined")?req.query.type:"others";
-//         let uploadType = (typeof req.query.uploadType != "undefined")?req.query.uploadType:"";
-//         let uploaded = false;
-//         // every time a file has been uploaded successfully copy to AWS
+    //     let type = (typeof req.query.type != "undefined")?req.query.type:"others";
+    //     let uploadType = (typeof req.query.uploadType != "undefined")?req.query.uploadType:"";
+    //     let uploaded = false;
+    //     // every time a file has been uploaded successfully copy to AWS
         
-//         files.push( new Promise((resolve,reject) =>{
-//             form.on('file', function(field, file) {
-//             var date = new Date();
-//             var Id = func.generatePassword(date.getTime()+file.name,"attachment");
-//             var filename = file.name + "_" + Id + "." + func.getFilePathExtension(file.name);
-//             // var filename = file.name;
-//             if(uploadType == "form"){
-//                 filenameList.push({filename:filename,origin:file.name,Id:Id});
-//             }else{
-//                 filenameList.push(filename);
-//             }
-//                 func.uploadFile({file : file, form : type, filename : filename},response =>{
-//                     if(response.Message == 'Success'){
-//                         resolve(filenameList)
-//                     }
-//                 });
-//             });
-//         }))
+    //     files.push( new Promise((resolve,reject) =>{
+    //         form.on('file', function(field, file) {
+    //         var date = new Date();
+    //         var Id = func.generatePassword(date.getTime()+file.name,"attachment");
+    //         var filename = file.name + "_" + Id + "." + func.getFilePathExtension(file.name);
+    //         // var filename = file.name;
+    //         if(uploadType == "form"){
+    //             filenameList.push({filename:filename,origin:file.name,Id:Id});
+    //         }else{
+    //             filenameList.push(filename);
+    //         }
+    //             func.uploadFile({file : file, form : type, filename : filename},response =>{
+    //                 if(response.Message == 'Success'){
+    //                     resolve(filenameList)
+    //                 }
+    //             });
+    //         });
+    //     }))
 
 
-//         Promise.all(files).then( e =>{
-//             res.send({files : e[0], status : "end" });
-//         })
-//         // log any errors that occur
-//         form.on('error', function(err) {
-//             console.log('An error has occured: \n' + err);
-//         });
-//         // once all the files have been uploaded, send a response to the client
-//         // form.on('end', function() {
-//         //    res.send({files : filenameList, status : "end" });
-//         // });
-//         // parse the incoming request containing the form data
-//         form.parse(req);
+    //     Promise.all(files).then( e =>{
+    //         res.send({files : e[0], status : "end" });
+    //     })
+    //     // log any errors that occur
+    //     form.on('error', function(err) {
+    //         console.log('An error has occured: \n' + err);
+    //     });
+    //     // once all the files have been uploaded, send a response to the client
+    //     // form.on('end', function() {
+    //     //    res.send({files : filenameList, status : "end" });
+    //     // });
+    //     // parse the incoming request containing the form data
+    //     form.parse(req);
 // })
 
 // /**
@@ -866,3 +866,5 @@ module.exports = router;
 //  * DELETE
 //  * 
 //  */
+
+
