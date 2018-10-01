@@ -59,26 +59,26 @@ exports.post = {
             }else{
                 filenameList.push(filename);
             }
-                // func.uploadFile({file : file, form : type, filename : filename},response =>{
-                //     if(response.Message == 'Success'){
-                //         resolve(filenameList)
-                //     }
-                // });
+                func.uploadFile({file : file, form : type, filename : filename},response =>{
+                    if(response.Message == 'Success'){
+                        resolve(filenameList)
+                    }
+                });
             });
         }))
 
 
         Promise.all(files).then( e =>{
-            // cb({ status:true, data: e[0] })
+            cb({ status:true, data: e[0] })
         })
         // log any errors that occur
         form.on('error', function(err) {
             console.log('An error has occured: \n' + err);
         });
         // once all the files have been uploaded, send a response to the client
-        form.on('end', function() {
-            cb({ status:true, data: filenameList })
-        });
+        // form.on('end', function() {
+        //     cb({ status:true, data: filenameList })
+        // });
         // parse the incoming request containing the form data
         form.parse(req);
     }
