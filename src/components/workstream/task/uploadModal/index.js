@@ -1,9 +1,9 @@
 import React from "react"
 import Dropzone from 'react-dropzone';
 import { DropDown } from "../../../../globalComponents";
+import { showToast } from '../../../../globalFunction';
 import { connect } from "react-redux";
 import axios from "axios";
-
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -63,11 +63,14 @@ export default class UploadModal extends React.Component {
          
             if (task.ModalType == "checklist") {
                 dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...checklist.Selected, documents: tempData } })
-                self.setState({ tempData: [], loading: false, upload: false })
+                this.setState({ tempData: [], loading: false, upload: false })
                 $(`#uploadFileModal`).modal("hide");
             } else {
-                self.setState({ tempData: tempData, loading: false, upload: false })
+                this.setState({ tempData: tempData, loading: false, upload: false })
             }
+        }).catch((error)=>{
+            this.setState({ loading: false, upload: false })
+            showToast("error", "Failed to upload. Please try again.")
         });
     }
 

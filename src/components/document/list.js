@@ -1,10 +1,11 @@
 import React from "react";
 import { DropDown } from "../../globalComponents";
+import { showToast } from '../../globalFunction';
 import Dropzone from 'react-dropzone';
-import DocumentStatus from "./documentStatus"
-import DocumentNew from "./documentNew"
-import DocumentLibrary from "./documentLibrary"
-import axios from "axios"
+import DocumentStatus from "./documentStatus";
+import DocumentNew from "./documentNew";
+import DocumentLibrary from "./documentLibrary";
+import axios from "axios";
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -91,6 +92,9 @@ export default class List extends React.Component {
                     tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id , status : "new" })
                 })
                 this.setState({ tempData : tempData , loading : false , upload : false })
+            }).catch((error)=>{
+                this.setState({ loading: false, upload: false })
+                showToast("error", "Failed to upload. Please try again.")
             });
     }
 
