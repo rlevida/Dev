@@ -1,7 +1,9 @@
 import React from "react"
 import Dropzone from 'react-dropzone';
 import { DropDown } from "../../../../globalComponents";
-import { connect } from "react-redux"
+import { connect } from "react-redux";
+import axios from "axios";
+
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -41,30 +43,29 @@ export default class UploadModal extends React.Component {
             data.append("file", e)
         })
 
-        $.ajax({
-            url: '/api/upload?uploadType=form&type=upload',
-            type: 'post',
-            dataType: 'json',
-            data: data,
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                res.files.map(e => {
-                    tempData.push({
-                        name: e.filename, origin: e.origin,
-                        project: project, uploadedBy: loggedUser.data.id,
-                        status: "new",
-                        tags: JSON.stringify([{ value: `task-${task.Selected.id}`, label: task.Selected.Task }]),
-                        type: task.ModalType == "checklist" ? "attachment" : "task"
-                    })
+        axios({
+            method: 'post',
+            url: '/api/document/upload',
+            data: data ,
+            params : { uploadType : 'form' , type : 'upload' },
+            responseType: 'json'
+        }).then((response)=>{
+            response.data.map(e => {
+                tempData.push({
+                    name: e.filename, origin: e.origin,
+                    project: project, uploadedBy: loggedUser.data.id,
+                    status: "new",
+                    tags: JSON.stringify([{ value: `task-${task.Selected.id}`, label: task.Selected.Task }]),
+                    type: task.ModalType == "checklist" ? "attachment" : "task"
                 })
-                if (task.ModalType == "checklist") {
-                    dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...checklist.Selected, documents: tempData } })
-                    self.setState({ tempData: [], loading: false, upload: false })
-                    $(`#uploadFileModal`).modal("hide");
-                } else {
-                    self.setState({ tempData: tempData, loading: false, upload: false })
-                }
+            })
+         
+            if (task.ModalType == "checklist") {
+                dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...checklist.Selected, documents: tempData } })
+                self.setState({ tempData: [], loading: false, upload: false })
+                $(`#uploadFileModal`).modal("hide");
+            } else {
+                self.setState({ tempData: tempData, loading: false, upload: false })
             }
         });
     }
