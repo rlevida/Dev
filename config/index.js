@@ -22,6 +22,14 @@ global.initModel = exports.initModel = function (model) {
 }
 
 /*
+    This functions calls indicated model to avoid require on each file
+*/
+
+global.initModelORM = exports.initModelORM = function (model) {
+    return require("../modelORM/" + model);
+}
+
+/*
     This functions calls indicated controller to avoid require on each file
 */
 
@@ -36,6 +44,28 @@ global.initController = exports.initController = function (controller) {
 global.initDB = exports.initDB = function () {
     return require("./database");
 }
+
+/*
+    This global config initialize database setup to avoid require on each file
+*/
+
+const Sequelize = require("sequelize")
+global.connectionDb = exports.connectionDb = new Sequelize(
+    process.env.CLOUD_CFO_DB, 
+    process.env.CLOUD_CFO_DB_USER, 
+    process.env.CLOUD_CFO_DB_PASSWORD, 
+    {
+        host: process.env.CLOUD_CFO_DB_HOST,
+        dialect: 'mysql',
+        operatorsAliases: false,
+        pool: {
+            max: 5,
+            min: 0,
+            acquire: 30000,
+            idle: 10000
+        }
+    }
+);
 
 /*
     This function initialize reusable function to avoid require on each file

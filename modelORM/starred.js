@@ -1,22 +1,22 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('folder', {
+  return sequelize.define('starred', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
       autoIncrement: true
     },
-    name: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    projectId: {
+    usersId: {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    parentId: {
+    linkType: {
+      type: DataTypes.ENUM('project','workstream','task','document','conversation'),
+      allowNull: true
+    },
+    linkId: {
       type: DataTypes.BIGINT,
       allowNull: true
     },
@@ -29,25 +29,17 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     },
-    isDeleted: {
-      type: DataTypes.INTEGER(1),
-      allowNull: true,
-      defaultValue: '0'
-    },
-    isFolder: {
+    isActive: {
       type: DataTypes.INTEGER(1),
       allowNull: true,
       defaultValue: '1'
     },
-    type: {
-      type: DataTypes.ENUM('new','library','archived'),
-      allowNull: true
-    },
-    createdBy: {
-      type: DataTypes.BIGINT,
-      allowNull: true
+    isDeleted: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '0'
     }
   }, {
-    tableName: 'folder'
+    tableName: 'starred'
   });
 };

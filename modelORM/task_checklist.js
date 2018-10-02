@@ -1,23 +1,36 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('folder', {
+  return sequelize.define('task_checklist', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
       autoIncrement: true
     },
-    name: {
+    completed: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '0'
+    },
+    description: {
       type: DataTypes.TEXT,
       allowNull: true
     },
-    projectId: {
+    taskId: {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    parentId: {
+    periodChecklist: {
       type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    documents: {
+      type: DataTypes.STRING(50),
+      allowNull: true
+    },
+    createdBy: {
+      type: DataTypes.INTEGER(11),
       allowNull: true
     },
     dateAdded: {
@@ -28,26 +41,8 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
-    },
-    isDeleted: {
-      type: DataTypes.INTEGER(1),
-      allowNull: true,
-      defaultValue: '0'
-    },
-    isFolder: {
-      type: DataTypes.INTEGER(1),
-      allowNull: true,
-      defaultValue: '1'
-    },
-    type: {
-      type: DataTypes.ENUM('new','library','archived'),
-      allowNull: true
-    },
-    createdBy: {
-      type: DataTypes.BIGINT,
-      allowNull: true
     }
   }, {
-    tableName: 'folder'
+    tableName: 'task_checklist'
   });
 };

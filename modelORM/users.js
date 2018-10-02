@@ -1,48 +1,51 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('project', {
+  return sequelize.define('users', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
       autoIncrement: true
     },
-    project: {
+    firstName: {
       type: DataTypes.STRING(50),
       allowNull: true
     },
-    statusId: {
+    lastName: {
+      type: DataTypes.STRING(50),
+      allowNull: true
+    },
+    phoneNumber: {
+      type: DataTypes.STRING(20),
+      allowNull: true
+    },
+    companyId: {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    typeId: {
-      type: DataTypes.BIGINT,
+    username: {
+      type: DataTypes.STRING(100),
       allowNull: true
     },
-    projectType: {
+    password: {
       type: DataTypes.STRING(50),
       allowNull: true
     },
-    tinNo: {
+    salt: {
       type: DataTypes.STRING(50),
       allowNull: true
     },
-    companyAddress: {
-      type: DataTypes.STRING(50),
+    userType: {
+      type: DataTypes.ENUM('Internal','External'),
       allowNull: true
     },
-    classification: {
-      type: DataTypes.STRING(50),
+    avatar: {
+      type: DataTypes.TEXT,
       allowNull: true
     },
-    projectNameCount: {
-      type: DataTypes.INTEGER(11),
-      allowNull: false,
-      defaultValue: '0'
-    },
-    createdBy: {
-      type: DataTypes.BIGINT,
+    emailAddress: {
+      type: DataTypes.STRING(100),
       allowNull: true
     },
     dateAdded: {
@@ -63,8 +66,12 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER(1),
       allowNull: true,
       defaultValue: '0'
+    },
+    company: {
+      type: DataTypes.STRING(50),
+      allowNull: true
     }
   }, {
-    tableName: 'project'
+    tableName: 'users'
   });
 };

@@ -1,27 +1,19 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('activity_feed', {
+  return sequelize.define('users_forgot_password', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
       autoIncrement: true
     },
-    invokerUserId: {
-      type: DataTypes.BIGINT,
+    usersId: {
+      type: DataTypes.STRING(100),
       allowNull: true
     },
-    linkType: {
-      type: DataTypes.ENUM('project','workstream','task','conversation'),
-      allowNull: true
-    },
-    linkId: {
-      type: DataTypes.BIGINT,
-      allowNull: true
-    },
-    data: {
-      type: DataTypes.TEXT,
+    hash: {
+      type: DataTypes.STRING(50),
       allowNull: true
     },
     dateAdded: {
@@ -34,6 +26,6 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'activity_feed'
+    tableName: 'users_forgot_password'
   });
 };

@@ -1,22 +1,22 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('folder', {
+  return sequelize.define('task_dependency', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
       autoIncrement: true
     },
-    name: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    projectId: {
+    taskId: {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    parentId: {
+    dependencyType: {
+      type: DataTypes.ENUM('Preceding','Succeeding'),
+      allowNull: true
+    },
+    linkTaskId: {
       type: DataTypes.BIGINT,
       allowNull: true
     },
@@ -33,21 +33,8 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER(1),
       allowNull: true,
       defaultValue: '0'
-    },
-    isFolder: {
-      type: DataTypes.INTEGER(1),
-      allowNull: true,
-      defaultValue: '1'
-    },
-    type: {
-      type: DataTypes.ENUM('new','library','archived'),
-      allowNull: true
-    },
-    createdBy: {
-      type: DataTypes.BIGINT,
-      allowNull: true
     }
   }, {
-    tableName: 'folder'
+    tableName: 'task_dependency'
   });
 };

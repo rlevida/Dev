@@ -1,23 +1,39 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('folder', {
+  return sequelize.define('task_rejected', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
       autoIncrement: true
     },
-    name: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
     projectId: {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    parentId: {
+    taskId: {
       type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    workstreamId: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    reminderId: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    approverId: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    approvalDueDate: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    message: {
+      type: DataTypes.STRING(50),
       allowNull: true
     },
     dateAdded: {
@@ -28,26 +44,8 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
-    },
-    isDeleted: {
-      type: DataTypes.INTEGER(1),
-      allowNull: true,
-      defaultValue: '0'
-    },
-    isFolder: {
-      type: DataTypes.INTEGER(1),
-      allowNull: true,
-      defaultValue: '1'
-    },
-    type: {
-      type: DataTypes.ENUM('new','library','archived'),
-      allowNull: true
-    },
-    createdBy: {
-      type: DataTypes.BIGINT,
-      allowNull: true
     }
   }, {
-    tableName: 'folder'
+    tableName: 'task_rejected'
   });
 };
