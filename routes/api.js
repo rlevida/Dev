@@ -14,14 +14,14 @@ var toPdf = require("office-to-pdf")
 router.use(function (req, res, next) {
     let session = global.initModel("session");
     let token = (req.body.Token)
-                    ?req.body.Token
-                    :(req.params.Token)
-                     ?req.params.Token
-                     :(req.query.Token)
-                      ?req.query.Token
-                      :(req.cookies["app.sid"])
-                        ?req.cookies["app.sid"]
-                       :"";
+                ?req.body.Token
+                :(req.params.Token)
+                ?req.params.Token
+                :(req.query.Token)
+                ?req.query.Token
+                :(req.cookies["app.sid"])
+                ?req.cookies["app.sid"]
+                :"";
     
     session.getData("session",{session:token},{},(ret)=>{
         if(ret.status && ret.data.length > 0){
@@ -30,7 +30,7 @@ router.use(function (req, res, next) {
             req.query.auth.userId = ret.data[0].userId;
             req.query.auth.LastLoggedIn = ret.data[0].date_updated;
             session.putData("session",{date_updated:new Date()},{id:ret.data[0].id},()=>{
-                next();
+                next()
             })
         } else {
             res.status(401).send({error:"Unauthorized",error_description:"Unauthorized Access"})
