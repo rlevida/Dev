@@ -106,8 +106,6 @@ export default class DocumentNew extends React.Component {
             dispatch({type:"SET_DOCUMENT_EDIT_TYPE" , EditType: type })
     }
 
-    
-
     moveToLibrary(data){
         let { socket , dispatch } = this.props;
         let dataToSubmit = { status : "library" , id : data.id }
@@ -408,7 +406,7 @@ export default class DocumentNew extends React.Component {
                                                                             { folder.List.map((f,fIndex) => {
                                                                                 if(typeof folder.SelectedNewFolder.id == "undefined" && f.id != data.id){
                                                                                     return (
-                                                                                        <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo(f,data)}>{f.name}</a>
+                                                                                        <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveFolderTo(f,data)}>{`${f.name} ${ f.type == "new" ? "( new document )" : "( library )"}`}</a>
                                                                                     )
                                                                                 }else{
                                                                                     if(folder.SelectedNewFolder.id != f.id &&  f.id != data.id){
