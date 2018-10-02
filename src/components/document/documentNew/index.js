@@ -33,7 +33,6 @@ export default class DocumentNew extends React.Component {
             folderAction : "",
             selectedFilter : 0
         }
-        this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
     
     componentDidMount(){
@@ -49,12 +48,6 @@ export default class DocumentNew extends React.Component {
                 }
             },1000)
         }
-    }
-
-    updateActiveStatus(id,active){
-        let { socket, dispatch } = this.props;
-            dispatch({type:"SET_DOCUMENT_STATUS",record:{id:id,status:(active==1)?0:1}});
-            socket.emit("SAVE_OR_UPDATE_DOCUMENT",{data : {id:id,active:(active==1)?0:1}});
     }
 
     deleteDocument(id){
@@ -77,11 +70,17 @@ export default class DocumentNew extends React.Component {
     }
 
     starDocument(data , isStarred){
-        let { socket , loggedUser } = this.props;
+        let { starred , loggedUser , dispatch } = this.props;
             if(isStarred){
-                socket.emit("DELETE_STARRED", { id : data.id } );
+                let id = starred.List.filter( s => { return s.linkId == data.id })[0].id
+                    deleteData(`/api/starred/${id}`,{},(c) => {
+                        dispatch({ type: "REMOVE_DELETED_STARRED_LIST", id: data.id })
+                    }) 
             }else{
-                socket.emit("SAVE_STARRED", { data : { usersId : loggedUser.data.id , linkType : "project" , linkId : data.id } });
+                let dataToSubmit = { usersId : loggedUser.data.id , linkType : "project" , linkId : data.id }
+                    postData(`/api/starred/`, dataToSubmit, (c) => {
+                        dispatch({ type: "ADD_STARRED_LIST", list: c.data })
+                    })
             }
     }
 
