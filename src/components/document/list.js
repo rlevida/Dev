@@ -39,25 +39,25 @@ export default class List extends React.Component {
             getData(`/api/folder/`, { params:{ filter: { projectId: project }}},(c) => {
                  dispatch({ type: "SET_FOLDER_LIST", list: c.data })
             });
-            getData(`/api/task/`,{ params :{ filter: { projectId: project }}},(c) => {
+            getData(`/api/task/`,{ params: { filter: { projectId: project }}},(c) => {
                 dispatch({ type: "SET_TASK_LIST", list: c.data })
             });
-            getData(`/api/starred/`,{ params :{ filter: { projectId: project }}},(c) => { 
+            getData(`/api/starred/`,{ params: { filter: { projectId: project }}},(c) => { 
                 dispatch({ type: "SET_STARRED_LIST", list: c.data })
             });
-            getData(`/api/workstream/`, { params :{ filter: { projectId: project }}},(c) => {
+            getData(`/api/workstream/`, { params: { filter: { projectId: project }}},(c) => {
                  dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data })
             });
-            getData(`/api/document/`, { params :{ filter : { isDeleted:0 , linkId:project , linkType:"project" }}},(c) => {
+            getData(`/api/document/`, { params: { filter: { isDeleted:0 , linkId:project , linkType:"project" }}},(c) => {
                 dispatch({ type:"SET_DOCUMENT_LIST",list : c.data})
             });
             getData(`/api/global/selectList`,{ params: { selectName: "tagList" }},(c) => {
                 dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'tagList' })
             })
-            getData(`/api/global/selectList`,{ params: { selectName : "shareList" , filter : { linkType: "project" , linkId : project }}},(c) => {
+            getData(`/api/global/selectList`,{ params: { selectName: "shareList" , filter: { linkType: "project" , linkId : project }}},(c) => {
                 dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'shareList' })
             })
-            getData(`/api/global/selectList`,{ params: { selectName : "ProjectMemberList" , filter : { linkType: "project" , linkId : project }}},(c) => {
+            getData(`/api/global/selectList`,{ params: { selectName: "ProjectMemberList" , filter: { linkType: "project" , linkId : project }}},(c) => {
                 dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'ProjectMemberList' })
             })
             

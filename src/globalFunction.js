@@ -247,3 +247,23 @@ var getData = exports.getData = function (url,data,cb){
         cb(err); 
     });
 }
+
+var putData = exports.putData = function (url,data,cb){
+    axios.put(url,data)
+    .then((res)=>{ 
+        cb(res) 
+    })
+    .catch((err)=>{
+        cb(err); 
+    });
+}
+
+var deleteData = exports.deleteData = function (url,data,cb){
+    axios.delete(url,data)
+    .then((res)=>{ 
+        cb(res) 
+    })
+    .catch((err)=>{
+        cb(err); 
+    });
+}

@@ -1,6 +1,6 @@
 import React from "react";
 import { DropDown , Loading } from "../../../globalComponents"
-import { getFilePathExtension } from '../../../globalFunction'
+import { getFilePathExtension , putData , deleteData ,  showToast, postData } from '../../../globalFunction'
 import moment from 'moment'
 import Tooltip from "react-tooltip";
 
@@ -60,17 +60,14 @@ export default class DocumentNew extends React.Component {
     deleteDocument(id){
         let { socket } = this.props;
             if(confirm("Do you really want to delete this record?")){
-                socket.emit("DELETE_DOCUMENT",{id:id});
+                putData(`/api/document/${id}`,{isDeleted:1},(c)=>{
+                   if(c.status == 200){
+                        showToast("success","Successfully Deleted.");
+                   }else{
+                       showToast("error","Delete failed. Please try again later.");
+                   }
+                })
             }
-    }
-
-    saveDocument(){
-        let { socket , loggedUser } = this.props;
-        let { tempData , tags } = this.state;
-            socket.emit("SAVE_OR_UPDATE_DOCUMENT", { 
-                data: tempData , userId : loggedUser.data.id, project: project, tags: JSON.stringify(tags) 
-            });
-            this.setState({  upload : false ,   tempData : [] , tags : [] });
     }
 
     viewDocument(data){
@@ -118,26 +115,75 @@ export default class DocumentNew extends React.Component {
     
 
     moveToLibrary(data){
-        let { socket } = this.props;
-            socket.emit("SAVE_OR_UPDATE_DOCUMENT" , { data : { status : "library" , id : data.id , isCompleted : 1 } , type : "project"})
+        let { socket , dispatch } = this.props;
+        let dataToSubmit = { status : "library" , id : data.id }
+            putData(`/api/document/${data.id}`,dataToSubmit,(c)=>{
+                if(c.status == 200){
+                    dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
+                    dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+                    dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
+                    showToast("success","Successfully Updated.")
+                }else{
+                    showToast("error","Updating failed. Please try again.")
+                }
+            })
+    }
+
+    moveFolderTo(folderData , selectedFolder){
+        let { dispatch } = this.props;
+        let dataToSubmit = { ...selectedFolder , parentId : folderData.id  };
+            putData(`/api/folder/${selectedFolder.id}`, dataToSubmit, (c) => {
+                if(c.status == 200){
+                    dispatch({ type: "UPDATE_DATA_FOLDER_LIST", UpdatedData: c.data })
+                    showToast("success","Successfully Updated.");
+                }else{
+                    showToast("error",'Updating failed. Please try again.');
+                }
+                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+            })
     }
 
     moveToFolder(folderData , documentData){
-        let { socket } = this.props;
-            socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data :{ ...documentData , status : folderData.type , folderId : folderData.id , isCompleted : 1 } , type : "project"})
+        let { dispatch } = this.props;
+        let dataToSubmit = { ...documentData , status : folderData.type , folderId : folderData.id  };
+            putData(`/api/document/${documentData.id}`, dataToSubmit, (c) => {
+                if(c.status == 200){
+                    dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
+                    showToast("success","Successfully Updated.")
+                }else{
+                    showToast("danger","Updating failed. Please try again")
+                }
+                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+                dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
+            })
     }
 
     addFolder(){
-        let { socket , global , loggedUser, folder } = this.props;
+        let { loggedUser, folder , dispatch} = this.props;
         let { folderName } = this.state;
-            socket.emit("SAVE_OR_UPDATE_FOLDER", { data:{ projectId: project , name: folderName , createdBy: loggedUser.data.id, parentId: folder.SelectedNewFolder.id , type : "new" }})
-            this.setState({ folderAction : "" , folderName : "" })
+        let dataToSubmit = { projectId: project , name: folderName , createdBy: loggedUser.data.id, parentId: folder.SelectedNewFolder.id , type : "new" };
+            postData(`/api/folder/`, dataToSubmit ,(c) => {
+                if(c.status == 200){
+                    dispatch({ type: "ADD_FOLDER_LIST", list: c.data });
+                    showToast("success","Successfully Added.");
+                }else{
+                    showToast("error","Saving failed. Please try again.");
+                }
+                this.setState({ folderAction : "" , folderName : "" });
+            })
     }
 
     deleteFolder(id){
-        let { socket } = this.props;
+        let { dispatch } = this.props;
         if(confirm("Do you really want to delete this folder?")){
-            socket.emit("DELETE_FOLDER",{ filter :{ id:id , projectId:project }});
+            deleteData(`/api/folder/${id}`,{ projectId: project },(c)=>{
+                if(c.status == 200){
+                    dispatch({ type: "REMOVE_DELETED_FOLDER_LIST", id: id })              
+                    showToast("success","Successfully Deleted.");
+                }else{
+                    showToast("danger","Delete failed. Please try again.");
+                }
+            })
         }
     }
 
@@ -147,73 +193,73 @@ export default class DocumentNew extends React.Component {
         let folderList = [];
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
-            
-            if(typeof folder.SelectedNewFolder.id == "undefined" && folder.SelectedNewFolder.type != "new" && typeof global.SelectList.tagList != "undefined" && typeof global.SelectList.shareList != "undefined"){
+            if(typeof folder.SelectedNewFolder.id == "undefined" && folder.SelectedNewFolder.type != "new" 
+                && typeof global.SelectList.tagList != "undefined" && typeof global.SelectList.shareList != "undefined" && loggedUser.data.userType != ""){
                 if( document.List.length > 0 ){
-                    document.List.filter( e =>{
-                        let tagStatus = global.SelectList.tagList
-                            .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
-                        let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
-
-                        if( loggedUser.data.userType == "Internal" && !isCompleted){
-                            if( e.status == "new"){
-                                if(selectedFilter == 0 ){
-                                    documentList.newUpload.push(e)
-                                }else if(selectedFilter == 1 && e.isCompleted == 1){
-                                     documentList.newUpload.push(e)
-                                }else if(selectedFilter == 2 && e.isCompleted == 0){
-                                    documentList.newUpload.push(e)
+                    document.List
+                        .filter( e => { return e.status == "new"})
+                        .map( e => {
+                            // let tagStatus = global.SelectList.tagList
+                            //     .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
+                            // let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
+                            if( loggedUser.data.userType == "Internal" && !e.isCompleted){
+                                if( e.status == "new" && e.folderId == null){
+                                    if(selectedFilter == 0 ){
+                                        documentList.newUpload.push(e)
+                                    }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                        documentList.newUpload.push(e)
+                                    }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                        documentList.newUpload.push(e)
+                                    }
+                                }
+                            }else{
+                                if( e.status == "new" && !isCompleted && e.folderId == null ){
+                                    let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id }).length ? 1 : 0 ;
+                                        if(isShared || e.uploadedBy == loggedUser.data.id){
+                                            if(selectedFilter == 0 ){
+                                                documentList.newUpload.push(e)
+                                            }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                                documentList.newUpload.push(e)
+                                            }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                                documentList.newUpload.push(e)
+                                            }
+                                        }
                                 }
                             }
-                        }else{
-                            if( e.status == "new" &&  !isCompleted ){
-                                let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id }).length ? 1 : 0 ;
-                                    if(isShared || e.uploadedBy == loggedUser.data.id){
-                                        if(selectedFilter == 0 ){
-                                            documentList.newUpload.push(e)
-                                        }else if(selectedFilter == 1 && e.isCompleted == 1){
-                                             documentList.newUpload.push(e)
-                                        }else if(selectedFilter == 2 && e.isCompleted == 0){
-                                            documentList.newUpload.push(e)
-                                        }
-                                    }
-                            }
-                        }
-                    })
+                        })
                 }
             }else if( folder.SelectedNewFolder.type == "new"){
-                document.List.filter( e =>{
-                    let tagStatus = global.SelectList.tagList
-                            .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
+                document.List
+                    .filter( e => { return e.status == "new" && e.folderId != null })
+                    .map( e => { 
+                        let tagStatus = global.SelectList.tagList.filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
                         let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
 
-                    if(loggedUser.data.userType == "Internal" && !isCompleted){
-                        if( e.status == "new" && e.folderId == folder.SelectedNewFolder.id){
-                            if(selectedFilter == 0 ){
-                                documentList.newUpload.push(e)
-                            }else if(selectedFilter == 1 && e.isCompleted == 1){
-                                 documentList.newUpload.push(e)
-                            }else if(selectedFilter == 2 && e.isCompleted == 0){
-                                documentList.newUpload.push(e)
-                            }
-                        }
-                    }else{
-                        if(e.status == "new" && e.folderId == folder.SelectedNewFolder.id && !isCompleted){
-                            let isShared = global.SelectList.shareList
-                                            .filter( s => { return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedNewFolder.id) && (s.shareType == "document" || s.shareType == "folder")}).length 
-                                                ? 1 : 0 ;
+                            if(loggedUser.data.userType == "Internal" && !e.isCompleted && e.status == "new"){
+                                if(e.folderId == folder.SelectedNewFolder.id){
+                                    if(selectedFilter == 0 ){
+                                        documentList.newUpload.push(e)
+                                    }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                            documentList.newUpload.push(e)
+                                    }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                        documentList.newUpload.push(e)
+                                    }
+                                }
+                            }else if(e.status == "new" && e.folderId == folder.SelectedNewFolder.id && !e.isCompleted){
+                                let isShared = global.SelectList.shareList
+                                    .filter( s => { return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedNewFolder.id) && (s.shareType == "document" || s.shareType == "folder")}).length 
+                                        ? 1 : 0 ;
                                 if(isShared || e.uploadedBy == loggedUser.data.id){
                                     if(selectedFilter == 0 ){
-                                        documentList.library.push(e)
+                                        documentList.newUpload.push(e)
                                     }else if(selectedFilter == 1 && e.isCompleted == 1){
-                                         documentList.library.push(e)
+                                            documentList.newUpload.push(e)
                                     }else if(selectedFilter == 2 && e.isCompleted == 0){
-                                        documentList.library.push(e)
+                                        documentList.newUpload.push(e)
                                     }
                                 }
                             }
-                    }
-                })
+                    })
             }
             
             if(typeof global.SelectList.tagList != "undefined"){ // FOR TAG OPTIONS
@@ -263,7 +309,7 @@ export default class DocumentNew extends React.Component {
                 let parentFolder = folderList.filter(e=>e.id == folderParentId);
                 folderParentId = null;
                 if(parentFolder.length > 0){
-                    folderName.unshift(<span> > <a style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_FOLDER_SELECTED" , Selected : parentFolder[0] })}>{
+                    folderName.unshift(<span> > <a style={{cursor: "pointer"}} onClick={()=>dispatch({type:"SET_NEW_FOLDER_SELECTED" , Selected : parentFolder[0] })}>{
                     ((typeof parentFolder[0].name != "undefined")?`${parentFolder[0].name}`:"")}</a></span>)
                     folderParentId = parentFolder[0].parentId;
                 }
@@ -392,7 +438,6 @@ export default class DocumentNew extends React.Component {
                                         }
                                     })
                                 }
-
                                 { documentList.newUpload.map((data, index) => {
                                     let ext  = getFilePathExtension(data.origin)
                                     let documentName = `${data.origin.split(`.${ext}`).join("")}${data.documentNameCount > 0 ? `(${data.documentNameCount}).${ext}` : `.${ext}`}`

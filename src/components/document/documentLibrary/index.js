@@ -60,33 +60,11 @@ export default class DocumentLibrary extends React.Component {
         }
     }
    
-    updateActiveStatus(id,active){
-        let { socket, dispatch } = this.props;
-            dispatch({type:"SET_DOCUMENT_STATUS",record:{id:id,status:(active==1)?0:1}});
-            socket.emit("SAVE_OR_UPDATE_DOCUMENT",{data : {id:id,active:(active==1)?0:1}});
-    }
-
     deleteDocument(id){
         let { socket } = this.props;
             if(confirm("Do you really want to delete this record?")){
                 socket.emit("DELETE_DOCUMENT",{id:id});
             }
-    }
-
-    archiveData(id){
-        let { socket } = this.props;
-            if(confirm("Do you really want to archive this record?")){
-                socket.emit("ARCHIVE_DOCUMENT",{id:id});
-            }
-    }
-    
-    saveDocument(){
-        let { socket , loggedUser } = this.props;
-        let { tempData , tags } = this.state;
-            socket.emit("SAVE_OR_UPDATE_DOCUMENT", { 
-                data: tempData , userId : loggedUser.data.id, project: project, tags: JSON.stringify(tags) 
-            });
-            this.setState({  upload : false ,   tempData : [] , tags : [] });
     }
 
     viewDocument(data){
