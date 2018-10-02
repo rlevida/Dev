@@ -6,6 +6,7 @@ import DocumentStatus from "./documentStatus";
 import DocumentNew from "./documentNew";
 import DocumentLibrary from "./documentLibrary";
 import axios from "axios";
+import parallel from 'async/parallel';
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -34,33 +35,81 @@ export default class List extends React.Component {
         this.onDrop = this.onDrop.bind(this)
     }
 
-    componentDidMount() {
+    componentWillMount() {
         let { dispatch } = this.props
-            getData(`/api/folder/`, { params:{ filter: { projectId: project }}},(c) => {
-                 dispatch({ type: "SET_FOLDER_LIST", list: c.data })
-            });
-            getData(`/api/task/`,{ params: { filter: { projectId: project }}},(c) => {
-                dispatch({ type: "SET_TASK_LIST", list: c.data })
-            });
-            getData(`/api/starred/`,{ params: { filter: { projectId: project }}},(c) => { 
-                dispatch({ type: "SET_STARRED_LIST", list: c.data })
-            });
-            getData(`/api/workstream/`, { params: { filter: { projectId: project }}},(c) => {
-                 dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data })
-            });
-            getData(`/api/document/`, { params: { filter: { isDeleted:0 , linkId:project , linkType:"project" }}},(c) => {
-                dispatch({ type:"SET_DOCUMENT_LIST",list : c.data})
-            });
-            getData(`/api/global/selectList`,{ params: { selectName: "tagList" }},(c) => {
-                dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'tagList' })
-            })
-            getData(`/api/global/selectList`,{ params: { selectName: "shareList" , filter: { linkType: "project" , linkId : project }}},(c) => {
-                dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'shareList' })
-            })
-            getData(`/api/global/selectList`,{ params: { selectName: "ProjectMemberList" , filter: { linkType: "project" , linkId : project }}},(c) => {
-                dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'ProjectMemberList' })
-            })
-            
+
+        parallel({
+            folder : (parallelCallback) => {   
+                getData(`/api/folder/`, { params:{ filter: { projectId: project }}},(c) => {
+                    if(c.status == 200){
+                        dispatch({ type: "SET_FOLDER_LIST", list: c.data })
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            task : (parallelCallback) => {
+                getData(`/api/task/`,{ params: { filter: { projectId: project }}},(c) => {
+                    if(c.status == 200){
+                        dispatch({ type: "SET_TASK_LIST", list: c.data })
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            starred : (parallelCallback) => {
+                getData(`/api/starred/`,{ params: { filter: { projectId: project }}},(c) => { 
+                    if(c.status == 200){
+                        dispatch({ type: "SET_STARRED_LIST", list: c.data })
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            workstream : (parallelCallback) => {
+                getData(`/api/workstream/`, { params: { filter: { projectId: project }}},(c) => {
+                    if(c.status == 200){
+                        dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data })
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            document : (parallelCallback) => {
+                getData(`/api/document/`, { params: { filter: { isDeleted:0 , linkId:project , linkType:"project" }}},(c) => {
+                    if(c.status == 200){
+                        dispatch({ type:"SET_DOCUMENT_LIST",list : c.data})
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            tagList : (parallelCallback) => {
+                getData(`/api/global/selectList`,{ params: { selectName: "tagList" }},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'tagList' })
+                    parallelCallback(null,"")
+                })
+            },
+            shareList : (parallelCallback) => {
+                 getData(`/api/global/selectList`,{ params: { selectName: "shareList" , filter: { linkType: "project" , linkId : project }}},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'shareList' })
+                    parallelCallback(null,"")
+                })
+            },
+            ProjectMemberList : (parallelCallback) => {
+                getData(`/api/global/selectList`,{ params: { selectName: "ProjectMemberList" , filter: { linkType: "project" , linkId : project }}},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'ProjectMemberList' })
+                    parallelCallback(null,"")
+                })
+            }
+        } ,(error, result) => {
+            // console.log(`end loading`)
+        })
     }
 
     saveDocument(){

@@ -76,11 +76,6 @@ export default class DocumentNew extends React.Component {
             dispatch({type:"SET_DOCUMENT_SELECTED" , Selected : data });
     }
 
-    handleIsCompleted( data , value ){
-        let { socket , document } = this.props;
-            socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data : { id: data.id , isCompleted : !value  }});
-    }
-
     starDocument(data , isStarred){
         let { socket , loggedUser } = this.props;
             if(isStarred){
@@ -117,7 +112,7 @@ export default class DocumentNew extends React.Component {
     moveToLibrary(data){
         let { socket , dispatch } = this.props;
         let dataToSubmit = { status : "library" , id : data.id }
-            putData(`/api/document/${data.id}`,dataToSubmit,(c)=>{
+            putData(`/api/document/${data.id}`, dataToSubmit, (c)=>{
                 if(c.status == 200){
                     dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
                     dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
@@ -162,7 +157,7 @@ export default class DocumentNew extends React.Component {
         let { loggedUser, folder , dispatch} = this.props;
         let { folderName } = this.state;
         let dataToSubmit = { projectId: project , name: folderName , createdBy: loggedUser.data.id, parentId: folder.SelectedNewFolder.id , type : "new" };
-            postData(`/api/folder/`, dataToSubmit ,(c) => {
+            postData(`/api/folder/`, dataToSubmit, (c) => {
                 if(c.status == 200){
                     dispatch({ type: "ADD_FOLDER_LIST", list: c.data });
                     showToast("success","Successfully Added.");
@@ -176,7 +171,7 @@ export default class DocumentNew extends React.Component {
     deleteFolder(id){
         let { dispatch } = this.props;
         if(confirm("Do you really want to delete this folder?")){
-            deleteData(`/api/folder/${id}`,{ projectId: project },(c)=>{
+            deleteData(`/api/folder/${id}`, { projectId: project }, (c)=>{
                 if(c.status == 200){
                     dispatch({ type: "REMOVE_DELETED_FOLDER_LIST", id: id })              
                     showToast("success","Successfully Deleted.");
