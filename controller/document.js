@@ -175,6 +175,66 @@ exports.put = {
                 cb({ status:false, error:c.error })
             }
         })
+    },
+    rename: (req,cb) => {
+        let document = global.initModel("document")
+        let d = req.body
+        let id = req.params.id
+        sequence.create().then((nextThen) => {
+            document.getData("document", { origin: d.origin }, { orderBy: [{ fieldname: "documentNameCount", type: "DESC" }] }, (c) => {
+                if(c.data.length){
+                    d.documentNameCount = c.data.length + 1
+                    nextThen(d)
+                }else{
+                    d.documentNameCount = 0
+                    nextThen(d)
+                }
+            })
+        }).then((nextThen,result) => {
+            document.putData("document",result,{id:id},(c)=>{
+                if(c.status){
+                    cb({ status:true, data:c.data })
+                } else {
+                    cb({ status:false, error:c.error })
+                }
+            })
+        })
+    },
+    tags: (req,cb) => {
+        let d = req.body;
+        let filter = (typeof d.filter != "undefined") ? d.filter : {};
+        let tag = global.initModel("tag");
+
+            sequence.create().then((nextThen) => {
+                tag.deleteData("tag",filter,(c)=>{
+                    if(c.status){
+                        if(JSON.parse(d.data.tags).length > 0){
+                            nextThen(JSON.parse(d.data.tags) , d.data.id)
+                        }else{
+                            cb({ status:true, data:c.data })
+                        }
+                    }
+                })
+
+            }).then((nextThen, tags , id) => {
+              let tagPromise = []
+                tagPromise.push( new Promise((resolve,reject) => {  
+                    tags.map( t => {
+                        let tagData = { linkType : t.value.split("-")[0], linkId : t.value.split("-")[1] , tagType : "document" , tagTypeId : id }
+                            tag.postData("tag",tagData,(res) =>{
+                                if(res.status){
+                                    resolve(res)
+                                }else{
+                                    reject()
+                                }
+                            })
+                    })
+                }))
+            
+                Promise.all(tagPromise).then(values => {
+                    cb({ status:true, data: "" })
+                })
+            })
     }
 }
 
