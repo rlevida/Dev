@@ -145,7 +145,7 @@ export default class DocumentNew extends React.Component {
             })
     }
 
-    moveToFolder(folderData , documentData){
+    moveTo(folderData , documentData){
         let { dispatch } = this.props;
         let dataToSubmit = { ...documentData , status : folderData.type , folderId : folderData.id  };
             putData(`/api/document/${documentData.id}`, dataToSubmit, (c) => {
@@ -493,7 +493,7 @@ export default class DocumentNew extends React.Component {
                                                                 }
                                                                 { folder.List.map((f,fIndex) => {
                                                                     return (
-                                                                        <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveToFolder(f,data)}>{f.name} {`${ f.type == "new" ? "( new document )" : "( library )"}`}</a>
+                                                                        <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name} {`${ f.type == "new" ? "( new document )" : "( library )"}`}</a>
                                                                     )
                                                                 })}
                                                             </div>

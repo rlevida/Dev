@@ -163,10 +163,20 @@ export default class DocumentLibrary extends React.Component {
     //         }
     // }
 
-    // moveTo(folderData , documentData){
-    //     let { socket } = this.props;
-    //         socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data :{ ...documentData , folderId : folderData.id } , type : "project"})
-    // }
+    moveTo(folderData , documentData){
+        let { dispatch } = this.props;
+        let dataToSubmit = { ...documentData , status : folderData.type , folderId : folderData.id  };
+            putData(`/api/document/${documentData.id}`, dataToSubmit, (c) => {
+                if(c.status == 200){
+                    dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
+                    showToast("success","Successfully Updated.")
+                }else{
+                    showToast("danger","Updating failed. Please try again")
+                }
+                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+                dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
+            })
+    }
 
     moveFolderTo(folderData , selectedFolder){
         let { dispatch } = this.props;
