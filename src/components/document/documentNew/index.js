@@ -87,16 +87,26 @@ export default class DocumentNew extends React.Component {
     editDocument(data , type , list ){
         let { dispatch } = this.props;
         let newData = { ...data } , tempTags = [];
-            
             if(typeof list != "undefined"){
-                list.map( e =>{
-                    if( e.tagTypeId == data.id && e.linkType == "workstream" && e.tagType == "document"){
-                        tempTags.push( { value : `workstream-${e.linkId}` , label: e.name })
-                    }
-                    if( e.tagTypeId == data.id && e.linkType == "task" && e.tagType == "document"){
-                        tempTags.push( { value : `task-${e.linkId}` , label: e.name })
-                    }
-                }) 
+                if(data.isFolder){
+                    list.map( e =>{
+                        if( e.tagTypeId == data.id && e.linkType == "workstream" && e.tagType == "folder"){
+                            tempTags.push( { value : `workstream-${e.linkId}` , label: e.name })
+                        }
+                        if( e.tagTypeId == data.id && e.linkType == "task" && e.tagType == "folder"){
+                            tempTags.push( { value : `task-${e.linkId}` , label: e.name })
+                        }
+                    })
+                }else{
+                    list.map( e =>{
+                        if( e.tagTypeId == data.id && e.linkType == "workstream"){
+                            tempTags.push( { value : `workstream-${e.linkId}` , label: e.name })
+                        }
+                        if( e.tagTypeId == data.id && e.linkType == "task"){
+                            tempTags.push( { value : `task-${e.linkId}` , label: e.name })
+                        }
+                    }) 
+                }
             }     
 
             newData = { ...data , tags: JSON.stringify(tempTags) } 

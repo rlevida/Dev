@@ -28,6 +28,8 @@ exports.post = {
         let data = req.body;
         let projectId = req.body[0].project;
         let document = global.initModel("document");
+        let tag = global.initModel("tag")
+
         sequence.create().then((nextThen) => {
             let newData = [];
                 data.map( file => { 
@@ -67,13 +69,12 @@ exports.post = {
                                     if(e.data.length > 0) {
                                         if(typeof tagList != "undefined"){
                                             JSON.parse(tagList).map( t => {
-                                                let tag = global.initModel("tag")
                                                 let tagData = { linkType : t.value.split("-")[0], linkId : t.value.split("-")[1] , tagType : "document" , tagTypeId : e.data[0].id }
                                                     tag.postData("tag",tagData,(tagRes) =>{
                                                         if(tagRes.status){
                                                             // console.log("tag success")
                                                         }else{
-                                                            console.log("tag failed")
+                                                            // console.log("tag failed")
                                                         }
                                                     })
                                             })
@@ -99,11 +100,19 @@ exports.post = {
             
             Promise.all(tempResData).then((values)=>{
                 let resData = []
-                if(values.length){
-                    values.map( e =>{ resData.push(e[0]) })
-                    cb({status:true , data:resData})
+                    if(values.length){
+                        values.map( e =>{ resData.push(e[0]) })
+                        nextThen(resData)
+                    }else{
+                        nextThen(resData)
+                    }
+            })
+        }).then((nextThen,result) => {
+            tag.getData("tag", {}, {}, (c) => {
+                if (c.status) {
+                     cb({status:true , data:{ list: result , tagList: c.data }})
                 }else{
-                    cb({status:false , data:resData})
+                    cb({status:true , data:{ list: result , tagList: [] }})
                 }
             })
         })    

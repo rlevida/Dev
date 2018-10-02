@@ -467,7 +467,7 @@ export default class DocumentLibrary extends React.Component {
                                                         <ul style={{listStyleType: "none",padding : "0"}}>  
                                                             { (tagList.length > 0) &&
                                                                 tagList.map((t,tIndex) =>{
-                                                                    if(t.tagTypeId == data.id && t.tagType == "document"){
+                                                                    if(t.tagTypeId == data.id && t.tagType == "folder"){
                                                                         return <li key={tIndex}><span key={tIndex} class="label label-primary" style={{margin:"5px"}}>{t.name}</span></li>
                                                                     }
                                                                 })

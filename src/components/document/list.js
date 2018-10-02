@@ -119,7 +119,8 @@ export default class List extends React.Component {
         postData(`/api/document/`,tempData,(c)=>{
             if(c.status == 200){
                 this.setState({  upload : false ,   tempData : [] });
-                dispatch({ type: "ADD_DOCUMENT_LIST", list: c.data});
+                dispatch({ type: "ADD_DOCUMENT_LIST", list: c.data.list });
+                dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data.tagList , name: 'tagList' })
                 showToast("success","Successfully Added.")
             }else{
                 showToast("danger","Saving failed. Please Try again later.")
