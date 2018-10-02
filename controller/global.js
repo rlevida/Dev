@@ -37,6 +37,7 @@ exports.get = {
                 }
                 case "shareList":{
                     model.getShareList(modelName,filter,{},(c)=>{
+                        console.log(c)
                         if(c.status){
                             cb({ status:200, data: c.data })
                         } else {

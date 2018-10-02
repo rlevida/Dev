@@ -202,8 +202,8 @@ export default class DocumentNew extends React.Component {
                             // let tagStatus = global.SelectList.tagList
                             //     .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
                             // let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
-                            if( loggedUser.data.userType == "Internal" && !e.isCompleted){
-                                if( e.status == "new" && e.folderId == null){
+                            if( loggedUser.data.userType == "Internal"){
+                                if(e.folderId == null){
                                     if(selectedFilter == 0 ){
                                         documentList.newUpload.push(e)
                                     }else if(selectedFilter == 1 && e.isCompleted == 1){
@@ -213,7 +213,7 @@ export default class DocumentNew extends React.Component {
                                     }
                                 }
                             }else{
-                                if( e.status == "new" && !isCompleted && e.folderId == null ){
+                                if(e.folderId == null ){
                                     let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id }).length ? 1 : 0 ;
                                         if(isShared || e.uploadedBy == loggedUser.data.id){
                                             if(selectedFilter == 0 ){
@@ -294,6 +294,7 @@ export default class DocumentNew extends React.Component {
                     if(typeof global.SelectList.shareList != "undefined" && typeof loggedUser.data.id != "undefined"){
                         folder.List.map( e =>{
                             let isShared = global.SelectList.shareList.filter( s =>{ return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id &&  s.shareType == "folder"}).length ? 1 : 0
+                                console.log(global.SelectList.shareList)
                                 if((isShared || e.createdBy == loggedUser.data.id) && e.type == "new" ) {
                                     folderList.push(e)
                                 }
@@ -301,7 +302,7 @@ export default class DocumentNew extends React.Component {
                     }
                 }
             }
-
+            console.log(folderList)
             let folderName = [];
             folderName.unshift(<span>{(typeof folder.SelectedNewFolder.name != "undefined" && folder.SelectedNewFolder.type == "new")?` > ${folder.SelectedNewFolder.name}`:""}</span>)
             let folderParentId = folder.SelectedNewFolder.parentId;

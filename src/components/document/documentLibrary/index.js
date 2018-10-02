@@ -216,68 +216,73 @@ export default class DocumentLibrary extends React.Component {
 
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
-
-            if(typeof folder.SelectedLibraryFolder.id == "undefined"){
-                if( document.List.length > 0 && typeof global.SelectList.tagList != "undefined" && typeof global.SelectList.shareList != "undefined"){
-                    document.List.filter( e =>{
-                        let tagStatus = global.SelectList.tagList
-                                .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
-                        let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
-                        if( loggedUser.data.userType == "Internal" && !isCompleted ){
-                            if( e.status == "library" && e.folderId == null){
-                                if(selectedFilter == 0 ){
-                                    documentList.library.push(e)
-                                }else if(selectedFilter == 1 && e.isCompleted == 1){
-                                     documentList.library.push(e)
-                                }else if(selectedFilter == 2 && e.isCompleted == 0){
-                                    documentList.library.push(e)
-                                }
-                            }
-                        }else{
-                            if(e.status == "library" && e.folderId == null && !isCompleted){
-                                let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? 1 : 0 ;
-                                    if(isShared || e.uploadedBy == loggedUser.data.id ){
-                                        if(selectedFilter == 0 ){
-                                            documentList.library.push(e)
-                                        }else if(selectedFilter == 1 && e.isCompleted == 1){
-                                             documentList.library.push(e)
-                                        }else if(selectedFilter == 2 && e.isCompleted == 0){
-                                            documentList.library.push(e)
-                                        }
-                                    }
-                            }
-                        }
-                    })
-                }
-            }else{
-                document.List.filter( e =>{
-                    if(loggedUser.data.userType == "Internal"){
-                        if( e.status == "library" && e.folderId == folder.SelectedLibraryFolder.id){
-                            if(selectedFilter == 0 ){
-                                documentList.library.push(e)
-                            }else if(selectedFilter == 1 && e.isCompleted == 1){
-                                 documentList.library.push(e)
-                            }else if(selectedFilter == 2 && e.isCompleted == 0){
-                                documentList.library.push(e)
-                            }
-                        }
-                    }else{
-                        if(e.status == "library" && e.folderId == folder.SelectedLibraryFolder.id){
-                            let isShared = global.SelectList.shareList.filter( s => { 
-                                                return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedLibraryFolder.id) && (s.shareType == "document" || s.shareType == "folder") 
-                                            }).length ? 1 : 0 ;
-                                if(isShared || e.uploadedBy == loggedUser.data.id){
+            
+            if( document.List.length > 0 && typeof global.SelectList.tagList != "undefined" && typeof global.SelectList.shareList != "undefined" && loggedUser.data.userType != ""){
+                if(typeof folder.SelectedLibraryFolder.id == "undefined"){
+                    document.List
+                        .filter( e => { return e.status == "library" && e.folderId == null})
+                        .map( e => {
+                            // let tagStatus = global.SelectList.tagList
+                            //         .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
+                            // let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
+                            if( loggedUser.data.userType == "Internal" && !e.isCompleted ){
+                                if(e.folderId == null){
                                     if(selectedFilter == 0 ){
                                         documentList.library.push(e)
                                     }else if(selectedFilter == 1 && e.isCompleted == 1){
-                                         documentList.library.push(e)
+                                        documentList.library.push(e)
                                     }else if(selectedFilter == 2 && e.isCompleted == 0){
                                         documentList.library.push(e)
                                     }
                                 }
+                            }else{
+                                if(e.folderId == null && !e.isCompleted){
+                                    let isShared  = global.SelectList.shareList.filter( s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id  }).length ? 1 : 0 ;
+                                        if(isShared || e.uploadedBy == loggedUser.data.id ){
+                                            if(selectedFilter == 0 ){
+                                                documentList.library.push(e)
+                                            }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                                documentList.library.push(e)
+                                            }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                                documentList.library.push(e)
+                                            }
+                                        }
+                                }
                             }
-                    }
-                })
+                        })
+                }else{
+                    document.List
+                        .filter( e => { return e.status == "library" && e.folderId != null })
+                        .map( e => {
+                            if(loggedUser.data.userType == "Internal"){
+                                if(e.folderId == folder.SelectedLibraryFolder.id){
+                                    if(selectedFilter == 0 ){
+                                        documentList.library.push(e)
+                                    }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                        documentList.library.push(e)
+                                    }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                        documentList.library.push(e)
+                                    }
+                                }
+                            }else{
+                                if(e.folderId == folder.SelectedLibraryFolder.id){
+                                    let isShared = global.SelectList.shareList
+                                                    .filter( s => { 
+                                                        return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedLibraryFolder.id) && (s.shareType == "document" || s.shareType == "folder") 
+                                                    }).length ? 1 : 0 ;
+                                        if(isShared || e.uploadedBy == loggedUser.data.id){
+                                            if(selectedFilter == 0 ){
+                                                documentList.library.push(e)
+                                            }else if(selectedFilter == 1 && e.isCompleted == 1){
+                                                documentList.library.push(e)
+                                            }else if(selectedFilter == 2 && e.isCompleted == 0){
+                                                documentList.library.push(e)
+                                            }
+                                        }
+                                    }
+                            }
+                        })
+                }
             }
 
             if(typeof global.SelectList.tagList != "undefined"){ // FOR TAG OPTIONS
@@ -537,7 +542,7 @@ export default class DocumentLibrary extends React.Component {
                                                                             <a href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo({id: null},data)}>Library</a>
                                                                         }
                                                                         { folder.List.map((f,fIndex) => {
-                                                                            if(f.type == "librabry"){
+                                                                            if(f.type == "library"){
                                                                                 if(typeof folder.SelectedLibraryFolder.id == "undefined"){
                                                                                     return (
                                                                                         <a key={fIndex} href="javascript:void(0)" style={{textDecoration:"none"}} onClick={()=> this.moveTo(f,data)}>{f.name}</a>
