@@ -529,7 +529,7 @@ export default class DocumentLibrary extends React.Component {
                                 { (!document.Loading) &&
                                     documentList.library.map((data, index) => {
                                         let ext  = getFilePathExtension(data.origin)
-                                        let documentName = `${data.origin.split(`.${ext}`).join("")}${data.documentNameCount > 0 ? `(${data.documentNameCount}).${ext}` : `.${ext}`}`
+                                        let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                         return (
                                             // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id ,"document")} documentToMove={(data)=> this.documentToMove(data)} docType="document"/>
                                             <tr key={index}>

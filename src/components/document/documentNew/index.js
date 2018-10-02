@@ -441,7 +441,7 @@ export default class DocumentNew extends React.Component {
                                 }
                                 { documentList.newUpload.map((data, index) => {
                                     let ext  = getFilePathExtension(data.origin)
-                                    let documentName = `${data.origin.split(`.${ext}`).join("")}${data.documentNameCount > 0 ? `(${data.documentNameCount}).${ext}` : `.${ext}`}`
+                                    let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                     return (
                                         <tr key={index}>
                                             <td> 
