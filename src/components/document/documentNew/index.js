@@ -294,7 +294,6 @@ export default class DocumentNew extends React.Component {
                     if(typeof global.SelectList.shareList != "undefined" && typeof loggedUser.data.id != "undefined"){
                         folder.List.map( e =>{
                             let isShared = global.SelectList.shareList.filter( s =>{ return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id &&  s.shareType == "folder"}).length ? 1 : 0
-                                console.log(global.SelectList.shareList)
                                 if((isShared || e.createdBy == loggedUser.data.id) && e.type == "new" ) {
                                     folderList.push(e)
                                 }
@@ -302,7 +301,6 @@ export default class DocumentNew extends React.Component {
                     }
                 }
             }
-            console.log(folderList)
             let folderName = [];
             folderName.unshift(<span>{(typeof folder.SelectedNewFolder.name != "undefined" && folder.SelectedNewFolder.type == "new")?` > ${folder.SelectedNewFolder.name}`:""}</span>)
             let folderParentId = folder.SelectedNewFolder.parentId;

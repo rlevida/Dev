@@ -23,7 +23,6 @@ exports.get = {
         if(modelName != ""){
             let model = global.initModel(modelName);
             let type = (typeof d.type != 'undefined') ? d.type : 'client';
-            let filter = (typeof d.filter != "undefined")?d.filter:{};
             switch(d.selectName){
                 case "ProjectMemberList" : {
                     model.getProjectMemberList(modelName, filter, {}, (c) => {
@@ -37,7 +36,6 @@ exports.get = {
                 }
                 case "shareList":{
                     model.getShareList(modelName,filter,{},(c)=>{
-                        console.log(c)
                         if(c.status){
                             cb({ status:200, data: c.data })
                         } else {
