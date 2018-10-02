@@ -5,6 +5,13 @@ export default function reducer(state={
     SelectedId: [],
 },action){
     switch (action.type) {
+        case "ADD_STARRED_LIST":{
+            let List = state.List;
+            action.list.map( e => {
+                List.push( e )
+            })
+            return {...state, List : List }
+        }
         case "SET_STARRED_LIST": {
             return { ...state, List: action.list }
         }

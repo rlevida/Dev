@@ -52,7 +52,7 @@ export default function reducer(state={
         
         // //UPDATE
         case "UPDATE_DATA_FOLDER_LIST" : {
-            let tempList = action.List.map((e,i)=>{
+            let tempList = state.List.map((e,i)=>{
                 if(e.id == action.UpdatedData.id){
                     return action.UpdatedData
                 }
@@ -64,7 +64,7 @@ export default function reducer(state={
         // //REMOVE
         case "REMOVE_DELETED_FOLDER_LIST" : {
             let tempList = [];
-            action.List.map((e,i)=>{
+            state.List.map((e,i)=>{
                 if(action.id != e.id){
                     tempList.push(e)
                 }

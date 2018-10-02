@@ -1,4 +1,4 @@
-const dbName = "users";
+const dbName = "share";
 var { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./")
 
 exports.get = {
@@ -24,13 +24,31 @@ exports.get = {
 
 exports.post = {
     index : (req,cb) => {
-        defaultPost(dbName,req,(res)=>{
-            if(res.success){
-                cb({ status:true, data:res.data })
-            }else{
-                cb({ status:false, error:res.error })
-            }
-        })
+        let d = req.body
+        let users = JSON.parse(d.users)
+        let tempResData = [] ;
+        let share = global.initModel("share")
+            delete d.users
+            users.map( e =>{
+                tempResData.push( new Promise((resolve,reject) => {
+                    let data = Object.assign({},d)
+                        data.userTypeLinkId = e.value
+                        data.usersType = "users"
+                        share.postData(dbName,data,(c)=>{
+                            if(c.status){
+                                resolve()
+                            }else{
+                                reject();
+                            }
+                        })
+                }))
+            })
+            Promise.all(tempResData).then((values)=>{
+                let resData = []
+                if(values.length){
+                    cb({ status:true, data:values })
+                }
+            })
     }
 }
 

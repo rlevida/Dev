@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import Select from 'react-select'
 import moment from 'moment'
 
-import { showToast,displayDate,setDatePicker } from '../../globalFunction'
+import { showToast,displayDate,setDatePicker , postData , putData } from '../../globalFunction'
 import { HeaderButtonContainer,HeaderButton,DropDown } from "../../globalComponents"
 
 import { connect } from "react-redux"
@@ -39,7 +39,7 @@ export default class FormComponent extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, document } = this.props
+        let { socket, document , dispatch } = this.props
 
         let result = true;
             $('.form-container *').validator('validate');
@@ -54,14 +54,40 @@ export default class FormComponent extends React.Component {
             }
             if(document.Selected.isFolder){
                 if(document.EditType == "tags"){
-                    socket.emit("SAVE_OR_UPDATE_FOLDER_TAG",{ data : document.Selected , filter:{ tagTypeId:document.Selected.id , tagType : "folder" }, type : "project"})
+                    let dataToSubmit = { data : document.Selected , filter: { tagTypeId:document.Selected.id , tagType : "folder" }, type : "project"}
+                        postData(`/api/folder/postFolderTag`, dataToSubmit, (c) => {
+                            dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
+                            showToast("success","Successfully Updated.")
+                        })
                 }
             }else{
-                if(document.EditType != "folder"){
-                    socket.emit("SAVE_OR_UPDATE_DOCUMENT",{ data:document.Selected , filter :{ tagTypeId:document.Selected.id , tagType: "document" }, type : "project" });
-                }else{
-                    socket.emit("SAVE_OR_UPDATE_FOLDER",{ data:document.Selected , filter :{ tagTypeId:document.Selected.id , tagType: "document" }, type : "project" });
+                if(document.EditType == "rename"){
+                    let dataToSubmit = { origin : document.Selected.origin } 
+                        putData(`/api/document/rename/${document.Selected.id}`, dataToSubmit, (c) => {
+                            if(c.status == 200){
+                                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
+                                showToast("success","Successfully Updated.")
+                            }else{
+                                showToast("error","Updating failed. Please try again.")
+                            }
+                            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+                            dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
+                        })
+                }else if(document.EditType == "tags"){
+                    let dataToSubmit = { data: document.Selected , filter: { tagTypeId: document.Selected.id, tagType: "document" } } 
+                        putData(`/api/document/tags/${document.Selected.id}`, dataToSubmit, (c) => {
+                           if(c.status == 200){
+                                    showToast("success","Successfully Updated.")
+                            }else{
+                                showToast("danger","Updating failed. Please try again.")
+                            }
+                            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+                            dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
+                        })
                 }
+                // else{
+                //     socket.emit("SAVE_OR_UPDATE_FOLDER",{ data:document.Selected , filter: { tagTypeId: document.Selected.id, tagType: "document" }, type : "project" });
+                // }
             }
     }
 

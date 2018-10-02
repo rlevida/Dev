@@ -1,11 +1,12 @@
 import React from "react";
 import { DropDown } from "../../globalComponents";
-import { showToast } from '../../globalFunction';
+import { showToast , postData , getData } from '../../globalFunction';
 import Dropzone from 'react-dropzone';
 import DocumentStatus from "./documentStatus";
 import DocumentNew from "./documentNew";
 import DocumentLibrary from "./documentLibrary";
 import axios from "axios";
+import parallel from 'async/parallel';
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -29,35 +30,102 @@ export default class List extends React.Component {
             tempData : [] , 
             upload : false,
             loading : false,
-            tags : [],
             files : []
         }
         this.onDrop = this.onDrop.bind(this)
     }
 
     componentWillMount() {
-        let { socket , loggedUser } = this.props
-            socket.emit("GET_SETTINGS", {});
-            socket.emit("GET_USER_LIST",{});
-            socket.emit("GET_FOLDER_LIST", { filter: { projectId: project }})
-            socket.emit("GET_TASK_LIST", { filter: { projectId: project }});
-            socket.emit("GET_STARRED_LIST", { filter : { linkType : "project" } })
-            socket.emit("GET_WORKSTREAM_LIST", { filter : { projectId : project } });
-            socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted : 0 , linkId : project , linkType : "project" , userTypeLinkId : loggedUser.data.id }});
+        let { dispatch } = this.props
 
-            // SELECT LIST
-            
-            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "shareList" , filter : { linkType: "project" , linkId : project } })
-            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "ProjectMemberList" , filter : { linkId : project, linkType: "project" } })
+        parallel({
+            folder : (parallelCallback) => {   
+                getData(`/api/folder/`, { params:{ filter: { projectId: project }}},(c) => {
+                    if(c.status == 200){
+                        dispatch({ type: "SET_FOLDER_LIST", list: c.data })
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            task : (parallelCallback) => {
+                getData(`/api/task/`,{ params: { filter: { projectId: project }}},(c) => {
+                    if(c.status == 200){
+                        dispatch({ type: "SET_TASK_LIST", list: c.data })
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            starred : (parallelCallback) => {
+                getData(`/api/starred/`,{ params: { filter: { projectId: project }}},(c) => { 
+                    if(c.status == 200){
+                        dispatch({ type: "SET_STARRED_LIST", list: c.data })
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            workstream : (parallelCallback) => {
+                getData(`/api/workstream/`, { params: { filter: { projectId: project }}},(c) => {
+                    if(c.status == 200){
+                        dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data })
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            document : (parallelCallback) => {
+                getData(`/api/document/`, { params: { filter: { isDeleted:0 , linkId:project , linkType:"project" }}},(c) => {
+                    if(c.status == 200){
+                        dispatch({ type:"SET_DOCUMENT_LIST",list : c.data})
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            tagList : (parallelCallback) => {
+                getData(`/api/global/selectList`,{ params: { selectName: "tagList" }},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'tagList' })
+                    parallelCallback(null,"")
+                })
+            },
+            shareList : (parallelCallback) => {
+                 getData(`/api/global/selectList`,{ params: { selectName: "shareList" , filter: { linkType: "project" , linkId : project }}},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'shareList' })
+                    parallelCallback(null,"")
+                })
+            },
+            ProjectMemberList : (parallelCallback) => {
+                getData(`/api/global/selectList`,{ params: { selectName: "ProjectMemberList" , filter: { linkType: "project" , linkId : project }}},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'ProjectMemberList' })
+                    parallelCallback(null,"")
+                })
+            }
+        } ,(error, result) => {
+            // console.log(`end loading`)
+        })
     }
 
     saveDocument(){
-        let { socket , loggedUser } = this.props;
-        let { tempData , tags } = this.state;
-            socket.emit("SAVE_OR_UPDATE_DOCUMENT", { 
-                data: tempData , userId : loggedUser.data.id, project: project, tags: JSON.stringify(tags) 
-            });
-            this.setState({  upload : false ,   tempData : [] , tags : [] });
+        let { dispatch } = this.props;
+        let { tempData } = this.state;
+
+        postData(`/api/document/`,tempData,(c)=>{
+            if(c.status == 200){
+                this.setState({  upload : false ,   tempData : [] });
+                dispatch({ type: "ADD_DOCUMENT_LIST", list: c.data.list });
+                dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data.tagList , name: 'tagList' })
+                showToast("success","Successfully Added.")
+            }else{
+                showToast("danger","Saving failed. Please Try again later.")
+            }
+        })
     }
 
     selectTag(e , index){
@@ -101,7 +169,6 @@ export default class List extends React.Component {
     render() {
         let { workstream  , task , dispatch , projectData , loggedUser } = this.props;
         let tagOptions = [] ;
-
             workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
             task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
 

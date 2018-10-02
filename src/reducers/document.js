@@ -55,7 +55,7 @@ export default function reducer(state={
         }
         //UPDATE
         case "UPDATE_DATA_DOCUMENT_LIST" : {
-            let tempList = action.List.map((e,i)=>{
+            let tempList = state.List.map((e,i)=>{
                 if(e.id == action.UpdatedData.id){
                     return action.UpdatedData
                 }
