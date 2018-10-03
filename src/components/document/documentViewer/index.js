@@ -1,6 +1,6 @@
 import React from "react"
 import moment from 'moment'
-
+import mime from "mime-types";
 import { getFilePathExtension , putData , deleteData ,  showToast, postData, getData } from '../../../globalFunction'
 import { HeaderButtonContainer } from "../../../globalComponents"
 import DocumentComment from "../comment"
@@ -109,10 +109,11 @@ export default class DocumentViewerComponent extends React.Component {
     render() {
         let { dispatch , document, users , settings , conversation , global , starred } = this.props , 
             { comment , suggestions , editorState} = this.state ,
-            isDocument = true , ext = "";
+            isDocument = true , ext = "", documentContentType = "";
         let uploadedBy =  global.SelectList.ProjectMemberList.filter( e =>{ return e.id == document.Selected.uploadedBy});
             ext = getFilePathExtension(document.Selected.name);
-            if(ext != "pdf"){
+            documentContentType = mime.contentType(document.Selected.name)
+            if(ext != "pdf" && ext != "jpeg"){
                 isDocument = false;
             }
         return (
@@ -134,17 +135,17 @@ export default class DocumentViewerComponent extends React.Component {
                                 <h3 class="panel-title">DOCUMENT VIEWER</h3>
                             </div>
                             <div class="panel-body">
-                                <div class="row" style={{height:"500px"}}>
-                                    <div class="col-lg-6 col-md-6 col-xs-12" style={{height:"100%"}}>
+                                <div class="row" style={{height:"800px"}}>
+                                    <div class="col-lg-9 col-md-9 col-xs-12" style={{height:"100%"}}>
                                         <div id="documentImage" style={{textAlign:"center" , height:"100%" }}>
                                         { (isDocument) ? 
-                                                <embed src={`${settings.imageUrl }/upload/${document.Selected.name}`} type="application/pdf" width="100%" height="100%">
+                                                <embed src={`${settings.imageUrl }/upload/${document.Selected.name}`} type={documentContentType} width={ext == 'pdf' ? '100%' : "auto"} height={ext == 'pdf' ? '100%' : "auto"}>
                                                 </embed>
                                                 :  <span style={{fontSize:"100px"}} class="glyphicon glyphicon-file"></span>
                                         }
                                         </div>
                                     </div>
-                                    <div class="col-lg-6 col-md-6 col-xs-12">
+                                    <div class="col-lg-3 col-md-3 col-xs-12">
                                         <div class="dropdown">
                                             <button class="btn btn-default dropdown-toggle pull-right" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                             <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
