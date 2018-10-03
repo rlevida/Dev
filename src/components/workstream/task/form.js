@@ -453,9 +453,10 @@ export default class FormComponent extends React.Component {
                                             let isEditable = (loggedUser.data.id == o.createdBy)
                                                 || loggedUser.data.userRole == 1
                                                 || loggedUser.data.userRole == 2
-                                                || project.Selected.projectManagerId == loggedUser.data.id ? true : false
+                                                || project.Selected.projectManagerId == loggedUser.data.id 
+                                                    ? true : false
                                             return (
-                                                <div className={isEditable ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}
+                                                <div className={(isEditable || task.Selected.assignedById == loggedUser.data.id) ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}
                                                 >
                                                     <p>{o.description}</p>
                                                     <div id="checklist-action">
@@ -477,8 +478,8 @@ export default class FormComponent extends React.Component {
                                                         <p style={{ marginTop: 5, fontSize: 10 }}>
                                                             <span>By : {o.users_firstName + ' ' + o.users_lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
                                                         </p>
-                                                        {
-                                                            (isEditable) &&
+                                                        
+                                                        { (isEditable || task.Selected.assignedById == loggedUser.data.id) && 
                                                             <div class="checklist-actions">
                                                                 <a class="btn btn-success"
                                                                     onClick={() => {
@@ -489,6 +490,10 @@ export default class FormComponent extends React.Component {
                                                                         o.completed ? <span class="glyphicon glyphicon-unchecked"></span> : <span class="glyphicon glyphicon-check"></span>
                                                                     }
                                                                 </a>
+                                                            </div>
+                                                        }
+                                                        { (isEditable) &&
+                                                            <div class="checklist-actions">
                                                                 <a class="btn btn-primary"
                                                                     onClick={() => {
                                                                         this.editChecklist(o)
