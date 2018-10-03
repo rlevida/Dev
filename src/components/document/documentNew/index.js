@@ -190,6 +190,17 @@ export default class DocumentNew extends React.Component {
         }
     }
 
+    downloadFolder(folder){
+        let { document } = this.props;
+        let fileList = [];
+            document.List.filter( e => {
+                if(e.folderId == folder.id){
+                    fileList.push({ origin : e.origin , name : e.name })
+                }
+            })
+        window.open(encodeURI(`/api/downloadFolder?data=${JSON.stringify(fileList)}&folderName=${folder.name}`));
+    }
+
     printDocument(file){
         let { dispatch } = this.props;
         dispatch({type:"SET_DOCUMENT_TO_PRINT", DocumentToPrint: encodeURI(`/api/printDocument?fileName=${file.name}&fileOrigin=${file.origin}`)})
