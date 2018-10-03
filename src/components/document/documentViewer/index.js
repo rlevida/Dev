@@ -114,9 +114,9 @@ export default class DocumentViewerComponent extends React.Component {
         let { dispatch, document, settings, global, starred } = this.props , 
             isDocument = true, ext = "", documentContentType = "";
         let uploadedBy =  global.SelectList.ProjectMemberList.filter( e =>{ return e.id == document.Selected.uploadedBy});
-            ext = getFilePathExtension(document.Selected.name);
+            ext = getFilePathExtension(document.Selected.name).toLowerCase();
             documentContentType = mime.contentType(document.Selected.name)
-            if(ext != "pdf" && ext != "jpeg"){
+            if(ext != "pdf" && ext != "jpeg" && ext !="png"){
                 isDocument = false;
             }
         return (
@@ -142,7 +142,7 @@ export default class DocumentViewerComponent extends React.Component {
                                     <div class="col-lg-9 col-md-9 col-xs-12" style={{height:"100%"}}>
                                         <div id="documentImage" style={{textAlign:"center" , height:"100%" }}>
                                         { (isDocument) ? 
-                                                <embed src={`${settings.imageUrl }/upload/${document.Selected.name}`} type={documentContentType} width={ext == 'pdf' ? '100%' : "auto"} height={ext == 'pdf' ? '100%' : "auto"}>
+                                                <embed src={`${settings.imageUrl }/upload/${document.Selected.name}`} type={documentContentType} width={ (ext == 'pdf' || ext == 'png' )? '100%' : "auto"} height={ext == 'pdf' ? '100%' : "auto"}>
                                                 </embed>
                                                 :  <span style={{fontSize:"100px"}} class="glyphicon glyphicon-file"></span>
                                         }
