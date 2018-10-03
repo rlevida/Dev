@@ -122,6 +122,8 @@ export default class Component extends React.Component {
                                     }else if (data.type == "Tag in Comment"){
                                         label = `Comment`
                                         description = `${data.createdByName} tagged you in a comment.`
+                                    }else if (data.type == "Task Completed"){
+                                        description = `${data.taskName} has been completed by ${data.createdByName}`
                                     }
 
                                     return (
