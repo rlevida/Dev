@@ -61,10 +61,11 @@ export default class DocumentLibrary extends React.Component {
     }
    
     deleteDocument(id){
-        let { socket } = this.props;
+        let { dispatch } = this.props;
             if(confirm("Do you really want to delete this record?")){
                 putData(`/api/document/${id}`,{isDeleted:1},(c)=>{
-                   if(c.status == 200){
+                    if(c.status == 200){
+                        dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", id:id })
                         showToast("success","Successfully Deleted.");
                    }else{
                        showToast("error","Delete failed. Please try again later.");
@@ -253,12 +254,12 @@ export default class DocumentLibrary extends React.Component {
 
     printDocument(file){
         let { dispatch } = this.props;
-
         dispatch({type:"SET_DOCUMENT_TO_PRINT", DocumentToPrint: encodeURI(`/api/printDocument?fileName=${file.name}&fileOrigin=${file.origin}`)})
         setTimeout(()=>{
             document.getElementById('printDocument').contentWindow.print()
         },3000)
     }
+    
     render() {
         let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser } = this.props , { selectedFilter } = this.state;
         let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [] ,folderList = [];
@@ -627,7 +628,6 @@ export default class DocumentLibrary extends React.Component {
                                 }
                             </tbody>
                         </table>
-                        <PrintComponent/>
                         <div class="modal fade" id="shareModal" tabIndex="-1" role="dialog" aria-labelledby="shareModalLabel" aria-hidden="true">
                             <div class="modal-dialog" role="document">
                                 <div class="modal-content">
@@ -663,6 +663,7 @@ export default class DocumentLibrary extends React.Component {
                             </div>
                         </div>
                     </div>
+                    <PrintComponent/>
                 </div>
     }
 }

@@ -1,4 +1,7 @@
-const sequence = require("sequence").Sequence;
+const sequence = require("sequence").Sequence,
+    toPdf = require("office-to-pdf"),
+    mime = require('mime-types')
+
 const dbName = "document";
 var {
     defaultGet,
@@ -65,15 +68,11 @@ exports.get = {
                     if (filter.linkType == "project") {
                         let documentLinkIds = [];
 
-                        documentLinkIds.push(new Promise((resolve, reject) => {
-                            result.map(link => {
-                                resolve(link.documentId)
-                            })
-                        }))
-
-                        Promise.all(documentLinkIds).then(values => {
-                            parallelCallback(null, values)
+                        result.map(link => {
+                            documentLinkIds.push(link.documentId)
                         })
+
+                        parallelCallback(null, documentLinkIds)
                     } else {
                         parallelCallback(null, [])
                     }
@@ -152,6 +151,53 @@ exports.get = {
                     }
                 })
             }
+        })
+    },
+    getDocumentToPrint: (req,cb) => {
+        let fileName = req.query.fileName
+        let originName = req.query.fileOrigin
+        let fs = global.initRequire('fs'), AWS = global.initAWS();
+        let fileStream = fs.createWriteStream( `${originName}` ) ;
+        let s3 = new AWS.S3();
+
+        let promise = new Promise(function(resolve,reject){
+            s3.getObject({
+                Bucket: global.AWSBucket,
+                Key: global.environment + "/upload/" + fileName,
+            }, (err,data) => {
+                if(err){
+                    console.log("Error in Uploading to AWS. [" + err + "]");
+                }else{
+                    fileStream.write(data.Body)
+                    resolve(originName)
+                    fileStream.end()
+
+                }
+            });
+        })
+        
+        promise.then((data)=>{
+            var wordBuffer = fs.readFileSync(`${__dirname}/../${data}`)
+            toPdf(wordBuffer).then(
+                (pdfBuffer) => {
+                    let pdfdata = new Promise(function(resolve,reject){
+                        let convertedData = fs.writeFileSync(`./${data}.pdf`, pdfBuffer)
+                            resolve(convertedData)
+                    })
+
+                    pdfdata.then((newpdf)=>{
+                        let file = fs.readFileSync(`${__dirname}/../${data}.pdf`);
+                        let fileContentType = mime.contentType(`${data}.pdf`)
+                            // res.contentType(fileContentType);
+                            fs.unlink(`${__dirname}/../${data}`,(t)=>{})
+                            fs.unlink(`./${data}.pdf`,(t)=>{})
+                            cb({ status: true , data : file , contentType: fileContentType })
+                            // res.send(file);
+                    })
+                }, (err) => {
+                console.log(err)
+                }
+            )
         })
     }
 }
