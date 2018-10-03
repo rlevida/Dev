@@ -51,10 +51,11 @@ export default class DocumentNew extends React.Component {
     }
 
     deleteDocument(id){
-        let { socket } = this.props;
+        let { dispatch } = this.props;
             if(confirm("Do you really want to delete this record?")){
                 putData(`/api/document/${id}`,{isDeleted:1},(c)=>{
-                   if(c.status == 200){
+                    if(c.status == 200){
+                        dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", id:id })
                         showToast("success","Successfully Deleted.");
                    }else{
                        showToast("error","Delete failed. Please try again later.");
@@ -180,6 +181,7 @@ export default class DocumentNew extends React.Component {
         if(confirm("Do you really want to delete this folder?")){
             deleteData(`/api/folder/${id}`, { projectId: project }, (c)=>{
                 if(c.status == 200){
+                    console.log()
                     dispatch({ type: "REMOVE_DELETED_FOLDER_LIST", id: id })              
                     showToast("success","Successfully Deleted.");
                 }else{

@@ -67,7 +67,7 @@ export default function reducer(state={
         //REMOVE
         case "REMOVE_DELETED_DOCUMENT_LIST" : {
             let tempList = [];
-            action.List.map((e,i)=>{
+            state.List.map((e,i)=>{
                 if(action.id != e.id){
                     tempList.push(e)
                 }
