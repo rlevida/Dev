@@ -119,7 +119,7 @@ export default class FormComponent extends React.Component {
     }
 
     approveTask() {
-        let { socket, task, checklist } = this.props;
+        let { socket, task, checklist , loggedUser} = this.props;
         let checklistToBeComplete = []
         if (checklistToBeComplete.length == 0) {
             let status = "Completed"
@@ -127,7 +127,21 @@ export default class FormComponent extends React.Component {
                 status = "For Approval"
                 socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
             } else {
-                socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" } })
+                let reminderDetails = {
+                    seen : 0,
+                    usersId : task.Selected.assignedById,
+                    projectId : task.Selected.projectId,
+                    linkType : "task",
+                    linkId : task.Selected.id,
+                    type: "Task Completed",
+                    createdBy : loggedUser.data.id,
+                    reminderDetail : "Task Completed"
+                }
+                
+                socket.emit("SAVE_OR_UPDATE_TASK", { 
+                    data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" }, 
+                    reminder : reminderDetails
+                })
             }
         } else {
             showToast("error", "There are items to be completed in the checklist before completing the task.")

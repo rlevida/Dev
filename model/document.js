@@ -27,11 +27,6 @@ var field = exports.field = {
          */
         'isDeleted' :  {type : 'date' , access : "public" },
 
-           /**
-         * tags (VARCHAR(50))
-         */
-        'tags' : {type : 'string' , access : "public" },
-
         /**
          * status (ENUM("newupload","foraction","email"))
          */
