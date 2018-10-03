@@ -41,21 +41,23 @@ export default class TaskStatus extends React.Component {
             let userId = loggedUser.data.id;
 
             task.List.map((e,index)=>{
-                if(e.assignedById == userId ){
+                if (e.assignedById == userId ){
                     data.assignedTo.Active += 1;
                     if(moment(e.dueDate).format('L') == moment().format('L')){
                         data.assignedTo.DueToday += 1;
                     }else if(moment(e.dueDate).format('LLL') < moment().format('LLL') ){
                         data.assignedTo.Issues += 1;
                     }
-                }else if ( e.followersIds != null && e.followersIds.split(",").includes(`${userId}`)){
+                }
+                if ( e.followersIds != null && e.followersIds.split(",").includes(`${userId}`)){
                     data.Follower.Active += 1;
                     if(moment(e.dueDate).format('L') == moment().format('L')){
                         data.Follower.DueToday += 1;
                     }else if(moment(e.dueDate).format('LLL') < moment().format('LLL') ){
                         data.Follower.Issues += 1;
                     }
-                }else if( e.responsible_id == userId ){
+                }
+                if ( e.responsible_id == userId ){
                     data.responsible.Active += 1;
                     if(moment(e.dueDate).format('L') == moment().format('L')){
                         data.responsible.DueToday += 1;
