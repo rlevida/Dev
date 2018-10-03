@@ -181,7 +181,6 @@ export default class DocumentNew extends React.Component {
         if(confirm("Do you really want to delete this folder?")){
             deleteData(`/api/folder/${id}`, { projectId: project }, (c)=>{
                 if(c.status == 200){
-                    console.log()
                     dispatch({ type: "REMOVE_DELETED_FOLDER_LIST", id: id })              
                     showToast("success","Successfully Deleted.");
                 }else{
@@ -189,6 +188,14 @@ export default class DocumentNew extends React.Component {
                 }
             })
         }
+    }
+
+    printDocument(file){
+        let { dispatch } = this.props;
+        dispatch({type:"SET_DOCUMENT_TO_PRINT", DocumentToPrint: encodeURI(`/api/printDocument?fileName=${file.name}&fileOrigin=${file.origin}`)})
+        setTimeout(()=>{
+            document.getElementById('printDocument').contentWindow.print()
+        },3000)
     }
 
     downloadDocument(document){
@@ -507,7 +514,7 @@ export default class DocumentNew extends React.Component {
                                                         
                                                         <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data.id)}>Delete</a></li>
                                                         <li><a href="javascript:void(0)" data-tip="View" onClick={()=> this.viewDocument(data)}>View</a></li>
-                                                        
+                                                        <li><a href="javascript:void(0);" data-tip="Print" onClick={()=>this.printDocument(data)}>Print</a></li>
                                                     </ul>
                                                 </div>
                                             </td>

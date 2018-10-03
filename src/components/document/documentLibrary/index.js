@@ -492,7 +492,7 @@ export default class DocumentLibrary extends React.Component {
                                                     <td>
                                                         <div class="dropdown">
                                                             <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                                            <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                            <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2">
                                                                 { (loggedUser.data.userType == "Internal") &&
                                                                     <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={()=>dispatch({type:"SET_DOCUMENT_SELECTED", Selected:data })}>Share</a></li>
                                                                 }
@@ -585,7 +585,7 @@ export default class DocumentLibrary extends React.Component {
                                                 <td>
                                                     <div class="dropdown">
                                                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                                        <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+                                                        <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >
                                                             <li><a href="javascript:void(0)" onClick={()=> this.viewDocument(data)}>View</a></li>
                                                             { (loggedUser.data.userType == "Internal") &&
                                                                 <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={()=>dispatch({type:"SET_DOCUMENT_SELECTED", Selected:data })}>Share</a></li>
