@@ -7,7 +7,6 @@ CREATE TABLE `document` (
     `type` VARCHAR(20),
     `folderId` BIGINT,
     `isDeleted` TINYINT(1) DEFAULT '0',
-    `tags` TEXT,
     `status` ENUM("new","library","archived"),
     `isCompleted` TINYINT(1) DEFAULT '0',
     `documentNameCount` INT(11) NOT NULL DEFAULT '0',

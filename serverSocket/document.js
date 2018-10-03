@@ -194,7 +194,7 @@ var init = exports.init = (socket) => {
                                                     let tagData = { linkType : t.value.split("-")[0], linkId : t.value.split("-")[1] , tagType : "document" , tagTypeId : e.data[0].id }
                                                         tag.postData("tag",tagData,(tagRes) =>{
                                                             if(tagRes.status){
-                                                                // console.log("tag success")
+                                                                console.log("tag success")
                                                             }else{
                                                                 console.log("tag failed")
                                                             }

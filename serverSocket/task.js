@@ -149,8 +149,7 @@ var init = exports.init = (socket) => {
                             },
                             reminder: function(parallelCallback){
                                 let reminder = global.initModel("reminder");
-
-                                if(d.data.action == "For Approval" || d.data.action == "Reject Task"){
+                                if(d.data.action == "For Approval" || d.data.action == "Reject Task" || d.data.action == "complete"){
                                     reminder.postData("reminder", d.reminder ,(c)=>{
                                         if(c.status){
                                             reminder.getReminderList({},(e)=>{

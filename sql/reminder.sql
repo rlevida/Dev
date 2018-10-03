@@ -8,7 +8,7 @@ CREATE TABLE `reminder` (
     `projectId` BIGINT,
     `linkId` BIGINT,
     `linkType` ENUM("task","document","workstream"),
-    `type` ENUM("For Approval","Task Rejected","Task Overdue","Task Due Today","Tag in Comment"),
+    `type` ENUM("For Approval","Task Rejected","Task Overdue","Task Due Today","Tag in Comment","Task Completed"),
     `createdBy` BIGINT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
