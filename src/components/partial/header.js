@@ -123,7 +123,7 @@ export default class Component extends React.Component {
                                         label = `Comment`
                                         description = `${data.createdByName} tagged you in a comment.`
                                     }else if (data.type == "Task Completed"){
-                                        description = `${data.reminderDetail}`
+                                        description = `${data.taskName} has been completed by ${data.createdByName}`
                                     }
 
                                     return (
