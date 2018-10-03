@@ -43,8 +43,141 @@ router.use(function (req, res, next) {
  * 
  */
 
+router.get('/printDocument',(req,res,next)=>{
+    let fileName = req.query.fileName
+    let originName = req.query.fileOrigin
+    let fs = global.initRequire('fs'), AWS = global.initAWS();
+    let fileStream = fs.createWriteStream( `${originName}` ) ;
+    let s3 = new AWS.S3();
 
+    let promise = new Promise(function(resolve,reject){
+        s3.getObject({
+            Bucket: global.AWSBucket,
+            Key: global.environment + "/upload/" + fileName,
+        }, (err,data) => {
+            if(err){
+                console.log("Error in Uploading to AWS. [" + err + "]");
+            }else{
+                fileStream.write(data.Body)
+                resolve(originName)
+                fileStream.end()
 
+            }
+        });
+    })
+    
+    promise.then((data)=>{
+        var wordBuffer = fs.readFileSync(`${__dirname}/../${data}`)
+        toPdf(wordBuffer).then(
+            (pdfBuffer) => {
+                let pdfdata = new Promise(function(resolve,reject){
+                    let convertedData = fs.writeFileSync(`./${data}.pdf`, pdfBuffer)
+                        resolve(convertedData)
+                })
+
+                pdfdata.then((newpdf)=>{
+                    let file = fs.readFileSync(`${__dirname}/../${data}.pdf`);
+                    let fileContentType = mime.contentType(`${data}.pdf`)
+                        res.contentType(fileContentType);
+                        fs.unlink(`${__dirname}/../${data}`,(t)=>{})
+                        fs.unlink(`./${data}.pdf`,(t)=>{})
+                        res.send(file);
+                })
+          }, (err) => {
+            console.log(err)
+          }
+        )
+    })
+})
+
+router.get('/downloadDocument',(req,res,next)=>{
+    var fs = global.initRequire('fs'),
+        AWS = global.initAWS(),
+        s3 = new AWS.S3();
+
+    let fileName = req.query.fileName
+    let origin = req.query.origin
+    let fileStream = fs.createWriteStream( `${origin}` ) ;
+        s3.getObject({
+            Bucket: global.AWSBucket,
+            Key: global.environment + "/upload/" + fileName,
+        }, (err,data) => {
+            if(err){
+                console.log("Error in Uploading to AWS. [" + err + "]");
+            }else{
+                fileStream.write(data.Body)
+                res.download(`${origin}` , `${origin}`,(c)=>{
+                    fs.unlink(`${origin}`,(t)=>{
+                    })
+                })
+                fileStream.end()
+            }
+        });
+})
+
+router.get('/downloadFolder',(req,res,next)=>{
+        var fs = global.initRequire('fs'),
+            AWS = global.initAWS();
+    
+        let fileList = JSON.parse(req.query.data)
+        let folderName = req.query.folderName
+        let tempFolderName = new Date().getTime()
+        let path = `${folderName}`
+        fs.mkdir(path,function(e){
+          
+            let promise = new Promise(function(resolve,reject){
+                fileList.map( file =>{
+                    var s3 = new AWS.S3();
+                    let fileStream = fs.createWriteStream( `${path}/${file.origin}` ) ;
+                        s3.getObject({
+                            Bucket: global.AWSBucket,
+                            Key: global.environment + "/upload/" + file.name,
+                        }, (err,data) => {
+                            if(err){
+                                console.log("Error in Uploading to AWS. [" + err + "]");
+                            }else{
+                                fileStream.write(data.Body)
+                                resolve(folderName)
+                                fileStream.end()
+                            }
+                        });
+                })}
+            )
+            promise.then((data)=>{
+                var tar = require("tar")
+                var writeStream  = tar.c(
+                    {
+                        gzip: "gzip",
+                    },
+                    [`${folderName}`]
+                ).pipe(fs.createWriteStream(`${folderName}.tgz`))
+                writeStream.on('finish', () => {
+    
+                    var deleteFolderRecursive = function(path) { // remove temp files
+                        if( fs.existsSync(path) ) {
+                            fs.readdirSync(path).forEach(function(file,index){
+                                var curPath = path + "/" + file;
+                                if(fs.lstatSync(curPath).isDirectory()) { // recurse
+                                deleteFolderRecursive(curPath);
+                                } else { // delete file
+                                fs.unlinkSync(curPath);
+                                }
+                            });
+                            fs.rmdirSync(path);
+                        }
+                      };
+                      deleteFolderRecursive(path)
+                    
+                    res.download(`${folderName}.tgz` , `${folderName}.tgz`,(c)=>{
+                        fs.unlink(`${folderName}.tgz`,(t)=>{
+                        })
+                    })
+                })
+            }).catch((err)=>{
+                console.log(`promise error `, err )
+            })
+        })
+    })
  
 router.get('/:controller',(req,res,next)=>{
     if(!req.params.controller){
@@ -565,116 +698,9 @@ module.exports = router;
 //     })
 // })
 
-// router.get('/downloadFolder',(req,res,next)=>{
-//     var fs = global.initRequire('fs'),
-//         AWS = global.initAWS();
+// 
 
-//     let fileList = JSON.parse(req.query.data)
-//     let folderName = req.query.folderName
-//     let tempFolderName = new Date().getTime()
-//     let path = `${folderName}`
-//     fs.mkdir(path,function(e){
-      
-//         let promise = new Promise(function(resolve,reject){
-//             fileList.map( file =>{
-//                 var s3 = new AWS.S3();
-//                 let fileStream = fs.createWriteStream( `${path}/${file.origin}` ) ;
-//                     s3.getObject({
-//                         Bucket: global.AWSBucket,
-//                         Key: global.environment + "/upload/" + file.name,
-//                     }, (err,data) => {
-//                         if(err){
-//                             console.log("Error in Uploading to AWS. [" + err + "]");
-//                         }else{
-//                             fileStream.write(data.Body)
-//                             resolve(folderName)
-//                             fileStream.end()
-//                         }
-//                     });
-//             })}
-//         )
-//         promise.then((data)=>{
-//             var tar = require("tar")
-//             var writeStream  = tar.c(
-//                 {
-//                     gzip: "gzip",
-//                 },
-//                 [`${folderName}`]
-//             ).pipe(fs.createWriteStream(`${folderName}.tgz`))
-//             writeStream.on('finish', () => {
 
-//                 var deleteFolderRecursive = function(path) { // remove temp files
-//                     if( fs.existsSync(path) ) {
-//                         fs.readdirSync(path).forEach(function(file,index){
-//                             var curPath = path + "/" + file;
-//                             if(fs.lstatSync(curPath).isDirectory()) { // recurse
-//                             deleteFolderRecursive(curPath);
-//                             } else { // delete file
-//                             fs.unlinkSync(curPath);
-//                             }
-//                         });
-//                         fs.rmdirSync(path);
-//                     }
-//                   };
-//                   deleteFolderRecursive(path)
-                
-//                 res.download(`${folderName}.tgz` , `${folderName}.tgz`,(c)=>{
-//                     fs.unlink(`${folderName}.tgz`,(t)=>{
-//                     })
-//                 })
-//             })
-//         }).catch((err)=>{
-//             console.log(`promise error `, err )
-//         })
-//     })
-// })
-
-// router.get('/printDocument',(req,res,next)=>{
-//     let fileName = req.query.fileName
-//     let originName = req.query.fileOrigin
-//     let fs = global.initRequire('fs'), AWS = global.initAWS();
-//     let fileStream = fs.createWriteStream( `${originName}` ) ;
-//     let s3 = new AWS.S3();
-
-//     let promise = new Promise(function(resolve,reject){
-//         s3.getObject({
-//             Bucket: global.AWSBucket,
-//             Key: global.environment + "/upload/" + fileName,
-//         }, (err,data) => {
-//             if(err){
-//                 console.log("Error in Uploading to AWS. [" + err + "]");
-//             }else{
-//                 fileStream.write(data.Body)
-//                 resolve(originName)
-//                 fileStream.end()
-
-//             }
-//         });
-//     })
-    
-//     promise.then((data)=>{
-//         var wordBuffer = fs.readFileSync(`${__dirname}/../${data}`)
-//         toPdf(wordBuffer).then(
-//             (pdfBuffer) => {
-//                 let pdfdata = new Promise(function(resolve,reject){
-//                     let convertedData = fs.writeFileSync(`./${data}.pdf`, pdfBuffer)
-//                         resolve(convertedData)
-//                 })
-
-//                 pdfdata.then((newpdf)=>{
-//                     let file = fs.readFileSync(`${__dirname}/../${data}.pdf`);
-//                     let fileContentType = mime.contentType(`${data}.pdf`)
-//                         res.contentType(fileContentType);
-//                         fs.unlink(`${__dirname}/../${data}`,(t)=>{})
-//                         fs.unlink(`./${data}.pdf`,(t)=>{})
-//                         res.send(file);
-//                 })
-//           }, (err) => {
-//             console.log(err)
-//           }
-//         )
-//     })
-// })
 
 // /**
 //  * GET /:id

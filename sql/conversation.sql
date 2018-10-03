@@ -3,7 +3,7 @@ CREATE TABLE `conversation` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `comment` TEXT,
     `usersId` BIGINT,
-    `linkType` ENUM("project","workstream","task"),
+    `linkType` ENUM("project","workstream","task","document"),
     `linkId` BIGINT,
     `status` BIGINT,
     `dateAdded` DATETIME,

@@ -1,11 +1,10 @@
 import React from "react"
-import ReactDOM from "react-dom"
-import Select from 'react-select'
 import moment from 'moment'
-
-import { getFilePathExtension } from '../../../globalFunction'
+import mime from "mime-types";
+import { getFilePathExtension , putData , deleteData ,  showToast, postData, getData } from '../../../globalFunction'
 import { HeaderButtonContainer } from "../../../globalComponents"
 import DocumentComment from "../comment"
+import PrintComponent  from "../print"
 
 import { connect } from "react-redux"
 
@@ -17,7 +16,8 @@ import { connect } from "react-redux"
         users: store.users,
         settings: store.settings,
         conversation: store.conversation,
-        global: store.global
+        global: store.global, 
+        starred: store.starred
     }
 })
 
@@ -35,7 +35,7 @@ export default class DocumentViewerComponent extends React.Component {
 
     componentWillMount() {
         let { socket  , document , users } = this.props
-            socket.emit("GET_COMMENT_LIST",{ filter : { linkType : "project" , linkId : document.Selected.id }})
+            socket.emit("GET_COMMENT_LIST",{ filter : { linkType : "document" , linkId : document.Selected.id }})
     }
 
     submitComment(){
@@ -65,13 +65,58 @@ export default class DocumentViewerComponent extends React.Component {
             });
     }
 
+    deleteDocument(id){
+        let { dispatch } = this.props;
+            if(confirm("Do you really want to delete this record?")){
+                putData(`/api/document/${id}`,{isDeleted:1},(c)=>{
+                    if(c.status == 200){
+                        dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", id:id })
+                        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: 'List'})
+                        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected:{}})
+                        showToast("success","Successfully Deleted.");
+                   }else{
+                       showToast("error","Delete failed. Please try again later.");
+                   }
+                })
+            }
+    }
+
+    starDocument(data , isStarred){
+        let { starred , loggedUser , dispatch } = this.props;
+            if(isStarred){
+                let id = starred.List.filter( s => { return s.linkId == data.id })[0].id
+                    deleteData(`/api/starred/${id}`,{},(c) => {
+                        dispatch({ type: "REMOVE_DELETED_STARRED_LIST", id: data.id })
+                        showToast("success","Successfully Updated.")
+                    }) 
+            }else{
+                let dataToSubmit = { usersId : loggedUser.data.id , linkType : "project" , linkId : data.id }
+                    postData(`/api/starred/`, dataToSubmit, (c) => {
+                        dispatch({ type: "ADD_STARRED_LIST", list: c.data })
+                        showToast("success","Successfully Updated.")
+                    })
+            }
+    }
+
+    printDocument(file){
+        let { dispatch } = this.props;
+        dispatch({type:"SET_DOCUMENT_TO_PRINT", DocumentToPrint: encodeURI(`/api/printDocument?fileName=${file.name}&fileOrigin=${file.origin}`)})
+        setTimeout(()=>{
+            document.getElementById('printDocument').contentWindow.print()
+        },3000)
+    }
+
+    downloadDocument(document){
+        window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
+    }
+
     render() {
-        let { dispatch , document, users , settings , conversation , global } = this.props , 
-            { comment , suggestions , editorState} = this.state ,
-            isDocument = true , ext = "";
+        let { dispatch, document, settings, global, starred } = this.props , 
+            isDocument = true, ext = "", documentContentType = "";
         let uploadedBy =  global.SelectList.ProjectMemberList.filter( e =>{ return e.id == document.Selected.uploadedBy});
-            ext = getFilePathExtension(document.Selected.name);
-            if(ext != "pdf"){
+            ext = getFilePathExtension(document.Selected.name).toLowerCase();
+            documentContentType = mime.contentType(document.Selected.name)
+            if(ext != "pdf" && ext != "jpeg" && ext !="png"){
                 isDocument = false;
             }
         return (
@@ -93,22 +138,35 @@ export default class DocumentViewerComponent extends React.Component {
                                 <h3 class="panel-title">DOCUMENT VIEWER</h3>
                             </div>
                             <div class="panel-body">
-                                <div class="row" style={{height:"500px"}}>
-                                    <div class="col-lg-6 col-md-6 col-xs-12" style={{height:"100%"}}>
+                                <div class="row" style={{height:"800px"}}>
+                                    <div class="col-lg-9 col-md-9 col-xs-12" style={{height:"100%"}}>
                                         <div id="documentImage" style={{textAlign:"center" , height:"100%" }}>
                                         { (isDocument) ? 
-                                                <embed src={`${settings.imageUrl }/upload/${document.Selected.name}`} type="application/pdf" width="100%" height="100%">
+                                                <embed src={`${settings.imageUrl }/upload/${document.Selected.name}`} type={documentContentType} width={ (ext == 'pdf' || ext == 'png' )? '100%' : "auto"} height={ext == 'pdf' ? '100%' : "auto"}>
                                                 </embed>
                                                 :  <span style={{fontSize:"100px"}} class="glyphicon glyphicon-file"></span>
                                         }
                                         </div>
                                     </div>
-                                    <div class="col-lg-6 col-md-6 col-xs-12">
-                                        { !isDocument && <a class="btn btn-primary btn-flat pull-right" style={{ cursor: "pointer" }} title="Link" target="_blank" 
+                                    <div class="col-lg-3 col-md-3 col-xs-12">
+                                        <div class="dropdown">
+                                            <button class="btn btn-default dropdown-toggle pull-right" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                            <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
+                                                <li><a href="javascript:void(0)" data-tip="Download" onClick={()=>this.downloadDocument(document.Selected)}>Download</a></li>
+                                                <li>
+                                                { starred.List.filter( s => { return s.linkId == document.Selected.id }).length > 0 
+                                                        ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( document.Selected , 1)}>Unstarred</a>
+                                                            :  <a href="javascript:void(0)" data-tip="Star" onClick={()=> this.starDocument( document.Selected , 0 )}>Star</a>
+                                                }
+                                                </li>
+                                                <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(document.Selected.id)}>Delete</a></li>
+                                                <li><a href="javascript:void(0);" data-tip="Print" onClick={()=>this.printDocument(document.Selected)}>Print</a></li>
+                                            </ul>
+                                        </div>
+                                        {/* { !isDocument && <a class="btn btn-primary btn-flat pull-right" style={{ cursor: "pointer" }} title="Link" target="_blank" 
                                             href={ settings.imageUrl + "/upload/" + document.Selected.name }>
                                             Download
-                                        </a>
-                                        }
+                                        </a> */}
                                         <br/><br/>
                                         <span class="glyphicon glyphicon-file"></span>
                                         {document.Selected.origin}
@@ -126,6 +184,7 @@ export default class DocumentViewerComponent extends React.Component {
                         </div>
                     </div>
                 </div>
+                <PrintComponent/>
             </div>
         )
     }
