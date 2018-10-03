@@ -252,6 +252,10 @@ export default class DocumentLibrary extends React.Component {
         window.open(encodeURI(`/api/downloadFolder?data=${JSON.stringify(fileList)}&folderName=${folder.name}`));
     }
 
+    downloadDocument(document){
+        window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
+    }
+
     printDocument(file){
         let { dispatch } = this.props;
         dispatch({type:"SET_DOCUMENT_TO_PRINT", DocumentToPrint: encodeURI(`/api/printDocument?fileName=${file.name}&fileOrigin=${file.origin}`)})
@@ -610,7 +614,7 @@ export default class DocumentLibrary extends React.Component {
                                                                     </div>
                                                             </li>
                                                             <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
-                                                            <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
+                                                            <li><a href="javascript:void(0)" data-tip="Download" onClick={()=> this.downloadDocument(data)}>Download</a></li>
                                                             <li>
                                                             { starred.List.filter( s => { return s.linkId == data.id }).length > 0 
                                                                     ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( data , 1)}>Unstarred</a>

@@ -106,10 +106,13 @@ export default class DocumentViewerComponent extends React.Component {
         },3000)
     }
 
+    downloadDocument(document){
+        window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
+    }
+
     render() {
-        let { dispatch , document, users , settings , conversation , global , starred } = this.props , 
-            { comment , suggestions , editorState} = this.state ,
-            isDocument = true , ext = "", documentContentType = "";
+        let { dispatch, document, settings, global, starred } = this.props , 
+            isDocument = true, ext = "", documentContentType = "";
         let uploadedBy =  global.SelectList.ProjectMemberList.filter( e =>{ return e.id == document.Selected.uploadedBy});
             ext = getFilePathExtension(document.Selected.name);
             documentContentType = mime.contentType(document.Selected.name)
@@ -149,7 +152,7 @@ export default class DocumentViewerComponent extends React.Component {
                                         <div class="dropdown">
                                             <button class="btn btn-default dropdown-toggle pull-right" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                             <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
-                                                <li><a href={ settings.imageUrl + "/upload/" + document.Selected.name } data-tip="Download">Download</a></li>
+                                                <li><a href="javascript:void(0)" data-tip="Download" onClick={()=>this.downloadDocument(document.Selected)}>Download</a></li>
                                                 <li>
                                                 { starred.List.filter( s => { return s.linkId == document.Selected.id }).length > 0 
                                                         ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={()=> this.starDocument( document.Selected , 1)}>Unstarred</a>

@@ -191,6 +191,10 @@ export default class DocumentNew extends React.Component {
         }
     }
 
+    downloadDocument(document){
+        window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
+    }
+
     render() {
         let { document , workstream , settings , starred , global , task , folder , dispatch , loggedUser , users } = this.props , { selectedFilter } = this.state;
         let documentList = { newUpload : [] , library : [] } , tagList = [] , tagOptions = [] , shareOptions = [] , tagCount = 0;
@@ -479,7 +483,7 @@ export default class DocumentNew extends React.Component {
                                                         { (loggedUser.data.userType == "Internal") &&
                                                             <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={()=>dispatch({type:"SET_DOCUMENT_SELECTED", Selected:data })}>Share</a></li>
                                                         }
-                                                        <li><a href={ settings.imageUrl + "/upload/" + data.name } data-tip="Download">Download</a></li>
+                                                        <li><a href="javascript:void(0)" data-tip="Download" onClick={()=>this.downloadDocument(data)}>Download</a></li>
                                                         <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "rename" )}>Rename</a></li>
                                                         <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editDocument( data , "tags" , tagList )}>Edit Tags</a></li>
                                                         <li>{ starred.List.filter( s => { return s.linkId == data.id }).length > 0 
