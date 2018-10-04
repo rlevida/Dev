@@ -1,9 +1,5 @@
 import React from "react"
-import ReactDOM from "react-dom"
-import Select from 'react-select'
-import moment from 'moment'
-import Tooltip from "react-tooltip";
-
+import { displayDate } from "../../globalFunction";
 import { connect } from "react-redux"
 @connect((store) => {
     return {
@@ -19,49 +15,74 @@ export default class FormComponent extends React.Component {
         super(props)
     }
 
-    componentWillMount(){
-        let { socket } = this.props;
-            socket.emit("GET_USER_LIST",{});
-    }
     viewTask(data){
         let { dispatch , socket } = this.props;
-            dispatch({ type : "SET_REMINDER_FORM_ACTIVE" , FormActive : "Form"  })
-            dispatch({ type : "SET_TASK_SELECTED" , Selected : data })
-            socket.emit("SAVE_OR_UPDATE_REMINDER", { data : { id : data.reminderId , seen : 1 } , filter :{ projectId : data.projectId , usersId : data.usersId} } )
+            if(data.linkType == "task"){
+                dispatch({ type : "SET_REMINDER_FORM_ACTIVE" , FormActive : "Task"  })
+                socket.emit("GET_TASK_DETAIL",{id : data.linkId })
+                socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
+                if(!data.seen){
+                    socket.emit("SAVE_OR_UPDATE_REMINDER", { data : { id : data.reminderId , seen : 1 } , filter :{ projectId : data.projectId , usersId : data.usersId} } )
+                }
+            }
+        //     dispatch({ type : "SET_REMINDER_FORM_ACTIVE" , FormActive : "Form"  })
+        //     dispatch({ type : "SET_TASK_SELECTED" , Selected : data })
     }
     render() {
         let { reminder , loggedUser } = this.props;
-        let reminderList = reminder.List.filter( e =>{ return e.usersId == loggedUser.data.id })
-   
+        let reminderUnseen = _.orderBy(reminder.List.filter( e => { return !e.seen}),['dateAdded'],['desc'])
+        let reminderSeen = _.orderBy(reminder.List.filter( e => { return e.seen}),['dateAdded'],['desc'])// reminderSeen = _.orderBy()
+        
         return  <div>
-                    <h1>Reminder</h1>
-                    <table class="table responsive-table table-bordered">
-                        <tbody>
-                            <tr>
-                                <th class="text-center"></th>
-                                <th class="text-center">Reminder Detail</th>
-                                <th></th>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Reminder</h3>
+                        </div>
+                        <div class="panel-body">
+                            <table class="table responsive-table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th class="text-center"></th>
+                                        <th class="text-center">Reminder Detail</th>
+                                        <th class="text-center">Date</th>
+                                        <th></th>
 
-                            </tr>
-                            { reminderList.length > 0 && 
-                                reminderList.map((data,index) =>{
-                                    return (
-                                        <tr key={index}>
-                                            <td>{data.taskName}</td>
-                                            <td>{data.reminderDetail}</td>
-                                            <td><a href="javascript:void(0)" class="btn btn-primary" data-tip="View" onClick={()=> this.viewTask(data)}><span class="fa fa-eye"></span></a></td>
+                                    </tr>
+                                    { reminderUnseen.length > 0 && 
+                                        reminderUnseen.map((data,index) =>{
+                                            return (
+                                                <tr key={index} style={{fontWeight: data.seen == 0 ? "bold" : ""}}>
+                                                    <td>{data.taskName}</td>
+                                                    <td>{data.reminderDetail}</td>
+                                                    <td>{displayDate(data.dateAdded)}</td>
+                                                    <td><a href="javascript:void(0)" class="btn btn-primary" data-tip="View" onClick={()=> this.viewTask(data)}><span class="fa fa-eye"></span></a></td>
+                                                </tr>
+                                            )
+                                        })
+                                       
+                                    }
+                                    {  reminderSeen.length > 0 && 
+                                         reminderSeen.map((data,index) => {
+                                            return (
+                                                <tr key={index} style={{fontWeight: data.seen == 0 ? "bold" : ""}}>
+                                                    <td>{data.taskName}</td>
+                                                    <td>{data.reminderDetail}</td>
+                                                    <td>{displayDate(data.dateAdded)}</td>
+                                                    <td><a href="javascript:void(0)" class="btn btn-primary" data-tip="View" onClick={()=> this.viewTask(data)}><span class="fa fa-eye"></span></a></td>
+                                                </tr>
+                                            )
+                                        })
+                                    }
+                                    {
+                                        (reminderUnseen.length == 0 && reminderSeen.length == 0) &&
+                                        <tr>
+                                            <td colSpan={8}>No Reminder Found!</td>
                                         </tr>
-                                    )
-                                })
-                            }
-                            {
-                                 (reminderList.length == 0 ) &&
-                                 <tr>
-                                     <td colSpan={8}>No Reminder Found!</td>
-                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
     }
 }

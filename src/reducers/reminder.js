@@ -3,6 +3,7 @@ export default function reducer(state={
     FormActive : "List",
     Selected : {},
     SelectedId : [],
+    Loading: true
 },action){
     switch (action.type) {
 
@@ -17,7 +18,7 @@ export default function reducer(state={
 
         //SET
         case "SET_REMINDER_LIST": {
-            return { ...state, List: action.list }
+            return { ...state, List: action.list , Loading : false }
         }
         case "SET_REMINDER_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
