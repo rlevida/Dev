@@ -326,11 +326,12 @@ var getWorkstreamResponsible = exports.getWorkstreamResponsible = (data , cb ) =
     let filter = "";
     let params = [];
 
-    let query = ` SELECT responsible.* , users.emailAddress as user_emailAddress  FROM ( 
+    let query = `   SELECT responsible.* , users.emailAddress as user_emailAddress , users.firstName , users.lastName , users_role.roleId , users.id as id FROM ( 
                         SELECT members.userTypeLinkId as usersId , members.linkId as workstreamId , members.receiveNotification FROM members 
                             LEFT JOIN task ON task.workstreamId = members.linkId 
                         WHERE members.linkId in (${data.join(",")}) AND members.memberType = 'responsible'GROUP BY members.id ) as responsible
-                  LEFT JOIN users on responsible.usersId = users.id
+                    LEFT JOIN users on responsible.usersId = users.id
+                    LEFT JOIN users_role on users.id =  users_role.usersId
                     `;
     db.query(
         query,

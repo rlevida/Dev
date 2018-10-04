@@ -1,5 +1,6 @@
 var func = global.initFunc();
-
+var async = require("async")
+var _ = require("lodash")
 var init = exports.init = (socket) => {
 
     socket.on("SEND_FORGOT_PASSWORD", (d) => {
@@ -113,12 +114,29 @@ var init = exports.init = (socket) => {
                     break;
                 }
                 case "workstreamMemberList":{
-                    model.getWorkstreamTaskMembers(filter,(c)=>{
-                        if(c.status){
-                            socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:c.data,name:d.selectName})
-                        } else {
-                            socket.emit("FRONT_APPLICATION_SELECT_LIST",{data:[],name:d.selectName})
+                    let id = filter.id
+                    async.parallel({
+                        responsible : (parallelCallback) => {
+                            model.getWorkstreamResponsible([id], (c) => {
+                                if(c.status){
+                                    parallelCallback(null,c.data)
+                                }else{
+                                    parallelCallback(null,c.data)
+                                }
+                            })
+                        },
+                        taskMember : (parallelCallback) => {
+                            model.getWorkstreamTaskMembers(filter,(c)=>{
+                                if(c.status){
+                                    parallelCallback(null,c.data)
+                                } else {
+                                    parallelCallback(null,c.data)
+                                }
+                            })
                         }
+                    }, (err, results) => {
+                        let mergeResults = _.uniqBy(results.taskMember.concat(results.responsible),"id")
+                        socket.emit("FRONT_APPLICATION_SELECT_LIST",{ data: mergeResults, name:d.selectName })
                     })
                     break;
                 }

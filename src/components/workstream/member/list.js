@@ -29,14 +29,12 @@ export default class List extends React.Component {
 
     render() {
         let { workstream, global, users } = this.props;
-
-        let userMemberList = _(workstream.Selected.taskMemberList)
-            .map((member) => {
-                let returnObject = member;
-                let userMember = (users.List).filter((o) => { return o.id == member.id });
-                return { ...member, 'user': userMember[0] };
-            })
-            .value();
+        let workstreamMembers = workstream.Selected.memberIds.split(",");
+        let userMemberList = workstreamMembers.map( e => { 
+            let userMember = users.List.filter((o) => { return o.id == e})[0];
+            return { ...userMember } 
+        })
+           
         return (
             <div class="row pd20">
                 <h3 class="m0">Members</h3>
@@ -57,14 +55,14 @@ export default class List extends React.Component {
                             (userMemberList.length > 0) && userMemberList.map((data, index) => {
                                 return (
                                     <tr key={index}>
-                                        <td class="text-center">{data.user.id}</td>
-                                        <td class="text-left">{data.user.username}</td>
-                                        <td class="text-left">{data.user.firstName}</td>
-                                        <td class="text-left">{data.user.lastName}</td>
-                                        <td class="text-left">{data.user.emailAddress}</td>
-                                        <td class="text-center">{data.user.userType}</td>
-                                        <td class="text-left">{this.renderArrayTd(_.map(data.user.role, (el) => { return el.role_role }))}</td>
-                                        <td class="text-left">{this.renderArrayTd(_.map(data.user.team, (el) => { return el.team_team }))}</td>
+                                        <td class="text-center">{data.id}</td>
+                                        <td class="text-left">{data.username}</td>
+                                        <td class="text-left">{data.firstName}</td>
+                                        <td class="text-left">{data.lastName}</td>
+                                        <td class="text-left">{data.emailAddress}</td>
+                                        <td class="text-center">{data.userType}</td>
+                                        <td class="text-left">{this.renderArrayTd(_.map(data.role, (el) => { return el.role_role }))}</td>
+                                        <td class="text-left">{this.renderArrayTd(_.map(data.team, (el) => { return el.team_team }))}</td>
                                     </tr>
                                 )
                             })
