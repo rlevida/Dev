@@ -18,7 +18,7 @@ export default function reducer(state = {
             return { ...state, FormActive: action.FormActive }
         }
         case "SET_WORKSTREAM_SELECTED": {
-            return { ...state, Selected: action.Selected }
+            return { ...state, Selected: action.Selected ,  Loading: false }
         }
         case "SET_WORKSTREAM_ID": {
             return { ...state, SelectedId: action.SelectedId }

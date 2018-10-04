@@ -134,7 +134,9 @@ export default class List extends React.Component {
                                         <a
                                             href="javascript:void(0);"
                                             onClick={(e) => {
-                                                socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
+                                                // socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
+                                                dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: data })
+                                                dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
                                                 dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
                                             }}
                                         >
