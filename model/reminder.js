@@ -69,13 +69,18 @@ exports.postData = postData;
 exports.deleteData = deleteData;
 
 var getReminderList = exports.getReminderList = (data , cb ) => {
-  
     let db = global.initDB();
+    let filter = "";
     let params = []; 
-    let query = `SELECT reminder.*, task.task as taskName , reminder.id as reminderId , task.workstreamId , CONCAT(users.firstName," " , users.lastName) as createdByName FROM reminder 
-                    LEFT JOIN task ON reminder.linkId = task.id 
-                    LEFT JOIN users ON reminder.createdBy = users.id
-                    WHERE reminder.seen = 0 `
+    
+    if(data.usersId){
+        params = [data.usersId]
+        filter = `WHERE usersId = ?`
+    }
+    
+    let query = `   SELECT reminder.*, task.task as taskName , reminder.id as reminderId , task.workstreamId , CONCAT(users.firstName," " , users.lastName) as createdByName FROM reminder 
+                        LEFT JOIN task ON reminder.linkId = task.id 
+                        LEFT JOIN users ON reminder.createdBy = users.id ${filter}`
                 ;
     db.query(
         query,
