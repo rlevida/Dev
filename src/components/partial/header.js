@@ -63,7 +63,7 @@ export default class Component extends React.Component {
 
     componentWillReceiveProps(props){
         let { socket , reminder , user } = props;
-        if(!reminder.List.length){
+        if(!reminder.List.length && reminder.Loading ){
             socket.emit("GET_REMINDER_LIST", { filter : { usersId : user.id }})
         }
     }
@@ -105,7 +105,7 @@ export default class Component extends React.Component {
                 <div class="dropdown pull-right" style={{ marginTop: "10px", marginRight: "10px" }}>
                     <a class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
                         <span class="fa fa-bell"></span>
-                        <span class="label label-danger" style={{ marginLeft: "5px", display: reminderUnseen.length ||  reminderSeen.length ? "inline-block" : "none" }}>{ reminderUnseen.length }</span>
+                        <span class="label label-danger" style={{ marginLeft: "5px", display: reminderUnseen.length ? "inline-block" : "none" }}>{ reminderUnseen.length }</span>
                     </a>
                     { (reminderUnseen.length > 0 || reminderSeen.length > 0 ) &&
                         <ul class="dropdown-menu" >

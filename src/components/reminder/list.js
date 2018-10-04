@@ -17,9 +17,16 @@ export default class FormComponent extends React.Component {
 
     viewTask(data){
         let { dispatch , socket } = this.props;
-            dispatch({ type : "SET_REMINDER_FORM_ACTIVE" , FormActive : "Form"  })
-            dispatch({ type : "SET_TASK_SELECTED" , Selected : data })
-            socket.emit("SAVE_OR_UPDATE_REMINDER", { data : { id : data.reminderId , seen : 1 } , filter :{ projectId : data.projectId , usersId : data.usersId} } )
+            if(data.linkType == "task"){
+                dispatch({ type : "SET_REMINDER_FORM_ACTIVE" , FormActive : "Task"  })
+                socket.emit("GET_TASK_DETAIL",{id : data.linkId })
+                socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
+                if(!data.seen){
+                    socket.emit("SAVE_OR_UPDATE_REMINDER", { data : { id : data.reminderId , seen : 1 } , filter :{ projectId : data.projectId , usersId : data.usersId} } )
+                }
+            }
+        //     dispatch({ type : "SET_REMINDER_FORM_ACTIVE" , FormActive : "Form"  })
+        //     dispatch({ type : "SET_TASK_SELECTED" , Selected : data })
     }
     render() {
         let { reminder , loggedUser } = this.props;
