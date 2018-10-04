@@ -38,33 +38,6 @@ export default class DocumentViewerComponent extends React.Component {
             socket.emit("GET_COMMENT_LIST",{ filter : { linkType : "document" , linkId : document.Selected.id }})
     }
 
-    submitComment(){
-        let { socket , loggedUser , document , global} = this.props;
-        let { comment , mentions } = this.state;
-        let reminderList = []
-
-            global.SelectList.ProjectMemberList.map( user =>{ 
-                let tempData = `${user.firstName.split(" ").join("")}-${user.lastName}`
-                mentions.map( m =>{
-                    if(tempData == m.split("@").join("")){
-                            reminderList.push({userId :user.id})
-                    }
-                })
-            })
-            socket.emit("SAVE_OR_UPDATE_CONVERSATION", { 
-                filter: { seen: 0 },
-                data: { comment : comment , linkType : "project" , linkId : document.Selected.id , usersId : loggedUser.data.id } ,
-                reminder : { 
-                    linkType : "document" , 
-                    linkId : document.Selected.id , 
-                    type: "Tag in Comment",
-                    reminderDetail : "tagged in comment" ,
-                    projectId : project
-                },
-                reminderList : JSON.stringify(reminderList)
-            });
-    }
-
     deleteDocument(id){
         let { dispatch } = this.props;
             if(confirm("Do you really want to delete this record?")){

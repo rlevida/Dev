@@ -62,7 +62,8 @@ export default class Form extends React.Component {
                 linkId : document.Selected.id , 
                 type: "Tag in Comment",
                 reminderDetail : "tagged in comment" ,
-                projectId : project
+                projectId : project,
+                createdBy : loggedUser.data.id
             },
             reminderList: JSON.stringify(commentIds)
         };
