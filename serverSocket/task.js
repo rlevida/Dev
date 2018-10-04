@@ -106,7 +106,6 @@ var init = exports.init = (socket) => {
                         socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." });
                     } else {
                         let id = d.data.id;
-
                         async.parallel({
                             task: function (parallelCallback) {
                                 delete d.data.id;
@@ -170,6 +169,8 @@ var init = exports.init = (socket) => {
                                 if(d.data.action == "For Approval" || d.data.action == "Reject Task"){
                                     if(d.receiveNotification){
                                         global.emailtransport(d.mailOptions)
+                                        parallelCallback(null, "")
+                                    }else{
                                         parallelCallback(null, "")
                                     }
                                 }else{
