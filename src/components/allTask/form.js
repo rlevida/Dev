@@ -230,7 +230,7 @@ export default class FormComponent extends React.Component {
                                         <div class="col-md-7 col-xs-12">
                                             <DropDown multiple={false}
                                                 required={false}
-                                                options={_.map(['Preceding', 'Succeeding'], (o) => { return { id: o, name: o } })}
+                                                options={_.map(['Preceded by', 'Succeeding'], (o) => { return { id: o, name: o } })}
                                                 selected={(typeof task.Selected.dependencyType == "undefined") ? "" : task.Selected.dependencyType}
                                                 onChange={(e) => {
                                                     this.setDropDown("dependencyType", (e == null) ? "" : e.value);

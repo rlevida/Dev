@@ -11,7 +11,7 @@ var field = exports.field = {
     'taskId' : {type : 'bigint' , access : "public" },
 
     /**
-     * dependencyType (ENUM("Preceding","Succeeding"))
+     * dependencyType (ENUM("Preceded by","Succeeding"))
      */
     'dependencyType' : {type : 'string' , access : "public" },
 

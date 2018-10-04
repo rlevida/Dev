@@ -13,7 +13,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     dependencyType: {
-      type: DataTypes.ENUM('Preceding','Succeeding'),
+      type: DataTypes.ENUM('Preceded by','Succeeding'),
       allowNull: true
     },
     linkTaskId: {

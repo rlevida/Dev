@@ -71,19 +71,29 @@ export default class FormComponent extends React.Component {
 
     followTask() {
         let { dispatch, socket, loggedUser, task, workstream } = this.props;
+        let { followersIds, followersName } = { ...task.Selected };
+        let followerIdStack = (followersIds != null && followersIds != "") ? followersIds.split(",") : [];
+        let followersNameStack = (followersName != null && followersIds != "") ? followersName.split(",") : [];
+
+        followerIdStack.push(loggedUser.data.id);
+        followersNameStack.push(loggedUser.data.firstName + " " + loggedUser.data.lastName);
+
+        dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, followersIds: followerIdStack.join(","), followersName: followersNameStack.join(",") } });
         socket.emit("SAVE_OR_UPDATE_MEMBERS", { data: { usersType: "users", userTypeLinkId: loggedUser.data.id, linkType: "task", linkId: task.Selected.id, memberType: "Follower" }, type: "workstream" })
-        setTimeout(() => {
-            socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id }, type: "workstream" });
-        }, 500)
 
     }
 
     unFollowTask(id) {
-        let { dispatch, socket, loggedUser, task, workstream } = this.props;
+        let { dispatch, socket, loggedUser, task } = this.props;
+        let { followersIds, followersName } = { ...task.Selected };
+        let followerIdStack = followersIds.split(",");
+        let followersNameStack = followersName.split(",");
+
         socket.emit("DELETE_MEMBERS", { filter: { userTypeLinkId: loggedUser.data.id, linkId: task.Selected.id, memberType: "Follower" }, type: "workstream" })
-        setTimeout(() => {
-            socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id } });
-        }, 500)
+        followerIdStack = _.filter(followerIdStack, (o) => { return o != loggedUser.data.id }).join(",");
+        followersNameStack = _.filter(followersNameStack, (o) => { return o != loggedUser.data.firstName + " " + loggedUser.data.lastName }).join(",");
+
+        dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, followersIds: followerIdStack, followersName: followersNameStack } });
     }
 
     markTaskAsCompleted() {
@@ -119,7 +129,7 @@ export default class FormComponent extends React.Component {
     }
 
     approveTask() {
-        let { socket, task, checklist , loggedUser} = this.props;
+        let { socket, task, checklist, loggedUser } = this.props;
         let checklistToBeComplete = []
         if (checklistToBeComplete.length == 0) {
             let status = "Completed"
@@ -128,19 +138,19 @@ export default class FormComponent extends React.Component {
                 socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
             } else {
                 let reminderDetails = {
-                    seen : 0,
-                    usersId : task.Selected.assignedById,
-                    projectId : task.Selected.projectId,
-                    linkType : "task",
-                    linkId : task.Selected.id,
+                    seen: 0,
+                    usersId: task.Selected.assignedById,
+                    projectId: task.Selected.projectId,
+                    linkType: "task",
+                    linkId: task.Selected.id,
                     type: "Task Completed",
-                    createdBy : loggedUser.data.id,
-                    reminderDetail : "Task Completed"
+                    createdBy: loggedUser.data.id,
+                    reminderDetail: "Task Completed"
                 }
-                
-                socket.emit("SAVE_OR_UPDATE_TASK", { 
-                    data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" }, 
-                    reminder : reminderDetails
+
+                socket.emit("SAVE_OR_UPDATE_TASK", {
+                    data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" },
+                    reminder: reminderDetails
                 })
             }
         } else {
@@ -172,9 +182,9 @@ export default class FormComponent extends React.Component {
         };
 
         if (_.filter(checklist.Selected.types, (e) => { return e.label == "Document" }).length > 0) {
-            if(checklist.Selected.documents.length > 0){
+            if (checklist.Selected.documents.length > 0) {
                 socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted, documents: checklist.Selected.documents, project: project })
-            }else{
+            } else {
                 showToast("error", "One or more documents are missing.")
             }
         } else {
@@ -325,7 +335,7 @@ export default class FormComponent extends React.Component {
         }
 
         let preceedingTask = _(task.Selected.dependencies)
-            .filter((o) => { return o.dependencyType == "Preceding" })
+            .filter((o) => { return o.dependencyType == "Preceded by" })
             .map((o) => {
                 let depencyTask = _.filter(task.List, (c) => { return c.id == o.linkTaskId });
                 return { ...o, task: (depencyTask.length > 0) ? depencyTask[0] : '' }
@@ -376,7 +386,7 @@ export default class FormComponent extends React.Component {
                         <Tab>Dependents</Tab>
                     </TabList>
                     <TabPanel>
-                        <h4 class="mt20 mb20">
+                        <h4 class="mt20">
                             {(taskStatus == 0) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60" }}></span>}
                             {(taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
                             {(taskStatus == 2) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
@@ -386,7 +396,7 @@ export default class FormComponent extends React.Component {
                             {(task.Selected.status == "For Approval") && "( For Approval )"}
                         </h4>
 
-                        <div class="form-group text-center mt20 mb20">
+                        <div class="form-group text-center m0">
                             {(isVisible && allowToComplete && task.Selected.status != "For Approval") &&
                                 <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
                             }
@@ -396,7 +406,7 @@ export default class FormComponent extends React.Component {
                                     <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Reject Task" onClick={() => this.rejectTask()}>Reject</a>
                                 </span>
                             }
-                            {(task.Selected.followersName != null && task.Selected.followersIds.split(",").filter(e => { return e == loggedUser.data.id }).length > 0)
+                            {(task.Selected.followersIds != null && task.Selected.followersIds.split(",").filter(e => { return e == loggedUser.data.id }).length > 0)
                                 ? <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Unfollow task" onClick={() => this.unFollowTask()}>Unfollow Task</a>
                                 : <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Follow task" onClick={() => this.followTask()}>Follow Task</a>
                             }
@@ -405,13 +415,13 @@ export default class FormComponent extends React.Component {
                         {
                             (typeof task.Selected.description != "undefined"
                                 && task.Selected.description != ""
-                                && task.Selected.description != null) && <p class="mt10 mb10">{task.Selected.description}</p>
+                                && task.Selected.description != null) && <p class="mb10">{task.Selected.description}</p>
                         }
                         <div class="row">
                             <div className={(task.Selected.periodic == 1) ? "col-md-6" : "col-md-12"}>
                                 <div class="details">
                                     <span class="fa fa-calendar"></span>
-                                    <p>Start date: {moment(task.Selected.startDate).format('ll')}</p>
+                                    <p>Start date: {(task.Selected.startDate != "" && task.Selected.startDate != null) ? moment(task.Selected.startDate).format('ll') : "N/A"}</p>
                                 </div>
                             </div>
                             {
@@ -425,7 +435,7 @@ export default class FormComponent extends React.Component {
                             <div class="col-md-12">
                                 <div class="details">
                                     <span class="fa fa-calendar"></span>
-                                    <p>Due date: {moment(task.Selected.dueDate).format('ll')}</p>
+                                    <p>Due date: {(task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('ll') : "N/A"}</p>
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -433,7 +443,7 @@ export default class FormComponent extends React.Component {
                                     <span class="fa fa-user"></span>
                                     <p class="m0">Followers: {(task.Selected.followersName == null) ? "N/A" : ""} </p>
                                 </div>
-                                <ul>
+                                <ul style={{ paddingLeft: 15 }}>
                                     {(task.Selected.followersName != null) &&
                                         task.Selected.followersName.split(",").map((user, index) => {
                                             return <li key={index}>{user}</li>
@@ -453,8 +463,8 @@ export default class FormComponent extends React.Component {
                                             let isEditable = (loggedUser.data.id == o.createdBy)
                                                 || loggedUser.data.userRole == 1
                                                 || loggedUser.data.userRole == 2
-                                                || project.Selected.projectManagerId == loggedUser.data.id 
-                                                    ? true : false
+                                                || project.Selected.projectManagerId == loggedUser.data.id
+                                                ? true : false
                                             return (
                                                 <div className={(isEditable || task.Selected.assignedById == loggedUser.data.id) ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}
                                                 >
@@ -478,8 +488,8 @@ export default class FormComponent extends React.Component {
                                                         <p style={{ marginTop: 5, fontSize: 10 }}>
                                                             <span>By : {o.users_firstName + ' ' + o.users_lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
                                                         </p>
-                                                        
-                                                        { (isEditable || task.Selected.assignedById == loggedUser.data.id) && 
+
+                                                        {(isEditable || task.Selected.assignedById == loggedUser.data.id) &&
                                                             <div class="checklist-actions">
                                                                 <a class="btn btn-success"
                                                                     onClick={() => {
@@ -487,12 +497,12 @@ export default class FormComponent extends React.Component {
                                                                     }}
                                                                 >
                                                                     {
-                                                                        o.completed ? <span class="glyphicon glyphicon-unchecked"></span> : <span class="glyphicon glyphicon-check"></span>
+                                                                        (o.completed) ? <span class="glyphicon glyphicon-unchecked"></span> : <span class="glyphicon glyphicon-check"></span>
                                                                     }
                                                                 </a>
                                                             </div>
                                                         }
-                                                        { (isEditable) &&
+                                                        {(isEditable) &&
                                                             <div class="checklist-actions">
                                                                 <a class="btn btn-primary"
                                                                     onClick={() => {
@@ -518,7 +528,7 @@ export default class FormComponent extends React.Component {
                                 </div>
                             }
                             {(task.Selected.isActive > 0) &&
-                                <div class="row mt10" style={{ paddingLeft: 22 }}>
+                                <div class="row" style={{ paddingLeft: 15 }}>
                                     <div class="col-md-8 pdr0">
                                         {
                                             ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
@@ -575,7 +585,7 @@ export default class FormComponent extends React.Component {
                             }
 
                             {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
-                                <div class="row" style={{ paddingLeft: 22 }}>
+                                <div class="row" style={{ paddingLeft: 15 }}>
                                     <div class="col-md-12 pdr0">
                                         {
                                             (checklist.Action != "Edit") ?
@@ -633,7 +643,7 @@ export default class FormComponent extends React.Component {
                     </TabPanel>
                     <TabPanel>
                         <div style={{ position: "relative" }} class="mt10">
-                            <h4 class="mt20 mb20">
+                            <h4 class="mt20">
                                 {(taskStatus == 0) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60" }}></span>}
                                 {(taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
                                 {(taskStatus == 2) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
@@ -645,71 +655,76 @@ export default class FormComponent extends React.Component {
                         {
                             (typeof task.Selected.description != "undefined"
                                 && task.Selected.description != ""
-                                && task.Selected.description != null) && <p class="mt10 mb10">{task.Selected.description}</p>
+                                && task.Selected.description != null) && <p class="mb10">{task.Selected.description}</p>
                         }
-                        <div>
-                            <h5 class="mt10">Precedes</h5>
-                            <div class="pdl15 pdr15">
-                                <table class="table responsive-table m0">
-                                    <tbody>
-                                        <tr>
-                                            <th>Task</th>
-                                            <th>Description</th>
-                                            <th></th>
-                                        </tr>
-                                        {
-                                            _.map(preceedingTask, (succTask, index) => {
-                                                return (
-                                                    <tr key={index}>
-                                                        <td class="text-left">{succTask.task.task}</td>
-                                                        <td class="description-td text-left">{succTask.task.description}</td>
-                                                        <td></td>
-                                                    </tr>
-                                                )
-                                            })
-                                        }
-                                    </tbody>
-                                </table>
-                                {
-                                    (preceedingTask.length == 0) && <p class="text-center m0">No Record Found!</p>
-                                }
+                        <h5>Dependencies</h5>
+                        {
+                            (preceedingTask.length > 0) && <div style={{ marginLeft: 15 }}>
+                                <h5 class="mt10">Precedes</h5>
+                                <div class="pdl15 pdr15 pdb10">
+                                    <table class="table responsive-table m0">
+                                        <tbody>
+                                            <tr>
+                                                <th>Task</th>
+                                                <th>Description</th>
+                                                <th></th>
+                                            </tr>
+                                            {
+                                                _.map(preceedingTask, (succTask, index) => {
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td class="text-left">{succTask.task.task}</td>
+                                                            <td class="description-td text-left">{succTask.task.description}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
+                                    {
+                                        (preceedingTask.length == 0) && <p class="text-center m0">No Record Found!</p>
+                                    }
+                                </div>
                             </div>
-                        </div>
-                        <div class="mb20">
-                            <h5 class="mt10">Depends On</h5>
-                            <div class="pdl15 pdr15">
-                                <table class="table responsive-table m0">
-                                    <tbody>
-                                        <tr>
-                                            <th>Task</th>
-                                            <th>Description</th>
-                                            <th></th>
-                                        </tr>
-                                        {
-                                            _.map(succedingTask, (succTask, index) => {
-                                                return (
-                                                    <tr key={index}>
-                                                        <td class="text-left">{succTask.task.task}</td>
-                                                        <td class="description-td text-left">{succTask.task.description}</td>
-                                                        <td></td>
-                                                    </tr>
-                                                )
-                                            })
-                                        }
-                                    </tbody>
-                                </table>
-                                {
-                                    (succedingTask.length == 0) && <p class="text-center m0">No Record Found!</p>
-                                }
+                        }
+                        {
+                            (succedingTask.length > 0) && <div style={{ marginLeft: 15 }}>
+                                <h5 class="mt10">Depends On</h5>
+                                <div class="pdl15 pdr15 pdb10">
+                                    <table class="table responsive-table m0">
+                                        <tbody>
+                                            <tr>
+                                                <th>Task</th>
+                                                <th>Description</th>
+                                                <th></th>
+                                            </tr>
+                                            {
+                                                _.map(succedingTask, (succTask, index) => {
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td class="text-left">{succTask.task.task}</td>
+                                                            <td class="description-td text-left">{succTask.task.description}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
+                                    {
+                                        (succedingTask.length == 0) && <p class="text-center m0">No Record Found!</p>
+                                    }
+                                </div>
                             </div>
-                        </div>
+                        }
                         {(task.Selected.isActive > 0) &&
-                            <div class="row" style={{ marginLeft: 7 }}>
+                            <div class="row" style={{ marginLeft: 0 }}>
                                 <div class="col-md-4 pdr0">
                                     <label>Dependency Type</label>
                                     <DropDown multiple={false}
                                         required={false}
-                                        options={_.map(['Preceding', 'Succeeding'], (o) => { return { id: o, name: o } })}
+                                        options={_.map(['Preceded by', 'Succeeding'], (o) => { return { id: o, name: o } })}
                                         selected={(typeof task.Selected.dependencyType == "undefined") ? "" : task.Selected.dependencyType}
                                         onChange={(e) => {
                                             this.setDropDown("dependencyType", (e == null) ? "" : e.value);
