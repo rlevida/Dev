@@ -20,6 +20,7 @@ export default class Component extends React.Component {
     componentDidMount(){
         let { socket } = this.props;
         socket.emit("GET_TASK_DETAIL",{ id : taskId })
+        socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: workstreamId  } })
     }
 
     render() {

@@ -31,12 +31,12 @@ export default class Form extends React.Component {
     }
 
     fetchUsers(query, callback) {
-        const { socket, users } = { ...this.props };
+        const { socket, users , loggedUser} = { ...this.props };
         socket.emit("GET_USER_LIST", { filter: { "|||or|||": [{ name: "firstName", condition: "LIKE", value: "%" + query + "%" }, { name: "username", condition: "LIKE", value: "%" + query + "%" }] } });
         return _(users.List)
             .filter((o, index) => {
                 let isProjectMember = o.projects.filter( p => { return p.projectId == project }).length
-                    return index <= 5 && isProjectMember
+                    return index <= 5 && isProjectMember && o.id != loggedUser.data.id
             }).map((o) => {
                 return { display: o.firstName + " " + o.lastName, id: o.id }
             })
