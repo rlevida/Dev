@@ -37,7 +37,7 @@ export default class ApprovalModal extends React.Component {
     }
 
     handleSubmit(){
-        let { dispatch , socket , task , loggedUser} = this.props;
+        let { dispatch , socket , task , loggedUser , global} = this.props;
         let result = true;
 
         $('.form-container *').validator('validate');
@@ -50,12 +50,16 @@ export default class ApprovalModal extends React.Component {
         if (!result) {
             showToast("error", "Form did not fullfill the required value.")
         } else {
+
+            let approver = global.SelectList.workstreamMemberList.filter(e => { return e.id == task.Selected.approverId })[0]
+
             let dataToSubmit =  { 
                 id: task.Selected.id , status : "For Approval" , 
                 approverId : task.Selected.approverId  ,
                 approvalDueDate : task.Selected.approvalDueDate,
                 action : "For Approval"
             }
+
             let reminderDetails = {
                 seen : 0,
                 usersId : task.Selected.approverId,
@@ -67,7 +71,17 @@ export default class ApprovalModal extends React.Component {
                 reminderDetail : "Assigned as approver"
             }
 
-            socket.emit("SAVE_OR_UPDATE_TASK" , { data : dataToSubmit , reminder : reminderDetails })
+            let mailOptions = {}
+            if(approver.receiveNotification){
+                mailOptions = {
+                    from: '"no-reply" <no-reply@c_cfo.com>', // sender address
+                    to: `${approver.emailAddress}`, // list of receivers
+                    subject: '[CLOUD-CFO]', // Subject line
+                    text: 'Assigned as approver', // plain text body
+                    html: 'Assigned as approver' // html body
+                }
+            } 
+            socket.emit("SAVE_OR_UPDATE_TASK" , { data : dataToSubmit , reminder : reminderDetails , receiveNotification : approver.receiveNotification , mailOptions : mailOptions })
             $(`#approvalModal`).modal(`hide`);
         }
     }
