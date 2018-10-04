@@ -381,7 +381,7 @@ export default class ReminderTask extends React.Component {
                 <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
                     onClick={(e) => {
-                        dispatch({ type : "SET_REMINDER_FORM_ACTIVE" , FormActive : "List"  })
+                        dispatch({ type : "SET_TASK_FORM_ACTIVE" , FormActive : "List" , FormAction:""})
                         dispatch({ type : "SET_TASK_SELECTED" , Selected : {} })
                     }} >
                     <span>Back</span>

@@ -1,6 +1,7 @@
 import React from "react"
 
 import Header from "../partial/header"
+import TaskDetail from "./taskDetails"
 import Form from "./form"
 import List from "./list"
 import Link from "./link"
@@ -49,8 +50,12 @@ export default class Component extends React.Component {
                         <List />
                 }
                 {
-                    (task.FormActive == "Form") &&
+                    (task.FormActive == "Form" && (task.FormAction == "Create" || task.FormAction == "Edit")) &&
                         <Form />
+                }
+                {
+                    (task.FormAction == "View") &&
+                        <TaskDetail/>
                 }
             </div>
         return (

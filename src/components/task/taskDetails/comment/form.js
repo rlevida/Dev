@@ -31,6 +31,7 @@ export default class Form extends React.Component {
 
     fetchUsers(query, callback) {
         const { socket, users , task} = { ...this.props };
+        console.log(query)
         socket.emit("GET_USER_LIST", { filter: { "|||or|||": [{ name: "firstName", condition: "LIKE", value: "%" + query + "%" }, { name: "username", condition: "LIKE", value: "%" + query + "%" }] } });
         return _(users.List)
             .filter((o, index) => {
