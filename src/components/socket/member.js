@@ -28,12 +28,9 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_MEMBERS_ADD", (data) => {
-           if(data.type == "workstream"){
-                dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
-                dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+            if (data.type == "workstream") {
                 showToast("success", "Successfully updated.")
-
-            }else{
+            } else {
                 dispatch({ type: "SET_MEMBERS_LIST", list: [...this.props.members.List, data.data[0]] })
                 dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} })
                 dispatch({ type: "SET_MEMBERS_FORM_ACTIVE", FormActive: "List" });
@@ -47,11 +44,9 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_MEMBERS_DELETED", (data) => {
-            if(data.type == "workstream"){
-                dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
-                dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+            if (data.type == "workstream") {
                 showToast("success", "Successfully updated.")
-            }else{
+            } else {
                 dispatch({ type: "REMOVE_DELETED_MEMBERS_LIST", id: data.id })
                 showToast("success", "Member already deleted.")
             }

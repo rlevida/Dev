@@ -71,19 +71,29 @@ export default class FormComponent extends React.Component {
 
     followTask() {
         let { dispatch, socket, loggedUser, task, workstream } = this.props;
+        let { followersIds, followersName } = { ...task.Selected };
+        let followerIdStack = (followersIds != null && followersIds != "") ? followersIds.split(",") : [];
+        let followersNameStack = (followersName != null && followersIds != "") ? followersName.split(",") : [];
+
+        followerIdStack.push(loggedUser.data.id);
+        followersNameStack.push(loggedUser.data.firstName + " " + loggedUser.data.lastName);
+
+        dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, followersIds: followerIdStack.join(","), followersName: followersNameStack.join(",") } });
         socket.emit("SAVE_OR_UPDATE_MEMBERS", { data: { usersType: "users", userTypeLinkId: loggedUser.data.id, linkType: "task", linkId: task.Selected.id, memberType: "Follower" }, type: "workstream" })
-        setTimeout(() => {
-            socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id }, type: "workstream" });
-        }, 500)
 
     }
 
     unFollowTask(id) {
-        let { dispatch, socket, loggedUser, task, workstream } = this.props;
+        let { dispatch, socket, loggedUser, task } = this.props;
+        let { followersIds, followersName } = { ...task.Selected };
+        let followerIdStack = followersIds.split(",");
+        let followersNameStack = followersName.split(",");
+
         socket.emit("DELETE_MEMBERS", { filter: { userTypeLinkId: loggedUser.data.id, linkId: task.Selected.id, memberType: "Follower" }, type: "workstream" })
-        setTimeout(() => {
-            socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id } });
-        }, 500)
+        followerIdStack = _.filter(followerIdStack, (o) => { return o != loggedUser.data.id }).join(",");
+        followersNameStack = _.filter(followersNameStack, (o) => { return o != loggedUser.data.firstName + " " + loggedUser.data.lastName }).join(",");
+
+        dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, followersIds: followerIdStack, followersName: followersNameStack } });
     }
 
     markTaskAsCompleted() {
@@ -386,7 +396,7 @@ export default class FormComponent extends React.Component {
                             {(task.Selected.status == "For Approval") && "( For Approval )"}
                         </h4>
 
-                        <div class="form-group text-center mt20">
+                        <div class="form-group text-center m0">
                             {(isVisible && allowToComplete && task.Selected.status != "For Approval") &&
                                 <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
                             }
@@ -396,7 +406,7 @@ export default class FormComponent extends React.Component {
                                     <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Reject Task" onClick={() => this.rejectTask()}>Reject</a>
                                 </span>
                             }
-                            {(task.Selected.followersName != null && task.Selected.followersIds.split(",").filter(e => { return e == loggedUser.data.id }).length > 0)
+                            {(task.Selected.followersIds != null && task.Selected.followersIds.split(",").filter(e => { return e == loggedUser.data.id }).length > 0)
                                 ? <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Unfollow task" onClick={() => this.unFollowTask()}>Unfollow Task</a>
                                 : <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Follow task" onClick={() => this.followTask()}>Follow Task</a>
                             }
@@ -433,7 +443,7 @@ export default class FormComponent extends React.Component {
                                     <span class="fa fa-user"></span>
                                     <p class="m0">Followers: {(task.Selected.followersName == null) ? "N/A" : ""} </p>
                                 </div>
-                                <ul>
+                                <ul style={{ paddingLeft: 15 }}>
                                     {(task.Selected.followersName != null) &&
                                         task.Selected.followersName.split(",").map((user, index) => {
                                             return <li key={index}>{user}</li>
@@ -487,7 +497,7 @@ export default class FormComponent extends React.Component {
                                                                     }}
                                                                 >
                                                                     {
-                                                                        o.completed ? <span class="glyphicon glyphicon-unchecked"></span> : <span class="glyphicon glyphicon-check"></span>
+                                                                        (o.completed) ? <span class="glyphicon glyphicon-unchecked"></span> : <span class="glyphicon glyphicon-check"></span>
                                                                     }
                                                                 </a>
                                                             </div>
@@ -575,7 +585,7 @@ export default class FormComponent extends React.Component {
                             }
 
                             {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
-                                <div class="row" style={{ paddingLeft: 22 }}>
+                                <div class="row" style={{ paddingLeft: 15 }}>
                                     <div class="col-md-12 pdr0">
                                         {
                                             (checklist.Action != "Edit") ?
