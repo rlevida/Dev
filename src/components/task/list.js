@@ -101,13 +101,6 @@ export default class List extends React.Component {
                 }
                 return { ...o, due_date_int: moment(o.dueDate).format('YYYYMMDD'), allowToComplete }
             })
-            .filter((o) => {
-                if (loggedUser.data.userRole != 1) {
-                    return o.status != "Completed"
-                } else {
-                    return o.id != 0;
-                }
-            })
             .orderBy(['due_date_int'], ['asc'])
             .value();
 
