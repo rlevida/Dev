@@ -10,7 +10,7 @@ var init = exports.init = (socket) => {
         let task = global.initModel("task")
         let taskDependencies = global.initModel("task_dependency")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
-        
+
         task.getTaskList("task", filter, {}, (c) => {
             async.map(c.data, (o, mapCallback) => {
                 taskDependencies.getData("task_dependency", { taskId: o.id }, {}, (results) => {
@@ -146,41 +146,42 @@ var init = exports.init = (socket) => {
                                     parallelCallback(null, "")
                                 }
                             },
-                            reminder: function(parallelCallback){
+                            reminder: function (parallelCallback) {
                                 let reminder = global.initModel("reminder");
-                                if(d.data.action == "For Approval" || d.data.action == "Reject Task" || d.data.action == "complete"){
-                                    reminder.postData("reminder", d.reminder ,(c)=>{
-                                        if(c.status){
-                                            reminder.getReminderList({},(e)=>{
-                                                if(e.data.length > 0) {
-                                                    socket.broadcast.emit("FRONT_REMINDER_LIST",  e.data)
+                                
+                                if ((d.data.action == "For Approval" || d.data.action == "Reject Task" || d.data.action == "complete") && typeof d.reminder != "undefined") {
+                                    reminder.postData("reminder", d.reminder, (c) => {
+                                        if (c.status) {
+                                            reminder.getReminderList({}, (e) => {
+                                                if (e.data.length > 0) {
+                                                    socket.broadcast.emit("FRONT_REMINDER_LIST", e.data)
                                                     parallelCallback(null, "")
-                                                }else{
+                                                } else {
                                                     parallelCallback(null, "")
                                                 }
                                             })
                                         }
                                     })
-                                }else{
+                                } else {
                                     parallelCallback(null, "")
                                 }
                             },
-                            sendEmailNotification : function(parallelCallback){
-                                if(d.data.action == "For Approval" || d.data.action == "Reject Task"){
-                                    if(d.receiveNotification){
+                            sendEmailNotification: function (parallelCallback) {
+                                if (d.data.action == "For Approval" || d.data.action == "Reject Task") {
+                                    if (d.receiveNotification) {
                                         global.emailtransport(d.mailOptions)
                                         parallelCallback(null, "")
-                                    }else{
+                                    } else {
                                         parallelCallback(null, "")
                                     }
-                                }else{
+                                } else {
                                     parallelCallback(null, "")
                                 }
-                            }                        
+                            }
                         }, function (err, params) {
                             let action = (typeof d.data.action != "undefined" && d.data.action == "complete") ? "complete" : "edit";
                             let data = params.task;
-                                
+
                             if (params.periodic != "") {
                                 data.push(params.periodic);
                             }
@@ -279,7 +280,7 @@ var init = exports.init = (socket) => {
                                         parallelCallback(null, "")
                                     }
                                 });
-                            }else if(d.data.action == "For Approval" || d.data.action == "Reject Task"){
+                            } else if (d.data.action == "For Approval" || d.data.action == "Reject Task") {
                                 parallelCallback(null, "")
                             } else if (typeof d.data.assignedTo == 'undefined' || d.data.assignedTo == '') {
                                 members.deleteData("members", { linkType: "task", linkId: o.id, usersType: "users", memberType: "assignedTo" }, (c) => {
@@ -334,7 +335,7 @@ var init = exports.init = (socket) => {
                                         parallelCallback(null)
                                     }
                                 })
-                            } else if(d.data.action == "For Approval" || d.data.action == "Reject Task"){
+                            } else if (d.data.action == "For Approval" || d.data.action == "Reject Task") {
                                 parallelCallback(null, "")
                             } else if (typeof d.data.dependencyType == 'undefined' || d.data.dependencyType == '') {
                                 taskDependency.deleteData("task_dependency", { taskId: o.id }, (c) => {
@@ -346,9 +347,9 @@ var init = exports.init = (socket) => {
                         if (err != null) {
                             reject(err);
                         } else {
-                            if(d.data.action == "For Approval" || d.data.action == "Reject Task"){
-                                resolve({...o})
-                            }else{
+                            if (d.data.action == "For Approval" || d.data.action == "Reject Task") {
+                                resolve({ ...o })
+                            } else {
                                 resolve({ ...o, assignedById: results.members })
                             }
                         }
@@ -357,7 +358,7 @@ var init = exports.init = (socket) => {
             });
 
             Promise.all(taskAttributesPromises).then((values) => {
-                nextThen(data , type )
+                nextThen(data, type)
             }).catch(function (error) {
                 socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
             });
@@ -366,7 +367,7 @@ var init = exports.init = (socket) => {
             if (type == "add") {
                 socket.emit("FRONT_TASK_ADD", { data: data, action: "add" })
             } else if (type == "edit" || type == "complete") {
-                socket.emit("FRONT_TASK_EDIT", { data: data, action: "edit" })
+                socket.emit("FRONT_TASK_EDIT", { data: data, action: type })
             }
             socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Successfully updated" })
         });
