@@ -57,20 +57,20 @@ export default class FormComponent extends React.Component {
         let { dispatch, task } = this.props;
         let Selected = Object.assign({}, { ...task.Selected })
         let selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
-        if ((typeof Selected.startDate != "undefined" || typeof Selected.dueDate != "undefined") && (Selected.startDate != "" || Selected.dueDate != "")) {
 
+        if ((typeof Selected.startDate != "undefined" || typeof Selected.dueDate != "undefined") && (Selected.startDate != "" || Selected.dueDate != "")) {
             let startDate = moment(Selected.startDate);
             let dueDate = moment(Selected.dueDate);
             let comparison = (e.target.name == "startDate") ? moment(dueDate).diff(e.target.value, 'days') : moment(e.target.value).diff(startDate, 'days');
-            let errMessage = "Due Date must be after the Start Date.";
 
             if (comparison < 0) {
-                showToast("error", errMessage)
+                showToast("error", "Due Date must be after the Start Date.");
                 Selected[e.target.name] = undefined;
             } else {
                 Selected[e.target.name] = selectedDate;
             }
-
+        } else if (e.target.name == "dueDate" && e.target.value != "" && (typeof Selected.startDate == "undefined" || Selected.startDate == "")) {
+            showToast("error", "Pleas fill up the Start Date first.");
         } else {
             Selected[e.target.name] = selectedDate;
         }
@@ -89,7 +89,7 @@ export default class FormComponent extends React.Component {
             typeof selected.periodType != "undefined"
             && typeof selected.startDate != "undefined"
             && selected.startDate != ""
-            && selected.periodType != ""
+            && (selected.periodType != "" && selected.periodType != null)
         ) {
             const Selected = Object.assign({}, selected);
             const nextDueDate = moment(selected.startDate).add(selected.periodType, toNumber(selected.period)).format('YYYY-MM-DD HH:mm:ss');
@@ -156,23 +156,24 @@ export default class FormComponent extends React.Component {
         });
 
         if (!result) {
-            showToast("error", "Form did not fullfill the required value.")
+            showToast("error", "Form did not fullfill the required value.");
         } else if (
-            (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "") &&
-            (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "")) {
-            socket.emit("SAVE_OR_UPDATE_TASK", {
-                data: {
-                    ...task.Selected,
-                    projectId: project,
-                    period: _.toNumber(task.Selected.period),
-                    periodInstance: _.toNumber(task.Selected.periodInstance),
-                    dueDate: moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00'),
-                    startDate: moment(task.Selected.startDate).format('YYYY-MM-DD 00:00:00')
-                }
-            });
-            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+            task.Selected.periodic == 1 &&
+            (typeof task.Selected.startDate == "undefined" || task.Selected.startDate == "")
+        ) {
+            showToast("error", "Start date is required when task is periodic.");
         } else {
-            showToast("error", "Task's Start and Due date are required.");
+            const submitData = {
+                ...task.Selected,
+                projectId: project,
+                period: _.toNumber(task.Selected.period),
+                periodInstance: _.toNumber(task.Selected.periodInstance),
+                startDate: (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "") ? moment(task.Selected.startDate).format('YYYY-MM-DD 00:00:00') : null,
+                dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "") ? moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') : null
+            };
+
+            socket.emit("SAVE_OR_UPDATE_TASK", { data: submitData });
+            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
         }
     }
 
@@ -410,7 +411,7 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 }
                                 <div class="form-group">
-                                    <label class="col-md-3 col-xs-12 control-label">Start Date *</label>
+                                    <label class="col-md-3 col-xs-12 control-label">Start Date</label>
                                     <div class="col-md-7 col-xs-12">
                                         <div class="input-group date">
                                             <input type="text"
@@ -420,7 +421,7 @@ export default class FormComponent extends React.Component {
                                                 name="startDate"
                                                 value={((typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null) && task.Selected.startDate != '') ? displayDate(task.Selected.startDate) : ""}
                                                 onChange={() => { }}
-                                                required={false}
+                                                required={task.Selected.periodic == 1}
                                                 disabled={!allowEdit}
                                             />
                                             <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
@@ -442,7 +443,7 @@ export default class FormComponent extends React.Component {
                                 }
                                 {
                                     (typeof task.Selected.periodic == "undefined" || task.Selected.periodic != 1) && <div class="form-group">
-                                        <label class="col-md-3 col-xs-12 control-label">Due Date *</label>
+                                        <label class="col-md-3 col-xs-12 control-label">Due Date</label>
                                         <div class="col-md-7 col-xs-12">
                                             <div class="input-group date">
                                                 <input type="text"
@@ -450,9 +451,9 @@ export default class FormComponent extends React.Component {
                                                     style={{ backgroundColor: "#eee" }}
                                                     id="dueDate"
                                                     name="dueDate"
-                                                    value={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != '') ? displayDate(task.Selected.dueDate) : ""}
+                                                    value={((typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != null) && task.Selected.dueDate != '') ? displayDate(task.Selected.dueDate) : ""}
                                                     onChange={() => { }}
-                                                    required={true}
+                                                    required={task.Selected.periodic == 1}
                                                     disabled={!allowEdit}
                                                 />
                                                 <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
