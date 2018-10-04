@@ -125,7 +125,7 @@ router.get('/trash/:project', function (req, res, next) {
 });
 
 router.get('/processes/:project', function (req, res, next) {
-
+    
     if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
         let func = global.initFunc();
             func.getUserAllowedAccess({ userId: req.userDetails.usersId , params:req.params.project },resp=>{

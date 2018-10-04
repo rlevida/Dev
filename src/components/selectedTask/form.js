@@ -69,19 +69,29 @@ export default class FormComponent extends React.Component {
 
     followTask() {
         let { dispatch, socket, loggedUser, task, workstream } = this.props;
+        let { followersIds, followersName } = { ...task.Selected };
+        let followerIdStack = (followersIds != null && followersIds != "") ? followersIds.split(",") : [];
+        let followersNameStack = (followersName != null && followersIds != "") ? followersName.split(",") : [];
+
+        followerIdStack.push(loggedUser.data.id);
+        followersNameStack.push(loggedUser.data.firstName + " " + loggedUser.data.lastName);
+
+        dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, followersIds: followerIdStack.join(","), followersName: followersNameStack.join(",") } });
         socket.emit("SAVE_OR_UPDATE_MEMBERS", { data: { usersType: "users", userTypeLinkId: loggedUser.data.id, linkType: "task", linkId: task.Selected.id, memberType: "Follower" }, type: "workstream" })
-        setTimeout(() => {
-            socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id }, type: "workstream" });
-        }, 500)
 
     }
 
     unFollowTask(id) {
-        let { dispatch, socket, loggedUser, task, workstream } = this.props;
+        let { dispatch, socket, loggedUser, task } = this.props;
+        let { followersIds, followersName } = { ...task.Selected };
+        let followerIdStack = followersIds.split(",");
+        let followersNameStack = followersName.split(",");
+
         socket.emit("DELETE_MEMBERS", { filter: { userTypeLinkId: loggedUser.data.id, linkId: task.Selected.id, memberType: "Follower" }, type: "workstream" })
-        setTimeout(() => {
-            socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: workstream.Selected.id } });
-        }, 500)
+        followerIdStack = _.filter(followerIdStack, (o) => { return o != loggedUser.data.id }).join(",");
+        followersNameStack = _.filter(followersNameStack, (o) => { return o != loggedUser.data.firstName + " " + loggedUser.data.lastName }).join(",");
+
+        dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, followersIds: followerIdStack, followersName: followersNameStack } });
     }
 
     markTaskAsCompleted() {

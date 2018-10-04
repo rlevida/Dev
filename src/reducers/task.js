@@ -87,6 +87,9 @@ export default function reducer(state = {
 
             return { ...state, Selected: updatedSelected };
         }
+        case "SET_TASK_FORM_ACTION": {
+            return { ...state, FormAction : action.FormAction , FormActive: ""}
+        }
         default:
             return state;
     }
