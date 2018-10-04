@@ -279,7 +279,7 @@ DROP TABLE IF EXISTS `task_dependency`;
 CREATE TABLE IF NOT EXISTS `task_dependency` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `taskId` bigint(20) DEFAULT NULL,
-  `dependencyType` enum('Preceding','Succeeding') DEFAULT NULL,
+  `dependencyType` enum('Preceded by','Succeeding') DEFAULT NULL,
   `linkTaskId` bigint(20) DEFAULT NULL,
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

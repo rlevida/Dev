@@ -42,7 +42,6 @@ router.use(function (req, res, next) {
  * GET
  * 
  */
-
 router.get('/printDocument',(req,res,next)=>{
     let fileName = req.query.fileName
     let originName = req.query.fileOrigin

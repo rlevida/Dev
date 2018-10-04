@@ -168,8 +168,8 @@ export default class FormComponent extends React.Component {
                 projectId: project,
                 period: _.toNumber(task.Selected.period),
                 periodInstance: _.toNumber(task.Selected.periodInstance),
-                startDate: (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "") ? moment(task.Selected.startDate).format('YYYY-MM-DD 00:00:00') : null,
-                dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "") ? moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') : null
+                startDate: (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "" && task.Selected.startDate != null) ? moment(task.Selected.startDate).format('YYYY-MM-DD 00:00:00') : null,
+                dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.startDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') : null
             };
 
             socket.emit("SAVE_OR_UPDATE_TASK", { data: submitData });
@@ -313,7 +313,7 @@ export default class FormComponent extends React.Component {
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={false}
                                             required={false}
-                                            options={_.map(['Preceding', 'Succeeding'], (o) => { return { id: o, name: o } })}
+                                            options={_.map(['Preceded by', 'Succeeding'], (o) => { return { id: o, name: o } })}
                                             selected={(typeof task.Selected.dependencyType == "undefined") ? "" : task.Selected.dependencyType}
                                             onChange={(e) => {
                                                 this.setDropDown("dependencyType", (e == null) ? "" : e.value);
