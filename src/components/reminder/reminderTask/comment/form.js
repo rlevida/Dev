@@ -30,11 +30,12 @@ export default class Form extends React.Component {
     }
 
     fetchUsers(query, callback) {
-        const { socket, users } = { ...this.props };
+        const { socket, users , task} = { ...this.props };
+        console.log(query)
         socket.emit("GET_USER_LIST", { filter: { "|||or|||": [{ name: "firstName", condition: "LIKE", value: "%" + query + "%" }, { name: "username", condition: "LIKE", value: "%" + query + "%" }] } });
         return _(users.List)
             .filter((o, index) => {
-                let isProjectMember = o.projects.filter( p => { return p.projectId == project }).length
+                let isProjectMember = o.projects.filter( p => { return p.projectId == task.Selected.projectId }).length
                     return index <= 5 && isProjectMember
             }).map((o) => {
                 return { display: o.firstName + " " + o.lastName, id: o.id }
@@ -72,7 +73,6 @@ export default class Form extends React.Component {
     render() {
         const { conversation } = { ...this.props };
         let commentText = (typeof conversation.Selected.comment != "undefined") ? conversation.Selected.comment : "";
-
         return (
             <div class="row mt10">
                 <div class="col-md-12 col-xs-12">
