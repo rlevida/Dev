@@ -125,4 +125,19 @@ router.get('/reminder',function(req,res,next){
         page: 'reminder'
     })
 })
+
+router.get('/task/:id',function(req,res,next){
+    let func = global.initFunc();
+    func.getTaskProjectId({id : req.params.id},(c)=>{
+        res.render('index',{
+            title: global.site_name + '- Task',
+            body: './template/index',
+            page: 'task',
+            task: req.params.id,
+            project: c.data.project,
+            workstream: c.data.workstream
+        })
+    })
+   
+})
 module.exports = router;
