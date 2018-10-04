@@ -112,3 +112,12 @@ var getFilePathExtension = exports.getFilePathExtension = (path) => {
     var filename = path.split('\\').pop().split('/').pop();
     return filename.substr((Math.max(0, filename.lastIndexOf(".")) || Infinity) + 1);
 }
+
+var getTaskProjectId = exports.getTaskProjectId = (data,cb) => {
+    let task = global.initModel("task");
+        task.getData("task",{ id:data.id },{ id:data.id },(c)=>{
+            if(c.data.length){
+                cb({status:true , data : { project: c.data[0].projectId , workstream: c.data[0].workstreamId } })
+            }
+        })
+}

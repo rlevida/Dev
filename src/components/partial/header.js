@@ -99,7 +99,6 @@ export default class Component extends React.Component {
         let reminderUnseen = _.orderBy(reminder.List.filter( e => { return !e.seen}),['dateAdded'],['desc'])
         let reminderSeen = _.orderBy(reminder.List.filter( e => { return e.seen}),['dateAdded'],['desc'])
 
-
         return <div>
             <div class={((this.state.miniSideMenu == "true") ? "sidebar-left-mini" : "") + " bg-dark dk "} id="wrap">
                 <div class="dropdown pull-right" style={{ marginTop: "10px", marginRight: "10px" }}>

@@ -56,7 +56,7 @@ var init = exports.init = (socket) => {
                 }))
 
                 Promise.all(tempResData).then((values)=>{
-                    socket.broadcast.emit("FRONT_REMINDER_LIST", values)
+                    socket.broadcast.emit("FRONT_REMINDER_LIST", values[0])
                     if(action == "Edit"){
                         socket.broadcast.emit("FRONT_CONVERSATION_EDIT",result)
                         socket.emit("RETURN_SUCCESS_MESSAGE",{message:"Successfully updated"})
