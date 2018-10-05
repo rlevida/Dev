@@ -489,7 +489,7 @@ export default class FormComponent extends React.Component {
                                                             <span>By : {o.users_firstName + ' ' + o.users_lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
                                                         </p>
 
-                                                        {(isEditable || task.Selected.assignedById == loggedUser.data.id) &&
+                                                         { (isEditable || (task.Selected.assignedById == loggedUser.data.id)) &&
                                                             <div class="checklist-actions">
                                                                 <a class="btn btn-success"
                                                                     onClick={() => {
@@ -497,14 +497,11 @@ export default class FormComponent extends React.Component {
                                                                     }}
                                                                 >
                                                                     {
-                                                                        (o.completed) ? <span class="glyphicon glyphicon-unchecked"></span> : <span class="glyphicon glyphicon-check"></span>
+                                                                        o.completed ? <span class="glyphicon glyphicon-unchecked"></span> : <span class="glyphicon glyphicon-check"></span>
                                                                     }
                                                                 </a>
-                                                            </div>
-                                                        }
-                                                        {(isEditable) &&
-                                                            <div class="checklist-actions">
                                                                 <a class="btn btn-primary"
+                                                                    style={{display: (o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) ? "" : "none"}}
                                                                     onClick={() => {
                                                                         this.editChecklist(o)
                                                                     }}
@@ -512,6 +509,7 @@ export default class FormComponent extends React.Component {
                                                                     <span class="glyphicon glyphicon-pencil"></span>
                                                                 </a>
                                                                 <a class="btn btn-danger"
+                                                                    style={{display: (o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) ? "" : "none"}}
                                                                     onClick={() => {
                                                                         socket.emit("DELETE_CHECKLIST", { data: o.id })
                                                                     }}
