@@ -306,7 +306,7 @@ export default class FormComponent extends React.Component {
                                                     <div class="col-md-7 col-xs-12">
                                                         <a href="#" type="button" data-toggle="modal" data-target="#projectModal">
                                                             Add Members
-                                            </a>
+                                                        </a>
                                                     </div>
                                                 </div>
                                             }

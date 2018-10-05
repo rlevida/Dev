@@ -26,14 +26,12 @@ export default class List extends React.Component {
         let { socket, dispatch } = this.props;
         let intervalLoggedUser = setInterval(() => {
             if (typeof this.props.loggedUser.data.id != "undefined") {
-                let filter = {  filter: { projectId: project }} ;
+                let filter = { filter: { projectId: project } };
                 if (this.props.loggedUser.data.userRole != 1 && this.props.loggedUser.data.userRole != 2) {
                     filter = { filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
                 }
                 if (typeof this.props.task.Selected.task == "undefined") {
-                    socket.emit("GET_TASK_LIST", filter );
-                } else {
-                    dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } })
+                    socket.emit("GET_TASK_LIST", filter);
                 }
                 clearInterval(intervalLoggedUser)
             }
@@ -164,7 +162,7 @@ export default class List extends React.Component {
                                         <div>
                                             <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
                                             <Tooltip id={`follower${index}`}>
-                                                {data.followersName.split(",").map( (e,fKey) => {
+                                                {data.followersName.split(",").map((e, fKey) => {
                                                     return <p key={fKey}>{e != null ? e : ""} <br /></p>
                                                 })}
                                             </Tooltip>

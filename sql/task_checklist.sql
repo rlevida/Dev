@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS `task_checklist`;
 CREATE TABLE `task_checklist` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `completed` TINYINT(1) DEFAULT '0',
+    `isDocument` TINYINT(1) DEFAULT '0',
     `description` TEXT,
     `taskId` BIGINT,
     `periodChecklist` BIGINT,

@@ -471,7 +471,7 @@ export default class ReminderTask extends React.Component {
                                                     <div className={(isEditable || task.Selected.assignedById == loggedUser.data.id) ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}
                                                     >
                                                         <p>{o.description}</p>
-                                                        <div id="checklist-action">
+                                                        <div id="checklist-action-wrapper">
                                                             {
                                                                 _.map(o.types, (o, index) => {
                                                                     return (

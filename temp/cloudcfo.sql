@@ -20,16 +20,6 @@ CREATE TABLE IF NOT EXISTS `activity_log` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-DROP TABLE IF EXISTS `checklist_type`;
-CREATE TABLE IF NOT EXISTS `checklist_type` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `type` enum('Mandatory','Document') DEFAULT NULL,
-  `checklistId` bigint(20) DEFAULT NULL,
-  `dateAdded` datetime DEFAULT NULL,
-  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=189 DEFAULT CHARSET=latin1;
-
 DROP TABLE IF EXISTS `company`;
 CREATE TABLE IF NOT EXISTS `company` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -383,20 +373,6 @@ CREATE TABLE IF NOT EXISTS `workstream` (
   `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
-
-
-
-
-INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (181,'Mandatory',27,'2018-09-27 16:45:32.000','2018-09-27 16:45:32.000');
-INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (182,'Document',27,'2018-09-27 16:45:32.000','2018-09-27 16:45:32.000');
-INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (183,'Mandatory',28,'2018-09-27 16:45:32.000','2018-09-27 16:45:32.000');
-INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (184,'Document',28,'2018-09-27 16:45:32.000','2018-09-27 16:45:32.000');
-INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (185,'Document',25,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000');
-INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (186,'Mandatory',25,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000');
-INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (187,'Document',26,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000');
-INSERT INTO `checklist_type` (`id`,`type`,`checklistId`,`dateAdded`,`dateUpdated`) VALUES (188,'Mandatory',26,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000');
-
 
 
 INSERT INTO `conversation` (`id`,`comment`,`usersId`,`linkType`,`linkId`,`status`,`dateAdded`,`dateUpdated`,`isDeleted`) VALUES (1,'{[Ivan Pintor](11)} \nWhy do we use it?\nIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using \'Content here, content here\', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for \'lorem ipsum\' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).',6,'task',1,NULL,'2018-09-21 16:09:17.000','2018-09-21 16:09:17.000',0);
