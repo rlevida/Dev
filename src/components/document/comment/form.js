@@ -32,10 +32,14 @@ export default class Form extends React.Component {
     }
 
     fetchUsers(query, callback) {
-        const { socket, users , global } = { ...this.props };
-        return global.SelectList.ProjectMemberList.map((o)=>{
-            return { display: o.firstName + " " + o.lastName, id: o.id }
-        })
+        const { global } = { ...this.props };
+        
+        return global.SelectList.ProjectMemberList.map((o) => {
+            let userName = o.firstName + " " + o.lastName ;
+            if(userName.includes(query) && o.id != loggedUser.data.id){
+                return { display: o.firstName + " " + o.lastName, id: o.id }
+            }
+        }).filter((o) => { return o != undefined })
     }
 
     handleSubmit() {
