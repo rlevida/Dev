@@ -62,7 +62,7 @@ export default class TaskStatus extends React.Component {
                 data.Active += 1;
                 if(moment(e.dueDate).format('L') == moment().format('L') && e.currentState != "Completed"){
                     data.DueToday += 1;
-                }else if(moment(e.dueDate).format('LLL') < moment().format('LLL') && e.currentState != "Completed"){
+                }else if(moment(e.dueDate).format('LLL') > moment().format('LLL') && e.currentState != "Completed"){
                     data.Issues += 1;
                 }
             })

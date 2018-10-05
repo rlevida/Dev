@@ -116,7 +116,11 @@ export default class List extends React.Component {
 
             <TaskStatus style={{ float: "right", padding: "20px" }} />
             <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" onClick={(e) => dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form", FormAction: "Create" })} >
+                <li class="btn btn-info" onClick={(e) => { 
+                    dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })
+                    dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "Create" })
+                }} 
+                >
                     <span>New Task</span>
                 </li>
             </HeaderButtonContainer>
@@ -185,6 +189,7 @@ export default class List extends React.Component {
                                         (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External') && <div>
                                             <a href="javascript:void(0);" data-tip="EDIT"
                                                 onClick={(e) => {
+                                                    dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "Edit" })
                                                     socket.emit("GET_TASK_DETAIL", { id: data.id })
                                                 }}
                                                 class="btn btn-info btn-sm">
@@ -211,8 +216,8 @@ export default class List extends React.Component {
                                         (typeof loggedUser.data != 'undefined' && loggedUser.data.userType == 'External') && <div>
                                             <a href="javascript:void(0);" data-tip="VIEW"
                                                 onClick={(e) => {
-                                                    socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'view' })
-                                                    dispatch({ type : "SET_TASK_FORM_ACTION" , FormAction : "Edit" })
+                                                    dispatch({ type : "SET_TASK_FORM_ACTION" , FormAction : "View" })
+                                                    socket.emit("GET_TASK_DETAIL", { id: data.id })
                                                 }}
                                                 class="btn btn-success btn-sm">
                                                 <span class="glyphicon glyphicon-eye-open"></span></a>
