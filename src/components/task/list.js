@@ -210,7 +210,10 @@ export default class List extends React.Component {
                                     {
                                         (typeof loggedUser.data != 'undefined' && loggedUser.data.userType == 'External') && <div>
                                             <a href="javascript:void(0);" data-tip="VIEW"
-                                                onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'view' })}
+                                                onClick={(e) => {
+                                                    socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'view' })
+                                                    dispatch({ type : "SET_TASK_FORM_ACTION" , FormAction : "Edit" })
+                                                }}
                                                 class="btn btn-success btn-sm">
                                                 <span class="glyphicon glyphicon-eye-open"></span></a>
                                         </div>
