@@ -102,20 +102,13 @@ export default class FormComponent extends React.Component {
         if (task.Selected.approvalRequired) {
             $(`#approvalModal`).modal("show");
         } else {
-            checklist.List.map((e, index) => {
-                if (e.types.length > 0) {
-                    let isMandatory = e.types.filter(t => { return t.value == "Mandatory" }).length > 0 ? 1 : 0
-                    if (isMandatory) {
-                        if (e.completed) {
-                        } else {
-                            checklistToBeComplete.push(e)
-                        }
-                    }
-                }
+            const completedChecklist = _.filter(checklist.List, (chechListObj, index) => {
+                return chechListObj.completed == 1
             });
 
-            if (checklistToBeComplete.length == 0) {
-                let status = "Completed"
+            if (completedChecklist.length == (checklist.List).length) {
+                let status = "Completed";
+
                 if (task.Selected.task_id && task.Selected.task_status != "Completed") {
                     status = "For Approval"
                     socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
@@ -468,19 +461,16 @@ export default class FormComponent extends React.Component {
                                                 || loggedUser.data.userRole == 2
                                                 || project.Selected.projectManagerId == loggedUser.data.id
                                                 ? true : false
-                                                
+
                                             return (
                                                 <div className={(isEditable || task.Selected.assignedById == loggedUser.data.id) ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}
                                                 >
                                                     <p>{o.description}</p>
                                                     <div id="checklist-action-wrapper">
                                                         {
-                                                            _.map(o.types, (o, index) => {
-                                                                return (
-                                                                    <p class="m0" key={index}><span class="label label-success">{o.value}</span></p>
-                                                                )
-                                                            })
+                                                            (o.isDocument == 1) && <span class="label label-success">Document</span>
                                                         }
+
                                                         {
                                                             ((o.documents).length > 0) && <div class="mt5">
                                                                 <p>Documents:</p>

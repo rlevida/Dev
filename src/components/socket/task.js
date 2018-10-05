@@ -44,6 +44,8 @@ export default class Socket extends React.Component {
 
         socket.on("FRONT_TASK_EDIT", (data) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", data: data });
+            //Need to set task selected for hiding of complete button in the task overview.
+            dispatch({ type: "SET_TASK_SELECTED", Selected: data.data[0] });
         })
 
         socket.on("FRONT_TASK_DELETED", (data) => {

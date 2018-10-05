@@ -65,7 +65,7 @@ var init = exports.init = (socket) => {
                         .value();
 
                     const resultList = _.map(c.data, (checklist) => {
-                        const documents = (checklist.documents != null || checklist.documents != "") ?
+                        const documents = (checklist.documents != null && checklist.documents != "") ?
                             _(documentList).filter((doc) => {
                                 return _.findIndex(JSON.parse(checklist.documents), (o) => { return o == doc.id }) >= 0
                             })
