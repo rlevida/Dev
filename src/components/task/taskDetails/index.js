@@ -501,7 +501,7 @@ export default class ReminderTask extends React.Component {
                                                                 <span>By : {o.users_firstName + ' ' + o.users_lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
                                                             </p>
                                                             
-                                                            { (isEditable || task.Selected.assignedById == loggedUser.data.id) && 
+                                                            { (isEditable || (task.Selected.assignedById == loggedUser.data.id)) &&
                                                                 <div class="checklist-actions">
                                                                     <a class="btn btn-success"
                                                                         onClick={() => {
@@ -512,24 +512,16 @@ export default class ReminderTask extends React.Component {
                                                                             o.completed ? <span class="glyphicon glyphicon-unchecked"></span> : <span class="glyphicon glyphicon-check"></span>
                                                                         }
                                                                     </a>
-                                                                </div>
-                                                            }
-                                                            { (isEditable) &&
-                                                                <div class="checklist-actions">
-                                                                    <a class="btn btn-primary"
-                                                                        onClick={() => {
-                                                                            this.editChecklist(o)
-                                                                        }}
-                                                                    >
-                                                                        <span class="glyphicon glyphicon-pencil"></span>
-                                                                    </a>
-                                                                    <a class="btn btn-danger"
-                                                                        onClick={() => {
-                                                                            socket.emit("DELETE_CHECKLIST", { data: o.id })
-                                                                        }}
-                                                                    >
-                                                                        <span class="glyphicon glyphicon-trash"></span>
-                                                                    </a>
+                                                                    {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                                                        <a class="btn btn-primary" onClick={() => { this.editChecklist(o)}} >
+                                                                            <span class="glyphicon glyphicon-pencil"></span>
+                                                                        </a>
+                                                                    }
+                                                                    {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                                                        <a class="btn btn-danger" onClick={() => { socket.emit("DELETE_CHECKLIST", { data: o.id }) }} >
+                                                                            <span class="glyphicon glyphicon-trash"></span>
+                                                                        </a>
+                                                                    }
                                                                 </div>
                                                             }
                                                         </div>
