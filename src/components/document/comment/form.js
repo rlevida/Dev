@@ -32,7 +32,7 @@ export default class Form extends React.Component {
     }
 
     fetchUsers(query, callback) {
-        const { global } = { ...this.props };
+        const { global , loggedUser } = { ...this.props };
         
         return global.SelectList.ProjectMemberList.map((o) => {
             let userName = o.firstName + " " + o.lastName ;
