@@ -97,16 +97,23 @@ export default class Component extends React.Component {
         }
 
         let reminderUnseen = _.orderBy(reminder.List.filter( e => { return !e.seen}),['dateAdded'],['desc'])
-        let reminderSeen = _.orderBy(reminder.List.filter( e => { return e.seen}),['dateAdded'],['desc'])
+        // let reminderSeen = _.orderBy(reminder.List.filter( e => { return e.seen}),['dateAdded'],['desc'])
 
         return <div>
             <div class={((this.state.miniSideMenu == "true") ? "sidebar-left-mini" : "") + " bg-dark dk "} id="wrap">
                 <div class="dropdown pull-right" style={{ marginTop: "10px", marginRight: "10px" }}>
-                    <a class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                        <span class="fa fa-bell"></span>
-                        <span class="label label-danger" style={{ marginLeft: "5px", display: reminderUnseen.length ? "inline-block" : "none" }}>{ reminderUnseen.length }</span>
-                    </a>
-                    { (reminderUnseen.length > 0 || reminderSeen.length > 0 ) &&
+                    { (reminderUnseen.length > 0) ?
+                        <a class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                            <span class="fa fa-bell"></span>
+                            <span class="label label-danger" style={{ marginLeft: "5px", display: reminderUnseen.length ? "inline-block" : "none" }}>{ reminderUnseen.length }</span>
+                        </a>
+                        :
+                        <a  class="btn btn-default dropdown-toggle" href={`/reminder`}>
+                            <span class="fa fa-bell"></span>
+                        </a>
+                    }
+
+                    { (reminderUnseen.length > 0 ) &&
                         <ul class="dropdown-menu" >
                             {
                                reminderUnseen.map((data, index) => {
@@ -134,7 +141,7 @@ export default class Component extends React.Component {
                                     return (
                                         <li key={index} style={{height:'100%'}}>
                                             {/* <span class="label label-primary" style={{marginLeft:'5px'}}>{label}</span> */}
-                                            <a href={"/reminder"} key={index} style={{ textDecoration: "none" , fontWeight:"bold" }}>
+                                            <a href={`/reminder`} key={index} style={{ textDecoration: "none" , fontWeight:"bold" }}>
                                                 <span>{description}</span>
                                                 <br/>
                                             </a>
@@ -144,38 +151,38 @@ export default class Component extends React.Component {
                             }
 
                             {
-                               reminderSeen.map((data, index) => {
-                                    let label = ""
-                                    let description = ""
-                                    if(data.type == "Task Rejected"){
-                                        label = `Task`
-                                        description = `${data.taskName} has been rejected by ${data.createdByName}`
-                                    }else if (data.type == "For Approval"){
-                                        label = `Task`
-                                        description = `${data.createdByName} assigned you as approver.`
-                                    }else if (data.type == "Task Overdue"){
-                                        label = data.linkType == "workstream" ? `Workstream Task Overdue` : `Task Overdue`
-                                        description =  `${data.reminderDetail}`
-                                    }else if (data.type == "Task Due Today"){
-                                        label = `Task Due Today`
-                                        description = `${data.reminderDetail}`
-                                    }else if (data.type == "Tag in Comment"){
-                                        label = `Comment`
-                                        description = `${data.createdByName} tagged you in a comment.`
-                                    }else if (data.type == "Task Completed"){
-                                        description = `${data.taskName} has been completed by ${data.createdByName}`
-                                    }
+                            //    reminderSeen.map((data, index) => {
+                            //         let label = ""
+                            //         let description = ""
+                            //         if(data.type == "Task Rejected"){
+                            //             label = `Task`
+                            //             description = `${data.taskName} has been rejected by ${data.createdByName}`
+                            //         }else if (data.type == "For Approval"){
+                            //             label = `Task`
+                            //             description = `${data.createdByName} assigned you as approver.`
+                            //         }else if (data.type == "Task Overdue"){
+                            //             label = data.linkType == "workstream" ? `Workstream Task Overdue` : `Task Overdue`
+                            //             description =  `${data.reminderDetail}`
+                            //         }else if (data.type == "Task Due Today"){
+                            //             label = `Task Due Today`
+                            //             description = `${data.reminderDetail}`
+                            //         }else if (data.type == "Tag in Comment"){
+                            //             label = `Comment`
+                            //             description = `${data.createdByName} tagged you in a comment.`
+                            //         }else if (data.type == "Task Completed"){
+                            //             description = `${data.taskName} has been completed by ${data.createdByName}`
+                            //         }
 
-                                    return (
-                                        <li key={index} style={{height:'100%'}}>
-                                            {/* <span class="label label-primary" style={{marginLeft:'5px'}}>{label}</span> */}
-                                            <a href={"/reminder"} key={index} style={{ textDecoration: "none" }}>
-                                                <span>{description}</span>
-                                                <br/>
-                                            </a>
-                                        </li>
-                                    )
-                                })
+                            //         return (
+                            //             <li key={index} style={{height:'100%'}}>
+                            //                 {/* <span class="label label-primary" style={{marginLeft:'5px'}}>{label}</span> */}
+                            //                 <a href={"/reminder"} key={index} style={{ textDecoration: "none" }}>
+                            //                     <span>{description}</span>
+                            //                     <br/>
+                            //                 </a>
+                            //             </li>
+                            //         )
+                            //     })
                             }
 
                         </ul>
