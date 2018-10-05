@@ -39,13 +39,12 @@ export default class TaskStatus extends React.Component {
         }
         if(task.List.length){
             let userId = loggedUser.data.id;
-
             task.List.map((e,index)=>{
                 if (e.assignedById == userId ){
                     data.assignedTo.Active += 1;
                     if(moment(e.dueDate).format('L') == moment().format('L')){
                         data.assignedTo.DueToday += 1;
-                    }else if(moment(e.dueDate).format('LLL') < moment().format('LLL') ){
+                    }else if(moment(e.dueDate).format('LLL') > moment().format('LLL') ){
                         data.assignedTo.Issues += 1;
                     }
                 }
@@ -53,7 +52,7 @@ export default class TaskStatus extends React.Component {
                     data.Follower.Active += 1;
                     if(moment(e.dueDate).format('L') == moment().format('L')){
                         data.Follower.DueToday += 1;
-                    }else if(moment(e.dueDate).format('LLL') < moment().format('LLL') ){
+                    }else if(moment(e.dueDate).format('LLL') > moment().format('LLL') ){
                         data.Follower.Issues += 1;
                     }
                 }
@@ -61,7 +60,7 @@ export default class TaskStatus extends React.Component {
                     data.responsible.Active += 1;
                     if(moment(e.dueDate).format('L') == moment().format('L')){
                         data.responsible.DueToday += 1;
-                    }else if(moment(e.dueDate).format('LLL') < moment().format('LLL') ){
+                    }else if(moment(e.dueDate).format('LLL') > moment().format('LLL') ){
                         data.responsible.Issues += 1;
                     }
                 }
