@@ -516,12 +516,12 @@ export default class FormComponent extends React.Component {
                                                     return (
                                                         <div class="col-md-7 col-md-offset-3 col-sm-12 mb10" key={index}>
                                                             <div class="wrapper">
-                                                                <p class="m0">{checklistObj.description}</p>
+                                                                <p>{checklistObj.description}</p>
                                                                 <div id="checklist-action-wrapper">
                                                                     {
                                                                         _.map(checklistObj.types, (o, index) => {
                                                                             return (
-                                                                                <p class="m0" key={index}><span class="label label-success">{o.value}</span></p>
+                                                                                <p key={index}><span class="label label-success">{o.value}</span></p>
                                                                             )
                                                                         })
                                                                     }
@@ -530,19 +530,19 @@ export default class FormComponent extends React.Component {
                                                                     </p>
                                                                     <div class="checklist-actions">
                                                                         <a class="btn btn-danger"
-                                                                            onClick={() => {
-                                                                                socket.emit("DELETE_CHECKLIST", { data: checklistObj.id })
-                                                                            }}
-                                                                        >
-                                                                            <span class="glyphicon glyphicon-trash"></span>
-                                                                        </a>
-                                                                    </div>
+                                                                        onClick={() => {
+                                                                            socket.emit("DELETE_CHECKLIST", { data: checklistObj.id })
+                                                                        }}
+                                                                    >
+                                                                        <span class="glyphicon glyphicon-trash"></span>
+                                                                    </a>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    )
-                                                })
-                                            }
+                                                        </div>
+                            )
+                        })
+                    }
                                         </div>
                                     </div>
                                 }

@@ -473,7 +473,7 @@ export default class FormComponent extends React.Component {
 
                                                         {
                                                             ((o.documents).length > 0) && <div class="mt5">
-                                                                <p>Documents:</p>
+                                                                <p class="mb0">Documents:</p>
                                                                 {
                                                                     _.map(o.documents, (o, index) => {
                                                                         return (
