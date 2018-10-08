@@ -148,7 +148,7 @@ var init = exports.init = (socket) => {
                             },
                             reminder: function (parallelCallback) {
                                 let reminder = global.initModel("reminder");
-                                
+
                                 if ((d.data.action == "For Approval" || d.data.action == "Reject Task" || d.data.action == "complete") && typeof d.reminder != "undefined") {
                                     reminder.postData("reminder", d.reminder, (c) => {
                                         if (c.status) {
@@ -231,7 +231,7 @@ var init = exports.init = (socket) => {
                             if (err == true) {
                                 socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
                             } else {
-                                (data.instance).push(data.task)
+                                (data.instance).unshift(data.task)
                                 nextThen(data.instance, "add");
                             }
                         })

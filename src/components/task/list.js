@@ -147,15 +147,6 @@ export default class List extends React.Component {
                             let currentDate = moment(new Date());
                             let displayedDueDate = dueDate;
 
-                            if (data.periodic == 1) {
-                                const endDate = moment(data.startDate).add(data.periodType, data.period).format('YYYY MMM DD');
-                                const nextDueDate = moment(data.startDate).add(data.periodType, data.period).format('YYYY MMM DD');
-                                const taskDueDate = (moment(new Date(endDate)).diff(moment(new Date(nextDueDate)), data.periodType) < 0) ? endDate : nextDueDate;
-
-                                displayedDueDate = taskDueDate;
-                            }
-
-
                             if (dueDate.diff(currentDate, 'days') < 0 && data.status != 'Completed') {
                                 taskStatus = 2
                             } else if (dueDate.diff(currentDate, 'days') == 0 && data.status != 'Completed') {
