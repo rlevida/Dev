@@ -3,8 +3,6 @@ const sequence = require("sequence").Sequence,
     mime = require('mime-types'),
     path = require('path'),
     Printer = require('node-printer');
-    printer = require("printer")
-
 const dbName = "document";
 var {
     defaultGet,
@@ -157,7 +155,6 @@ exports.get = {
         })
     },
     getPrinterList: (req,cb) => {
-        console.log(printer.getPrinters())
         cb({status:200 , data : Printer.list() })
     }
 }
