@@ -42,52 +42,6 @@ router.use(function (req, res, next) {
  * GET
  * 
  */
-router.get('/printDocument',(req,res,next)=>{
-    let fileName = req.query.fileName
-    let originName = req.query.fileOrigin
-    let fs = global.initRequire('fs'), AWS = global.initAWS();
-    let fileStream = fs.createWriteStream( `${originName}` ) ;
-    let s3 = new AWS.S3();
-
-    let promise = new Promise(function(resolve,reject){
-        s3.getObject({
-            Bucket: global.AWSBucket,
-            Key: global.environment + "/upload/" + fileName,
-        }, (err,data) => {
-            if(err){
-                console.log("Error in Uploading to AWS. [" + err + "]");
-            }else{
-                fileStream.write(data.Body)
-                resolve(originName)
-                fileStream.end()
-
-            }
-        });
-    })
-    
-    promise.then((data)=>{
-        var wordBuffer = fs.readFileSync(`${__dirname}/../${data}`)
-        toPdf(wordBuffer).then(
-            (pdfBuffer) => {
-                let pdfdata = new Promise(function(resolve,reject){
-                    let convertedData = fs.writeFileSync(`./${data}.pdf`, pdfBuffer)
-                        resolve(convertedData)
-                })
-
-                pdfdata.then((newpdf)=>{
-                    let file = fs.readFileSync(`${__dirname}/../${data}.pdf`);
-                    let fileContentType = mime.contentType(`${data}.pdf`)
-                        res.contentType(fileContentType);
-                        fs.unlink(`${__dirname}/../${data}`,(t)=>{})
-                        fs.unlink(`./${data}.pdf`,(t)=>{})
-                        res.send(file);
-                })
-          }, (err) => {
-            console.log(err)
-          }
-        )
-    })
-})
 
 router.get('/downloadDocument',(req,res,next)=>{
     var fs = global.initRequire('fs'),
