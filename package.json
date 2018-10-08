@@ -51,6 +51,7 @@
     "nodemailer": "^4.4.0",
     "office-to-pdf": "^4.0.0",
     "path": "^0.12.7",
+    "printer": "^0.2.2",
     "react": "^15.4.1",
     "react-big-calendar": "^0.16.1",
     "react-captcha": "^2.0.9",
