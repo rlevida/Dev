@@ -29,9 +29,9 @@ export default class Checklist extends React.Component {
             periodTask: (task.Selected.periodTask == null) ? task.Selected.id : task.Selected.periodTask,
             isPeriodicTask: task.Selected.periodic,
             taskDueDate: task.Selected.dueDate,
-            createdBy: loggedUser.data.id
+            createdBy: loggedUser.data.id,
+            isDocument: (typeof checklist.Selected.isDocument != "undefined" && checklist.Selected.isDocument != "") ? checklist.Selected.isDocument : 0
         };
-
         socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted });
     }
 
@@ -39,6 +39,13 @@ export default class Checklist extends React.Component {
         const { checklist, dispatch } = { ...this.props };
         let Selected = Object.assign({}, checklist.Selected);
         Selected[e.target.name] = e.target.value;
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected });
+    }
+
+    handleCheckbox(name, value) {
+        const { checklist, dispatch } = { ...this.props };
+        let Selected = Object.assign({}, checklist.Selected)
+        Selected[name] = value;
         dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected });
     }
 
@@ -57,12 +64,12 @@ export default class Checklist extends React.Component {
                         <span>Save</span>
                     </li>
                 </HeaderButtonContainer>
-                <div class="row mt10">
+                <div class="row">
                     <div class="col-lg-12 col-md-12 col-xs-12">
                         <form onSubmit={this.handleSubmit} class="form-horizontal member-form-container">
                             <div class="form-group">
-                                <label class="col-md-3 col-xs-12 control-label">Item *</label>
-                                <div class="col-md-7 col-xs-12">
+                                <div class="col-md-12 col-xs-12">
+                                    <label class="checkbox-inline pd0" style={{ fontWeight: "bold" }}>Item *</label>
                                     <input type="text" name="checklist"
                                         class="form-control"
                                         placeholder="Add Item"
@@ -70,17 +77,14 @@ export default class Checklist extends React.Component {
                                         value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
 
                                     />
-                                </div>
-                            </div>
-                            <div class="form-group mb20">
-                                <label class="col-md-3 col-xs-12 control-label">Checklist type</label>
-                                <div class="col-md-7 col-xs-12">
-                                    <DropDown multiple={true}
-                                        required={false}
-                                        options={_.map(['Mandatory', 'Document'], (o) => { return { id: o, name: o } })}
-                                        selected={(typeof checklist.Selected.types == "undefined" || checklist.Selected.types == "") ? [] : checklist.Selected.types}
-                                        onChange={(e) => this.setDropDownMultiple("types", e)}
-                                    />
+                                    <label class="checkbox-inline pd0" style={{ fontWeight: "bold" }}>
+                                        Document ?
+                                                    <input type="checkbox"
+                                            checked={checklist.Selected.isDocument ? true : false}
+                                            onChange={() => { }}
+                                            onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
+                                        />
+                                    </label>
                                 </div>
                             </div>
                         </form>

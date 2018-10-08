@@ -279,7 +279,7 @@ export default class FormComponent extends React.Component {
         let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false, documentList = [];
 
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
-
+        
         if (typeof this.props.global.SelectList.taskList != "undefined") {
             this.props.global.SelectList["taskList"].map((e) => {
                 taskList.push({ id: e.id, name: e.task })
@@ -372,7 +372,6 @@ export default class FormComponent extends React.Component {
                 allowToComplete = (taskBefore[0].status == "Completed") ? true : false;
             }
         }
-
         return (
             <div class="pd20">
                 <span class="pull-right" style={{ cursor: "pointer" }} onClick={() => { dispatch({ type: "SET_TASK_SELECTED", Selected: {} }); dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" }) }}><i class="fa fa-times-circle fa-lg"></i></span>
@@ -472,7 +471,7 @@ export default class FormComponent extends React.Component {
                                                         }
 
                                                         {
-                                                            ((o.documents).length > 0) && <div class="mt5">
+                                                            ((o.documents != null && o.documents != "") && (o.documents).length > 0) && <div class="mt5">
                                                                 <p class="mb0">Documents:</p>
                                                                 {
                                                                     _.map(o.documents, (o, index) => {
@@ -616,7 +615,7 @@ export default class FormComponent extends React.Component {
                             </div>
                         }
 
-                        <div id="documentList">
+                        {/* <div id="documentList">
                             {(documentList.length > 0) &&
                                 (documentList).map((data, index) => {
                                     return (
@@ -628,7 +627,7 @@ export default class FormComponent extends React.Component {
                                     )
                                 })
                             }
-                        </div>
+                        </div> */}
                     </TabPanel>
                     <TabPanel>
                         <div style={{ position: "relative" }} class="mt10">

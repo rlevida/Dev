@@ -220,7 +220,7 @@ var init = exports.init = (socket) => {
                                     }, {}, (e) => {
                                         const taskPromise = _.map(e.data, (o) => {
                                             return new Promise((resolve, reject) => {
-                                                taskCheckList.postData("task_checklist", { description: d.data.description, taskId: o.id, createdBy: d.data.createdBy, periodChecklist: taskDetails.id }, (data) => {
+                                                taskCheckList.postData("task_checklist", { description: d.data.description, isDocument: d.data.isDocument, taskId: o.id, createdBy: d.data.createdBy, periodChecklist: taskDetails.id }, (data) => {
                                                     resolve(data);
                                                 });
                                             });
@@ -306,7 +306,7 @@ var init = exports.init = (socket) => {
                                 }, {}, (e) => {
                                     const taskPromise = _.map(e.data, (o) => {
                                         return new Promise((resolve, reject) => {
-                                            taskCheckList.postData("task_checklist", { description: d.data.description, taskId: o.id, periodChecklist: data.id, createdBy: d.data.createdBy }, (data) => {
+                                            taskCheckList.postData("task_checklist", { description: d.data.description, isDocument: d.data.isDocument, taskId: o.id, periodChecklist: data.id, createdBy: d.data.createdBy }, (data) => {
                                                 resolve(data);
                                             });
                                         });
@@ -329,9 +329,38 @@ var init = exports.init = (socket) => {
     });
 
     socket.on("DELETE_CHECKLIST", (d) => {
+        let task = global.initModel("task");
         let taskCheckList = global.initModel("task_checklist");
-        taskCheckList.deleteData("task_checklist", { id: d.data }, (c) => {
-            socket.emit("FRONT_CHECKLIST_DELETED", { id: d.data })
-        });
+
+        taskCheckList.getData("task_checklist", { id: d.data }, {}, (c) => {
+            const periodChecklist = (c.data[0].periodChecklist != null) ? c.data[0].periodChecklist : c.data[0].id;
+            const checklistTaskId = c.data[0].taskId;
+
+            taskCheckList.getData("task_checklist", {
+                periodChecklist: periodChecklist,
+                taskId: { value: checklistTaskId, condition: " > " }
+            }, {}, (e) => {
+                taskCheckList.deleteData("task_checklist", { id: d.data }, (c) => {
+                    if ((e.data.length > 0)) {
+                        let checklistDeletePromises = _.map(e.data, (checklistObj, index) => {
+                            return new Promise((resolve, reject) => {
+                                taskCheckList.deleteData("task_checklist", { id: checklistObj.id }, (c) => {
+                                    resolve(c);
+                                });
+                            });
+                        });
+
+                        Promise.all(checklistDeletePromises).then((values) => {
+                            socket.emit("FRONT_CHECKLIST_DELETED", { id: d.data });
+                        }).catch((err) => {
+                            socket.emit("RETURN_ERROR_MESSAGE", { message: "Error in updating checklist." });
+                        });
+
+                    } else {
+                        socket.emit("FRONT_CHECKLIST_DELETED", { id: d.data });
+                    }
+                });
+            });
+        })
     });
 }

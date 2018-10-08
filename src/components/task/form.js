@@ -525,24 +525,27 @@ export default class FormComponent extends React.Component {
                                                                             )
                                                                         })
                                                                     }
+                                                                    {
+                                                                        (checklistObj.isDocument == 1) && <span class="label label-success">Document</span>
+                                                                    }
                                                                     <p style={{ marginTop: 5, fontSize: 10 }}>
                                                                         <span>By : {checklistObj.users_firstName + ' ' + checklistObj.users_lastName + ' - ' + moment(checklistObj.dateAdded).format("MMM DD, YYYY")}</span>
                                                                     </p>
                                                                     <div class="checklist-actions">
                                                                         <a class="btn btn-danger"
-                                                                        onClick={() => {
-                                                                            socket.emit("DELETE_CHECKLIST", { data: checklistObj.id })
-                                                                        }}
-                                                                    >
-                                                                        <span class="glyphicon glyphicon-trash"></span>
-                                                                    </a>
+                                                                            onClick={() => {
+                                                                                socket.emit("DELETE_CHECKLIST", { data: checklistObj.id })
+                                                                            }}
+                                                                        >
+                                                                            <span class="glyphicon glyphicon-trash"></span>
+                                                                        </a>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        </div>
-                            )
-                        })
-                    }
+                                                    )
+                                                })
+                                            }
                                         </div>
                                     </div>
                                 }
