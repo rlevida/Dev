@@ -9,6 +9,10 @@ var field = exports.field = {
     *  completed (TINYINT)
     */
     'completed': { type: 'tinyint', access: "public" },
+    /**
+    *  completed (TINYINT)
+    */
+    'isDocument': { type: 'tinyint', access: "public" },
 
     /**
      * description (TEXT)

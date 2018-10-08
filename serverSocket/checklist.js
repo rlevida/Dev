@@ -9,99 +9,74 @@ var init = exports.init = (socket) => {
     socket.on("GET_CHECK_LIST", (d) => {
         let taskCheckList = global.initModel("task_checklist")
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
-        let taskCheckListType = global.initModel("checklist_type");
         let document = global.initModel("document");
         let tag = global.initModel("tag");
 
         taskCheckList.getData("task_checklist", filter, {}, (c) => {
+            let documents = _(c.data)
+                .filter((o) => { return o.documents != null && o.documents != "" })
+                .map((o) => { return JSON.parse(o.documents) })
+                .flattenDeep()
+                .uniq()
+                .value();
             async.parallel({
-                types: (parallelCallback) => {
-                    taskCheckListType.getData("checklist_type", {
-                        checklistId: { value: _.map(c.data, (o) => { return o.id }), condition: " IN " }
+                documentData: (documentParallelCallback) => {
+                    document.getData("document", {
+                        id: { value: documents, condition: " IN " }
                     }, {}, (e) => {
                         if (e.status) {
-                            parallelCallback(null, e.data)
+                            documentParallelCallback(null, e.data)
                         } else {
-                            parallelCallback(e.error.sqlMessage)
+                            documentParallelCallback(e.error.sqlMessage)
                         }
                     });
                 },
-                documents: (parallelCallback) => {
-                    let documents = _(c.data)
-                        .filter((o) => { return o.documents != null || o.documents != "" })
-                        .map((o) => { return JSON.parse(o.documents) })
-                        .flattenDeep()
-                        .uniq()
-                        .value();
-
-                    async.parallel({
-                        documentData: (documentParallelCallback) => {
-                            document.getData("document", {
-                                id: { value: documents, condition: " IN " }
-                            }, {}, (e) => {
-                                if (e.status) {
-                                    documentParallelCallback(null, e.data)
-                                } else {
-                                    documentParallelCallback(e.error.sqlMessage)
-                                }
-                            });
-                        },
-                        tags: (documentParallelCallback) => {
-                            tag.getData("tag", {
-                                tagTypeId: { value: documents, condition: " IN " },
-                                linkType: "task",
-                                linkId: { value: _.map((c.data), (o) => { return o.taskId }), condition: " IN " },
-                            }, {}, (e) => {
-                                if (e.status) {
-                                    documentParallelCallback(null, e.data)
-                                } else {
-                                    documentParallelCallback(e.error.sqlMessage)
-                                }
-                            });
-                        }
-                    }, (err, result) => {
-                        if (err != null) {
-                            parallelCallback(err);
+                tags: (documentParallelCallback) => {
+                    tag.getData("tag", {
+                        tagTypeId: { value: documents, condition: " IN " },
+                        linkType: "task",
+                        linkId: { value: _.map((c.data), (o) => { return o.taskId }), condition: " IN " },
+                    }, {}, (e) => {
+                        if (e.status) {
+                            documentParallelCallback(null, e.data)
                         } else {
-                            let documentList = _(result.documentData)
-                                .map((o) => {
-                                    return {
-                                        id: o.id,
-                                        name: o.name,
-                                        origin: o.origin,
-                                        uploadedBy: o.uploadedBy,
-                                        status: o.status,
-                                        tags: JSON.stringify(_(result.tags)
-                                            .filter((tag) => { return tag.tagTypeId == o.id })
-                                            .map((tag) => { return { value: tag.linkType + "-" + tag.linkId } })),
-                                        type: o.type
-                                    }
-                                })
-                                .value();
-                            parallelCallback(null, documentList)
+                            documentParallelCallback(e.error.sqlMessage)
                         }
-                    })
+                    });
                 }
             }, (err, result) => {
                 if (err != null) {
                     socket.emit("RETURN_ERROR_MESSAGE", { message: "Error Fetching checklist data." })
                 } else {
+                    const documentList = _(result.documentData)
+                        .map((o) => {
+                            return {
+                                id: o.id,
+                                name: o.name,
+                                origin: o.origin,
+                                uploadedBy: o.uploadedBy,
+                                status: o.status,
+                                tags: JSON.stringify(_(result.tags)
+                                    .filter((tag) => { return tag.tagTypeId == o.id })
+                                    .map((tag) => { return { value: tag.linkType + "-" + tag.linkId } })),
+                                type: o.type
+                            }
+                        })
+                        .value();
+
                     const resultList = _.map(c.data, (checklist) => {
-                        const checkListTypes = _(result.types).filter((o) => { return o.checklistId == checklist.id })
-                            .map((o) => { return { value: o.type } })
-                            .value();
-                        const documents = (checklist.documents != null || checklist.documents != "") ?
-                            _(result.documents).filter((doc) => {
+                        const documents = (checklist.documents != null && checklist.documents != "") ?
+                            _(documentList).filter((doc) => {
                                 return _.findIndex(JSON.parse(checklist.documents), (o) => { return o == doc.id }) >= 0
                             })
                                 .map((o) => { return { ...(_.omit(o, ['id'])), project: checklist.task_projectId } })
                                 .value()
                             : []
-                        return { ...checklist, types: checkListTypes, documents }
+                        return { ...checklist, documents }
                     })
                     socket.emit("FRONT_CHECK_LIST", resultList);
                 }
-            });
+            })
         });
     })
 
@@ -195,154 +170,71 @@ var init = exports.init = (socket) => {
                 nextThen(result, JSON.stringify(documentIds))
             }).then((nextThen, result, documentIds) => {
                 let taskCheckList = global.initModel("task_checklist");
-                let taskCheckListType = global.initModel("checklist_type");
 
                 if (typeof d.data.id != "undefined" && d.data.id != "") {
-                    taskCheckList.putData("task_checklist", d.data, { id: d.data.id }, (c) => {
+                    taskCheckList.putData("task_checklist", { ...d.data, documents: documentIds }, { id: d.data.id }, (c) => {
                         if (c.status) {
                             taskCheckList.getData("task_checklist", { id: d.data.id }, {}, (c) => {
-                                let taskDetails = c.data[0];
+                                let taskCheckListDetails = c.data[0];
 
-                                async.parallel({
-                                    checklist: (parallelCallback) => {
-                                        taskCheckListType.deleteData("checklist_type", { checklistId: d.data.id }, (res) => {
-                                            if (res.status) {
-                                                taskCheckList.putData("task_checklist", { ...d.data, documents: documentIds }, { id: d.data.id }, (c) => {
-                                                    if ((d.data.types).length > 0) {
-                                                        const checkListType = _.map(d.data.types, (o) => {
-                                                            return new Promise((resolve, reject) => {
-                                                                taskCheckListType.postData("checklist_type", { type: o.value, checklistId: d.data.id }, (res) => {
-                                                                    if (res.status) {
-                                                                        resolve(res);
-                                                                    } else {
-                                                                        reject(res.error.sqlMessage);
-                                                                    }
-                                                                });
-                                                            });
-                                                        });
+                                if (d.data.isPeriodicTask == 1) {
+                                    let checkListPeriodId = (d.data.periodChecklist != null) ? d.data.periodChecklist : d.data.id;
 
-                                                        Promise.all(checkListType).then((values) => {
-                                                            taskCheckList.getData("task_checklist", { id: d.data.id }, {}, (e) => {
-                                                                parallelCallback(null, e.data[0]);
-                                                            });
-                                                        }).catch((err) => {
-                                                            socket.emit("RETURN_ERROR_MESSAGE", { message: "Error in updating checklist." });
-                                                        });
-
-                                                    } else {
-                                                        taskCheckList.getData("task_checklist", { id: d.data.id }, {}, (e) => {
-                                                            parallelCallback(null, e.data[0])
-                                                        })
-                                                    }
-                                                });
-                                            } else {
-                                                parallelCallback(res.error.sqlMessage);
-                                            }
-                                        });
-                                    },
-                                    periodic: (parallelCallback) => {
-                                        if (d.data.isPeriodicTask == 1) {
-                                            let checkListPeriodId = (d.data.periodChecklist != null) ? d.data.periodChecklist : d.data.id;
-                                            task.getData("task", {
-                                                periodTask: d.data.periodTask,
-                                                dueDate: { value: moment(d.data.taskDueDate).format('YYYY-MM-DD HH:mm:ss'), condition: " > " }
-                                            }, {}, (e) => {
-                                                const taskPromise = _.map(e.data, (task) => {
-                                                    return new Promise((resolve, reject) => {
-                                                        taskCheckList.putData("task_checklist", _.omit(d.data, ['id', 'taskId', 'periodChecklist']), { periodChecklist: checkListPeriodId, taskId: task.id }, (c) => {
-                                                            taskCheckList.getData("task_checklist", { periodChecklist: checkListPeriodId, taskId: task.id }, {}, (e) => {
-                                                                taskCheckListType.deleteData("checklist_type", { checklistId: e.data[0].id }, (res) => {
-                                                                    if ((d.data.types).length > 0) {
-                                                                        async.map(d.data.types, (o, mapCallback) => {
-                                                                            taskCheckListType.postData("checklist_type", { type: o.value, checklistId: e.data[0].id }, (res) => {
-                                                                                mapCallback(null);
-                                                                            });
-                                                                        }, (err, res) => {
-                                                                            resolve(c);
-                                                                        });
-                                                                    } else {
-                                                                        resolve(c);
-                                                                    }
-                                                                });
-                                                            });
-                                                        });
+                                    task.getData("task", {
+                                        periodTask: d.data.periodTask,
+                                        dueDate: { value: moment(d.data.taskDueDate).format('YYYY-MM-DD HH:mm:ss'), condition: " > " }
+                                    }, {}, (e) => {
+                                        const taskPromise = _.map(e.data, (task) => {
+                                            return new Promise((resolve, reject) => {
+                                                taskCheckList.putData("task_checklist", _.omit(d.data, ['id', 'taskId', 'periodChecklist']), { periodChecklist: checkListPeriodId, taskId: task.id }, (c) => {
+                                                    taskCheckList.getData("task_checklist", { periodChecklist: checkListPeriodId, taskId: task.id }, {}, (e) => {
+                                                        resolve(c);
                                                     });
                                                 });
-
-                                                Promise.all(taskPromise).then((values) => {
-                                                    parallelCallback(null, values);
-                                                }).catch((err) => {
-                                                    socket.emit("RETURN_ERROR_MESSAGE", { message: "Error in updating checklist." });
-                                                });
-
                                             });
-                                        } else {
-                                            parallelCallback(null, "");
-                                        }
-                                    }
-                                }, (error, data) => {
-                                    socket.emit("FRONT_UPDATE_CHECK_LIST", { ...data.checklist, types: d.data.types, completed: 0, documents: d.documents })
-                                });
+                                        });
+                                        Promise.all(taskPromise).then((values) => {
+                                            socket.emit("FRONT_UPDATE_CHECK_LIST", { ...taskCheckListDetails, completed: 0, documents: d.documents })
+                                        }).catch((err) => {
+                                            socket.emit("RETURN_ERROR_MESSAGE", { message: "Error in updating checklist." });
+                                        });
+                                    });
+                                } else {
+                                    socket.emit("FRONT_UPDATE_CHECK_LIST", { ...taskCheckListDetails, completed: 0, documents: d.documents })
+                                }
                             });
                         } else {
-                            socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage })
+                            socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage });
                         }
                     });
                 } else {
-                    taskCheckList.postData("task_checklist", { description: d.data.description, taskId: d.data.taskId, documents: documentIds, createdBy: d.data.createdBy }, (data) => {
+                    taskCheckList.postData("task_checklist", { description: d.data.description, isDocument: d.data.isDocument, taskId: d.data.taskId, documents: documentIds, createdBy: d.data.createdBy }, (data) => {
                         if (data.status) {
                             taskCheckList.getData("task_checklist", { id: data.id }, {}, (c) => {
                                 let taskDetails = c.data[0];
-                                async.parallel({
-                                    types: (parallelCallback) => {
-                                        if ((d.data.types).length > 0) {
-                                            async.map(d.data.types, (o, mapCallback) => {
-                                                taskCheckListType.postData("checklist_type", { type: o.value, checklistId: data.id }, (res) => {
-                                                    mapCallback(null);
-                                                });
-                                            }, (err, res) => {
-                                                parallelCallback(null, res);
-                                            });
-                                        } else {
-                                            parallelCallback(null, "");
-                                        }
-                                    },
-                                    periodic: (parallelCallback) => {
-                                        if (d.data.isPeriodicTask == 1) {
-                                            task.getData("task", {
-                                                periodTask: d.data.periodTask,
-                                                dueDate: { value: moment(d.data.taskDueDate).format('YYYY-MM-DD HH:mm:ss'), condition: " > " }
-                                            }, {}, (e) => {
-                                                const taskPromise = _.map(e.data, (o) => {
-                                                    return new Promise((resolve, reject) => {
-                                                        taskCheckList.postData("task_checklist", { description: d.data.description, taskId: o.id, createdBy: d.data.createdBy, periodChecklist: taskDetails.id }, (data) => {
-                                                            if ((d.data.types).length > 0) {
-                                                                async.map(d.data.types, (o, mapCallback) => {
-                                                                    taskCheckListType.postData("checklist_type", { type: o.value, checklistId: data.id }, (res) => {
-                                                                        mapCallback(null);
-                                                                    });
-                                                                }, (err, res) => {
-                                                                    resolve(res);
-                                                                });
-                                                            } else {
-                                                                resolve(data);
-                                                            }
-                                                        });
-                                                    });
-                                                });
 
-                                                Promise.all(taskPromise).then((values) => {
-                                                    parallelCallback(null, values);
+                                if (d.data.isPeriodicTask == 1) {
+                                    task.getData("task", {
+                                        periodTask: d.data.periodTask,
+                                        dueDate: { value: moment(d.data.taskDueDate).format('YYYY-MM-DD HH:mm:ss'), condition: " > " }
+                                    }, {}, (e) => {
+                                        const taskPromise = _.map(e.data, (o) => {
+                                            return new Promise((resolve, reject) => {
+                                                taskCheckList.postData("task_checklist", { description: d.data.description, isDocument: d.data.isDocument, taskId: o.id, createdBy: d.data.createdBy, periodChecklist: taskDetails.id }, (data) => {
+                                                    resolve(data);
                                                 });
                                             });
-                                        } else {
-                                            parallelCallback(null, "");
-                                        }
-                                    }
-                                }, (err, res) => {
+                                        });
+
+                                        Promise.all(taskPromise).then((values) => {
+                                            socket.emit("FRONT_DOCUMENT_ADD", result);
+                                            socket.emit("FRONT_SAVE_CHECK_LIST", { ...taskDetails, id: data.id, completed: 0, documents: d.documents, types: d.data.types });
+                                        });
+                                    });
+                                } else {
                                     socket.emit("FRONT_DOCUMENT_ADD", result);
                                     socket.emit("FRONT_SAVE_CHECK_LIST", { ...taskDetails, id: data.id, completed: 0, documents: d.documents, types: d.data.types });
-                                });
+                                }
                             });
                         } else {
                             if (data.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: data.error.sqlMessage }) }
@@ -352,12 +244,11 @@ var init = exports.init = (socket) => {
             });
         } else {
             let taskCheckList = global.initModel("task_checklist");
-            let taskCheckListType = global.initModel("checklist_type");
             let task = global.initModel("task");
 
             if (typeof d.data.id != "undefined" && d.data.id != "") {
                 if (typeof d.data.completed != "undefined") {
-                    taskCheckList.putData("task_checklist", d.data, { id: d.data.id }, (data) => {
+                    taskCheckList.putData("task_checklist", { ...d.data }, { id: d.data.id }, (data) => {
                         taskCheckList.getData("task_checklist", { id: d.data.id }, {}, (c) => {
                             socket.emit("FRONT_UPDATE_CHECK_LIST", { ...c.data[0], action: "complete" })
                         })
@@ -365,39 +256,10 @@ var init = exports.init = (socket) => {
                 } else {
                     async.parallel({
                         checklist: (parallelCallback) => {
-                            taskCheckListType.deleteData("checklist_type", { checklistId: d.data.id }, (res) => {
-                                if (res.status) {
-                                    taskCheckList.putData("task_checklist", d.data, { id: d.data.id }, (c) => {
-                                        if ((d.data.types).length > 0) {
-                                            const checkListType = _.map(d.data.types, (o) => {
-                                                return new Promise((resolve, reject) => {
-                                                    taskCheckListType.postData("checklist_type", { type: o.value, checklistId: d.data.id }, (res) => {
-                                                        if (res.status) {
-                                                            resolve(res);
-                                                        } else {
-                                                            reject(res.error.sqlMessage);
-                                                        }
-                                                    });
-                                                });
-                                            });
-
-                                            Promise.all(checkListType).then((values) => {
-                                                taskCheckList.getData("task_checklist", { id: d.data.id }, {}, (e) => {
-                                                    parallelCallback(null, e.data[0]);
-                                                });
-                                            }).catch((err) => {
-                                                socket.emit("RETURN_ERROR_MESSAGE", { message: "Error in updating checklist." });
-                                            });
-
-                                        } else {
-                                            taskCheckList.getData("task_checklist", { id: d.data.id }, {}, (e) => {
-                                                parallelCallback(null, e.data[0])
-                                            })
-                                        }
-                                    });
-                                } else {
-                                    parallelCallback(res.error.sqlMessage);
-                                }
+                            taskCheckList.putData("task_checklist", { ...d.data, documents: "" }, { id: d.data.id }, (c) => {
+                                taskCheckList.getData("task_checklist", { id: d.data.id }, {}, (e) => {
+                                    parallelCallback(null, e.data[0]);
+                                });
                             });
                         },
                         periodic: (parallelCallback) => {
@@ -411,21 +273,7 @@ var init = exports.init = (socket) => {
                                     const taskPromise = _.map(e.data, (task) => {
                                         return new Promise((resolve, reject) => {
                                             taskCheckList.putData("task_checklist", _.omit(d.data, ['id', 'taskId', 'periodChecklist']), { periodChecklist: checkListPeriodId, taskId: task.id }, (c) => {
-                                                taskCheckList.getData("task_checklist", { periodChecklist: checkListPeriodId, taskId: task.id }, {}, (e) => {
-                                                    taskCheckListType.deleteData("checklist_type", { checklistId: e.data[0].id }, (res) => {
-                                                        if ((d.data.types).length > 0) {
-                                                            async.map(d.data.types, (o, mapCallback) => {
-                                                                taskCheckListType.postData("checklist_type", { type: o.value, checklistId: e.data[0].id }, (res) => {
-                                                                    mapCallback(null);
-                                                                });
-                                                            }, (err, res) => {
-                                                                resolve(c);
-                                                            });
-                                                        } else {
-                                                            resolve(c);
-                                                        }
-                                                    });
-                                                });
+                                                resolve(c);
                                             });
                                         });
                                     });
@@ -446,59 +294,31 @@ var init = exports.init = (socket) => {
                     })
                 }
             } else {
-                taskCheckList.postData("task_checklist", { description: d.data.description, taskId: d.data.taskId, createdBy: d.data.createdBy }, (data) => {
+                taskCheckList.postData("task_checklist", { description: d.data.description, isDocument: d.data.isDocument, taskId: d.data.taskId, createdBy: d.data.createdBy }, (data) => {
                     if (data.status) {
                         taskCheckList.getData("task_checklist", { id: data.id }, {}, (c) => {
-                            let taskDetails = c.data[0];
-                            async.parallel({
-                                types: (parallelCallback) => {
-                                    if ((d.data.types).length > 0) {
-                                        async.map(d.data.types, (o, mapCallback) => {
-                                            taskCheckListType.postData("checklist_type", { type: o.value, checklistId: data.id }, (res) => {
-                                                mapCallback(null);
-                                            });
-                                        }, (err, res) => {
-                                            parallelCallback(null, res);
-                                        });
-                                    } else {
-                                        parallelCallback(null, "");
-                                    }
-                                },
-                                periodic: (parallelCallback) => {
-                                    if (d.data.isPeriodicTask == 1) {
-                                        task.getData("task", {
-                                            periodTask: d.data.periodTask,
-                                            dueDate: { value: moment(d.data.taskDueDate).format('YYYY-MM-DD HH:mm:ss'), condition: " > " }
-                                        }, {}, (e) => {
-                                            const taskPromise = _.map(e.data, (o) => {
-                                                return new Promise((resolve, reject) => {
-                                                    taskCheckList.postData("task_checklist", { description: d.data.description, taskId: o.id, periodChecklist: data.id, createdBy: d.data.createdBy }, (data) => {
-                                                        if ((d.data.types).length > 0) {
-                                                            async.map(d.data.types, (o, mapCallback) => {
-                                                                taskCheckListType.postData("checklist_type", { type: o.value, checklistId: data.id }, (res) => {
-                                                                    mapCallback(null);
-                                                                });
-                                                            }, (err, res) => {
-                                                                resolve(res);
-                                                            });
-                                                        } else {
-                                                            resolve(data);
-                                                        }
-                                                    });
-                                                });
-                                            });
+                            let taskCheckListDetails = c.data[0];
 
-                                            Promise.all(taskPromise).then((values) => {
-                                                parallelCallback(null, values);
+                            if (d.data.isPeriodicTask == 1) {
+                                task.getData("task", {
+                                    periodTask: d.data.periodTask,
+                                    dueDate: { value: moment(d.data.taskDueDate).format('YYYY-MM-DD HH:mm:ss'), condition: " > " }
+                                }, {}, (e) => {
+                                    const taskPromise = _.map(e.data, (o) => {
+                                        return new Promise((resolve, reject) => {
+                                            taskCheckList.postData("task_checklist", { description: d.data.description, isDocument: d.data.isDocument, taskId: o.id, periodChecklist: data.id, createdBy: d.data.createdBy }, (data) => {
+                                                resolve(data);
                                             });
                                         });
-                                    } else {
-                                        parallelCallback(null, "");
-                                    }
-                                }
-                            }, (err, result) => {
-                                socket.emit("FRONT_SAVE_CHECK_LIST", { ...taskDetails, id: data.id, completed: 0, types: d.data.types })
-                            });
+                                    });
+
+                                    Promise.all(taskPromise).then((values) => {
+                                        socket.emit("FRONT_SAVE_CHECK_LIST", { ...taskCheckListDetails, id: data.id, completed: 0, types: d.data.types })
+                                    });
+                                });
+                            } else {
+                                socket.emit("FRONT_SAVE_CHECK_LIST", { ...taskCheckListDetails, id: data.id, completed: 0, types: d.data.types })
+                            }
                         });
                     } else {
                         if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: data.error.sqlMessage }) }
@@ -509,13 +329,38 @@ var init = exports.init = (socket) => {
     });
 
     socket.on("DELETE_CHECKLIST", (d) => {
+        let task = global.initModel("task");
         let taskCheckList = global.initModel("task_checklist");
-        let taskCheckListType = global.initModel("checklist_type");
 
-        taskCheckList.deleteData("task_checklist", { id: d.data }, (c) => {
-            taskCheckListType.deleteData("checklist_type", { checklistId: d.data }, (res) => {
-                socket.emit("FRONT_CHECKLIST_DELETED", { id: d.data })
+        taskCheckList.getData("task_checklist", { id: d.data }, {}, (c) => {
+            const periodChecklist = (c.data[0].periodChecklist != null) ? c.data[0].periodChecklist : c.data[0].id;
+            const checklistTaskId = c.data[0].taskId;
+
+            taskCheckList.getData("task_checklist", {
+                periodChecklist: periodChecklist,
+                taskId: { value: checklistTaskId, condition: " > " }
+            }, {}, (e) => {
+                taskCheckList.deleteData("task_checklist", { id: d.data }, (c) => {
+                    if ((e.data.length > 0)) {
+                        let checklistDeletePromises = _.map(e.data, (checklistObj, index) => {
+                            return new Promise((resolve, reject) => {
+                                taskCheckList.deleteData("task_checklist", { id: checklistObj.id }, (c) => {
+                                    resolve(c);
+                                });
+                            });
+                        });
+
+                        Promise.all(checklistDeletePromises).then((values) => {
+                            socket.emit("FRONT_CHECKLIST_DELETED", { id: d.data });
+                        }).catch((err) => {
+                            socket.emit("RETURN_ERROR_MESSAGE", { message: "Error in updating checklist." });
+                        });
+
+                    } else {
+                        socket.emit("FRONT_CHECKLIST_DELETED", { id: d.data });
+                    }
+                });
             });
-        });
+        })
     });
 }

@@ -46,10 +46,10 @@ export default class UploadModal extends React.Component {
         axios({
             method: 'post',
             url: '/api/document/upload',
-            data: data ,
-            params : { uploadType : 'form' , type : 'upload' },
+            data: data,
+            params: { uploadType: 'form', type: 'upload' },
             responseType: 'json'
-        }).then((response)=>{
+        }).then((response) => {
             response.data.map(e => {
                 tempData.push({
                     name: e.filename, origin: e.origin,
@@ -57,10 +57,10 @@ export default class UploadModal extends React.Component {
                     status: "new",
                     tags: JSON.stringify([{ value: `task-${task.Selected.id}`, label: task.Selected.Task }]),
                     type: task.ModalType == "checklist" ? "attachment" : "task",
-                    isCompleted : 1
+                    isCompleted: 1
                 })
             })
-         
+
             if (task.ModalType == "checklist") {
                 dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...checklist.Selected, documents: tempData } })
                 this.setState({ tempData: [], loading: false, upload: false })
@@ -68,7 +68,7 @@ export default class UploadModal extends React.Component {
             } else {
                 this.setState({ tempData: tempData, loading: false, upload: false })
             }
-        }).catch((error)=>{
+        }).catch((error) => {
             this.setState({ loading: false, upload: false })
             showToast("error", "Failed to upload. Please try again.")
         });
@@ -86,13 +86,8 @@ export default class UploadModal extends React.Component {
     closeModal() {
         let { task, dispatch, checklist } = this.props;
         if (task.ModalType == "checklist") {
-            if (typeof checklist.Selected.documents != "undefined") {
-                $(`#uploadFileModal`).modal("hide");
-            } else {
-                let tempTypes = checklist.Selected.types.filter(e => { return e.value != "Document" })
-                dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...checklist.Selected, types: tempTypes } })
-                $(`#uploadFileModal`).modal("hide");
-            }
+            dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...checklist.Selected, isDocument: 0 } })
+            $(`#uploadFileModal`).modal("hide");
         } else {
             $(`#uploadFileModal`).modal("hide");
         }
