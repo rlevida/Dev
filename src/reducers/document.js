@@ -7,7 +7,8 @@ export default function reducer(state={
     DocumentToMove : {},
     DocumentToMoveType : "",
     Loading : true,
-    DocumentToPrint :""
+    DocumentToPrint :"",
+    PrinterList : []
 },action){
     switch (action.type) {
 
@@ -52,6 +53,9 @@ export default function reducer(state={
         }
         case "SET_DOCUMENT_TO_PRINT":{
             return {...state , DocumentToPrint : action.DocumentToPrint }
+        }
+        case "SET_PRINTER_LIST":{
+            return {...state , PrinterList : action.List }
         }
         //UPDATE
         case "UPDATE_DATA_DOCUMENT_LIST" : {

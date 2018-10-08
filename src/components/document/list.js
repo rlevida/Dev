@@ -7,6 +7,7 @@ import DocumentNew from "./documentNew";
 import DocumentLibrary from "./documentLibrary";
 import axios from "axios";
 import parallel from 'async/parallel';
+import PrintModal from './documentPrinterModal'
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -192,7 +193,7 @@ export default class List extends React.Component {
                         <DocumentLibrary/>
                     </div>
                 </div>
-
+                <PrintModal/>
                 <div class="modal fade" id="uploadFileModal" tabIndex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">

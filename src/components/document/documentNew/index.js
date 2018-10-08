@@ -1,6 +1,6 @@
 import React from "react";
 import { DropDown , Loading } from "../../../globalComponents"
-import { getFilePathExtension , putData , deleteData ,  showToast, postData } from '../../../globalFunction'
+import { getFilePathExtension , putData , deleteData ,  showToast, postData ,getData } from '../../../globalFunction'
 import moment from 'moment'
 import Tooltip from "react-tooltip";
 
@@ -201,12 +201,13 @@ export default class DocumentNew extends React.Component {
         window.open(encodeURI(`/api/downloadFolder?data=${JSON.stringify(fileList)}&folderName=${folder.name}`));
     }
 
-    printDocument(file){
-        let { dispatch } = this.props;
-        dispatch({type:"SET_DOCUMENT_TO_PRINT", DocumentToPrint: encodeURI(`/api/printDocument?fileName=${file.name}&fileOrigin=${file.origin}`)})
-        setTimeout(()=>{
-            document.getElementById('printDocument').contentWindow.print()
-        },3000)
+    printDocument(data){
+        let { dispatch } = this.props
+        getData(`/api/document/getPrinterList`,{},(c) => {
+            dispatch({ type : "SET_PRINTER_LIST" , List: c.data })
+            dispatch({ type : "SET_DOCUMENT_SELECTED" , Selected: data })
+            $(`#printerModal`).modal("show")
+        })
     }
 
     downloadDocument(document){

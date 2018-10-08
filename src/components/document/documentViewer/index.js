@@ -71,12 +71,13 @@ export default class DocumentViewerComponent extends React.Component {
             }
     }
 
-    printDocument(file){
-        let { dispatch } = this.props;
-        dispatch({type:"SET_DOCUMENT_TO_PRINT", DocumentToPrint: encodeURI(`/api/printDocument?fileName=${file.name}&fileOrigin=${file.origin}`)})
-        setTimeout(()=>{
-            document.getElementById('printDocument').contentWindow.print()
-        },3000)
+    printDocument(data){
+        let { dispatch } = this.props
+        getData(`/api/document/getPrinterList`,{},(c) => {
+            dispatch({ type : "SET_PRINTER_LIST" , List: c.data })
+            dispatch({ type : "SET_DOCUMENT_SELECTED" , Selected: data })
+            $(`#printerModal`).modal("show")
+        })
     }
 
     downloadDocument(document){

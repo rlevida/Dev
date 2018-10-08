@@ -1,6 +1,8 @@
 const sequence = require("sequence").Sequence,
     toPdf = require("office-to-pdf"),
-    mime = require('mime-types')
+    mime = require('mime-types'),
+    path = require('path'),
+    Printer = require('node-printer');
 
 const dbName = "document";
 var {
@@ -153,52 +155,8 @@ exports.get = {
             }
         })
     },
-    getDocumentToPrint: (req,cb) => {
-        let fileName = req.query.fileName
-        let originName = req.query.fileOrigin
-        let fs = global.initRequire('fs'), AWS = global.initAWS();
-        let fileStream = fs.createWriteStream( `${originName}` ) ;
-        let s3 = new AWS.S3();
-
-        let promise = new Promise(function(resolve,reject){
-            s3.getObject({
-                Bucket: global.AWSBucket,
-                Key: global.environment + "/upload/" + fileName,
-            }, (err,data) => {
-                if(err){
-                    console.log("Error in Uploading to AWS. [" + err + "]");
-                }else{
-                    fileStream.write(data.Body)
-                    resolve(originName)
-                    fileStream.end()
-
-                }
-            });
-        })
-        
-        promise.then((data)=>{
-            var wordBuffer = fs.readFileSync(`${__dirname}/../${data}`)
-            toPdf(wordBuffer).then(
-                (pdfBuffer) => {
-                    let pdfdata = new Promise(function(resolve,reject){
-                        let convertedData = fs.writeFileSync(`./${data}.pdf`, pdfBuffer)
-                            resolve(convertedData)
-                    })
-
-                    pdfdata.then((newpdf)=>{
-                        let file = fs.readFileSync(`${__dirname}/../${data}.pdf`);
-                        let fileContentType = mime.contentType(`${data}.pdf`)
-                            // res.contentType(fileContentType);
-                            fs.unlink(`${__dirname}/../${data}`,(t)=>{})
-                            fs.unlink(`./${data}.pdf`,(t)=>{})
-                            cb({ status: true , data : file , contentType: fileContentType })
-                            // res.send(file);
-                    })
-                }, (err) => {
-                console.log(err)
-                }
-            )
-        })
+    getPrinterList: (req,cb) => {
+        cb({status:200 , data : Printer.list() })
     }
 }
 
@@ -396,6 +354,87 @@ exports.post = {
         // });
         // parse the incoming request containing the form data
         form.parse(req);
+    },
+    printDocument : (req,cb) => {
+        let fileName = req.body.fileName
+        let originName = req.body.fileOrigin
+        let printerName = req.body.printer
+        let fs = global.initRequire('fs'), AWS = global.initAWS();
+        let fileStream = fs.createWriteStream( `${originName}` ) ;
+        let s3 = new AWS.S3();
+
+        let promise = new Promise(function(resolve,reject){
+            s3.getObject({
+                Bucket: global.AWSBucket,
+                Key: global.environment + "/upload/" + fileName,
+            }, (err,data) => {
+                if(err){
+                    console.log("Error in Uploading to AWS. [" + err + "]");
+                }else{
+                    fileStream.write(data.Body)
+                    resolve(originName)
+                    fileStream.end()
+    
+                }
+            });
+        })
+        
+        promise.then((data)=>{
+            if(mime.contentType(path.extname(`${data}`)) == "application/pdf"){
+                let file = fs.readFileSync(`${__dirname}/../${data}`);
+                let printer = new Printer(printerName);
+                let jobFromBuffer = printer.printBuffer(file);
+
+                try{
+                    jobFromBuffer.once('sent', function() {
+                        jobFromBuffer.on('completed', function() {
+                            console.log('Job ' + jobFromBuffer.identifier + 'has been printed');
+                            fs.unlink(`${__dirname}/../${data}`,(t)=>{})
+                            fs.unlink(`./${data}.pdf`,(t)=>{})
+                            jobFromBuffer.removeAllListeners();
+                            cb({ status: true , data : ""})
+                        });
+                    });
+                }catch( err ){
+                    jobFromFile.cancel();
+                        cb({ status : false , error : err })
+                }
+
+            }else{
+                var wordBuffer = fs.readFileSync(`${__dirname}/../${data}`)
+                toPdf(wordBuffer).then(
+                    (pdfBuffer) => {
+                        let pdfdata = new Promise(function(resolve,reject){
+                            let convertedData = fs.writeFileSync(`./${data}.pdf`, pdfBuffer)
+                                resolve(convertedData)
+                        })
+
+                        pdfdata.then((newpdf)=>{
+                            let file = fs.readFileSync(`${__dirname}/../${data}.pdf`);
+                            let printer = new Printer(printerName);
+                            let jobFromBuffer = printer.printBuffer(file);
+
+                                try{
+                                    jobFromBuffer.once('sent', function() {
+                                        jobFromBuffer.on('completed', function() {
+                                            console.log('Job ' + jobFromBuffer.identifier + 'has been printed');
+                                            fs.unlink(`${__dirname}/../${data}`,(t)=>{})
+                                            fs.unlink(`./${data}.pdf`,(t)=>{})
+                                            jobFromBuffer.removeAllListeners();
+                                            cb({ status: true , data : ""})
+                                        });
+                                    });
+                                }catch( err ){
+                                    jobFromFile.cancel();
+                                    cb({ status : false , error : err })
+                                }
+                        })
+                    }, (err) => {
+                        console.log(err)
+                    }
+                )
+            }
+        })
     }
 }
 
