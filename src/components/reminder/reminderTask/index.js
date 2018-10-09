@@ -272,7 +272,7 @@ export default class ReminderTask extends React.Component {
         let { dispatch } = this.props;
 
         dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
-        dispatch({ type: "SET_CHECKLIST_SELECTED" , Selected: data })
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: data })
         $('#uploadFileModal').modal({
             backdrop: 'static',
             keyboard: false
@@ -474,60 +474,62 @@ export default class ReminderTask extends React.Component {
                                                         || loggedUser.data.userRole == 2
                                                         || project.Selected.projectManagerId == loggedUser.data.id
                                                         ? true : false
-                                                return (
-                                                    <div className={(isEditable || task.Selected.assignedById == loggedUser.data.id) ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}
-                                                    >
-                                                        {
-                                                            (isEditable || (task.Selected.assignedById == loggedUser.data.id)) &&
+
+                                                    return (
+                                                        <div className={(isEditable || task.Selected.assignedById == loggedUser.data.id) ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}>
+                                                            {
+                                                                (isEditable || (task.Selected.assignedById == loggedUser.data.id)) &&
                                                                 <div class="dropdown task-checklist-actions">
                                                                     <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                                     <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
-                                                                        { (o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                                                        {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
                                                                             <li>
                                                                                 <a onClick={() => { this.editChecklist(o) }}>Edit</a>
                                                                             </li>
                                                                         }
-                                                                        { (o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                                                        {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
                                                                             <li>
-                                                                                <a onClick={() => { socket.emit("DELETE_CHECKLIST", { data: o.id })}}>Delete</a>
+                                                                                <a onClick={() => { socket.emit("DELETE_CHECKLIST", { data: o.id }) }}>Delete</a>
                                                                             </li>
                                                                         }
-                                                                        { (task.Selected.assignedById == loggedUser.data.id) &&
+                                                                        {(task.Selected.assignedById == loggedUser.data.id) &&
                                                                             <li>
                                                                                 <a onClick={() => { socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } }) }}>
-                                                                                { (o.completed) ? "Unchecked" : "Check" }
+                                                                                    {(o.completed) ? "Unchecked" : "Check"}
                                                                                 </a>
                                                                             </li>
                                                                         }
-                                                                        { (Boolean(o.isDocument)) &&
+                                                                        {(Boolean(o.isDocument)) &&
                                                                             <li>
-                                                                                <a href="javascript:void(0)" onClick={()=> this.openCheckListUploadModal(o)} > Upload</a>
-                                                                            </li> 
+                                                                                <a href="javascript:void(0)" onClick={() => this.openCheckListUploadModal(o)} > Upload</a>
+                                                                            </li>
 
                                                                         }
                                                                     </ul>
                                                                 </div>
-                                                        }
-                                                        <p>{o.description}</p>
-                                                        <div id="checklist-action-wrapper">
-                                                            {
-                                                                _.map(o.types, (o, index) => {
-                                                                    return (
-                                                                        <p class="m0" key={index}><span class="label label-success">{o.value}</span></p>
-                                                                    )
-                                                                })
                                                             }
-                                                            {
-                                                                (o.documents != null) &&
-                                                                _.map(o.documents, (o, index) => {
-                                                                    return (
-                                                                        <p class="m0" key={index}><span class="label label-primary">{o.origin}</span></p>
-                                                                    )
-                                                                })
-                                                            }
-                                                            <p style={{ marginTop: 5, fontSize: 10 }}>
-                                                                <span>By : {o.users_firstName + ' ' + o.users_lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
-                                                            </p>
+                                                            <p>{o.description}</p>
+                                                            <div id="checklist-action-wrapper">
+                                                                {
+                                                                    (o.isDocument == 1) && <span class="label label-success">Document</span>
+                                                                }
+
+                                                                {
+                                                                    ((o.documents != null && o.documents != "") && (o.documents).length > 0) && <div class="mt5">
+                                                                        <p class="mb0">Documents:</p>
+                                                                        {
+                                                                            _.map(o.documents, (o, index) => {
+                                                                                return (
+                                                                                    <p class="ml15 mt0 m0" key={index}>{o.origin}</p>
+                                                                                )
+                                                                            })
+                                                                        }
+                                                                    </div>
+                                                                }
+                                                                <p style={{ marginTop: 5, fontSize: 10 }}>
+                                                                    <span>By : {o.users_firstName + ' ' + o.users_lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
+                                                                </p>
+                                                            </div>
                                                         </div>
                                                     )
                                                 })
@@ -536,7 +538,7 @@ export default class ReminderTask extends React.Component {
                                     }
                                     {(task.Selected.isActive > 0) &&
                                         <div class="row" style={{ paddingLeft: 15 }}>
-                                            <div class="col-md-12">
+                                            <div class="col-md-12 pdr0">
                                                 {
                                                     ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
                                                     <div class="form-group" style={{ marginBottom: 10 }}>
@@ -550,7 +552,7 @@ export default class ReminderTask extends React.Component {
                                                         />
                                                         <label class="checkbox-inline pd0" style={{ fontWeight: "bold" }}>
                                                             Document ?
-                                                        <input type="checkbox"
+                                                    <input type="checkbox"
                                                                 checked={checklist.Selected.isDocument ? true : false}
                                                                 onChange={() => { }}
                                                                 onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
@@ -561,7 +563,6 @@ export default class ReminderTask extends React.Component {
                                             </div>
                                         </div>
                                     }
-
                                     {(typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents != "" && checklist.Selected.documents != null) &&
                                         <div class="row" style={{ marginLeft: 7, marginTop: 5 }}>
                                             <div class="col-md-12 pdr0">
@@ -586,7 +587,7 @@ export default class ReminderTask extends React.Component {
                                     }
 
                                     {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
-                                        <div class="row" style={{ paddingLeft: 22 }}>
+                                        <div class="row" style={{ paddingLeft: 15 }}>
                                             <div class="col-md-12 pdr0">
                                                 {
                                                     (checklist.Action != "Edit") ?
@@ -595,14 +596,14 @@ export default class ReminderTask extends React.Component {
                                                             onClick={this.addChecklist}
                                                         >
                                                             Add
-                                                        </a>
+                                                </a>
                                                         :
-                                                        <div class="checklist-actions">
-                                                            <a href="javascript:void(0);" class="btn btn-primary mt5" title="Save"
+                                                        <div>
+                                                            <a href="javascript:void(0);" class="btn btn-primary mt5 mr5" title="Save"
                                                                 onClick={this.saveChecklist}
                                                             >
                                                                 Save
-                                                        </a>
+                                                    </a>
                                                             <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
                                                                 onClick={() => {
                                                                     dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
@@ -610,7 +611,7 @@ export default class ReminderTask extends React.Component {
                                                                 }}
                                                             >
                                                                 Cancel
-                                                        </a>
+                                                    </a>
                                                         </div>
                                                 }
 

@@ -505,6 +505,27 @@ export default class ReminderTask extends React.Component {
                                                                 </div>
                                                             }
                                                             <p>{o.description}</p>
+                                                            <div id="checklist-action-wrapper">
+                                                                {
+                                                                    (o.isDocument == 1) && <span class="label label-success">Document</span>
+                                                                }
+
+                                                                {
+                                                                    ((o.documents != null && o.documents != "") && (o.documents).length > 0) && <div class="mt5">
+                                                                        <p class="mb0">Documents:</p>
+                                                                        {
+                                                                            _.map(o.documents, (o, index) => {
+                                                                                return (
+                                                                                    <p class="ml15 mt0 m0" key={index}>{o.origin}</p>
+                                                                                )
+                                                                            })
+                                                                        }
+                                                                    </div>
+                                                                }
+                                                                <p style={{ marginTop: 5, fontSize: 10 }}>
+                                                                    <span>By : {o.users_firstName + ' ' + o.users_lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
+                                                                </p>
+                                                            </div>
                                                         </div>
                                                     )
                                                 })
@@ -512,8 +533,8 @@ export default class ReminderTask extends React.Component {
                                         </div>
                                     }
                                     {(task.Selected.isActive > 0) &&
-                                        <div class="row mt10" style={{ paddingLeft: 15 }}>
-                                            <div class="col-md-12">
+                                        <div class="row" style={{ paddingLeft: 15 }}>
+                                            <div class="col-md-12 pdr0">
                                                 {
                                                     ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
                                                     <div class="form-group" style={{ marginBottom: 10 }}>
@@ -527,7 +548,7 @@ export default class ReminderTask extends React.Component {
                                                         />
                                                         <label class="checkbox-inline pd0" style={{ fontWeight: "bold" }}>
                                                             Document ?
-                                                        <input type="checkbox"
+                                                    <input type="checkbox"
                                                                 checked={checklist.Selected.isDocument ? true : false}
                                                                 onChange={() => { }}
                                                                 onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
@@ -563,7 +584,7 @@ export default class ReminderTask extends React.Component {
                                     }
 
                                     {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
-                                        <div class="row" style={{ paddingLeft: 22 }}>
+                                        <div class="row" style={{ paddingLeft: 15 }}>
                                             <div class="col-md-12 pdr0">
                                                 {
                                                     (checklist.Action != "Edit") ?
@@ -572,14 +593,14 @@ export default class ReminderTask extends React.Component {
                                                             onClick={this.addChecklist}
                                                         >
                                                             Add
-                                                        </a>
+                                                </a>
                                                         :
-                                                        <div class="checklist-actions">
-                                                            <a href="javascript:void(0);" class="btn btn-primary mt5" title="Save"
+                                                        <div>
+                                                            <a href="javascript:void(0);" class="btn btn-primary mt5 mr5" title="Save"
                                                                 onClick={this.saveChecklist}
                                                             >
                                                                 Save
-                                                        </a>
+                                                    </a>
                                                             <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
                                                                 onClick={() => {
                                                                     dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
@@ -587,7 +608,7 @@ export default class ReminderTask extends React.Component {
                                                                 }}
                                                             >
                                                                 Cancel
-                                                        </a>
+                                                    </a>
                                                         </div>
                                                 }
 

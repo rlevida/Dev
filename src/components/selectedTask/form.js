@@ -271,7 +271,7 @@ export default class FormComponent extends React.Component {
         let { dispatch } = this.props;
 
         dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
-        dispatch({ type: "SET_CHECKLIST_SELECTED" , Selected: data })
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: data })
         $('#uploadFileModal').modal({
             backdrop: 'static',
             keyboard: false
@@ -465,34 +465,34 @@ export default class FormComponent extends React.Component {
                                                 >
                                                     {
                                                         (isEditable || (task.Selected.assignedById == loggedUser.data.id)) &&
-                                                            <div class="dropdown task-checklist-actions">
-                                                                <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                                                <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
-                                                                    { (o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
-                                                                        <li>
-                                                                            <a onClick={() => { this.editChecklist(o) }}>Edit</a>
-                                                                        </li>
-                                                                    }
-                                                                    { (o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
-                                                                        <li>
-                                                                            <a onClick={() => { socket.emit("DELETE_CHECKLIST", { data: o.id })}}>Delete</a>
-                                                                        </li>
-                                                                    }
-                                                                    { (task.Selected.assignedById == loggedUser.data.id) &&
-                                                                        <li>
-                                                                            <a onClick={() => { socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } }) }}>
-                                                                            { (o.completed) ? "Unchecked" : "Check" }
-                                                                            </a>
-                                                                        </li>
-                                                                    }
-                                                                    { (Boolean(o.isDocument)) &&
-                                                                        <li>
-                                                                            <a href="javascript:void(0)" onClick={()=> this.openCheckListUploadModal(o)} > Upload</a>
-                                                                        </li> 
+                                                        <div class="dropdown task-checklist-actions">
+                                                            <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                                            <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
+                                                                {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                                                    <li>
+                                                                        <a onClick={() => { this.editChecklist(o) }}>Edit</a>
+                                                                    </li>
+                                                                }
+                                                                {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                                                    <li>
+                                                                        <a onClick={() => { socket.emit("DELETE_CHECKLIST", { data: o.id }) }}>Delete</a>
+                                                                    </li>
+                                                                }
+                                                                {(task.Selected.assignedById == loggedUser.data.id) &&
+                                                                    <li>
+                                                                        <a onClick={() => { socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } }) }}>
+                                                                            {(o.completed) ? "Unchecked" : "Check"}
+                                                                        </a>
+                                                                    </li>
+                                                                }
+                                                                {(Boolean(o.isDocument)) &&
+                                                                    <li>
+                                                                        <a href="javascript:void(0)" onClick={() => this.openCheckListUploadModal(o)} > Upload</a>
+                                                                    </li>
 
-                                                                    }
-                                                                </ul>
-                                                            </div>
+                                                                }
+                                                            </ul>
+                                                        </div>
                                                     }
 
                                                     <p>{o.description}</p>
@@ -524,7 +524,7 @@ export default class FormComponent extends React.Component {
                             }
                             {(task.Selected.isActive > 0) &&
                                 <div class="row" style={{ paddingLeft: 15 }}>
-                                    <div class="col-md-12">
+                                    <div class="col-md-12 pdr0">
                                         {
                                             ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
                                             <div class="form-group" style={{ marginBottom: 10 }}>
@@ -574,7 +574,7 @@ export default class FormComponent extends React.Component {
                             }
 
                             {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
-                                <div class="row" style={{ paddingLeft: 22 }}>
+                                <div class="row" style={{ paddingLeft: 15 }}>
                                     <div class="col-md-12 pdr0">
                                         {
                                             (checklist.Action != "Edit") ?
@@ -583,10 +583,10 @@ export default class FormComponent extends React.Component {
                                                     onClick={this.addChecklist}
                                                 >
                                                     Add
-                                                    </a>
+                                                </a>
                                                 :
-                                                <div class="checklist-actions">
-                                                    <a href="javascript:void(0);" class="btn btn-primary mt5" title="Save"
+                                                <div>
+                                                    <a href="javascript:void(0);" class="btn btn-primary mt5 mr5" title="Save"
                                                         onClick={this.saveChecklist}
                                                     >
                                                         Save
