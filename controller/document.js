@@ -359,7 +359,7 @@ exports.post = {
         let originName = req.body.fileOrigin
         let printerName = req.body.printer
         let fs = global.initRequire('fs'), AWS = global.initAWS();
-        let fileStream = fs.createWriteStream( `${originName}` ) ;
+        let fileStream = fs.createWriteStream( `${__dirname}/../public/temp/${originName}` ) ;
         let s3 = new AWS.S3();
 
         let promise = new Promise(function(resolve,reject){
@@ -380,60 +380,31 @@ exports.post = {
         
         promise.then((data)=>{
             if(mime.contentType(path.extname(`${data}`)) == "application/pdf"){
-                let file = fs.readFileSync(`${__dirname}/../${data}`);
-                let printer = new Printer(printerName);
-                let jobFromBuffer = printer.printBuffer(file);
-
-                try{
-                    jobFromBuffer.once('sent', function() {
-                        jobFromBuffer.on('completed', function() {
-                            console.log('Job ' + jobFromBuffer.identifier + 'has been printed');
-                            fs.unlink(`${__dirname}/../${data}`,(t)=>{})
-                            fs.unlink(`./${data}.pdf`,(t)=>{})
-                            jobFromBuffer.removeAllListeners();
-                            cb({ status: true , data : ""})
-                        });
-                    });
-                }catch( err ){
-                    jobFromFile.cancel();
-                        cb({ status : false , error : err })
-                }
-
+                cb({ status : true , data : `${data}` })
             }else{
-                var wordBuffer = fs.readFileSync(`${__dirname}/../${data}`)
+                var wordBuffer = fs.readFileSync(`${__dirname}/../public/temp/${data}`)
                 toPdf(wordBuffer).then(
                     (pdfBuffer) => {
                         let pdfdata = new Promise(function(resolve,reject){
-                            let convertedData = fs.writeFileSync(`./${data}.pdf`, pdfBuffer)
+                        let convertedData = fs.writeFileSync(`${__dirname}/../public/temp/${data}.pdf`, pdfBuffer)
                                 resolve(convertedData)
                         })
 
                         pdfdata.then((newpdf)=>{
-                            let file = fs.readFileSync(`${__dirname}/../${data}.pdf`);
-                            let printer = new Printer(printerName);
-                            let jobFromBuffer = printer.printBuffer(file);
-
-                                try{
-                                    jobFromBuffer.once('sent', function() {
-                                        jobFromBuffer.on('completed', function() {
-                                            console.log('Job ' + jobFromBuffer.identifier + 'has been printed');
-                                            fs.unlink(`${__dirname}/../${data}`,(t)=>{})
-                                            fs.unlink(`./${data}.pdf`,(t)=>{})
-                                            jobFromBuffer.removeAllListeners();
-                                            cb({ status: true , data : ""})
-                                        });
-                                    });
-                                }catch( err ){
-                                    jobFromFile.cancel();
-                                    cb({ status : false , error : err })
-                                }
+                            fs.unlink(`${__dirname}/../public/temp/${data}`,(t)=>{});
+                            cb({ status: true , data : `${data}.pdf` })
                         })
+
                     }, (err) => {
                         console.log(err)
                     }
                 )
             }
         })
+    },
+    removeTempFile: (req, cb) => {
+        let fs = global.initRequire('fs')
+            fs.unlink(`${__dirname}/../public/temp/${req.body.data}`,(t)=>{});
     }
 }
 
