@@ -176,13 +176,14 @@ export default class FormComponent extends React.Component {
             periodTask: (task.Selected.periodTask == null) ? task.Selected.id : task.Selected.periodTask,
             isPeriodicTask: task.Selected.periodic,
             taskDueDate: task.Selected.dueDate,
-            createdBy: loggedUser.data.id
+            createdBy: loggedUser.data.id,
+            isDocument: (typeof checklist.Selected.isDocument != "undefined" && checklist.Selected.isDocument != "") ? checklist.Selected.isDocument : 0
         };
 
-        if (_.filter(checklist.Selected.types, (e) => { return e.label == "Document" }).length > 0) {
-            if(checklist.Selected.documents.length > 0){
+        if (toBeSubmitted.isDocument == 1) {
+            if (checklist.Selected.documents.length > 0) {
                 socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted, documents: checklist.Selected.documents, project: project })
-            }else{
+            } else {
                 showToast("error", "One or more documents are missing.")
             }
         } else {
@@ -226,6 +227,14 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, checklist.Selected)
         Selected[name] = value;
         dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected });
+
+        if (name == "isDocument" && value == 1) {
+            dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
+            $('#uploadFileModal').modal({
+                backdrop: 'static',
+                keyboard: false
+            })
+        }
     }
 
     setDropDownMultiple(name, values) {
@@ -516,12 +525,12 @@ export default class FormComponent extends React.Component {
                                     }
                                 </div>
                             }
-                            {(task.Selected.isActive > 0) &&
-                                <div class="row mt10" style={{ paddingLeft: 22 }}>
-                                    <div class="col-md-8 pdr0">
+                           {(task.Selected.isActive > 0) &&
+                                <div class="row" style={{ paddingLeft: 15 }}>
+                                    <div class="col-md-12 pdr0">
                                         {
                                             ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
-                                            <div class="form-group" style={{ marginBottom: 0 }}>
+                                            <div class="form-group" style={{ marginBottom: 10 }}>
                                                 <label>Item</label>
                                                 <input type="text" name="checklist"
                                                     class="form-control"
@@ -530,20 +539,14 @@ export default class FormComponent extends React.Component {
                                                     value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
 
                                                 />
-                                            </div>
-                                        }
-                                    </div>
-                                    <div class="col-md-4">
-                                        {
-                                            ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
-                                            <div class="form-group m0">
-                                                <label>Checklist type</label>
-                                                <DropDown multiple={true}
-                                                    required={false}
-                                                    options={_.map(['Mandatory', 'Document'], (o) => { return { id: o, name: o } })}
-                                                    selected={(typeof checklist.Selected.types == "undefined" || checklist.Selected.types == "") ? [] : checklist.Selected.types}
-                                                    onChange={(e) => this.setDropDownMultiple("types", e)}
-                                                />
+                                                <label class="checkbox-inline pd0" style={{ fontWeight: "bold" }}>
+                                                    Document ?
+                                                    <input type="checkbox"
+                                                        checked={checklist.Selected.isDocument ? true : false}
+                                                        onChange={() => { }}
+                                                        onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
+                                                    />
+                                                </label>
                                             </div>
                                         }
                                     </div>
