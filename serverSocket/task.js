@@ -133,8 +133,9 @@ var init = exports.init = (socket) => {
                                         id: { value: "Completed", condition: " != " }
                                     }, {}, (e) => {
                                         let newTaskData = ((e.data).length > 0) ? _.orderBy(e.data, ['id'], ['desc']) : c.data;
+                                        const startDueDate = (newTaskData[0].startDate != null) ? moment(newTaskData[0].startDate).add(newTaskData[0].periodType, newTaskData[0].period).format('YYYY-MM-DD HH:mm:ss') : null;
                                         const nextDueDate = moment(newTaskData[0].dueDate).add(newTaskData[0].periodType, newTaskData[0].period).format('YYYY-MM-DD HH:mm:ss');
-                                        const newPeriodTask = { ...newTaskData[0], id: "", startDate: newTaskData[0].dueDate, dueDate: nextDueDate, periodTask: taskId }
+                                        const newPeriodTask = { ...newTaskData[0], id: "", startDate: startDueDate, dueDate: nextDueDate, periodTask: taskId }
 
                                         task.postData("task", newPeriodTask, (c) => {
                                             task.getData("task", { id: c.id }, {}, (e) => {
@@ -196,7 +197,7 @@ var init = exports.init = (socket) => {
                             instance: (parallelCallback) => {
                                 const taskPromises = _.times(d.data.periodInstance - 1, (o) => {
                                     return new Promise(function (resolve, reject) {
-                                        const nextStartDate = moment(d.data.dueDate).add(d.data.periodType, o).format('YYYY-MM-DD HH:mm:ss');
+                                        const nextStartDate = moment(d.data.startDate).add(d.data.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
                                         const nextDueDate = moment(d.data.dueDate).add(d.data.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
                                         const newPeriodTask = { ...d.data, id: "", startDate: nextStartDate, dueDate: nextDueDate, periodTask: c.id }
 

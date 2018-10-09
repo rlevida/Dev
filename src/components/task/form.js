@@ -60,29 +60,28 @@ export default class FormComponent extends React.Component {
     }
 
     handleDate(e) {
-        let { dispatch, task } = this.props;
-        let Selected = Object.assign({}, { ...task.Selected })
-        let selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
+        const { dispatch, task } = this.props;
+        const selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
+        let selectedObj = Object.assign({}, { ...task.Selected })
 
-        if (e.target.name == "dueDate" && e.target.value != "" && (typeof Selected.startDate == "undefined" || Selected.startDate == "") && (typeof task.Selected.periodic == "undefined" || task.Selected.periodic != 1)) {
+        if (e.target.name == "dueDate" && e.target.value != "" && (typeof selectedObj.startDate == "undefined" || selectedObj.startDate == "") && (typeof task.Selected.periodic == "undefined" || task.Selected.periodic != 1)) {
             showToast("error", "Please fill up the Start Date first.");
-        } else if ((typeof Selected.startDate != "undefined" || typeof Selected.dueDate != "undefined") && (Selected.startDate != "" || Selected.dueDate != "") && (typeof task.Selected.periodic == "undefined" || task.Selected.periodic != 1)) {
-            let startDate = moment(Selected.startDate);
-            let dueDate = moment(Selected.dueDate);
-            let comparison = (e.target.name == "startDate") ? moment(dueDate).diff(e.target.value, 'days') : moment(e.target.value).diff(startDate, 'days');
+        } else if ((e.target.name == "startDate" || e.target.name == "dueDate") && e.target.value != "" && ((typeof selectedObj.startDate != "undefined" && selectedObj.startDate != "") || (typeof selectedObj.dueDate != "undefined" && selectedObj.dueDate != ""))) {
+            const startDate = moment(selectedObj.startDate);
+            const dueDate = moment(selectedObj.dueDate);
+            const comparison = (e.target.name == "startDate") ? moment(dueDate).diff(e.target.value, 'days') : moment(e.target.value).diff(startDate, 'days');
 
             if (comparison < 0) {
                 showToast("error", "Due Date must be after the Start Date.");
-                Selected[e.target.name] = undefined;
+                selectedObj[e.target.name] = undefined;
             } else {
-                Selected[e.target.name] = selectedDate;
+                selectedObj[e.target.name] = selectedDate;
             }
         } else {
-            Selected[e.target.name] = selectedDate;
+            selectedObj[e.target.name] = selectedDate;
         }
 
-        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
-
+        dispatch({ type: "SET_TASK_SELECTED", Selected: selectedObj });
     }
 
     generateDueDate(selected) {
@@ -224,7 +223,6 @@ export default class FormComponent extends React.Component {
                     <li class="btn btn-info" style={{ marginRight: "2px" }}
                         onClick={(e) => {
                             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
-                            dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
                         }} >
                         <span>Back</span>
                     </li>

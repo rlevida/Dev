@@ -80,12 +80,12 @@ export default class List extends React.Component {
         );
     }
 
-    setTaskkSelected(data){
-        let { dispatch , socket } = this.props;
+    setTaskkSelected(data) {
+        let { dispatch, socket } = this.props;
 
-        dispatch({ type: "SET_TASK_SELECTED", Selected : data})
-        dispatch({ type: "SET_TASK_FORM_ACTION" , FormAction: "View"})
-        socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
+        dispatch({ type: "SET_TASK_SELECTED", Selected: data })
+        dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "View" })
+        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamMemberList", filter: { id: data.workstreamId } })
     }
 
     render() {
@@ -112,12 +112,13 @@ export default class List extends React.Component {
 
         return <div>
 
-            <TaskStatus style={{ float: "right", padding: "20px" }} />
+            <TaskStatus style={{ float: "right", marginBottom: 20, marginRight: 20 }} />
             <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" onClick={(e) => { 
-                    dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })
-                    dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "Create" })
-                }} 
+                <li class="btn btn-info" onClick={(e) => {
+                    dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
+                    dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "Create" });
+                    dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
+                }}
                 >
                     <span>New Task</span>
                 </li>
@@ -157,7 +158,7 @@ export default class List extends React.Component {
                                     {this.renderStatus({ ...data, taskStatus })}
                                 </td>
                                 <td class="text-left">{data.workstream_workstream}</td>
-                                <td class="text-left"><a href="javascript:void(0);" onClick={()=> this.setTaskkSelected(data)}>{data.task}</a></td>
+                                <td class="text-left"><a href="javascript:void(0);" onClick={() => this.setTaskkSelected(data)}>{data.task}</a></td>
                                 <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(displayedDueDate).format('YYYY MMM DD') : ''}</td>
                                 <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                 <td class="text-center">
@@ -205,7 +206,7 @@ export default class List extends React.Component {
                                         (typeof loggedUser.data != 'undefined' && loggedUser.data.userType == 'External') && <div>
                                             <a href="javascript:void(0);" data-tip="VIEW"
                                                 onClick={(e) => {
-                                                    dispatch({ type : "SET_TASK_FORM_ACTION" , FormAction : "View" })
+                                                    dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "View" })
                                                     socket.emit("GET_TASK_DETAIL", { id: data.id })
                                                 }}
                                                 class="btn btn-success btn-sm">

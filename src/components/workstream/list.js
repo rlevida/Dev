@@ -102,6 +102,7 @@ export default class List extends React.Component {
                         <th class="text-center">New Docs</th>
                         <th class="text-center">Members</th>
                         <th class="text-center">Type</th>
+                        <th class="text-center"></th>
                         {(loggedUser.data.userRole == 1
                             || loggedUser.data.userRole == 2
                             || loggedUser.data.userRole == 3
