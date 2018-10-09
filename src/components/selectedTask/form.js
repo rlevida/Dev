@@ -127,7 +127,7 @@ export default class FormComponent extends React.Component {
     }
 
     approveTask() {
-        let { socket, task, checklist , loggedUser} = this.props;
+        let { socket, task, checklist, loggedUser } = this.props;
         let checklistToBeComplete = []
         if (checklistToBeComplete.length == 0) {
             let status = "Completed"
@@ -136,19 +136,19 @@ export default class FormComponent extends React.Component {
                 socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
             } else {
                 let reminderDetails = {
-                    seen : 0,
-                    usersId : task.Selected.assignedById,
-                    projectId : task.Selected.projectId,
-                    linkType : "task",
-                    linkId : task.Selected.id,
+                    seen: 0,
+                    usersId: task.Selected.assignedById,
+                    projectId: task.Selected.projectId,
+                    linkType: "task",
+                    linkId: task.Selected.id,
                     type: "Task Completed",
-                    createdBy : loggedUser.data.id,
-                    reminderDetail : "Task Completed"
+                    createdBy: loggedUser.data.id,
+                    reminderDetail: "Task Completed"
                 }
-                
-                socket.emit("SAVE_OR_UPDATE_TASK", { 
-                    data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" }, 
-                    reminder : reminderDetails
+
+                socket.emit("SAVE_OR_UPDATE_TASK", {
+                    data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" },
+                    reminder: reminderDetails
                 })
             }
         } else {
@@ -227,14 +227,6 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, checklist.Selected)
         Selected[name] = value;
         dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected });
-
-        if (name == "isDocument" && value == 1) {
-            dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
-            $('#uploadFileModal').modal({
-                backdrop: 'static',
-                keyboard: false
-            })
-        }
     }
 
     setDropDownMultiple(name, values) {
@@ -429,7 +421,12 @@ export default class FormComponent extends React.Component {
                             <div className={(task.Selected.periodic == 1) ? "col-md-6" : "col-md-12"}>
                                 <div class="details">
                                     <span class="fa fa-calendar"></span>
-                                    <p>Start date: {moment(task.Selected.startDate).format('ll')}</p>
+                                    <p>Start date:
+                                        {
+                                            (task.Selected.startDate != "" && task.Selected.startDate != null) ?
+                                                moment(task.Selected.startDate).format('ll') : "N/A"
+                                        }
+                                    </p>
                                 </div>
                             </div>
                             {
@@ -443,7 +440,10 @@ export default class FormComponent extends React.Component {
                             <div class="col-md-12">
                                 <div class="details">
                                     <span class="fa fa-calendar"></span>
-                                    <p>Due date: {moment(task.Selected.dueDate).format('ll')}</p>
+                                    <p>Due date: {
+                                        (task.Selected.dueDate != "" && task.Selected.dueDate != null) ?
+                                            moment(task.Selected.dueDate).format('ll') : "N/A"
+                                    }</p>
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -471,8 +471,8 @@ export default class FormComponent extends React.Component {
                                             let isEditable = (loggedUser.data.id == o.createdBy)
                                                 || loggedUser.data.userRole == 1
                                                 || loggedUser.data.userRole == 2
-                                                || project.Selected.projectManagerId == loggedUser.data.id 
-                                                    ? true : false
+                                                || project.Selected.projectManagerId == loggedUser.data.id
+                                                ? true : false
                                             return (
                                                 <div className={(isEditable || task.Selected.assignedById == loggedUser.data.id) ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}
                                                 >
@@ -535,9 +535,9 @@ export default class FormComponent extends React.Component {
                                     }
                                 </div>
                             }
-                           {(task.Selected.isActive > 0) &&
+                            {(task.Selected.isActive > 0) &&
                                 <div class="row" style={{ paddingLeft: 15 }}>
-                                    <div class="col-md-12 pdr0">
+                                    <div class="col-md-12">
                                         {
                                             ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
                                             <div class="form-group" style={{ marginBottom: 10 }}>

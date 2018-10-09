@@ -224,14 +224,6 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, checklist.Selected)
         Selected[name] = value;
         dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected });
-
-        if (name == "isDocument" && value == 1) {
-            dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
-            $('#uploadFileModal').modal({
-                backdrop: 'static',
-                keyboard: false
-            })
-        }
     }
 
     setDropDownMultiple(name, values) {
