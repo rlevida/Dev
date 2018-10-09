@@ -4,7 +4,7 @@ import LibraryDocument from './libraryDocument'
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DragDropContext } from 'react-dnd';
 import { DropDown , Loading } from "../../../globalComponents"
-import { getFilePathExtension , putData , deleteData ,  showToast, postData } from '../../../globalFunction'
+import { getFilePathExtension , putData , deleteData ,  showToast, postData , removeTempFile } from '../../../globalFunction'
 import Tooltip from "react-tooltip";
 import PrintComponent  from "../print"
 

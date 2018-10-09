@@ -1,7 +1,7 @@
 import React from "react"
 import moment from 'moment'
 import mime from "mime-types";
-import { getFilePathExtension , putData , deleteData ,  showToast, postData, getData } from '../../../globalFunction'
+import { getFilePathExtension , putData , deleteData ,  showToast, postData, removeTempFile } from '../../../globalFunction'
 import { HeaderButtonContainer } from "../../../globalComponents"
 import DocumentComment from "../comment"
 import PrintComponent  from "../print"
