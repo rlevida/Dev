@@ -36,7 +36,7 @@ export default class UploadModal extends React.Component {
             { files } = this.state
         let data = new FormData(), self = this;
         let documentIds = []
-        if( typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents != ""){
+        if( typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents != null){
             documentIds = checklist.Selected.documents.map( e => { return e.id })
         }
      
