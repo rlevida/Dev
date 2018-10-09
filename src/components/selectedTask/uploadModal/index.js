@@ -86,13 +86,8 @@ export default class UploadModal extends React.Component {
     closeModal() {
         let { task, dispatch, checklist } = this.props;
         if (task.ModalType == "checklist") {
-            if (typeof checklist.Selected.documents != "undefined") {
-                $(`#uploadFileModal`).modal("hide");
-            } else {
-                let tempTypes = checklist.Selected.types.filter(e => { return e.value != "Document" })
-                dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...checklist.Selected, types: tempTypes } })
-                $(`#uploadFileModal`).modal("hide");
-            }
+            dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...checklist.Selected, isDocument: 0 } })
+            $(`#uploadFileModal`).modal("hide");
         } else {
             $(`#uploadFileModal`).modal("hide");
         }
