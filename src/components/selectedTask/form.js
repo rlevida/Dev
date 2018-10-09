@@ -127,7 +127,7 @@ export default class FormComponent extends React.Component {
     }
 
     approveTask() {
-        let { socket, task, checklist , loggedUser} = this.props;
+        let { socket, task, checklist, loggedUser } = this.props;
         let checklistToBeComplete = []
         if (checklistToBeComplete.length == 0) {
             let status = "Completed"
@@ -136,19 +136,19 @@ export default class FormComponent extends React.Component {
                 socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
             } else {
                 let reminderDetails = {
-                    seen : 0,
-                    usersId : task.Selected.assignedById,
-                    projectId : task.Selected.projectId,
-                    linkType : "task",
-                    linkId : task.Selected.id,
+                    seen: 0,
+                    usersId: task.Selected.assignedById,
+                    projectId: task.Selected.projectId,
+                    linkType: "task",
+                    linkId: task.Selected.id,
                     type: "Task Completed",
-                    createdBy : loggedUser.data.id,
-                    reminderDetail : "Task Completed"
+                    createdBy: loggedUser.data.id,
+                    reminderDetail: "Task Completed"
                 }
-                
-                socket.emit("SAVE_OR_UPDATE_TASK", { 
-                    data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" }, 
-                    reminder : reminderDetails
+
+                socket.emit("SAVE_OR_UPDATE_TASK", {
+                    data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" },
+                    reminder: reminderDetails
                 })
             }
         } else {
@@ -227,14 +227,6 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, checklist.Selected)
         Selected[name] = value;
         dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected });
-
-        if (name == "isDocument" && value == 1) {
-            dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
-            $('#uploadFileModal').modal({
-                backdrop: 'static',
-                keyboard: false
-            })
-        }
     }
 
     setDropDownMultiple(name, values) {
@@ -279,7 +271,7 @@ export default class FormComponent extends React.Component {
         let { dispatch } = this.props;
 
         dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
-        dispatch({ type: "SET_CHECKLIST_SELECTED" , Selected: data })
+        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: data })
         $('#uploadFileModal').modal({
             backdrop: 'static',
             keyboard: false
@@ -372,19 +364,6 @@ export default class FormComponent extends React.Component {
             })
             .value();
 
-        let allowToComplete = true;
-
-        if ((task.Selected).periodic == 1 && (task.Selected).periodTask != null) {
-            const prevDueDate = moment((task.Selected).dueDate).subtract((task.Selected).periodType, (task.Selected).period).format('YYYY-MM-DD');
-            let taskBefore = _.filter((task.List), (e) => {
-                return moment(e.dueDate).format('YYYY-MM-DD') == prevDueDate && (e.periodTask == (task.Selected).periodTask || e.periodTask == null) && (task.Selected).status != "Completed"
-            });
-
-            if (taskBefore.length > 0) {
-                allowToComplete = (taskBefore[0].status == "Completed") ? true : false;
-            }
-        }
-
         return (
             <div class="pd20">
                 <span class="pull-right" style={{ cursor: "pointer" }} onClick={() => { dispatch({ type: "SET_TASK_SELECTED", Selected: {} }); dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" }) }}><i class="fa fa-times-circle fa-lg"></i></span>
@@ -405,7 +384,7 @@ export default class FormComponent extends React.Component {
                         </h4>
 
                         <div class="form-group text-center mt20 mb20">
-                            {(isVisible && allowToComplete && task.Selected.status != "For Approval") &&
+                            {(isVisible && task.Selected.status != "For Approval") &&
                                 <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
                             }
                             {(task.Selected.status == "For Approval" && task.Selected.approverId == loggedUser.data.id) &&
@@ -429,7 +408,12 @@ export default class FormComponent extends React.Component {
                             <div className={(task.Selected.periodic == 1) ? "col-md-6" : "col-md-12"}>
                                 <div class="details">
                                     <span class="fa fa-calendar"></span>
-                                    <p>Start date: {moment(task.Selected.startDate).format('ll')}</p>
+                                    <p>Start date:
+                                        {
+                                            (task.Selected.startDate != "" && task.Selected.startDate != null) ?
+                                                moment(task.Selected.startDate).format('ll') : "N/A"
+                                        }
+                                    </p>
                                 </div>
                             </div>
                             {
@@ -443,7 +427,10 @@ export default class FormComponent extends React.Component {
                             <div class="col-md-12">
                                 <div class="details">
                                     <span class="fa fa-calendar"></span>
-                                    <p>Due date: {moment(task.Selected.dueDate).format('ll')}</p>
+                                    <p>Due date: {
+                                        (task.Selected.dueDate != "" && task.Selected.dueDate != null) ?
+                                            moment(task.Selected.dueDate).format('ll') : "N/A"
+                                    }</p>
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -471,41 +458,41 @@ export default class FormComponent extends React.Component {
                                             let isEditable = (loggedUser.data.id == o.createdBy)
                                                 || loggedUser.data.userRole == 1
                                                 || loggedUser.data.userRole == 2
-                                                || project.Selected.projectManagerId == loggedUser.data.id 
-                                                    ? true : false
+                                                || project.Selected.projectManagerId == loggedUser.data.id
+                                                ? true : false
                                             return (
                                                 <div className={(isEditable || task.Selected.assignedById == loggedUser.data.id) ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}
                                                 >
                                                     {
                                                         (isEditable || (task.Selected.assignedById == loggedUser.data.id)) &&
-                                                            <div class="dropdown task-checklist-actions">
-                                                                <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                                                <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
-                                                                    { (o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
-                                                                        <li>
-                                                                            <a onClick={() => { this.editChecklist(o) }}>Edit</a>
-                                                                        </li>
-                                                                    }
-                                                                    { (o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
-                                                                        <li>
-                                                                            <a onClick={() => { socket.emit("DELETE_CHECKLIST", { data: o.id })}}>Delete</a>
-                                                                        </li>
-                                                                    }
-                                                                    { (task.Selected.assignedById == loggedUser.data.id) &&
-                                                                        <li>
-                                                                            <a onClick={() => { socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } }) }}>
-                                                                            { (o.completed) ? "Unchecked" : "Check" }
-                                                                            </a>
-                                                                        </li>
-                                                                    }
-                                                                    { (Boolean(o.isDocument)) &&
-                                                                        <li>
-                                                                            <a href="javascript:void(0)" onClick={()=> this.openCheckListUploadModal(o)} > Upload</a>
-                                                                        </li> 
+                                                        <div class="dropdown task-checklist-actions">
+                                                            <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                                            <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
+                                                                {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                                                    <li>
+                                                                        <a onClick={() => { this.editChecklist(o) }}>Edit</a>
+                                                                    </li>
+                                                                }
+                                                                {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                                                    <li>
+                                                                        <a onClick={() => { socket.emit("DELETE_CHECKLIST", { data: o.id }) }}>Delete</a>
+                                                                    </li>
+                                                                }
+                                                                {(task.Selected.assignedById == loggedUser.data.id) &&
+                                                                    <li>
+                                                                        <a onClick={() => { socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } }) }}>
+                                                                            {(o.completed) ? "Unchecked" : "Check"}
+                                                                        </a>
+                                                                    </li>
+                                                                }
+                                                                {(Boolean(o.isDocument)) &&
+                                                                    <li>
+                                                                        <a href="javascript:void(0)" onClick={() => this.openCheckListUploadModal(o)} > Upload</a>
+                                                                    </li>
 
-                                                                    }
-                                                                </ul>
-                                                            </div>
+                                                                }
+                                                            </ul>
+                                                        </div>
                                                     }
 
                                                     <p>{o.description}</p>
@@ -535,7 +522,7 @@ export default class FormComponent extends React.Component {
                                     }
                                 </div>
                             }
-                           {(task.Selected.isActive > 0) &&
+                            {(task.Selected.isActive > 0) &&
                                 <div class="row" style={{ paddingLeft: 15 }}>
                                     <div class="col-md-12 pdr0">
                                         {
@@ -587,7 +574,7 @@ export default class FormComponent extends React.Component {
                             }
 
                             {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
-                                <div class="row" style={{ paddingLeft: 22 }}>
+                                <div class="row" style={{ paddingLeft: 15 }}>
                                     <div class="col-md-12 pdr0">
                                         {
                                             (checklist.Action != "Edit") ?
@@ -596,10 +583,10 @@ export default class FormComponent extends React.Component {
                                                     onClick={this.addChecklist}
                                                 >
                                                     Add
-                                                    </a>
+                                                </a>
                                                 :
-                                                <div class="checklist-actions">
-                                                    <a href="javascript:void(0);" class="btn btn-primary mt5" title="Save"
+                                                <div>
+                                                    <a href="javascript:void(0);" class="btn btn-primary mt5 mr5" title="Save"
                                                         onClick={this.saveChecklist}
                                                     >
                                                         Save

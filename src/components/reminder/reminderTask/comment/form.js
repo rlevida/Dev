@@ -74,7 +74,7 @@ export default class Form extends React.Component {
         return (
             <div class="row mt10">
                 <div class="col-md-12 col-xs-12">
-                    <div class="form-group mention" style={{ marginLeft: 22 }}>
+                    <div class="form-group mention" style={{ marginLeft: 15 }}>
                         <MentionsInput
                             value={commentText}
                             onChange={this.handleChange.bind(this, "comment")}
