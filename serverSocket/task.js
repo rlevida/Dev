@@ -130,12 +130,12 @@ var init = exports.init = (socket) => {
                                 if (c.data[0].periodic == 1 && (typeof d.data.action != "undefined" && d.data.action == "complete")) {
                                     task.getData("task", {
                                         periodTask: taskId,
-                                        id: { value: "Completed", condition: " != " }
+                                        id: { value: id, condition: " >= " }
                                     }, {}, (e) => {
-                                        let newTaskData = ((e.data).length > 0) ? _.orderBy(e.data, ['id'], ['desc']) : c.data;
-                                        const startDueDate = (newTaskData[0].startDate != null) ? moment(newTaskData[0].startDate).add(newTaskData[0].periodType, newTaskData[0].period).format('YYYY-MM-DD HH:mm:ss') : null;
-                                        const nextDueDate = moment(newTaskData[0].dueDate).add(newTaskData[0].periodType, newTaskData[0].period).format('YYYY-MM-DD HH:mm:ss');
-                                        const newPeriodTask = { ...newTaskData[0], id: "", startDate: startDueDate, dueDate: nextDueDate, periodTask: taskId }
+                                        let taskList = ((e.data).length > 0) ? _.orderBy(e.data, ['id'], ['desc']) : c.data;
+                                        const latestTaskDate = _.omit(taskList[0], ["status"]);
+                                        const nextDueDate = moment(latestTaskDate.dueDate).add(latestTaskDate.periodType, latestTaskDate.period).format('YYYY-MM-DD HH:mm:ss');
+                                        const newPeriodTask = { ...latestTaskDate, id: "", dueDate: nextDueDate, periodTask: taskId, ...(latestTaskDate.startDate != null && latestTaskDate.startDate != "") ? { startDate: moment(latestTaskDate.startDate).add(latestTaskDate.periodType, latestTaskDate.period).format('YYYY-MM-DD HH:mm:ss') } : {} }
 
                                         task.postData("task", newPeriodTask, (c) => {
                                             task.getData("task", { id: c.id }, {}, (e) => {
@@ -197,9 +197,8 @@ var init = exports.init = (socket) => {
                             instance: (parallelCallback) => {
                                 const taskPromises = _.times(d.data.periodInstance - 1, (o) => {
                                     return new Promise(function (resolve, reject) {
-                                        const nextStartDate = moment(d.data.startDate).add(d.data.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
                                         const nextDueDate = moment(d.data.dueDate).add(d.data.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
-                                        const newPeriodTask = { ...d.data, id: "", startDate: nextStartDate, dueDate: nextDueDate, periodTask: c.id }
+                                        const newPeriodTask = { ...d.data, id: "", dueDate: nextDueDate, periodTask: c.id, ...(d.data.startDate != null && d.data.startDate != "") ? { startDate: moment(d.data.startDate).add(d.data.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss') } : {} }
 
                                         task.postData("task", newPeriodTask, (c) => {
                                             if (typeof c.id != "undefined" && c.id > 0) {

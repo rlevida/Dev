@@ -365,19 +365,6 @@ export default class ReminderTask extends React.Component {
             })
             .value();
 
-        let allowToComplete = true;
-
-        if ((task.Selected).periodic == 1 && (task.Selected).periodTask != null) {
-            const prevDueDate = moment((task.Selected).dueDate).subtract((task.Selected).periodType, (task.Selected).period).format('YYYY-MM-DD');
-            let taskBefore = _.filter((task.List), (e) => {
-                return moment(e.dueDate).format('YYYY-MM-DD') == prevDueDate && (e.periodTask == (task.Selected).periodTask || e.periodTask == null) && (task.Selected).status != "Completed"
-            });
-
-            if (taskBefore.length > 0) {
-                allowToComplete = (taskBefore[0].status == "Completed") ? true : false;
-            }
-        }
-
         return (
             <div>
                 <HeaderButtonContainer withMargin={true}>
@@ -411,7 +398,7 @@ export default class ReminderTask extends React.Component {
                                 </h4>
 
                                 <div class="form-group text-center m0">
-                                    {(isVisible && allowToComplete && task.Selected.status != "For Approval") &&
+                                    {(isVisible && task.Selected.status != "For Approval") &&
                                         <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
                                     }
                                     {(task.Selected.status == "For Approval" && task.Selected.approverId == loggedUser.data.id) &&
