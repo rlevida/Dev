@@ -181,15 +181,7 @@ export default class ReminderTask extends React.Component {
             isDocument: (typeof checklist.Selected.isDocument != "undefined" && checklist.Selected.isDocument != "") ? checklist.Selected.isDocument : 0
         };
 
-        if (toBeSubmitted.isDocument == 1) {
-            if (checklist.Selected.documents.length > 0) {
-                socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted, documents: checklist.Selected.documents, project: project })
-            } else {
-                showToast("error", "One or more documents are missing.")
-            }
-        } else {
-            socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
-        }
+        socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
     }
 
     addDependency() {
