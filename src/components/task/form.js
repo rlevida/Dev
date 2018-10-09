@@ -60,32 +60,28 @@ export default class FormComponent extends React.Component {
     }
 
     handleDate(e) {
-        let { dispatch, task } = this.props;
-        let Selected = Object.assign({}, { ...task.Selected })
-        let selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
+        const { dispatch, task } = this.props;
+        const selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
+        let selectedObj = Object.assign({}, { ...task.Selected })
 
-        if ((typeof Selected.startDate != "undefined" || typeof Selected.dueDate != "undefined") && (Selected.startDate != "" || Selected.dueDate != "")) {
-            let startDate = moment(Selected.startDate);
-            let dueDate = moment(Selected.dueDate);
-            let comparison = (e.target.name == "startDate") ? moment(dueDate).diff(e.target.value, 'days') : moment(e.target.value).diff(startDate, 'days');
+        if (e.target.name == "dueDate" && e.target.value != "" && (typeof selectedObj.startDate == "undefined" || selectedObj.startDate == "") && (typeof task.Selected.periodic == "undefined" || task.Selected.periodic != 1)) {
+            showToast("error", "Please fill up the Start Date first.");
+        } else if ((e.target.name == "startDate" || e.target.name == "dueDate") && e.target.value != "" && ((typeof selectedObj.startDate != "undefined" && selectedObj.startDate != "") || (typeof selectedObj.dueDate != "undefined" && selectedObj.dueDate != ""))) {
+            const startDate = moment(selectedObj.startDate);
+            const dueDate = moment(selectedObj.dueDate);
+            const comparison = (e.target.name == "startDate") ? moment(dueDate).diff(e.target.value, 'days') : moment(e.target.value).diff(startDate, 'days');
 
             if (comparison < 0) {
                 showToast("error", "Due Date must be after the Start Date.");
-                Selected[e.target.name] = undefined;
+                selectedObj[e.target.name] = undefined;
             } else {
-                Selected[e.target.name] = selectedDate;
+                selectedObj[e.target.name] = selectedDate;
             }
-        } else if (e.target.name == "dueDate" && e.target.value != "" && (typeof Selected.startDate == "undefined" || Selected.startDate == "")) {
-            showToast("error", "Pleas fill up the Start Date first.");
         } else {
-            Selected[e.target.name] = selectedDate;
+            selectedObj[e.target.name] = selectedDate;
         }
 
-        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
-
-        if (e.target.name == "startDate") {
-            this.generateDueDate(Selected);
-        }
+        dispatch({ type: "SET_TASK_SELECTED", Selected: selectedObj });
     }
 
     generateDueDate(selected) {
@@ -111,7 +107,7 @@ export default class FormComponent extends React.Component {
         Selected[name] = value;
 
         if (name == "periodic") {
-            Selected = { ...Selected, dueDate: '', endDate: '', taskDueDate: '', periodType: '', period: (value == 1) ? 1 : 0, periodInstance: (value == 1) ? 1 : 0 }
+            Selected = { ...Selected, dueDate: '', taskDueDate: '', periodType: '', period: (value == 1) ? 1 : 0, periodInstance: (value == 1) ? 1 : 0 }
         }
 
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
@@ -124,12 +120,6 @@ export default class FormComponent extends React.Component {
         Selected[e.target.name] = e.target.value;
 
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
-
-        if ((e.target.name == "period")
-            && (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "")
-        ) {
-            this.generateDueDate(Selected)
-        }
 
     }
 
@@ -163,11 +153,8 @@ export default class FormComponent extends React.Component {
 
         if (!result) {
             showToast("error", "Form did not fullfill the required value.");
-        } else if (
-            task.Selected.periodic == 1 &&
-            (typeof task.Selected.startDate == "undefined" || task.Selected.startDate == "")
-        ) {
-            showToast("error", "Start date is required when task is periodic.");
+        } else if (typeof task.Selected.periodic != "undefined" && task.Selected.periodic == 1 && (typeof task.Selected.dueDate == "undefined" || task.Selected.dueDate == "")) {
+            showToast("error", "Due date is required for a periodic task.");
         } else {
             const submitData = {
                 ...task.Selected,
@@ -175,7 +162,7 @@ export default class FormComponent extends React.Component {
                 period: _.toNumber(task.Selected.period),
                 periodInstance: _.toNumber(task.Selected.periodInstance),
                 startDate: (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "" && task.Selected.startDate != null) ? moment(task.Selected.startDate).format('YYYY-MM-DD 00:00:00') : null,
-                dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.startDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') : null
+                dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') : null
             };
 
             socket.emit("SAVE_OR_UPDATE_TASK", { data: submitData });
@@ -195,12 +182,6 @@ export default class FormComponent extends React.Component {
 
         if (name == "workstreamId") {
             this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "taskList", filter: { "|||and|||": [{ name: "workstreamId", value: value }, { name: "id", value: task.Selected.id, condition: " != " }] } })
-        }
-
-        if ((name == "periodType")
-            && (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "")
-        ) {
-            this.generateDueDate(Selected)
         }
 
     }
@@ -242,7 +223,6 @@ export default class FormComponent extends React.Component {
                     <li class="btn btn-info" style={{ marginRight: "2px" }}
                         onClick={(e) => {
                             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
-                            dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
                         }} >
                         <span>Back</span>
                     </li>
@@ -438,7 +418,7 @@ export default class FormComponent extends React.Component {
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>
-                                    {
+                                    {/* {
                                         (task.Selected.periodic == 1) && <div class="row mb15">
                                             <div class="col-md-3 col-xs-12">
                                                 <p style={{ textAlign: 'right', fontColor: '#333', fontWeight: '600' }}>Due Date</p>
@@ -447,29 +427,27 @@ export default class FormComponent extends React.Component {
                                                 {(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "") ? moment(task.Selected.dueDate).format('YYYY MMM DD') : ''}
                                             </div>
                                         </div>
-                                    }
-                                    {
-                                        (typeof task.Selected.periodic == "undefined" || task.Selected.periodic != 1) && <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Due Date</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <div class="input-group date">
-                                                    <input type="text"
-                                                        class="form-control datepicker"
-                                                        style={{ backgroundColor: "#eee" }}
-                                                        id="dueDate"
-                                                        name="dueDate"
-                                                        value={((typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != null) && task.Selected.dueDate != '') ? displayDate(task.Selected.dueDate) : ""}
-                                                        onChange={() => { }}
-                                                        required={task.Selected.periodic == 1}
-                                                        disabled={!allowEdit}
-                                                    />
-                                                    <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
-                                                    </span>
-                                                </div>
+                                    } */}
+                                    <div class="form-group">
+                                        <label class="col-md-3 col-xs-12 control-label">Due Date</label>
+                                        <div class="col-md-7 col-xs-12">
+                                            <div class="input-group date">
+                                                <input type="text"
+                                                    class="form-control datepicker"
+                                                    style={{ backgroundColor: "#eee" }}
+                                                    id="dueDate"
+                                                    name="dueDate"
+                                                    value={((typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != null) && task.Selected.dueDate != '') ? displayDate(task.Selected.dueDate) : ""}
+                                                    onChange={() => { }}
+                                                    required={task.Selected.periodic == 1}
+                                                    disabled={!allowEdit}
+                                                />
+                                                <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
+                                                </span>
                                             </div>
-                                            <div class="help-block with-errors"></div>
                                         </div>
-                                    }
+                                        <div class="help-block with-errors"></div>
+                                    </div>
                                     <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label pt0">Assigned</label>
                                         <div class="col-md-7 col-xs-12">
