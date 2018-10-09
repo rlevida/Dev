@@ -276,10 +276,11 @@ export default class ReminderTask extends React.Component {
         dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...value, checklist: description, documents: (value.documents != "") ? value.documents : [] } })
     }
 
-    openCheckListUploadModal() {
+    openCheckListUploadModal(data) {
         let { dispatch } = this.props;
 
         dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
+        dispatch({ type: "SET_CHECKLIST_SELECTED" , Selected: data })
         $('#uploadFileModal').modal({
             backdrop: 'static',
             keyboard: false
@@ -490,6 +491,37 @@ export default class ReminderTask extends React.Component {
                                                 return (
                                                     <div className={(isEditable || task.Selected.assignedById == loggedUser.data.id) ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}
                                                     >
+                                                        {
+                                                            (isEditable || (task.Selected.assignedById == loggedUser.data.id)) &&
+                                                                <div class="dropdown task-checklist-actions">
+                                                                    <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                                                    <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
+                                                                        { (o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                                                            <li>
+                                                                                <a onClick={() => { this.editChecklist(o) }}>Edit</a>
+                                                                            </li>
+                                                                        }
+                                                                        { (o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                                                            <li>
+                                                                                <a onClick={() => { socket.emit("DELETE_CHECKLIST", { data: o.id })}}>Delete</a>
+                                                                            </li>
+                                                                        }
+                                                                        { (task.Selected.assignedById == loggedUser.data.id) &&
+                                                                            <li>
+                                                                                <a onClick={() => { socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } }) }}>
+                                                                                { (o.completed) ? "Unchecked" : "Check" }
+                                                                                </a>
+                                                                            </li>
+                                                                        }
+                                                                        { (Boolean(o.isDocument)) &&
+                                                                            <li>
+                                                                                <a href="javascript:void(0)" onClick={()=> this.openCheckListUploadModal(o)} > Upload</a>
+                                                                            </li> 
+
+                                                                        }
+                                                                    </ul>
+                                                                </div>
+                                                        }
                                                         <p>{o.description}</p>
                                                         <div id="checklist-action">
                                                             {
@@ -510,30 +542,6 @@ export default class ReminderTask extends React.Component {
                                                             <p style={{ marginTop: 5, fontSize: 10 }}>
                                                                 <span>By : {o.users_firstName + ' ' + o.users_lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
                                                             </p>
-                                                            
-                                                            { (isEditable || (task.Selected.assignedById == loggedUser.data.id)) &&
-                                                                <div class="checklist-actions">
-                                                                    <a class="btn btn-success"
-                                                                        onClick={() => {
-                                                                            socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } })
-                                                                        }}
-                                                                    >
-                                                                        {
-                                                                            o.completed ? <span class="glyphicon glyphicon-unchecked"></span> : <span class="glyphicon glyphicon-check"></span>
-                                                                        }
-                                                                    </a>
-                                                                    {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
-                                                                        <a class="btn btn-primary" onClick={() => { this.editChecklist(o)}} >
-                                                                            <span class="glyphicon glyphicon-pencil"></span>
-                                                                        </a>
-                                                                    }
-                                                                    {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
-                                                                        <a class="btn btn-danger" onClick={() => { socket.emit("DELETE_CHECKLIST", { data: o.id }) }} >
-                                                                            <span class="glyphicon glyphicon-trash"></span>
-                                                                        </a>
-                                                                    }
-                                                                </div>
-                                                            }
                                                         </div>
                                                     </div>
                                                 )

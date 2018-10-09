@@ -27,13 +27,16 @@ export default function reducer(state = {
         case "UPDATE_CHECKLIST": {
             const { List } = { ...state };
             const index = _.findIndex(List, { id: action.data.id });
-
             if (index >= 0) {
                 let dataToBeUpdated = action.data;
 
                 if (typeof action.data.action != "undefined" && action.data.action == "complete") {
                     dataToBeUpdated = { ...List[index], completed: action.data.completed };
                 }
+                if( typeof List[index].documents != "undefined" && List[index].documents != null ){
+                    dataToBeUpdated.documents = List[index].documents.concat(dataToBeUpdated.documents)
+                }
+
                 List.splice(index, 1, dataToBeUpdated);
             }
             return { ...state, List };
