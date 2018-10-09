@@ -63,13 +63,12 @@ var init = exports.init = (socket) => {
                             }
                         })
                         .value();
-
                     const resultList = _.map(c.data, (checklist) => {
                         const documents = (checklist.documents != null && checklist.documents != "") ?
                             _(documentList).filter((doc) => {
                                 return _.findIndex(JSON.parse(checklist.documents), (o) => { return o == doc.id }) >= 0
                             })
-                                .map((o) => { return { ...(_.omit(o, ['id'])), project: checklist.task_projectId } })
+                                .map((o) => { return { ...(o), project: checklist.task_projectId } })
                                 .value()
                             : []
                         return { ...checklist, documents }
@@ -113,7 +112,6 @@ var init = exports.init = (socket) => {
                 });
             }).then((nextThen, result) => {
                 let tempResData = [];
-
                 if (result.length > 0) {
                     tempResData = result.map(file => {
                         let tagList = file.tags;
@@ -167,10 +165,13 @@ var init = exports.init = (socket) => {
 
             }).then((nextThen, result) => {
                 let documentIds = result.map(e => { return e.id })
+                if( typeof d.documentIds != "undefined" ){
+                    documentIds = documentIds.concat(d.documentIds)
+                }
                 nextThen(result, JSON.stringify(documentIds))
+
             }).then((nextThen, result, documentIds) => {
                 let taskCheckList = global.initModel("task_checklist");
-
                 if (typeof d.data.id != "undefined" && d.data.id != "") {
                     taskCheckList.putData("task_checklist", { ...d.data, documents: documentIds }, { id: d.data.id }, (c) => {
                         if (c.status) {
