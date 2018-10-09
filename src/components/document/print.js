@@ -16,8 +16,8 @@ export default class PrintComponent extends React.Component {
     render() {
         let { document } = this.props;
         return (
-                <div style={{display : 'none'}}>
-                    <iframe id="printDocument" src={document.DocumentToPrint}></iframe>
+                <div style={{display :"none"}}>
+                    <iframe id="printDocument" name="printDocument" src=""></iframe>
                 </div>
         )
     }

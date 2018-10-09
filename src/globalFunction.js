@@ -267,3 +267,13 @@ var deleteData = exports.deleteData = function (url,data,cb){
         cb(err); 
     });
 }
+
+var removeTempFile = exports.removeTempFile = function (fileToRemove,cb){
+    axios.post(`/api/document/removeTempFile`, { data : fileToRemove })
+    .then((res)=>{ 
+        cb(res) 
+    })
+    .catch((err)=>{
+        cb(err); 
+    });
+}
