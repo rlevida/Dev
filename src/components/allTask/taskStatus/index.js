@@ -40,27 +40,31 @@ export default class TaskStatus extends React.Component {
         if(task.List.length){
             let userId = loggedUser.data.id;
             task.List.map((e,index)=>{
+                let dueDate = moment(e.dueDate)
+                let currentDate = moment(new Date())
                 if (e.assignedById == userId ){
+                    // console.log(moment(e.dueDate).format('LLL') > moment().format('LLL'))
                     data.assignedTo.Active += 1;
-                    if(moment(e.dueDate).format('L') == moment().format('L')){
+                    if(dueDate.diff(currentDate,'days') == 0){
                         data.assignedTo.DueToday += 1;
-                    }else if(moment(e.dueDate).format('LLL') > moment().format('LLL') ){
+                    }else if(dueDate.diff(currentDate,'days') < 0 ){
                         data.assignedTo.Issues += 1;
                     }
                 }
                 if ( e.followersIds != null && e.followersIds.split(",").includes(`${userId}`)){
                     data.Follower.Active += 1;
-                    if(moment(e.dueDate).format('L') == moment().format('L')){
+                    if(dueDate.diff(currentDate,'days') == 0){
                         data.Follower.DueToday += 1;
-                    }else if(moment(e.dueDate).format('LLL') > moment().format('LLL') ){
+                    }else if(dueDate.diff(currentDate,'days') < 0){
                         data.Follower.Issues += 1;
                     }
                 }
+
                 if ( e.responsible_id == userId ){
                     data.responsible.Active += 1;
-                    if(moment(e.dueDate).format('L') == moment().format('L')){
+                    if(dueDate.diff(currentDate,'days') == 0){
                         data.responsible.DueToday += 1;
-                    }else if(moment(e.dueDate).format('LLL') > moment().format('LLL') ){
+                    }else if(dueDate.diff(currentDate,'days') < 0){
                         data.responsible.Issues += 1;
                     }
                 }
@@ -74,7 +78,7 @@ export default class TaskStatus extends React.Component {
         //         Issues: (typeof e.Issues != "undefined") ? e.Issues : 0
         //     }
         // })
-
+        console.log(data)
         return <div style={this.props.style}>
             <table>
                 <tbody>
