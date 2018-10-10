@@ -394,11 +394,13 @@ export default class ReminderTask extends React.Component {
                         <span>Back</span>
                     </li>
                 </HeaderButtonContainer>
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Task {(task.Selected.id) ? " > ID: " + task.Selected.id : ""}</h3>
-                    </div>
-                    <div class="panel-body">
+                <div class={ task.TaskComponentCurrentPage != "Workstream Task" ? "panel panel-default" : "" }>
+                    { (task.TaskComponentCurrentPage != "Workstream Task") &&
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Task {(task.Selected.id) ? " > ID: " + task.Selected.id : ""}</h3>
+                        </div>
+                    }
+                    <div class={ task.TaskComponentCurrentPage != "Workstream Task" ? "panel-body" : "" }>
                         <Tabs class="mb40">
                             <TabList>
                                 <Tab>Overview</Tab>

@@ -66,6 +66,7 @@ export default class List extends React.Component {
         let { dispatch , socket } = this.props;
         dispatch({ type: "SET_TASK_SELECTED", Selected: data })
         dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })
+        dispatch({ type: "SET_TASK_COMPONENT_CURRENT_PAGE" , Page: "Workstream Task"})
         socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
     }
 
