@@ -3,6 +3,7 @@ import React from "react"
 import Header from "../partial/header"
 import Form from "./form"
 import List from "./list"
+import TaskComponent from "../taskComponent"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -38,6 +39,10 @@ export default class Component extends React.Component {
 
                 {task.FormActive == "Form" &&
                     <Form />
+                }
+
+                {task.FormActive == "View" &&
+                    <TaskComponent/>                
                 }
             </div>
         return (

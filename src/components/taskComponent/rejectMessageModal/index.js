@@ -1,4 +1,7 @@
 import React from "react"
+import Dropzone from 'react-dropzone';
+import { DropDown } from "../../../globalComponents";
+import { showToast, setDatePicker, displayDate } from '../../../globalFunction'
 import { connect } from "react-redux"
 @connect((store) => {
     return {
@@ -33,7 +36,7 @@ export default class ModalComponent extends React.Component {
         let rejectedDetails = {
             taskId : task.Selected.id,
             workstreamId : task.Selected.workstreamId,
-            projectId : project,
+            projectId : task.Selected.projectId,
             approvalDueDate : task.Selected.approvalDueDate,
             approverId : task.Selected.approverId,
             message : task.Selected.rejectMessage
@@ -43,7 +46,7 @@ export default class ModalComponent extends React.Component {
 
         let reminderDetails = {
             workstreamId : task.Selected.workstreamId,
-            projectId : project,
+            projectId : task.Selected.projectId,
             reminderDetail : task.Selected.rejectMessage,
             seen : 0,
             linkType : "task",

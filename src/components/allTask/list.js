@@ -5,6 +5,7 @@ import moment from 'moment';
 import TaskStatus from './taskStatus'
 import ApprovalModal from './approvalModal'
 import _ from "lodash";
+import TaskComponent from '../taskComponent'
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -86,6 +87,13 @@ export default class List extends React.Component {
         );
     }
 
+    viewTask(data){
+        let { dispatch , task } = this.props;
+        dispatch({ type: "SET_TASK_COMPONENT_CURRENT_PAGE" , Page: "My Tasks" })
+        dispatch({ type: "SET_TASK_SELECTED" , Selected : data })
+        dispatch({ type: "SET_TASK_FORM_ACTIVE" , FormActive : "View"})
+    }
+
     render() {
         let { task, socket, loggedUser } = this.props;
         let taskList = _(task.List)
@@ -134,7 +142,8 @@ export default class List extends React.Component {
                                         </td>
                                         <td class="text-left">{data.project_project}</td>
                                         <td class="text-left">{data.workstream_workstream}</td>
-                                        <td class="text-left"><a href={"/task/" + data.id} target="_blank">{data.task}</a></td>
+                                        {/* <td class="text-left"><a href={"/task/" + data.id} target="_blank">{data.task}</a></td> */}
+                                        <td class="text-left"><a href="javascript:void(0)" onClick={ () => this.viewTask(data) }>{data.task}</a></td>
                                         <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                         <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                         <td class="text-left">

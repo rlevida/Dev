@@ -1,5 +1,5 @@
 import React from "react";
-import { setDatePicker, showToast } from '../../../globalFunction';
+import { setDatePicker, showToast } from '../../globalFunction';
 import { connect } from "react-redux";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import UploadModal from "./uploadModal";
@@ -7,7 +7,7 @@ import ApprovalModal from "./approvalModal";
 import RejectMessageModal from "./rejectMessageModal";
 import moment from 'moment';
 import _ from 'lodash';
-import { HeaderButtonContainer, DropDown } from "../../../globalComponents";
+import { HeaderButtonContainer, DropDown } from "../../globalComponents";
 import TaskComment from "./comment";
 
 @connect((store) => {
@@ -40,8 +40,7 @@ export default class ReminderTask extends React.Component {
     }
 
     componentWillReceiveProps(props) {
-        let { socket, task } = props;
-
+        let { socket, task , document } = props;
         if (this.props.task.Selected.id != task.Selected.id) {
             socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
             socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
@@ -54,12 +53,11 @@ export default class ReminderTask extends React.Component {
         $(".form-container").validator();
         setDatePicker(this.handleDate, "dueDate");
         if (typeof task.Selected.id != 'undefined') {
-            socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
+            socket.emit("GET_DOCUMENT_LIST", { filter: { isDeleted: 0, linkId: task.Selected.projectId, linkType: 'project' } })
             socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
             socket.emit("GET_COMMENT_LIST", { filter: { linkType: "task", linkId: task.Selected.id } })
-        }
-        if (typeof task.Selected.workstreamId != "undefined") {
-            socket.emit("GET_DOCUMENT_LIST", { filter: { isDeleted: 0, linkId: project, linkType: 'project' } })
+            socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
+            socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } })
         }
     }
 
@@ -241,7 +239,7 @@ export default class ReminderTask extends React.Component {
     }
 
     setDropDown(name, value) {
-        let { socket, dispatch, task } = this.props
+        let { dispatch, task } = this.props
         let Selected = Object.assign({}, task.Selected)
         Selected[name] = value;
 
@@ -269,6 +267,22 @@ export default class ReminderTask extends React.Component {
             backdrop: 'static',
             keyboard: false
         })
+    }
+
+    back(){
+        let { task , dispatch } = this.props;
+
+        if(task.TaskComponentCurrentPage == "Reminder"){
+            dispatch({ type : "SET_REMINDER_FORM_ACTIVE" , FormActive : "List"  })
+            dispatch({ type : "SET_TASK_COMPONENT_CURRENT_PAGE" , Page : ""})
+        }else if (task.TaskComponentCurrentPage == "My Tasks"){
+            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" })
+            dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
+        }else{
+            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" })
+            dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "" })
+            dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
+        }
     }
 
     render() {
@@ -308,23 +322,38 @@ export default class ReminderTask extends React.Component {
         if (typeof global.SelectList.tagList != "undefined") {
             let tempTagList = [];
             global.SelectList.tagList.map(tag => {
-                if (tag.linkType == "workstream" && tag.linkId == workstream.Selected.id) {
+                if (tag.linkType == "workstream" && tag.linkId == task.Selected.workstreamId) {
                     tempTagList.push(tag)
                 }
 
-                if (tag.linkType == "task") {
-                    task.List.map(t => {
-                        if (t.id == tag.linkId && t.workstreamId == workstream.Selected.id) {
-                            tempTagList.push(tag)
-                        }
-                    })
+                if (tag.linkType == "task" && tag.linkId == task.Selected.id) {
+                        tempTagList.push(tag)
                 }
             })
-            if (tempTagList.length) {
+            if(tempTagList.length){
                 tempTagList.map(temp => {
-                    document.List.map(e => { if (e.id == temp.tagTypeId) { documentList.push(e) } })
+                    document.List
+                        .filter( e => { return e.type != "attachment"})
+                        .map( e => {
+                            if (e.id == temp.tagTypeId && temp.linkId == task.Selected.id && temp.linkType == "task") {
+                                documentList.push(e) 
+                            } 
+                            if (e.id == temp.tagTypeId && temp.linkId == task.Selected.workstreamId && temp.linkType == "workstream") {
+                                documentList.push(e) 
+                            } 
+                        })
                 })
             }
+        }
+        
+        if (checklist.List.length) {
+            checklist.List
+                .filter((c) => { return c.isDocument && c.documents != null })
+                .map((c) => { 
+                    c.documents.map((d) => {
+                        documentList.push(d)
+                    })
+                })
         }
 
         let preceedingTask = _(task.Selected.dependencies)
@@ -361,10 +390,7 @@ export default class ReminderTask extends React.Component {
             <div>
                 <HeaderButtonContainer withMargin={true}>
                     <li class="btn btn-info" style={{ marginRight: "2px" }}
-                        onClick={(e) => {
-                            dispatch({ type: "SET_REMINDER_FORM_ACTIVE", FormActive: "List" })
-                            dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
-                        }} >
+                        onClick={(e) => this.back() } >
                         <span>Back</span>
                     </li>
                 </HeaderButtonContainer>
@@ -433,10 +459,13 @@ export default class ReminderTask extends React.Component {
                                     <div class="col-md-12">
                                         <div class="details">
                                             <span class="fa fa-calendar"></span>
-                                            <p>Due date: {
-                                                (task.Selected.dueDate != "" && task.Selected.dueDate != null) ?
-                                                    moment(task.Selected.dueDate).format('ll') : "N/A"
-                                            }</p>
+                                            <p>
+                                                Due date:
+                                                {
+                                                    (task.Selected.dueDate != "" && task.Selected.dueDate != null) ?
+                                                        moment(task.Selected.dueDate).format('ll') : "N/A"
+                                                }
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="col-md-12">
@@ -555,6 +584,7 @@ export default class ReminderTask extends React.Component {
                                             </div>
                                         </div>
                                     }
+
                                     {(typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents != "" && checklist.Selected.documents != null) &&
                                         <div class="row" style={{ marginLeft: 7, marginTop: 5 }}>
                                             <div class="col-md-12 pdr0">

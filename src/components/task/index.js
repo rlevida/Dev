@@ -5,6 +5,7 @@ import TaskDetail from "./taskDetails"
 import Form from "./form"
 import List from "./list"
 import Link from "./link"
+import TaskComponent from "../taskComponent"
 import _ from "lodash";
 
 import { connect } from "react-redux"
@@ -54,7 +55,7 @@ export default class Component extends React.Component {
             }
             {
                 (task.FormAction == "View") &&
-                <TaskDetail />
+                <TaskComponent />
             }
         </div>
         return (

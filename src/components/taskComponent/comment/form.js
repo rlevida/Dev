@@ -3,7 +3,6 @@ import { connect } from "react-redux";
 import { MentionsInput, Mention } from 'react-mentions';
 import _ from "lodash";
 import defaultStyle from "../../global/react-mention-style";
-
 @connect(({ task, conversation, socket, users, loggedUser , global }) => {
     return {
         task,
@@ -72,11 +71,10 @@ export default class Form extends React.Component {
     render() {
         const { conversation } = { ...this.props };
         let commentText = (typeof conversation.Selected.comment != "undefined") ? conversation.Selected.comment : "";
-
         return (
             <div class="row mt10">
                 <div class="col-md-12 col-xs-12">
-                    <div class="form-group mention" style={{ marginLeft: 22 }}>
+                    <div class="form-group mention" style={{ marginLeft: 15 }}>
                         <MentionsInput
                             value={commentText}
                             onChange={this.handleChange.bind(this, "comment")}

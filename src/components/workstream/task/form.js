@@ -308,9 +308,29 @@ export default class FormComponent extends React.Component {
                     })
                 }
             })
-            if (tempTagList.length) {
+
+            if (checklist.List.length) {
+                checklist.List
+                    .filter((c) => { return c.isDocument && c.documents != null })
+                    .map((c) => { 
+                        c.documents.map((d) => {
+                            documentList.push(d)
+                        })
+                    })
+            }
+
+            if(tempTagList.length){
                 tempTagList.map(temp => {
-                    document.List.map(e => { if (e.id == temp.tagTypeId) { documentList.push(e) } })
+                    document.List
+                        .filter( e => { return e.type != "attachment"})
+                        .map( e => {
+                            if (e.id == temp.tagTypeId && temp.linkId == task.Selected.id && temp.linkType == "task") {
+                                documentList.push(e) 
+                            } 
+                            if (e.id == temp.tagTypeId && temp.linkId == task.Selected.workstreamId && temp.linkType == "workstream") {
+                                documentList.push(e) 
+                            } 
+                        })
                 })
             }
         }
@@ -590,7 +610,7 @@ export default class FormComponent extends React.Component {
                             </div>
                         }
 
-                        {/* <div id="documentList">
+                        <div id="documentList">
                             {(documentList.length > 0) &&
                                 (documentList).map((data, index) => {
                                     return (
@@ -602,7 +622,7 @@ export default class FormComponent extends React.Component {
                                     )
                                 })
                             }
-                        </div> */}
+                        </div>
                     </TabPanel>
                     <TabPanel>
                         <div style={{ position: "relative" }} class="mt10">

@@ -19,7 +19,9 @@ export default class FormComponent extends React.Component {
         let { dispatch , socket } = this.props;
             if(data.linkType == "task"){
                 dispatch({ type : "SET_REMINDER_FORM_ACTIVE" , FormActive : "Task"  })
-                socket.emit("GET_TASK_DETAIL",{id : data.linkId })
+                dispatch({ type : "SET_TASK_COMPONENT_CURRENT_PAGE" , Page : "Reminder"})
+                socket.emit("GET_TASK_DETAIL",{ id : data.linkId })
+                socket.emit("GET_DOCUMENT_LIST", { filter: { isDeleted: 0, linkId: data.projectId, linkType: 'project' } })
                 socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
                 if(!data.seen){
                     socket.emit("SAVE_OR_UPDATE_REMINDER", { data : { id : data.reminderId , seen : 1 } , filter :{ projectId : data.projectId , usersId : data.usersId} } )

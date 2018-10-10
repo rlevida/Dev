@@ -11,7 +11,8 @@ export default function reducer(state = {
     SelectedId: [],
     FormAction: "",
     Loading: true,
-    ModalType: ""
+    ModalType: "",
+    TaskComponentCurrentPage : ""
 }, action) {
     switch (action.type) {
         case "SET_TASK_LIST": {
@@ -89,6 +90,9 @@ export default function reducer(state = {
         }
         case "SET_TASK_FORM_ACTION": {
             return { ...state, FormAction : action.FormAction}
+        }
+        case "SET_TASK_COMPONENT_CURRENT_PAGE" : {
+            return { ...state , TaskComponentCurrentPage : action.Page}
         }
         default:
             return state;
