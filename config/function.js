@@ -53,29 +53,22 @@ var getFilePathExtension = exports.getFilePathExtension = (path) => {
 var uploadFile = exports.uploadFile = (params,cb) => {
     var fs = global.initRequire('fs'),
         AWS = global.initAWS();
-    var fileStream = fs.createReadStream(params.file.path);
-    fileStream.on('error', (err) => {
-       console.log("Error in creating file stream. [" + err + "]");
-    });
-    
-    fileStream.on('open', () => {
+    var fileStream = fs.readFileSync(params.file.path);
         var s3 = new AWS.S3();
-            s3.putObject({
-                Bucket: global.AWSBucket,
-                Key: global.environment + "/" + params.form + "/" + params.filename,
-                ACL: 'public-read-write',
-                Body: fileStream,
-                ContentType : params.file.type, 
-                // ContentDisposition: "attachment"
-            }, (err) => {
-                if(err){
-                    console.log("Error in Uploading to AWS. [" + err + "]");
-                    cb({Message:'Failed to upload'})
-                }else{
-                    cb({Message:'Success'})
-                }
-            });
-    });
+        s3.putObject({
+            Bucket: global.AWSBucket,
+            Key: global.environment + "/" + params.form + "/" + params.filename,
+            Body: fileStream,
+            ContentType : params.file.type, 
+            ACL: 'public-read-write'
+        }, function (err,res) {
+            if(err){
+                console.log("Error in Uploading to AWS. [" + err + "]");
+                cb({Message:'Failed to upload'})
+            }else{
+                cb({Message:'Success'})
+            }
+        });
 }
 
 var getUserRoles = exports.getUserRoles = (users,cb) =>{
