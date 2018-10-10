@@ -1,7 +1,5 @@
 import React from "react"
-
 import Header from "../partial/header"
-import TaskDetail from "./taskDetails"
 import Form from "./form"
 import List from "./list"
 import Link from "./link"

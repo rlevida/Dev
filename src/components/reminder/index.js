@@ -3,7 +3,6 @@ import ReactDOM from "react-dom"
 import Header from "../partial/header"
 import List from "./list"
 import Form from "./form"
-import ReminderTask from "./reminderTask";
 import TaskComponent from "../taskComponent"
 
 import { connect } from "react-redux"
@@ -29,9 +28,9 @@ export default class Component extends React.Component {
                 {reminder.FormActive == "Task" && 
                     <TaskComponent/>
                 }
-                {/* {reminder.FormActive == "Form" &&
+                {reminder.FormActive == "Form" &&
                     <Form />
-                } */}
+                }
             </div>
         return (
             <Header component={Component} page={"document"} />
