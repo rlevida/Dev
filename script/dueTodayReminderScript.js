@@ -74,7 +74,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                             if(e.receiveNotification > 0){
                                 let mailOptions = {
                                     from: '"no-reply" <no-reply@c_cfo.com>', // sender address
-                                    to: `${e.user.emailAddress}`, // list of receivers
+                                    to: `${e.emailAddress}`, // list of receivers
                                     subject: '[CLOUD-CFO]', // Subject line
                                     text: 'Task Due Today', // plain text body
                                     html: 'Task Due Today as responsible' // html body
@@ -116,7 +116,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                             if(e.receiveNotification > 0){
                                 let mailOptions = {
                                     from: '"no-reply" <no-reply@c_cfo.com>', // sender address
-                                    to: `${e.user.emailAddress}`, // list of receivers
+                                    to: `${e.emailAddress}`, // list of receivers
                                     subject: '[CLOUD-CFO]', // Subject line
                                     text: 'Task Due Today', // plain text body
                                     html: 'Task Due Today as follower' // html body
