@@ -37,13 +37,13 @@ export default class List extends React.Component {
                                 dispatch({ type: "SET_TASK_SELECTED", Selected: selectedTask })
                                 dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
                         }
+                        parallelCallback(null,"")
                     })
                 },
                 document : (parallelCallback) => {
                     getData(`/api/document/getByProject`, { params: { filter: { isDeleted:0 , linkId:project , linkType:"project" }}},(c) => {
                         if(c.status == 200){
                             dispatch({ type:"SET_DOCUMENT_LIST",list : c.data})
-                            parallelCallback(null,"")
                         }
                         parallelCallback(null,"")
                     });
@@ -77,6 +77,7 @@ export default class List extends React.Component {
                         if(c.status == 200){
                             dispatch({type:"SET_COMMENT_LIST" , list: c.data })
                         }
+                        parallelCallback(null,"")
                     })
                 }
                 
