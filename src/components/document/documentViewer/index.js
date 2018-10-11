@@ -108,7 +108,7 @@ export default class DocumentViewerComponent extends React.Component {
         let uploadedBy =  global.SelectList.ProjectMemberList.filter( e =>{ return e.id == document.Selected.uploadedBy});
             ext = getFilePathExtension(document.Selected.name).toLowerCase();
             documentContentType = mime.contentType(document.Selected.name)
-            if(ext != "pdf" && ext != "jpeg" && ext !="png"){
+            if(ext == "pdf" || ext == "jpeg" || ext == "png"){
                 isDocument = false;
             }
         return (
@@ -133,10 +133,12 @@ export default class DocumentViewerComponent extends React.Component {
                                 <div class="row" style={{height:"800px"}}>
                                     <div class="col-lg-9 col-md-9 col-xs-12" style={{height:"100%"}}>
                                         <div id="documentImage" style={{textAlign:"center" , height:"100%" }}>
-                                        { (isDocument) ? 
-                                                <embed src={`${settings.imageUrl }/upload/${document.Selected.name}`} type={documentContentType} width={ (ext == 'pdf' || ext == 'png' )? '100%' : "auto"} height={ext == 'pdf' ? '100%' : "auto"}>
-                                                </embed>
-                                                :  <span style={{fontSize:"100px"}} class="glyphicon glyphicon-file"></span>
+                                        { isDocument ?
+                                            <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${settings.imageUrl }/upload/${document.Selected.name}`} 
+                                                    width='100%' height='623px' frameBorder='0'>This is an embedded <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>.
+                                            </iframe>
+                                            :
+                                            <embed src={`${settings.imageUrl }/upload/${document.Selected.name}`} type={documentContentType} width={ (ext == 'pdf' || ext == 'png' )? '100%' : "auto"} height={ext == 'pdf' ? '100%' : "auto"}></embed>
                                         }
                                         </div>
                                     </div>
