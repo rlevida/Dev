@@ -33,6 +33,7 @@ export default class List extends React.Component {
             this.props.socket.emit("GET_TYPE_LIST", {});
             this.props.socket.emit("GET_USER_LIST", {});
             this.props.socket.emit("GET_TEAM_LIST", {});
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamMemberList", filter: { id: workstreamId } })
         }
         // else{
         //     let taskListInterval = setInterval(() => {
