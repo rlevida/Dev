@@ -135,7 +135,7 @@ export default class List extends React.Component {
                                         </td>
                                         <td class="text-left">{data.project_project}</td>
                                         <td class="text-left">{data.workstream_workstream}</td>
-                                        <td class="text-left"><a href={`/task/${data.id}`} target="_blank">{data.task}</a></td>
+                                        <td class="text-left"><a href={`/project/${data.projectId}/processes/${data.workstreamId}/?task=${data.id}`}>{data.task}</a></td>
                                         <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                         <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                         <td class="text-left">

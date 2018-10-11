@@ -143,7 +143,7 @@ export default class FormComponent extends React.Component {
                 <div class="col-lg-12 col-md-12 col-xs-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 class="panel-title">Workstream {(workstream.Selected.id) ? " > Edit > ID: " + workstream.Selected.id : " > Add"}</h3>
+                            {/* <h3 class="panel-title">Workstream {(workstream.Selected.id) ? " > Edit > ID: " + workstream.Selected.id : " > Add"}</h3> */}
                         </div>
                         <div class="panel-body">
                             {(workstream.SelectedLink == "") &&
@@ -210,12 +210,11 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </form>
                             }
-
                             {/* {(workstream.SelectedLink == "task") &&
                                 <Task />
                             } */}
                             {(workstream.SelectedLink) == "task" &&
-                                <TaskComponent/>
+                                <Task/>
                             }
                             {(workstream.SelectedLink == "document") &&
                                 <Document />

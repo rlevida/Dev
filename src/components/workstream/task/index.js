@@ -1,10 +1,8 @@
 import React from "react"
-
+import { connect } from "react-redux"
 import List from "./list"
 import Form from "./form"
-import TaskComponent from "../../taskComponent"
 
-import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -20,15 +18,14 @@ export default class Component extends React.Component {
 
     render() {
         let { socket, task, project, dispatch } = this.props
-
         return (
-            <div class="row">
-                <div className={(task.FormActive == "Form") ? "col-lg-6 col-md-6 col-sm-12" : "col-lg-12"}>
+            <div>   
+                <div className={ task.FormActive == "View" ? "col-lg-6 col-md-6 col-sm-12"  : "col-lg-12 col-md-12 col-sm-12"}>
                     <List />
                 </div>
-                {
-                    (task.FormActive == "Form") && <div class="col-lg-6 col-md-6 col-sm-12">
-                        <TaskComponent />
+                { (task.FormActive == "View") &&
+                    <div class="col-lg-6 col-md-6 col-sm-12">
+                        <Form />
                     </div>
                 }
             </div>

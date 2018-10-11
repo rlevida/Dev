@@ -82,7 +82,6 @@ export default class List extends React.Component {
 
     setTaskkSelected(data) {
         let { dispatch, socket } = this.props;
-
         dispatch({ type: "SET_TASK_SELECTED", Selected: data })
         dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "View" })
         socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamMemberList", filter: { id: data.workstreamId } })
@@ -142,7 +141,7 @@ export default class List extends React.Component {
                                     {this.renderStatus({ ...data, taskStatus })}
                                 </td>
                                 <td class="text-left">{data.workstream_workstream}</td>
-                                <td class="text-left"><a href={`/project/task/${data.id}`}>{data.task}</a></td>
+                                <td class="text-left"><a href={`/project/${data.projectId}/processes/${data.workstreamId}/?task=${data.id}`}>{data.task}</a></td>
                                 <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(displayedDueDate).format('YYYY MMM DD') : ''}</td>
                                 <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                 <td class="text-center">

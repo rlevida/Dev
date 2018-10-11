@@ -81,7 +81,7 @@ export default class Component extends React.Component {
                         <i class="fa fa-dashboard"></i>&nbsp; Project Dashboard </a> 
                     </li>
                     <li class={page == "project" && subpage=="processes"?"active":""}>
-                        <a href={"/project/processes/"+project}>
+                        <a href={`/project/${project}/processes/`}>
                         <i class="fa fa-wpforms"></i>&nbsp; Workstreams </a> 
                     </li>
                     <li class={page == "project" && subpage=="task"?"active":""}>

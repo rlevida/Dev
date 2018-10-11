@@ -55,12 +55,30 @@ exports.get = {
                     break;
                 }
                 case "workstreamMemberList":{
-                    model.getWorkstreamTaskMembers(filter,(c)=>{
-                        if(c.status){
-                            cb({ status:200, data: c.data })
-                        } else {
-                            cb({ status:200, data: [] })
+                    let id = filter.id
+                    async.parallel({
+                        responsible : (parallelCallback) => {
+                            model.getWorkstreamResponsible([id], (c) => {
+                                if(c.status){
+                                    parallelCallback(null,c.data)
+                                }else{
+                                    parallelCallback(null,c.data)
+                                }
+                            })
+                        },
+                        taskMember : (parallelCallback) => {
+                            model.getWorkstreamTaskMembers(filter,(c)=>{
+                                if(c.status){
+                                    parallelCallback(null,c.data)
+                                } else {
+                                    parallelCallback(null,c.data)
+                                }
+                            })
                         }
+                    }, (err, results) => {
+                        let mergeResults = _.uniqBy(results.taskMember.concat(results.responsible),"id")
+                            cb({ status : true , data : mergeResults })
+                            // socket.emit("FRONT_APPLICATION_SELECT_LIST",{ data: mergeResults, name:d.selectName })
                     })
                     break;
                 }
