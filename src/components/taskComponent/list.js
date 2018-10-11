@@ -25,14 +25,29 @@ export default class List extends React.Component {
 
     componentWillMount() {
         let { global , task } = this.props;
-
-        this.props.socket.emit("GET_TASK_LIST",  { filter: { projectId: project, workstreamId: workstreamId } } );
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "userFollowedTasks" , filter: { linkType: 'task', memberType :"Follower"} })
-        this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        this.props.socket.emit("GET_STATUS_LIST", {});
-        this.props.socket.emit("GET_TYPE_LIST", {});
-        this.props.socket.emit("GET_USER_LIST", {});
-        this.props.socket.emit("GET_TEAM_LIST", {});
+        if(typeof workstreamId != "undefined" && typeof project != "undefined"){
+            this.props.socket.emit("GET_TASK_LIST",  { filter: { projectId: project, workstreamId: workstreamId } } );
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "userFollowedTasks" , filter: { linkType: 'task', memberType :"Follower"} })
+            this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
+            this.props.socket.emit("GET_STATUS_LIST", {});
+            this.props.socket.emit("GET_TYPE_LIST", {});
+            this.props.socket.emit("GET_USER_LIST", {});
+            this.props.socket.emit("GET_TEAM_LIST", {});
+        }
+        // else{
+        //     let taskListInterval = setInterval(() => {
+        //         if (this.props.workstream.Selected.id) {
+        //             this.props.socket.emit("GET_TASK_LIST",  { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id } } );
+        //             clearInterval(taskListInterval)
+        //         }
+        //     }, 1000)
+        //     this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "userFollowedTasks" , filter: { linkType: 'task', memberType :"Follower"} })
+        //     this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
+        //     this.props.socket.emit("GET_STATUS_LIST", {});
+        //     this.props.socket.emit("GET_TYPE_LIST", {});
+        //     this.props.socket.emit("GET_USER_LIST", {});
+        //     this.props.socket.emit("GET_TEAM_LIST", {});
+        // }
     }
 
     updateActiveStatus(id, active) {

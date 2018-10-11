@@ -27,7 +27,7 @@
     <foot>
       <script>
         var page = '<%= page %>'
-        var subpage = ''
+        var subpage = '<%= (typeof subpage != "undefined") ? subpage : "" %>'
         var taskId = '<%= (typeof task != "undefined") ? task : "" %>'
         var project = '<%= (typeof project != "undefined") ? project : "" %>'
         var workstreamId = '<%= (typeof workstream != "undefined") ? workstream : "" %>'

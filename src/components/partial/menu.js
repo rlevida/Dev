@@ -72,8 +72,7 @@ export default class Component extends React.Component {
                     <li data-tip={(this.state.miniSideMenu=="true")?"Reports":""} class={page=="reports"?"active":""}><a href="/reports" class="menu-list"><i class="fa fa-bar-chart" aria-hidden="true"></i><span class="link-title">&nbsp; Reports</span></a></li>
                     <li><a href="javascript:void(0)" onClick={this.handleLogout} class="menu-list"><span class="fa fa-sign-out"></span><span class="link-title"> Logout</span></a></li>
                 </ul>
-
-        if(page=="project" && subpage != ""){
+        if( (page=="project" || page=="selectedTask") && subpage != ""){
             Menu = <ul id="menu" class="bg-dark dker">
                     <li class="nav-header">Menu</li>
                     <li data-tip={(this.state.miniSideMenu=="true")?"Home":""} class={page=="index"?"active":""}><a href="/" class="menu-list"><i class="fa fa-home" aria-hidden="true"></i><span class="link-title">&nbsp; My Dashboard</span></a></li>

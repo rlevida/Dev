@@ -138,6 +138,20 @@ router.get('/task/:id',function(req,res,next){
             workstream: c.data.workstream
         })
     })
-   
+})
+
+router.get('/project/task/:id',function(req,res,next){
+    let func = global.initFunc();
+    func.getTaskProjectId({id : req.params.id},(c)=>{
+        res.render('index',{
+            title: global.site_name + '- Task',
+            body: './template/index',
+            page: 'selectedTask',
+            task: req.params.id,
+            project: c.data.project,
+            workstream: c.data.workstream,
+            subpage: 'task',
+        })
+    })
 })
 module.exports = router;

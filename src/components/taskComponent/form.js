@@ -22,8 +22,7 @@ import TaskComment from "./comment";
         users: store.users,
         global: store.global,
         document: store.document,
-        checklist: store.checklist,
-        project: store.project
+        checklist: store.checklist
     }
 })
 
@@ -398,12 +397,12 @@ export default class FormComponent extends React.Component {
 
         return (
             <div>
-                <HeaderButtonContainer withMargin={true}>
+                {/* <HeaderButtonContainer withMargin={true}>
                     <li class="btn btn-info" style={{ marginRight: "2px" }}
-                        onClick={(e) => this.back() } >
+                        onClick={() => window.location.href = `/project/${project}`} >
                         <span>Back</span>
                     </li>
-                </HeaderButtonContainer>
+                </HeaderButtonContainer> */}
                         <Tabs class="mb40">
                             <TabList>
                                 <Tab>Overview</Tab>

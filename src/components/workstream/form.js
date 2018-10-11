@@ -8,6 +8,7 @@ import _ from "lodash";
 import Document from "./document"
 import Task from "./task"
 import Member from "./member"
+import TaskComponent from "../taskComponent"
 
 @connect((store) => {
     return {
@@ -210,8 +211,11 @@ export default class FormComponent extends React.Component {
                                 </form>
                             }
 
-                            {(workstream.SelectedLink == "task") &&
+                            {/* {(workstream.SelectedLink == "task") &&
                                 <Task />
+                            } */}
+                            {(workstream.SelectedLink) == "task" &&
+                                <TaskComponent/>
                             }
                             {(workstream.SelectedLink == "document") &&
                                 <Document />
