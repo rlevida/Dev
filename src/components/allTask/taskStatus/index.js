@@ -20,16 +20,6 @@ export default class TaskStatus extends React.Component {
         }
     }
 
-    // componentWillMount() {
-    //     let intervalLoggedUser = setInterval(() => {
-    //         if (typeof this.props.loggedUser.data.id != "undefined") {
-    //             let filter = { filter: { userId: this.props.loggedUser.data.id } }
-    //             this.props.socket.emit("GET_ALL_TASK_COUNT_LIST", filter)
-    //             clearInterval(intervalLoggedUser)
-    //         }
-    //     }, 1000)
-    // }
-
     render() {
         let { task , loggedUser } = this.props;
         let data = {
@@ -42,8 +32,8 @@ export default class TaskStatus extends React.Component {
             task.List.map((e,index)=>{
                 let dueDate = moment(e.dueDate)
                 let currentDate = moment(new Date())
+                
                 if (e.assignedById == userId ){
-                    // console.log(moment(e.dueDate).format('LLL') > moment().format('LLL'))
                     data.assignedTo.Active += 1;
                     if(dueDate.diff(currentDate,'days') == 0){
                         data.assignedTo.DueToday += 1;
@@ -70,15 +60,6 @@ export default class TaskStatus extends React.Component {
                 }
             })
         }
-        
-        // this.props.task.AllCountList.map((e, i) => {
-        //     data[e.memberType] = {
-        //         Active: (typeof e.Active != "undefined") ? e.Active : 0,
-        //         DueToday: (typeof e.DueToday != "undefined") ? e.DueToday : 0,
-        //         Issues: (typeof e.Issues != "undefined") ? e.Issues : 0
-        //     }
-        // })
-        console.log(data)
         return <div style={this.props.style}>
             <table>
                 <tbody>

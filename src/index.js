@@ -85,4 +85,7 @@ switch (page) {
     case "reminder":
         require('./container/reminder');
         break;
+    case "selectedTask":
+        require('./container/selectedTask')
+        break;
 }

@@ -16,17 +16,17 @@ export default class FormComponent extends React.Component {
     }
 
     viewTask(data){
-        let { dispatch , socket } = this.props;
-            if(data.linkType == "task"){
-                dispatch({ type : "SET_REMINDER_FORM_ACTIVE" , FormActive : "Task"  })
-                dispatch({ type : "SET_TASK_COMPONENT_CURRENT_PAGE" , Page : "Reminder"})
-                socket.emit("GET_TASK_DETAIL",{ id : data.linkId })
-                socket.emit("GET_DOCUMENT_LIST", { filter: { isDeleted: 0, linkId: data.projectId, linkType: 'project' } })
-                socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
-                if(!data.seen){
-                    socket.emit("SAVE_OR_UPDATE_REMINDER", { data : { id : data.reminderId , seen : 1 } , filter :{ projectId : data.projectId , usersId : data.usersId} } )
-                }
-            }
+        // let { dispatch , socket } = this.props;
+        //     if(data.linkType == "task"){
+        //         dispatch({ type : "SET_REMINDER_FORM_ACTIVE" , FormActive : "Task"  })
+        //         dispatch({ type : "SET_TASK_COMPONENT_CURRENT_PAGE" , Page : "Reminder"})
+        //         socket.emit("GET_TASK_DETAIL",{ id : data.linkId })
+        //         socket.emit("GET_DOCUMENT_LIST", { filter: { isDeleted: 0, linkId: data.projectId, linkType: 'project' } })
+        //         socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
+        //         if(!data.seen){
+        //             socket.emit("SAVE_OR_UPDATE_REMINDER", { data : { id : data.reminderId , seen : 1 } , filter :{ projectId : data.projectId , usersId : data.usersId} } )
+        //         }
+        //     }
         //     dispatch({ type : "SET_REMINDER_FORM_ACTIVE" , FormActive : "Form"  })
         //     dispatch({ type : "SET_TASK_SELECTED" , Selected : data })
     }
@@ -57,7 +57,7 @@ export default class FormComponent extends React.Component {
                                                     <td>{data.taskName}</td>
                                                     <td>{data.reminderDetail}</td>
                                                     <td>{displayDate(data.dateAdded)}</td>
-                                                    <td><a href="javascript:void(0)" class="btn btn-primary" data-tip="View" onClick={()=> this.viewTask(data)}><span class="fa fa-eye"></span></a></td>
+                                                    <td><a href={`/task/${data.linkId}`} class="btn btn-primary" data-tip="View"><span class="fa fa-eye"></span></a></td>
                                                 </tr>
                                             )
                                         })
@@ -70,7 +70,7 @@ export default class FormComponent extends React.Component {
                                                     <td>{data.taskName}</td>
                                                     <td>{data.reminderDetail}</td>
                                                     <td>{displayDate(data.dateAdded)}</td>
-                                                    <td><a href="javascript:void(0)" class="btn btn-primary" data-tip="View" onClick={()=> this.viewTask(data)}><span class="fa fa-eye"></span></a></td>
+                                                    <td><a href={`/task/${data.linkId}`} class="btn btn-primary" data-tip="View" onClick={()=> this.viewTask(data)}><span class="fa fa-eye"></span></a></td>
                                                 </tr>
                                             )
                                         })
