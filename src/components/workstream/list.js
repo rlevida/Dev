@@ -72,114 +72,126 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { workstream, dispatch, socket, loggedUser, global, projectData } = this.props;
-        return <div>
-            <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>
-            <WorkstreamStatus style={{ float: "right", padding: "20px" }} />
-            <HeaderButtonContainer withMargin={true}>
-                {(loggedUser.data.userRole == 1
-                    || loggedUser.data.userRole == 2
-                    || loggedUser.data.userRole == 3
-                    || loggedUser.data.userRole == 4) &&
-                    <li class="btn btn-info" onClick={(e) => {
-                        dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
-                        dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
-                    }}
-                    >
-                        <span>New Workstream</span>
-                    </li>
-                }
-            </HeaderButtonContainer>
+        const { workstream, dispatch, socket, loggedUser, global, projectData } = this.props;
+        const workstreamList = _.filter(workstream.List, (workstreamObj, index) => {
+            if (loggedUser.data.userType == "External") {
+                const members = (workstreamObj.memberIds).split(",");
+                const findMemberIndex = _.findIndex(members, (memberId) => { return _.toNumber(memberId) == loggedUser.data.id });
+                return findMemberIndex >= 0;
+            } else {
+                return workstreamObj.id != 0;
+            }
+        });
 
-            <table id="dataTable" class="table responsive-table">
-                <tbody>
-                    <tr>
-                        <th></th>
-                        <th class="text-left">Workstream</th>
-                        <th class="text-center">Pending</th>
-                        <th class="text-center">Completed</th>
-                        <th class="text-center">Issues</th>
-                        <th class="text-center">New Docs</th>
-                        <th class="text-center">Members</th>
-                        <th class="text-center">Type</th>
-                        <th class="text-center"></th>
-                        {(loggedUser.data.userRole == 1
-                            || loggedUser.data.userRole == 2
-                            || loggedUser.data.userRole == 3) &&
+        return (
+            <div>
+                <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>
+                <WorkstreamStatus style={{ float: "right", padding: "20px" }} />
+                <HeaderButtonContainer withMargin={true}>
+                    {(loggedUser.data.userRole == 1
+                        || loggedUser.data.userRole == 2
+                        || loggedUser.data.userRole == 3
+                        || loggedUser.data.userRole == 4) &&
+                        <li class="btn btn-info" onClick={(e) => {
+                            dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
+                            dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
+                        }}
+                        >
+                            <span>New Workstream</span>
+                        </li>
+                    }
+                </HeaderButtonContainer>
+
+                <table id="dataTable" class="table responsive-table">
+                    <tbody>
+                        <tr>
                             <th></th>
+                            <th class="text-left">Workstream</th>
+                            <th class="text-center">Pending</th>
+                            <th class="text-center">Completed</th>
+                            <th class="text-center">Issues</th>
+                            <th class="text-center">New Docs</th>
+                            <th class="text-center">Members</th>
+                            <th class="text-center">Type</th>
+                            <th class="text-center"></th>
+                            {(loggedUser.data.userRole == 1
+                                || loggedUser.data.userRole == 2
+                                || loggedUser.data.userRole == 3) &&
+                                <th></th>
+                            }
+                        </tr>
+                        {(workstream.Loading) &&
+                            <tr>
+                                <td style={{ textAlign: "center" }} colSpan={9}><Loading /></td>
+                            </tr>
                         }
-                    </tr>
-                    {(workstream.Loading) &&
-                        <tr>
-                            <td style={{ textAlign: "center" }} colSpan={9}><Loading /></td>
-                        </tr>
-                    }
-                    {
-                        (workstream.List.length == 0 && !workstream.Loading) &&
-                        <tr>
-                            <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                        </tr>
-                    }
-                    {(!workstream.Loading) &&
-                        workstream.List.map((data, index) => {
-                            let workStreamStatus = (data.Issues > 0) ? 2 : (data.OnDue > 0) ? 1 : (data.Completed == data.TasksNumber || data.OnTrack > 0) ? 0 : '';
+                        {
+                            (workstreamList.length == 0 && !workstream.Loading) &&
+                            <tr>
+                                <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
+                            </tr>
+                        }
+                        {(!workstream.Loading) &&
+                            workstreamList.map((data, index) => {
+                                let workStreamStatus = (data.Issues > 0) ? 2 : (data.OnDue > 0) ? 1 : (data.Completed == data.TasksNumber || data.OnTrack > 0) ? 0 : '';
 
-                            return (
-                                <tr key={index}>
-                                    <td>
-                                        {(data.isActive == 1) && <span className={(workStreamStatus == 2) ? "fa fa-exclamation-circle" : "fa fa-circle"} style={{ color: (workStreamStatus == 2) ? '#c0392b' : (workStreamStatus == 1) ? '#f39c12' : (workStreamStatus == 0) ? '#27ae60' : '' }}></span>}
-                                        {(data.isActive == 0) && <span className={"fa fa-circle"}></span>}
-                                    </td>
-                                    <td class="text-left" style={{ cursor: "pointer" }}>
-                                        <a
-                                            href="javascript:void(0);"
-                                            onClick={(e) => {
-                                                // socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
-                                                dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: data })
-                                                dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
-                                                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
-                                            }}
-                                        >
-                                            {data.workstream}
-                                        </a>
-                                    </td>
-                                    <td class="text-center">{data.OnTrack}</td>
-                                    <td class="text-center">{data.Completed}</td>
-                                    <td class="text-center">{data.Issues}</td>
-                                    <td class="text-center">
-                                        {(typeof global.SelectList.workstreamDocumentList != "undefined") &&
-                                            global.SelectList.workstreamDocumentList.filter(t => { return t.workstreamId == data.id && t.linkType == "workstream" }).length
-                                        }
-                                    </td>
-                                    <td class="text-center">{(data.memberNames) ? <span style={{ color: "#46b8da" }} title={data.memberNames}><i class="fa fa-user fa-lg"></i></span> : ""}   {/*&nbsp;&nbsp;<span style={{color:"#006400"}}><i class="fa fa-user fa-lg"></i></span>*/}</td>
-                                    <td class="text-center"><span class={data.type_type == "Output based" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
-                                    <td class="text-center"><span><i class="fa fa-users fa-lg"></i></span></td>
-                                    {(loggedUser.data.userRole == 1
-                                        || loggedUser.data.userRole == 2
-                                        || loggedUser.data.userRole == 3) &&
-                                        <td class="text-center">
-                                            <a href="javascript:void(0);"
-                                                data-tip="EDIT"
-                                                class="btn btn-info btn-sm"
+                                return (
+                                    <tr key={index}>
+                                        <td>
+                                            {(data.isActive == 1) && <span className={(workStreamStatus == 2) ? "fa fa-exclamation-circle" : "fa fa-circle"} style={{ color: (workStreamStatus == 2) ? '#c0392b' : (workStreamStatus == 1) ? '#f39c12' : (workStreamStatus == 0) ? '#27ae60' : '' }}></span>}
+                                            {(data.isActive == 0) && <span className={"fa fa-circle"}></span>}
+                                        </td>
+                                        <td class="text-left" style={{ cursor: "pointer" }}>
+                                            <a
+                                                href="javascript:void(0);"
                                                 onClick={(e) => {
-                                                    socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
-                                                    dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
+                                                    // socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
+                                                    dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: data })
+                                                    dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
+                                                    dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
                                                 }}
                                             >
-                                                <span class="glyphicon glyphicon-pencil"></span></a>
-                                            <a href="javascript:void(0);" data-tip="DELETE"
-                                                onClick={e => this.deleteData(data.id)}
-                                                class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                <span class="glyphicon glyphicon-trash"></span></a>
-                                            <Tooltip />
+                                                {data.workstream}
+                                            </a>
                                         </td>
-                                    }
-                                </tr>
-                            )
-                        })
-                    }
-                </tbody>
-            </table>
-        </div>
+                                        <td class="text-center">{data.OnTrack}</td>
+                                        <td class="text-center">{data.Completed}</td>
+                                        <td class="text-center">{data.Issues}</td>
+                                        <td class="text-center">
+                                            {(typeof global.SelectList.workstreamDocumentList != "undefined") &&
+                                                global.SelectList.workstreamDocumentList.filter(t => { return t.workstreamId == data.id && t.linkType == "workstream" }).length
+                                            }
+                                        </td>
+                                        <td class="text-center">{(data.memberNames) ? <span style={{ color: "#46b8da" }} title={data.memberNames}><i class="fa fa-user fa-lg"></i></span> : ""}   {/*&nbsp;&nbsp;<span style={{color:"#006400"}}><i class="fa fa-user fa-lg"></i></span>*/}</td>
+                                        <td class="text-center"><span class={data.type_type == "Output based" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
+                                        <td class="text-center"><span><i class="fa fa-users fa-lg"></i></span></td>
+                                        {(loggedUser.data.userRole == 1
+                                            || loggedUser.data.userRole == 2
+                                            || loggedUser.data.userRole == 3) &&
+                                            <td class="text-center">
+                                                <a href="javascript:void(0);"
+                                                    data-tip="EDIT"
+                                                    class="btn btn-info btn-sm"
+                                                    onClick={(e) => {
+                                                        socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
+                                                        dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
+                                                    }}
+                                                >
+                                                    <span class="glyphicon glyphicon-pencil"></span></a>
+                                                <a href="javascript:void(0);" data-tip="DELETE"
+                                                    onClick={e => this.deleteData(data.id)}
+                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                    <span class="glyphicon glyphicon-trash"></span></a>
+                                                <Tooltip />
+                                            </td>
+                                        }
+                                    </tr>
+                                )
+                            })
+                        }
+                    </tbody>
+                </table>
+            </div>
+        )
     }
 }
