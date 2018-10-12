@@ -94,114 +94,105 @@ export default class List extends React.Component {
             .orderBy(['due_date_int'], ['asc'])
             .value();
 
-        return <div>
+        return (
+            <div>
 
-            <TaskStatus style={{ float: "right", marginBottom: 20, marginRight: 20 }} />
-            <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" onClick={(e) => {
-                    dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
-                    dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "Create" });
-                    dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
-                }}
-                >
-                    <span>New Task</span>
-                </li>
-            </HeaderButtonContainer>
-            <table id="dataTable" class="table responsive-table">
-                <tbody>
-                    <tr>
-                        <th></th>
-                        <th class="text-left">Workstream</th>
-                        <th class="text-left">Task Name</th>
-                        <th class="text-center">Due Date</th>
-                        <th class="text-center">Assigned</th>
-                        <th class="text-center">Followed By</th>
-                        <th class="text-left">Status</th>
-                        <th class="text-center"></th>
-                    </tr>
-                    {
-                        (taskList.length == 0) &&
+                <TaskStatus style={{ float: "right", marginBottom: 20, marginRight: 20 }} />
+                <HeaderButtonContainer withMargin={true}>
+                    <li class="btn btn-info" onClick={(e) => {
+                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
+                        dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "Create" });
+                        dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
+                    }}
+                    >
+                        <span>New Task</span>
+                    </li>
+                </HeaderButtonContainer>
+                <table id="dataTable" class="table responsive-table">
+                    <tbody>
                         <tr>
-                            <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
+                            <th></th>
+                            <th class="text-left">Workstream</th>
+                            <th class="text-left">Task Name</th>
+                            <th class="text-center">Due Date</th>
+                            <th class="text-center">Assigned</th>
+                            <th class="text-center">Followed By</th>
+                            <th class="text-left">Status</th>
+                            <th class="text-center"></th>
                         </tr>
-                    }
-                    {
-                        taskList.map((data, index) => {
-                            let taskStatus = 0;
-                            let dueDate = moment(data.dueDate);
-                            let currentDate = moment(new Date());
-                            let displayedDueDate = dueDate;
-
-                            if (dueDate.diff(currentDate, 'days') < 0 && data.status != 'Completed') {
-                                taskStatus = 2
-                            } else if (dueDate.diff(currentDate, 'days') == 0 && data.status != 'Completed') {
-                                taskStatus = 1
-                            }
-                            return <tr key={index}>
-                                <td>
-                                    {this.renderStatus({ ...data, taskStatus })}
-                                </td>
-                                <td class="text-left">{data.workstream_workstream}</td>
-                                <td class="text-left"><a href="javascript:void(0);" onClick={() => this.setTaskkSelected(data)}>{data.task}</a></td>
-                                <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(displayedDueDate).format('YYYY MMM DD') : ''}</td>
-                                <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
-                                <td class="text-center">
-                                    {(data.followersName != null) &&
-                                        <div>
-                                            <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
-                                            <Tooltip id={`follower${index}`}>
-                                                {data.followersName.split(",").map((e, fKey) => {
-                                                    return <p key={fKey}>{e != null ? e : ""} <br /></p>
-                                                })}
-                                            </Tooltip>
-                                        </div>
-                                    }
-                                </td>
-                                <td class="text-left">{data.status}</td>
-                                <td class="text-left">
-                                    {
-                                        (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External') && <div>
-                                            <a href="javascript:void(0);" data-tip="EDIT"
-                                                onClick={(e) => {
-                                                    dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "Edit" })
-                                                    socket.emit("GET_TASK_DETAIL", { id: data.id })
-                                                }}
-                                                class="btn btn-info btn-sm">
-                                                <span class="glyphicon glyphicon-pencil"></span></a>
-                                            <a href="javascript:void(0);" data-tip="DELETE"
-                                                onClick={e => this.deleteData(data.id)}
-                                                class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                <span class="glyphicon glyphicon-trash"></span></a>
-                                            {
-                                                (
-                                                    (data.status == null || data.status == "In Progress" || data.status == "")
-                                                    &&
-                                                    (typeof data.isActive == 'undefined' || data.isActive == 1)
-                                                ) && <a href="javascript:void(0);" data-tip="COMPLETE"
-                                                    onClick={e => this.updateActiveStatus({ id: data.id, periodTask: data.periodTask })}
-                                                    class="btn btn-success btn-sm ml10">
-                                                    <span class="glyphicon glyphicon-check"></span></a>
-                                            }
-                                            <Tooltip />
-                                        </div>
-                                    }
-                                    {
-                                        (typeof loggedUser.data != 'undefined' && loggedUser.data.userType == 'External') && <div>
-                                            <a href="javascript:void(0);" data-tip="VIEW"
-                                                onClick={(e) => {
-                                                    dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "View" })
-                                                    socket.emit("GET_TASK_DETAIL", { id: data.id })
-                                                }}
-                                                class="btn btn-success btn-sm">
-                                                <span class="glyphicon glyphicon-eye-open"></span></a>
-                                        </div>
-                                    }
-                                </td>
+                        {
+                            (taskList.length == 0) &&
+                            <tr>
+                                <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
                             </tr>
-                        })
-                    }
-                </tbody>
-            </table>
-        </div>
+                        }
+                        {
+                            taskList.map((data, index) => {
+                                let taskStatus = 0;
+                                let dueDate = moment(data.dueDate);
+                                let currentDate = moment(new Date());
+                                let displayedDueDate = dueDate;
+
+                                if (dueDate.diff(currentDate, 'days') < 0 && data.status != 'Completed') {
+                                    taskStatus = 2
+                                } else if (dueDate.diff(currentDate, 'days') == 0 && data.status != 'Completed') {
+                                    taskStatus = 1
+                                }
+                                return <tr key={index}>
+                                    <td>
+                                        {this.renderStatus({ ...data, taskStatus })}
+                                    </td>
+                                    <td class="text-left">{data.workstream_workstream}</td>
+                                    <td class="text-left"><a href="javascript:void(0);" onClick={() => this.setTaskkSelected(data)}>{data.task}</a></td>
+                                    <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(displayedDueDate).format('YYYY MMM DD') : ''}</td>
+                                    <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
+                                    <td class="text-center">
+                                        {(data.followersName != null) &&
+                                            <div>
+                                                <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
+                                                <Tooltip id={`follower${index}`}>
+                                                    {data.followersName.split(",").map((e, fKey) => {
+                                                        return <p key={fKey}>{e != null ? e : ""} <br /></p>
+                                                    })}
+                                                </Tooltip>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td class="text-left">{data.status}</td>
+                                    <td class="text-left">
+                                        {
+                                            (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) && <div>
+                                                <a href="javascript:void(0);" data-tip="EDIT"
+                                                    onClick={(e) => {
+                                                        dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "Edit" })
+                                                        socket.emit("GET_TASK_DETAIL", { id: data.id })
+                                                    }}
+                                                    class="btn btn-info btn-sm">
+                                                    <span class="glyphicon glyphicon-pencil"></span></a>
+                                                <a href="javascript:void(0);" data-tip="DELETE"
+                                                    onClick={e => this.deleteData(data.id)}
+                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                    <span class="glyphicon glyphicon-trash"></span></a>
+                                                {
+                                                    (
+                                                        (data.status == null || data.status == "In Progress" || data.status == "")
+                                                        &&
+                                                        (typeof data.isActive == 'undefined' || data.isActive == 1)
+                                                    ) && <a href="javascript:void(0);" data-tip="COMPLETE"
+                                                        onClick={e => this.updateActiveStatus({ id: data.id, periodTask: data.periodTask })}
+                                                        class="btn btn-success btn-sm ml10">
+                                                        <span class="glyphicon glyphicon-check"></span></a>
+                                                }
+                                                <Tooltip />
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                            })
+                        }
+                    </tbody>
+                </table>
+            </div>
+        )
     }
 }

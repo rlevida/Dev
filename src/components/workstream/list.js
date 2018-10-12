@@ -105,8 +105,7 @@ export default class List extends React.Component {
                         <th class="text-center"></th>
                         {(loggedUser.data.userRole == 1
                             || loggedUser.data.userRole == 2
-                            || loggedUser.data.userRole == 3
-                            || loggedUser.data.userRole == 4) &&
+                            || loggedUser.data.userRole == 3) &&
                             <th></th>
                         }
                     </tr>
@@ -157,8 +156,7 @@ export default class List extends React.Component {
                                     <td class="text-center"><span><i class="fa fa-users fa-lg"></i></span></td>
                                     {(loggedUser.data.userRole == 1
                                         || loggedUser.data.userRole == 2
-                                        || loggedUser.data.userRole == 3
-                                        || loggedUser.data.userRole == 4) &&
+                                        || loggedUser.data.userRole == 3) &&
                                         <td class="text-center">
                                             <a href="javascript:void(0);"
                                                 data-tip="EDIT"

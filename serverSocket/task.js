@@ -350,7 +350,7 @@ var init = exports.init = (socket) => {
                             if (d.data.action == "For Approval" || d.data.action == "Reject Task") {
                                 resolve({ ...o })
                             } else {
-                                resolve({ ...o, assignedById: results.members })
+                                resolve({ ...o, assignedById: results.members, assignedTo: results.members })
                             }
                         }
                     });
@@ -358,7 +358,7 @@ var init = exports.init = (socket) => {
             });
 
             Promise.all(taskAttributesPromises).then((values) => {
-                nextThen(data, type)
+                nextThen(values, type)
             }).catch(function (error) {
                 socket.emit("RETURN_ERROR_MESSAGE", { message: "Saving failed. Please Try again later." })
             });

@@ -139,7 +139,7 @@ export default class List extends React.Component {
                                         <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                         <td class="text-left">
                                             {
-                                                (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External') && <div>
+                                                (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) && <div>
                                                     <a href="javascript:void(0);" data-tip="EDIT"
                                                         onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'edit' })}
                                                         class="btn btn-info btn-sm">
@@ -159,14 +159,6 @@ export default class List extends React.Component {
                                                             class="btn btn-success btn-sm ml10">
                                                             <span class="glyphicon glyphicon-check"></span></a>
                                                     }
-                                                </div>
-                                            }
-                                            {
-                                                (typeof loggedUser.data != 'undefined' && loggedUser.data.userType == 'External') && <div>
-                                                    <a href="javascript:void(0);" data-tip="VIEW"
-                                                        onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'view' })}
-                                                        class="btn btn-success btn-sm">
-                                                        <span class="glyphicon glyphicon-eye-open"></span></a>
                                                 </div>
                                             }
                                             <Tooltip />
