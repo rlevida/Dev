@@ -19,6 +19,20 @@ exports.get = {
                 cb({ status:false, error:res.error })
             }
         })
+    },
+    getConversationList : (req,cb) => {
+            let d = req.query
+            let conversation = global.initModel("conversation")
+            let filter = (typeof d.filter != "undefined")?JSON.parse(d.filter):{};
+            conversation.getData("conversation", filter ,{},(c)=>{
+                if(c.status) {
+                    cb({ status: true , data: c.data })
+                    // socket.emit("FRONT_COMMENT_LIST",c.data)
+                }else{
+                    cb({ status: false , error : c.error })
+                    // if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
+                }
+            })
     }
 }
 

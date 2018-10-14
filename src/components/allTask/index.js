@@ -3,6 +3,7 @@ import React from "react"
 import Header from "../partial/header"
 import Form from "./form"
 import List from "./list"
+import TaskComponent from "../taskComponent"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -31,13 +32,16 @@ export default class Component extends React.Component {
     render() {
         let { socket, task, project, dispatch } = this.props
         let Component = <div>
-                <h3>&nbsp;&nbsp;&nbsp;&nbsp;{project.Selected.project}</h3>
                 {task.FormActive == "List" &&
                     <List />
                 }
 
                 {task.FormActive == "Form" &&
                     <Form />
+                }
+
+                {task.FormActive == "View" &&
+                    <TaskComponent/>                
                 }
             </div>
         return (

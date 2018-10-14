@@ -1,11 +1,12 @@
 import React from "react";
+import moment from 'moment';
 import Tooltip from "react-tooltip";
-import { Loading } from "../../../globalComponents";
-import moment from 'moment'
-import Form from "./form"
-import _ from "lodash";
+import { connect } from "react-redux";
+import parallel from 'async/parallel';
 
-import { connect } from "react-redux"
+import { Loading } from "../../../globalComponents";
+import { getData } from "../../../globalFunction";
+
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -24,29 +25,65 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        let { global } = this.props;
-        let taskListInterval = setInterval(() => {
-            if (this.props.workstream.Selected.id) {
-                // let userFollowedTasks = global.SelectList.userFollowedTasks
-                //     .filter((e,index) =>{ return e.userTypeLinkId == this.props.loggedUser.data.id})
-                //     .map((e,index) =>{ return e.linkId })
+        let { global , task , dispatch , socket } = this.props;
+        let listToGet = { params :{ filter : { projectId : project , workstreamId : workstreamId }}}
 
-                // let taskListId = _.merge(userFollowedTasks, this.props.loggedUser.data.taskIds)
-                // let filter =  { filter: { id: { name: "id", value: taskListId, condition: " IN " } } }
+            parallel({
+                taskList : (parallelCallback) => {   
+                    getData(`/api/task/getTaskList`,listToGet , (c) => {
+                        dispatch({ type: "SET_TASK_LIST", list: c.data })
+                        if( taskId != ""){
+                            let selectedTask = c.data.filter((e) => { return e.id == taskId})[0]
+                                dispatch({ type: "SET_TASK_SELECTED", Selected: selectedTask })
+                                dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
+                        }
+                        parallelCallback(null,"")
+                    })
+                },
+                document : (parallelCallback) => {
+                    getData(`/api/document/getByProject`, { params: { filter: { isDeleted:0 , linkId:project , linkType:"project" }}},(c) => {
+                        if(c.status == 200){
+                            dispatch({ type:"SET_DOCUMENT_LIST",list : c.data})
+                        }
+                        parallelCallback(null,"")
+                    });
+                },
+                tagList : (parallelCallback) => {
+                    getData(`/api/global/selectList`,{ params: { selectName: "tagList" }},(c) => {
+                        if(c.status == 200){
+                            dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'tagList' })
+                        }
+                        parallelCallback(null,"")
+                    })
+                },
+                checkList : (parallelCallback) => {
+                    getData(`/api/checklist/getCheckList`, { params : { filter : { id: taskId } }}, (c) => {
+                        if(c.status == 200){
+                            dispatch({ type: "SET_CHECKLIST", list: c.data })
+                        }
+                        parallelCallback(null,"")
+                    })
+                },
+                workstreamMemberList : (parallelCallback) => {
+                    getData(`/api/global/selectList`,{ params: { selectName: "workstreamMemberList" , filter : { id : workstreamId }}},(c) => {
+                        if(c.status == 200){
+                            dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'workstreamMemberList' })
+                        }
+                        parallelCallback(null,"")
+                    })
+                },
+                commentList : (parallelCallback) => {
+                    getData(`/api/conversation/getConversationList` , { params : { filter : {linkType: "task", linkId: taskId }}} , (c) => {
+                        if(c.status == 200){
+                            dispatch({type:"SET_COMMENT_LIST" , list: c.data })
+                        }
+                        parallelCallback(null,"")
+                    })
+                }
                 
-                // if( this.props.loggedUser.data.userRole == 1 || this.props.loggedUser.data.userRole == 2){
-                    // filter = { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id } }
-                // }
-                this.props.socket.emit("GET_TASK_LIST",  { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id } } );
-                clearInterval(taskListInterval)
-            }
-        }, 1000)
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "userFollowedTasks" , filter: { linkType: 'task', memberType :"Follower"} })
-        this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        this.props.socket.emit("GET_STATUS_LIST", {});
-        this.props.socket.emit("GET_TYPE_LIST", {});
-        this.props.socket.emit("GET_USER_LIST", {});
-        this.props.socket.emit("GET_TEAM_LIST", {});
+            } ,(error, result) => {
+                // console.log(`end loading`)
+            })
     }
 
     updateActiveStatus(id, active) {
@@ -65,7 +102,8 @@ export default class List extends React.Component {
     selectedTask(data) {
         let { dispatch , socket } = this.props;
         dispatch({ type: "SET_TASK_SELECTED", Selected: data })
-        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })
+        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
+        dispatch({ type: "SET_TASK_COMPONENT_CURRENT_PAGE" , Page: "Workstream Task"})
         socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
     }
 
@@ -126,14 +164,7 @@ export default class List extends React.Component {
                                 return (
                                     <tr key={index}>
                                         <td>{this.renderStatus({ ...data, taskStatus })}</td>
-                                        <td class="text-left">
-                                            <a
-                                                href="javascript:void(0);"
-                                                onClick={() => this.selectedTask(data)}
-                                            >
-                                                {data.task}
-                                            </a>
-                                        </td>
+                                        <td class="text-left"><a href={`/project/${data.projectId}/processes/${data.workstreamId}/?task=${data.id}`}>{data.task}</a></td>
                                         <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                         <td>{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                         <td>

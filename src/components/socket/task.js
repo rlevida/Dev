@@ -17,11 +17,7 @@ export default class Socket extends React.Component {
         var { socket, dispatch, task } = this.props;
 
         socket.on("FRONT_TASK_LIST", (data) => {
-            if (data.type == "workstream") {
-                dispatch({ type: "SET_TASK_LIST", list: data.data })
-            } else {
-                dispatch({ type: "SET_TASK_LIST", list: data.data })
-            }
+            dispatch({ type: "SET_TASK_LIST", list: data.data })
         })
 
         socket.on("FRONT_ALL_TASK_COUNT_LIST", (data) => {

@@ -2,7 +2,7 @@ import React from "react"
 import ReactDOM from "react-dom"
 import { Provider } from "react-redux"
 
-import Component from  "../components/selectedTask"
+import Component from  "../components/taskComponent"
 import Socket from  "../components/socket"
 
 import store from "../store"

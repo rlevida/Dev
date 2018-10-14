@@ -20,16 +20,6 @@ export default class TaskStatus extends React.Component {
         }
     }
 
-    // componentWillMount() {
-    //     let intervalLoggedUser = setInterval(() => {
-    //         if (typeof this.props.loggedUser.data.id != "undefined") {
-    //             let filter = { filter: { userId: this.props.loggedUser.data.id } }
-    //             this.props.socket.emit("GET_ALL_TASK_COUNT_LIST", filter)
-    //             clearInterval(intervalLoggedUser)
-    //         }
-    //     }, 1000)
-    // }
-
     render() {
         let { task , loggedUser } = this.props;
         let data = {
@@ -40,41 +30,36 @@ export default class TaskStatus extends React.Component {
         if(task.List.length){
             let userId = loggedUser.data.id;
             task.List.map((e,index)=>{
+                let dueDate = moment(e.dueDate)
+                let currentDate = moment(new Date())
+                
                 if (e.assignedById == userId ){
                     data.assignedTo.Active += 1;
-                    if(moment(e.dueDate).format('L') == moment().format('L')){
+                    if(dueDate.diff(currentDate,'days') == 0){
                         data.assignedTo.DueToday += 1;
-                    }else if(moment(e.dueDate).format('LLL') > moment().format('LLL') ){
+                    }else if(dueDate.diff(currentDate,'days') < 0 ){
                         data.assignedTo.Issues += 1;
                     }
                 }
                 if ( e.followersIds != null && e.followersIds.split(",").includes(`${userId}`)){
                     data.Follower.Active += 1;
-                    if(moment(e.dueDate).format('L') == moment().format('L')){
+                    if(dueDate.diff(currentDate,'days') == 0){
                         data.Follower.DueToday += 1;
-                    }else if(moment(e.dueDate).format('LLL') > moment().format('LLL') ){
+                    }else if(dueDate.diff(currentDate,'days') < 0){
                         data.Follower.Issues += 1;
                     }
                 }
+
                 if ( e.responsible_id == userId ){
                     data.responsible.Active += 1;
-                    if(moment(e.dueDate).format('L') == moment().format('L')){
+                    if(dueDate.diff(currentDate,'days') == 0){
                         data.responsible.DueToday += 1;
-                    }else if(moment(e.dueDate).format('LLL') > moment().format('LLL') ){
+                    }else if(dueDate.diff(currentDate,'days') < 0){
                         data.responsible.Issues += 1;
                     }
                 }
             })
         }
-        
-        // this.props.task.AllCountList.map((e, i) => {
-        //     data[e.memberType] = {
-        //         Active: (typeof e.Active != "undefined") ? e.Active : 0,
-        //         DueToday: (typeof e.DueToday != "undefined") ? e.DueToday : 0,
-        //         Issues: (typeof e.Issues != "undefined") ? e.Issues : 0
-        //     }
-        // })
-
         return <div style={this.props.style}>
             <table>
                 <tbody>

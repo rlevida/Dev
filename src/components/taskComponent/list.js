@@ -1,11 +1,11 @@
 import React from "react";
+import moment from 'moment';
 import Tooltip from "react-tooltip";
-import { Loading } from "../../globalComponents";
-import moment from 'moment'
-import Form from "./form"
-import _ from "lodash";
+import { connect } from "react-redux";
 
-import { connect } from "react-redux"
+
+import { Loading } from "../../globalComponents";
+
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -24,13 +24,31 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_TASK_LIST",  { filter: { projectId: project, workstreamId: workstreamId } } );
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "userFollowedTasks" , filter: { linkType: 'task', memberType :"Follower"} })
-        this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        this.props.socket.emit("GET_STATUS_LIST", {});
-        this.props.socket.emit("GET_TYPE_LIST", {});
-        this.props.socket.emit("GET_USER_LIST", {});
-        this.props.socket.emit("GET_TEAM_LIST", {});
+        let { global , task } = this.props;
+        if(typeof workstreamId != "undefined" && typeof project != "undefined"){
+            this.props.socket.emit("GET_TASK_LIST",  { filter: { projectId: project, workstreamId: workstreamId } } );
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "userFollowedTasks" , filter: { linkType: 'task', memberType :"Follower"} })
+            this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
+            this.props.socket.emit("GET_STATUS_LIST", {});
+            this.props.socket.emit("GET_TYPE_LIST", {});
+            this.props.socket.emit("GET_USER_LIST", {});
+            this.props.socket.emit("GET_TEAM_LIST", {});
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamMemberList", filter: { id: workstreamId } })
+        }
+        // else{
+        //     let taskListInterval = setInterval(() => {
+        //         if (this.props.workstream.Selected.id) {
+        //             this.props.socket.emit("GET_TASK_LIST",  { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id } } );
+        //             clearInterval(taskListInterval)
+        //         }
+        //     }, 1000)
+        //     this.props.socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "userFollowedTasks" , filter: { linkType: 'task', memberType :"Follower"} })
+        //     this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
+        //     this.props.socket.emit("GET_STATUS_LIST", {});
+        //     this.props.socket.emit("GET_TYPE_LIST", {});
+        //     this.props.socket.emit("GET_USER_LIST", {});
+        //     this.props.socket.emit("GET_TEAM_LIST", {});
+        // }
     }
 
     updateActiveStatus(id, active) {
@@ -49,7 +67,8 @@ export default class List extends React.Component {
     selectedTask(data) {
         let { dispatch , socket } = this.props;
         dispatch({ type: "SET_TASK_SELECTED", Selected: data })
-        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })
+        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
+        dispatch({ type: "SET_TASK_COMPONENT_CURRENT_PAGE" , Page: "Workstream Task"})
         socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
     }
 

@@ -5,6 +5,7 @@ import moment from 'moment';
 import TaskStatus from './taskStatus'
 import ApprovalModal from './approvalModal'
 import _ from "lodash";
+import TaskComponent from '../taskComponent'
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -134,14 +135,16 @@ export default class List extends React.Component {
                                         </td>
                                         <td class="text-left">{data.project_project}</td>
                                         <td class="text-left">{data.workstream_workstream}</td>
-                                        <td class="text-left"><a href={"/task/" + data.id} target="_blank">{data.task}</a></td>
+                                        <td class="text-left"><a href={`/project/${data.projectId}/processes/${data.workstreamId}/?task=${data.id}`}>{data.task}</a></td>
                                         <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                         <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                         <td class="text-left">
                                             {
                                                 (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) && <div>
                                                     <a href="javascript:void(0);" data-tip="EDIT"
-                                                        onClick={(e) => socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'edit' })}
+                                                        onClick={(e) => {
+                                                            socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'edit' })
+                                                        }}
                                                         class="btn btn-info btn-sm">
                                                         <span class="glyphicon glyphicon-pencil"></span></a>
                                                     <a href="javascript:void(0);" data-tip="DELETE"

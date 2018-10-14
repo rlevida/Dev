@@ -1,6 +1,7 @@
 import React from "react";
 import Tooltip from "react-tooltip";
 import { HeaderButtonContainer, Loading } from "../../globalComponents";
+import { getData } from "../../globalFunction";
 import WorkstreamStatus from "./workstreamStatus"
 
 import { connect } from "react-redux"
@@ -22,14 +23,33 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        this.props.socket.emit("GET_STATUS_LIST", {});
-        this.props.socket.emit("GET_TYPE_LIST", {});
-        this.props.socket.emit("GET_USER_LIST", {});
-        this.props.socket.emit("GET_TEAM_LIST", {});
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } })
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
+        let { dispatch } = this.props;
+
+        if(workstreamId != ""){
+            let dataToGet = { params : { id : workstreamId } }
+                getData(`/api/workstream/getWorkstreamDetail`, dataToGet , (c) => {
+                    dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: c.data })
+                    dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
+                    dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
+                    this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
+
+                    // this.props.socket.emit("GET_STATUS_LIST", {});
+                    // this.props.socket.emit("GET_TYPE_LIST", {});
+                    // this.props.socket.emit("GET_USER_LIST", {});
+                    // this.props.socket.emit("GET_TEAM_LIST", {});
+                    // this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } })
+                    // this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
+                })
+        }else{
+            this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
+            this.props.socket.emit("GET_STATUS_LIST", {});
+            this.props.socket.emit("GET_TYPE_LIST", {});
+            this.props.socket.emit("GET_USER_LIST", {});
+            this.props.socket.emit("GET_TEAM_LIST", {});
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } })
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
+            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
+        }
     }
 
     updateActiveStatus(id, active) {
@@ -143,13 +163,14 @@ export default class List extends React.Component {
                                         </td>
                                         <td class="text-left" style={{ cursor: "pointer" }}>
                                             <a
-                                                href="javascript:void(0);"
-                                                onClick={(e) => {
-                                                    // socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
-                                                    dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: data })
-                                                    dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
-                                                    dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
-                                                }}
+                                                href={`/project/${data.projectId}/processes/${data.id}`}
+                                                // href="javascript:void(0);"
+                                                // onClick={(e) => {
+                                                //     // socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
+                                                //     dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: data })
+                                                //     dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
+                                                //     dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
+                                                // }}
                                             >
                                                 {data.workstream}
                                             </a>

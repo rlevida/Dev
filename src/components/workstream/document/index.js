@@ -41,12 +41,12 @@ export default class WorkstreamDocumentViewer extends React.Component {
             socket.emit("GET_DOCUMENT_LIST", { 
                 filter : { isDeleted : 0 } , type : "workstream"
             });
-            let taskListInterval = setInterval(()=>{
-                if(this.props.workstream.Selected.id){
-                    this.props.socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id  } });
-                    clearInterval(taskListInterval)
-                }
-            },1000)
+            // let taskListInterval = setInterval(()=>{
+            //     if(this.props.workstream.Selected.id){
+            //         this.props.socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id  } });
+            //         clearInterval(taskListInterval)
+            //     }
+            // },1000)
 
             socket.emit("GET_USER_LIST",{});
             socket.emit("GET_SETTINGS", {});

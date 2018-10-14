@@ -85,13 +85,11 @@ switch (page) {
     case "reminder":
         require('./container/reminder');
         break;
-
-    /**
-     * 
-     * Task Form
-     */
-
-    case "task":
-        require('./container/selectedTask')
+    case "selectedTask":
+        switch (subpage) {
+            default:
+            require('./container/selectedTask')
+            break;
+        }
         break;
 }
