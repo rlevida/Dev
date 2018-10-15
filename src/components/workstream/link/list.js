@@ -68,6 +68,9 @@ export default class List extends React.Component {
                             onClick={() => { 
                                 this.selectedLink("task")
                                 window.history.replaceState({}, document.title, "/project/" + `${project}/processes/${workstreamId}`);
+                                dispatch({type:"SET_TASK_SELECTED", Selected: {}});
+                                dispatch({type:"SET_TASK_FORM_ACTIVE", FormActive: ""});
+                                taskId = ""
                             }}>
                         List
                         </a>&nbsp;&nbsp;
@@ -79,6 +82,9 @@ export default class List extends React.Component {
                             onClick={() => {
                                 dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "member" });
                                 window.history.replaceState({}, document.title, "/project/" + `${project}/processes/${workstreamId}`);
+                                dispatch({type:"SET_TASK_SELECTED", Selected: {}});
+                                dispatch({type:"SET_TASK_FORM_ACTIVE", FormActive: ""});
+                                taskId = ""
                             }}>
                         Members
                         </a>&nbsp;&nbsp;
@@ -88,6 +94,9 @@ export default class List extends React.Component {
                             onClick={() => {
                                 dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "document" })
                                 window.history.replaceState({}, document.title, "/project/" + `${project}/processes/${workstreamId}`);
+                                dispatch({type:"SET_TASK_SELECTED", Selected: {}});
+                                dispatch({type:"SET_TASK_FORM_ACTIVE", FormActive: ""});
+                                taskId = ""
                             }}>
                         Documents</a>&nbsp;&nbsp;
                     </li>|
