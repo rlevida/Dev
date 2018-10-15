@@ -16,11 +16,6 @@ var field = exports.field = {
     'usersId' : {type : 'int' , access : "public" },
 
     /**
-     * taskId (BIGINT)
-     */
-    'taskId' : {type : 'int' , access : "public" },
-
-    /**
      * seen (TINYINT)
      */
     'seen' : {type : 'int' , access : "public" },
