@@ -90,13 +90,13 @@ export default class Component extends React.Component {
         let { reminder } = this.props;
     }
     render() {
-        let { user, reminder, dispatch } = this.props
+        let { user, reminder, loggedUser } = this.props
         let userView = "";
         if (user.username != "") {
             userView = <div class="headAccess"> Welcome : {user.username}</div>;
         }
 
-        let reminderUnseen = _.orderBy(reminder.List.filter( e => { return !e.seen}),['dateAdded'],['desc'])
+        let reminderUnseen = _.orderBy(reminder.List.filter( e => { return !e.seen && e.usersId == user.id}),['dateAdded'],['desc'])
         // let reminderSeen = _.orderBy(reminder.List.filter( e => { return e.seen}),['dateAdded'],['desc'])
 
         return <div>
