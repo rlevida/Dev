@@ -96,6 +96,7 @@ export default class List extends React.Component {
                                 window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
                                 dispatch({type:"SET_TASK_SELECTED", Selected: {}});
                                 dispatch({type:"SET_TASK_FORM_ACTIVE", FormActive: ""});
+                                dispatch({type:"SET_DOCUMENT_FORM_ACTIVE" , FormActive: "List"})
                                 taskId = ""
                             }}>
                         Documents</a>&nbsp;&nbsp;

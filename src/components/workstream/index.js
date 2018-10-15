@@ -1,11 +1,9 @@
 import React from "react"
-import ReactDOM from "react-dom"
 
 import Header from "../partial/header"
 import Form from "./form"
 import List from "./list"
 import Link from "./link"
-import WorkstreamDocumentViewer from "./workstreamDocumentViewer"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -37,9 +35,6 @@ export default class Component extends React.Component {
                 <Form />
             }
 
-            {workstream.FormActive == "WorkstreamDocumentViewer" &&
-                <WorkstreamDocumentViewer />
-            }
         </div>
         return (
             <Header component={Component} page={"Workstream"} />
