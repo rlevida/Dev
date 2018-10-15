@@ -99,6 +99,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                 remindTaskAsssigned : (parallelCallback) => {
                     async.map(result.data, (e, mapCallback) => {
                         reminder.postData("reminder", {
+                            projectId:e.projectId,
                             linkType: "task",
                             linkId: e.id,
                             type: "Task Overdue",
@@ -139,6 +140,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                         remindWorkstreamResponsible : (parallelCallback) => {
                             async.map(responsible.data, (e, mapCallback) => {
                                 reminder.postData("reminder", {
+                                    projectId:e.projectId,
                                     linkType: "workstream",
                                     linkId: e.workstreamId,
                                     type: "Task Overdue",
@@ -180,6 +182,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                        remindTaskFollower:(parallelCallback)=>{ 
                            async.map(follower.data, (e, mapCallback) => {
                                 reminder.postData("reminder", {
+                                    projectId:e.projectId,
                                     linkType: "task",
                                     linkId: e.taskId,
                                     type: "Task Overdue",

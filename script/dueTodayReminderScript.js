@@ -9,7 +9,7 @@ var schedule = require('node-schedule'),
  *   s    i    H    DM    M   DW 
  * 
  **/
-var j = schedule.scheduleJob('0 0 * * *', () => {
+// var j = schedule.scheduleJob('0 0 * * *', () => {
     let task = global.initModel("task")
     let reminder = global.initModel("reminder")
     let members = global.initModel("members")
@@ -23,6 +23,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                         async.map( result.data , (e, mapCallback) => {
                             reminder.postData("reminder",{
                                 usersId:e.usersId,
+                                projectId:e.projectId,
                                 linkType:"task",
                                 linkId:e.id,
                                 type:"Task Due Today",
@@ -61,6 +62,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                     remindWorkstreamResponsible : (parallelCallback) => {
                         async.map(responsible.data, (e, mapCallback) => {
                             reminder.postData("reminder", {
+                                projectId: e.projectId,
                                 linkType: "workstream",
                                 linkId: e.workstreamId,
                                 type: "Task Due Today",
@@ -102,6 +104,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                    remindTaskFollower:(parallelCallback)=>{ 
                        async.map(follower.data, (e, mapCallback) => {
                             reminder.postData("reminder", {
+                                projectId:e.projectId,
                                 linkType: "task",
                                 linkId: e.taskId,
                                 type: "Task Due Today",
@@ -135,4 +138,4 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
             }
         })
     })
-})
+// })

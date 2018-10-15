@@ -164,7 +164,7 @@ export default class List extends React.Component {
                                 return (
                                     <tr key={index}>
                                         <td>{this.renderStatus({ ...data, taskStatus })}</td>
-                                        <td class="text-left"><a href={`/project/${data.projectId}/processes/${data.workstreamId}/?task=${data.id}`}>{data.task}</a></td>
+                                        <td class="text-left"><a href={`/project/${data.projectId}/processes/${data.workstreamId}?task=${data.id}`}>{data.task}</a></td>
                                         <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                         <td>{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                         <td>
