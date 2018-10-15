@@ -46,11 +46,6 @@ var field = exports.field = {
     'typeId': { type: 'bigint', access: "public" },
 
     /**
-     * linkTaskId (BIGINT)
-     */
-    'linkTaskId': { type: 'bigint', access: "public", database: "task", relation: "one-to-one" },
-
-    /**
      * typeId (tinyint)
      */
     'periodic': { type: 'tinyint', access: "public" },

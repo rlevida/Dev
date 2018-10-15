@@ -9,7 +9,6 @@ CREATE TABLE `task` (
     `startDate` DATETIME,
     `status` ENUM("In Progress","For Approval","Completed"),
     `typeId` BIGINT,
-    `linkTaskId` BIGINT,
     `periodic` TINYINT(1) DEFAULT '0',
     `periodType` ENUM("years", "months", "weeks", "days"),
     `period` INT,

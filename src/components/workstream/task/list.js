@@ -57,7 +57,7 @@ export default class List extends React.Component {
                     })
                 },
                 taskCheckList : (parallelCallback) => {
-                    getData(`/api/checklist/getCheckList`, { params : { filter : { id: taskId } }}, (c) => {
+                    getData(`/api/checklist/getCheckList`, { params : { filter : { taskId: taskId } }}, (c) => {
                         if(c.status == 200){
                             dispatch({ type: "SET_CHECKLIST", list: c.data })
                         }
@@ -103,7 +103,7 @@ export default class List extends React.Component {
         let { dispatch , socket } = this.props;
         parallel({
             taskCheckList : (parallelCallback) => {
-                getData(`/api/checklist/getCheckList`, { params : { filter : { id: data.id } }}, (c) => {
+                getData(`/api/checklist/getCheckList`, { params : { filter : { taskId: data.id } }}, (c) => {
                     if(c.status == 200){
                         console.log(`sokpa`)
                         dispatch({ type: "SET_CHECKLIST", list: c.data })

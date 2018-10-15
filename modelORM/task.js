@@ -40,10 +40,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    linkTaskId: {
-      type: DataTypes.BIGINT,
-      allowNull: true
-    },
     periodic: {
       type: DataTypes.INTEGER(1),
       allowNull: true,
