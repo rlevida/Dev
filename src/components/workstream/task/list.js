@@ -26,7 +26,7 @@ export default class List extends React.Component {
 
     componentWillMount() {
         let { global, task, dispatch, socket } = this.props;
-        let listToGet = { params: { filter: { projectId: project } } }
+        let listToGet = { params: { filter: { projectId: project, workstreamId: workstreamId } } }
 
         parallel({
             taskList: (parallelCallback) => {
@@ -120,7 +120,7 @@ export default class List extends React.Component {
                 })
             }
         } ,(error, result) => {
-            window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}/?task=${data.id}`);
+            window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}?task=${data.id}`);
             dispatch({ type: "SET_TASK_SELECTED", Selected: data })
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
             // console.log(`end loading`)

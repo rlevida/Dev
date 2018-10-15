@@ -349,7 +349,8 @@ var getProjectDetails = exports.getProjectDetails = ( tablename , data , {}, cb 
     let params = [];
     let query = ` SELECT prj.* , members.userTypeLinkId as projectManagerId , type.type as project_type from project as prj 
                     LEFT JOIN members ON members.linkId = ${data.projectId} AND linkType = 'project' AND memberType = 'project manager' AND prj.id = ${data.projectId}
-                    LEFT JOIN type ON type.id = prj.typeId `
+                    LEFT JOIN type ON type.id = prj.typeId
+                    WHERE prj.id = ${data.projectId}`
 
     db.query(
         query,

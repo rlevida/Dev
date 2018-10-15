@@ -383,7 +383,6 @@ var getTaskList = exports.getTaskList = (tablename, data, advance, cb) => {
     if (typeof advance.offset != "undefined") {
         query += " OFFSET " + advance.offset
     }
-
     query = `SELECT prj.*, (
                     IF(prj.status="Completed" AND task.status = "Completed","Completed",
                         IF(prj.status="Completed" AND task.id IS NOT NULL AND ( task.status != "Completed" || task.status IS NULL ),"Incomplete",
@@ -398,7 +397,7 @@ var getTaskList = exports.getTaskList = (tablename, data, advance, cb) => {
                 follower.followersIds,
                 responsible.responsible_id
                 FROM (` + query + `) as prj 
-                LEFT JOIN task ON prj.linkTaskId = task.id
+                LEFT JOIN task ON prj.id = task.projectId
                 LEFT JOIN (SELECT users.*,members.linkId FROM members 
                                 LEFT JOIN users ON members.userTypeLinkId = users.id 
                                     AND members.memberType = "assignedTo" 

@@ -20,6 +20,14 @@ export default class Component extends React.Component {
         super(props)
     }
 
+    componentWillMount(props) {
+        const { socket } = { ...this.props };
+        const url = window.location.pathname;
+        const urlsplit = url.split("/");
+        const projectId = urlsplit[urlsplit.length - 1];
+        socket.emit("GET_PROJECT_DETAIL", { id: projectId });
+    }
+
     render() {
         let { socket, projectData, dispatch } = this.props
         let Component = <div class="pd20">
@@ -41,7 +49,7 @@ export default class Component extends React.Component {
             <div class="row pdl20 pdr20">
                 <div class="col-md-6">
                     <h4 class="mt20 mb20">Documents</h4>
-                    <a class="more" href={"/project/documents/"+project}> + More</a>
+                    <a class="more" href={"/project/documents/" + project}> + More</a>
                     <DocumentStatus />
                 </div>
             </div>
