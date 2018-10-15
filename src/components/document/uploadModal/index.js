@@ -34,12 +34,11 @@ export default class UploadModal extends React.Component {
     saveDocument(){
         let { dispatch } = this.props;
         let { tempData } = this.state;
-
         postData(`/api/document/`,tempData,(c)=>{
             if(c.status == 200){
                 this.setState({  upload : false ,   tempData : [] });
                 dispatch({ type: "ADD_DOCUMENT_LIST", list: c.data.list });
-                dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data.tagList , name: 'tagList' })
+                dispatch({type:"SET_APPLICATION_SELECT_LIST", List: c.data.tagList , name: 'tagList' })
                 showToast("success","Successfully Added.")
             }else{
                 showToast("danger","Saving failed. Please Try again later.")
@@ -88,8 +87,11 @@ export default class UploadModal extends React.Component {
     render() {
         let { workstream  , task , dispatch , projectData , loggedUser } = this.props;
         let tagOptions = [] ;
-            workstream.List.map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
-            task.List.map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
+            workstream.List
+                .map( e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream })})
+            task.List
+                .filter( e => { return e.status != "Completed" })
+                .map( e => { tagOptions.push({ id: `task-${e.id}` , name: e.task })})
 
         return <div>
                 <div class="modal fade" id="uploadFileModal" tabIndex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true">

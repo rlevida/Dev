@@ -111,7 +111,6 @@ export default class List extends React.Component {
             taskCheckList: (parallelCallback) => {
                 getData(`/api/checklist/getCheckList`, { params: { filter: { taskId: data.id } } }, (c) => {
                     if (c.status == 200) {
-                        console.log(`sokpa`)
                         dispatch({ type: "SET_CHECKLIST", list: c.data })
                     }
                     parallelCallback(null, "")
