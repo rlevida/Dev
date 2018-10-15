@@ -9,7 +9,7 @@ var schedule = require('node-schedule'),
  *   s    i    H    DM    M   DW 
  * 
  **/
-// var j = schedule.scheduleJob('0 0 * * *', () => {
+var j = schedule.scheduleJob('0 0 * * *', () => {
     let task = global.initModel("task")
     let reminder = global.initModel("reminder")
     let members = global.initModel("members")
@@ -138,4 +138,4 @@ var schedule = require('node-schedule'),
             }
         })
     })
-// })
+})
