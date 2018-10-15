@@ -25,22 +25,22 @@ export default class List extends React.Component {
     componentWillMount() {
         let { dispatch } = this.props;
 
-        if(workstreamId != ""){
-            let dataToGet = { params : { id : workstreamId } }
-                getData(`/api/workstream/getWorkstreamDetail`, dataToGet , (c) => {
-                    dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: c.data })
-                    dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
-                    dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
-                    this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
+        if (workstreamId != "") {
+            let dataToGet = { params: { id: workstreamId } }
+            getData(`/api/workstream/getWorkstreamDetail`, dataToGet, (c) => {
+                dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: c.data })
+                dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
+                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
+                this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
 
-                    // this.props.socket.emit("GET_STATUS_LIST", {});
-                    // this.props.socket.emit("GET_TYPE_LIST", {});
-                    // this.props.socket.emit("GET_USER_LIST", {});
-                    // this.props.socket.emit("GET_TEAM_LIST", {});
-                    // this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } })
-                    // this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
-                })
-        }else{
+                // this.props.socket.emit("GET_STATUS_LIST", {});
+                // this.props.socket.emit("GET_TYPE_LIST", {});
+                // this.props.socket.emit("GET_USER_LIST", {});
+                // this.props.socket.emit("GET_TEAM_LIST", {});
+                // this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } })
+                // this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
+            })
+        } else {
             this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
             this.props.socket.emit("GET_STATUS_LIST", {});
             this.props.socket.emit("GET_TYPE_LIST", {});
@@ -108,10 +108,7 @@ export default class List extends React.Component {
                 <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>
                 <WorkstreamStatus style={{ float: "right", padding: "20px" }} />
                 <HeaderButtonContainer withMargin={true}>
-                    {(loggedUser.data.userRole == 1
-                        || loggedUser.data.userRole == 2
-                        || loggedUser.data.userRole == 3
-                        || loggedUser.data.userRole == 4) &&
+                    {(loggedUser.data.userRole < 4) &&
                         <li class="btn btn-info" onClick={(e) => {
                             dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
                             dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
@@ -164,13 +161,13 @@ export default class List extends React.Component {
                                         <td class="text-left" style={{ cursor: "pointer" }}>
                                             <a
                                                 href={`/project/${data.projectId}/processes/${data.id}`}
-                                                // href="javascript:void(0);"
-                                                // onClick={(e) => {
-                                                //     // socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
-                                                //     dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: data })
-                                                //     dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
-                                                //     dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
-                                                // }}
+                                            // href="javascript:void(0);"
+                                            // onClick={(e) => {
+                                            //     // socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
+                                            //     dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: data })
+                                            //     dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
+                                            //     dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
+                                            // }}
                                             >
                                                 {data.workstream}
                                             </a>

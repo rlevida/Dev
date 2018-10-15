@@ -98,14 +98,17 @@ export default class List extends React.Component {
 
                 <TaskStatus style={{ float: "right", marginBottom: 20, marginRight: 20 }} />
                 <HeaderButtonContainer withMargin={true}>
-                    <li class="btn btn-info" onClick={(e) => {
-                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
-                        dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "Create" });
-                        dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
-                    }}
-                    >
-                        <span>New Task</span>
-                    </li>
+                    {
+                        (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) &&
+                        <li class="btn btn-info" onClick={(e) => {
+                            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
+                            dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "Create" });
+                            dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
+                        }}
+                        >
+                            <span>New Task</span>
+                        </li>
+                    }
                 </HeaderButtonContainer>
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
