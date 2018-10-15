@@ -63,11 +63,34 @@ export default class List extends React.Component {
             <div>
                 <div>
                     <ul class="list-inline" style={{ margin: "20px" }}>
-                        <li class="list-inline-item"><a href="javascript:void(0)" onClick={() => this.selectedLink("task")}>List</a>&nbsp;&nbsp;</li>|
+                    <li class="list-inline-item">
+                        <a href="javascript:void(0)" 
+                            onClick={() => { 
+                                this.selectedLink("task")
+                                window.history.replaceState({}, document.title, "/project/" + `${project}/processes/${workstreamId}`);
+                            }}>
+                        List
+                        </a>&nbsp;&nbsp;
+                    </li>|
                     <li class="list-inline-item" style={{ color: "gray" }}>Calendar&nbsp;&nbsp;</li>|
                     <li class="list-inline-item" style={{ color: "gray" }}>Timeline&nbsp;&nbsp;</li>|
-                    <li class="list-inline-item"><a href="javascript:void(0)" onClick={() => dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "member" })}>Members</a>&nbsp;&nbsp;</li>|
-                    <li class="list-inline-item"><a href="javascript:void(0)" onClick={() => dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "document" })}>Documents</a>&nbsp;&nbsp;</li>|
+                    <li class="list-inline-item">
+                        <a href="javascript:void(0)"
+                            onClick={() => {
+                                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "member" });
+                                window.history.replaceState({}, document.title, "/project/" + `${project}/processes/${workstreamId}`);
+                            }}>
+                        Members
+                        </a>&nbsp;&nbsp;
+                    </li>|
+                    <li class="list-inline-item">
+                        <a href="javascript:void(0)" 
+                            onClick={() => {
+                                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "document" })
+                                window.history.replaceState({}, document.title, "/project/" + `${project}/processes/${workstreamId}`);
+                            }}>
+                        Documents</a>&nbsp;&nbsp;
+                    </li>|
                     <li class="list-inline-item" style={{ color: "gray" }}>Conversation</li>
                     </ul>
                     <ul class="list-inline" style={{ margin: "20px" }}>

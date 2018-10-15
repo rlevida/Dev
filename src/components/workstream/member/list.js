@@ -29,11 +29,11 @@ export default class List extends React.Component {
 
     render() {
         let { workstream, global, users } = this.props;
-        let workstreamMembers = workstream.Selected.memberIds.split(",");
-        let userMemberList = workstreamMembers.map( e => { 
-            let userMember = users.List.filter((o) => { return o.id == e})[0];
-            return { ...userMember } 
-        })
+        // let workstreamMembers = workstream.Selected.memberIds.split(",");
+        // let userMemberList = workstreamMembers.map( e => { 
+        //     let userMember = users.List.filter((o) => { return o.id == e})[0];
+        //     return { ...userMember } 
+        // })
            
         return (
             <div class="row pd20">
@@ -52,7 +52,7 @@ export default class List extends React.Component {
                         </tr>
 
                         {
-                            (userMemberList.length > 0) && userMemberList.map((data, index) => {
+                            (global.SelectList.workstreamMemberList.length > 0) && global.SelectList.workstreamMemberList.map((data, index) => {
                                 return (
                                     <tr key={index}>
                                         <td class="text-center">{data.id}</td>
