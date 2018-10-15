@@ -62,7 +62,7 @@ export default class UploadModal extends React.Component {
                     status: "new",
                     tags: JSON.stringify([{ value: `task-${task.Selected.id}`, label: task.Selected.Task }]),
                     type: task.ModalType == "checklist" ? "attachment" : "task",
-                    isCompleted: 1
+                    isCompleted: 0
                 })
             })
 
