@@ -349,8 +349,9 @@ var getTaskFollower = exports.getTaskFollower = (data , cb ) => {
     let filter = "";
     let params = [];
 
-    let query = ` SELECT follower.* , users.emailAddress FROM ( SELECT members.*, members.userTypeLinkId as usersId , task.id as taskId , task.projectId as projectId FROM members LEFT JOIN task ON task.id = members.linkId 
-                        WHERE members.linkId in (${data.join(",")}) AND members.memberType = 'Follower' AND members.linkType = 'task' GROUP BY members.id ) as follower
+    let query = ` SELECT follower.* , users.emailAddress FROM ( SELECT members.*, members.userTypeLinkId as usersId , task.id as taskId , task.projectId as projectId FROM members 
+                        LEFT JOIN task ON task.id = members.linkId 
+                            WHERE members.linkId in (${data.join(",")}) AND members.memberType = 'Follower' AND members.linkType = 'task' GROUP BY members.id ) as follower
                   LEFT JOIN users ON follower.usersId = users.id
                     `;
     db.query(
