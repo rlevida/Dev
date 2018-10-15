@@ -1,15 +1,3 @@
-DROP TABLE IF EXISTS `activity_feed`;
-CREATE TABLE IF NOT EXISTS `activity_feed` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `invokerUserId` bigint(20) DEFAULT NULL,
-  `linkType` enum('project','workstream','task','conversation') COLLATE utf8mb4_bin DEFAULT NULL,
-  `linkId` bigint(20) DEFAULT NULL,
-  `data` text COLLATE utf8mb4_bin,
-  `dateAdded` datetime DEFAULT NULL,
-  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
-
 DROP TABLE IF EXISTS `activity_log`;
 CREATE TABLE IF NOT EXISTS `activity_log` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
