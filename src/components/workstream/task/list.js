@@ -25,65 +25,65 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        let { global , task , dispatch , socket } = this.props;
-        let listToGet = { params :{ filter : { projectId : project , workstreamId : workstreamId }}}
+        let { global, task, dispatch, socket } = this.props;
+        let listToGet = { params: { filter: { projectId: project } } }
 
-            parallel({
-                taskList : (parallelCallback) => {   
-                    getData(`/api/task/getTaskList`,listToGet , (c) => {
-                        dispatch({ type: "SET_TASK_LIST", list: c.data })
-                        if( taskId != "" ){
-                            let selectedTask = c.data.filter((e) => { return e.id == taskId})[0]
-                                dispatch({ type: "SET_TASK_SELECTED", Selected: selectedTask })
-                                dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
-                        }
-                        parallelCallback(null,"")
-                    })
-                },
-                document : (parallelCallback) => {
-                    getData(`/api/document/getByProject`, { params: { filter: { isDeleted:0 , linkId:project , linkType:"project" }}},(c) => {
-                        if(c.status == 200){
-                            dispatch({ type:"SET_DOCUMENT_LIST",list : c.data})
-                        }
-                        parallelCallback(null,"")
-                    });
-                },
-                tagList : (parallelCallback) => {
-                    getData(`/api/global/selectList`,{ params: { selectName: "tagList" }},(c) => {
-                        if(c.status == 200){
-                            dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'tagList' })
-                        }
-                        parallelCallback(null,"")
-                    })
-                },
-                taskCheckList : (parallelCallback) => {
-                    getData(`/api/checklist/getCheckList`, { params : { filter : { taskId: taskId } }}, (c) => {
-                        if(c.status == 200){
-                            dispatch({ type: "SET_CHECKLIST", list: c.data })
-                        }
-                        parallelCallback(null,"")
-                    })
-                },
-                workstreamMemberList : (parallelCallback) => {
-                    getData(`/api/global/selectList`,{ params: { selectName: "workstreamMemberList" , filter : { id : workstreamId }}},(c) => {
-                        if(c.status == 200){
-                            dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'workstreamMemberList' })
-                        }
-                        parallelCallback(null,"")
-                    })
-                },
-                taskCommentList : (parallelCallback) => {
-                    getData(`/api/conversation/getConversationList` , { params : { filter : {linkType: "task", linkId: taskId }}} , (c) => {
-                        if(c.status == 200){
-                            dispatch({type:"SET_COMMENT_LIST" , list: c.data })
-                        }
-                        parallelCallback(null,"")
-                    })
-                }
-                
-            } ,(error, result) => {
-                // console.log(`end loading`)
-            })
+        parallel({
+            taskList: (parallelCallback) => {
+                getData(`/api/task/getTaskList`, listToGet, (c) => {
+                    dispatch({ type: "SET_TASK_LIST", list: c.data })
+                    if (taskId != "") {
+                        let selectedTask = c.data.filter((e) => { return e.id == taskId })[0]
+                        dispatch({ type: "SET_TASK_SELECTED", Selected: selectedTask })
+                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
+                    }
+                    parallelCallback(null, "")
+                })
+            },
+            document: (parallelCallback) => {
+                getData(`/api/document/getByProject`, { params: { filter: { isDeleted: 0, linkId: project, linkType: "project" } } }, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_DOCUMENT_LIST", list: c.data })
+                    }
+                    parallelCallback(null, "")
+                });
+            },
+            tagList: (parallelCallback) => {
+                getData(`/api/global/selectList`, { params: { selectName: "tagList" } }, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'tagList' })
+                    }
+                    parallelCallback(null, "")
+                })
+            },
+            taskCheckList: (parallelCallback) => {
+                getData(`/api/checklist/getCheckList`, { params: { filter: { taskId: taskId } } }, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_CHECKLIST", list: c.data })
+                    }
+                    parallelCallback(null, "")
+                })
+            },
+            workstreamMemberList: (parallelCallback) => {
+                getData(`/api/global/selectList`, { params: { selectName: "workstreamMemberList", filter: { id: workstreamId } } }, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamMemberList' })
+                    }
+                    parallelCallback(null, "")
+                })
+            },
+            taskCommentList: (parallelCallback) => {
+                getData(`/api/conversation/getConversationList`, { params: { filter: { linkType: "task", linkId: taskId } } }, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_COMMENT_LIST", list: c.data })
+                    }
+                    parallelCallback(null, "")
+                })
+            }
+
+        }, (error, result) => {
+            // console.log(`end loading`)
+        })
     }
 
     updateActiveStatus(id, active) {
@@ -100,26 +100,26 @@ export default class List extends React.Component {
     }
 
     selectedTask(data) {
-        let { dispatch , socket } = this.props;
+        let { dispatch, socket } = this.props;
         parallel({
-            taskCheckList : (parallelCallback) => {
-                getData(`/api/checklist/getCheckList`, { params : { filter : { taskId: data.id } }}, (c) => {
-                    if(c.status == 200){
+            taskCheckList: (parallelCallback) => {
+                getData(`/api/checklist/getCheckList`, { params: { filter: { taskId: data.id } } }, (c) => {
+                    if (c.status == 200) {
                         console.log(`sokpa`)
                         dispatch({ type: "SET_CHECKLIST", list: c.data })
                     }
-                    parallelCallback(null,"")
+                    parallelCallback(null, "")
                 })
             },
             taskCommentList: (parallelCallback) => {
-                getData(`/api/conversation/getConversationList` , { params : { filter : {linkType: "task", linkId: data.id }}} , (c) => {
-                    if(c.status == 200){
-                        dispatch({type:"SET_COMMENT_LIST" , list: c.data })
+                getData(`/api/conversation/getConversationList`, { params: { filter: { linkType: "task", linkId: data.id } } }, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_COMMENT_LIST", list: c.data })
                     }
-                    parallelCallback(null,"")
+                    parallelCallback(null, "")
                 })
             }
-        } ,(error, result) => {
+        }, (error, result) => {
             window.history.replaceState({}, document.title, "/project/" + `${project}/processes/${workstreamId}/?task=${data.id}`);
             dispatch({ type: "SET_TASK_SELECTED", Selected: data })
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
@@ -189,8 +189,8 @@ export default class List extends React.Component {
                                         <td>{this.renderStatus({ ...data, taskStatus })}</td>
                                         <td class="text-left">
                                             {/* <a href={`/project/${data.projectId}/processes/${data.workstreamId}?task=${data.id}`}> */}
-                                            <a href="javascript:void(0);" onClick={()=>this.selectedTask(data)}>
-                                            {data.task}
+                                            <a href="javascript:void(0);" onClick={() => this.selectedTask(data)}>
+                                                {data.task}
                                             </a>
                                         </td>
                                         <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
