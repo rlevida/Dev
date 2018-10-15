@@ -23,7 +23,7 @@ export default function reducer(state={
 
         //SET
         case "SET_DOCUMENT_LIST": {
-            return { ...state, List: action.list , Loading : false }
+            return { ...state, List: action.list }
         }
         case "SET_DOCUMENT_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
@@ -56,6 +56,9 @@ export default function reducer(state={
         }
         case "SET_PRINTER_LIST":{
             return {...state , PrinterList : action.List }
+        }
+        case "SET_DOCUMENT_LOADING":{
+            return {...state , Loading: action.Loading }
         }
         //UPDATE
         case "UPDATE_DATA_DOCUMENT_LIST" : {

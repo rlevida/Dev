@@ -103,7 +103,7 @@ export default class List extends React.Component {
                 })
             }
         } ,(error, result) => {
-            // console.log(`end loading`)
+            dispatch({type:"SET_DOCUMENT_LOADING", Loading: false })
         })
     }
 
