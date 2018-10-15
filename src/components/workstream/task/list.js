@@ -119,8 +119,8 @@ export default class List extends React.Component {
                     parallelCallback(null, "")
                 })
             }
-        }, (error, result) => {
-            window.history.replaceState({}, document.title, "/project/" + `${project}/processes/${workstreamId}/?task=${data.id}`);
+        } ,(error, result) => {
+            window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}/?task=${data.id}`);
             dispatch({ type: "SET_TASK_SELECTED", Selected: data })
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
             // console.log(`end loading`)

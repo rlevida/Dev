@@ -34,7 +34,7 @@ export default class Component extends React.Component {
             <div class="row pdl20 pdr20 mb20">
                 <div class="col-md-6">
                     <h4 class="mt20 mb20">Workstreams</h4>
-                    <a class="more" href={"/project/processes/" + project}> + More</a>
+                    <a class="more" href={"/project/workstream/" + project}> + More</a>
                     <WorkstreamStatus />
                 </div>
             </div>
