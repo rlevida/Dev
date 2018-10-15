@@ -109,7 +109,6 @@ var init = exports.init = (socket) => {
                         async.parallel({
                             task: function (parallelCallback) {
                                 delete d.data.id;
-
                                 task.putData("task", d.data, { id: id }, (c) => {
                                     if (c.status) {
                                         task.getTaskList("task", { id: id }, {}, (e) => {
@@ -176,6 +175,15 @@ var init = exports.init = (socket) => {
                                         parallelCallback(null, "")
                                     }
                                 } else {
+                                    parallelCallback(null, "")
+                                }
+                            },
+                            isActivePeriodicTask: function (parallelCallback) {
+                                if (c.data[0].periodic == 1){
+                                    task.putData("task", { isActive : d.data.isActive }, { periodTask: id }, (c) => {
+                                        parallelCallback(null, "")
+                                    })  
+                                }else{
                                     parallelCallback(null, "")
                                 }
                             }
