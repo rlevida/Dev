@@ -67,7 +67,7 @@ export default class List extends React.Component {
                         <a href="javascript:void(0)" 
                             onClick={() => { 
                                 this.selectedLink("task")
-                                window.history.replaceState({}, document.title, "/project/" + `${project}/processes/${workstreamId}`);
+                                window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
                                 dispatch({type:"SET_TASK_SELECTED", Selected: {}});
                                 dispatch({type:"SET_TASK_FORM_ACTIVE", FormActive: ""});
                                 taskId = ""
@@ -81,7 +81,7 @@ export default class List extends React.Component {
                         <a href="javascript:void(0)"
                             onClick={() => {
                                 dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "member" });
-                                window.history.replaceState({}, document.title, "/project/" + `${project}/processes/${workstreamId}`);
+                                window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
                                 dispatch({type:"SET_TASK_SELECTED", Selected: {}});
                                 dispatch({type:"SET_TASK_FORM_ACTIVE", FormActive: ""});
                                 taskId = ""
@@ -93,7 +93,7 @@ export default class List extends React.Component {
                         <a href="javascript:void(0)" 
                             onClick={() => {
                                 dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "document" })
-                                window.history.replaceState({}, document.title, "/project/" + `${project}/processes/${workstreamId}`);
+                                window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
                                 dispatch({type:"SET_TASK_SELECTED", Selected: {}});
                                 dispatch({type:"SET_TASK_FORM_ACTIVE", FormActive: ""});
                                 taskId = ""

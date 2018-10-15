@@ -40,7 +40,7 @@ switch (page) {
             case "trash":
                 require('./container/trash');
                 break;
-            case "processes":
+            case "workstream":
                 require('./container/workstream');
                 break;
             case "task":

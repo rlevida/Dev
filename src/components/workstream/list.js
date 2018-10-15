@@ -160,7 +160,7 @@ export default class List extends React.Component {
                                         </td>
                                         <td class="text-left" style={{ cursor: "pointer" }}>
                                             <a
-                                                href={`/project/${data.projectId}/processes/${data.id}`}
+                                                href={`/project/${data.projectId}/workstream/${data.id}`}
                                             // href="javascript:void(0);"
                                             // onClick={(e) => {
                                             //     // socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });

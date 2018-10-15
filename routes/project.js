@@ -149,17 +149,17 @@ router.get('/trash/:project', function (req, res, next) {
 // });
 
 
-router.get('/:project/processes', function (req, res, next) {
+router.get('/:project/workstream', function (req, res, next) {
     
     if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
         let func = global.initFunc();
             func.getUserAllowedAccess({ userId: req.userDetails.usersId , params:req.params.project },resp=>{
                 if(resp.status){
                     res.render('project', {
-                        title: global.site_name + " - Processes",
+                        title: global.site_name + " - Workstream",
                         body: './template/index',
                         page: 'project',
-                        subpage: 'processes',
+                        subpage: 'workstream',
                         project: req.params.project
                     });
                 }else{
@@ -174,19 +174,19 @@ router.get('/:project/processes', function (req, res, next) {
 });
 
 
-router.get('/:project/processes/:processes', function (req, res, next) {
+router.get('/:project/workstream/:workstream', function (req, res, next) {
     if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
         let task = (typeof req.query.task != "undefined" ? req.query.task : undefined )
         let func = global.initFunc();
             func.getUserAllowedAccess({ userId: req.userDetails.usersId , params:req.params.project },resp=>{
                 if(resp.status){
                     res.render('project', {
-                        title: global.site_name + " - Processes",
+                        title: global.site_name + " - Workstream",
                         body: './template/index',
                         page: 'project',
-                        subpage: 'processes',
+                        subpage: 'workstream',
                         project: req.params.project,
-                        workstream : req.params.processes,
+                        workstream : req.params.workstream,
                         task : task
                     });
                 }else{
@@ -200,8 +200,7 @@ router.get('/:project/processes/:processes', function (req, res, next) {
     }
 });
 
-router.get('/tasks/:project', function (req, res, next) {
-
+router.get('/:project/task', function (req, res, next) {
     if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
         let func = global.initFunc();
             func.getUserAllowedAccess({ userId: req.userDetails.usersId , params:req.params.project },resp=>{

@@ -110,7 +110,7 @@ export default class FormComponent extends React.Component {
         dispatch({ type: "SET_TASK_LOADING" });
         dispatch({ type: "SET_TASK_SELECTED", Selected :{}})
         dispatch({ type: "SET_TASK_FORM_ACTIVE",FormActive : "" })
-        window.history.replaceState({}, document.title, "/project/" + `${project}/processes/${workstreamId}`);
+        window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
     }
 
     render() {

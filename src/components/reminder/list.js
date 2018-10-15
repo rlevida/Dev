@@ -18,7 +18,7 @@ export default class FormComponent extends React.Component {
     viewReminder(data){
         let { dispatch , socket } = this.props;
             if(data.linkType == "task"){
-                window.location.href = `/project/${data.projectId}/processes/${data.workstreamId}?task=${data.linkId}`;
+                window.location.href = `/project/${data.projectId}/workstream/${data.workstreamId}?task=${data.linkId}`;
                 if(!data.seen){
                     socket.emit("SAVE_OR_UPDATE_REMINDER", { data : { id : data.reminderId , seen : 1 } , filter :{ projectId : data.projectId , usersId : data.usersId} } )
                 }

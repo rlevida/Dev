@@ -80,13 +80,13 @@ export default class Component extends React.Component {
                         <a href={`/project/${project}`}>
                         <i class="fa fa-dashboard"></i>&nbsp; Project Dashboard </a> 
                     </li>
-                    <li class={page == "project" && subpage=="processes"?"active":""}>
-                        <a href={`/project/${project}/processes/`}>
+                    <li class={page == "project" && subpage=="workstream"?"active":""}>
+                        <a href={`/project/${project}/workstream`}>
                         <i class="fa fa-wpforms"></i>&nbsp; Workstreams </a> 
                     </li>
                     <li class={page == "project" && subpage=="task"?"active":""}>
-                        <a href={"/project/tasks/"+project}>
-                        <i class="fa fa-tasks"></i>&nbsp; Tasks </a> 
+                        <a href={`/project/${project}/task`}>
+                        <i class="fa fa-tasks"></i>&nbsp; Tasks 1</a> 
                     </li>
                     <li class="has-submenu">
                         <a href={"/project/"+project} class="dropdown-toggle has-submenu" data-toggle="dropdown" aria-expanded="true">
