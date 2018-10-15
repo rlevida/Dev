@@ -60,7 +60,7 @@ export default class Checklist extends React.Component {
         return (
             <div>
                 <HeaderButtonContainer withMargin={true}>
-                    <li class="btn btn-info" onClick={this.handleSubmit} data-toggle="modal" data-target="#projectModal">
+                    <li class="btn btn-info" onClick={this.handleSubmit} data-toggle="modal" data-target="#checklistModal">
                         <span>Save</span>
                     </li>
                 </HeaderButtonContainer>

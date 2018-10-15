@@ -64,15 +64,13 @@ export default class FormComponent extends React.Component {
         const selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
         let selectedObj = Object.assign({}, { ...task.Selected })
 
-        if (e.target.name == "dueDate" && e.target.value != "" && (typeof selectedObj.startDate == "undefined" || selectedObj.startDate == "") && (typeof task.Selected.periodic == "undefined" || task.Selected.periodic != 1)) {
-            showToast("error", "Please fill up the Start Date first.");
-        } else if ((e.target.name == "startDate" || e.target.name == "dueDate") && e.target.value != "" && ((typeof selectedObj.startDate != "undefined" && selectedObj.startDate != "") || (typeof selectedObj.dueDate != "undefined" && selectedObj.dueDate != ""))) {
+        if ((e.target.name == "startDate" || e.target.name == "dueDate") && e.target.value != "" && ((typeof selectedObj.startDate != "undefined" && selectedObj.startDate != "") || (typeof selectedObj.dueDate != "undefined" && selectedObj.dueDate != ""))) {
             const startDate = moment(selectedObj.startDate);
             const dueDate = moment(selectedObj.dueDate);
             const comparison = (e.target.name == "startDate") ? moment(dueDate).diff(e.target.value, 'days') : moment(e.target.value).diff(startDate, 'days');
 
             if (comparison < 0) {
-                showToast("error", "Due Date must be after the Start Date.");
+                showToast("error", "Due date must be after the start date.");
                 selectedObj[e.target.name] = undefined;
             } else {
                 selectedObj[e.target.name] = selectedDate;
@@ -166,6 +164,7 @@ export default class FormComponent extends React.Component {
             };
 
             socket.emit("SAVE_OR_UPDATE_TASK", { data: submitData });
+            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
         }
     }
 
