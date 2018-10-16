@@ -43,11 +43,11 @@ export default function reducer(state = {
             const { List } = { ...state };
             let copyOfList = [...List];
             let updatedList = [];
-
+            
             if (action.data.action == "add") {
                 updatedList = copyOfList.concat(action.data.data);
             } else {
-                _.map(action.data.data, (o) => {
+               _.map(action.data.data, (o) => {
                     var updateIndex = _.findIndex(copyOfList, { id: o.id });
                     if (updateIndex >= 0) {
                         copyOfList.splice(updateIndex, 1, o);
@@ -55,9 +55,19 @@ export default function reducer(state = {
                         copyOfList.push(o);
                     }
                 })
-                updatedList = copyOfList;
-            }
 
+                updatedList = copyOfList;
+                
+                // Deactivating a task disables creation of new instances
+                var dataIndex = _.findIndex(List, { id: action.data.data[0].id });
+                if(List[dataIndex].isActive != action.data.data[0].isActive){
+                    _.map( updatedList , (o) => {
+                        if(o.periodTask == action.data.data[0].id ){
+                            o.isActive = action.data.data[0].isActive
+                        }
+                    })
+                }
+            }
             return { ...state, List: updatedList }
         }
         case "REMOVE_DELETED_TASK_LIST": {
