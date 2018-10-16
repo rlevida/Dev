@@ -12,13 +12,12 @@ import Checklist from "./checklist";
     return {
         socket: store.socket.container,
         task: store.task,
-        loggedUser: store.loggedUser,
         status: store.status,
         workstream: store.workstream,
         checklist: store.checklist,
         members: store.members,
         teams: store.teams,
-        users: store.users,
+        loggedUser: store.loggedUser,
         global: store.global
     }
 })
@@ -139,7 +138,7 @@ export default class FormComponent extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, task, dispatch } = this.props;
+        let { socket, task, dispatch, loggedUser } = this.props;
         let result = true;
 
         $('.form-container *').validator('validate');
@@ -156,13 +155,13 @@ export default class FormComponent extends React.Component {
         } else {
             const submitData = {
                 ...task.Selected,
+                userId: loggedUser.data.id,
                 projectId: project,
-                period: _.toNumber(task.Selected.period),
-                periodInstance: _.toNumber(task.Selected.periodInstance),
+                period: (typeof task.Selected.period != "undefined" && task.Selected.period != "" && task.Selected.period != null) ? _.toNumber(task.Selected.period) : 0,
+                periodInstance: (typeof task.Selected.periodInstance != "undefined" && task.Selected.periodInstance != "" && task.Selected.periodInstance != null) ? _.toNumber(task.Selected.periodInstance) : 0,
                 startDate: (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "" && task.Selected.startDate != null) ? moment(task.Selected.startDate).format('YYYY-MM-DD 00:00:00') : null,
                 dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') : null
             };
-
             socket.emit("SAVE_OR_UPDATE_TASK", { data: submitData });
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
         }

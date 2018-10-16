@@ -45,9 +45,9 @@ export default class List extends React.Component {
     }
 
     updateActiveStatus(params) {
-        let { socket } = this.props;
+        let { socket, loggedUser } = this.props;
 
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...params, status: "Completed", action: "complete" } })
+        socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...params, status: "Completed", action: "complete", userId: loggedUser.data.id } })
     }
 
     deleteData(id) {

@@ -1,10 +1,24 @@
 DROP TABLE IF EXISTS `activity_log`;
 CREATE TABLE IF NOT EXISTS `activity_log` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `invokerUserId` bigint(20) DEFAULT NULL,
-  `data` text COLLATE utf8mb4_bin,
+  `usersId` bigint(20) DEFAULT NULL,
+  `linkType` enum('project','workstream','task') DEFAULT NULL,
+  `linkId` bigint(20) DEFAULT NULL,
+  `actionType` enum('created','modified','deleted') DEFAULT NULL,
+  `old` text,
+  `new` text,
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `blocked_ips`;
+CREATE TABLE IF NOT EXISTS `blocked_ips` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `ip` varchar(62) COLLATE utf8mb4_bin DEFAULT NULL,
+  `block_time` datetime DEFAULT NULL,
+  `del_flag` int(1) DEFAULT '0',
+  `date_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
@@ -24,33 +38,32 @@ CREATE TABLE IF NOT EXISTS `conversation` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `comment` text COLLATE utf8mb4_bin,
   `usersId` bigint(20) DEFAULT NULL,
-  `linkType` enum('project','workstream','task') COLLATE utf8mb4_bin DEFAULT NULL,
+  `linkType` enum('project','workstream','task','document') COLLATE utf8mb4_bin DEFAULT NULL,
   `linkId` bigint(20) DEFAULT NULL,
   `status` bigint(20) DEFAULT NULL,
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `document`;
 CREATE TABLE IF NOT EXISTS `document` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `name` text,
-  `origin` text,
+  `name` text COLLATE utf8mb4_bin,
+  `origin` text COLLATE utf8mb4_bin,
   `uploadedBy` bigint(20) DEFAULT NULL,
-  `type` varchar(20) DEFAULT NULL,
+  `type` varchar(20) COLLATE utf8mb4_bin DEFAULT NULL,
   `folderId` bigint(20) DEFAULT NULL,
   `isDeleted` tinyint(1) DEFAULT '0',
-  `tags` text,
-  `status` enum('new','library','archived') DEFAULT NULL,
+  `status` enum('new','library','archived') COLLATE utf8mb4_bin DEFAULT NULL,
   `isCompleted` tinyint(1) DEFAULT '0',
   `documentNameCount` int(11) NOT NULL DEFAULT '0',
   `attachmentId` int(11) NOT NULL DEFAULT '0',
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `document_link`;
 CREATE TABLE IF NOT EXISTS `document_link` (
@@ -61,7 +74,7 @@ CREATE TABLE IF NOT EXISTS `document_link` (
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=108 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `folder`;
 CREATE TABLE IF NOT EXISTS `folder` (
@@ -76,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `folder` (
   `type` enum('new','library','archived') COLLATE utf8mb4_bin DEFAULT NULL,
   `createdBy` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `ip_block`;
 CREATE TABLE IF NOT EXISTS `ip_block` (
@@ -87,31 +100,32 @@ CREATE TABLE IF NOT EXISTS `ip_block` (
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `members`;
 CREATE TABLE IF NOT EXISTS `members` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `usersType` enum('users','team') DEFAULT NULL,
+  `usersType` enum('users','team') COLLATE utf8mb4_bin DEFAULT NULL,
   `userTypeLinkId` bigint(20) DEFAULT NULL,
-  `linkType` enum('project','workstream','task') DEFAULT NULL,
+  `linkType` enum('project','workstream','task') COLLATE utf8mb4_bin DEFAULT NULL,
   `linkId` bigint(20) DEFAULT NULL,
-  `memberType` enum('assignedTo','Follower','responsible','project manager') DEFAULT NULL,
+  `memberType` enum('assignedTo','Follower','responsible','project manager') COLLATE utf8mb4_bin DEFAULT NULL,
+  `receiveNotification` tinyint(1) DEFAULT '1',
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=220 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=74 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `project`;
 CREATE TABLE IF NOT EXISTS `project` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `project` varchar(50) DEFAULT NULL,
+  `project` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
   `statusId` bigint(20) DEFAULT NULL,
   `typeId` bigint(20) DEFAULT NULL,
-  `projectType` varchar(50) DEFAULT NULL,
-  `tinNo` varchar(50) DEFAULT NULL,
-  `companyAddress` varchar(50) DEFAULT NULL,
-  `classification` varchar(50) DEFAULT NULL,
+  `projectType` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `tinNo` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `companyAddress` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `classification` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
   `projectNameCount` int(11) NOT NULL DEFAULT '0',
   `createdBy` bigint(20) DEFAULT NULL,
   `dateAdded` datetime DEFAULT NULL,
@@ -119,22 +133,23 @@ CREATE TABLE IF NOT EXISTS `project` (
   `isActive` tinyint(1) DEFAULT '1',
   `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `reminder`;
 CREATE TABLE IF NOT EXISTS `reminder` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `reminderDetail` varchar(50) DEFAULT NULL,
+  `reminderDetail` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
   `usersId` bigint(20) DEFAULT NULL,
-  `taskId` bigint(20) DEFAULT NULL,
   `seen` tinyint(1) DEFAULT '0',
   `projectId` bigint(20) DEFAULT NULL,
-  `reminderTypeId` bigint(20) DEFAULT NULL,
-  `reminderType` enum('task','document') DEFAULT NULL,
+  `linkId` bigint(20) DEFAULT NULL,
+  `linkType` enum('task','document','workstream') COLLATE utf8mb4_bin DEFAULT NULL,
+  `type` enum('For Approval','Task Rejected','Task Overdue','Task Due Today','Tag in Comment','Task Completed') COLLATE utf8mb4_bin DEFAULT NULL,
+  `createdBy` bigint(20) DEFAULT NULL,
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `role`;
 CREATE TABLE IF NOT EXISTS `role` (
@@ -158,7 +173,7 @@ CREATE TABLE IF NOT EXISTS `session` (
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `share`;
 CREATE TABLE IF NOT EXISTS `share` (
@@ -173,7 +188,7 @@ CREATE TABLE IF NOT EXISTS `share` (
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `starred`;
 CREATE TABLE IF NOT EXISTS `starred` (
@@ -198,85 +213,103 @@ CREATE TABLE IF NOT EXISTS `status` (
   `isActive` tinyint(1) DEFAULT '1',
   `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `tag`;
 CREATE TABLE IF NOT EXISTS `tag` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `indicator` varchar(50) DEFAULT NULL,
-  `linkType` enum('user','workstream','task','conversation','document','others','checklist') DEFAULT NULL,
+  `indicator` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `linkType` enum('user','workstream','task','conversation','document','others') COLLATE utf8mb4_bin DEFAULT NULL,
   `linkId` bigint(20) DEFAULT NULL,
-  `tagType` enum('user','workstream','task','conversation','document','folder','checklist') DEFAULT NULL,
+  `tagType` enum('user','workstream','task','conversation','document','folder') COLLATE utf8mb4_bin DEFAULT NULL,
+  `isDeleted` tinyint(1) DEFAULT '0',
+  `isCompleted` tinyint(1) DEFAULT '0',
   `tagTypeId` bigint(20) DEFAULT NULL,
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `isCompleted` int(11) NOT NULL,
-  `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `task`;
 CREATE TABLE IF NOT EXISTS `task` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `projectId` bigint(20) DEFAULT NULL,
-  `task` text,
-  `description` text,
+  `task` text COLLATE utf8mb4_bin,
+  `description` text COLLATE utf8mb4_bin,
   `workstreamId` bigint(20) DEFAULT NULL,
   `dueDate` datetime DEFAULT NULL,
   `startDate` datetime DEFAULT NULL,
-  `status` enum('In Progress','For Approval','Completed') DEFAULT NULL,
+  `status` enum('In Progress','For Approval','Completed') COLLATE utf8mb4_bin DEFAULT NULL,
   `typeId` bigint(20) DEFAULT NULL,
-  `linkTaskId` bigint(20) DEFAULT NULL,
   `periodic` tinyint(1) DEFAULT '0',
-  `periodType` enum('years','months','weeks','days') DEFAULT NULL,
+  `periodType` enum('years','months','weeks','days') COLLATE utf8mb4_bin DEFAULT NULL,
   `period` int(11) DEFAULT NULL,
   `periodInstance` int(11) DEFAULT '0',
   `periodTask` bigint(20) DEFAULT NULL,
-  `dateAdded` datetime DEFAULT NULL,
-  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `isActive` tinyint(1) DEFAULT '1',
   `isDeleted` tinyint(1) DEFAULT '0',
+  `approvalRequired` tinyint(1) DEFAULT '0',
+  `approverId` bigint(20) DEFAULT NULL,
+  `approvalDueDate` datetime DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `task_checklist`;
 CREATE TABLE IF NOT EXISTS `task_checklist` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `completed` tinyint(1) DEFAULT '0',
-  `description` text,
+  `isDocument` tinyint(1) DEFAULT '0',
+  `description` text COLLATE utf8mb4_bin,
   `taskId` bigint(20) DEFAULT NULL,
   `periodChecklist` bigint(20) DEFAULT NULL,
-  `documents` varchar(50) DEFAULT NULL,
+  `documents` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
   `createdBy` int(11) DEFAULT NULL,
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `task_dependency`;
 CREATE TABLE IF NOT EXISTS `task_dependency` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `taskId` bigint(20) DEFAULT NULL,
-  `dependencyType` enum('Preceded by','Succeeding') DEFAULT NULL,
+  `dependencyType` enum('Preceded by','Succeeding') COLLATE utf8mb4_bin DEFAULT NULL,
   `linkTaskId` bigint(20) DEFAULT NULL,
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+DROP TABLE IF EXISTS `task_rejected`;
+CREATE TABLE IF NOT EXISTS `task_rejected` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `projectId` bigint(20) DEFAULT NULL,
+  `taskId` bigint(20) DEFAULT NULL,
+  `workstreamId` bigint(20) DEFAULT NULL,
+  `reminderId` bigint(20) DEFAULT NULL,
+  `approverId` bigint(20) DEFAULT NULL,
+  `approvalDueDate` datetime DEFAULT NULL,
+  `message` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
+  `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `team`;
 CREATE TABLE IF NOT EXISTS `team` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `teamLeaderId` int(11) NOT NULL,
-  `usersId` bigint(20) NOT NULL,
   `team` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
+  `usersId` bigint(20) DEFAULT NULL,
+  `teamLeaderId` bigint(20) DEFAULT NULL,
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `isActive` tinyint(1) DEFAULT '1',
   `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `type`;
 CREATE TABLE IF NOT EXISTS `type` (
@@ -309,7 +342,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `isDeleted` tinyint(1) DEFAULT '0',
   `company` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `users_forgot_password`;
 CREATE TABLE IF NOT EXISTS `users_forgot_password` (
@@ -319,7 +352,7 @@ CREATE TABLE IF NOT EXISTS `users_forgot_password` (
   `dateAdded` datetime DEFAULT NULL,
   `dateUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `users_role`;
 CREATE TABLE IF NOT EXISTS `users_role` (
@@ -331,7 +364,7 @@ CREATE TABLE IF NOT EXISTS `users_role` (
   `isActive` tinyint(1) DEFAULT '1',
   `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=97 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `users_team`;
 CREATE TABLE IF NOT EXISTS `users_team` (
@@ -343,7 +376,7 @@ CREATE TABLE IF NOT EXISTS `users_team` (
   `isActive` tinyint(1) DEFAULT '1',
   `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 DROP TABLE IF EXISTS `workstream`;
 CREATE TABLE IF NOT EXISTS `workstream` (
@@ -360,264 +393,131 @@ CREATE TABLE IF NOT EXISTS `workstream` (
   `isActive` tinyint(1) DEFAULT '1',
   `isDeleted` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-
-INSERT INTO `conversation` (`id`,`comment`,`usersId`,`linkType`,`linkId`,`status`,`dateAdded`,`dateUpdated`,`isDeleted`) VALUES (1,'{[Ivan Pintor](11)} \nWhy do we use it?\nIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using \'Content here, content here\', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for \'lorem ipsum\' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).',6,'task',1,NULL,'2018-09-21 16:09:17.000','2018-09-21 16:09:17.000',0);
-INSERT INTO `conversation` (`id`,`comment`,`usersId`,`linkType`,`linkId`,`status`,`dateAdded`,`dateUpdated`,`isDeleted`) VALUES (2,'{[John Aldrin1 Tapia1](1)} Testing this comment.',1,'task',3,NULL,'2018-09-26 13:02:33.000','2018-09-26 13:02:33.000',0);
-
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (51,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_6a4739f26fc10d892695e13cd21c2d3408147110.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,0,0,'2018-09-27 16:15:46.000','2018-09-27 16:15:46.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (52,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_6a4739f26fc10d892695e13cd21c2d3408147110.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,1,0,'2018-09-27 16:16:56.000','2018-09-27 16:16:56.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (53,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_6a4739f26fc10d892695e13cd21c2d3408147110.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,2,0,'2018-09-27 16:17:17.000','2018-09-27 16:17:17.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (54,'code_1.27.2-1536736588_amd64.deb_2d39d06d7835db04bce9524690ff03241a830457.deb','code_1.27.2-1536736588_amd64.deb',1,'attachment',NULL,0,NULL,'new',0,0,0,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (55,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_eb1144cc83bd58051cab2819cb9bea01e4bf8670.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,0,0,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (56,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_dd8a179aed1f7b887dd161bc1ebd77a48e923a69.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,0,0,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (57,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_9a5538c1e196f4a91f9ae667a7598a2e6f44c471.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,3,0,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (58,'code_1.27.2-1536736588_amd64.deb_2d39d06d7835db04bce9524690ff03241a830457.deb','code_1.27.2-1536736588_amd64.deb',1,'attachment',NULL,0,NULL,'new',0,1,0,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (59,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_eb1144cc83bd58051cab2819cb9bea01e4bf8670.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,1,0,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (60,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_dd8a179aed1f7b887dd161bc1ebd77a48e923a69.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,1,0,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (61,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_9a5538c1e196f4a91f9ae667a7598a2e6f44c471.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,4,0,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (62,'code_1.27.2-1536736588_amd64.deb_2d39d06d7835db04bce9524690ff03241a830457.deb','code_1.27.2-1536736588_amd64.deb',1,'attachment',NULL,0,NULL,'new',0,2,0,'2018-09-27 16:25:05.000','2018-09-27 16:25:05.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (63,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_eb1144cc83bd58051cab2819cb9bea01e4bf8670.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,2,0,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (64,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_dd8a179aed1f7b887dd161bc1ebd77a48e923a69.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,2,0,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (65,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_9a5538c1e196f4a91f9ae667a7598a2e6f44c471.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,5,0,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (66,'code_1.27.2-1536736588_amd64.deb_2d39d06d7835db04bce9524690ff03241a830457.deb','code_1.27.2-1536736588_amd64.deb',1,'attachment',NULL,0,NULL,'new',0,3,0,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (67,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_eb1144cc83bd58051cab2819cb9bea01e4bf8670.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,3,0,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (68,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_dd8a179aed1f7b887dd161bc1ebd77a48e923a69.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,3,0,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (69,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv_9a5538c1e196f4a91f9ae667a7598a2e6f44c471.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file (1).csv',1,'attachment',NULL,0,NULL,'new',0,6,0,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (70,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_2ee9fff6f24107ce3cc4d66174db7574cd74f667.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,4,0,'2018-09-27 16:28:05.000','2018-09-27 16:28:05.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (71,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_2ee9fff6f24107ce3cc4d66174db7574cd74f667.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,5,0,'2018-09-27 16:28:58.000','2018-09-27 16:28:58.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (72,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_2ee9fff6f24107ce3cc4d66174db7574cd74f667.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,6,0,'2018-09-27 16:29:49.000','2018-09-27 16:29:49.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (73,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_05d266303325e25f5ca927c38525d03abbb7e05f.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,4,0,'2018-09-27 16:30:50.000','2018-09-27 16:30:50.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (74,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_05d266303325e25f5ca927c38525d03abbb7e05f.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,5,0,'2018-09-27 16:30:53.000','2018-09-27 16:30:53.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (75,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_05d266303325e25f5ca927c38525d03abbb7e05f.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,6,0,'2018-09-27 16:30:56.000','2018-09-27 16:30:56.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (76,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_05d266303325e25f5ca927c38525d03abbb7e05f.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,7,0,'2018-09-27 16:30:58.000','2018-09-27 16:30:58.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (77,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_05d266303325e25f5ca927c38525d03abbb7e05f.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,8,0,'2018-09-27 16:31:02.000','2018-09-27 16:31:02.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (78,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_fb79c59d682d55e40cdb78bd7c92f6d0211cb102.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,9,0,'2018-09-27 16:32:38.000','2018-09-27 16:32:38.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (79,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_fb79c59d682d55e40cdb78bd7c92f6d0211cb102.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,10,0,'2018-09-27 16:33:43.000','2018-09-27 16:33:43.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (80,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_be4b2a42cb33738dca1d38dfce5680f26949a5b3.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,7,0,'2018-09-27 16:38:03.000','2018-09-27 16:38:03.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (81,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_2282ca3f02dee32d38b8c3c25d66e104f6126933.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,11,0,'2018-09-27 16:39:59.000','2018-09-27 16:39:59.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (82,'GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv_2282ca3f02dee32d38b8c3c25d66e104f6126933.csv','GCP_Remittance_for_PSG_09212018_-UPLOAD_file.csv',1,'attachment',NULL,0,NULL,'new',0,12,0,'2018-09-27 16:41:34.000','2018-09-27 16:41:34.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (83,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_c90c724ab79a9f6beeaebbd58b53e40ed87b7195.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,8,0,'2018-09-27 16:42:19.000','2018-09-27 16:42:19.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (84,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_c90c724ab79a9f6beeaebbd58b53e40ed87b7195.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,9,0,'2018-09-27 16:42:30.000','2018-09-27 16:42:30.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (85,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_c90c724ab79a9f6beeaebbd58b53e40ed87b7195.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,10,0,'2018-09-27 16:42:44.000','2018-09-27 16:42:44.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (86,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_c90c724ab79a9f6beeaebbd58b53e40ed87b7195.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,11,0,'2018-09-27 16:42:47.000','2018-09-27 16:42:47.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (87,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_e4fbfad7f91ce3c2040c39c0012da3fe9d84488a.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,12,0,'2018-09-27 16:45:25.000','2018-09-27 16:45:25.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (88,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_e4fbfad7f91ce3c2040c39c0012da3fe9d84488a.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,13,0,'2018-09-27 16:45:29.000','2018-09-27 16:45:29.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (89,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_e4fbfad7f91ce3c2040c39c0012da3fe9d84488a.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,14,0,'2018-09-27 16:45:32.000','2018-09-27 16:45:32.000');
-INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`tags`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (90,'GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv_c90c724ab79a9f6beeaebbd58b53e40ed87b7195.csv','GCP -DOTW Salarly Remittance Report for 081518- FOR UPLOAD.csv',1,'attachment',NULL,0,NULL,'new',0,15,0,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000');
-
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (11,4,'project',1,'2018-09-27 08:37:29.000','2018-09-27 08:37:29.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (12,5,'project',1,'2018-09-27 08:46:51.000','2018-09-27 08:46:51.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (13,6,'project',1,'2018-09-27 09:00:55.000','2018-09-27 09:00:55.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (14,7,'project',1,'2018-09-27 09:17:21.000','2018-09-27 09:17:21.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (15,8,'project',1,'2018-09-27 12:50:58.000','2018-09-27 12:50:58.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (16,9,'project',1,'2018-09-27 13:00:13.000','2018-09-27 13:00:13.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (17,10,'project',1,'2018-09-27 13:03:39.000','2018-09-27 13:03:39.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (18,1,'project',1,'2018-09-27 13:05:22.000','2018-09-27 13:05:22.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (19,2,'project',1,'2018-09-27 13:09:11.000','2018-09-27 13:09:11.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (20,3,'project',1,'2018-09-27 13:11:08.000','2018-09-27 13:11:08.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (21,4,'project',1,'2018-09-27 13:32:17.000','2018-09-27 13:32:17.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (22,5,'project',1,'2018-09-27 13:32:18.000','2018-09-27 13:32:18.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (23,6,'project',1,'2018-09-27 13:33:01.000','2018-09-27 13:33:01.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (24,7,'project',1,'2018-09-27 13:36:55.000','2018-09-27 13:36:55.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (25,8,'project',1,'2018-09-27 13:36:55.000','2018-09-27 13:36:55.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (26,9,'project',1,'2018-09-27 13:36:55.000','2018-09-27 13:36:55.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (27,10,'project',1,'2018-09-27 13:36:55.000','2018-09-27 13:36:55.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (28,11,'project',1,'2018-09-27 14:42:47.000','2018-09-27 14:42:47.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (29,12,'project',1,'2018-09-27 14:42:47.000','2018-09-27 14:42:47.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (30,13,'project',1,'2018-09-27 14:42:47.000','2018-09-27 14:42:47.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (31,14,'project',1,'2018-09-27 15:10:56.000','2018-09-27 15:10:56.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (32,15,'project',NULL,'2018-09-27 15:15:51.000','2018-09-27 15:15:51.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (33,16,'project',NULL,'2018-09-27 15:15:53.000','2018-09-27 15:15:53.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (34,17,'project',1,'2018-09-27 15:16:22.000','2018-09-27 15:16:22.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (35,18,'project',1,'2018-09-27 15:17:51.000','2018-09-27 15:17:51.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (36,19,'project',1,'2018-09-27 15:18:52.000','2018-09-27 15:18:52.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (37,20,'project',1,'2018-09-27 15:19:13.000','2018-09-27 15:19:13.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (38,21,'project',1,'2018-09-27 15:54:17.000','2018-09-27 15:54:17.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (39,22,'project',1,'2018-09-27 15:54:34.000','2018-09-27 15:54:34.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (40,23,'project',1,'2018-09-27 15:54:52.000','2018-09-27 15:54:52.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (41,24,'project',1,'2018-09-27 15:56:25.000','2018-09-27 15:56:25.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (42,25,'project',1,'2018-09-27 15:58:51.000','2018-09-27 15:58:51.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (43,26,'project',1,'2018-09-27 15:59:18.000','2018-09-27 15:59:18.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (44,27,'project',1,'2018-09-27 15:59:18.000','2018-09-27 15:59:18.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (45,28,'project',1,'2018-09-27 16:00:29.000','2018-09-27 16:00:29.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (46,29,'project',1,'2018-09-27 16:00:29.000','2018-09-27 16:00:29.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (47,30,'project',1,'2018-09-27 16:00:29.000','2018-09-27 16:00:29.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (48,31,'project',1,'2018-09-27 16:00:45.000','2018-09-27 16:00:45.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (49,32,'project',1,'2018-09-27 16:00:45.000','2018-09-27 16:00:45.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (50,33,'project',1,'2018-09-27 16:00:45.000','2018-09-27 16:00:45.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (51,34,'project',1,'2018-09-27 16:00:59.000','2018-09-27 16:00:59.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (52,35,'project',1,'2018-09-27 16:00:59.000','2018-09-27 16:00:59.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (53,36,'project',1,'2018-09-27 16:00:59.000','2018-09-27 16:00:59.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (54,37,'project',1,'2018-09-27 16:02:59.000','2018-09-27 16:02:59.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (55,38,'project',1,'2018-09-27 16:03:50.000','2018-09-27 16:03:50.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (56,39,'project',1,'2018-09-27 16:11:15.000','2018-09-27 16:11:15.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (57,40,'project',1,'2018-09-27 16:13:08.000','2018-09-27 16:13:08.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (58,41,'project',1,'2018-09-27 16:13:08.000','2018-09-27 16:13:08.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (59,42,'project',1,'2018-09-27 16:13:08.000','2018-09-27 16:13:08.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (60,43,'project',1,'2018-09-27 16:13:57.000','2018-09-27 16:13:57.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (61,44,'project',1,'2018-09-27 16:13:57.000','2018-09-27 16:13:57.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (62,45,'project',1,'2018-09-27 16:13:57.000','2018-09-27 16:13:57.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (63,46,'project',1,'2018-09-27 16:14:05.000','2018-09-27 16:14:05.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (64,47,'project',1,'2018-09-27 16:14:05.000','2018-09-27 16:14:05.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (65,48,'project',1,'2018-09-27 16:14:05.000','2018-09-27 16:14:05.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (66,49,'project',1,'2018-09-27 16:14:09.000','2018-09-27 16:14:09.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (67,50,'project',1,'2018-09-27 16:14:13.000','2018-09-27 16:14:13.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (68,51,'project',1,'2018-09-27 16:15:46.000','2018-09-27 16:15:46.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (69,52,'project',1,'2018-09-27 16:16:56.000','2018-09-27 16:16:56.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (70,53,'project',1,'2018-09-27 16:17:17.000','2018-09-27 16:17:17.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (71,54,'project',1,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (72,55,'project',1,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (73,56,'project',1,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (74,57,'project',1,'2018-09-27 16:21:45.000','2018-09-27 16:21:45.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (75,58,'project',1,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (76,59,'project',1,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (77,60,'project',1,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (78,61,'project',1,'2018-09-27 16:24:18.000','2018-09-27 16:24:18.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (79,62,'project',1,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (80,63,'project',1,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (81,64,'project',1,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (82,65,'project',1,'2018-09-27 16:25:06.000','2018-09-27 16:25:06.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (83,66,'project',1,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (84,67,'project',1,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (85,68,'project',1,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (86,69,'project',1,'2018-09-27 16:25:48.000','2018-09-27 16:25:48.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (87,70,'project',1,'2018-09-27 16:28:05.000','2018-09-27 16:28:05.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (88,71,'project',1,'2018-09-27 16:28:58.000','2018-09-27 16:28:58.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (89,72,'project',1,'2018-09-27 16:29:49.000','2018-09-27 16:29:49.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (90,73,'project',1,'2018-09-27 16:30:50.000','2018-09-27 16:30:50.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (91,74,'project',1,'2018-09-27 16:30:53.000','2018-09-27 16:30:53.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (92,75,'project',1,'2018-09-27 16:30:56.000','2018-09-27 16:30:56.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (93,76,'project',1,'2018-09-27 16:30:58.000','2018-09-27 16:30:58.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (94,77,'project',1,'2018-09-27 16:31:02.000','2018-09-27 16:31:02.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (95,78,'project',1,'2018-09-27 16:32:38.000','2018-09-27 16:32:38.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (96,79,'project',1,'2018-09-27 16:33:43.000','2018-09-27 16:33:43.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (97,80,'project',1,'2018-09-27 16:38:03.000','2018-09-27 16:38:03.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (98,81,'project',1,'2018-09-27 16:39:59.000','2018-09-27 16:39:59.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (99,82,'project',1,'2018-09-27 16:41:34.000','2018-09-27 16:41:34.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (100,83,'project',1,'2018-09-27 16:42:19.000','2018-09-27 16:42:19.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (101,84,'project',1,'2018-09-27 16:42:30.000','2018-09-27 16:42:30.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (102,85,'project',1,'2018-09-27 16:42:44.000','2018-09-27 16:42:44.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (103,86,'project',1,'2018-09-27 16:42:47.000','2018-09-27 16:42:47.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (104,87,'project',1,'2018-09-27 16:45:25.000','2018-09-27 16:45:25.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (105,88,'project',1,'2018-09-27 16:45:29.000','2018-09-27 16:45:29.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (106,89,'project',1,'2018-09-27 16:45:32.000','2018-09-27 16:45:32.000');
-INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (107,90,'project',1,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000');
-
-INSERT INTO `folder` (`id`,`name`,`projectId`,`parentId`,`dateAdded`,`dateUpdated`,`isDeleted`,`isFolder`,`type`,`createdBy`) VALUES (1,'someFolder',2,NULL,'2018-09-17 02:13:18.000','2018-09-17 10:13:18.000',0,1,'library',11);
-INSERT INTO `folder` (`id`,`name`,`projectId`,`parentId`,`dateAdded`,`dateUpdated`,`isDeleted`,`isFolder`,`type`,`createdBy`) VALUES (2,'otherFolder',2,NULL,'2018-09-17 02:30:39.000','2018-09-17 10:30:39.000',0,1,'new',11);
-INSERT INTO `folder` (`id`,`name`,`projectId`,`parentId`,`dateAdded`,`dateUpdated`,`isDeleted`,`isFolder`,`type`,`createdBy`) VALUES (3,'childFolder',2,2,'2018-09-17 02:31:06.000','2018-09-17 10:31:06.000',0,1,'new',11);
-INSERT INTO `folder` (`id`,`name`,`projectId`,`parentId`,`dateAdded`,`dateUpdated`,`isDeleted`,`isFolder`,`type`,`createdBy`) VALUES (4,'test 1',5,NULL,'2018-09-17 04:42:01.000','2018-09-17 12:42:01.000',0,1,'new',31);
-INSERT INTO `folder` (`id`,`name`,`projectId`,`parentId`,`dateAdded`,`dateUpdated`,`isDeleted`,`isFolder`,`type`,`createdBy`) VALUES (5,'test 2',5,4,'2018-09-17 04:42:22.000','2018-09-17 12:42:22.000',0,1,'new',31);
-
-
-
-INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (1,'team',10,'project',1,'assignedTo','2018-09-24 13:57:30.000','2018-09-24 13:57:30.000');
-INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (2,'team',12,'project',1,'assignedTo','2018-09-24 13:57:36.000','2018-09-24 13:57:36.000');
-INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (3,'users',23,'project',1,'project manager','2018-09-24 13:57:43.000','2018-09-24 13:57:43.000');
-INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (170,'users',1,'project',1,'assignedTo','2018-09-26 10:44:59.000','2018-09-26 10:44:59.000');
-INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (216,'users',1,'task',2,'assignedTo','2018-09-26 14:09:47.000','2018-09-26 14:09:47.000');
-INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (217,'users',1,'task',3,'assignedTo','2018-09-26 14:09:47.000','2018-09-26 14:09:47.000');
-INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (218,'users',1,'task',1,'assignedTo','2018-09-26 14:09:47.000','2018-09-26 14:09:47.000');
-INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`dateAdded`,`dateUpdated`) VALUES (219,'users',31,'task',4,'assignedTo','2018-09-27 09:07:58.000','2018-09-27 09:07:58.000');
-
-INSERT INTO `project` (`id`,`project`,`statusId`,`typeId`,`projectType`,`tinNo`,`companyAddress`,`classification`,`projectNameCount`,`createdBy`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (1,'Mobbiz Solutions',NULL,2,NULL,NULL,NULL,NULL,0,6,'2018-09-20 02:13:39.000','2018-09-26 12:46:04.000',1,0);
-
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (9,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:10:51.000','2018-09-26 09:10:51.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (10,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:11:01.000','2018-09-26 09:11:01.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (11,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:11:21.000','2018-09-26 09:11:21.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (12,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:11:30.000','2018-09-26 09:11:30.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (13,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:12:08.000','2018-09-26 09:12:08.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (14,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:13:46.000','2018-09-26 09:13:46.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (15,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:25:49.000','2018-09-26 09:25:49.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (16,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:27:16.000','2018-09-26 09:27:16.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (17,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:27:31.000','2018-09-26 09:27:31.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (18,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:27:39.000','2018-09-26 09:27:39.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (19,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:29:13.000','2018-09-26 09:29:13.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (20,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:29:27.000','2018-09-26 09:29:27.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (21,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:30:41.000','2018-09-26 09:30:41.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (22,'Task Overdue',3,1,0,NULL,NULL,NULL,'2018-09-26 09:32:54.000','2018-09-26 09:32:54.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (23,'Task Overdue',31,15,0,NULL,NULL,NULL,'2018-09-26 09:35:27.000','2018-09-26 09:35:27.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (24,'Task Overdue',31,15,0,NULL,NULL,NULL,'2018-09-26 09:38:29.000','2018-09-26 09:38:29.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (25,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:39:05.000','2018-09-26 09:39:05.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (26,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:39:35.000','2018-09-26 09:39:35.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (27,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:40:04.000','2018-09-26 09:40:04.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (28,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:40:17.000','2018-09-26 09:40:17.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (29,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:40:48.000','2018-09-26 09:40:48.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (30,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:41:05.000','2018-09-26 09:41:05.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (31,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:41:26.000','2018-09-26 09:41:26.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (32,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:41:31.000','2018-09-26 09:41:31.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (33,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:41:44.000','2018-09-26 09:41:44.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (34,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:42:00.000','2018-09-26 09:42:00.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (35,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:42:06.000','2018-09-26 09:42:06.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (36,'Task Overdue',3,17,0,NULL,NULL,NULL,'2018-09-26 09:43:37.000','2018-09-26 09:43:37.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (37,'Task Overdue',31,1,0,NULL,NULL,NULL,'2018-09-26 10:20:13.000','2018-09-26 10:20:13.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (38,'Task Overdue',31,1,0,NULL,NULL,NULL,'2018-09-26 10:37:34.000','2018-09-26 10:37:34.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (39,'Task Overdue',31,1,0,NULL,NULL,NULL,'2018-09-26 10:37:43.000','2018-09-26 10:37:43.000');
-INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`taskId`,`seen`,`projectId`,`reminderTypeId`,`reminderType`,`dateAdded`,`dateUpdated`) VALUES (40,'tagged in comment',1,NULL,0,1,3,'task','2018-09-26 13:02:33.000','2018-09-26 13:02:33.000');
-
-INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (1,'Internal','Master Admin','2018-07-27 08:43:16.000','2018-07-27 16:43:16.000',1,0);
-INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (2,'Internal','Admin','2018-07-27 08:43:16.000','2018-07-27 16:43:16.000',1,0);
-INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (3,'Internal','Manager','2018-07-27 08:43:16.000','2018-07-27 16:43:16.000',1,0);
-INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (4,'Internal','Standard User','2018-07-27 08:43:16.000','2018-07-27 16:43:16.000',1,0);
-INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (5,'External','Manager Guest','2018-07-27 08:43:16.000','2018-07-27 16:43:16.000',1,0);
-INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (6,'External','User Guest','2018-07-27 08:43:16.000','2018-07-27 16:43:16.000',1,0);
-
-INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (23,'A8hCNXmoc1ZrJ3WfUy9z9KYVWSSyfG6h9AJGV7MYcLYB',33,'{\"id\":33,\"firstName\":\"externalstduser\",\"lastName\":\"\",\"phoneNumber\":null,\"companyId\":null,\"username\":\"test_external_standard_user\",\"userType\":\"External\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"afsdfadsfa@test.com\",\"dateAdded\":\"2018-09-12T01:02:42.000Z\",\"dateUpdated\":\"2018-09-12T01:14:48.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":\"someCompany\",\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-09-12 17:16:48.000','2018-09-13 01:40:03.000');
-INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (29,'9ShS3HRSZPutmzLw13RtwywsW3MuqVrBNhSUUBLRXfUw',11,'{\"id\":11,\"firstName\":\"Ivan\",\"lastName\":\"Pintor\",\"phoneNumber\":\"1234\",\"companyId\":null,\"username\":\"ivan.admin\",\"userType\":\"Internal\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"ivan.pintor@mobbizsolutions.com\",\"dateAdded\":\"2018-09-03T02:38:08.000Z\",\"dateUpdated\":\"2018-09-03T02:50:58.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-09-13 17:42:12.000','2018-09-17 18:35:23.000');
-INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (53,'GiCWPzLJU4hVKxFGnAyzWEKrXtWrBhdKH2B6QayPdXqR',1,'{\"id\":1,\"firstName\":\"John Aldrin1\",\"lastName\":\"Tapia1\",\"phoneNumber\":\"1111\",\"companyId\":null,\"username\":\"master.admin\",\"userType\":\"Internal\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"johnaldrin.tapia@volenday.com\",\"dateAdded\":\"2018-07-25T00:44:35.000Z\",\"dateUpdated\":\"2018-08-22T09:26:53.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-09-24 14:57:48.000','2018-09-27 17:00:29.000');
-
-INSERT INTO `share` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`shareType`,`shareId`,`sharedBy`,`dateAdded`,`dateUpdated`) VALUES (1,'users',7,'project',2,'folder',1,8,'2018-09-10 05:51:52.000','2018-09-10 13:51:52.000');
-INSERT INTO `share` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`shareType`,`shareId`,`sharedBy`,`dateAdded`,`dateUpdated`) VALUES (2,'users',7,'project',2,'folder',1,11,'2018-09-17 02:13:39.000','2018-09-17 10:13:39.000');
+INSERT INTO `activity_log` (`id`,`usersId`,`linkType`,`linkId`,`actionType`,`old`,`new`,`dateAdded`,`dateUpdated`) VALUES (3,6,'task',50,'created',NULL,'{\"id\":50,\"projectId\":3,\"workstreamId\":3,\"task\":\"test\",\"description\":\"test\",\"dueDate\":null,\"startDate\":null,\"status\":null,\"typeId\":null,\"periodic\":0,\"periodType\":null,\"period\":null,\"periodInstance\":null,\"periodTask\":null,\"isActive\":1,\"isDeleted\":0,\"approvalRequired\":0,\"approverId\":null,\"approvalDueDate\":null,\"dateAdded\":\"2018-10-15T08:35:39.000Z\",\"dateUpdated\":\"2018-10-15T08:35:39.000Z\",\"project_id\":3,\"project_project\":\"ivanTest\",\"project_tinNo\":\"435435435435\",\"project_companyAddress\":null,\"project_statusId\":null,\"project_typeId\":1,\"project_projectNameCount\":0,\"project_createdBy\":11,\"project_projectType\":null,\"project_classification\":null,\"project_dateAdded\":\"2018-10-14T03:14:22.000Z\",\"project_dateUpdated\":\"2018-10-14T11:14:22.000Z\",\"project_isActive\":1,\"project_isDeleted\":0,\"workstream_id\":3,\"workstream_projectId\":3,\"workstream_workstream\":\"PAYROLL\",\"workstream_projectName\":null,\"workstream_projectDescription\":null,\"workstream_numberOfHours\":0,\"workstream_statusId\":null,\"workstream_typeId\":4,\"workstream_dateAdded\":\"2018-10-14T11:14:22.000Z\",\"workstream_dateUpdated\":\"2018-10-14T19:14:22.000Z\",\"workstream_isActive\":1,\"workstream_isDeleted\":0}','2018-10-15 16:35:39.000','2018-10-15 16:35:39.000');
 
 
 
 
 
-INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (1,NULL,'task',1,'document',70,'2018-09-27 16:28:05.000','2018-09-27 16:28:05.000',0,0);
-INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (2,NULL,'task',1,'document',71,'2018-09-27 16:28:58.000','2018-09-27 16:28:58.000',0,0);
-INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (3,NULL,'task',1,'document',72,'2018-09-27 16:29:49.000','2018-09-27 16:29:49.000',0,0);
-INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (4,NULL,'task',1,'document',73,'2018-09-27 16:30:50.000','2018-09-27 16:30:50.000',0,0);
-INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (5,NULL,'task',1,'document',78,'2018-09-27 16:32:38.000','2018-09-27 16:32:38.000',0,0);
-INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (6,NULL,'task',1,'document',79,'2018-09-27 16:33:43.000','2018-09-27 16:33:43.000',0,0);
-INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (7,NULL,'task',1,'document',80,'2018-09-27 16:38:03.000','2018-09-27 16:38:03.000',0,0);
-INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (8,NULL,'task',1,'document',81,'2018-09-27 16:39:59.000','2018-09-27 16:39:59.000',0,0);
-INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (9,NULL,'task',1,'document',82,'2018-09-27 16:41:34.000','2018-09-27 16:41:34.000',0,0);
-INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (10,NULL,'task',1,'document',83,'2018-09-27 16:42:19.000','2018-09-27 16:42:19.000',0,0);
-INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (11,NULL,'task',1,'document',87,'2018-09-27 16:45:25.000','2018-09-27 16:45:25.000',0,0);
-INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`tagTypeId`,`dateAdded`,`dateUpdated`,`isCompleted`,`isDeleted`) VALUES (12,NULL,'task',1,'document',90,'2018-09-27 16:50:10.000','2018-09-27 16:50:10.000',0,0);
 
-INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`linkTaskId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (1,1,'Stage One: Analysis','A common misconception among business owners is that the most important part of development are the design and the code. Yes, good design and solid code are both extremely important. However, they do zero good if the software doesn’t suit your business needs.\n\nIn our minds, the analysis stage is the most crucial step in software development, and the RTS Labs teams focus on this stage a lot, so we can get it right the first time. Beyond building something that is beautifully designed, user friendly, and bug free, you need a tool that will actually produce a return on your investment.\n\nAs an example of what should be happening during this crucial stage, we spend time learning your business processes, pain points, challenges, technical ecosystem, and goals. Once that information is gathered, we validate goals and present you with a scope of work.',6,'2018-10-27 00:00:00.000','2018-09-27 00:00:00.000',NULL,NULL,NULL,1,'months',1,3,NULL,'2018-09-26 14:09:47.000','2018-09-26 14:09:47.000',1,0);
-INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`linkTaskId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (2,1,'Stage One: Analysis','A common misconception among business owners is that the most important part of development are the design and the code. Yes, good design and solid code are both extremely important. However, they do zero good if the software doesn’t suit your business needs.\n\nIn our minds, the analysis stage is the most crucial step in software development, and the RTS Labs teams focus on this stage a lot, so we can get it right the first time. Beyond building something that is beautifully designed, user friendly, and bug free, you need a tool that will actually produce a return on your investment.\n\nAs an example of what should be happening during this crucial stage, we spend time learning your business processes, pain points, challenges, technical ecosystem, and goals. Once that information is gathered, we validate goals and present you with a scope of work.',6,'2018-11-27 00:00:00.000','2018-10-27 00:00:00.000',NULL,NULL,NULL,1,'months',1,3,1,'2018-09-26 14:09:47.000','2018-09-26 14:09:47.000',1,0);
 
-INSERT INTO `task_checklist` (`id`,`completed`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (25,1,'test24',1,NULL,'[83]',1,'2018-09-27 16:42:19.000','2018-09-27 17:00:43.000');
-INSERT INTO `task_checklist` (`id`,`completed`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (26,1,'test24',2,25,NULL,1,'2018-09-27 16:42:19.000','2018-09-27 16:59:50.000');
-INSERT INTO `task_checklist` (`id`,`completed`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (27,1,'Test334',1,NULL,'[87]',1,'2018-09-27 16:45:25.000','2018-09-27 17:00:42.000');
-INSERT INTO `task_checklist` (`id`,`completed`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (28,0,'Test334',2,27,NULL,1,'2018-09-27 16:45:25.000','2018-09-27 16:45:32.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (5,'wd-spectools-word-sample-04.doc_0c966f46648714098cc4b37ec345aea9a90a4b0a.doc','wd-spectools-word-sample-04.doc',31,NULL,NULL,0,'new',0,0,0,'2018-10-15 03:17:13.000','2018-10-15 11:17:13.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (6,'veryImportantDocument - Copy.txt_6d7cb3f0ba1a76fde64188cb161f3efe447274e1.txt','veryImportantDocument - Copy.txt',22,'task',NULL,0,'new',1,0,0,'2018-10-15 03:26:23.000','2018-10-15 11:26:23.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (7,'veryImportantDocument.xml_4fd6d592f01c0ec1201587cd9784c7b129a0e193.xml','veryImportantDocument.xml',7,'attachment',NULL,0,'new',1,0,0,'2018-10-15 03:40:10.000','2018-10-15 11:40:10.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (8,'test excel (1).ods_82c20da5282231f4c07f677159a7649067f96f92.ods','test excel (1).ods',31,NULL,NULL,0,'new',0,0,0,'2018-10-15 05:08:49.000','2018-10-15 13:08:49.000');
+INSERT INTO `document` (`id`,`name`,`origin`,`uploadedBy`,`type`,`folderId`,`isDeleted`,`status`,`isCompleted`,`documentNameCount`,`attachmentId`,`dateAdded`,`dateUpdated`) VALUES (9,'test (2).jpeg_f3c8af35f540b9d7a71ea55af0c803e8eb2a8ae4.jpeg','test (2).jpeg',31,'attachment',NULL,0,'new',1,0,0,'2018-10-15 05:20:59.000','2018-10-15 13:20:59.000');
+
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (5,5,'project',1,'2018-10-15 03:17:13.000','2018-10-15 11:17:13.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (6,6,'project',3,'2018-10-15 03:26:23.000','2018-10-15 11:26:23.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (7,7,'project',3,'2018-10-15 03:40:10.000','2018-10-15 11:40:10.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (8,8,'project',1,'2018-10-15 05:08:49.000','2018-10-15 13:08:49.000');
+INSERT INTO `document_link` (`id`,`documentId`,`linkType`,`linkId`,`dateAdded`,`dateUpdated`) VALUES (9,9,'project',1,'2018-10-15 05:20:59.000','2018-10-15 13:20:59.000');
 
 
 
-INSERT INTO `team` (`id`,`teamLeaderId`,`usersId`,`team`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (10,11,1,'Borja Team','2018-08-30 03:36:34.000','2018-08-30 11:36:34.000',1,0);
-INSERT INTO `team` (`id`,`teamLeaderId`,`usersId`,`team`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (11,11,6,'Team Ivan','2018-09-04 02:56:22.000','2018-09-04 10:56:22.000',1,0);
-INSERT INTO `team` (`id`,`teamLeaderId`,`usersId`,`team`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (12,5,23,'DevOps','2018-09-06 17:16:04.000','2018-09-19 01:10:15.000',1,0);
 
-INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (1,'Client','project','2018-09-10 04:53:31.000','2018-09-10 12:53:31.000',1,0);
-INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (2,'Internal','project','2018-09-10 04:53:31.000','2018-09-10 12:53:31.000',1,0);
-INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (3,'Private','project','2018-09-10 04:53:31.000','2018-09-10 12:53:31.000',1,0);
-INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (4,'Output based','workstream','2018-09-10 04:53:31.000','2018-09-10 12:53:31.000',1,0);
-INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (5,'Time based','workstream','2018-09-10 04:53:32.000','2018-09-10 12:53:32.000',1,0);
+
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (2,'users',34,'project',1,'assignedTo',1,'2018-10-15 02:41:16.000','2018-10-15 10:41:16.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (3,'users',37,'project',1,'assignedTo',1,'2018-10-15 02:41:20.000','2018-10-15 10:41:20.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (4,'users',39,'project',1,'assignedTo',1,'2018-10-15 02:41:37.000','2018-10-15 10:41:37.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (5,'users',40,'project',1,'assignedTo',1,'2018-10-15 02:41:41.000','2018-10-15 10:41:41.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (6,'users',36,'project',1,'assignedTo',1,'2018-10-15 02:41:45.000','2018-10-15 10:41:45.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (7,'users',38,'project',1,'project manager',1,'2018-10-15 02:41:46.000','2018-10-15 10:41:46.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (10,'users',22,'project',3,'assignedTo',1,'2018-10-15 03:14:42.000','2018-10-15 11:14:42.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (11,'users',8,'project',3,'assignedTo',1,'2018-10-15 03:15:16.000','2018-10-15 11:15:16.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (13,'users',7,'project',3,'assignedTo',1,'2018-10-15 03:16:05.000','2018-10-15 11:16:05.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (19,'users',22,'workstream',3,'responsible',1,'2018-10-15 03:20:40.000','2018-10-15 11:20:40.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (20,'users',11,'project',3,'project manager',1,'2018-10-15 03:20:42.000','2018-10-15 11:20:42.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (36,'users',36,'task',4,'assignedTo',1,'2018-10-15 03:35:06.000','2018-10-15 11:35:06.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (53,'users',40,'task',12,'assignedTo',1,'2018-10-15 04:45:34.000','2018-10-15 12:45:34.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (55,'users',40,'task',5,'assignedTo',1,'2018-10-15 04:46:17.000','2018-10-15 12:46:17.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (56,'users',40,'task',13,'assignedTo',1,'2018-10-15 04:47:26.000','2018-10-15 12:47:26.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (58,'users',40,'task',15,'assignedTo',1,'2018-10-15 04:49:00.000','2018-10-15 12:49:00.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (59,'users',40,'task',16,'assignedTo',1,'2018-10-15 04:49:00.000','2018-10-15 12:49:00.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (69,'users',40,'task',14,'assignedTo',1,'2018-10-15 04:58:34.000','2018-10-15 12:58:34.000');
+INSERT INTO `members` (`id`,`usersType`,`userTypeLinkId`,`linkType`,`linkId`,`memberType`,`receiveNotification`,`dateAdded`,`dateUpdated`) VALUES (70,'users',40,'task',18,'assignedTo',1,'2018-10-15 05:23:07.000','2018-10-15 13:23:07.000');
+
+INSERT INTO `project` (`id`,`project`,`statusId`,`typeId`,`projectType`,`tinNo`,`companyAddress`,`classification`,`projectNameCount`,`createdBy`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (1,'Randur Project',NULL,1,NULL,'12345','Makati',NULL,0,31,'2018-10-14 09:21:03.000','2018-10-14 17:21:03.000',1,0);
+INSERT INTO `project` (`id`,`project`,`statusId`,`typeId`,`projectType`,`tinNo`,`companyAddress`,`classification`,`projectNameCount`,`createdBy`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (2,'Mobbiz Solutions',NULL,2,NULL,NULL,NULL,NULL,0,1,'2018-10-15 01:24:22.000','2018-10-15 09:24:22.000',1,0);
+INSERT INTO `project` (`id`,`project`,`statusId`,`typeId`,`projectType`,`tinNo`,`companyAddress`,`classification`,`projectNameCount`,`createdBy`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (3,'ivanTest',NULL,1,NULL,'435435435435',NULL,NULL,0,11,'2018-10-14 11:14:22.000','2018-10-14 19:14:22.000',1,0);
+
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`seen`,`projectId`,`linkId`,`linkType`,`type`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (3,'Assigned as approver',22,0,3,17,'task','For Approval',7,'2018-10-15 04:58:32.000','2018-10-15 12:58:32.000');
+INSERT INTO `reminder` (`id`,`reminderDetail`,`usersId`,`seen`,`projectId`,`linkId`,`linkType`,`type`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (4,'Assigned as approver',40,0,1,4,'task','For Approval',36,'2018-10-15 05:21:58.000','2018-10-15 13:21:58.000');
+
+INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (1,'Internal','Master Admin','2018-09-28 07:23:44.000','2018-09-28 15:23:44.000',1,0);
+INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (2,'Internal','Admin','2018-09-28 07:23:44.000','2018-09-28 15:23:44.000',1,0);
+INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (3,'Internal','Manager','2018-09-28 07:23:44.000','2018-09-28 15:23:44.000',1,0);
+INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (4,'Internal','Standard User','2018-09-28 07:23:44.000','2018-09-28 15:23:44.000',1,0);
+INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (5,'External','Manager Guest','2018-09-28 07:23:44.000','2018-09-28 15:23:44.000',1,0);
+INSERT INTO `role` (`id`,`roleType`,`role`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (6,'External','User Guest','2018-09-28 07:23:44.000','2018-09-28 15:23:44.000',1,0);
+
+INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (5,'8fDfnq5o7rHzE1UEVEhJv6Gw54tTEEvfue6h4bcMsMNT',36,'{\"id\":36,\"firstName\":\"randur.iternal\",\"lastName\":\"user1\",\"phoneNumber\":\"0890890\",\"companyId\":null,\"username\":\"randur.internal.user1\",\"userType\":\"Internal\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"randur.duran@volenday.com\",\"dateAdded\":\"2018-10-04T07:59:28.000Z\",\"dateUpdated\":\"2018-10-04T08:58:02.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-10-15 09:31:01.000','2018-10-15 21:22:37.000');
+INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (14,'9ShS3HRSZPutmzLw13RtwywsW3MuqVrBNhSUUBLRXfUw',11,'{\"id\":11,\"firstName\":\"Ivan\",\"lastName\":\"Pintor\",\"phoneNumber\":\"1234\",\"companyId\":null,\"username\":\"ivan.admin\",\"userType\":\"Internal\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"ivan.pintor@mobbizsolutions.com\",\"dateAdded\":\"2018-09-03T02:38:08.000Z\",\"dateUpdated\":\"2018-09-19T17:02:35.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-10-15 11:13:11.000','2018-10-15 20:55:17.000');
+INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (15,'6Yakxo74voXhQd4mq8oWSRRkYDTBvVbwnpj2HMR7LXW9',8,'{\"id\":8,\"firstName\":\"Standard\",\"lastName\":\"User2\",\"phoneNumber\":\"099999999\",\"companyId\":null,\"username\":\"test.user2\",\"userType\":\"Internal\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"test.user2@gmail.com\",\"dateAdded\":\"2018-08-18T02:19:45.000Z\",\"dateUpdated\":\"2018-08-21T07:33:23.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-10-15 11:15:04.000','2018-10-15 19:24:29.000');
+INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (16,'G5499EPEPdCn49gb4dPCioQoUSnvAQwhzbUhduYJ7tbp',7,'{\"id\":7,\"firstName\":\"Randur\",\"lastName\":\"Duran\",\"phoneNumber\":\"0999999999\",\"companyId\":null,\"username\":\"randur.duran\",\"userType\":\"External\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"randurduran@volenday.com\",\"dateAdded\":\"2018-08-14T16:11:43.000Z\",\"dateUpdated\":\"2018-08-14T16:12:00.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":\"DevOps\",\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-10-15 11:15:32.000','2018-10-15 20:58:18.000');
+INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (17,'9FkJZF58YVfgoVCaqGmubRP91At6uUT8CC3yggGv1swU',22,'{\"id\":22,\"firstName\":\"Borja\",\"lastName\":\"Manager(int)\",\"phoneNumber\":\"123456\",\"companyId\":null,\"username\":\"BorjaManager(int)\",\"userType\":\"Internal\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"BorjaManager@g.com\",\"dateAdded\":\"2018-09-04T19:38:04.000Z\",\"dateUpdated\":\"2018-09-04T19:51:17.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-10-15 11:15:43.000','2018-10-15 21:00:38.000');
+INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (21,'2PxT5iakrHkGAA2QcZPVDVicNZkxw7qnwGJrGEN2yD2r',6,'{\"id\":6,\"firstName\":\"test\",\"lastName\":\"admin\",\"phoneNumber\":\"6060\",\"companyId\":null,\"username\":\"admin\",\"userType\":\"Internal\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"testadmin@cfo.com\",\"dateAdded\":\"2018-08-06T17:18:24.000Z\",\"dateUpdated\":\"2018-08-07T01:19:09.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-10-15 13:26:41.000','2018-10-15 17:05:29.000');
+INSERT INTO `session` (`id`,`session`,`usersId`,`data`,`expiredDate`,`dateAdded`,`dateUpdated`) VALUES (22,'HcQEK2i4VgRAxtMuBwDNaU1uzPQk3Mauvajbxk3Ndehm',40,'{\"id\":40,\"firstName\":\"randur.manager1\",\"lastName\":\"manager1\",\"phoneNumber\":\"0890890890\",\"companyId\":null,\"username\":\"randur.external.manager1\",\"userType\":\"External\",\"avatar\":\"https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png\",\"emailAddress\":\"randur.duran@volenday.com\",\"dateAdded\":\"2018-10-04T16:02:11.000Z\",\"dateUpdated\":\"2018-10-04T16:02:45.000Z\",\"isActive\":1,\"isDeleted\":0,\"company\":null,\"company_id\":null,\"company_companyName\":null,\"company_industry\":null,\"company_isActive\":null,\"company_dateAdded\":null,\"company_dateUpdated\":null}',NULL,'2018-10-15 13:25:29.000','2018-10-15 21:25:44.000');
+
+
+
+
+
+
+
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`isDeleted`,`isCompleted`,`tagTypeId`,`dateAdded`,`dateUpdated`) VALUES (5,NULL,'task',6,'document',0,0,6,'2018-10-15 03:26:23.000','2018-10-15 11:26:23.000');
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`isDeleted`,`isCompleted`,`tagTypeId`,`dateAdded`,`dateUpdated`) VALUES (6,NULL,'task',8,'document',0,0,7,'2018-10-15 03:40:10.000','2018-10-15 11:40:10.000');
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`isDeleted`,`isCompleted`,`tagTypeId`,`dateAdded`,`dateUpdated`) VALUES (7,NULL,'task',4,'document',0,0,8,'2018-10-15 05:08:49.000','2018-10-15 13:08:49.000');
+INSERT INTO `tag` (`id`,`indicator`,`linkType`,`linkId`,`tagType`,`isDeleted`,`isCompleted`,`tagTypeId`,`dateAdded`,`dateUpdated`) VALUES (8,NULL,'task',4,'document',0,0,9,'2018-10-15 05:20:59.000','2018-10-15 13:20:59.000');
+
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`isActive`,`isDeleted`,`approvalRequired`,`approverId`,`approvalDueDate`,`dateAdded`,`dateUpdated`) VALUES (4,1,'Task 1.1','Task 1.1',1,'2018-10-31 00:00:00.000','2018-10-02 00:00:00.000','For Approval',NULL,0,NULL,0,0,NULL,1,0,1,40,'2018-10-01 00:00:00.000','2018-10-09 18:42:24.000','2018-10-15 13:21:58.000');
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`isActive`,`isDeleted`,`approvalRequired`,`approverId`,`approvalDueDate`,`dateAdded`,`dateUpdated`) VALUES (5,1,'Task 1.2','Task 1.2',1,'2018-10-31 00:00:00.000','2018-10-01 00:00:00.000','Completed',NULL,1,'years',1,1,NULL,1,0,0,NULL,NULL,'2018-10-10 03:19:14.000','2018-10-15 12:47:26.000');
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`isActive`,`isDeleted`,`approvalRequired`,`approverId`,`approvalDueDate`,`dateAdded`,`dateUpdated`) VALUES (12,1,'Task 1.3','Task 1.3',1,'2018-10-30 00:00:00.000','2018-10-29 00:00:00.000','Completed',NULL,0,'',0,0,NULL,1,0,0,NULL,NULL,'2018-10-14 20:39:21.000','2018-10-15 13:23:14.000');
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`isActive`,`isDeleted`,`approvalRequired`,`approverId`,`approvalDueDate`,`dateAdded`,`dateUpdated`) VALUES (13,1,'Task 1.2','Task 1.2',1,'2019-10-31 00:00:00.000','2019-10-01 00:00:00.000',NULL,NULL,1,'years',1,1,5,1,0,0,NULL,NULL,'2018-10-10 03:19:14.000','2018-10-10 11:19:14.000');
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`isActive`,`isDeleted`,`approvalRequired`,`approverId`,`approvalDueDate`,`dateAdded`,`dateUpdated`) VALUES (14,1,'Task 1.4','Task 1.4',1,'2018-10-31 00:00:00.000','2018-10-01 00:00:00.000','Completed',NULL,1,'months',1,3,NULL,1,0,0,NULL,NULL,'2018-10-12 12:49:00.000','2018-10-15 13:23:07.000');
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`isActive`,`isDeleted`,`approvalRequired`,`approverId`,`approvalDueDate`,`dateAdded`,`dateUpdated`) VALUES (15,1,'Task 1.4','Task 1.4',1,'2018-11-30 00:00:00.000','2018-11-01 00:00:00.000',NULL,NULL,1,'months',1,3,14,1,0,0,NULL,NULL,'2018-10-15 04:49:00.000','2018-10-15 12:58:34.000');
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`isActive`,`isDeleted`,`approvalRequired`,`approverId`,`approvalDueDate`,`dateAdded`,`dateUpdated`) VALUES (16,1,'Task 1.4','Task 1.4',1,'2018-12-31 00:00:00.000','2018-12-01 00:00:00.000',NULL,NULL,1,'months',1,3,14,1,0,0,NULL,NULL,'2018-10-15 04:49:00.000','2018-10-15 12:58:34.000');
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`isActive`,`isDeleted`,`approvalRequired`,`approverId`,`approvalDueDate`,`dateAdded`,`dateUpdated`) VALUES (18,1,'Task 1.4','Task 1.4',1,'2019-01-31 00:00:00.000','2019-01-01 00:00:00.000',NULL,NULL,1,'months',1,3,14,1,0,0,NULL,NULL,'2018-10-15 04:49:00.000','2018-10-15 12:58:34.000');
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`isActive`,`isDeleted`,`approvalRequired`,`approverId`,`approvalDueDate`,`dateAdded`,`dateUpdated`) VALUES (47,2,'test','tedt',2,NULL,NULL,NULL,NULL,0,NULL,NULL,NULL,NULL,1,0,0,NULL,NULL,'2018-10-15 16:15:20.000','2018-10-15 16:15:20.000');
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`isActive`,`isDeleted`,`approvalRequired`,`approverId`,`approvalDueDate`,`dateAdded`,`dateUpdated`) VALUES (48,2,'test','test',2,NULL,NULL,NULL,NULL,0,NULL,NULL,NULL,NULL,1,0,0,NULL,NULL,'2018-10-15 16:20:11.000','2018-10-15 16:20:11.000');
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`isActive`,`isDeleted`,`approvalRequired`,`approverId`,`approvalDueDate`,`dateAdded`,`dateUpdated`) VALUES (49,3,'stestsw','test',3,NULL,NULL,NULL,NULL,0,NULL,0,0,NULL,1,0,0,NULL,NULL,'2018-10-13 16:24:36.000','2018-10-13 16:24:36.000');
+INSERT INTO `task` (`id`,`projectId`,`task`,`description`,`workstreamId`,`dueDate`,`startDate`,`status`,`typeId`,`periodic`,`periodType`,`period`,`periodInstance`,`periodTask`,`isActive`,`isDeleted`,`approvalRequired`,`approverId`,`approvalDueDate`,`dateAdded`,`dateUpdated`) VALUES (50,3,'d2esss','test',3,NULL,NULL,NULL,NULL,0,NULL,0,0,NULL,1,0,0,NULL,NULL,'2018-10-10 00:35:39.000','2018-10-10 00:35:39.000');
+
+INSERT INTO `task_checklist` (`id`,`completed`,`isDocument`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (4,0,1,'payslip 2',7,NULL,NULL,7,'2018-10-15 03:30:10.000','2018-10-15 11:30:10.000');
+INSERT INTO `task_checklist` (`id`,`completed`,`isDocument`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (5,0,1,'payslip 1',8,NULL,'[7]',11,'2018-10-14 19:35:00.000','2018-10-15 03:35:00.000');
+INSERT INTO `task_checklist` (`id`,`completed`,`isDocument`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (6,0,1,'payslip 1',9,5,NULL,11,'2018-10-15 03:35:00.000','2018-10-15 11:35:00.000');
+INSERT INTO `task_checklist` (`id`,`completed`,`isDocument`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (7,0,1,'payslip 1',10,5,NULL,11,'2018-10-15 03:35:00.000','2018-10-15 11:35:00.000');
+INSERT INTO `task_checklist` (`id`,`completed`,`isDocument`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (8,0,1,'payslip 2',8,NULL,NULL,7,'2018-10-15 03:38:41.000','2018-10-15 11:38:41.000');
+INSERT INTO `task_checklist` (`id`,`completed`,`isDocument`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (11,0,1,'test',4,NULL,'[9]',31,'2018-10-14 21:20:53.000','2018-10-15 05:20:53.000');
+INSERT INTO `task_checklist` (`id`,`completed`,`isDocument`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (12,0,0,'test',19,NULL,NULL,6,'2018-10-15 13:50:53.000','2018-10-15 13:50:53.000');
+INSERT INTO `task_checklist` (`id`,`completed`,`isDocument`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (13,0,0,'test',20,12,NULL,6,'2018-10-15 13:50:53.000','2018-10-15 13:50:53.000');
+INSERT INTO `task_checklist` (`id`,`completed`,`isDocument`,`description`,`taskId`,`periodChecklist`,`documents`,`createdBy`,`dateAdded`,`dateUpdated`) VALUES (14,0,0,'test',22,NULL,NULL,6,'2018-10-15 13:52:50.000','2018-10-15 13:52:50.000');
+
+INSERT INTO `task_dependency` (`id`,`taskId`,`dependencyType`,`linkTaskId`,`dateAdded`,`dateUpdated`,`isDeleted`) VALUES (12,5,'Preceded by',4,'2018-10-15 04:46:17.000','2018-10-15 12:46:17.000',0);
+INSERT INTO `task_dependency` (`id`,`taskId`,`dependencyType`,`linkTaskId`,`dateAdded`,`dateUpdated`,`isDeleted`) VALUES (13,13,'Preceded by',4,'2018-10-15 04:47:26.000','2018-10-15 12:47:26.000',0);
+
+
+
+
+
+INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (1,'Client','project','2018-10-09 00:27:59.000','2018-10-09 08:27:59.000',1,0);
+INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (2,'Internal','project','2018-10-09 00:27:59.000','2018-10-09 08:27:59.000',1,0);
+INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (3,'Private','project','2018-10-09 00:27:59.000','2018-10-09 08:27:59.000',1,0);
+INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (4,'Output based','workstream','2018-10-09 00:27:59.000','2018-10-09 08:27:59.000',1,0);
+INSERT INTO `type` (`id`,`type`,`linkType`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (5,'Time based','workstream','2018-10-09 00:27:59.000','2018-10-09 08:27:59.000',1,0);
 
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (1,'John Aldrin1','Tapia1','1111',NULL,'master.admin','c08f94cdbfd13e47333a2d6e18c5ab8b6d2c3fbf','4qVnChLYBUpVWuLXQsZBKQJcYiq5ZVRn','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','johnaldrin.tapia@volenday.com','2018-07-25 08:44:35.000','2018-08-22 17:26:53.000',1,0,NULL);
-INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (2,'Aldous','',NULL,NULL,'standard.user2','bfb18fbd5b92f95a22f39f559dfe0fffb9796af3','9yvvVWgkHIqNmrFkyrn1oFQoe7V77X9m','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','Aldoustester@volenday.com','2018-07-28 01:08:53.000','2018-09-19 16:47:44.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (2,'Aldous','',NULL,NULL,'standard.user2','bfb18fbd5b92f95a22f39f559dfe0fffb9796af3','9yvvVWgkHIqNmrFkyrn1oFQoe7V77X9m','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','Aldoustester@volenday.com','2018-07-28 01:08:53.000','2018-10-03 10:42:43.000',1,0,NULL);
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (3,'testuser2','volenday','2323',NULL,'standard.user','c7b6586d67a1860743f11898c97462624c207d43','7VvRcUa6uYqKDu6tnY9T3Pvmahub40Dv','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','testuser2@volenday.com','2018-07-28 09:19:45.000','2018-07-30 05:07:30.000',1,0,NULL);
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (5,'Internal','Manager','090937373',NULL,'manager','0d44ef43111199b99bd49942c10968d5378b7bf8','CF7DRHEnFUwX2WhmtbJs0D94Kf4W9qma','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','testmanager@cfo.com','2018-08-06 01:14:47.000','2018-08-06 09:18:52.000',1,0,NULL);
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (6,'test','admin','6060',NULL,'admin','7d90fd6eb269160e01cb466e18e807b76230180b','JwbvRNedPgdTbU4Jw32leTorsHoZ8he0','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','testadmin@cfo.com','2018-08-07 01:18:24.000','2018-08-07 09:19:09.000',1,0,NULL);
-INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (7,'Randur','Duran','0999999999',NULL,'randur.duran','f4ce619793537995f507efb5ebf68127c9c0d4f1','YkQGb7hzWSGCtMHoL9gBbFrqIU0jiPz0','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','randurduran@volenday.com','2018-08-14 16:11:43.000','2018-08-15 00:12:00.000',1,0,'DevOps');
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (7,'Randur','Duran','0999999999',NULL,'randur.duran','f4ce619793537995f507efb5ebf68127c9c0d4f1','YkQGb7hzWSGCtMHoL9gBbFrqIU0jiPz0','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','randurduran@volenday.com','2018-08-15 00:11:43.000','2018-08-15 08:12:00.000',1,0,'DevOps');
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (8,'Standard','User2','099999999',NULL,'test.user2','c5d605ae120c02ce74946b3691aef166e3bbd3f5','ut5IG2lLZbMx0wHViPk8l25NYY5BQaky','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','test.user2@gmail.com','2018-08-18 10:19:45.000','2018-08-21 23:33:23.000',1,0,NULL);
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (9,'User','Guest','695932116654',NULL,'user.guest','66ef2bcfe3e396ca04aad34de0b92be59f6cd06f','I55b9DevwFvS7pm0HFLG7YSJNRfwkD6A','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','user.guest@volenday.com','2018-08-29 08:42:00.000','2018-08-29 16:42:50.000',1,0,'Test Company');
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (10,'Aian','Fajardo','24',NULL,'aian.fajardo','dcc0796f98d4f69eb72d8698b4c60e4e35c2361e','4GzyPJs7wwsKrGxpR72R4hE5b9Qfvepr','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','aian.fajardo@volenday.com','2018-09-03 07:54:33.000','2018-09-05 00:35:52.000',1,0,NULL);
-INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (11,'Ivan','Pintor','1234',NULL,'ivan.admin','cc221dd2a0668b081211ac4466e1f2c39cde6ed1','c15sE5AFnXuRy8z56AZYtIdV4PL03pIG','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','ivan.pintor@mobbizsolutions.com','2018-09-03 10:38:08.000','2018-09-03 18:50:58.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (11,'Ivan','Pintor','1234',NULL,'ivan.admin','dcfe47947da876c8c3f9f572ba865d8336b2f3af','pCnctAerBf2j31kz4jYtyKYRMlx3ZjBZ','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','ivan.pintor@mobbizsolutions.com','2018-09-03 10:38:08.000','2018-09-20 09:02:35.000',1,0,NULL);
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (20,'Andrien','Pecson','2314651994161',NULL,'andrien.pecson','4551d20d9ea53f57226d7790033e8948d2550b5e','4rb9Xfzx4hKJvckrdEpopQ7wpqpkKNlu','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','andrien.pecson@volenday.com','2018-09-04 08:35:11.000','2018-09-04 16:35:24.000',1,0,NULL);
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (21,'Borja','Hernandez','0946313563213',NULL,'borja.hernandez','34a00c6dfd993c60dc1812e5d2b6f82addfbd158','WEnHOypmB1WAdQdhsLHiJEZTPGN79U0n','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','borja.celorio@volenday.com','2018-09-04 17:02:34.000','2018-09-05 01:03:17.000',1,0,NULL);
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (22,'Borja','Manager(int)','123456',NULL,'BorjaManager(int)','944a9f105ec9f597849f574c07c8fbe7457ad15e','1jKaHQWlF2AjlO35yiW5Px1EwRzgAhvR','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','BorjaManager@g.com','2018-09-05 03:38:04.000','2018-09-05 11:51:17.000',1,0,NULL);
@@ -631,9 +531,15 @@ INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`user
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (31,'randur','duran','0999808909',NULL,'randur.admin','ff8e3a4e231a0a3e1a67153cbee32ea88a48547e','VvwHifgtSt87hWERdf8wLyJS1y7OO4zH','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','randur.duran@volenday.com','2018-09-07 03:18:13.000','2018-09-07 11:18:39.000',1,0,NULL);
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (32,'Louise','Villanueva','',NULL,'marialouise.villanueva','e62ed1f722fdbd2332526a9da699aeddf68a08c9','LurrYDrPoVsAxgvJ9SEdw9PdSCq0WVHO','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','marialouise.villanueva@volenday.com','2018-09-10 01:23:33.000','2018-09-10 09:23:44.000',1,0,'Mobbiz');
 INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (33,'externalstduser','',NULL,NULL,'test_external_standard_user','713b3c2bb6658423bca888dc176fb449a65425cc','xOuWyp3oLEoAOtJ3RrTgT24fAba7OSlV','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','afsdfadsfa@test.com','2018-09-12 09:02:42.000','2018-09-12 17:14:48.000',1,0,'someCompany');
-INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (34,'Andrien','Pecson','9560729694',NULL,'andrienpecsonext','7dc091bddff5cd07f9cc7da0086d79ff09782a61','DsvgmaetOq0dSn1hKNkktNyXaPktDBIG','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','andrien.pecson@gmail.com','2018-09-19 17:22:16.000','2018-09-20 08:17:32.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (34,'randur','internal.user1','0890890890',NULL,'randur.internal.user123','f01dbbc8fecda2642db9be6b6c3d26c49539d992','JF8oYWTtCB8tbCQRQGFZEOAESV8sX1cq','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','randur.internal.user1@gmail.com','2018-09-27 00:26:44.000','2018-10-05 08:57:27.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (35,'UX','Team',NULL,NULL,'UXTeam','5e7e73598937494d5a282fab81b72d4cb467b4da','eB7ns3yQHdrzJ1gTnj6xFDWXLU2U8xyz','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','us@team.com','2018-09-28 09:28:00.000','2018-09-28 17:29:10.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (36,'randur.iternal','user1','0890890',NULL,'randur.internal.user1','f8dd88bfb802d433830bae5aee4ff9aacd1c681e','SGsWB6glzWmfzJtOa7A8ssnGW3GGC1YG','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','randur.duran@volenday.com','2018-10-04 15:59:28.000','2018-10-05 00:58:02.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (37,'randur.external','user1','0890890890',NULL,'randur.external.user1','e20e69cfc32f536da01b5a30db261bfb8429114a','v6oLuiGMjYtriS8rJTRvduuEbfbBpiAK','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','randur.duran@volenday.com','2018-10-05 00:00:11.000','2018-10-05 08:02:25.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (38,'randur.admin','internal.admin1','0890890890',NULL,'randur.internal.admin1','df6c294414d364450d432f7df0f15f793fe31877','nDXE9uRgBYB3jjikVIEylLwldQYdaOX3','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','randur.duran@volenday.com','2018-10-04 16:00:59.000','2018-10-05 08:11:04.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (39,'randur.manager1','internal','0890890890',NULL,'randur.internal.manager1','42b0ad6b2006bfd5c78a66c66040fd757d105cb9','2hXXRrfqwRSxjVt0IHUDX4ASq35ao5q6','Internal','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','randur.duran@volenday.com','2018-10-05 00:01:34.000','2018-10-05 08:02:39.000',1,0,NULL);
+INSERT INTO `users` (`id`,`firstName`,`lastName`,`phoneNumber`,`companyId`,`username`,`password`,`salt`,`userType`,`avatar`,`emailAddress`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`,`company`) VALUES (40,'randur.manager1','manager1','0890890890',NULL,'randur.external.manager1','c9d431bf5173666241fa1a24d8254f619f7609d3','G8VenBIBvYNLqXumYaWCwoIi1zrsFgrD','External','https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png','randur.duran@volenday.com','2018-10-05 00:02:11.000','2018-10-05 08:02:45.000',1,0,NULL);
 
-
+INSERT INTO `users_forgot_password` (`id`,`usersId`,`hash`,`dateAdded`,`dateUpdated`) VALUES (1,'1',NULL,'2018-09-18 00:45:05.000','2018-09-18 08:45:05.000');
 
 INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (34,3,4,'2018-08-24 01:40:06.000','2018-08-24 09:40:06.000',1,0);
 INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (38,1,1,'2018-08-24 01:41:56.000','2018-08-24 09:41:56.000',1,0);
@@ -656,26 +562,18 @@ INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isA
 INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (90,5,3,'2018-09-07 05:56:07.000','2018-09-07 13:56:07.000',1,0);
 INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (91,32,5,'2018-09-10 01:23:33.000','2018-09-10 09:23:33.000',1,0);
 INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (92,11,2,'2018-09-10 05:01:33.000','2018-09-10 13:01:33.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (93,7,5,'2018-09-10 07:59:08.000','2018-09-10 15:59:08.000',1,0);
 INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (94,33,6,'2018-09-12 09:02:42.000','2018-09-12 17:02:42.000',1,0);
-INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (95,7,5,'2018-09-19 14:11:33.000','2018-09-19 14:11:33.000',1,0);
-INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (96,34,5,'2018-09-19 17:22:16.000','2018-09-19 17:22:16.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (96,35,2,'2018-09-28 09:28:00.000','2018-09-28 17:28:00.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (98,37,6,'2018-10-05 00:00:11.000','2018-10-05 08:00:11.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (100,39,3,'2018-10-05 00:01:34.000','2018-10-05 08:01:34.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (101,40,5,'2018-10-05 00:02:11.000','2018-10-05 08:02:11.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (102,38,2,'2018-10-05 00:10:55.000','2018-10-05 08:10:55.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (103,34,4,'2018-10-05 00:54:21.000','2018-10-05 08:54:21.000',1,0);
+INSERT INTO `users_role` (`id`,`usersId`,`roleId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (104,36,4,'2018-10-05 00:58:38.000','2018-10-05 08:58:38.000',1,0);
 
-INSERT INTO `users_team` (`id`,`usersId`,`teamId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (27,2,12,'2018-09-20 08:18:20.000','2018-09-20 08:18:20.000',1,0);
-INSERT INTO `users_team` (`id`,`usersId`,`teamId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (28,31,12,'2018-09-20 08:18:20.000','2018-09-20 08:18:20.000',1,0);
-INSERT INTO `users_team` (`id`,`usersId`,`teamId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (29,3,12,'2018-09-20 08:18:20.000','2018-09-20 08:18:20.000',1,0);
-INSERT INTO `users_team` (`id`,`usersId`,`teamId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (30,21,11,'2018-09-20 08:18:46.000','2018-09-20 08:18:46.000',1,0);
-INSERT INTO `users_team` (`id`,`usersId`,`teamId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (31,31,11,'2018-09-20 08:18:46.000','2018-09-20 08:18:46.000',1,0);
-INSERT INTO `users_team` (`id`,`usersId`,`teamId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (32,5,11,'2018-09-20 08:18:46.000','2018-09-20 08:18:46.000',1,0);
 
-INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (2,2,'PAYROLL',NULL,NULL,0,NULL,4,'2018-09-16 18:07:19.000','2018-09-19 15:18:16.000',1,1);
-INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (3,3,'ws to be deleted',NULL,NULL,0,NULL,4,'2018-09-16 18:28:10.000','2018-09-17 10:29:15.000',1,1);
-INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (4,4,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-17 02:29:51.000','2018-09-19 16:20:18.000',1,1);
-INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (5,5,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-17 04:39:36.000','2018-09-19 16:20:20.000',1,1);
-INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (6,1,'Software Development',NULL,'Software Development is the process of conceiving, specifying, designing, programming, documenting, testing, and bug fixing involved in creating and maintaining applications, frameworks, or other software components.',0,NULL,4,'2018-09-17 10:05:10.000','2018-09-19 17:50:04.000',1,1);
-INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (7,2,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-19 13:25:29.000','2018-09-19 15:18:16.000',1,1);
-INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (8,3,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-19 13:25:50.000','2018-09-19 15:18:18.000',1,1);
-INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (9,4,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-19 15:21:59.000','2018-09-19 16:20:18.000',1,1);
-INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (10,5,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-19 15:25:29.000','2018-09-19 16:20:20.000',1,1);
-INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (11,6,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-20 09:56:36.000','2018-09-20 10:02:25.000',1,1);
-INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (12,7,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-20 10:02:54.000','2018-09-20 10:10:21.000',1,1);
-INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (13,8,'Default Workstream',NULL,NULL,NULL,NULL,4,'2018-09-20 10:10:32.000','2018-09-20 10:10:32.000',1,0);
+
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (1,1,'Workstream 1',NULL,NULL,0,NULL,4,'2018-10-14 17:21:03.000','2018-10-15 01:21:03.000',1,0);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (2,2,'Software Development',NULL,'Software development is the process of conceiving, specifying, designing, programming, documenting, testing, and bug fixing involved in creating and maintaining applications, frameworks, or other software components.',0,NULL,4,'2018-10-14 17:24:22.000','2018-10-15 01:24:22.000',1,0);
+INSERT INTO `workstream` (`id`,`projectId`,`workstream`,`projectName`,`projectDescription`,`numberOfHours`,`statusId`,`typeId`,`dateAdded`,`dateUpdated`,`isActive`,`isDeleted`) VALUES (3,3,'PAYROLL',NULL,NULL,0,NULL,4,'2018-10-14 19:14:22.000','2018-10-15 03:14:22.000',1,0);

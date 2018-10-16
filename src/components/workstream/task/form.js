@@ -102,7 +102,7 @@ export default class FormComponent extends React.Component {
     }
 
     markTaskAsCompleted() {
-        let { socket, task, checklist } = this.props;
+        let { socket, task, checklist, loggedUser } = this.props;
         if (task.Selected.approvalRequired) {
             $(`#approvalModal`).modal("show");
         } else {
@@ -116,7 +116,7 @@ export default class FormComponent extends React.Component {
                     status = "For Approval"
                     socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
                 } else {
-                    socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" } })
+                    socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete", userId: loggedUser.data.id } })
                 }
             } else {
                 showToast("error", "There are items to be completed in the checklist before completing the task.")

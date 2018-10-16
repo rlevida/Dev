@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
   return sequelize.define('activity_log', {
     id: {
       type: DataTypes.BIGINT,
@@ -8,11 +8,27 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true,
       autoIncrement: true
     },
-    invokerUserId: {
+    usersId: {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    data: {
+    linkType: {
+      type: DataTypes.ENUM('project', 'workstream', 'task'),
+      allowNull: true
+    },
+    linkId: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    action: {
+      type: DataTypes.ENUM('created', 'modified', 'deleted'),
+      allowNull: true
+    },
+    from: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    to: {
       type: DataTypes.TEXT,
       allowNull: true
     },
@@ -26,6 +42,6 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'activity_log'
-  });
+      tableName: 'activity_log'
+    });
 };
