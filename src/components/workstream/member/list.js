@@ -34,7 +34,6 @@ export default class List extends React.Component {
         //     let userMember = users.List.filter((o) => { return o.id == e})[0];
         //     return { ...userMember } 
         // })
-           
         return (
             <div class="row pd20">
                 <h3 class="m0">Members</h3>
