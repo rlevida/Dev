@@ -129,7 +129,6 @@ export default class FormComponent extends React.Component {
         const mandatory = checklist.List.filter((e, index) => {
             return !e.completed;
         });
-        console.log(mandatory)
         if (mandatory.length == 0) {
             let status = "Completed"
             if (task.Selected.task_id && task.Selected.task_status != "Completed") {

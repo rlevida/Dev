@@ -76,9 +76,28 @@ exports.get = {
                             })
                         }
                     }, (err, results) => {
+                        let usersRole = global.initModel("users_role");
+                        let usersTeam = global.initModel("users_team")
                         let mergeResults = _.uniqBy(results.taskMember.concat(results.responsible),"id")
-                            cb({ status : true , data : mergeResults })
-                            // socket.emit("FRONT_APPLICATION_SELECT_LIST",{ data: mergeResults, name:d.selectName })
+
+                            async.map(mergeResults, (user, mapCallback) => {
+                                async.parallel({
+                                    role: function (parallelCallback) {
+                                        usersRole.getData("users_role", { usersId: user.id }, {}, (role) => {
+                                            parallelCallback(null, role.data)
+                                        });
+                                    },
+                                    team: function (parallelCallback) {
+                                        usersTeam.getData("users_team", { usersId: user.id }, {}, (team) => {
+                                            parallelCallback(null, team.data)
+                                        });
+                                    }
+                                }, function (err, { role, team }) {
+                                    mapCallback(null , { ...user, role , team })
+                                });
+                            }, function (err, usersResult) {
+                                cb({ status : true , data : usersResult })
+                            })
                     })
                     break;
                 }
