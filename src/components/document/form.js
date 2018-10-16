@@ -1,10 +1,6 @@
 import React from "react"
-import ReactDOM from "react-dom"
-import Select from 'react-select'
-import moment from 'moment'
-
-import { showToast,displayDate,setDatePicker , postData , putData } from '../../globalFunction'
-import { HeaderButtonContainer,HeaderButton,DropDown } from "../../globalComponents"
+import { showToast, postData, putData } from '../../globalFunction'
+import { HeaderButtonContainer, DropDown } from "../../globalComponents"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -48,10 +44,12 @@ export default class FormComponent extends React.Component {
                     result = false;
                 }
             });
+
             if(!result){
                 showToast("error","Form did not fullfill the required value.")
                 return;
             }
+
             if(document.Selected.isFolder){
                 if(document.EditType == "tags"){
                     let dataToSubmit = { data : document.Selected , filter: { tagTypeId:document.Selected.id , tagType : "folder" }, type : "project"}
@@ -85,9 +83,6 @@ export default class FormComponent extends React.Component {
                             dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
                         })
                 }
-                // else{
-                //     socket.emit("SAVE_OR_UPDATE_FOLDER",{ data:document.Selected , filter: { tagTypeId: document.Selected.id, tagType: "document" }, type : "project" });
-                // }
             }
     }
 

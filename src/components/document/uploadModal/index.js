@@ -67,21 +67,28 @@ export default class UploadModal extends React.Component {
                 data.append("file",e)
             })
 
-            axios({
-                method: 'post',
-                url: '/api/document/upload',
-                data: data ,
-                params : { uploadType : 'form' , type : 'upload' },
-                responseType: 'json'
-            }).then((response)=>{
-                response.data.map( e =>{
+
+            postData(`/api/document/upload`, data, (c) => {
+                c.data.map( e =>{
                     tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id , status : "new" })
                 })
                 this.setState({ tempData : tempData , loading : false , upload : false })
-            }).catch((error)=>{
-                this.setState({ loading: false, upload: false })
-                showToast("error", "Failed to upload. Please try again.")
-            });
+            })
+            // axios({
+            //     method: 'post',
+            //     url: '/api/document/upload',
+            //     data: data ,
+            //     params : { uploadType : 'form' , type : 'upload' },
+            //     responseType: 'json'
+            // }).then((response)=>{
+            //     response.data.map( e =>{
+            //         tempData.push({ name: e.filename, origin: e.origin , project: project ,uploadedBy : loggedUser.data.id , status : "new" })
+            //     })
+            //     this.setState({ tempData : tempData , loading : false , upload : false })
+            // }).catch((error)=>{
+            //     this.setState({ loading: false, upload: false })
+            //     showToast("error", "Failed to upload. Please try again.")
+            // });
     }
 
     render() {
