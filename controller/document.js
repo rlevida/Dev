@@ -285,41 +285,22 @@ exports.post = {
         })
     },
     upload: (req, cb) => {
-        var formidable = global.initRequire("formidable"),
-            modalFunc = global.initModelFunc(),
+        let formidable = global.initRequire("formidable"),
             func = global.initFunc();
 
-        var form = new formidable.IncomingForm();
-        var filenameList = [];
-        var files = []
-        form.multiples = true;
-
-
-        let type = (typeof req.query.type != "undefined") ? req.query.type : "others";
-        let uploadType = (typeof req.query.uploadType != "undefined") ? req.query.uploadType : "";
-        let uploaded = false;
-        // every time a file has been uploaded successfully copy to AWS
+        let form = new formidable.IncomingForm();
+        let filenameList = [] , files = [], type = "upload";
+            form.multiples = true;
 
         files.push(new Promise((resolve, reject) => {
             form.on('file', function (field, file) {
                 var date = new Date();
                 var Id = func.generatePassword(date.getTime() + file.name, "attachment");
                 var filename = file.name + "_" + Id + "." + func.getFilePathExtension(file.name);
-                // var filename = file.name;
-                if (uploadType == "form") {
-                    filenameList.push({
-                        filename: filename,
-                        origin: file.name,
-                        Id: Id
-                    });
-                } else {
-                    filenameList.push(filename);
-                }
-                func.uploadFile({
-                    file: file,
-                    form: type,
-                    filename: filename
-                }, response => {
+
+                filenameList.push({ filename: filename, origin: file.name, Id: Id });
+                
+                func.uploadFile({ file: file, form: type, filename: filename }, response => {
                     if (response.Message == 'Success') {
                         resolve(filenameList)
                     } else {
