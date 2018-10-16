@@ -1,9 +1,9 @@
 import React from "react";
-import Tooltip from "react-tooltip";
-import { showToast,displayDate,numberFormat } from '../../globalFunction';
-import { HeaderButtonContainer,HeaderButton, DropDown, OnOffSwitch } from "../../globalComponents";
+import parallel from 'async/parallel';
+
+import { getData } from '../../globalFunction';
+import { HeaderButtonContainer} from "../../globalComponents";
 import moment from 'moment'
-import FileUpload from 'react-fileupload';
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -28,13 +28,79 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        let { socket } = this.props
-            socket.emit("GET_DOCUMENT_LIST", { filter : { isDeleted: 1 , linkId: project , linkType: "project" }});
-            socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "tagList" , filter : { tagType : "document" } })
-            socket.emit("GET_WORKSTREAM_LIST", {filter:{projectId:project}});
-            socket.emit("GET_STATUS_LIST",{});
-            socket.emit("GET_TYPE_LIST",{});
-            socket.emit("GET_USER_LIST",{});
+        let { dispatch } = this.props;
+        parallel({
+            folder : (parallelCallback) => {   
+                getData(`/api/folder/`, { params:{ filter: { projectId: project }}},(c) => {
+                    if(c.status == 200){
+                        dispatch({ type: "SET_FOLDER_LIST", list: c.data })
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            task : (parallelCallback) => {
+                getData(`/api/task/`,{ params: { filter: { projectId: project }}},(c) => {
+                    if(c.status == 200){
+                        dispatch({ type: "SET_TASK_LIST", list: c.data })
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            starred : (parallelCallback) => {
+                getData(`/api/starred/`,{ params: { filter: { projectId: project }}},(c) => { 
+                    if(c.status == 200){
+                        dispatch({ type: "SET_STARRED_LIST", list: c.data })
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            workstream : (parallelCallback) => {
+                getData(`/api/workstream/`, { params: { filter: { projectId: project }}},(c) => {
+                    if(c.status == 200){
+                        dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data })
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            document : (parallelCallback) => {
+                getData(`/api/document/getByProject`, { params: { filter: { documentFilter: { isDeleted: 1 }, documentLinkFilter: { linkId: project, linkType: "project" } }}},(c) => {
+                    if(c.status == 200){
+                        dispatch({ type:"SET_DOCUMENT_LIST",list : c.data})
+                        parallelCallback(null,"")
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                });
+            },
+            tagList : (parallelCallback) => {
+                getData(`/api/global/selectList`,{ params: { selectName: "tagList" }},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'tagList' })
+                    parallelCallback(null,"")
+                })
+            },
+            shareList : (parallelCallback) => {
+                 getData(`/api/global/selectList`,{ params: { selectName: "shareList" , filter: { linkType: "project" , linkId : project }}},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'shareList' })
+                    parallelCallback(null,"")
+                })
+            },
+            ProjectMemberList : (parallelCallback) => {
+                getData(`/api/global/selectList`,{ params: { selectName: "ProjectMemberList" , filter: { linkType: "project" , linkId : project }}},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'ProjectMemberList' })
+                    parallelCallback(null,"")
+                })
+            }
+        } ,(error, result) => {
+            dispatch({type:"SET_DOCUMENT_LOADING", Loading: false })
+        })
     }
 
     updateActiveStatus(id,active){

@@ -48,6 +48,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'tag'
+    tableName: 'tag',
+    timestamps: false
   });
 };

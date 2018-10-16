@@ -1,12 +1,12 @@
 import React from "react";
-import { DropDown } from "../../globalComponents";
-import { showToast , postData , getData } from '../../globalFunction';
-import Dropzone from 'react-dropzone';
-import DocumentStatus from "./documentStatus";
-import DocumentNew from "./documentNew";
-import DocumentLibrary from "./documentLibrary";
-import axios from "axios";
 import parallel from 'async/parallel';
+
+import { getData } from '../../globalFunction';
+
+import DocumentNew from "./documentNew";
+import DocumentStatus from "./documentStatus";
+import DocumentLibrary from "./documentLibrary";
+
 import PrintModal from './documentPrinterModal'
 import UploadModal from './uploadModal'
 
@@ -75,7 +75,7 @@ export default class List extends React.Component {
                 });
             },
             document : (parallelCallback) => {
-                getData(`/api/document/getByProject`, { params: { filter: { isDeleted:0 , linkId:project , linkType:"project" }}},(c) => {
+                getData(`/api/document/getByProject`, { params: { filter: { documentFilter: { isDeleted: 0 }, documentLinkFilter: { linkId: project, linkType: "project" } }}},(c) => {
                     if(c.status == 200){
                         dispatch({ type:"SET_DOCUMENT_LIST",list : c.data})
                         parallelCallback(null,"")

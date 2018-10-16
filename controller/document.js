@@ -4,6 +4,7 @@ const sequence = require("sequence").Sequence,
     path = require('path'),
     Printer = require('node-printer');
 const dbName = "document";
+const Sequelize = require("sequelize")
 var {
     defaultGet,
     defaultGetId,
@@ -44,118 +45,62 @@ exports.get = {
         })
     },
     getByProject: (req, cb) => {
-        let documentLink = global.initModel("document_link");
-        let document = global.initModel("document");
-        let tag = global.initModel("tag");
+        let tag = global.initModelORM("tag");
+        let document = global.initModelORM("document");
+        let documentLink = global.initModelORM("document_link")
 
         let d = req.query
         let filter = (typeof d.filter != "undefined") ? JSON.parse(d.filter) : {};
+        let documentLinkFilter = filter.documentLinkFilter
+        let documentFilter = filter.documentFilter
+
         sequence.create().then((nextThen) => {
-            documentLink.getData("document_link", filter, {}, (c) => {
-                if (c.status) {
-                    if (c.data.length > 0) {
-                        nextThen(c.data)
-                    } else {
-                        cb({
-                            status: true,
-                            data: c.data
-                        })
-                    }
-                }
-            })
+
+            documentLink(global.connectionDb, Sequelize)
+                .findAll({
+                    where: documentLinkFilter,
+                    raw: true
+                })
+                .then(res => {
+                    nextThen(res)
+                })
+
         }).then((nextThen, result) => {
-            async.parallel({
-                project: (parallelCallback) => {
-                    if (filter.linkType == "project") {
-                        let documentLinkIds = [];
+            let documentLinkIds = [];
 
-                        result.map(link => {
-                            documentLinkIds.push(link.documentId)
-                        })
+            result.map(link => {
+                documentLinkIds.push(new Promise((resolve, reject) => {
+                    resolve(link.documentId)
+                }))
+            })
 
-                        parallelCallback(null, documentLinkIds)
-                    } else {
-                        parallelCallback(null, [])
-                    }
-                },
-                workstream: (parallelCallback) => {
-                    if (filter.linkType == "workstream" || d.type == "workstream") {
-                        let tag = global.initModel("tag")
-                        tag.getData("tag", d.filter, {}, (tagRes) => {
-                            let tagId = []
-                            if (tagRes.status) {
-                                tagRes.data.map(tag => {
-                                    tagId.push(tag.tagTypeId)
-                                })
-                                if (tagId.length) {
-                                    let document = global.initModel("document");
-                                    document.getProjectDocument(filter, tagId, (doc) => {
-                                        if (doc.status) {
-                                            parallelCallback(null, doc.data)
-                                        }
-                                    })
-                                } else {
-                                    parallelCallback(null, [])
-                                }
-                            }
-                        })
-                    } else {
-                        parallelCallback(null, [])
-                    }
-                }
-            }, (error, parallelResult) => {
-                nextThen(parallelResult)
+            Promise.all(documentLinkIds).then(value => {
+                nextThen(value)
             })
 
         }).then((nextThen, result) => {
-            if (filter.linkType == "project") {
-                document.getProjectDocument(filter, result.project, (c) => {
-                    if (c.status) {
-                        cb({
-                            status: true,
-                            data: c.data
-                        })
-                    } else {
-                        cb({
-                            status: false,
-                            error: c.error
-                        })
+            document(global.connectionDb, Sequelize)
+                .findAll({
+                    where: {
+                        id: {
+                            [Sequelize.Op.in]: result
+                        },
+                        ...documentFilter
                     }
                 })
-            } else if (filter.linkType == "workstream" || d.type == "workstream") {
-                tag.getData("tag", d.filter, {}, (c) => {
-                    let tagId = []
-                    if (c.status) {
-                        c.data.map(tag => {
-                            tagId.push(tag.tagTypeId)
-                        })
-                        if (tagId.length) {
-                            document.getProjectDocument(filter, tagId, (doc) => {
-                                if (doc.status) {
-                                    cb({
-                                        status: true,
-                                        data: doc.data
-                                    })
-                                }
-                            })
-                        } else {
-                            cb({
-                                status: true,
-                                data: []
-                            })
-                        }
-                    } else {
-                        cb({
-                            status: false,
-                            error: c.error
-                        })
-                    }
+                .then(res => {
+                    cb({
+                        status: true,
+                        data: res
+                    })
                 })
-            }
         })
     },
-    getPrinterList: (req,cb) => {
-        cb({status:200 , data : Printer.list() })
+    getPrinterList: (req, cb) => {
+        cb({
+            status: 200,
+            data: Printer.list()
+        })
     }
 }
 
@@ -289,8 +234,10 @@ exports.post = {
             func = global.initFunc();
 
         let form = new formidable.IncomingForm();
-        let filenameList = [] , files = [], type = "upload";
-            form.multiples = true;
+        let filenameList = [],
+            files = [],
+            type = "upload";
+        form.multiples = true;
 
         files.push(new Promise((resolve, reject) => {
             form.on('file', function (field, file) {
@@ -298,9 +245,17 @@ exports.post = {
                 var Id = func.generatePassword(date.getTime() + file.name, "attachment");
                 var filename = file.name + "_" + Id + "." + func.getFilePathExtension(file.name);
 
-                filenameList.push({ filename: filename, origin: file.name, Id: Id });
-                
-                func.uploadFile({ file: file, form: type, filename: filename }, response => {
+                filenameList.push({
+                    filename: filename,
+                    origin: file.name,
+                    Id: Id
+                });
+
+                func.uploadFile({
+                    file: file,
+                    form: type,
+                    filename: filename
+                }, response => {
                     if (response.Message == 'Success') {
                         resolve(filenameList)
                     } else {
@@ -335,45 +290,52 @@ exports.post = {
         // parse the incoming request containing the form data
         form.parse(req);
     },
-    printDocument : (req,cb) => {
+    printDocument: (req, cb) => {
         let fileName = req.body.fileName
         let originName = req.body.fileOrigin
         let printerName = req.body.printer
-        let fs = global.initRequire('fs'), AWS = global.initAWS();
-        let fileStream = fs.createWriteStream( `${__dirname}/../public/temp/${originName}` ) ;
+        let fs = global.initRequire('fs'),
+            AWS = global.initAWS();
+        let fileStream = fs.createWriteStream(`${__dirname}/../public/temp/${originName}`);
         let s3 = new AWS.S3();
 
-        let promise = new Promise(function(resolve,reject){
+        let promise = new Promise(function (resolve, reject) {
             s3.getObject({
                 Bucket: global.AWSBucket,
                 Key: global.environment + "/upload/" + fileName,
-            }, (err,data) => {
-                if(err){
+            }, (err, data) => {
+                if (err) {
                     console.log("Error in Uploading to AWS. [" + err + "]");
-                }else{
+                } else {
                     fileStream.write(data.Body)
                     resolve(originName)
                     fileStream.end()
-    
+
                 }
             });
         })
-        
-        promise.then((data)=>{
-            if(mime.contentType(path.extname(`${data}`)) == "application/pdf"){
-                cb({ status : true , data : `${data}` })
-            }else{
+
+        promise.then((data) => {
+            if (mime.contentType(path.extname(`${data}`)) == "application/pdf") {
+                cb({
+                    status: true,
+                    data: `${data}`
+                })
+            } else {
                 var wordBuffer = fs.readFileSync(`${__dirname}/../public/temp/${data}`)
                 toPdf(wordBuffer).then(
                     (pdfBuffer) => {
-                        let pdfdata = new Promise(function(resolve,reject){
-                        let convertedData = fs.writeFileSync(`${__dirname}/../public/temp/${data}.pdf`, pdfBuffer)
-                                resolve(convertedData)
+                        let pdfdata = new Promise(function (resolve, reject) {
+                            let convertedData = fs.writeFileSync(`${__dirname}/../public/temp/${data}.pdf`, pdfBuffer)
+                            resolve(convertedData)
                         })
 
-                        pdfdata.then((newpdf)=>{
-                            fs.unlink(`${__dirname}/../public/temp/${data}`,(t)=>{});
-                            cb({ status: true , data : `${data}.pdf` })
+                        pdfdata.then((newpdf) => {
+                            fs.unlink(`${__dirname}/../public/temp/${data}`, (t) => {});
+                            cb({
+                                status: true,
+                                data: `${data}.pdf`
+                            })
                         })
 
                     }, (err) => {
@@ -385,7 +347,7 @@ exports.post = {
     },
     removeTempFile: (req, cb) => {
         let fs = global.initRequire('fs')
-            fs.unlink(`${__dirname}/../public/temp/${req.body.data}`,(t)=>{});
+        fs.unlink(`${__dirname}/../public/temp/${req.body.data}`, (t) => {});
     }
 }
 

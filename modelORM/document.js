@@ -33,10 +33,6 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true,
       defaultValue: '0'
     },
-    tags: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
     status: {
       type: DataTypes.ENUM('new','library','archived'),
       allowNull: true
@@ -66,6 +62,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'document'
+    tableName: 'document',
+    timestamps:false,
   });
 };
