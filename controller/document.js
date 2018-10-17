@@ -45,7 +45,6 @@ exports.get = {
         })
     },
     getByProject: (req, cb) => {
-        let tag = global.initModelORM("tag");
         let document = global.initModelORM("document");
         let documentLink = global.initModelORM("document_link")
 
@@ -55,7 +54,7 @@ exports.get = {
         let documentFilter = filter.documentFilter
 
         sequence.create().then((nextThen) => {
-
+            // GET ALL PROJECT DOCUMENTS
             documentLink(global.connectionDb, Sequelize)
                 .findAll({
                     where: documentLinkFilter,
@@ -66,8 +65,8 @@ exports.get = {
                 })
 
         }).then((nextThen, result) => {
+            // GET ALL DOCUMENTS IDs
             let documentLinkIds = [];
-
             result.map(link => {
                 documentLinkIds.push(new Promise((resolve, reject) => {
                     resolve(link.documentId)
@@ -79,6 +78,7 @@ exports.get = {
             })
 
         }).then((nextThen, result) => {
+            //GET ALL DOCUMENTS by IDs
             document(global.connectionDb, Sequelize)
                 .findAll({
                     where: {
@@ -108,33 +108,34 @@ exports.post = {
     index: (req, cb) => {
         let data = req.body;
         let projectId = req.body[0].project;
-        let document = global.initModel("document");
-        let tag = global.initModel("tag")
+        let tag = global.initModelORM("tag")
+        let document = global.initModelORM("document");
+        let documentLink = global.initModelORM("document_link");
 
         sequence.create().then((nextThen) => {
             let newData = [];
             data.map(file => {
                 newData.push(new Promise((resolve, reject) => {
-                    document.getData("document", {
-                        origin: file.origin
-                    }, {
-                        orderBy: [{
-                            fieldname: "documentNameCount",
-                            type: "DESC"
-                        }]
-                    }, (c) => {
-                        if (c.status) {
-                            if (c.data.length > 0) {
-                                file.documentNameCount = c.data[0].documentNameCount + 1
+                    document(global.connectionDb, Sequelize)
+                        .findAll({
+                            where: {
+                                origin: file.origin
+                            },
+                            order: Sequelize.literal('documentNameCount DESC'),
+                            raw: true,
+                        })
+                        .then(res => {
+                            if (res.length > 0) {
+                                file.documentNameCount = res[0].documentNameCount + 1
                                 resolve(file)
                             } else {
                                 file.projectNameCount = 0;
                                 resolve(file)
                             }
-                        } else {
+                        })
+                        .catch(err => {
                             reject()
-                        }
-                    })
+                        })
                 }))
             })
 
@@ -143,81 +144,78 @@ exports.post = {
             })
 
         }).then((nextThen, result) => {
-
-            let tempResData = [];
-
+            let dataToReturn = []
             if (result.length > 0) {
                 result.map(file => {
-                    let tagList = file.tags
-                    delete file.tags
-                    tempResData.push(new Promise((resolve, reject) => {
-                        document.postData("document", file, (c) => {
-                            if (typeof c.id != "undefined" && c.id > 0) {
-                                document.getData("document", {
-                                    id: c.id
-                                }, {}, (e) => {
-                                    if (e.data.length > 0) {
-                                        if (typeof tagList != "undefined") {
-                                            JSON.parse(tagList).map(t => {
-                                                let tagData = {
-                                                    linkType: t.value.split("-")[0],
-                                                    linkId: t.value.split("-")[1],
-                                                    tagType: "document",
-                                                    tagTypeId: e.data[0].id
-                                                }
-                                                tag.postData("tag", tagData, (tagRes) => {
-                                                    if (tagRes.status) {
-                                                        // console.log("tag success")
-                                                    } else {
-                                                        // console.log("tag failed")
-                                                    }
-                                                })
-                                            })
-                                        }
+                    dataToReturn.push(new Promise((resolve, reject) => {
+                        let tagList = file.tags
+                        delete file.tags
+                        document(global.connectionDb, Sequelize).create(file)
+                            .then(res => {
+                                let resData = res.toJSON();
 
-                                        let documentLink = global.initModel("document_link")
+                                async.parallel({
+                                    documentLink: (parallelCallback) => {
                                         let linkData = {
-                                            documentId: e.data[0].id,
+                                            documentId: resData.id,
                                             linkType: "project",
                                             linkId: projectId
                                         }
-                                        documentLink.postData("document_link", linkData, (l) => {})
-
-                                        resolve(e.data)
-                                    } else {
-                                        reject()
+                                        documentLink(global.connectionDb, Sequelize).create(linkData)
+                                            .then(c => {
+                                                parallelCallback(null, c)
+                                            })
+                                            .catch(err => {
+                                                parallelCallback(null, "")
+                                            })
+                                    },
+                                    documentTag: (parallelCallback) => {
+                                        if (typeof tagList != "undefined") {
+                                                JSON.parse(tagList).map(t => {
+                                                    let tagData = {
+                                                        linkType: t.value.split("-")[0],
+                                                        linkId: t.value.split("-")[1],
+                                                        tagType: "document",
+                                                        tagTypeId: resData.id
+                                                    }
+                                                    tag(global.connectionDb, Sequelize).create(tagData)
+                                                        .then(c => {
+                                                        })
+                                                        .catch(err => {
+                                                        })
+                                                })
+                                                parallelCallback(null, "")
+                                        } else {
+                                            parallelCallback(null, "")
+                                        }
                                     }
+                                }, (err, parallelResults) => {
+                                    resolve(resData)
                                 })
-                            } else {
+                            })
+                            .catch(err => {
                                 reject()
-                            }
-                        })
+                            })
                     }))
                 })
-            }
 
-            Promise.all(tempResData).then((values) => {
-                let resData = []
-                if (values.length) {
-                    values.map(e => {
-                        resData.push(e[0])
-                    })
-                    nextThen(resData)
-                } else {
-                    nextThen(resData)
-                }
-            })
+                Promise.all(dataToReturn).then(values => {
+                    nextThen(values)
+                })
+            }
         }).then((nextThen, result) => {
-            tag.getData("tag", {}, {}, (c) => {
-                if (c.status) {
+            tag(global.connectionDb, Sequelize)
+                .findAll({
+                    raw: true
+                }).then(res => {
                     cb({
                         status: true,
                         data: {
                             list: result,
-                            tagList: c.data
+                            tagList: res
                         }
                     })
-                } else {
+                }).catch(err => {
                     cb({
                         status: true,
                         data: {
@@ -225,8 +223,7 @@ exports.post = {
                             tagList: []
                         }
                     })
-                }
-            })
+                })
         })
     },
     upload: (req, cb) => {
@@ -265,7 +262,6 @@ exports.post = {
             });
         }))
 
-
         Promise.all(files).then(e => {
             if (e.length > 0) {
                 cb({
@@ -284,8 +280,11 @@ exports.post = {
             console.log('An error has occured: \n' + err);
         });
         // once all the files have been uploaded, send a response to the client
-        // form.on('end', function() {
-        //     cb({ status:true, data: filenameList })
+        // form.on('end', function () {
+        //     cb({
+        //         status: true,
+        //         data: filenameList
+        //     })
         // });
         // parse the incoming request containing the form data
         form.parse(req);
