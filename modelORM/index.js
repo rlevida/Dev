@@ -21,12 +21,14 @@ const ActivityLog = require('./activity_log');
 const Document = require('./document');
 const DocumentLink = require('./document_link');
 const Tag = require('./tag');
+const Folder = require('./folder');
 
 const models = {
     ActivityLog,
     Document,
     DocumentLink,
-    Tag
+    Tag,
+    Folder
 };
 
 
