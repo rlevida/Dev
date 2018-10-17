@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('document', {
+module.exports = function (sequelize, DataTypes) {
+  return sequelize.define('documents', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -34,7 +34,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     },
     status: {
-      type: DataTypes.ENUM('new','library','archived'),
+      type: DataTypes.ENUM('new', 'library', 'archived'),
       allowNull: true
     },
     isCompleted: {
@@ -54,7 +54,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     dateAdded: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: false,
+      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     },
     dateUpdated: {
       type: DataTypes.DATE,
@@ -62,7 +63,6 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'document',
-    timestamps:false,
+    timestamps: false,
   });
 };

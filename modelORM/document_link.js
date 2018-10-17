@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('document_link', {
+module.exports = function (sequelize, DataTypes) {
+  return sequelize.define('document_links', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -13,7 +13,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     linkType: {
-      type: DataTypes.ENUM('project','workstream','task','conversation'),
+      type: DataTypes.ENUM('project', 'workstream', 'task', 'conversation'),
       allowNull: true
     },
     linkId: {
@@ -30,7 +30,6 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'document_link',
     timestamps: false
   });
 };

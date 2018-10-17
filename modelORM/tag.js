@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
   return sequelize.define('tag', {
     id: {
       type: DataTypes.BIGINT,
@@ -13,7 +13,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     linkType: {
-      type: DataTypes.ENUM('user','workstream','task','conversation','document','others'),
+      type: DataTypes.ENUM('user', 'workstream', 'task', 'conversation', 'document', 'others'),
       allowNull: true
     },
     linkId: {
@@ -21,7 +21,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     tagType: {
-      type: DataTypes.ENUM('user','workstream','task','conversation','document','folder'),
+      type: DataTypes.ENUM('user', 'workstream', 'task', 'conversation', 'document', 'folder'),
       allowNull: true
     },
     isDeleted: {

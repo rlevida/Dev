@@ -1,12 +1,9 @@
 
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(
-    // process.env.CLOUD_CFO_DB,
-    // process.env.CLOUD_CFO_DB_USER,
-    // process.env.CLOUD_CFO_DB_PASSWORD,
-    'cloud_cfo',
-    'root',
-    '',
+    process.env.CLOUD_CFO_DB,
+    process.env.CLOUD_CFO_DB_USER,
+    process.env.CLOUD_CFO_DB_PASSWORD,
     {
         host: 'localhost',
         dialect: 'mysql',
@@ -21,9 +18,15 @@ const sequelize = new Sequelize(
     }
 );
 const ActivityLog = require('./activity_log');
+const Document = require('./document');
+const DocumentLink = require('./document_link');
+const Tag = require('./tag');
+
 const models = {
     ActivityLog,
-
+    Document,
+    DocumentLink,
+    Tag
 };
 
 

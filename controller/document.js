@@ -5,10 +5,16 @@ const sequence = require("sequence").Sequence,
     Printer = require('node-printer');
 const dbName = "document";
 const Sequelize = require("sequelize")
+
+const models = require('../modelORM');
+const {
+    Document,
+    Tag,
+    DocumentLink
+} = models;
+
 var {
     defaultGet,
-    defaultGetId,
-    defaultPost,
     defaultPut,
     defaultDelete
 } = require("./")
@@ -45,9 +51,6 @@ exports.get = {
         })
     },
     getByProject: (req, cb) => {
-        let document = global.initModelORM("document");
-        let documentLink = global.initModelORM("document_link")
-
         let d = req.query
         let filter = (typeof d.filter != "undefined") ? JSON.parse(d.filter) : {};
         let documentLinkFilter = filter.documentLinkFilter
@@ -55,13 +58,15 @@ exports.get = {
 
         sequence.create().then((nextThen) => {
             // GET ALL PROJECT DOCUMENTS
-            documentLink(global.connectionDb, Sequelize)
+            DocumentLink
                 .findAll({
                     where: documentLinkFilter,
                     raw: true
                 })
                 .then(res => {
                     nextThen(res)
+                }).catch( err => {
+                    console.log(err)
                 })
 
         }).then((nextThen, result) => {
@@ -78,8 +83,8 @@ exports.get = {
             })
 
         }).then((nextThen, result) => {
-            //GET ALL DOCUMENTS by IDs
-            document(global.connectionDb, Sequelize)
+            // GET ALL DOCUMENTS by IDs
+            Document
                 .findAll({
                     where: {
                         id: {
@@ -108,15 +113,14 @@ exports.post = {
     index: (req, cb) => {
         let data = req.body;
         let projectId = req.body[0].project;
-        let tag = global.initModelORM("tag")
-        let document = global.initModelORM("document");
-        let documentLink = global.initModelORM("document_link");
+        // let document = global.initModelORM("document");
+        // let documentLink = global.initModelORM("document_link");
 
         sequence.create().then((nextThen) => {
             let newData = [];
             data.map(file => {
                 newData.push(new Promise((resolve, reject) => {
-                    document(global.connectionDb, Sequelize)
+                    Document
                         .findAll({
                             where: {
                                 origin: file.origin
@@ -150,7 +154,7 @@ exports.post = {
                     dataToReturn.push(new Promise((resolve, reject) => {
                         let tagList = file.tags
                         delete file.tags
-                        document(global.connectionDb, Sequelize).create(file)
+                        Document.create(file)
                             .then(res => {
                                 let resData = res.toJSON();
 
@@ -161,7 +165,7 @@ exports.post = {
                                             linkType: "project",
                                             linkId: projectId
                                         }
-                                        documentLink(global.connectionDb, Sequelize).create(linkData)
+                                        DocumentLink.create(linkData)
                                             .then(c => {
                                                 parallelCallback(null, c)
                                             })
@@ -171,20 +175,18 @@ exports.post = {
                                     },
                                     documentTag: (parallelCallback) => {
                                         if (typeof tagList != "undefined") {
-                                                JSON.parse(tagList).map(t => {
-                                                    let tagData = {
-                                                        linkType: t.value.split("-")[0],
-                                                        linkId: t.value.split("-")[1],
-                                                        tagType: "document",
-                                                        tagTypeId: resData.id
-                                                    }
-                                                    tag(global.connectionDb, Sequelize).create(tagData)
-                                                        .then(c => {
-                                                        })
-                                                        .catch(err => {
-                                                        })
-                                                })
-                                                parallelCallback(null, "")
+                                            JSON.parse(tagList).map(t => {
+                                                let tagData = {
+                                                    linkType: t.value.split("-")[0],
+                                                    linkId: t.value.split("-")[1],
+                                                    tagType: "document",
+                                                    tagTypeId: resData.id
+                                                }
+                                                Tag.create(tagData)
+                                                    .then(c => { console.log(c)})
+                                                    .catch(err => { console.log(err)})
+                                            })
+                                            parallelCallback(null, "")
                                         } else {
                                             parallelCallback(null, "")
                                         }
@@ -204,26 +206,25 @@ exports.post = {
                 })
             }
         }).then((nextThen, result) => {
-            tag(global.connectionDb, Sequelize)
-                .findAll({
-                    raw: true
-                }).then(res => {
-                    cb({
-                        status: true,
-                        data: {
-                            list: result,
-                            tagList: res
-                        }
-                    })
-                }).catch(err => {
-                    cb({
-                        status: true,
-                        data: {
-                            list: result,
-                            tagList: []
-                        }
-                    })
+            Tag.findAll({
+                raw: true
+            }).then(res => {
+                cb({
+                    status: true,
+                    data: {
+                        list: result,
+                        tagList: res
+                    }
                 })
+            }).catch(err => {
+                cb({
+                    status: true,
+                    data: {
+                        list: result,
+                        tagList: []
+                    }
+                })
+            })
         })
     },
     upload: (req, cb) => {
@@ -408,7 +409,7 @@ exports.put = {
     tags: (req, cb) => {
         let d = req.body;
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
-        let tag = global.initModel("tag");
+        let tag = global.initModel("tags");
 
         sequence.create().then((nextThen) => {
             tag.deleteData("tag", filter, (c) => {

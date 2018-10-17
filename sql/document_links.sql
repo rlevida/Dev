@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS `document_link`;
-CREATE TABLE `document_link` (
+DROP TABLE IF EXISTS `document_links`;
+CREATE TABLE `document_links` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `documentId` BIGINT,
     `linkType` ENUM("project","workstream","task","conversation"),
