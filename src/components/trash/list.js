@@ -71,7 +71,7 @@ export default class List extends React.Component {
                 });
             },
             document : (parallelCallback) => {
-                getData(`/api/document/getByProject`, { params: { filter: { documentFilter: { isDeleted: 1 }, documentLinkFilter: { linkId: project, linkType: "project" } }}},(c) => {
+                getData(`/api/document/`, { params: { filter: { documentFilter: { isDeleted: 1 }, documentLinkFilter: { linkId: project, linkType: "project" } }}},(c) => {
                     if(c.status == 200){
                         dispatch({ type:"SET_DOCUMENT_LIST",list : c.data})
                         parallelCallback(null,"")
