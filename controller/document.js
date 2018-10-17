@@ -183,8 +183,8 @@ exports.post = {
                                                     tagTypeId: resData.id
                                                 }
                                                 Tag.create(tagData)
-                                                    .then(c => { console.log(c)})
-                                                    .catch(err => { console.log(err)})
+                                                    .then(c => {})
+                                                    .catch(err => {})
                                             })
                                             parallelCallback(null, "")
                                         } else {

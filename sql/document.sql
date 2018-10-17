@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS `documents`;
-CREATE TABLE `documents` (
+DROP TABLE IF EXISTS `document`;
+CREATE TABLE `document` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `name` TEXT,
     `origin` TEXT,

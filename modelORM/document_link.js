@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define('document_links', {
+  return sequelize.define('document_link', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -30,6 +30,7 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
+    tableName: 'document_link',
     timestamps: false
   });
 };
