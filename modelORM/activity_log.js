@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
-module.exports = function (sequelize, DataTypes) {
-  return sequelize.define('activity_log', {
+module.exports = (sequelize, DataTypes) => {
+  var activityLog = sequelize.define('activity_logs', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -20,15 +20,15 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    action: {
+    actionType: {
       type: DataTypes.ENUM('created', 'modified', 'deleted'),
       allowNull: true
     },
-    from: {
+    old: {
       type: DataTypes.TEXT,
       allowNull: true
     },
-    to: {
+    new: {
       type: DataTypes.TEXT,
       allowNull: true
     },
@@ -42,6 +42,8 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-      tableName: 'activity_log'
+      timestamps: false
     });
+
+  return activityLog;
 };

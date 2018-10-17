@@ -1,3 +1,4 @@
+const async = require("async");
 const field = exports.field = {
 
     /**
@@ -52,7 +53,7 @@ exports.getData = getData;
 exports.putData = putData;
 exports.postData = postData;
 exports.deleteData = deleteData;
-exports.getLatestData = exports.getLatestData = (data, advance, cb) => {
+exports.getListData = exports.getListData = (data, advance, cb) => {
     const db = global.initDB();
     let params = [];
     let queryString = 'WHERE id <> 0 ';
@@ -66,30 +67,50 @@ exports.getLatestData = exports.getLatestData = (data, advance, cb) => {
         queryString += `${querySyntax.join('')}`;
     }
 
-    if (typeof advance.orderBy != "undefined" && advance.orderBy.length > 0) {
-        const orderBySyntax = (advance.orderBy).map((orderByObj, index) => {
-            return orderByObj.fieldname + " " + orderByObj.type
-        });
+    async.parallel({
+        data: (parallelCallback) => {
+            if (typeof advance.orderBy != "undefined" && advance.orderBy.length > 0) {
+                const orderBySyntax = (advance.orderBy).map((orderByObj, index) => {
+                    return orderByObj.fieldname + " " + orderByObj.type
+                });
 
-        queryString += `ORDER BY ${orderBySyntax.join('')}`;
-    }
+                queryString += `ORDER BY ${orderBySyntax.join('')}`;
+            }
 
-    if (typeof advance.limit != "undefined") {
-        queryString += " LIMIT " + advance.limit
-    }
+            if (typeof advance.limit != "undefined") {
+                queryString += " LIMIT " + advance.limit
+            }
 
-    if (typeof advance.offset != "undefined") {
-        queryString += " OFFSET " + advance.offset
-    }
+            if (typeof advance.offset != "undefined") {
+                queryString += " OFFSET " + advance.offset
+            }
+            const query = `SELECT * FROM activity_log ${queryString}`;
 
-    const query = `SELECT * FROM activity_log ${queryString}`;
-    db.query(
-        query,
-        params,
-        function (err, row, fields) {
-            if (err) { cb({ status: false, error: err, data: row }); return; }
+            db.query(query, params, (err, row, fields) => {
+                if (err) {
+                    parallelCallback(err);
+                } else {
+                    parallelCallback(null, row);
+                }
+            });
+        },
+        count: (parallelCallback) => {
+            const query = `SELECT COUNT(*) as queryCount FROM activity_log ${queryString}`;
 
-            cb({ status: true, error: err, data: row });
+            db.query(query, params, (err, row, fields) => {
+                if (err) {
+                    parallelCallback(err);
+                } else {
+                    parallelCallback(null, row[0]);
+                }
+            });
         }
-    );
+    }, (err, results) => {
+        if (err != null) {
+            cb({ status: false, error: err, data: row });
+        } else {
+            
+        }
+        console.log(results)
+    });
 }; 
