@@ -97,23 +97,53 @@ var init = exports.init = (socket) => {
         })
     })
     socket.on("SAVE_OR_UPDATE_TASK", (d) => {
-        sequence.create().then((nextThen) => {
-            let task = global.initModel("task");
+        const task = global.initModel("task");
+        const controller = global.initController("activityLog");
 
+        sequence.create().then((nextThen) => {
             if (typeof d.data.id != "undefined" && d.data.id != "") {
-                task.getTaskList("task", { id: d.data.id }, {}, (c) => {
-                    if (c.status == false || c.data.length == 0) {
+                task.getData("task", { id: d.data.id }, {}, (c) => {
+                    const currentTask = c;
+                    if (currentTask.status == false || currentTask.data.length == 0) {
                         socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." });
                     } else {
                         let id = d.data.id;
                         async.parallel({
                             task: function (parallelCallback) {
-                                delete d.data.id;
-                                task.putData("task", d.data, { id: id }, (c) => {
+                                task.putData("task", _.omit(d.data, ['id']), { id: id }, (c) => {
                                     if (c.status) {
-                                        task.getTaskList("task", { id: id }, {}, (e) => {
+                                        task.getData("task", { id: id }, {}, (e) => {
                                             if (e.data.length > 0) {
-                                                parallelCallback(null, e.data);
+                                                const newTask = e.data;
+
+                                                try {
+                                                    const prevObject = _.omit(currentTask.data[0], ['dateAdded', 'dateUpdated', 'project_dateAdded', 'project_dateUpdated', 'workstream_dateAdded', 'workstream_dateUpdated', 'currentState']);
+                                                    const baseObject = _.omit(newTask[0], ['dateAdded', 'dateUpdated', 'project_dateAdded', 'project_dateUpdated', 'workstream_dateAdded', 'workstream_dateUpdated', 'currentState']);
+                                                    const newObject = func.changedObjAttributes(baseObject, prevObject)
+                                                    const objectKeys = _.map(newObject, function (value, key) {
+                                                        return key;
+                                                    });
+
+                                                    if (_.isEmpty(newObject)) {
+                                                        parallelCallback(null, newTask);
+                                                    } else {
+                                                        controller.post({
+                                                            body: {
+                                                                usersId: d.data.userId,
+                                                                linkType: "task",
+                                                                linkId: newTask[0].id,
+                                                                actionType: "modified",
+                                                                old: JSON.stringify(_.pick(prevObject, objectKeys)),
+                                                                new: JSON.stringify(newObject)
+                                                            }
+                                                        }, (c) => {
+                                                            parallelCallback(null, newTask);
+                                                        });
+                                                    }
+
+                                                } catch (err) {
+                                                    parallelCallback(null, newTask)
+                                                }
                                             } else {
                                                 socket.emit("RETURN_ERROR_MESSAGE", { message: "Updating failed. Please Try again later." })
                                             }
@@ -126,12 +156,12 @@ var init = exports.init = (socket) => {
                             periodic: function (parallelCallback) {
                                 let taskId = (d.data.periodTask == null) ? id : d.data.periodTask;
 
-                                if (c.data[0].periodic == 1 && (typeof d.data.action != "undefined" && d.data.action == "complete")) {
+                                if (currentTask.data[0].periodic == 1 && (typeof d.data.action != "undefined" && d.data.action == "complete")) {
                                     task.getData("task", {
                                         periodTask: taskId,
                                         id: { value: id, condition: " >= " }
                                     }, {}, (e) => {
-                                        let taskList = ((e.data).length > 0) ? _.orderBy(e.data, ['id'], ['desc']) : c.data;
+                                        let taskList = ((e.data).length > 0) ? _.orderBy(e.data, ['id'], ['desc']) : currentTask.data;
                                         const latestTaskDate = _.omit(taskList[0], ["status"]);
                                         const nextDueDate = moment(latestTaskDate.dueDate).add(latestTaskDate.periodType, latestTaskDate.period).format('YYYY-MM-DD HH:mm:ss');
                                         const newPeriodTask = { ...latestTaskDate, id: "", dueDate: nextDueDate, periodTask: taskId, ...(latestTaskDate.startDate != null && latestTaskDate.startDate != "") ? { startDate: moment(latestTaskDate.startDate).add(latestTaskDate.periodType, latestTaskDate.period).format('YYYY-MM-DD HH:mm:ss') } : {} }
@@ -179,11 +209,11 @@ var init = exports.init = (socket) => {
                                 }
                             },
                             isActivePeriodicTask: function (parallelCallback) {
-                                if (c.data[0].periodic == 1){
-                                    task.putData("task", { isActive : d.data.isActive }, { periodTask: id }, (c) => {
+                                if (currentTask.data[0].periodic == 1) {
+                                    task.putData("task", { isActive: d.data.isActive }, { periodTask: id }, (c) => {
                                         parallelCallback(null, "")
-                                    })  
-                                }else{
+                                    })
+                                } else {
                                     parallelCallback(null, "")
                                 }
                             }
@@ -229,7 +259,14 @@ var init = exports.init = (socket) => {
                             task: (parallelCallback) => {
                                 task.getData("task", { id: c.id }, {}, (e) => {
                                     if (e.status) {
-                                        parallelCallback(null, e.data[0]);
+                                        const newTask = e.data[0];
+                                        try {
+                                            controller.post({ body: { usersId: d.data.userId, linkType: "task", linkId: newTask.id, actionType: "created", new: JSON.stringify(newTask) } }, (c) => {
+                                                parallelCallback(null, newTask);
+                                            })
+                                        } catch (err) {
+                                            parallelCallback(true);
+                                        }
                                     } else {
                                         parallelCallback(true);
                                     }
@@ -256,19 +293,7 @@ var init = exports.init = (socket) => {
                 return new Promise(function (resolve, reject) {
                     async.parallel({
                         members: (parallelCallback) => {
-                            if (typeof d.data.assignedTo != 'undefined' && d.data.assignedTo != '') {
-                                members.deleteData("members", { linkType: "task", linkId: o.id, usersType: "users", memberType: "assignedTo" }, (c) => {
-                                    let assignedTo = { linkType: "task", linkId: o.id, usersType: "users", userTypeLinkId: d.data.assignedTo, memberType: "assignedTo" };
-
-                                    members.postData("members", assignedTo, (c) => {
-                                        if (c.status) {
-                                            parallelCallback(null, d.data.assignedTo);
-                                        } else {
-                                            parallelCallback(c.error.sqlMessage);
-                                        }
-                                    });
-                                })
-                            } else if (d.data.action == "complete") {
+                            if (d.data.action == "complete") {
                                 let taskId = (o.periodTask == null) ? o.id : o.periodTask;
                                 members.getData("members", { linkType: "task", linkId: taskId, memberType: "assignedTo" }, {}, (e) => {
                                     if (e.status && e.data.length > 0) {
@@ -290,36 +315,63 @@ var init = exports.init = (socket) => {
                                 });
                             } else if (d.data.action == "For Approval" || d.data.action == "Reject Task") {
                                 parallelCallback(null, "")
-                            } else if (typeof d.data.assignedTo == 'undefined' || d.data.assignedTo == '') {
-                                members.deleteData("members", { linkType: "task", linkId: o.id, usersType: "users", memberType: "assignedTo" }, (c) => {
-                                    parallelCallback(null, "")
+                            } else {
+                                let taskId = (o.periodTask == null) ? o.id : o.periodTask;
+
+                                async.waterfall([
+                                    function (callback) {
+                                        members.getData("members", { linkType: "task", linkId: taskId, memberType: "assignedTo" }, {}, (e) => {
+                                            const oldMembers = ((e.data).length > 0) ? e.data : [];
+                                            members.deleteData("members", { linkType: "task", linkId: o.id, usersType: "users", memberType: "assignedTo" }, (c) => {
+                                                callback(null, oldMembers);
+                                            });
+                                        });
+                                    },
+                                    function (oldMemberArgs, callback) {
+                                        if (typeof d.data.assignedTo == 'undefined' || d.data.assignedTo == '') {
+                                            callback(null, { oldMemberArgs, newMembers: [] });
+                                        } else {
+                                            const assignedTo = { linkType: "task", linkId: o.id, usersType: "users", userTypeLinkId: d.data.assignedTo, memberType: "assignedTo" };
+
+                                            members.postData("members", assignedTo, (c) => {
+                                                if (c.status) {
+                                                    members.getData("members", { id: c.id }, {}, (e) => {
+                                                        const newMembers = e.data;
+                                                        callback(null, { oldMemberArgs, newMembers });
+                                                    })
+                                                } else {
+                                                    callback(c.error.sqlMessage)
+                                                }
+                                            });
+                                        }
+                                    },
+                                    function (membersObj, callback) {
+                                        const { oldMemberArgs, newMembers } = { ...membersObj };
+                                        const oldMembersStack = _.map(oldMemberArgs, (oldMemberObj, index) => { return _.omit(oldMemberObj, ['id', 'dateAdded', 'dateUpdated']) });
+                                        const newMembersStack = _.map(newMembers, (newMemberObj, index) => { return _.omit(newMemberObj, ['id', 'dateAdded', 'dateUpdated']) });
+                                        const isEqualMembers = func.isArrayEqual(oldMembersStack, newMembersStack);
+
+                                        if (isEqualMembers == false) {
+                                            try {
+                                                controller.post({ body: { usersId: d.data.userId, linkType: "task", linkId: taskId, actionType: "modified", old: JSON.stringify({ members: oldMemberArgs }), new: JSON.stringify({ members: newMembers }) } }, (c) => {
+                                                    callback(null);
+                                                });
+                                            } catch (err) {
+                                                callback(null)
+                                            }
+                                        } else {
+                                            callback(null)
+                                        }
+                                    }
+                                ], function (err, result) {
+                                    parallelCallback(null, d.data.assignedTo);
                                 });
                             }
                         },
                         dependency: (parallelCallback) => {
-                            if (typeof d.data.dependencyType != 'undefined' && d.data.dependencyType != '') {
-                                taskDependency.deleteData("task_dependency", { taskId: o.id }, (c) => {
-                                    async.map(d.data.linkTaskIds, (taskid, mapCallback) => {
-                                        taskDependency.postData("task_dependency", {
-                                            taskId: o.id,
-                                            dependencyType: d.data.dependencyType,
-                                            linkTaskId: taskid.value
-                                        }, (c) => {
-                                            if (c.status) {
-                                                mapCallback(null, c.id);
-                                            } else {
-                                                mapCallback(c.error.sqlMessage);
-                                            }
-                                        });
-                                    }, (err, results) => {
-                                        if (err != null) {
-                                            parallelCallback(err);
-                                        } else {
-                                            parallelCallback(null, results)
-                                        }
-                                    });
-                                });
-                            } else if (d.data.action == "complete") {
+                            const parentTaskId = o.id;
+
+                            if (d.data.action == "complete") {
                                 let taskId = (o.periodTask == null) ? o.id : o.periodTask;
 
                                 taskDependency.getData("task_dependency", { taskId: taskId }, {}, (e) => {
@@ -345,9 +397,60 @@ var init = exports.init = (socket) => {
                                 })
                             } else if (d.data.action == "For Approval" || d.data.action == "Reject Task") {
                                 parallelCallback(null, "")
-                            } else if (typeof d.data.dependencyType == 'undefined' || d.data.dependencyType == '') {
-                                taskDependency.deleteData("task_dependency", { taskId: o.id }, (c) => {
-                                    parallelCallback(null, []);
+                            } else {
+                                async.waterfall([
+                                    function (callback) {
+                                        taskDependency.getData("task_dependency", { taskId: parentTaskId }, {}, (e) => {
+                                            const oldTaskDependency = ((e.data).length > 0) ? e.data : [];
+                                            taskDependency.deleteData("task_dependency", { taskId: parentTaskId }, (c) => {
+                                                callback(null, oldTaskDependency);
+                                            });
+                                        });
+                                    },
+                                    function (oldTaskDependencyArgs, callback) {
+                                        if (typeof d.data.dependencyType == 'undefined' || d.data.dependencyType == '') {
+                                            callback(null, { oldTaskDependencyArgs, newTaskDependencyArgs: [] });
+                                        } else {
+                                            async.map(d.data.linkTaskIds, (taskid, mapCallback) => {
+                                                taskDependency.postData("task_dependency", {
+                                                    taskId: parentTaskId,
+                                                    dependencyType: d.data.dependencyType,
+                                                    linkTaskId: taskid.value
+                                                }, (c) => {
+                                                    if (c.status) {
+                                                        members.getData("task_dependency", { id: c.id }, {}, (e) => {
+                                                            mapCallback(null, e.data[0]);
+                                                        });
+                                                    } else {
+                                                        callback(c.error.sqlMessage);
+                                                    }
+                                                });
+                                            }, (err, res) => {
+                                                callback(null, { oldTaskDependencyArgs, newTaskDependencyArgs: res });
+                                            });
+                                        }
+
+                                    },
+                                    function (taskDependencyObj, callback) {
+                                        const { oldTaskDependencyArgs, newTaskDependencyArgs } = { ...taskDependencyObj }
+                                        const oldTaskDependencyStack = _.map(oldTaskDependencyArgs, (oldTaskDependencyObj, index) => { return _.omit(oldTaskDependencyObj, ['id', 'dateAdded', 'dateUpdated']) });
+                                        const newTaskDependencyStack = _.map(newTaskDependencyArgs, (newTaskDependencyObj, index) => { return _.omit(newTaskDependencyObj, ['id', 'dateAdded', 'dateUpdated']) });
+                                        const isEqualTaskDependency = func.isArrayEqual(oldTaskDependencyStack, newTaskDependencyStack);
+
+                                        if (isEqualTaskDependency == false) {
+                                            try {
+                                                controller.post({ body: { usersId: d.data.userId, linkType: "task", linkId: parentTaskId, actionType: "modified", old: JSON.stringify({ task_dependencies: oldTaskDependencyArgs }), new: JSON.stringify({ task_dependencies: newTaskDependencyStack }) } }, (c) => {
+                                                    callback(null, newTaskDependencyArgs);
+                                                });
+                                            } catch (err) {
+                                                callback(null, newTaskDependencyArgs)
+                                            }
+                                        } else {
+                                            callback(null, newTaskDependencyArgs)
+                                        }
+                                    }
+                                ], function (err, result) {
+                                    parallelCallback(null, result)
                                 });
                             }
                         }

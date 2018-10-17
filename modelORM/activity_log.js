@@ -1,18 +1,34 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('activity_log', {
+module.exports = (sequelize, DataTypes) => {
+  var activityLog = sequelize.define('activity_logs', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
       autoIncrement: true
     },
-    invokerUserId: {
+    usersId: {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    data: {
+    linkType: {
+      type: DataTypes.ENUM('project', 'workstream', 'task'),
+      allowNull: true
+    },
+    linkId: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    actionType: {
+      type: DataTypes.ENUM('created', 'modified', 'deleted'),
+      allowNull: true
+    },
+    old: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    new: {
       type: DataTypes.TEXT,
       allowNull: true
     },
@@ -26,6 +42,8 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'activity_log'
-  });
+      timestamps: false
+    });
+
+  return activityLog;
 };
