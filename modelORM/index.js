@@ -1,9 +1,10 @@
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(
-    process.env.CLOUD_CFO_DB,
-    process.env.CLOUD_CFO_DB_USER,
-    process.env.CLOUD_CFO_DB_PASSWORD, {
-        host: 'localhost',
+    process.env.CLOUD_CFO_DB, 
+    process.env.CLOUD_CFO_DB_USER, 
+    process.env.CLOUD_CFO_DB_PASSWORD, 
+    {
+        host: process.env.CLOUD_CFO_DB_HOST,
         dialect: 'mysql',
         operatorsAliases: false,
         pool: {
@@ -11,7 +12,7 @@ const sequelize = new Sequelize(
             min: 0,
             acquire: 30000,
             idle: 10000
-        },
+        }
     }
 );
 
