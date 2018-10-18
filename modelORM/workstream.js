@@ -60,12 +60,11 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false
   });
 
-  // Workstream.associate = function (models) {
-  //   Workstream.belongsTo(models.Tag, {
-  //     as: 'workstream',
-  //     foreignKey: 'linkId'
-  //   });
-  // };
+  Workstream.associate = function (models) {
+    Workstream.belongsTo(models.Tag, {
+      foreignKey: 'id'
+    });
+  };
 
   return Workstream;
 };

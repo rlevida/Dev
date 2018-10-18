@@ -99,5 +99,11 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false
   });
 
+  Task.associate = function (models) {
+    Task.belongsTo(models.Tag, {
+      foreignKey: 'id'
+    });
+  };
+
   return Task
 };

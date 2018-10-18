@@ -56,19 +56,19 @@ module.exports = (sequelize, DataTypes) => {
 
   Tags.associate = function (models) {
 
-    Tags.belongsTo(models.Document, {
-      as: 'document',
-      foreignKey: 'tagTypeId'
-    });
+    // Tags.belongsTo(models.Document, {
+    //   as: 'document',
+    //   foreignKey: 'tagTypeId'
+    // });
 
     Tags.belongsTo(models.Workstream, {
       as: 'workstream',
-      foreignKey: 'linkId'
+      foreignKey: 'linkId',
     });
 
     Tags.belongsTo(models.Task, {
       as: 'task',
-      foreignKey: 'linkId'
+      foreignKey: 'linkId',
     })
   };
 

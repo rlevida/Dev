@@ -35,25 +35,15 @@ exports.get = {
                     where: documentLinkFilter,
                     raw: true
                 })
+                .map(res => {
+                    return res.documentId
+                })
                 .then(res => {
                     nextThen(res)
-                }).catch(err => {
+                })
+                .catch(err => {
                     console.log(err)
                 })
-
-        }).then((nextThen, result) => {
-            // GET ALL DOCUMENTS IDs
-            let documentLinkIds = [];
-            result.map(link => {
-                documentLinkIds.push(new Promise((resolve, reject) => {
-                    resolve(link.documentId)
-                }))
-            })
-
-            Promise.all(documentLinkIds).then(value => {
-                nextThen(value)
-            })
-
         }).then((nextThen, result) => {
             Document
                 .findAll({
@@ -64,28 +54,49 @@ exports.get = {
                         ...documentFilter,
                     },
                     include: [{
-                        model: Tag,
-                        as: 'tag',
-                        include: [{
-                                model: Workstream,
-                                attributes: ['id', 'projectId', 'workstream'],
-                                as: 'workstream',
+                            model: Tag,
+                            where: {
+                                linkType: 'workstream'
                             },
-                            {
+                            as: 'tagWorkstream',
+                            required: false,
+                            include: [{
+                                model: Workstream,
+                                as: 'workstream',
+                                attributes: ['id','workstream']
+                            }],
+                            attributes: ['id']
+                        },
+                        {
+                            model: Tag,
+                            where: {
+                                linkType: 'task'
+                            },
+                            as: 'tagTask',
+                            required: false,
+                            include: [{
                                 model: Task,
-                                attributes: ['id','task'],
-                                as: 'task'
-                            }
-                        ],
-                    }],
-                }).map(res => {
-                    console.log(res.toJSON())
+                                as: 'task',
+                                attributes: ['id','task']
+                            }],
+                            attributes: ['id']
+                        }
+                    ],
+                })
+                .map(res => {
                     return res.toJSON()
-                }).then(res => {
-                    cb({ status: true , data: res })
+                })
+                .then(res => {
+                    cb({
+                        status: true,
+                        data: res
+                    })
                 }).catch(err => {
                     console.log(err)
-                    cb({ status: false , error: err})
+                    cb({
+                        status: false,
+                        error: err
+                    })
                 })
         })
     },
