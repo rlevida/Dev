@@ -10,7 +10,9 @@ const models = require('../modelORM');
 const {
     Document,
     Tag,
-    DocumentLink
+    DocumentLink,
+    Workstream,
+    Task
 } = models;
 
 var {
@@ -26,8 +28,9 @@ exports.get = {
         let documentLinkFilter = filter.documentLinkFilter
         let documentFilter = filter.documentFilter
 
+        let document = global.init
         sequence.create().then((nextThen) => {
-            // GET ALL PROJECT DOCUMENTS
+            // GET ALL DOCUMENTS LINK TO PROJECT
             DocumentLink
                 .findAll({
                     where: documentLinkFilter,
@@ -53,22 +56,39 @@ exports.get = {
             })
 
         }).then((nextThen, result) => {
-            // GET ALL DOCUMENTS by IDs
             Document
                 .findAll({
                     where: {
                         id: {
                             [Sequelize.Op.in]: result
                         },
-                        ...documentFilter
-                    }
+                        ...documentFilter,
+                    },
+                    include: [{
+                        model: Tag,
+                        as: 'tag',
+                        include: [{
+                                model: Workstream,
+                                as: 'workstream'
+                            },
+                            {
+                                model: Task,
+                                as: 'task'
+                            }
+                        ],
+                    }],
+
+                    raw: true
                 })
                 .then(res => {
                     cb({
                         status: true,
                         data: res
                     })
+                }).catch(err => {
+                    console.log(err)
                 })
+
         })
     },
     getPrinterList: (req, cb) => {
@@ -86,6 +106,7 @@ exports.post = {
 
         sequence.create().then((nextThen) => {
             let newData = [];
+
             data.map(file => {
                 newData.push(new Promise((resolve, reject) => {
                     Document
@@ -148,7 +169,8 @@ exports.post = {
                                                     linkType: t.value.split("-")[0],
                                                     linkId: t.value.split("-")[1],
                                                     tagType: "document",
-                                                    tagTypeId: resData.id
+                                                    tagTypeId: resData.id,
+                                                    projectId: projectId
                                                 }
                                                 Tag.create(tagData)
                                                     .then(c => {})

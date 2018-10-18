@@ -1,7 +1,6 @@
-/* jshint indent: 2 */
-
-module.exports = function (sequelize, DataTypes) {
-  return sequelize.define('document', {
+/ jshint indent: 2 /
+module.exports = (sequelize, DataTypes) => {
+  const Document = sequelize.define('document', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -31,7 +30,7 @@ module.exports = function (sequelize, DataTypes) {
     isDeleted: {
       type: DataTypes.INTEGER(1),
       allowNull: true,
-      defaultValue: '0'
+      defaultValue: 0
     },
     status: {
       type: DataTypes.ENUM('new', 'library', 'archived'),
@@ -63,7 +62,16 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'document',
     timestamps: false,
+    tableName: 'document'
   });
+
+  Document.associate = function (models) {
+    Document.hasMany(models.Tag, {
+      as: 'tag',
+      foreignKey: 'tagTypeId'
+    });
+  };
+
+  return Document;
 };

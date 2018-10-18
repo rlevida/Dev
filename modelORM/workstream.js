@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('workstream', {
+  const Workstream =  sequelize.define('workstream', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -56,6 +56,16 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-    tableName: 'workstream'
+    tableName: 'workstream',
+    timestamps: false
   });
+
+  // Workstream.associate = function (models) {
+  //   Workstream.belongsTo(models.Tag, {
+  //     as: 'workstream',
+  //     foreignKey: 'linkId'
+  //   });
+  // };
+
+  return Workstream;
 };

@@ -1,7 +1,5 @@
-/* jshint indent: 2 */
-
-module.exports = function (sequelize, DataTypes) {
-  return sequelize.define('tag', {
+module.exports = (sequelize, DataTypes) => {
+  const Tags = sequelize.define('tag', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -38,6 +36,10 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.BIGINT,
       allowNull: true
     },
+    projectId: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
     dateAdded: {
       type: DataTypes.DATE,
       allowNull: true
@@ -48,7 +50,27 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'tag',
-    timestamps: false
+    timestamps: false,
+    tableName: 'tag'
   });
+
+  Tags.associate = function (models) {
+
+    Tags.belongsTo(models.Document, {
+      as: 'document',
+      foreignKey: 'tagTypeId'
+    });
+
+    Tags.hasMany(models.Workstream, {
+      as: 'workstream',
+      foreignKey: 'id'
+    });
+
+    Tags.hasMany(models.Task, {
+      as: 'task',
+      foreignKey: 'id'
+    })
+  };
+
+  return Tags;
 };

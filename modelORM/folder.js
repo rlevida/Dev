@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('folder', {
+  const Folder = sequelize.define('folder', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -52,4 +52,7 @@ module.exports = function(sequelize, DataTypes) {
     tableName: 'folder',
     timestamps: false
   });
+
+  return Folder;
 };
+

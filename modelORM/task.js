@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('task', {
+  const Task = sequelize.define('task', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -95,6 +95,9 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'task'
+    tableName: 'task',
+    timestamps: false
   });
+
+  return Task
 };
