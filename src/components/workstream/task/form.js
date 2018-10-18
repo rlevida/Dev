@@ -487,15 +487,21 @@ export default class FormComponent extends React.Component {
                                 <div id="checklist">
                                     {
                                         _.map(checklist.List, (o, index) => {
-                                            let isEditable = (loggedUser.data.id == o.createdBy)
+                                            let isEditable = (loggedUser.data.id == o.createdBy
                                                 || loggedUser.data.userRole == 1
                                                 || loggedUser.data.userRole == 2
                                                 || loggedUser.data.userRole == 3
-                                                || project.Selected.projectManagerId == loggedUser.data.id
+                                                || project.Selected.projectManagerId == loggedUser.data.id)  
+                                                && task.Selected.status != "Completed"
                                                 ? true : false
 
                                             return (
-                                                <div className={(isEditable || task.Selected.assignedById == loggedUser.data.id) ? (o.completed == 1) ? "wrapper completed" : "wrapper" : "wrapper-disabled"} key={index}>
+                                                <div className={
+                                                        (isEditable || task.Selected.assignedById == loggedUser.data.id) 
+                                                            ? (o.completed == 1) 
+                                                                ? "wrapper completed" 
+                                                                : "wrapper" 
+                                                            : "wrapper-disabled"} key={index}>
                                                     {
                                                         (isEditable || (task.Selected.assignedById == loggedUser.data.id)) &&
                                                         <div class="dropdown task-checklist-actions">
@@ -555,7 +561,7 @@ export default class FormComponent extends React.Component {
                                     }
                                 </div>
                             }
-                            {(task.Selected.isActive > 0) &&
+                            {(task.Selected.isActive > 0 && task.Selected.status != "Completed") &&
                                 <div class="row" style={{ paddingLeft: 15 }}>
                                     <div class="col-md-12 pdr0">
                                         {
