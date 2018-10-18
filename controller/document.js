@@ -28,7 +28,6 @@ exports.get = {
         let documentLinkFilter = filter.documentLinkFilter
         let documentFilter = filter.documentFilter
 
-        let document = global.init
         sequence.create().then((nextThen) => {
             // GET ALL DOCUMENTS LINK TO PROJECT
             DocumentLink
@@ -69,26 +68,25 @@ exports.get = {
                         as: 'tag',
                         include: [{
                                 model: Workstream,
-                                as: 'workstream'
+                                attributes: ['id', 'projectId', 'workstream'],
+                                as: 'workstream',
                             },
                             {
                                 model: Task,
+                                attributes: ['id','task'],
                                 as: 'task'
                             }
                         ],
                     }],
-
-                    raw: true
-                })
-                .then(res => {
-                    cb({
-                        status: true,
-                        data: res
-                    })
+                }).map(res => {
+                    console.log(res.toJSON())
+                    return res.toJSON()
+                }).then(res => {
+                    cb({ status: true , data: res })
                 }).catch(err => {
                     console.log(err)
+                    cb({ status: false , error: err})
                 })
-
         })
     },
     getPrinterList: (req, cb) => {
@@ -429,7 +427,8 @@ exports.put = {
                         linkType: t.value.split("-")[0],
                         linkId: t.value.split("-")[1],
                         tagType: "document",
-                        tagTypeId: id
+                        tagTypeId: id,
+                        projectId: d.project
                     }
                     Tag.create(tagData)
                         .then(res => {

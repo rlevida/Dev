@@ -61,14 +61,14 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'tagTypeId'
     });
 
-    Tags.hasMany(models.Workstream, {
+    Tags.belongsTo(models.Workstream, {
       as: 'workstream',
-      foreignKey: 'id'
+      foreignKey: 'linkId'
     });
 
-    Tags.hasMany(models.Task, {
+    Tags.belongsTo(models.Task, {
       as: 'task',
-      foreignKey: 'id'
+      foreignKey: 'linkId'
     })
   };
 

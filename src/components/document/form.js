@@ -72,7 +72,7 @@ export default class FormComponent extends React.Component {
                             dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
                         })
                 }else if(document.EditType == "tags"){
-                    let dataToSubmit = { data: document.Selected , filter: { tagTypeId: document.Selected.id, tagType: "document" } } 
+                    let dataToSubmit = { data: document.Selected , filter: { tagTypeId: document.Selected.id, tagType: "document" } , project: project } 
                         putData(`/api/document/putDocumentTags/${document.Selected.id}`, dataToSubmit, (c) => {
                            if(c.status == 200){
                                     showToast("success","Successfully Updated.")
