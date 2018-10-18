@@ -154,7 +154,7 @@ export default class DocumentViewerComponent extends React.Component {
                                                 }
                                                 </li>
                                                 <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(document.Selected.id)}>Delete</a></li>
-                                                <li><a href="javascript:void(0);" data-tip="Print" onClick={()=>this.printDocument(document.Selected)}>Print</a></li>
+                                                {/* <li><a href="javascript:void(0);" data-tip="Print" onClick={()=>this.printDocument(document.Selected)}>Print</a></li> */}
                                             </ul>
                                         </div>
                                         {/* { !isDocument && <a class="btn btn-primary btn-flat pull-right" style={{ cursor: "pointer" }} title="Link" target="_blank" 
