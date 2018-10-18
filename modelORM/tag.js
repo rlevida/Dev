@@ -1,7 +1,5 @@
-/* jshint indent: 2 */
-
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('tag', {
+module.exports = (sequelize, DataTypes) => {
+  const Tags = sequelize.define('tag', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -13,7 +11,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     linkType: {
-      type: DataTypes.ENUM('user','workstream','task','conversation','document','others'),
+      type: DataTypes.ENUM('user', 'workstream', 'task', 'conversation', 'document', 'others'),
       allowNull: true
     },
     linkId: {
@@ -21,7 +19,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     tagType: {
-      type: DataTypes.ENUM('user','workstream','task','conversation','document','folder'),
+      type: DataTypes.ENUM('user', 'workstream', 'task', 'conversation', 'document', 'folder'),
       allowNull: true
     },
     isDeleted: {
@@ -38,6 +36,10 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.BIGINT,
       allowNull: true
     },
+    projectId: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
     dateAdded: {
       type: DataTypes.DATE,
       allowNull: true
@@ -48,6 +50,27 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
+    timestamps: false,
     tableName: 'tag'
   });
+
+  Tags.associate = function (models) {
+
+    // Tags.belongsTo(models.Document, {
+    //   as: 'document',
+    //   foreignKey: 'tagTypeId'
+    // });
+
+    Tags.belongsTo(models.Workstream, {
+      as: 'workstream',
+      foreignKey: 'linkId',
+    });
+
+    Tags.belongsTo(models.Task, {
+      as: 'task',
+      foreignKey: 'linkId',
+    })
+  };
+
+  return Tags;
 };

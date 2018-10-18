@@ -8,6 +8,7 @@ CREATE TABLE `tag` (
     `isDeleted` TINYINT(1) DEFAULT '0',
     `isCompleted` TINYINT(1) DEFAULT '0',
     `tagTypeId` BIGINT,
+    `projectId` BIGINT,
     `dateAdded` DATETIME,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)

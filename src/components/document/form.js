@@ -61,7 +61,7 @@ export default class FormComponent extends React.Component {
             }else{
                 if(document.EditType == "rename"){
                     let dataToSubmit = { origin : document.Selected.origin } 
-                        putData(`/api/document/rename/${document.Selected.id}`, dataToSubmit, (c) => {
+                        putData(`/api/document/putDocumentName/${document.Selected.id}`, dataToSubmit, (c) => {
                             if(c.status == 200){
                                 dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
                                 showToast("success","Successfully Updated.")
@@ -72,8 +72,8 @@ export default class FormComponent extends React.Component {
                             dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
                         })
                 }else if(document.EditType == "tags"){
-                    let dataToSubmit = { data: document.Selected , filter: { tagTypeId: document.Selected.id, tagType: "document" } } 
-                        putData(`/api/document/tags/${document.Selected.id}`, dataToSubmit, (c) => {
+                    let dataToSubmit = { data: document.Selected , filter: { tagTypeId: document.Selected.id, tagType: "document" } , project: project } 
+                        putData(`/api/document/putDocumentTags/${document.Selected.id}`, dataToSubmit, (c) => {
                            if(c.status == 200){
                                     showToast("success","Successfully Updated.")
                             }else{

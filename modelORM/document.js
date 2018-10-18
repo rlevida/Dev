@@ -1,7 +1,6 @@
-/* jshint indent: 2 */
-
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('document', {
+/ jshint indent: 2 /
+module.exports = (sequelize, DataTypes) => {
+  const Document = sequelize.define('document', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -31,14 +30,10 @@ module.exports = function(sequelize, DataTypes) {
     isDeleted: {
       type: DataTypes.INTEGER(1),
       allowNull: true,
-      defaultValue: '0'
-    },
-    tags: {
-      type: DataTypes.TEXT,
-      allowNull: true
+      defaultValue: 0
     },
     status: {
-      type: DataTypes.ENUM('new','library','archived'),
+      type: DataTypes.ENUM('new', 'library', 'archived'),
       allowNull: true
     },
     isCompleted: {
@@ -58,7 +53,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     dateAdded: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: false,
+      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     },
     dateUpdated: {
       type: DataTypes.DATE,
@@ -66,6 +62,20 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
+    timestamps: false,
     tableName: 'document'
   });
+
+  Document.associate = function (models) {
+    Document.hasMany(models.Tag, {
+      as: 'tagWorkstream',
+      foreignKey: 'tagTypeId',
+    });
+    Document.hasMany(models.Tag, {
+      as: 'tagTask',
+      foreignKey: 'tagTypeId',
+    });
+  };
+
+  return Document;
 };

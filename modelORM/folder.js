@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('folder', {
+  const Folder = sequelize.define('folder', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -22,7 +22,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     dateAdded: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: false,
+      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     },
     dateUpdated: {
       type: DataTypes.DATE,
@@ -48,6 +49,10 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     }
   }, {
-    tableName: 'folder'
+    tableName: 'folder',
+    timestamps: false
   });
+
+  return Folder;
 };
+
