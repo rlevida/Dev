@@ -84,7 +84,7 @@ export default class PrintModal extends React.Component {
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary" onClick={ () => this.printDocument() }>Save</button>
+                            {/* <button type="button" class="btn btn-primary" onClick={ () => this.printDocument() }>Save</button> */}
                         </div>
                         </div>
                     </div>
