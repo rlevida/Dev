@@ -67,7 +67,7 @@ export default class UploadModal extends React.Component {
             })
 
             if (task.ModalType == "checklist") {
-                socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: checklist.Selected, documents: tempData, project: project , documentIds : documentIds })
+                socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: {...checklist.Selected, completed : 1 } , documents: tempData, project: project , documentIds : documentIds , })
                 this.setState({ tempData: [], loading: false, upload: false })
                 $(`#uploadFileModal`).modal("hide");
             } else {

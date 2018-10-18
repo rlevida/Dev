@@ -195,13 +195,13 @@ var init = exports.init = (socket) => {
                                             });
                                         });
                                         Promise.all(taskPromise).then((values) => {
-                                            socket.emit("FRONT_UPDATE_CHECK_LIST", { ...taskCheckListDetails, completed: 0, documents: d.documents })
+                                            socket.emit("FRONT_UPDATE_CHECK_LIST", { ...taskCheckListDetails, documents: d.documents })
                                         }).catch((err) => {
                                             socket.emit("RETURN_ERROR_MESSAGE", { message: "Error in updating checklist." });
                                         });
                                     });
                                 } else {
-                                    socket.emit("FRONT_UPDATE_CHECK_LIST", { ...taskCheckListDetails, completed: 0, documents: d.documents })
+                                    socket.emit("FRONT_UPDATE_CHECK_LIST", { ...taskCheckListDetails, documents: d.documents })
                                 }
                             });
                         } else {
