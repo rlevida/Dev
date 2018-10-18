@@ -7,6 +7,7 @@ const sequelize = new Sequelize(
         host: process.env.CLOUD_CFO_DB_HOST,
         dialect: 'mysql',
         operatorsAliases: false,
+        logging:false,
         pool: {
             max: 5,
             min: 0,
