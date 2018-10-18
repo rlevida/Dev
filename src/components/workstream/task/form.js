@@ -103,11 +103,12 @@ export default class FormComponent extends React.Component {
 
     markTaskAsCompleted() {
         let { socket, task, checklist, loggedUser } = this.props;
-        if (task.Selected.approvalRequired) {
+       
+        if (task.Selected.approvalRequired && loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3) {
             $(`#approvalModal`).modal("show");
         } else {
-            const mandatory = checklist.List.map((e, index) => {
-                return e.completed == 0;
+            const mandatory = checklist.List.filter((e, index) => {
+                return !e.completed;
             });
 
             if (mandatory.length == 0) {
@@ -489,6 +490,7 @@ export default class FormComponent extends React.Component {
                                             let isEditable = (loggedUser.data.id == o.createdBy)
                                                 || loggedUser.data.userRole == 1
                                                 || loggedUser.data.userRole == 2
+                                                || loggedUser.data.userRole == 3
                                                 || project.Selected.projectManagerId == loggedUser.data.id
                                                 ? true : false
 
@@ -499,17 +501,17 @@ export default class FormComponent extends React.Component {
                                                         <div class="dropdown task-checklist-actions">
                                                             <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                             <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
-                                                                {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                                                {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
                                                                     <li>
                                                                         <a onClick={() => { this.editChecklist(o) }}>Edit</a>
                                                                     </li>
                                                                 }
-                                                                {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                                                {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
                                                                     <li>
                                                                         <a onClick={() => { socket.emit("DELETE_CHECKLIST", { data: o.id }) }}>Delete</a>
                                                                     </li>
                                                                 }
-                                                                {(task.Selected.assignedById == loggedUser.data.id) &&
+                                                                {(task.Selected.assignedById == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
                                                                     <li>
                                                                         <a onClick={() => { socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } }) }}>
                                                                             {(o.completed) ? "Unchecked" : "Check"}
@@ -557,7 +559,7 @@ export default class FormComponent extends React.Component {
                                 <div class="row" style={{ paddingLeft: 15 }}>
                                     <div class="col-md-12 pdr0">
                                         {
-                                            ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id) &&
+                                            ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id || loggedUser.data.userRole == 3) &&
                                             <div class="form-group" style={{ marginBottom: 10 }}>
                                                 <label>Item</label>
                                                 <input type="text" name="checklist"
@@ -641,7 +643,7 @@ export default class FormComponent extends React.Component {
                         {(task.Selected.isActive > 0) &&
                             <div style={{ position: "relative" }} class="mt20">
                                 <h5 class="mb0">Documents</h5>
-                                {((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) &&
+                                {((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
                                     <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" onClick={() => dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "task" })}>Add</a>
                                 }
                             </div>
