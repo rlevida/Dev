@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS `activity_log`;
+DROP TABLE IF EXISTS `activity_logs`;
 CREATE TABLE `activity_log` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `usersId` BIGINT,
@@ -7,7 +7,7 @@ CREATE TABLE `activity_log` (
     `actionType` ENUM("created","modified","deleted"),
     `old` TEXT,
     `new` TEXT,
-    `dateAdded` DATETIME,
+    `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;

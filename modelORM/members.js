@@ -1,7 +1,6 @@
 /* jshint indent: 2 */
-
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('members', {
+module.exports = (sequelize, DataTypes) => {
+  const Members = sequelize.define('members', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -9,7 +8,7 @@ module.exports = function(sequelize, DataTypes) {
       autoIncrement: true
     },
     usersType: {
-      type: DataTypes.ENUM('users','team'),
+      type: DataTypes.ENUM('users', 'team'),
       allowNull: true
     },
     userTypeLinkId: {
@@ -17,7 +16,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     linkType: {
-      type: DataTypes.ENUM('project','workstream','task'),
+      type: DataTypes.ENUM('project', 'workstream', 'task'),
       allowNull: true
     },
     linkId: {
@@ -25,7 +24,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     memberType: {
-      type: DataTypes.ENUM('assignedTo','Follower','responsible','project manager'),
+      type: DataTypes.ENUM('assignedTo', 'Follower', 'responsible', 'project manager'),
       allowNull: true
     },
     receiveNotification: {
@@ -42,7 +41,18 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
-  }, {
-    tableName: 'members'
-  });
+  },
+    {
+      timestamps: false
+    }
+  );
+
+  Members.associate = function (models) {
+    Members.belongsTo(models.Users, {
+      as: 'user',
+      foreignKey: 'userTypeLinkId'
+    });
+  };
+
+  return Members;
 };

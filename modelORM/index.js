@@ -20,20 +20,26 @@ const sequelize = new Sequelize(
         logging: false
     }
 );
-const ActivityLog = require('./activity_log');
+const ActivityLog = require('./activity_log')(sequelize, Sequelize.DataTypes);
+const Members = require('./members')(sequelize, Sequelize.DataTypes);
+const Users = require('./users')(sequelize, Sequelize.DataTypes);
+const Tasks = require('./task')(sequelize, Sequelize.DataTypes);
+const TaskDependency = require('./task_dependency')(sequelize, Sequelize.DataTypes);
 const models = {
     ActivityLog,
-
+    Members,
+    Users,
+    Tasks,
+    TaskDependency
 };
-
 
 Object.keys(models).forEach((modelName) => {
     if ('associate' in models[modelName]) {
         models[modelName].associate(models);
     }
-    models[modelName] = models[modelName](sequelize, Sequelize.DataTypes)
 });
 
 models.sequelize = sequelize;
 models.Sequelize = Sequelize;
+models.sequelize.sync();
 module.exports = models;

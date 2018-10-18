@@ -98,7 +98,9 @@ var init = exports.init = (socket) => {
     })
     socket.on("SAVE_OR_UPDATE_TASK", (d) => {
         const task = global.initModel("task");
-        const controller = global.initController("activityLog");
+        const activityLogController = global.initController("activityLog");
+        const memberController = global.initController("member");
+        const taskDependencyController = global.initController("taskDependency");
 
         sequence.create().then((nextThen) => {
             if (typeof d.data.id != "undefined" && d.data.id != "") {
@@ -127,7 +129,7 @@ var init = exports.init = (socket) => {
                                                     if (_.isEmpty(newObject)) {
                                                         parallelCallback(null, newTask);
                                                     } else {
-                                                        controller.post({
+                                                        activityLogController.post({
                                                             body: {
                                                                 usersId: d.data.userId,
                                                                 linkType: "task",
@@ -261,7 +263,7 @@ var init = exports.init = (socket) => {
                                     if (e.status) {
                                         const newTask = e.data[0];
                                         try {
-                                            controller.post({ body: { usersId: d.data.userId, linkType: "task", linkId: newTask.id, actionType: "created", new: JSON.stringify(newTask) } }, (c) => {
+                                            activityLogController.post({ body: { usersId: d.data.userId, linkType: "task", linkId: newTask.id, actionType: "created", new: JSON.stringify(newTask) } }, (c) => {
                                                 parallelCallback(null, newTask);
                                             })
                                         } catch (err) {
@@ -320,28 +322,38 @@ var init = exports.init = (socket) => {
 
                                 async.waterfall([
                                     function (callback) {
-                                        members.getData("members", { linkType: "task", linkId: taskId, memberType: "assignedTo" }, {}, (e) => {
-                                            const oldMembers = ((e.data).length > 0) ? e.data : [];
-                                            members.deleteData("members", { linkType: "task", linkId: o.id, usersType: "users", memberType: "assignedTo" }, (c) => {
-                                                callback(null, oldMembers);
+                                        memberController.get.index(
+                                            {
+                                                query: {
+                                                    linkType: "task",
+                                                    linkId: taskId,
+                                                    memberType: "assignedTo",
+                                                    usersType: 'users',
+                                                    includes: ['users']
+                                                }
+                                            }, (response) => {
+                                                const oldMembers = ((response.data).length > 0) ? response.data : [];
+                                                memberController.delete.index(
+                                                    {
+                                                        query: {
+                                                            linkType: "task",
+                                                            linkId: o.id,
+                                                            usersType: "users",
+                                                            memberType: "assignedTo"
+                                                        }
+                                                    }, (response) => {
+                                                        callback(null, oldMembers);
+                                                    }
+                                                )
                                             });
-                                        });
                                     },
                                     function (oldMemberArgs, callback) {
                                         if (typeof d.data.assignedTo == 'undefined' || d.data.assignedTo == '') {
                                             callback(null, { oldMemberArgs, newMembers: [] });
                                         } else {
                                             const assignedTo = { linkType: "task", linkId: o.id, usersType: "users", userTypeLinkId: d.data.assignedTo, memberType: "assignedTo" };
-
-                                            members.postData("members", assignedTo, (c) => {
-                                                if (c.status) {
-                                                    members.getData("members", { id: c.id }, {}, (e) => {
-                                                        const newMembers = e.data;
-                                                        callback(null, { oldMemberArgs, newMembers });
-                                                    })
-                                                } else {
-                                                    callback(c.error.sqlMessage)
-                                                }
+                                            memberController.post.index({ body: { data: assignedTo, includes: ['users'] } }, (response) => {
+                                                callback(null, { oldMemberArgs, newMembers: [response.data] });
                                             });
                                         }
                                     },
@@ -353,7 +365,7 @@ var init = exports.init = (socket) => {
 
                                         if (isEqualMembers == false) {
                                             try {
-                                                controller.post({ body: { usersId: d.data.userId, linkType: "task", linkId: taskId, actionType: "modified", old: JSON.stringify({ members: oldMemberArgs }), new: JSON.stringify({ members: newMembers }) } }, (c) => {
+                                                activityLogController.post({ body: { usersId: d.data.userId, linkType: "task", linkId: taskId, actionType: "modified", old: JSON.stringify({ members: oldMemberArgs }), new: JSON.stringify({ members: newMembers }) } }, (c) => {
                                                     callback(null);
                                                 });
                                             } catch (err) {
@@ -373,7 +385,6 @@ var init = exports.init = (socket) => {
 
                             if (d.data.action == "complete") {
                                 let taskId = (o.periodTask == null) ? o.id : o.periodTask;
-
                                 taskDependency.getData("task_dependency", { taskId: taskId }, {}, (e) => {
                                     if (e.status && e.data.length > 0) {
                                         if (o.status == "Completed") {
@@ -400,33 +411,34 @@ var init = exports.init = (socket) => {
                             } else {
                                 async.waterfall([
                                     function (callback) {
-                                        taskDependency.getData("task_dependency", { taskId: parentTaskId }, {}, (e) => {
-                                            const oldTaskDependency = ((e.data).length > 0) ? e.data : [];
-                                            taskDependency.deleteData("task_dependency", { taskId: parentTaskId }, (c) => {
-                                                callback(null, oldTaskDependency);
-                                            });
+                                        taskDependencyController.get.index({
+                                            query: {
+                                                taskId: parentTaskId,
+                                                includes: ['task']
+                                            }
+                                        }, (response) => {
+                                            const oldTaskDependency = ((response.data).length > 0) ? response.data : [];
+                                            callback(null, oldTaskDependency);
                                         });
                                     },
                                     function (oldTaskDependencyArgs, callback) {
                                         if (typeof d.data.dependencyType == 'undefined' || d.data.dependencyType == '') {
                                             callback(null, { oldTaskDependencyArgs, newTaskDependencyArgs: [] });
                                         } else {
-                                            async.map(d.data.linkTaskIds, (taskid, mapCallback) => {
-                                                taskDependency.postData("task_dependency", {
-                                                    taskId: parentTaskId,
-                                                    dependencyType: d.data.dependencyType,
-                                                    linkTaskId: taskid.value
-                                                }, (c) => {
-                                                    if (c.status) {
-                                                        members.getData("task_dependency", { id: c.id }, {}, (e) => {
-                                                            mapCallback(null, e.data[0]);
-                                                        });
-                                                    } else {
-                                                        callback(c.error.sqlMessage);
-                                                    }
-                                                });
-                                            }, (err, res) => {
-                                                callback(null, { oldTaskDependencyArgs, newTaskDependencyArgs: res });
+                                            taskDependencyController.post.bulk({
+                                                body: {
+                                                    data: _.map(d.data.linkTaskIds, (taskid) => {
+                                                        return {
+                                                            taskId: parentTaskId,
+                                                            dependencyType: d.data.dependencyType,
+                                                            linkTaskId: taskid.value
+                                                        }
+                                                    }),
+                                                    includes: ['task'],
+                                                    task_id: parentTaskId
+                                                }
+                                            }, (response) => {
+                                                callback(null, { oldTaskDependencyArgs, newTaskDependencyArgs: response });
                                             });
                                         }
 
@@ -439,7 +451,7 @@ var init = exports.init = (socket) => {
 
                                         if (isEqualTaskDependency == false) {
                                             try {
-                                                controller.post({ body: { usersId: d.data.userId, linkType: "task", linkId: parentTaskId, actionType: "modified", old: JSON.stringify({ task_dependencies: oldTaskDependencyArgs }), new: JSON.stringify({ task_dependencies: newTaskDependencyStack }) } }, (c) => {
+                                                activityLogController.post({ body: { usersId: d.data.userId, linkType: "task", linkId: parentTaskId, actionType: "modified", old: JSON.stringify({ task_dependencies: oldTaskDependencyArgs }), new: JSON.stringify({ task_dependencies: newTaskDependencyStack }) } }, (c) => {
                                                     callback(null, newTaskDependencyArgs);
                                                 });
                                             } catch (err) {

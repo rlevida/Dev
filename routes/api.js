@@ -131,7 +131,6 @@ router.get('/downloadFolder',(req,res,next)=>{
             })
         })
     })
- 
 router.get('/:controller',(req,res,next)=>{
     if(!req.params.controller){
         res.status(400).send("Page Not found.")
@@ -173,7 +172,6 @@ router.get('/:controller/detail/:id',(req,res,next)=>{
         res.status(400).send({error:"Not Found!"})
     }
 })
-
 router.get('/:controller/:action',(req,res,next)=>{
     if(!req.params.controller || !req.params.action ){
         res.status(400).send("Page Not found.")

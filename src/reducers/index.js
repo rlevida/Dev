@@ -22,6 +22,7 @@ import folder from "./folder"
 import reminder from "./reminder"
 import usersTeam from "./usersTeam"
 import checklist from "./checklist"
+import activityLog from "./activityLog"
 
 export default combineReducers({
     socket,
@@ -47,5 +48,6 @@ export default combineReducers({
     folder,
     reminder,
     usersTeam,
-    checklist
+    checklist,
+    activityLog
 })
