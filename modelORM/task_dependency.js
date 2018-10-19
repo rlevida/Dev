@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('task_dependency', {
+module.exports = (sequelize, DataTypes) => {
+  const TaskDependency = sequelize.define('task_dependency', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -13,7 +13,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     dependencyType: {
-      type: DataTypes.ENUM('Preceded by','Succeeding'),
+      type: DataTypes.ENUM('Preceded by', 'Succeeding'),
       allowNull: true
     },
     linkTaskId: {
@@ -34,7 +34,23 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true,
       defaultValue: '0'
     }
-  }, {
-    tableName: 'task_dependency'
-  });
+  },
+    {
+      timestamps: false,
+      tableName: 'task_dependency'
+    }
+  );
+
+  TaskDependency.associate = function (models) {
+    TaskDependency.belongsTo(models.Tasks, {
+      as: 'parent_task',
+      foreignKey: 'taskId'
+    });
+    TaskDependency.belongsTo(models.Tasks, {
+      as: 'task',
+      foreignKey: 'linkTaskId'
+    });
+  };
+
+  return TaskDependency;
 };

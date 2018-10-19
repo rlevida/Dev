@@ -80,11 +80,9 @@ export default function reducer(state = {
             })
             return { ...state, List: List }
         }
-        case "UPDATE_TASK_STATUS": {
+        case "UPDATE_TASK_DEPENDENCIES": {
             let currentTask = { ...state.Selected };
-            let currentTaskDependencies = currentTask.dependencies;
-            let updatedTaskDependencies = currentTaskDependencies.concat(action.data);
-            let updatedSelected = { ...currentTask, dependencies: updatedTaskDependencies, dependencyType: "", linkTaskIds: [] };
+            let updatedSelected = { ...currentTask, dependencies: action.data, dependencyType: "", linkTaskIds: [] };
 
             return { ...state, Selected: updatedSelected };
         }

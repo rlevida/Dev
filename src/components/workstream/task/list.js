@@ -25,7 +25,7 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        let { global, task, dispatch, socket } = this.props;
+        let { dispatch } = this.props;
         let listToGet = { params: { filter: { projectId: project, workstreamId: workstreamId } } }
 
         parallel({
@@ -79,10 +79,18 @@ export default class List extends React.Component {
                     }
                     parallelCallback(null, "")
                 })
+            },
+            activities: (parallelCallback) => {
+                getData(`/api/activityLog?taskId=${taskId}&page=1&includes=user`, {}, (c) => {
+                    if (c.status == 200) {
+                        const { data } = c;
+                        dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+                    }
+                    parallelCallback(null, "")
+                })
             }
-
         }, (error, result) => {
-            // console.log(`end loading`)
+
         })
     }
 
@@ -117,8 +125,17 @@ export default class List extends React.Component {
                     }
                     parallelCallback(null, "")
                 })
+            },
+            activities: (parallelCallback) => {
+                getData(`/api/activityLog?taskId=${data.id}&page=1&includes=user`, {}, (c) => {
+                    if (c.status == 200) {
+                        const { data } = c;
+                        dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+                    }
+                    parallelCallback(null, "")
+                })
             }
-        } ,(error, result) => {
+        }, (error, result) => {
             window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}?task=${data.id}`);
             dispatch({ type: "SET_TASK_SELECTED", Selected: data })
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })

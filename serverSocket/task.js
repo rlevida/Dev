@@ -135,8 +135,8 @@ var init = exports.init = (socket) => {
                                                                 linkType: "task",
                                                                 linkId: newTask[0].id,
                                                                 actionType: "modified",
-                                                                old: JSON.stringify(_.pick(prevObject, objectKeys)),
-                                                                new: JSON.stringify(newObject)
+                                                                old: JSON.stringify({ "task_details": _.pick(prevObject, objectKeys) }),
+                                                                new: JSON.stringify({ "task_details": newObject })
                                                             }
                                                         }, (c) => {
                                                             parallelCallback(null, newTask);
@@ -329,7 +329,7 @@ var init = exports.init = (socket) => {
                                                     linkId: taskId,
                                                     memberType: "assignedTo",
                                                     usersType: 'users',
-                                                    includes: ['users']
+                                                    includes: 'user'
                                                 }
                                             }, (response) => {
                                                 const oldMembers = ((response.data).length > 0) ? response.data : [];
@@ -352,7 +352,7 @@ var init = exports.init = (socket) => {
                                             callback(null, { oldMemberArgs, newMembers: [] });
                                         } else {
                                             const assignedTo = { linkType: "task", linkId: o.id, usersType: "users", userTypeLinkId: d.data.assignedTo, memberType: "assignedTo" };
-                                            memberController.post.index({ body: { data: assignedTo, includes: ['users'] } }, (response) => {
+                                            memberController.post.index({ body: { data: assignedTo, includes: 'user' } }, (response) => {
                                                 callback(null, { oldMemberArgs, newMembers: [response.data] });
                                             });
                                         }
@@ -362,10 +362,17 @@ var init = exports.init = (socket) => {
                                         const oldMembersStack = _.map(oldMemberArgs, (oldMemberObj, index) => { return _.omit(oldMemberObj, ['id', 'dateAdded', 'dateUpdated']) });
                                         const newMembersStack = _.map(newMembers, (newMemberObj, index) => { return _.omit(newMemberObj, ['id', 'dateAdded', 'dateUpdated']) });
                                         const isEqualMembers = func.isArrayEqual(oldMembersStack, newMembersStack);
+                                        const toBeRecordedOld = _.map(oldMemberArgs, (oldMemberArgsObj) => {
+                                            return { ...oldMemberArgsObj, value: oldMemberArgsObj.user.firstName + ' ' + oldMemberArgsObj.user.lastName }
+                                        });
+                                        const toBeRecordedNew = _.map(newMembers, (newMembersObj) => {
+                                            return { ...newMembersObj, value: newMembersObj.user.firstName + ' ' + newMembersObj.user.lastName }
+                                        });
+
 
                                         if (isEqualMembers == false) {
                                             try {
-                                                activityLogController.post({ body: { usersId: d.data.userId, linkType: "task", linkId: taskId, actionType: "modified", old: JSON.stringify({ members: oldMemberArgs }), new: JSON.stringify({ members: newMembers }) } }, (c) => {
+                                                activityLogController.post({ body: { usersId: d.data.userId, linkType: "task", linkId: taskId, actionType: "modified", old: JSON.stringify({ members: { user: toBeRecordedOld } }), new: JSON.stringify({ members: { user: toBeRecordedNew } }) } }, (c) => {
                                                     callback(null);
                                                 });
                                             } catch (err) {
@@ -414,11 +421,19 @@ var init = exports.init = (socket) => {
                                         taskDependencyController.get.index({
                                             query: {
                                                 taskId: parentTaskId,
-                                                includes: ['task']
+                                                includes: 'task'
                                             }
                                         }, (response) => {
                                             const oldTaskDependency = ((response.data).length > 0) ? response.data : [];
-                                            callback(null, oldTaskDependency);
+                                            taskDependencyController.delete.index(
+                                                {
+                                                    query: {
+                                                        taskId: parentTaskId
+                                                    }
+                                                }, (response) => {
+                                                    callback(null, oldTaskDependency);
+                                                }
+                                            )
                                         });
                                     },
                                     function (oldTaskDependencyArgs, callback) {
@@ -434,11 +449,11 @@ var init = exports.init = (socket) => {
                                                             linkTaskId: taskid.value
                                                         }
                                                     }),
-                                                    includes: ['task'],
+                                                    includes: 'task',
                                                     task_id: parentTaskId
                                                 }
                                             }, (response) => {
-                                                callback(null, { oldTaskDependencyArgs, newTaskDependencyArgs: response });
+                                                callback(null, { oldTaskDependencyArgs, newTaskDependencyArgs: response.data });
                                             });
                                         }
 
@@ -448,10 +463,17 @@ var init = exports.init = (socket) => {
                                         const oldTaskDependencyStack = _.map(oldTaskDependencyArgs, (oldTaskDependencyObj, index) => { return _.omit(oldTaskDependencyObj, ['id', 'dateAdded', 'dateUpdated']) });
                                         const newTaskDependencyStack = _.map(newTaskDependencyArgs, (newTaskDependencyObj, index) => { return _.omit(newTaskDependencyObj, ['id', 'dateAdded', 'dateUpdated']) });
                                         const isEqualTaskDependency = func.isArrayEqual(oldTaskDependencyStack, newTaskDependencyStack);
+                                        const toBeRecordedOld = _.map(oldTaskDependencyArgs, (oldTaskDependencyArgsObj) => {
+                                            return { ...oldTaskDependencyArgsObj, value: oldTaskDependencyArgsObj.task.task }
+                                        });
+                                        const toBeRecordedNew = _.map(newTaskDependencyStack, (newTaskDependencyStackObj) => {
+                                            return { ...newTaskDependencyStackObj, value: newTaskDependencyStackObj.task.task }
+                                        });
+
 
                                         if (isEqualTaskDependency == false) {
                                             try {
-                                                activityLogController.post({ body: { usersId: d.data.userId, linkType: "task", linkId: parentTaskId, actionType: "modified", old: JSON.stringify({ task_dependencies: oldTaskDependencyArgs }), new: JSON.stringify({ task_dependencies: newTaskDependencyStack }) } }, (c) => {
+                                                activityLogController.post({ body: { usersId: d.data.userId, linkType: "task", linkId: parentTaskId, actionType: "modified", old: JSON.stringify({ task_dependencies: { task: toBeRecordedOld } }), new: JSON.stringify({ task_dependencies: { task: toBeRecordedNew } }) } }, (c) => {
                                                     callback(null, newTaskDependencyArgs);
                                                 });
                                             } catch (err) {
@@ -497,19 +519,52 @@ var init = exports.init = (socket) => {
     })
 
     socket.on("ADD_TASK_DEPENDENCY", (d) => {
-        const taskDependency = global.initModel("task_dependency");
+        const taskDependencyController = global.initController("taskDependency");
+        const activityLogController = global.initController("activityLog");
 
-        async.map(d.data.task_dependencies, (task, mapCallback) => {
-            let insertData = {
+        taskDependencyController.get.index({
+            query: {
                 taskId: d.data.task_id,
-                dependencyType: d.data.type,
-                linkTaskId: task.value
-            };
-            taskDependency.postData("task_dependency", insertData, (c) => {
-                mapCallback(null, { ...insertData, id: c.id })
+                includes: 'task'
+            }
+        }, (response) => {
+            const oldTaskDependency = ((response.data).length > 0) ? response.data : [];
+            taskDependencyController.post.bulk({
+                body: {
+                    data: _.map(d.data.task_dependencies, (task) => {
+                        return {
+                            taskId: d.data.task_id,
+                            dependencyType: d.data.type,
+                            linkTaskId: task.value
+                        }
+                    }),
+                    includes: 'task',
+                    task_id: d.data.task_id
+                }
+            }, (response) => {
+                const oldTaskDependencyArgs = oldTaskDependency;
+                const newTaskDependencyArgs = response.data;
+                const oldTaskDependencyStack = _.map(oldTaskDependencyArgs, (oldTaskDependencyObj, index) => { return _.omit(oldTaskDependencyObj, ['id', 'dateAdded', 'dateUpdated']) });
+                const newTaskDependencyStack = _.map(newTaskDependencyArgs, (newTaskDependencyObj, index) => { return _.omit(newTaskDependencyObj, ['id', 'dateAdded', 'dateUpdated']) });
+                const isEqualTaskDependency = func.isArrayEqual(oldTaskDependencyStack, newTaskDependencyStack);
+                const toBeRecordedOld = _.map(oldTaskDependencyArgs, (oldTaskDependencyArgsObj) => {
+                    return { ...oldTaskDependencyArgsObj, value: oldTaskDependencyArgsObj.task.task }
+                });
+                const toBeRecordedNew = _.map(newTaskDependencyStack, (newTaskDependencyStackObj) => {
+                    return { ...newTaskDependencyStackObj, value: newTaskDependencyStackObj.task.task }
+                });
+                if (isEqualTaskDependency == false) {
+                    try {
+                        activityLogController.post({ body: { usersId: d.data.userId, linkType: "task", linkId: d.data.task_id, actionType: "modified", old: JSON.stringify({ task_dependencies: { task: toBeRecordedOld } }), new: JSON.stringify({ task_dependencies: { task: toBeRecordedNew } }) } }, (c) => {
+                            socket.emit("FRONT_ADD_TASK_DEPENDENCY", response.data)
+                        });
+                    } catch (err) {
+                        socket.emit("FRONT_ADD_TASK_DEPENDENCY", response.data)
+                    }
+                } else {
+                    socket.emit("FRONT_ADD_TASK_DEPENDENCY", response.data)
+                }
             });
-        }, (err, results) => {
-            socket.emit("FRONT_ADD_TASK_DEPENDENCY", results)
         });
     })
 

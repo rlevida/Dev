@@ -18,7 +18,7 @@ exports.get = {
         };
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            ...(typeof queryString.includes != "undefined" && queryString.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex(queryString.includes, (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
+            ...(typeof queryString.includes != "undefined" && queryString.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex((queryString.includes).split(','), (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
         };
         try {
             TaskDependency.findAll(
@@ -39,11 +39,15 @@ exports.post = {
         const association = [
             {
                 model: Tasks,
+                as: 'parent_task'
+            },
+            {
+                model: Tasks,
                 as: 'task'
             }
         ];
         const options = {
-            ...(typeof req.body.includes != "undefined" && req.body.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex(req.body.includes, (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
+            ...(typeof req.body.includes != "undefined" && req.body.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex((req.body.includes).split(','), (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
         };
         try {
             TaskDependency.bulkCreate(req.body.data).then(() => {
@@ -53,6 +57,27 @@ exports.post = {
                     cb({ status: true, data: resultArray });
                 });
             })
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
+    }
+}
+
+exports.delete = {
+    index: (req, cb) => {
+        const queryString = req.query;
+        const whereObj = {
+            ...(typeof queryString.taskId != "undefined" && queryString.taskId != "") ? { taskId: queryString.taskId } : {}
+        };
+        const options = {
+            raw: true
+        };
+        try {
+            TaskDependency.destroy(
+                { ...options, where: whereObj }
+            ).then((response) => {
+                cb({ status: true, data: response });
+            });
         } catch (err) {
             cb({ status: false, error: err })
         }

@@ -15,6 +15,9 @@ exports.get = {
                 attributes: ['firstName', 'lastName']
             }
         ]
+        _.filter(association, (associationObj) => { 
+            return _.findIndex((queryString.includes).split(','), (includesObj) => { return includesObj == associationObj.as }) >= 0 
+        })
         const whereObj = {
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {},
             ...(typeof queryString.linkId != "undefined" && queryString.linkId != "") ? { linkId: queryString.linkId } : {},
@@ -23,7 +26,7 @@ exports.get = {
         }
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            ...(typeof queryString.includes != "undefined" && queryString.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex(queryString.includes, (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
+            ...(typeof queryString.includes != "undefined" && queryString.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex((queryString.includes).split(','), (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
         }
 
         try {
@@ -50,13 +53,13 @@ exports.post = {
             }
         ]
         const options = {
-            ...(typeof req.body.includes != "undefined" && req.body.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex(req.body.includes, (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
+            ...(typeof req.body.includes != "undefined" && req.body.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex((req.body.includes).split(','), (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
         }
 
         try {
             Members.create(req.body.data).then((response) => {
                 Members.findOne({ ...options, where: { id: response.dataValues.id } }).then((response) => {
-                    cb({ status: true, data: response });
+                    cb({ status: true, data: response.toJSON() });
                 });
             });
         } catch (err) {

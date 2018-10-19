@@ -54,7 +54,7 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_ADD_TASK_DEPENDENCY", (data) => {
-            dispatch({ type: "UPDATE_TASK_STATUS", data });
+            dispatch({ type: "UPDATE_TASK_DEPENDENCIES", data });
             showToast("success", "Task dependency added.")
         })
     }

@@ -1,14 +1,12 @@
 import React from "react"
-import Tooltip from "react-tooltip";
 import { showToast } from '../../globalFunction'
-import { HeaderButtonContainer, DropDown } from "../../globalComponents";
-import MembersForm from "../global/members/membersForm";
+import { DropDown } from "../../globalComponents";
 import { connect } from "react-redux";
 import _ from "lodash";
+
 import Document from "./document"
 import Task from "./task"
 import Member from "./member"
-import TaskComponent from "../taskComponent"
 
 @connect((store) => {
     return {
@@ -128,24 +126,9 @@ export default class FormComponent extends React.Component {
         }
 
         return <div>
-            <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" style={{ marginRight: "2px" }}
-                    onClick={this.resetData} >
-                    <span>Back</span>
-                </li>
-                {
-                    (typeof workstream.SelectedLink == "undefined" || workstream.SelectedLink == "") &&
-                    <li class="btn btn-info" onClick={() => this.handleSubmit()} >
-                        <span>Save</span>
-                    </li>
-                }
-            </HeaderButtonContainer>
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">
                     <div class="panel panel-default">
-                        <div class="panel-heading">
-                            {/* <h3 class="panel-title">Workstream {(workstream.Selected.id) ? " > Edit > ID: " + workstream.Selected.id : " > Add"}</h3> */}
-                        </div>
                         <div class="panel-body">
                             {(workstream.SelectedLink == "") &&
                                 <form class="form-horizontal form-container">
@@ -211,9 +194,6 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </form>
                             }
-                            {/* {(workstream.SelectedLink == "task") &&
-                                <Task />
-                            } */}
                             {(workstream.SelectedLink) == "task" &&
                                 <Task/>
                             }
@@ -223,7 +203,6 @@ export default class FormComponent extends React.Component {
                             {(workstream.SelectedLink == "member") &&
                                 <Member />
                             }
-
                         </div>
                     </div>
                 </div>
