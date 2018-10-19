@@ -158,7 +158,7 @@ export default class FormComponent extends React.Component {
                 userId: loggedUser.data.id,
                 projectId: project,
                 period: (typeof task.Selected.period != "undefined" && task.Selected.period != "" && task.Selected.period != null) ? _.toNumber(task.Selected.period) : 0,
-                periodInstance: (typeof task.Selected.periodInstance != "undefined" && task.Selected.periodInstance != "" && task.Selected.periodInstance != null) ? _.toNumber(task.Selected.periodInstance) : 0,
+                periodInstance: (typeof task.Selected.periodic != "undefined" && task.Selected.periodic == 1) ? 3 : 0,
                 startDate: (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "" && task.Selected.startDate != null) ? moment(task.Selected.startDate).format('YYYY-MM-DD 00:00:00') : null,
                 dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') : null
             };
@@ -368,27 +368,6 @@ export default class FormComponent extends React.Component {
                                                     options={_.map(['Year', 'Month', 'Week', 'Day'], (o) => { return { id: (o + 's').toLowerCase(), name: o } })}
                                                     selected={(typeof task.Selected.periodType == "undefined") ? "" : task.Selected.periodType}
                                                     onChange={(e) => this.setDropDown("periodType", e.value)}
-                                                    disabled={!allowEdit}
-                                                />
-                                                <div class="help-block with-errors"></div>
-                                            </div>
-                                        </div>
-                                    }
-                                    {
-                                        (task.Selected.periodic == 1 &&
-                                            (typeof task.Selected.id == "undefined" || task.Selected.id == "")) && <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Period Instance</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <input
-                                                    type="number"
-                                                    name="periodInstance"
-                                                    required={task.Selected.periodInstance == 1}
-                                                    value={(typeof task.Selected.periodInstance == "undefined" || task.Selected.periodInstance == "") ? 1 : task.Selected.periodInstance}
-                                                    class="form-control" placeholder="Period Instance" onChange={(e) => {
-                                                        if (((e.target.value).length <= 4 && _.isNumber(_.toNumber(e.target.value)) && e.target.value >= 1) || e.target.value == "") {
-                                                            this.handleChange(e);
-                                                        }
-                                                    }}
                                                     disabled={!allowEdit}
                                                 />
                                                 <div class="help-block with-errors"></div>
