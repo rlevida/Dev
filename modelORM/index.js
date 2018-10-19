@@ -1,14 +1,11 @@
 
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(
-    // process.env.CLOUD_CFO_DB,
-    // process.env.CLOUD_CFO_DB_USER,
-    // process.env.CLOUD_CFO_DB_PASSWORD,
-    'cloud_cfo',
-    'root',
-    '',
+    process.env.CLOUD_CFO_DB,
+    process.env.CLOUD_CFO_DB_USER,
+    process.env.CLOUD_CFO_DB_PASSWORD,
     {
-        host: 'localhost',
+        host: process.env.CLOUD_CFO_DB_HOST,
         dialect: 'mysql',
         operatorsAliases: false,
         pool: {
@@ -20,7 +17,7 @@ const sequelize = new Sequelize(
         logging: false
     }
 );
-const ActivityLog = require('./activity_log')(sequelize, Sequelize.DataTypes);
+const ActivityLog = require('./activity_logs')(sequelize, Sequelize.DataTypes);
 const Members = require('./members')(sequelize, Sequelize.DataTypes);
 const Users = require('./users')(sequelize, Sequelize.DataTypes);
 const Tasks = require('./task')(sequelize, Sequelize.DataTypes);

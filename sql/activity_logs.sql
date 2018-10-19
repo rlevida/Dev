@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS `activity_logs`;
-CREATE TABLE `activity_log` (
+CREATE TABLE `activity_logs` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `usersId` BIGINT,
     `linkType` ENUM("project","workstream","task"),
