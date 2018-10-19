@@ -1,7 +1,6 @@
 /* jshint indent: 2 */
-
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('users', {
+module.exports = (sequelize, DataTypes) => {
+  const Users = sequelize.define('users', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -37,7 +36,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     userType: {
-      type: DataTypes.ENUM('Internal','External'),
+      type: DataTypes.ENUM('Internal', 'External'),
       allowNull: true
     },
     avatar: {
@@ -71,7 +70,18 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING(50),
       allowNull: true
     }
-  }, {
-    tableName: 'users'
-  });
+  },
+    {
+      timestamps: false
+    }
+  );
+
+  Users.associate = (models) => {
+    Users.hasMany(models.Members, {
+      as: 'members',
+      foreignKey: 'userTypeLinkId'
+    });
+  };
+
+  return Users;
 };

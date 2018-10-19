@@ -131,7 +131,7 @@ export default class FormComponent extends React.Component {
         const mandatory = checklist.List.map((e, index) => {
             return e.completed == 0;
         });
-        
+
         if (mandatory.length == 0) {
             let status = "Completed"
             if (task.Selected.task_id && task.Selected.task_status != "Completed") {
@@ -788,6 +788,7 @@ export default class FormComponent extends React.Component {
                         <TaskComment />
                     </TabPanel>
                     <TabPanel>
+                        <TaskActivities />
                     </TabPanel>
                 </Tabs>
                 <UploadModal />

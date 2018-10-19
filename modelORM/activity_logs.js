@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = (sequelize, DataTypes) => {
-  var activityLog = sequelize.define('activity_logs', {
+  const ActivityLog = sequelize.define('activity_logs', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -34,16 +34,26 @@ module.exports = (sequelize, DataTypes) => {
     },
     dateAdded: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: false,
+      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     },
     dateUpdated: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
-  }, {
+  },
+    {
       timestamps: false
-    });
+    }
+  );
 
-  return activityLog;
+  ActivityLog.associate = function (models) {
+    ActivityLog.belongsTo(models.Users, {
+      as: 'user',
+      foreignKey: 'usersId'
+    });
+  }
+
+  return ActivityLog;
 };

@@ -66,7 +66,7 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'linkId',
     });
 
-    Tags.belongsTo(models.Task, {
+    Tags.belongsTo(models.Tasks, {
       as: 'task',
       foreignKey: 'linkId',
     })

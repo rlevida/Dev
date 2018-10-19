@@ -17,22 +17,30 @@ const sequelize = new Sequelize(
     }
 );
 
-const ActivityLog = require('./activity_log')(sequelize , Sequelize.DataTypes);
+const ActivityLogs = require('./activity_logs')(sequelize , Sequelize.DataTypes);
 const Document = require('./document')(sequelize , Sequelize.DataTypes);
 const DocumentLink = require('./document_link')(sequelize , Sequelize.DataTypes);
-const Tag = require('./tag')(sequelize , Sequelize.DataTypes);
 const Folder = require('./folder')(sequelize , Sequelize.DataTypes);
+const Members = require('./members')(sequelize, Sequelize.DataTypes);
+const Tag = require('./tag')(sequelize , Sequelize.DataTypes);
+const Tasks = require('./task')(sequelize, Sequelize.DataTypes);
+const TaskDependency = require('./task_dependency')(sequelize, Sequelize.DataTypes);
+const Users = require('./users')(sequelize, Sequelize.DataTypes);
 const Workstream = require('./workstream')(sequelize , Sequelize.DataTypes);
-const Task = require('./task')(sequelize , Sequelize.DataTypes);
+
 const models = {
-    ActivityLog,
-    Tag,
+    ActivityLogs,
     Document,
     DocumentLink,
-    Workstream,
-    Task,
-    Folder
+    Folder,
+    Members,
+    Tag,
+    Tasks,
+    TaskDependency,
+    Users,
+    Workstream
 };
+
 Object.keys(models).forEach((modelName) => {
     if ('associate' in models[modelName]) {
         models[modelName].associate(models);
@@ -41,4 +49,5 @@ Object.keys(models).forEach((modelName) => {
 
 models.sequelize = sequelize;
 models.Sequelize = Sequelize;
+models.sequelize.sync();
 module.exports = models;

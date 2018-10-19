@@ -25,7 +25,7 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        let { global, task, dispatch, socket } = this.props;
+        let { dispatch } = this.props;
         let listToGet = { params: { filter: { projectId: project, workstreamId: workstreamId } } }
 
         parallel({
@@ -41,12 +41,12 @@ export default class List extends React.Component {
                 })
             },
             document: (parallelCallback) => {
-                getData(`/api/document/`, { params: { filter: { documentFilter: { isDeleted: 0 }, documentLinkFilter: { linkId: project, linkType: "project" } }}},(c) => {
-                    if(c.status == 200){
-                        dispatch({ type:"SET_DOCUMENT_LIST",list : c.data})
-                        parallelCallback(null,"")
-                    }else{
-                        parallelCallback(null,"")
+                getData(`/api/document/`, { params: { filter: { documentFilter: { isDeleted: 0 }, documentLinkFilter: { linkId: project, linkType: "project" } } } }, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_DOCUMENT_LIST", list: c.data })
+                        parallelCallback(null, "")
+                    } else {
+                        parallelCallback(null, "")
                     }
                 });
             },
@@ -82,15 +82,23 @@ export default class List extends React.Component {
                     parallelCallback(null, "")
                 })
             },
-            projectMemberList : (parallelCallback) => {
-                getData(`/api/global/selectList`,{ params: { selectName: "ProjectMemberList" , filter: { linkType: "project" , linkId : project }}},(c) => {
-                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'ProjectMemberList' })
-                    parallelCallback(null,"")
+            projectMemberList: (parallelCallback) => {
+                getData(`/api/global/selectList`, { params: { selectName: "ProjectMemberList", filter: { linkType: "project", linkId: project } } }, (c) => {
+                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'ProjectMemberList' })
+                    parallelCallback(null, "")
+                })
+            },
+            activities: (parallelCallback) => {
+                getData(`/api/activityLog?taskId=${taskId}&page=1&includes=user`, {}, (c) => {
+                    if (c.status == 200) {
+                        const { data } = c;
+                        dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+                    }
+                    parallelCallback(null, "")
                 })
             }
-
         }, (error, result) => {
-            // console.log(`end loading`)
+
         })
     }
 
@@ -125,8 +133,17 @@ export default class List extends React.Component {
                     }
                     parallelCallback(null, "")
                 })
+            },
+            activities: (parallelCallback) => {
+                getData(`/api/activityLog?taskId=${data.id}&page=1&includes=user`, {}, (c) => {
+                    if (c.status == 200) {
+                        const { data } = c;
+                        dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+                    }
+                    parallelCallback(null, "")
+                })
             }
-        } ,(error, result) => {
+        }, (error, result) => {
             window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}?task=${data.id}`);
             dispatch({ type: "SET_TASK_SELECTED", Selected: data })
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })

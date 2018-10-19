@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
-  const Task = sequelize.define('task', {
+module.exports = (sequelize, DataTypes) => {
+  const Tasks = sequelize.define('task', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -33,7 +33,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     status: {
-      type: DataTypes.ENUM('In Progress','For Approval','Completed'),
+      type: DataTypes.ENUM('In Progress', 'For Approval', 'Completed'),
       allowNull: true
     },
     typeId: {
@@ -46,7 +46,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     },
     periodType: {
-      type: DataTypes.ENUM('years','months','weeks','days'),
+      type: DataTypes.ENUM('years', 'months', 'weeks', 'days'),
       allowNull: true
     },
     period: {
@@ -95,15 +95,16 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'task',
-    timestamps: false
-  });
+      tableName: 'task',
+      timestamps: false
+    });
 
-  Task.associate = function (models) {
-    Task.belongsTo(models.Tag, {
+  Tasks.associate = function (models) {
+    Tasks.belongsTo(models.Tag, {
       foreignKey: 'id'
     });
   };
 
-  return Task
+  return Tasks
 };
+

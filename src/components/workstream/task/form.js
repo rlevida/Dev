@@ -9,6 +9,7 @@ import moment from 'moment';
 import _ from 'lodash';
 import { HeaderButtonContainer, DropDown } from "../../../globalComponents";
 import TaskComment from "./comment";
+import TaskActivities from "./taskActivities";
 
 @connect((store) => {
     return {
@@ -39,34 +40,9 @@ export default class FormComponent extends React.Component {
         this.openCheckListUploadModal = this.openCheckListUploadModal.bind(this);
     }
 
-    componentWillReceiveProps(props) {
-        let { socket, task, document } = props;
-        // if (this.props.task.Selected.id != task.Selected.id) {
-        //     socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
-        //     socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
-        //     socket.emit("GET_COMMENT_LIST", { filter: { linkType: "task", linkId: task.Selected.id } })
-        // }
-    }
-
     componentDidMount() {
-        let { socket, task, workstream } = this.props
         $(".form-container").validator();
         setDatePicker(this.handleDate, "dueDate");
-        // if (typeof taskId != "undefined"){
-        //     socket.emit("GET_TASK_DETAIL",{ id : taskId })
-        //     socket.emit("GET_DOCUMENT_LIST", { filter: { isDeleted: 0, linkId: project, linkType: 'project' } })
-        //     socket.emit("GET_MEMBERS_LIST", { filter: { linkId: taskId, linkType: 'task' } });
-        //     socket.emit("GET_COMMENT_LIST", { filter: { linkType: "task", linkId: taskId } })
-        //     socket.emit("GET_CHECK_LIST", { filter: { taskId: taskId } });
-        // }
-
-        // if (typeof task.Selected.id != 'undefined') {
-        //     socket.emit("GET_DOCUMENT_LIST", { filter: { isDeleted: 0, linkId: task.Selected.projectId, linkType: 'project' } })
-        //     socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
-        //     socket.emit("GET_COMMENT_LIST", { filter: { linkType: "task", linkId: task.Selected.id } })
-        //     socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
-        //     socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } })
-        // }
     }
 
     componentDidUpdate() {
@@ -185,11 +161,12 @@ export default class FormComponent extends React.Component {
     }
 
     addDependency() {
-        const { task, socket } = this.props;
+        const { task, socket, loggedUser } = this.props;
         const toBeSubmitted = {
             type: task.Selected.dependencyType,
             task_id: task.Selected.id,
-            task_dependencies: task.Selected.linkTaskIds
+            task_dependencies: task.Selected.linkTaskIds,
+            userId: loggedUser.data.id
         };
         socket.emit("ADD_TASK_DEPENDENCY", { data: toBeSubmitted })
     }
@@ -359,7 +336,9 @@ export default class FormComponent extends React.Component {
         }
 
         let preceedingTask = _(task.Selected.dependencies)
-            .filter((o) => { return o.dependencyType == "Preceding" })
+            .filter((o) => {
+                return o.dependencyType == "Preceded by"
+            })
             .map((o) => {
                 let depencyTask = _.filter(task.List, (c) => { return c.id == o.linkTaskId });
                 return { ...o, task: (depencyTask.length > 0) ? depencyTask[0] : '' }
@@ -372,7 +351,6 @@ export default class FormComponent extends React.Component {
                 return { ...o, task: (depencyTask.length > 0) ? depencyTask[0] : '' }
             })
             .value();
-
         let dependentTaskList = _(task.List)
             .filter((o) => {
                 let alreadyPreceedingTask = _.findIndex(preceedingTask, (succId) => {
@@ -685,69 +663,68 @@ export default class FormComponent extends React.Component {
                                 && task.Selected.description != ""
                                 && task.Selected.description != null) && <p class="mt10 mb10">{task.Selected.description}</p>
                         }
-                        <div>
-                            <h5 class="mt10">Precedes</h5>
-                            <div class="pdl15 pdr15">
-                                <table class="table responsive-table m0">
-                                    <tbody>
-                                        <tr>
-                                            <th>Task</th>
-                                            <th>Description</th>
-                                            <th></th>
-                                        </tr>
-                                        {
-                                            _.map(preceedingTask, (succTask, index) => {
-                                                return (
-                                                    <tr key={index}>
-                                                        <td class="text-left">{succTask.task.task}</td>
-                                                        <td class="description-td text-left">{succTask.task.description}</td>
-                                                        <td></td>
-                                                    </tr>
-                                                )
-                                            })
-                                        }
-                                    </tbody>
-                                </table>
-                                {
-                                    (preceedingTask.length == 0) && <p class="text-center m0">No Record Found!</p>
-                                }
+                        {
+                            (preceedingTask.length > 0) && <div>
+                                <h5 class="mt10">Preceded by</h5>
+                                <div class="pdl15 pdr15">
+                                    <table class="table responsive-table m0">
+                                        <tbody>
+                                            <tr>
+                                                <th>Task</th>
+                                                <th>Description</th>
+                                                <th></th>
+                                            </tr>
+                                            {
+                                                _.map(preceedingTask, (succTask, index) => {
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td class="text-left">{succTask.task.task}</td>
+                                                            <td class="description-td text-left">{succTask.task.description}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </div>
-                        <div class="mb20">
-                            <h5 class="mt10">Depends On</h5>
-                            <div class="pdl15 pdr15">
-                                <table class="table responsive-table m0">
-                                    <tbody>
-                                        <tr>
-                                            <th>Task</th>
-                                            <th>Description</th>
-                                            <th></th>
-                                        </tr>
-                                        {
-                                            _.map(succedingTask, (succTask, index) => {
-                                                return (
-                                                    <tr key={index}>
-                                                        <td class="text-left">{succTask.task.task}</td>
-                                                        <td class="description-td text-left">{succTask.task.description}</td>
-                                                        <td></td>
-                                                    </tr>
-                                                )
-                                            })
-                                        }
-                                    </tbody>
-                                </table>
-                                {
-                                    (succedingTask.length == 0) && <p class="text-center m0">No Record Found!</p>
-                                }
+
+                        }
+                        {
+                            (succedingTask.length > 0) && <div class="mb20">
+                                <h5 class="mt10">Succeeding</h5>
+                                <div class="pdl15 pdr15">
+                                    <table class="table responsive-table m0">
+                                        <tbody>
+                                            <tr>
+                                                <th>Task</th>
+                                                <th>Description</th>
+                                                <th></th>
+                                            </tr>
+                                            {
+                                                _.map(succedingTask, (succTask, index) => {
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td class="text-left">{succTask.task.task}</td>
+                                                            <td class="description-td text-left">{succTask.task.description}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </div>
+                        }
                         {(task.Selected.isActive > 0) &&
-                            <div class="row" style={{ marginLeft: 7 }}>
+                            <div class="row" style={{ marginLeft: 2 }}>
                                 <div class="col-md-4 pdr0">
                                     <label>Dependency Type</label>
                                     <DropDown multiple={false}
                                         required={false}
-                                        options={_.map(['Preceding', 'Succeeding'], (o) => { return { id: o, name: o } })}
+                                        options={_.map(['Preceded by', 'Succeeding'], (o) => { return { id: o, name: o } })}
                                         selected={(typeof task.Selected.dependencyType == "undefined") ? "" : task.Selected.dependencyType}
                                         onChange={(e) => {
                                             this.setDropDown("dependencyType", (e == null) ? "" : e.value);
@@ -765,7 +742,7 @@ export default class FormComponent extends React.Component {
                                                 onClick={this.addDependency}
                                             >
                                                 Add
-                                                    </a>
+                                            </a>
                                         </div>
                                     }
                                 </div>
@@ -793,6 +770,7 @@ export default class FormComponent extends React.Component {
                         <TaskComment />
                     </TabPanel>
                     <TabPanel>
+                        <TaskActivities />
                     </TabPanel>
                 </Tabs>
                 <UploadModal />
