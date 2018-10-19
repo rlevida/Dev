@@ -26,7 +26,10 @@ const Tag = require('./tag')(sequelize, Sequelize.DataTypes);
 const Tasks = require('./task')(sequelize, Sequelize.DataTypes);
 const TaskDependency = require('./task_dependency')(sequelize, Sequelize.DataTypes);
 const Users = require('./users')(sequelize, Sequelize.DataTypes);
-const Workstream = require('./workstream')(sequelize, Sequelize.DataTypes);
+const Workstream = require('./workstream')(sequelize , Sequelize.DataTypes);
+const Project = require('./project')(sequelize, Sequelize.DataTypes);
+const Status = require('./status')(sequelize, Sequelize.DataTypes);
+const Type = require('./type')(sequelize, Sequelize.DataTypes);
 
 const models = {
     ActivityLogs,
@@ -38,7 +41,10 @@ const models = {
     Tasks,
     TaskDependency,
     Users,
-    Workstream
+    Workstream,
+    Project,
+    Status,
+    Type
 };
 
 Object.keys(models).forEach((modelName) => {

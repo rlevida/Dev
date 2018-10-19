@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('project', {
+  var Project = sequelize.define('project', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -65,6 +65,21 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-    tableName: 'project'
+    tableName: 'project',
+    timestamps: false
   });
+
+  Project.associate = function (models) {
+    Project.belongsTo(models.Status, {
+      as: 'status',
+      foreignKey: 'statusId',
+    });
+    
+    Project.belongsTo(models.Type, {
+      as: 'type',
+      foreignKey: 'typeId'
+    })
+  };
+
+  return Project
 };

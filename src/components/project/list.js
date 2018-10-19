@@ -1,8 +1,12 @@
 import React from "react";
 import Tooltip from "react-tooltip";
+import parallel from 'async/parallel';
+
 import { Loading } from "../../globalComponents";
+import { getData } from "../../globalFunction";
 import ProjectFilter from "./projectFilter"
 import ProjectStatus from "./projectStatus"
+import ArchiveModal from "./archiveModal"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -21,21 +25,68 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        let intervalLoggedUser = setInterval(() => {
-            if (typeof this.props.loggedUser.data.id != "undefined") {
-                let filter = {}
-                if (this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2") {
-                    filter = { filter: { id: { name: "id", value: this.props.loggedUser.data.projectIds, condition: " IN " } } }
-                }
-                this.props.socket.emit("GET_PROJECT_LIST", filter);
-                clearInterval(intervalLoggedUser)
+        let { dispatch } = this.props;
+        parallel({
+            projects : (parallelCallback) => { 
+                let intervalLoggedUser = setInterval(() => {
+                    if (typeof this.props.loggedUser.data.id != "undefined") {
+                        let filter = {}
+                        if (this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2") {
+                            filter = { id: { name: "id", value: this.props.loggedUser.data.projectIds, condition: " IN " } } 
+                        }
+                        let dataToGet = { params : { filter : filter }}
+                        this.props.socket.emit("GET_PROJECT_LIST", filter);
+                        getData(`/api/project`,dataToGet, (c) => {
+                            console.log(c)
+                        })
+                        clearInterval(intervalLoggedUser)
+                    }
+                }, 1000)
+            },
+            status: (parallelCallback) => {
+                getData(`/api/status`,{}, (c) => {
+                    if(c.status == 200) {
+                        dispatch({type:"SET_STATUS_LIST",list : c.data})
+                        parallelCallback(null,c.data)
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                })
+            },
+            types: (parallelCallback) => {
+                getData(`/api/type`,{}, (c) => {
+                    if(c.status == 200) {
+                        dispatch({type:"SET_TYPE_LIST",list : c.data})
+                        parallelCallback(null,c.data)
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                })
+            },
+            user: (parallelCallback) => {
+                getData(`/api/user`,{}, (c) => {
+                    if(c.status == 200) {
+                        dispatch({type:"SET_USER_LIST",list : c.data})
+                        parallelCallback(null,c.data)
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                })
+            },
+            teams: (parallelCallback) => {
+                getData(`/api/teams`,{}, (c) => {
+                    if(c.status == 200) {
+                        dispatch({type:"SET_TEAM_LIST",list : c.data})
+                        parallelCallback(null,c.data)
+                    }else{
+                        parallelCallback(null,"")
+                    }
+                })
             }
-        }, 1000)
 
-        this.props.socket.emit("GET_STATUS_LIST", {});
-        this.props.socket.emit("GET_TYPE_LIST", {});
-        this.props.socket.emit("GET_USER_LIST", {});
-        this.props.socket.emit("GET_TEAM_LIST", {});
+        } ,(error, result) => {
+
+        })
     }
 
     updateActiveStatus(id, active) {
@@ -51,17 +102,11 @@ export default class List extends React.Component {
         }
     }
 
-    archive(id){
-        let { socket } = this.props;
-        if (confirm("Do you really want to Archive this project?")) {
-            socket.emit("ARCHIVE_PROJECT", { data : { id: id , isDeleted : 1 } })
-        }
+    archive(data){
+        let { dispatch } = this.props;
+        dispatch({type: "SET_PROJECT_SELECTED", Selected: data })
+        $(`#archiveModal`).modal("show");
     }
-
-    // activateProject(id){
-    //     let { socket } = this.props;
-    //         socket.emit("SAVE_OR_UPDATE_ACTIVE_PROJECT", { data : { id: id , isActive : 1 } })
-    // }
 
     render() {
         let { project, socket, loggedUser , dispatch } = this.props;
@@ -90,7 +135,7 @@ export default class List extends React.Component {
                             }
                         </tr>
                         {
-                            project.List.map((data, index) => {
+                            project.List.filter((data) => { return !data.isDeleted }).map((data, index) => {
                                 if ((data.typeId == 2 || data.typeId == 3) && (loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3 && loggedUser.data.userRole != 4 && loggedUser.data.userRole != 5 && loggedUser.data.userRole != 6)) {
                                     // if user is client the he can only see client project
                                 } else {
@@ -117,25 +162,9 @@ export default class List extends React.Component {
                                                     class="btn btn-info btn-sm">
                                                     <span class="glyphicon glyphicon-pencil"></span></a>
                                                     <a href="javascript:void(0);" data-tip="ARCHIVE"
-                                                    onClick={e => this.archive(data.id)}
+                                                        onClick={(e) => this.archive(data)}
                                                     class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
                                                     <span class="fa fa-archive"></span></a>
-                                                    {/* { data.isActive 
-                                                        ?   <a href="javascript:void(0);" data-tip="DEACTIVE"
-                                                            onClick={e => this. deactiveProject(data.id)}
-                                                            class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                            <span class="fa fa-power-off"></span></a>
-                                                        :   <a href="javascript:void(0);" data-tip="ACTIVATE"
-                                                            onClick={e => this. activateProject(data.id)}
-                                                            class={data.allowedDelete == 0 ? 'hide' : 'btn btn-success btn-sm ml10'}>
-                                                            <span class="fa fa-power-off"></span></a>
-                                                    } */}
-
-                                                {/* <a href="javascript:void(0);" data-tip="DELETE"
-                                                    onClick={e => this.deleteData(data.id)}
-                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                    <span class="glyphicon glyphicon-trash"></span></a> */}
-                                                {/*<OnOffSwitch Active={data.isActive} Action={()=>this.updateActiveStatus(data.id,data.isActive)} />*/}
                                                 <Tooltip />
                                             </td>
                                         }
@@ -151,6 +180,7 @@ export default class List extends React.Component {
                 {
                     (project.List.length == 0 && project.Loading == false) && <p class="text-center">No Record Found!</p>
                 }
+                <ArchiveModal/>
             </div>
         )
     }

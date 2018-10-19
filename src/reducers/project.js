@@ -25,13 +25,13 @@ export default function reducer(state = {
             return { ...state, SelectedId: action.SelectedId }
         }
         case "UPDATE_DATA_PROJECT_LIST": {
-            let tempList = action.List.map((e, i) => {
+            let newList = state.List.map((e, i) => {
                 if (e.id == action.UpdatedData.id) {
                     return action.UpdatedData
                 }
                 return e
             })
-            return { ...state, List: tempList }
+            return { ...state, List: newList }
         }
         case "ARCHIVE_PROJECT":{
             const { List } = { ...state };
