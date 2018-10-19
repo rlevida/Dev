@@ -1,4 +1,5 @@
 const sequence = require("sequence").Sequence;
+const moment = require('moment');
 const dbName = "project";
 var {
     defaultGet,
@@ -8,54 +9,61 @@ var {
     defaultDelete
 } = require("./")
 
+const Sequelize = require("sequelize")
 
 const models = require('../modelORM');
+
 const {
     Project,
     Status,
-    Type
+    Type,
+    Members,
+    Workstream,
+    Tasks
 } = models;
 
 exports.get = {
     index: (req, cb) => {
         let d = req.query;
         let filter = (typeof d.filter != "undefined") ? JSON.parse(d.filter) : {};
-
         Project.
             findAll({
-                raw:true,
                 include: [
-                    {
-                        model: Status,
-                        as: 'status'
-                    },
                     {
                         model: Type,
                         as: 'type'
-                    }
-                ]
+                    },
+                    {
+                        model: Members,
+                        as: 'projectManager',
+                        where: { memberType: 'project manager'}
+                    },
+                    {
+                        model: Workstream,
+                        as: 'projectWorkstream',
+
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskActiveCount',
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskIssueCount',
+                        where: { dueDate : { [Sequelize.Op.lt] : moment().format("YYYY-MM-DD HH:mm:ss")}},
+                        required: false,
+                    },
+                   
+                ],
+                attributes: ['id',[Sequelize.fn('COUNT',Sequelize.col("taskIssueCount.id")), 'count']]
             })
             .then(res => {
                 cb({ status: true , data: res })
             })
             .catch(err => {
                 console.log(err)
-                cb({ status: false, data: res })
+                cb({ status: false, error: err })
             })
-
-        // defaultGet(dbName, req, (res) => {
-        //     if (res.status) {
-        //         cb({
-        //             status: true,
-        //             data: res.data
-        //         })
-        //     } else {
-        //         cb({
-        //             status: false,
-        //             error: res.error
-        //         })
-        //     }
-        // })
     },
     getById: (req, cb) => {
         defaultGetById(dbName, req, (res) => {

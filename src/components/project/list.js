@@ -35,9 +35,10 @@ export default class List extends React.Component {
                             filter = { id: { name: "id", value: this.props.loggedUser.data.projectIds, condition: " IN " } } 
                         }
                         let dataToGet = { params : { filter : filter }}
-                        this.props.socket.emit("GET_PROJECT_LIST", filter);
+                        // this.props.socket.emit("GET_PROJECT_LIST", filter);
                         getData(`/api/project`,dataToGet, (c) => {
-                            console.log(c)
+                            dispatch({ type:"SET_PROJECT_LIST" , list : c.data })
+                            parallelCallback(null,c.data)
                         })
                         clearInterval(intervalLoggedUser)
                     }

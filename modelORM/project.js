@@ -79,7 +79,25 @@ module.exports = function(sequelize, DataTypes) {
       as: 'type',
       foreignKey: 'typeId'
     })
-  };
 
+    Project.hasMany(models.Members, {
+      as: 'projectManager',
+      foreignKey: 'linkId'
+    })
+
+    Project.hasMany(models.Workstream, {
+      as: 'projectWorkstream',
+      foreignKey: 'projectId'
+    })
+    
+    Project.hasMany(models.Tasks, {
+      as: 'taskActiveCount',
+      foreignKey: 'projectId'
+    })
+    Project.hasMany(models.Tasks, {
+      as: 'taskIssueCount',
+      foreignKey: 'projectId'
+    })
+  };
   return Project
 };
