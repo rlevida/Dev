@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = (sequelize, DataTypes) => {
-  const ActivityLog = sequelize.define('activity_logs', {
+  const ActivityLogs = sequelize.define('activity_logs', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -48,12 +48,12 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  ActivityLog.associate = function (models) {
-    ActivityLog.belongsTo(models.Users, {
+  ActivityLogs.associate = function (models) {
+    ActivityLogs.belongsTo(models.Users, {
       as: 'user',
       foreignKey: 'usersId'
     });
   }
 
-  return ActivityLog;
+  return ActivityLogs;
 };

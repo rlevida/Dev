@@ -12,7 +12,7 @@ const {
     Tag,
     DocumentLink,
     Workstream,
-    Task
+    Tasks
 } = models;
 
 var {
@@ -54,33 +54,35 @@ exports.get = {
                         ...documentFilter,
                     },
                     include: [{
-                            model: Tag,
-                            where: {
-                                linkType: 'workstream'
-                            },
-                            as: 'tagWorkstream',
-                            required: false,
-                            include: [{
-                                model: Workstream,
-                                as: 'workstream',
-                                attributes: ['id','workstream']
-                            }],
-                            attributes: ['id']
+                        model: Tag,
+                        where: {
+                            linkType: 'workstream'
                         },
-                        {
-                            model: Tag,
-                            where: {
-                                linkType: 'task'
-                            },
+                        as: 'tagDocumentWorkstream',
+                        required: false,
+                        include: [
+                            {
+                                model: Workstream,
+                                as: 'tagWorkstream',
+                                attributes: ['id', 'workstream']
+                            }
+                        ],
+                        attributes: ['id']
+                    },
+                    {
+                        model: Tag,
+                        where: {
+                            linkType: 'task'
+                        },
+                        as: 'tagDocumentTask',
+                        required: false,
+                        include: [{
+                            model: Tasks,
                             as: 'tagTask',
-                            required: false,
-                            include: [{
-                                model: Task,
-                                as: 'task',
-                                attributes: ['id','task']
-                            }],
-                            attributes: ['id']
-                        }
+                            attributes: ['id', 'task']
+                        }],
+                        attributes: ['id']
+                    }
                     ],
                 })
                 .map(res => {
@@ -92,7 +94,6 @@ exports.get = {
                         data: res
                     })
                 }).catch(err => {
-                    console.log(err)
                     cb({
                         status: false,
                         error: err
@@ -182,8 +183,8 @@ exports.post = {
                                                     projectId: projectId
                                                 }
                                                 Tag.create(tagData)
-                                                    .then(c => {})
-                                                    .catch(err => {})
+                                                    .then(c => { })
+                                                    .catch(err => { })
                                             })
                                             parallelCallback(null, "")
                                         } else {
@@ -286,6 +287,10 @@ exports.post = {
         //         data: filenameList
         //     })
         // });
+        // once all the files have been uploaded, send a response to the client
+        form.on('end', function () {
+            cb({ status: true, data: filenameList })
+        });
         // parse the incoming request containing the form data
         form.parse(req);
     },
@@ -330,7 +335,7 @@ exports.post = {
                         })
 
                         pdfdata.then((newpdf) => {
-                            fs.unlink(`${__dirname}/../public/temp/${data}`, (t) => {});
+                            fs.unlink(`${__dirname}/../public/temp/${data}`, (t) => { });
                             cb({
                                 status: true,
                                 data: `${data}.pdf`
@@ -346,7 +351,7 @@ exports.post = {
     },
     removeTempFile: (req, cb) => {
         let fs = global.initRequire('fs')
-        fs.unlink(`${__dirname}/../public/temp/${req.body.data}`, (t) => {});
+        fs.unlink(`${__dirname}/../public/temp/${req.body.data}`, (t) => { });
     }
 }
 
@@ -394,8 +399,8 @@ exports.put = {
                 })
         }).then((nextThen, result) => {
             Document.update({
-                    ...result,
-                }, {
+                ...result,
+            }, {
                     where: {
                         id: id
                     }
@@ -415,7 +420,8 @@ exports.put = {
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
         sequence.create().then((nextThen) => {
             Tag.destroy({
-                where: { ...filter
+                where: {
+                    ...filter
                 }
             }).then(res => {
                 if (JSON.parse(d.data.tags).length > 0) {

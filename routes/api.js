@@ -132,7 +132,7 @@ router.get('/downloadFolder',(req,res,next)=>{
         })
     })
 router.get('/:controller',(req,res,next)=>{
-    if(!req.params.controller){
+     if(!req.params.controller){
         res.status(400).send("Page Not found.")
         return;
     }

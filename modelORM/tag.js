@@ -50,9 +50,9 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    timestamps: false,
-    tableName: 'tag'
-  });
+      timestamps: false,
+      tableName: 'tag'
+    });
 
   Tags.associate = function (models) {
 
@@ -62,12 +62,12 @@ module.exports = (sequelize, DataTypes) => {
     // });
 
     Tags.belongsTo(models.Workstream, {
-      as: 'workstream',
+      as: 'tagWorkstream',
       foreignKey: 'linkId',
     });
 
     Tags.belongsTo(models.Tasks, {
-      as: 'task',
+      as: 'tagTask',
       foreignKey: 'linkId',
     })
   };

@@ -17,16 +17,16 @@ const sequelize = new Sequelize(
     }
 );
 
-const ActivityLogs = require('./activity_logs')(sequelize , Sequelize.DataTypes);
-const Document = require('./document')(sequelize , Sequelize.DataTypes);
-const DocumentLink = require('./document_link')(sequelize , Sequelize.DataTypes);
-const Folder = require('./folder')(sequelize , Sequelize.DataTypes);
+const ActivityLogs = require('./activity_logs')(sequelize, Sequelize.DataTypes);
+const Document = require('./document')(sequelize, Sequelize.DataTypes);
+const DocumentLink = require('./document_link')(sequelize, Sequelize.DataTypes);
+const Folder = require('./folder')(sequelize, Sequelize.DataTypes);
 const Members = require('./members')(sequelize, Sequelize.DataTypes);
-const Tag = require('./tag')(sequelize , Sequelize.DataTypes);
+const Tag = require('./tag')(sequelize, Sequelize.DataTypes);
 const Tasks = require('./task')(sequelize, Sequelize.DataTypes);
 const TaskDependency = require('./task_dependency')(sequelize, Sequelize.DataTypes);
 const Users = require('./users')(sequelize, Sequelize.DataTypes);
-const Workstream = require('./workstream')(sequelize , Sequelize.DataTypes);
+const Workstream = require('./workstream')(sequelize, Sequelize.DataTypes);
 
 const models = {
     ActivityLogs,

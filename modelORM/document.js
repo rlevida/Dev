@@ -68,11 +68,11 @@ module.exports = (sequelize, DataTypes) => {
 
   Document.associate = function (models) {
     Document.hasMany(models.Tag, {
-      as: 'tagWorkstream',
+      as: 'tagDocumentWorkstream',
       foreignKey: 'tagTypeId',
     });
     Document.hasMany(models.Tag, {
-      as: 'tagTask',
+      as: 'tagDocumentTask',
       foreignKey: 'tagTypeId',
     });
   };
