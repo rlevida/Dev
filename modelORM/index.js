@@ -24,6 +24,7 @@ const Folder = require('./folder')(sequelize, Sequelize.DataTypes);
 const Members = require('./members')(sequelize, Sequelize.DataTypes);
 const Tag = require('./tag')(sequelize, Sequelize.DataTypes);
 const Tasks = require('./task')(sequelize, Sequelize.DataTypes);
+const TaskChecklist = require('./task_checklist')(sequelize, Sequelize.DataTypes);
 const TaskDependency = require('./task_dependency')(sequelize, Sequelize.DataTypes);
 const Users = require('./users')(sequelize, Sequelize.DataTypes);
 const Workstream = require('./workstream')(sequelize, Sequelize.DataTypes);
@@ -36,6 +37,7 @@ const models = {
     Members,
     Tag,
     Tasks,
+    TaskChecklist,
     TaskDependency,
     Users,
     Workstream

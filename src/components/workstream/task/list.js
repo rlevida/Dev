@@ -59,7 +59,7 @@ export default class List extends React.Component {
                 })
             },
             taskCheckList: (parallelCallback) => {
-                getData(`/api/checklist/getCheckList`, { params: { filter: { taskId: taskId } } }, (c) => {
+                getData(`/api/checklist/getCheckList?taskId=${taskId}&includes=user`, {}, (c) => {
                     if (c.status == 200) {
                         dispatch({ type: "SET_CHECKLIST", list: c.data })
                     }
@@ -119,9 +119,10 @@ export default class List extends React.Component {
         let { dispatch, socket } = this.props;
         parallel({
             taskCheckList: (parallelCallback) => {
-                getData(`/api/checklist/getCheckList`, { params: { filter: { taskId: data.id } } }, (c) => {
+                getData(`/api/checklist/getCheckList?taskId=${data.id}&includes=user`, {}, (c) => {
                     if (c.status == 200) {
                         dispatch({ type: "SET_CHECKLIST", list: c.data })
+                        dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
                     }
                     parallelCallback(null, "")
                 })
@@ -147,11 +148,10 @@ export default class List extends React.Component {
             window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}?task=${data.id}`);
             dispatch({ type: "SET_TASK_SELECTED", Selected: data })
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
-            // console.log(`end loading`)
         })
 
-        // dispatch({ type: "SET_TASK_COMPONENT_CURRENT_PAGE" , Page: "Workstream Task"})
-        // socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
+        dispatch({ type: "SET_TASK_COMPONENT_CURRENT_PAGE", Page: "Workstream Task" })
+        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamMemberList", filter: { id: data.workstreamId } })
     }
 
     renderStatus(data) {

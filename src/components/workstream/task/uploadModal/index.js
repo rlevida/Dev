@@ -32,14 +32,14 @@ export default class UploadModal extends React.Component {
     }
 
     uploadFile() {
-        let { loggedUser, task, dispatch, checklist , socket } = this.props,
+        let { loggedUser, task, dispatch, checklist, socket } = this.props,
             { files } = this.state
         let data = new FormData(), self = this;
         let documentIds = []
-        if( typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents != null){
-            documentIds = checklist.Selected.documents.map( e => { return e.id })
+        if (typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents != null) {
+            documentIds = checklist.Selected.documents.map(e => { return e.id })
         }
-     
+
         let tempData = [];
 
         this.setState({ loading: true })
@@ -67,7 +67,7 @@ export default class UploadModal extends React.Component {
             })
 
             if (task.ModalType == "checklist") {
-                socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: {...checklist.Selected, completed : 1 } , documents: tempData, project: project , documentIds : documentIds , })
+                socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { ...checklist.Selected, completed: 1 }, documents: tempData, project: project, documentIds: documentIds, })
                 this.setState({ tempData: [], loading: false, upload: false })
                 $(`#uploadFileModal`).modal("hide");
             } else {
@@ -89,13 +89,7 @@ export default class UploadModal extends React.Component {
     }
 
     closeModal() {
-        let { task, dispatch, checklist } = this.props;
-        if (task.ModalType == "checklist") {
-            dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...checklist.Selected, isDocument: 0 } })
-            $(`#uploadFileModal`).modal("hide");
-        } else {
-            $(`#uploadFileModal`).modal("hide");
-        }
+        $(`#uploadFileModal`).modal("hide");
     }
 
     render() {

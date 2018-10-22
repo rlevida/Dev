@@ -1,13 +1,14 @@
 const _ = require("lodash");
-const { defaultPost, defaultPut, defaultDelete } = require("./");
+const { defaultPut } = require("./");
 
 const models = require('../modelORM');
 const { Members, Users } = models;
 
+
 exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
-        const limit = 2;
+        const limit = 5;
         const association = [
             {
                 model: Users,
