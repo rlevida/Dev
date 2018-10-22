@@ -149,8 +149,8 @@ export default class List extends React.Component {
                                         <td class="text-center"><span class={(data.type_type == "Client") ? "fa fa-users" : (data.type_type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></span></td>
                                         <td class="text-center">{(data.newDocCount > 0) ? <span class="fa fa-file"></span> : ""} {data.newDocCount}</td>
                                         <td class="text-center"><span><i class="fa fa-file-alt"></i></span></td>
-                                        <td class="text-center">{(!data.Active) ? "" : data.Active}</td>
-                                        <td class="text-center">{(!data.Issues) ? "" : data.Issues}</td>
+                                        <td class="text-center">{(!data.taskActiveCount.length) ? "" : data.taskActiveCount.length}</td>
+                                        <td class="text-center">{(!data.taskIssueCount.length) ? "" : data.taskIssueCount.length}</td>
                                         {(loggedUser.data.userRole == 1
                                             || loggedUser.data.userRole == 2
                                             || loggedUser.data.userRole == 3) &&

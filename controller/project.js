@@ -31,37 +31,42 @@ exports.get = {
                 include: [
                     {
                         model: Type,
-                        as: 'type'
+                        as: 'type',
+                        required: false
                     },
                     {
                         model: Members,
                         as: 'projectManager',
-                        where: { memberType: 'project manager'}
+                        where: { memberType: 'project manager'},
+                        required: false
                     },
                     {
                         model: Workstream,
                         as: 'projectWorkstream',
-
+                        required: false
                     },
                     {
                         model: Tasks,
                         as: 'taskActiveCount',
+                        attributes: ['id'],
+                        required: false
                     },
                     {
                         model: Tasks,
                         as: 'taskIssueCount',
                         where: { dueDate : { [Sequelize.Op.lt] : moment().format("YYYY-MM-DD HH:mm:ss")}},
                         required: false,
+                        attributes: ['id']
                     },
-                   
                 ],
-                attributes: ['id',[Sequelize.fn('COUNT',Sequelize.col("taskIssueCount.id")), 'count']]
+                attributes: [
+                    'id','isActive','tinNo','project','isDeleted','createdBy','typeId','companyAddress','projectNameCount',
+                ]
             })
             .then(res => {
                 cb({ status: true , data: res })
             })
             .catch(err => {
-                console.log(err)
                 cb({ status: false, error: err })
             })
     },
