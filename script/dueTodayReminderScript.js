@@ -1,6 +1,11 @@
 var schedule = require('node-schedule'),
     sequence = require("sequence").Sequence,
-    async = require("async");
+    async = require("async"),
+    moment = require("moment")
+    _ = require("lodash");
+
+const Sequelize = require("sequelize")
+const Op = Sequelize.Op;
     
 /**
  * 
@@ -10,132 +15,234 @@ var schedule = require('node-schedule'),
  * 
  **/
 var j = schedule.scheduleJob('0 0 * * *', () => {
-    let task = global.initModel("task")
-    let reminder = global.initModel("reminder")
-    let members = global.initModel("members")
-    let dateToday = new Date();
+    // let task = global.initModel("task")
+    // let reminder = global.initModel("reminder")
+    // let members = global.initModel("members")
+    // let dateToday = new Date();
+    const models = require('../modelORM');
+    const {
+        Tasks,
+        Members,
+        Users,
+        Reminder,
+        Workstream
+    } = models;
     
     sequence.create().then((nextThen) => {
-        task.getTaskDueToday((result)=>{
-            if ( result.data.length > 0 ) {
-                async.parallel({
-                    remindTaskAsssigned : (parallelCallback) => {    
-                        async.map( result.data , (e, mapCallback) => {
-                            reminder.postData("reminder",{
-                                usersId:e.usersId,
-                                projectId:e.projectId,
-                                linkType:"task",
-                                linkId:e.id,
-                                type:"Task Due Today",
-                                reminderDetail: "Task Due Today"
-                            },()=>{ mapCallback(null) })
-                        }, (err, ret) => {
-                            parallelCallback(null, ret);
-                        });
-                    },sendToEmail : (parallelCallback) => {
-                        async.map(result.data, (e, mapCallback) => {
-                            if(e.receiveNotification > 0){
-                                let mailOptions = {
-                                    from: '"no-reply" <no-reply@c_cfo.com>', // sender address
-                                    to: `${e.user_emailAddress}`, // list of receivers
-                                    subject: '[CLOUD-CFO]', // Subject line
-                                    text: 'Task Due Today', // plain text body
-                                    html: 'Task Due Today' // html body
-                                }
-                                global.emailtransport(mailOptions)
-                                mapCallback(null)
-                            }else{
-                                mapCallback(null)
-                            }
-                        }, (err, ret) => { parallelCallback(null, ret); });
-                    }
-                },(error, asyncParallelResult) =>{
-                    nextThen(result)
-                })
-            }
-        })
-    }).then((nextThen, result) => {
-        let workstreamIds = result.data.map((e, index) => { return e.workstreamId })
-        members.getWorkstreamResponsible(workstreamIds, (responsible) => {
-            if (responsible.data.length > 0) {
-                async.parallel({
-                    remindWorkstreamResponsible : (parallelCallback) => {
-                        async.map(responsible.data, (e, mapCallback) => {
-                            reminder.postData("reminder", {
-                                projectId: e.projectId,
-                                linkType: "workstream",
-                                linkId: e.workstreamId,
-                                type: "Task Due Today",
-                                usersId: e.usersId,
-                                reminderDetail: "Task Due Today as responsible"
-                            }, () => { mapCallback(null) })
-                        }, (err, res) => { parallelCallback(null, res); });
+        Tasks
+            .findAll({ 
+                where : Sequelize.where(Sequelize.fn('date', Sequelize.col('dueDate')), '=', moment().format('YYYY-MM-DD 00:00:00')),
+                include: [
+                    {
+                        model: Members,
+                        as: 'assignee',
+                        where: { linkType : 'task' , memberType: 'assignedTo' } , 
+                        include : [{
+                            model: Users,
+                            as:'user',
+                            attributes: ['id','firstName','lastName','emailAddress']
+                        }],
+                        required:false
                     },
-                    sendToEmail : (parallelCallback) => {
-                        async.map(responsible.data, (e, mapCallback) => {
-                            if(e.receiveNotification > 0){
-                                let mailOptions = {
-                                    from: '"no-reply" <no-reply@c_cfo.com>', // sender address
-                                    to: `${e.emailAddress}`, // list of receivers
-                                    subject: '[CLOUD-CFO]', // Subject line
-                                    text: 'Task Due Today', // plain text body
-                                    html: 'Task Due Today as responsible' // html body
-                                }
-                                global.emailtransport(mailOptions)
-                                mapCallback(null)
-                            }else{
-                                mapCallback(null)
-                            }
-                        }, (err, ret) => { parallelCallback(null, ret) });
-                    }
-                    
-                },(error, asyncParallelResult) =>{
-                    nextThen(result)
-                })
-            }else{
-                nextThen(result)
-            }
-        })
-    }).then((nextThen, result) => {
-        let taskIds = result.data.map((e, index) => { return e.id })
-        members.getTaskFollower(taskIds, (follower) => {
-            if (follower.data.length > 0) {
-                async.parallel({
-                   remindTaskFollower:(parallelCallback)=>{ 
-                       async.map(follower.data, (e, mapCallback) => {
-                            reminder.postData("reminder", {
-                                projectId:e.projectId,
-                                linkType: "task",
-                                linkId: e.taskId,
-                                type: "Task Due Today",
-                                usersId: e.usersId,
-                                reminderDetail: "Task Due Today as follower"
-                            }, () => { mapCallback(null) })
-        
-                        }, (err, ret) => { parallelCallback(null, ret) });
+                    {
+                        model: Workstream,
+                        as: 'tWorkstream',
+                        include: [{
+                            model: Members,
+                            as: 'wsResponsible',
+                            where: { linkType: 'workstream', memberType: 'responsible'},
+                            include: [{
+                                model: Users,
+                                as:'user',
+                                attributes: ['id','firstName','lastName','emailAddress']
+                            }],
+                            required:false
+                        }],
                     },
-                    sendToEmail : (parallelCallback) => {
-                        async.map(follower.data, (e, mapCallback) => {
-                            if(e.receiveNotification > 0){
-                                let mailOptions = {
-                                    from: '"no-reply" <no-reply@c_cfo.com>', // sender address
-                                    to: `${e.emailAddress}`, // list of receivers
-                                    subject: '[CLOUD-CFO]', // Subject line
-                                    text: 'Task Due Today', // plain text body
-                                    html: 'Task Due Today as follower' // html body
-                                }
-                                global.emailtransport(mailOptions)
-                                mapCallback(null)
-                            }else{
-                                mapCallback(null)
-                            }
-                        }, (err, ret) => {  parallelCallback(null, ret)});
+                    {
+                        model:Members,
+                        as:'follower',
+                        where: {linkType: 'task', memberType: 'Follower'},
+                        required:false,
+                        include: [{
+                            model:Users,
+                            as:'user',
+                            attributes: ['id','firstName','lastName','emailAddress']
+                        }]
                     }
+                ],
+                attributes: ['id','projectId','workstreamId','task']
+            })
+            .map((res) => {
+                return {
+                    id:res.id,
+                    task: res.task,
+                    projectId: res.projectId,
+                    workstreamId: res.workstreamId,
+                    responsible: res.tWorkstream.wsResponsible.map((e) => { return e.toJSON()}),
+                    assignee: res.assignee.map((e) => { return e.toJSON()}),
+                    follower: res.follower.map((e) => { return e.toJSON()})
+                }
+            })
+            .then((res) => {
+                nextThen(res)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+        }).then((nextThen,result) => {
+            async.parallel({
+                remindTaskAssigned : (parallelCallback) => {
+                    async.map( result , (e, mapCallback) => {
+                        let dataToSubmit = { 
+                            usersId: e.assignee[0].user.id,
+                            projectId: e.projectId,
+                            linkType: 'task',
+                            type:"Task Due Today",
+                            reminderDetail: "Task Due Today"
+                        }
 
-                },(error, asyncParallelResult) =>{
-                    nextThen(result)
-                })
-            }
+                        Reminder
+                            .create(dataToSubmit)
+                            .then((res) => {
+                                mapCallback(null,res)
+                            })
+                            .catch((err) => {
+                                mapCallback(null,"")
+                            })
+                    }, (err, ret) => {
+                        parallelCallback(null,"")
+                    });
+                },
+                sendToEmail: (parallelCallback) => {
+                    async.map( result , (e, mapCallback) => {
+                        if(e.assignee[0].receiveNotification){
+                            let mailOptions = {
+                                from: '"no-reply" <no-reply@c_cfo.com>', // sender address
+                                to: `${e.assignee[0].user.emailAddress}`, // list of receivers
+                                subject: '[CLOUD-CFO]', // Subject line
+                                text: 'Task Due Today', // plain text body
+                                html:`<p> Task Due Today as Assignee</p>
+                                        <p>${e.task}</p>
+                                        <a href="${ ( (process.env.NODE_ENV == "production") ? "https:" : "http:" )}${global.site_url}project/${e.projectId}/workstream/${e.workstreamId}?task=${e.id}">Click here</a>
+                                        `
+                            }
+                            global.emailtransport(mailOptions)
+                            mapCallback(null)
+                        }else{
+                            mapCallback(null)
+                        }
+                    },(err,ret) => {
+                        parallelCallback(null,"")
+                    })
+                },
+
+            },(error,asyncParallelResult) => {
+                nexThen(result)
+            })
+        }).then((nextThen,result) => {
+            async.parallel({
+                remindTaskResponsible : (parallelCallback) => {    
+                    async.map( result, (e, mapCallback) => {
+                       let dataToSubmit = { 
+                            projectId: e.projectId,
+                            linkType: "workstream",
+                            linkId: e.workstreamId,
+                            type: "Task Due Today",
+                            usersId: e.responsible[0].user.id,
+                            reminderDetail: "Task Due Today as responsible"
+                        }
+
+                        Reminder
+                            .create(dataToSubmit)
+                            .then((res) => {
+                                mapCallback(null,res)
+                            })
+                            .catch((err) => {
+                                mapCallback(null,"")
+                            })
+                    }, (err, ret) => {
+                        parallelCallback(null, ret);
+                    });
+                },sendToEmail : (parallelCallback) => {
+                    async.map( result, (e, mapCallback) => {
+                        if(e.responsible[0].receiveNotification > 0){
+                            let mailOptions = {
+                                from: '"no-reply" <no-reply@c_cfo.com>', // sender address
+                                to: `${e.responsible[0].user.emailAddress}`, // list of receivers
+                                subject: '[CLOUD-CFO]', // Subject line
+                                text: 'Task Due Today', // plain text body
+                                html:`<p> Task Due Today as Responsilbe</p>
+                                        <p>${e.task}</p>
+                                        <a href="${ ( (process.env.NODE_ENV == "production") ? "https:" : "http:" )}${global.site_url}project/${e.projectId}/workstream/${e.workstreamId}?task=${e.id}">Click here</a>
+                                        `
+                            }
+                            global.emailtransport(mailOptions)
+                            mapCallback(null)
+                        }
+                     }, (err, ret) => {
+                         parallelCallback(null, ret);
+                     });
+                }
+            },(error,asyncParallelResult) => {
+                nextThen(result)
+            })
+        }).then((nextThen,result) => {
+            async.parallel({
+                remindTaskFollower : (parallelCallback) => {
+                    async.map(result, (e, mapCallback) => {
+                        async.map(e.follower, (f, cb ) => {
+                            let dataToSubmit = { 
+                                projectId: e.projectId,
+                                linkType: "task",
+                                linkId: e.id,
+                                type: "Task Due Today",
+                                usersId: f.user.id,
+                                reminderDetail: "Task Due Today as follower"
+                            }
+
+                            Reminder
+                                .create(dataToSubmit)
+                                .then((res) => {
+                                     cb(null,res)
+                                })
+                                .catch((err) => {
+                                    cb(null,"")
+                                })
+
+                        },(err,ret) => {
+                            mapCallback(null)
+                        })
+                    }, (err, res) => {
+                         parallelCallback(null, res);
+                    });
+                },
+                sendToEmail : (parallelCallback) => {
+                    async.map(result, (e, mapCallback) => {
+                        async.map(e.follower, (f,cb) => {
+                            if(f.receiveNotification){
+                                let mailOptions = {
+                                    from: '"no-reply" <no-reply@c_cfo.com>', // sender address
+                                    to: `${f.user.emailAddress}`, // list of receivers
+                                    subject: '[CLOUD-CFO]', // Subject line
+                                    text: 'Task Due Today', // plain text body
+                                    html: `<p> Task Due Today as Follower</p>
+                                            <p>${e.task}</p>
+                                            <a href="${ ( (process.env.NODE_ENV == "production") ? "https:" : "http:" )}${global.site_url}project/${e.projectId}/workstream/${e.workstreamId}?task=${e.id}">Click here</a>`
+                                }
+                                global.emailtransport(mailOptions)
+                                cb(null)
+                            }
+                        },(err,ret) => {
+                            mapCallback(null)
+                        })
+                    }, (err, ret) => { 
+                        parallelCallback(null, ret)
+                    });
+                }
+                
+            },(error, asyncParallelResult) =>{
+                nextThen(result)
+            })
         })
-    })
 })
