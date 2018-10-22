@@ -1,6 +1,6 @@
 import React from "react"
 import { connect } from "react-redux"
-import { putData } from "../../../globalFunction";
+import { showToast, putData , deleteData } from "../../../globalFunction";
 
 @connect((store) => {
     return {
@@ -15,7 +15,15 @@ export default class Component extends React.Component {
     }
 
     deleteProject(){
-        console.log(`delete a project`)
+        let { project, dispatch } = this.props;
+
+        deleteData(`/api/project/${project.Selected.id}`, {id: project.Selected.id},(c) => {
+            if(c.status == 200){
+                dispatch({ type: "REMOVE_DELETED_PROJECT_LIST" , id : c.data })
+                showToast("success","Successfully Deleted.")
+            }
+            $(`#archiveModal`).modal("hide");
+        })
     }
 
     archiveProject(){
