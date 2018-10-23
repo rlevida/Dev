@@ -58,14 +58,14 @@ exports.get = {
                     {
                         model: Tasks,
                         as: 'taskOverDue',
-                        where: { dueDate : { [Sequelize.Op.lt] : moment().format("YYYY-MM-DD 00:00:00")}},
+                        where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskOverDue.dueDate')), '<', moment().format('YYYY-MM-DD 00:00:00')),
                         required: false,
                         attributes: []
                     },
                     {
                         model: Tasks,
                         as: 'taskDueToday',
-                        where: { dueDate : { [Sequelize.Op.eq] : moment().format("YYYY-MM-DD 00:00:00")}},
+                        where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskDueToday.dueDate')), '=', moment().format('YYYY-MM-DD 00:00:00')),
                         required: false,
                         attributes: []
                     }
