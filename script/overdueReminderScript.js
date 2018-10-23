@@ -123,10 +123,10 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                     },
                     {
                         model: Workstream,
-                        as: 'tWorkstream',
+                        as: 'workstream',
                         include: [{
                             model: Members,
-                            as: 'wsResponsible',
+                            as: 'responsible',
                             where: { linkType: 'workstream', memberType: 'responsible'},
                             include: [{
                                 model: Users,
@@ -156,7 +156,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                     task: res.task,
                     projectId: res.projectId,
                     workstreamId: res.workstreamId,
-                    responsible: res.tWorkstream.wsResponsible.map((e) => { return e.toJSON()}),
+                    responsible: res.workstream.responsible.map((e) => { return e.toJSON()}),
                     assignee: res.assignee.map((e) => { return e.toJSON()}),
                     follower: res.follower.map((e) => { return e.toJSON()})
                 }
@@ -171,43 +171,51 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
     }).then((nextThen, result) => {
         async.parallel({
             remindTaskAssigned : (parallelCallback) => {
-                async.map( result , (e, mapCallback) => {
-                    let dataToSubmit = { 
-                        usersId: e.assignee[0].user.id,
-                        projectId: e.projectId,
-                        linkType: 'task',
-                        type:"Task Overdue",
-                        reminderDetail: "Task Overdue"
-                    }
+                    async.map( result , (e, mapCallback) => {
+                        if(e.assignee.length > 0){
+                            let dataToSubmit = { 
+                                usersId: e.assignee[0].user.id,
+                                projectId: e.projectId,
+                                linkType: 'task',
+                                type:"Task Overdue",
+                                reminderDetail: "Task Overdue"
+                            }
 
-                    Reminder
-                        .create(dataToSubmit)
-                        .then((res) => {
-                            mapCallback(null,res)
-                        })
-                        .catch((err) => {
-                            console.log(err)
+                            Reminder
+                                .create(dataToSubmit)
+                                .then((res) => {
+                                    mapCallback(null,res)
+                                })
+                                .catch((err) => {
+                                    console.log(err)
+                                    mapCallback(null,"")
+                                })
+                        }else{
                             mapCallback(null,"")
-                        })
-                }, (err, ret) => {
-                    parallelCallback(null,"")
-                });
+                        }
+                    }, (err, ret) => {
+                        parallelCallback(null,"")
+                    });
             },
             sendToEmail: (parallelCallback) => {
                 async.map( result , (e, mapCallback) => {
-                    if(e.assignee[0].receiveNotification){
-                        let mailOptions = {
-                            from: '"no-reply" <no-reply@c_cfo.com>', // sender address
-                            to: `${e.assignee[0].user.emailAddress}`, // list of receivers
-                            subject: '[CLOUD-CFO]', // Subject line
-                            text: 'Task Overdue Today', // plain text body
-                            html:`<p> Task Overdue as Assignee</p>
-                                    <p>${e.task}</p>
-                                    <a href="${ ( (process.env.NODE_ENV == "production") ? "https:" : "http:" )}${global.site_url}project/${e.projectId}/workstream/${e.workstreamId}?task=${e.id}">Click here</a>
-                                    `
+                    if(e.assignee.length > 0){
+                        if(e.assignee[0].receiveNotification){
+                            let mailOptions = {
+                                from: '"no-reply" <no-reply@c_cfo.com>', // sender address
+                                to: `${e.assignee[0].user.emailAddress}`, // list of receivers
+                                subject: '[CLOUD-CFO]', // Subject line
+                                text: 'Task Overdue Today', // plain text body
+                                html:`<p> Task Overdue as Assignee</p>
+                                        <p>${e.task}</p>
+                                        <a href="${ ( (process.env.NODE_ENV == "production") ? "https:" : "http:" )}${global.site_url}project/${e.projectId}/workstream/${e.workstreamId}?task=${e.id}">Click here</a>
+                                        `
+                            }
+                            global.emailtransport(mailOptions)
+                            mapCallback(null)
+                        }else{
+                            mapCallback(null)
                         }
-                        global.emailtransport(mailOptions)
-                        mapCallback(null)
                     }else{
                         mapCallback(null)
                     }
@@ -215,7 +223,6 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                     parallelCallback(null,"")
                 })
             },
-
         },(error,asyncParallelResult) => {
             nextThen(result)
         })
@@ -224,40 +231,48 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
         async.parallel({
             remindTaskResponsible : (parallelCallback) => {    
                 async.map( result, (e, mapCallback) => {
-                   let dataToSubmit = { 
-                        projectId: e.projectId,
-                        linkType: "workstream",
-                        linkId: e.workstreamId,
-                        type: "Task Overdue",
-                        usersId: e.responsible[0].user.id,
-                        reminderDetail: "Task Overdue as responsible"
-                    }
+                    if(e.responsible.length > 0){
+                        let dataToSubmit = { 
+                            projectId: e.projectId,
+                            linkType: "workstream",
+                            linkId: e.workstreamId,
+                            type: "Task Overdue",
+                            usersId: e.responsible[0].user.id,
+                            reminderDetail: "Task Overdue as responsible"
+                        }
 
-                    Reminder
-                        .create(dataToSubmit)
-                        .then((res) => {
-                            mapCallback(null,res)
-                        })
-                        .catch((err) => {
-                            mapCallback(null,"")
-                        })
+                        Reminder
+                            .create(dataToSubmit)
+                            .then((res) => {
+                                mapCallback(null,res)
+                            })
+                            .catch((err) => {
+                                mapCallback(null,"")
+                            })
+                    }else{
+                        mapCallback(null,"")
+                    }
                 }, (err, ret) => {
                     parallelCallback(null, ret);
                 });
             },sendToEmail : (parallelCallback) => {
                 async.map( result, (e, mapCallback) => {
-                    if(e.responsible[0].receiveNotification > 0){
-                        let mailOptions = {
-                            from: '"no-reply" <no-reply@c_cfo.com>', // sender address
-                            to: `${e.responsible[0].user.emailAddress}`, // list of receivers
-                            subject: '[CLOUD-CFO]', // Subject line
-                            text: 'Task Overdue', // plain text body
-                            html:`<p> Task Overdue as Responsilbe</p>
-                                    <p>${e.task}</p>
-                                    <a href="${ ( (process.env.NODE_ENV == "production") ? "https:" : "http:" )}${global.site_url}project/${e.projectId}/workstream/${e.workstreamId}?task=${e.id}">Click here</a>
-                                    `
+                    if(e.responsible.length > 0 ){
+                        if(e.responsible[0].receiveNotification > 0){
+                            let mailOptions = {
+                                from: '"no-reply" <no-reply@c_cfo.com>', // sender address
+                                to: `${e.responsible[0].user.emailAddress}`, // list of receivers
+                                subject: '[CLOUD-CFO]', // Subject line
+                                text: 'Task Overdue', // plain text body
+                                html:`<p> Task Overdue as Responsilbe</p>
+                                        <p>${e.task}</p>
+                                        <a href="${ ( (process.env.NODE_ENV == "production") ? "https:" : "http:" )}${global.site_url}project/${e.projectId}/workstream/${e.workstreamId}?task=${e.id}">Click here</a>
+                                        `
+                            }
+                            global.emailtransport(mailOptions)
+                            mapCallback(null)
                         }
-                        global.emailtransport(mailOptions)
+                    }else{
                         mapCallback(null)
                     }
                  }, (err, ret) => {
@@ -271,51 +286,59 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
         async.parallel({
             remindTaskFollower : (parallelCallback) => {
                 async.map(result, (e, mapCallback) => {
-                    async.map(e.follower, (f, cb ) => {
-                        let dataToSubmit = { 
-                            projectId: e.projectId,
-                            linkType: "task",
-                            linkId: e.id,
-                            type: "Task Due Today",
-                            usersId: f.user.id,
-                            reminderDetail: "Task Due Today as follower"
-                        }
+                    if(e.follower.length > 0){
+                        async.map(e.follower, (f, cb ) => {
+                            let dataToSubmit = { 
+                                projectId: e.projectId,
+                                linkType: "task",
+                                linkId: e.id,
+                                type: "Task Due Today",
+                                usersId: f.user.id,
+                                reminderDetail: "Task Due Today as follower"
+                            }
 
-                        Reminder
-                            .create(dataToSubmit)
-                            .then((res) => {
-                                 cb(null,res)
-                            })
-                            .catch((err) => {
-                                cb(null,"")
-                            })
+                            Reminder
+                                .create(dataToSubmit)
+                                .then((res) => {
+                                    cb(null,res)
+                                })
+                                .catch((err) => {
+                                    cb(null,"")
+                                })
 
-                    },(err,ret) => {
+                        },(err,ret) => {
+                            mapCallback(null)
+                        })
+                    }else{
                         mapCallback(null)
-                    })
+                    }
                 }, (err, res) => {
                      parallelCallback(null, res);
                 });
             },
             sendToEmail : (parallelCallback) => {
                 async.map(result, (e, mapCallback) => {
-                    async.map(e.follower, (f,cb) => {
-                        if(f.receiveNotification){
-                            let mailOptions = {
-                                from: '"no-reply" <no-reply@c_cfo.com>', // sender address
-                                to: `${f.user.emailAddress}`, // list of receivers
-                                subject: '[CLOUD-CFO]', // Subject line
-                                text: 'Task Due Today', // plain text body
-                                html: `<p> Task Due Today as Follower</p>
-                                        <p>${e.task}</p>
-                                        <a href="${ ( (process.env.NODE_ENV == "production") ? "https:" : "http:" )}${global.site_url}project/${e.projectId}/workstream/${e.workstreamId}?task=${e.id}">Click here</a>`
+                    if(e.follower.length > 0){
+                        async.map(e.follower, (f,cb) => {
+                            if(f.receiveNotification){
+                                let mailOptions = {
+                                    from: '"no-reply" <no-reply@c_cfo.com>', // sender address
+                                    to: `${f.user.emailAddress}`, // list of receivers
+                                    subject: '[CLOUD-CFO]', // Subject line
+                                    text: 'Task Due Today', // plain text body
+                                    html: `<p> Task Due Today as Follower</p>
+                                            <p>${e.task}</p>
+                                            <a href="${ ( (process.env.NODE_ENV == "production") ? "https:" : "http:" )}${global.site_url}project/${e.projectId}/workstream/${e.workstreamId}?task=${e.id}">Click here</a>`
+                                }
+                                global.emailtransport(mailOptions)
+                                cb(null)
                             }
-                            global.emailtransport(mailOptions)
-                            cb(null)
-                        }
-                    },(err,ret) => {
+                        },(err,ret) => {
+                            mapCallback(null)
+                        })
+                    }else{
                         mapCallback(null)
-                    })
+                    }
                 }, (err, ret) => { 
                     parallelCallback(null, ret)
                 });

@@ -68,7 +68,7 @@ module.exports = function (sequelize, DataTypes) {
 
     Workstream.hasMany(models.Members,{
       foreignKey: 'linkId',
-      as:'wsResponsible'
+      as:'responsible'
     })
   };
 

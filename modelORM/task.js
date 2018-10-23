@@ -111,7 +111,7 @@ module.exports = (sequelize, DataTypes) => {
 
     Tasks.belongsTo(models.Workstream, {
       foreignKey:'workstreamId',
-      as:'tWorkstream'
+      as:'workstream'
     })
     Tasks.hasMany(models.Members, {
       foreignKey: "linkId",
