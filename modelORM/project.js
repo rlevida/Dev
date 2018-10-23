@@ -91,11 +91,15 @@ module.exports = function(sequelize, DataTypes) {
     })
     
     Project.hasMany(models.Tasks, {
-      as: 'taskActiveCount',
+      as: 'taskActive',
       foreignKey: 'projectId'
     })
     Project.hasMany(models.Tasks, {
-      as: 'taskIssueCount',
+      as: 'taskOverDue',
+      foreignKey: 'projectId'
+    })
+    Project.hasMany(models.Tasks, {
+      as: 'taskDueToday',
       foreignKey: 'projectId'
     })
   };

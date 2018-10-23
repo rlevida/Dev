@@ -34,40 +34,52 @@ exports.get = {
         let filter = (typeof d.filter != "undefined") ? JSON.parse(d.filter) : {};
         Project.
             findAll({
+                raw:true,
                 include: [
                     {
                         model: Type,
                         as: 'type',
-                        required: false
+                        required: false,
+                        attributes: [] 
                     },
                     {
                         model: Members,
                         as: 'projectManager',
                         where: { memberType: 'project manager'},
-                        required: false
-                    },
-                    {
-                        model: Workstream,
-                        as: 'projectWorkstream',
-                        required: false
-                    },
-                    {
-                        model: Tasks,
-                        as: 'taskActiveCount',
-                        attributes: ['id'],
-                        required: false
-                    },
-                    {
-                        model: Tasks,
-                        as: 'taskIssueCount',
-                        where: { dueDate : { [Sequelize.Op.lt] : moment().format("YYYY-MM-DD HH:mm:ss")}},
                         required: false,
-                        attributes: ['id']
+                        attributes: []
                     },
+                    {
+                        model: Tasks,
+                        as: 'taskActive',
+                        attributes: [],
+                        required: false
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskOverDue',
+                        where: { dueDate : { [Sequelize.Op.lt] : moment().format("YYYY-MM-DD 00:00:00")}},
+                        required: false,
+                        attributes: []
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskDueToday',
+                        where: { dueDate : { [Sequelize.Op.eq] : moment().format("YYYY-MM-DD 00:00:00")}},
+                        required: false,
+                        attributes: []
+                    }
                 ],
-                attributes: [
-                    'id','isActive','tinNo','project','isDeleted','createdBy','typeId','companyAddress','projectNameCount',
-                ]
+                attributes: { 
+                    include :[
+                        [Sequelize.fn("COUNT", Sequelize.col("taskActive.id")), "taskActive"],
+                        [Sequelize.fn("COUNT", Sequelize.col("taskOverDue.id")), "taskOverDue"],
+                        [Sequelize.fn("COUNT", Sequelize.col("taskDueToday.id")), "taskDueToday"],
+                        [Sequelize.col("projectManager.userTypeLinkId"), "projectManagerId"],
+                        [Sequelize.col("type.type"), "type"]
+                    ]
+                },
+                group: ['id']
             })
             .then(res => {
                 cb({ status: true , data: res })
