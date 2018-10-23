@@ -29,6 +29,7 @@ const Users = require('./users')(sequelize, Sequelize.DataTypes);
 const UsersRole = require('./users_role')(sequelize, Sequelize.DataTypes);
 const Workstream = require('./workstream')(sequelize , Sequelize.DataTypes);
 const Project = require('./project')(sequelize, Sequelize.DataTypes);
+const Reminder = require('./reminder')(sequelize, Sequelize.DataTypes);
 const Status = require('./status')(sequelize, Sequelize.DataTypes);
 const Type = require('./type')(sequelize, Sequelize.DataTypes);
 
@@ -44,9 +45,10 @@ const models = {
     Users,
     Workstream,
     Project,
+    Reminder,
     Status,
     Type,
-    UsersRole
+    UsersRole,
 };
 
 Object.keys(models).forEach((modelName) => {

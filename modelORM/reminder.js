@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('reminder', {
+  const Reminder = sequelize.define('reminder', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -55,6 +55,9 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'reminder'
+    tableName: 'reminder',
+    timestamps: false
   });
+
+  return Reminder
 };
