@@ -242,7 +242,7 @@ var j = schedule.scheduleJob('0 0 * * *', () => {
                 }
                 
             },(error, asyncParallelResult) =>{
-                nextThen(result)
+
             })
         })
 })
