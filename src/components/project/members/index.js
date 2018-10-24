@@ -33,7 +33,7 @@ export default class MembersForm extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, members, type, dispatch, project, users } = this.props
+        let { socket, members, type, dispatch, project, users , teams , global } = this.props
         let result = true;
 
         $('.member-form-container *').validator('validate');
@@ -65,11 +65,15 @@ export default class MembersForm extends React.Component {
 
         postData(`/api/member`, { data: dataToSubmit }, (c) => {
            if(members.Selected.type == "users"){
-               let newMemberToAdd = users.List.filter((e) => { return e.id == members.Selected.userTypeLinkId })[0]
-               members.List.push({ ...c.data , user: newMemberToAdd })
-               dispatch({type:"SET_MEMBERS_LIST", list : members.List })
-               dispatch({type:"SET_MEMBERS_SELECTED", Selected: {}})
+                let newMemberToAdd = users.List.filter((e) => { return e.id == members.Selected.userTypeLinkId })[0]
+                members.List.push({ ...c.data , user: newMemberToAdd })
+                dispatch({type:"SET_MEMBERS_LIST", list : members.List })
+           }else{
+                let newTeamToAdd = global.SelectList.teamList.filter((e) => { return e.id ==  members.Selected.userTypeLinkId })[0]
+                teams.List.push({ ...c.data, team: newTeamToAdd })
+                dispatch({type:"SET_TEAM_LIST", list : teams.List })
            }
+           dispatch({type:"SET_MEMBERS_SELECTED", Selected: {}})
         })
     }
 
@@ -109,7 +113,7 @@ export default class MembersForm extends React.Component {
             if(members.Selected.type == 'users'){
                 if(!showAllUsers){
                     global.SelectList.teamList.map((e) => {
-                        if(e.teamLeaderId == loggedUser.data.id){
+                        if(e.teamLeaderId == loggedUser.data.id && e.users_team.length > 0){
                             e.users_team.map((t) => {
                                 let index = _.findIndex(members.List,{ userTypeLinkId : t.user.id })
                                 if(index < 0){
@@ -118,7 +122,6 @@ export default class MembersForm extends React.Component {
                             })
                         }
                     })
-                    
                 }else{
                     users.List.map((e) => {
                         let index = _.findIndex(members.List,{ userTypeLinkId : e.id })
@@ -129,7 +132,10 @@ export default class MembersForm extends React.Component {
                 }
             }else if(members.Selected.type == 'team'){
                 global.SelectList.teamList.map((e) => {
-                    memberList.push({ id: e.id, name: e.team })
+                    let index = _.findIndex(teams.List,{ userTypeLinkId : e.id })
+                    if(index < 0){
+                        memberList.push({ id: e.id, name: e.team })
+                    }
                 })
             }
         }

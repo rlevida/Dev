@@ -22,16 +22,20 @@ exports.get = {
         
         Teams
             .findAll({
-                include:[
+                include: [
                     {
-                        model: UsersTeam,
-                        as: 'users_team',
+                        model:Users,
+                        as:'teamLeader'
+                    },
+                    {
+                        model:UsersTeam,
+                        as:'users_team',
                         include:[{
-                            model: Users,
-                            as: 'user',
-                        }],
+                            model:Users,
+                            as:'user'
+                        }]
                     }
-                ],
+                ]
             })
             .then((res) => {
                 cb({status: 200, data:res})
@@ -39,7 +43,6 @@ exports.get = {
             .catch((err) => {
                 console.error(err)
             })
-      
     },
     getById : (req,cb) => {
         defaultGetById(dbName,req,(res)=>{

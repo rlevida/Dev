@@ -49,7 +49,6 @@ export default class FormComponent extends React.Component {
             },
             projectTeamList: (parallelCallback) => {
                 getData(`/api/member/getProjectTeams`,{ params:{ filter : { linkId: this.props.project.Selected.id, linkType: 'project', usersType : 'team' }}},(c) => {
-                    console.log(c.data)
                      dispatch({type:"SET_TEAM_LIST",list : c.data})
                      parallelCallback(null,c.data)
                 })
@@ -186,7 +185,7 @@ export default class FormComponent extends React.Component {
         })
 
         return(
-            teamMembers.join("\r\n")
+            teamMembers.join(", ")
         )
     }
 
@@ -423,7 +422,13 @@ export default class FormComponent extends React.Component {
                                                                         <td class="text-center">{(typeof data.team.id != 'undefined') ? data.team.id : ''}</td>
                                                                         <td class="text-left">{(typeof data.team.id != 'undefined') ? data.team.team : ''}</td>
                                                                         <td class="text-left">{(typeof data.team.teamLeaderId != 'undefined') ? `${data.team.teamLeader.firstName} ${data.team.teamLeader.lastName}` : ''}</td>
-                                                                        <td class="text-left">{this.renderTeamMembers(data.team.users_team)}</td>
+                                                                        <td class="text-left">
+                                                                            <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
+                                                                            <Tooltip id={`follower${index}`}>
+                                                                                {this.renderTeamMembers(data.team.users_team)}
+                                                                            </Tooltip>
+                                                                            
+                                                                        </td>
                                                                         <td class="text-center">
                                                                             <a href="javascript:void(0);" data-tip="DELETE"
                                                                                 onClick={e => this.deleteData({ userTypeLinkId: data.team.id, usersType: 'team' })}
@@ -462,11 +467,9 @@ export default class FormComponent extends React.Component {
                                                             </tr>
                                                         }
                                                         {
-                                                          members.List.map((data, index) => {
+                                                         _.orderBy( members.List, ['memberType'], ['desc']).map((data, index) => {
                                                                 return (
-                                                                    <tr key={index} 
-                                                                        style={{ color: (data.user.id == project.Selected.projectManagerId) ? "green" : "" }}
-                                                                    >
+                                                                    <tr key={index} style={{ color: (data.user.id == project.Selected.projectManagerId) ? "green" : "" }}>
                                                                         <td class="text-center">{data.user.id}</td>
                                                                         <td class="text-left">{data.user.username}</td>
                                                                         <td class="text-left">{data.user.firstName}</td>

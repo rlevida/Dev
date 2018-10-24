@@ -64,8 +64,7 @@ exports.get = {
                             }
                         ]
                     },
-                ],
-                group: ['id']            
+                ]
             })
             .then((res) => {
                 cb({status:true, data: res})
@@ -101,7 +100,6 @@ exports.get = {
                     ]
                 },
             ],
-            group: ['id']            
         })
         .then((res) => {
             cb({status:true, data: res})

@@ -90,12 +90,12 @@ export default class List extends React.Component {
                     parallelCallback(null,"")
                 })
             },
-            usersTeam: (parallelCallback) => {
-                getData(`/api/global/selectList`,{ params: { selectName: "teamList" }},(c) => {
-                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'teamList' })
-                    parallelCallback(null,"")
-                })
-            },
+            // usersTeam: (parallelCallback) => {
+            //     getData(`/api/global/selectList`,{ params: { selectName: "teamList" }},(c) => {
+            //         dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'teamList' })
+            //         parallelCallback(null,"")
+            //     })
+            // },
 
         } ,(error, result) => {
 
