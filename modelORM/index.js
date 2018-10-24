@@ -22,6 +22,7 @@ const Document = require('./document')(sequelize, Sequelize.DataTypes);
 const DocumentLink = require('./document_link')(sequelize, Sequelize.DataTypes);
 const Folder = require('./folder')(sequelize, Sequelize.DataTypes);
 const Members = require('./members')(sequelize, Sequelize.DataTypes);
+const Projects = require('./project')(sequelize, Sequelize.DataTypes);
 const Tag = require('./tag')(sequelize, Sequelize.DataTypes);
 const Tasks = require('./task')(sequelize, Sequelize.DataTypes);
 const TaskChecklist = require('./task_checklist')(sequelize, Sequelize.DataTypes);
@@ -35,6 +36,7 @@ const models = {
     DocumentLink,
     Folder,
     Members,
+    Projects,
     Tag,
     Tasks,
     TaskChecklist,

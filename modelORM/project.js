@@ -1,7 +1,7 @@
-/* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('project', {
+/* jshint indent: 2 */
+module.exports = (sequelize, DataTypes) => {
+  const Projects = sequelize.define('projects', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -65,6 +65,16 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-    tableName: 'project'
-  });
+      tableName: 'project',
+      timestamps: false
+    });
+
+  Projects.associate = function (models) {
+    Projects.hasMany(models.Members, {
+      as: 'project_members',
+      foreignKey: 'linkId'
+    });
+  };
+
+  return Projects
 };

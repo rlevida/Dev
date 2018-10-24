@@ -1,7 +1,8 @@
 import React from "react";
 import { connect } from "react-redux";
 
-import { HeaderButtonContainer, DropDown } from "../../globalComponents";
+import { HeaderButtonContainer } from "../../globalComponents";
+import { showToast, postData } from '../../globalFunction';
 
 @connect((store) => {
     return {
@@ -21,7 +22,7 @@ export default class Checklist extends React.Component {
     }
 
     handleSubmit() {
-        const { checklist, task, socket, loggedUser } = this.props;
+        const { checklist, task, loggedUser, dispatch } = this.props;
         const toBeSubmitted = {
             description: checklist.Selected.checklist,
             types: (typeof checklist.Selected.types != "undefined") ? checklist.Selected.types : "",
@@ -32,7 +33,16 @@ export default class Checklist extends React.Component {
             createdBy: loggedUser.data.id,
             isDocument: (typeof checklist.Selected.isDocument != "undefined" && checklist.Selected.isDocument != "") ? checklist.Selected.isDocument : 0
         };
-        socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted });
+
+        postData(`/api/checklist/`, toBeSubmitted, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "ADD_CHECKLIST", data: c.data });
+                dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
+                showToast("success", "Checklist successfully updated.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
     }
 
     handleChange(e) {

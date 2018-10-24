@@ -103,6 +103,26 @@ module.exports = (sequelize, DataTypes) => {
     Tasks.belongsTo(models.Tag, {
       foreignKey: 'id'
     });
+
+    Tasks.hasMany(models.TaskDependency, {
+      as: 'task_dependency',
+      foreignKey: 'taskId'
+    });
+
+    Tasks.hasMany(models.Members, {
+      as: 'task_members',
+      foreignKey: 'linkId'
+    });
+    
+    Tasks.hasMany(models.TaskChecklist, {
+      as: 'checklist',
+      foreignKey: 'taskId'
+    });
+
+    Tasks.belongsTo(models.Workstream, {
+      as: 'workstream',
+      foreignKey: 'workstreamId'
+    });
   };
 
   return Tasks

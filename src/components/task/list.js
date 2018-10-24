@@ -80,13 +80,6 @@ export default class List extends React.Component {
         );
     }
 
-    setTaskkSelected(data) {
-        let { dispatch, socket } = this.props;
-        dispatch({ type: "SET_TASK_SELECTED", Selected: data })
-        dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "View" })
-        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamMemberList", filter: { id: data.workstreamId } })
-    }
-
     render() {
         let { task, dispatch, socket, loggedUser } = this.props;
         let taskList = _(task.List)
@@ -166,8 +159,8 @@ export default class List extends React.Component {
                                             (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) && <div>
                                                 <a href="javascript:void(0);" data-tip="EDIT"
                                                     onClick={(e) => {
-                                                        dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "Edit" })
-                                                        socket.emit("GET_TASK_DETAIL", { id: data.id })
+                                                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })
+                                                        dispatch({ type: "SET_TASK_ID", SelectedId:[data.id] })
                                                     }}
                                                     class="btn btn-info btn-sm">
                                                     <span class="glyphicon glyphicon-pencil"></span></a>

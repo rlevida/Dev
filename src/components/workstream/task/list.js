@@ -98,7 +98,7 @@ export default class List extends React.Component {
                 })
             }
         }, (error, result) => {
-
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" })
         })
     }
 
@@ -195,7 +195,7 @@ export default class List extends React.Component {
                             <th class="text-center">Followed By</th>
                         </tr>
                         {
-                            (task.List.length > 0 && !task.Loading) &&
+                            (task.List.length > 0 && task.Loading != "RETRIEVING") &&
                             _.orderBy(task.List, ['dueDate', 'asc']).map((data, index) => {
 
                                 let taskStatus = 0;
@@ -238,10 +238,10 @@ export default class List extends React.Component {
                     </tbody>
                 </table>
                 {
-                    (task.Loading) && <Loading />
+                    (task.Loading == "RETRIEVING") && <Loading />
                 }
                 {
-                    (task.List.length == 0 && task.Loading == false) && <p class="text-center">No Record Found!</p>
+                    (task.List.length == 0 && task.Loading != "RETRIEVING") && <p class="text-center">No Record Found!</p>
                 }
             </div>
         );

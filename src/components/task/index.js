@@ -34,26 +34,25 @@ export default class Component extends React.Component {
         let Component = <div>
             <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>
             {
-                (typeof task.Selected.id != "undefined") && <ul class="list-inline" style={{ margin: "20px" }}>
+                (
+                    task.FormActive == "Form" &&
+                    typeof task.Selected.workstream != "undefined"
+                ) && <ul class="list-inline" style={{ margin: "20px" }}>
                     <li style={{ width: "60px" }}>&nbsp;&nbsp;<span class="fa fa-tag" title="tag"></span></li>
-                    <li style={{ width: "100x" }}>&nbsp;&nbsp;<span class="label label-success" style={{ margin: "5px" }}>{task.Selected.workstream_workstream}</span></li>
+                    <li style={{ width: "100x" }}>&nbsp;&nbsp;<span class="label label-success" style={{ margin: "5px" }}>{task.Selected.workstream.workstream}</span></li>
                 </ul>
             }
             {
-                (task.FormActive == "List" && (task.FormAction != "View")) &&
+                (task.FormActive == "List") &&
                 <Link />
             }
             {
-                (task.FormActive == "List" && (task.FormAction != "View")) &&
+                (task.FormActive == "List") &&
                 <List />
             }
             {
-                (task.FormActive == "Form" && (task.FormAction == "Create" || task.FormAction == "Edit")) &&
+                (task.FormActive == "Form") &&
                 <Form />
-            }
-            {
-                (task.FormAction == "View") &&
-                <TaskComponent />
             }
         </div>
         return (
