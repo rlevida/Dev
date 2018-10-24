@@ -21,7 +21,7 @@ export default function reducer(state = {
             return { ...state, SelectedId: action.SelectedId }
         }
         case "UPDATE_DATA_MEMBERS_LIST": {
-            let tempList = action.List.map((e, i) => {
+            let tempList = state.List.map((e, i) => {
                 if (e.id == action.UpdatedData.id) {
                     return action.UpdatedData
                 }

@@ -25,7 +25,7 @@ export default class List extends React.Component {
         socket.emit("GET_STATUS_LIST", {});
         socket.emit("GET_TYPE_LIST", {});
         socket.emit("GET_USER_LIST", {});
-        socket.emit("GET_TEAM_LIST", {});
+        // socket.emit("GET_TEAM_LIST", {});
         socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } })
         socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project.Selected.id, linkType: "project" } })
     }

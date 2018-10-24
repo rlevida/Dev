@@ -24,7 +24,7 @@ export default class List extends React.Component {
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
 
-    componentWillMount() {
+    componentDidMount() {
         let { dispatch } = this.props;
         parallel({
             projects : (parallelCallback) => { 
@@ -35,7 +35,6 @@ export default class List extends React.Component {
                             filter = { id: { name: "id", value: this.props.loggedUser.data.projectIds, condition: " IN " } } 
                         }
                         let dataToGet = { params : { filter : filter }}
-                        // this.props.socket.emit("GET_PROJECT_LIST", filter);
                         getData(`/api/project`,dataToGet, (c) => {
                             dispatch({ type:"SET_PROJECT_LIST" , list : c.data })
                             parallelCallback(null,c.data)
@@ -77,13 +76,26 @@ export default class List extends React.Component {
             teams: (parallelCallback) => {
                 getData(`/api/teams`,{}, (c) => {
                     if(c.status == 200) {
-                        dispatch({type:"SET_TEAM_LIST",list : c.data})
+                        dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'teamList' })
+                        // dispatch({type:"SET_TEAM_LIST",list : c.data})
                         parallelCallback(null,c.data)
                     }else{
                         parallelCallback(null,"")
                     }
                 })
-            }
+            },
+            roles: (parallelCallback) => {
+                getData(`/api/global/selectList`,{ params: { selectName: "roleList" }},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'roleList' })
+                    parallelCallback(null,"")
+                })
+            },
+            usersTeam: (parallelCallback) => {
+                getData(`/api/global/selectList`,{ params: { selectName: "teamList" }},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'teamList' })
+                    parallelCallback(null,"")
+                })
+            },
 
         } ,(error, result) => {
 

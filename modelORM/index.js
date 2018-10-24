@@ -25,11 +25,14 @@ const Members = require('./members')(sequelize, Sequelize.DataTypes);
 const Tag = require('./tag')(sequelize, Sequelize.DataTypes);
 const Tasks = require('./task')(sequelize, Sequelize.DataTypes);
 const TaskDependency = require('./task_dependency')(sequelize, Sequelize.DataTypes);
+const Teams = require('./team')(sequelize, Sequelize.DataTypes);
 const Users = require('./users')(sequelize, Sequelize.DataTypes);
 const UsersRole = require('./users_role')(sequelize, Sequelize.DataTypes);
+const UsersTeam = require('./users_team')(sequelize, Sequelize.DataTypes);
 const Workstream = require('./workstream')(sequelize , Sequelize.DataTypes);
 const Project = require('./project')(sequelize, Sequelize.DataTypes);
 const Reminder = require('./reminder')(sequelize, Sequelize.DataTypes);
+const Roles = require('./role')(sequelize, Sequelize.DataTypes);
 const Status = require('./status')(sequelize, Sequelize.DataTypes);
 const Type = require('./type')(sequelize, Sequelize.DataTypes);
 
@@ -42,13 +45,16 @@ const models = {
     Tag,
     Tasks,
     TaskDependency,
+    Teams,
     Users,
     Workstream,
     Project,
     Reminder,
+    Roles,
     Status,
     Type,
     UsersRole,
+    UsersTeam
 };
 
 Object.keys(models).forEach((modelName) => {
