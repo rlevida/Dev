@@ -135,6 +135,7 @@ exports.get = {
 exports.post = {
     index: (req, cb) => {
         const body = req.body;
+        console.log(body)
         // defaultPost(dbName, req, (res) => {
         //     if (res.success) {
         //         cb({ status: true, data: res.data })

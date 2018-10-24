@@ -23,25 +23,31 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        let { socket, dispatch } = this.props;
-        let intervalLoggedUser = setInterval(() => {
-            if (typeof this.props.loggedUser.data.id != "undefined") {
-                let filter = { filter: { projectId: project } };
-                if (this.props.loggedUser.data.userRole != 1 && this.props.loggedUser.data.userRole != 2) {
-                    filter = { filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
-                }
-                if (typeof this.props.task.Selected.task == "undefined") {
-                    socket.emit("GET_TASK_LIST", filter);
-                }
-                clearInterval(intervalLoggedUser)
-            }
-        }, 1000)
-        this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        this.props.socket.emit("GET_STATUS_LIST", {});
-        this.props.socket.emit("GET_TYPE_LIST", {});
-        this.props.socket.emit("GET_USER_LIST", {});
-        this.props.socket.emit("GET_TEAM_LIST", {});
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
+        let { loggedUser } = this.props;
+        console.log(loggedUser)
+        // let intervalLoggedUser = setInterval(() => {
+        //     if (typeof this.props.loggedUser.data.id != "undefined") {
+        //         let filter = { filter: { projectId: project } };
+        //         if (this.props.loggedUser.data.userRole != 1 && this.props.loggedUser.data.userRole != 2) {
+        //             filter = { filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
+        //         }
+        //         if (typeof this.props.task.Selected.task == "undefined") {
+        //             socket.emit("GET_TASK_LIST", filter);
+        //         }
+        //         clearInterval(intervalLoggedUser)
+        //     }
+        // }, 1000)
+        // this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
+        // this.props.socket.emit("GET_STATUS_LIST", {});
+        // this.props.socket.emit("GET_TYPE_LIST", {});
+        // this.props.socket.emit("GET_USER_LIST", {});
+        // this.props.socket.emit("GET_TEAM_LIST", {});
+        // this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
+    }
+
+    componentDidMount(){
+        let { loggedUser } = this.props;
+        console.log(loggedUser)
     }
 
     updateActiveStatus(params) {
@@ -81,7 +87,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { task, dispatch, socket, loggedUser } = this.props;
+        let { task, dispatch, loggedUser } = this.props;
         let taskList = _(task.List)
             .orderBy(['due_date_int'], ['asc'])
             .value();
@@ -95,8 +101,8 @@ export default class List extends React.Component {
                         (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) &&
                         <li class="btn btn-info" onClick={(e) => {
                             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
-                            dispatch({ type: "SET_TASK_FORM_ACTION", FormAction: "Create" });
                             dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
+                            dispatch({ type: "SET_TASK_ID", SelectedId: [] })
                         }}
                         >
                             <span>New Task</span>
@@ -160,7 +166,7 @@ export default class List extends React.Component {
                                                 <a href="javascript:void(0);" data-tip="EDIT"
                                                     onClick={(e) => {
                                                         dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })
-                                                        dispatch({ type: "SET_TASK_ID", SelectedId:[data.id] })
+                                                        dispatch({ type: "SET_TASK_ID", SelectedId: [data.id] })
                                                     }}
                                                     class="btn btn-info btn-sm">
                                                     <span class="glyphicon glyphicon-pencil"></span></a>

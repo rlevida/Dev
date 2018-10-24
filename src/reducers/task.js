@@ -25,10 +25,7 @@ export default function reducer(state = {
             return { ...state, AllCountList: action.list }
         }
         case "SET_TASK_FORM_ACTIVE": {
-            return {
-                ...state, FormActive: action.FormActive, 
-                ...(action.FormActive == "List") ? { SelectedId: [] } : {}
-            }
+            return { ...state, FormActive: action.FormActive }
         }
         case "SET_TASK_SELECTED": {
             return { ...state, Selected: action.Selected }

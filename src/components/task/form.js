@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import moment from 'moment';
 import _ from "lodash";
 
-import { showToast, setDatePicker, getData, displayDate, putData, deleteData } from '../../globalFunction';
+import { showToast, setDatePicker, getData, displayDate, putData, postData, deleteData } from '../../globalFunction';
 import { HeaderButtonContainer, Loading, DropDown } from "../../globalComponents";
 
 import Checklist from "./checklist";
@@ -39,32 +39,23 @@ export default class FormComponent extends React.Component {
     }
 
     componentDidMount() {
-        let { task, dispatch, socket } = { ...this.props };
+        let { task, dispatch } = { ...this.props };
+
         if ((task.SelectedId).length > 0) {
             getData(`/api/task/detail/${task.SelectedId[0]}`, {}, (c) => {
-                dispatch({ type: "SET_CHECKLIST", list: c.data.checklist });
-                dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
+                if (c.status == 200) {
+                    console.log(c.data)
+                    dispatch({ type: "SET_CHECKLIST", list: c.data.checklist });
+                    dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
+                } else {
+                    showToast("success", "Error retrieving task. Please try again later.");
+                }
                 dispatch({ type: "SET_TASK_LOADING" });
             });
+        } else {
+            dispatch({ type: "SET_TASK_LOADING" });
         }
 
-
-
-
-        //console.log(task)
-        // $(".form-container").validator();
-
-        // setDatePicker(this.handleDate, "dueDate");
-        // setDatePicker(this.handleDate, "startDate");
-
-        // if (typeof task.Selected.id != 'undefined') {
-        //     socket.emit("GET_MEMBERS_LIST", { filter: { linkId: task.Selected.id, linkType: 'task' } });
-        //     socket.emit("GET_CHECK_LIST", { filter: { taskId: task.Selected.id } });
-        // }
-
-        // if (typeof task.Selected.workstreamId != "undefined") {
-        //     socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "taskList", filter: { "|||and|||": [{ name: "workstreamId", value: task.Selected.workstreamId }, { name: "id", value: task.Selected.id, condition: " != " }] } })
-        // }
     }
 
     componentDidUpdate() {
@@ -92,7 +83,7 @@ export default class FormComponent extends React.Component {
             selectedObj[e.target.name] = selectedDate;
         }
 
-        dispatch({ type: "SET_TASK_SELECTED", Selected: selectedObj });
+        // dispatch({ type: "SET_TASK_SELECTED", Selected: selectedObj });
     }
 
     generateDueDate(selected) {
@@ -108,7 +99,7 @@ export default class FormComponent extends React.Component {
             const nextDueDate = moment(selected.startDate).add(selected.periodType, _.toNumber(selected.period)).format('YYYY-MM-DD HH:mm:ss');
 
             Selected['dueDate'] = nextDueDate;
-            dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
+            // dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
         }
     }
 
@@ -121,7 +112,7 @@ export default class FormComponent extends React.Component {
             Selected = { ...Selected, dueDate: '', taskDueDate: '', periodType: '', period: (value == 1) ? 1 : 0, periodInstance: (value == 1) ? 1 : 0 }
         }
 
-        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
+        // dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
     handleChange(e) {
@@ -130,7 +121,7 @@ export default class FormComponent extends React.Component {
 
         Selected[e.target.name] = e.target.value;
 
-        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
+        // dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
 
     }
 
@@ -189,6 +180,10 @@ export default class FormComponent extends React.Component {
                         showToast("error", "Something went wrong please try again later.");
                     }
                 });
+            } else {
+                postData(`/api/task`, submitData, (c) => {
+
+                })
             }
 
         }
@@ -203,7 +198,7 @@ export default class FormComponent extends React.Component {
             Selected["linkTaskIds"] = [];
         }
 
-        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
+        // dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
 
         if (name == "workstreamId") {
             this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "taskList", filter: { "|||and|||": [{ name: "workstreamId", value: value }, { name: "id", value: task.Selected.id, condition: " != " }] } })
@@ -216,7 +211,7 @@ export default class FormComponent extends React.Component {
         let Selected = Object.assign({}, task.Selected);
 
         Selected[name] = values;
-        dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
+        // dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
     deleteChecklist(id) {
@@ -234,8 +229,7 @@ export default class FormComponent extends React.Component {
         const allowEdit = (loggedUser.data.userRole == 5 || loggedUser.data.userRole == 6) && (loggedUser.data.userType == "External") ? false : true;
         const taskList = _.map(task.List, (task) => { return { id: task.id, name: task.task } });
         const projectUserList = (typeof task.Selected.workstream != "undefined") ? _.map(task.Selected.workstream.project.project_members, (projectMemberObj) => { return { id: projectMemberObj.user.id, name: projectMemberObj.user.firstName + " " + projectMemberObj.user.lastName } }) : [];
-
-        console.log(checklist)
+        console.log(task.Selected)
         // let statusList = [], typeList = [], taskList = [], projectUserList = [];
 
         // let canAssignDependency = (
@@ -367,8 +361,9 @@ export default class FormComponent extends React.Component {
                                         </div>
                                         {
                                             (
-                                                typeof task.Selected.task_dependency != "undefined"
-                                                && (task.Selected.dependency_type != "" && task.Selected.dependency_type != null)
+                                                typeof task.Selected.dependency_type != "undefined"
+                                                &&
+                                                (task.Selected.dependency_type != "" && task.Selected.dependency_type != null)
                                             ) && <div class="form-group">
                                                 <label class="col-md-3 col-xs-12 control-label">Dependent Tasks *</label>
                                                 <div class="col-md-7 col-xs-12">
