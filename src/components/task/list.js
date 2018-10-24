@@ -24,30 +24,27 @@ export default class List extends React.Component {
 
     componentWillMount() {
         let { loggedUser } = this.props;
-        console.log(loggedUser)
-        // let intervalLoggedUser = setInterval(() => {
-        //     if (typeof this.props.loggedUser.data.id != "undefined") {
-        //         let filter = { filter: { projectId: project } };
-        //         if (this.props.loggedUser.data.userRole != 1 && this.props.loggedUser.data.userRole != 2) {
-        //             filter = { filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
-        //         }
-        //         if (typeof this.props.task.Selected.task == "undefined") {
-        //             socket.emit("GET_TASK_LIST", filter);
-        //         }
-        //         clearInterval(intervalLoggedUser)
-        //     }
-        // }, 1000)
-        // this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        // this.props.socket.emit("GET_STATUS_LIST", {});
-        // this.props.socket.emit("GET_TYPE_LIST", {});
-        // this.props.socket.emit("GET_USER_LIST", {});
-        // this.props.socket.emit("GET_TEAM_LIST", {});
-        // this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
+        let intervalLoggedUser = setInterval(() => {
+            if (typeof this.props.loggedUser.data.id != "undefined") {
+                let filter = { filter: { projectId: project } };
+                if (this.props.loggedUser.data.userRole != 1 && this.props.loggedUser.data.userRole != 2) {
+                    filter = { filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
+                }
+                if (typeof this.props.task.Selected.task == "undefined") {
+                    this.props.socket.emit("GET_TASK_LIST", filter);
+                }
+                clearInterval(intervalLoggedUser)
+            }
+        }, 1000)
+        this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
+        this.props.socket.emit("GET_STATUS_LIST", {});
+        this.props.socket.emit("GET_TYPE_LIST", {});
+        this.props.socket.emit("GET_USER_LIST", {});
+        this.props.socket.emit("GET_TEAM_LIST", {});
+        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
     }
 
     componentDidMount(){
-        let { loggedUser } = this.props;
-        console.log(loggedUser)
     }
 
     updateActiveStatus(params) {

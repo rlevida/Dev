@@ -135,7 +135,51 @@ exports.get = {
 exports.post = {
     index: (req, cb) => {
         const body = req.body;
-        console.log(body)
+        const options = {
+            include: associationStack
+        };
+
+        try {
+            Tasks.create(_.omit(body, ["task_dependency", "dependency_type", "assignedTo"])).then((response) => {
+                const newTaskObj = response.toJSON();
+
+                async.parallel({
+                    task_dependency: (parallelCallback) => {
+                        const taskDependencyPromise = _.map(body.task_dependency, (taskDependencyObj) => {
+                            return new Promise((resolve) => {
+                                const dependentObj = {
+                                    taskId: newTaskObj.id,
+                                    dependencyType: body.dependency_type,
+                                    linkTaskId: taskDependencyObj.value
+                                };
+                                TaskDependency.create(dependentObj).then((response) => {
+                                    resolve(response.toJSON());
+                                })
+                            })
+                        });
+
+                        Promise.all(taskDependencyPromise).then((values) => {
+                            parallelCallback(null, values);
+                        });
+                    },
+                    members: (parallelCallback) => {
+                        const assignedTo = { linkType: "task", linkId: newTaskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" };
+                        Members.create(assignedTo).then((response) => {
+                            parallelCallback(null, response.toJSON());
+                        });
+                    }
+                }, (err, result) => {
+                    Tasks.findOne(
+                        { ...options, where: { id: newTaskObj.id } }
+                    ).then((response) => {
+                        const responseData = response.toJSON();
+                        cb({ status: true, data: responseData })
+                    });
+                })
+            });
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
         // defaultPost(dbName, req, (res) => {
         //     if (res.success) {
         //         cb({ status: true, data: res.data })
