@@ -33,6 +33,8 @@
         var taskId = '<%= (typeof task != "undefined")?task:"" %>'
         var folderParams = '<%= (typeof folder != "undefined")?folder:"" %>'
         var folderParamsType = '<%= (typeof folderType != "undefined")?folderType:"" %>'
+        var user = '<%- JSON.parse(user) %>'
+        var loggedUser = JSON.parse(user)
       </script>
       <script src="/javascripts/vendor.js"></script>
       <script src="/javascripts/app.min.js"></script>

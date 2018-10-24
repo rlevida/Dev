@@ -327,8 +327,6 @@ var getProjectList = exports.getProjectList = ( tablename, data, advance , cb ) 
                 LEFT JOIN ( SELECT users.id as projectManagerId , users.firstName , members.linkId as projectLinkId , users.lastName FROM users 
                     LEFT JOIN members ON members.userTypeLinkId = users.id WHERE memberType = 'project manager'
                     ) as member ON prj.id = member.projectLinkId  
-
-                WHERE prj.isDeleted = 0 
             ` 
     /**
      * Manage Query Connection

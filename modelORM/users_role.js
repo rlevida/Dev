@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('users_role', {
+  const UsersRole = sequelize.define('users_role', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -36,6 +36,9 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-    tableName: 'users_role'
+    tableName: 'users_role',
+    timestamps: false
   });
+
+  return UsersRole;
 };

@@ -1,14 +1,10 @@
 export default function reducer(state = {
-    data: {
-        username: "",
-        emailAddress: "",
-        userType: ""
-    }
+    data: (typeof loggedUser != "undefined") ? loggedUser : {}
 }, action) {
     switch (action.type) {
-        //Set 
+        //Set
         case "SET_LOGGED_USER_DATA": {
-            return { ...state, data: action.data }
+            return { ...state }
         }
         default:
             return state;

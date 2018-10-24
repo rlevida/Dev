@@ -103,7 +103,6 @@ module.exports = (sequelize, DataTypes) => {
     Tasks.belongsTo(models.Tag, {
       foreignKey: 'id'
     });
-
     Tasks.hasMany(models.TaskDependency, {
       as: 'task_dependency',
       foreignKey: 'taskId'
@@ -113,7 +112,7 @@ module.exports = (sequelize, DataTypes) => {
       as: 'task_members',
       foreignKey: 'linkId'
     });
-    
+
     Tasks.hasMany(models.TaskChecklist, {
       as: 'checklist',
       foreignKey: 'taskId'
@@ -123,6 +122,20 @@ module.exports = (sequelize, DataTypes) => {
       as: 'workstream',
       foreignKey: 'workstreamId'
     });
+    Tasks.hasMany(models.Members, {
+      foreignKey: 'linkId',
+      as: 'assignee'
+    })
+    Tasks.hasMany(models.Members, {
+      foreignKey: "linkId",
+      as: 'follower'
+    })
+
+    Tasks.belongsTo(models.Workstream, {
+      foreignKey: 'workstreamId',
+      as: 'workstream'
+    })
+
   };
 
   return Tasks

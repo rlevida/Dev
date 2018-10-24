@@ -46,7 +46,8 @@ router.get('/', function (req, res, next) {
         res.render('index', {
             title: global.site_name,
             page: 'index',
-            body: "./template/index"
+            body: "./template/index",
+            user: JSON.stringify(req.userDetails.data)
         });
     }else{
         if(req.memberDetails.length > 1){
@@ -66,7 +67,8 @@ router.get('/users', function (req, res, next) {
             res.render('index', {
                 title: global.site_name + " - Users",
                 body: './template/index',
-                page: 'users'
+                page: 'users',
+                user: JSON.stringify(req.userDetails.data)
             });
         }else{
             res.render('index', {
@@ -82,7 +84,8 @@ router.get('/company', function (req, res, next) {
     res.render('index', {
         title: global.site_name + " - Company",
         body: './template/index',
-        page: 'company'
+        page: 'company',
+        user: JSON.stringify(req.userDetails.data)
     });
 });
 
@@ -90,7 +93,8 @@ router.get('/mytask', function (req, res, next) {
     res.render('index', {
         title: global.site_name + " - Teams",
         body: './template/index',
-        page: 'mytask'
+        page: 'mytask',
+        user: JSON.stringify(req.userDetails.data)
     });
 });
 
@@ -98,7 +102,8 @@ router.get('/wikis', function (req, res, next) {
     res.render('index', {
         title: global.site_name + " - Wikis",
         body: './template/index',
-        page: 'wikis'
+        page: 'wikis',
+        user: JSON.stringify(req.userDetails.data)
     });
 });
 
@@ -106,7 +111,8 @@ router.get('/reports', function (req, res, next) {
     res.render('index', {
         title: global.site_name + " - Reports",
         body: './template/index',
-        page: 'reports'
+        page: 'reports',
+        user: JSON.stringify(req.userDetails.data)
     });
 });
 
@@ -114,7 +120,8 @@ router.get('/profile',function (req,res,next){
     res.render('index', {
         title: global.site_name + " - Profile",
         body: './template/index',
-        page: 'profile'
+        page: 'profile',
+        user: JSON.stringify(req.userDetails.data)
     });
 })
 
@@ -122,7 +129,8 @@ router.get('/reminder',function(req,res,next){
     res.render('index',{
         title: global.site_name + ' - Reminder',
         body: './template/index',
-        page: 'reminder'
+        page: 'reminder',
+        user: JSON.stringify(req.userDetails.data)
     })
 })
 
@@ -135,7 +143,8 @@ router.get('/task/:id',function(req,res,next){
             page: 'selectedTask',
             task: req.params.id,
             project: c.data.project,
-            workstream: c.data.workstream
+            workstream: c.data.workstream,
+            user: JSON.stringify(req.userDetails.data)
         })
     })
 })
@@ -151,6 +160,7 @@ router.get('/project/task/:id',function(req,res,next){
             project: c.data.project,
             workstream: c.data.workstream,
             subpage: 'task',
+            user: JSON.stringify(req.userDetails.data)
         })
     })
 })

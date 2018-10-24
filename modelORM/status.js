@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('status', {
+  const Status = sequelize.define('status', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -36,6 +36,9 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-    tableName: 'status'
+    tableName: 'status',
+    timestamps: false
   });
+
+  return Status;
 };

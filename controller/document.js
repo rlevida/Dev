@@ -288,9 +288,9 @@ exports.post = {
         //     })
         // });
         // once all the files have been uploaded, send a response to the client
-        form.on('end', function () {
-            cb({ status: true, data: filenameList })
-        });
+        // form.on('end', function () {
+        //     cb({ status: true, data: filenameList })
+        // });
         // parse the incoming request containing the form data
         form.parse(req);
     },
