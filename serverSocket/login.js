@@ -2,6 +2,11 @@ var func = global.initFunc(),
     sequence = require("sequence").Sequence,
     async = require("async");
 
+const models = require('../modelORM');
+const {
+    UsersRole
+} = models;
+
 var init = exports.init = (socket) => {
 
     var updateIpBlock = (ipBlockData, ipAddress) => {
@@ -44,58 +49,19 @@ var init = exports.init = (socket) => {
             })
         }).then((nextThen, ipBlockData) => {
             users.getData("users", { username: data.username }, { allowedPrivate: true }, (user) => {
+
                 if (user.status && user.data.length > 0) {
-
-                    if (!user.data[0].salt || typeof user.data[0].salt == "undefined") {
-                        updateIpBlock(ipBlockData, data.ipAddress)
-                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Incorrect username/password." })
-                        return;
-                    }
-                    // check if user is Active
-                    if (user.data[0].isActive == 0) {
-                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Account is inactive. Please contact your administrator." })
-                        return;
-                    }
-
-                    // manage password hash here
-                    var inputPassword = func.generatePassword(data.password, user.data[0].salt);
-                    if (user.data[0].password == inputPassword) {
-                        if (typeof socket.request.cookies["app.sid"] == "undefined") {
-                            // manage token if app.sid is not yet set by the server/mobile access directly to socket during login
-                            const TokenGenerator = require('uuid-token-generator');
-                            socket.request.cookies["app.sid"] = new TokenGenerator(256).generate();
-                        }
-
-                        let session = global.initModel("session");
-                        session.getData("session", { usersId: user.data[0].id }, {}, (sess) => {
-                            if (ipBlockData.length > 0) {
-                                ipBlock.deleteData("ip_block", { id: ipBlockData[0].id }, () => { })
-                            }
-                            if (sess.data.length == 0) {
-                                delete user.data[0].password;
-                                delete user.data[0].salt;
-                                session.postData("session", { usersId: user.data[0].id, session: socket.request.cookies["app.sid"], data: JSON.stringify(user.data[0]), dateAdded: new Date() }, () => {
-                                    nextThen(user.data[0])
-                                    return;
-                                })
-                            } else {
-                                delete user.data[0].password;
-                                delete user.data[0].salt;
-                                session.putData(
-                                    "session",
-                                    { session: socket.request.cookies["app.sid"], data: JSON.stringify(user.data[0]), dateAdded: new Date() },
-                                    { id: sess.data[0].id },
-                                    () => {
-                                        nextThen(user.data[0])
-                                        return;
-                                    })
-                            }
+                    UsersRole
+                        .findAll({
+                            where : { usersId : user.data[0].id }
                         })
-                    } else {
-                        updateIpBlock(ipBlockData, data.ipAddress)
-                        socket.emit("RETURN_ERROR_MESSAGE", { message: "Incorrect username/password." })
-                        return;
-                    }
+                        .then((res) => {
+                            user.data[0].role = res
+                            nextThen(user, ipBlockData)
+                        })
+                        .catch((err) => {
+                            console.log(err)
+                        })
 
                 } else {
                     if (user.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: (user.error.sqlMessage) ? user.error.sqlMessage : user.error.code }); return }
@@ -105,6 +71,57 @@ var init = exports.init = (socket) => {
                     return;
                 }
             })
+        }).then((nextThen, user, ipBlockData) => {
+            if (!user.data[0].salt || typeof user.data[0].salt == "undefined") {
+                updateIpBlock(ipBlockData, data.ipAddress)
+                socket.emit("RETURN_ERROR_MESSAGE", { message: "Incorrect username/password." })
+                return;
+            }
+            // check if user is Active
+            if (user.data[0].isActive == 0) {
+                socket.emit("RETURN_ERROR_MESSAGE", { message: "Account is inactive. Please contact your administrator." })
+                return;
+            }
+
+            // manage password hash here
+            var inputPassword = func.generatePassword(data.password, user.data[0].salt);
+            if (user.data[0].password == inputPassword) {
+                if (typeof socket.request.cookies["app.sid"] == "undefined") {
+                    // manage token if app.sid is not yet set by the server/mobile access directly to socket during login
+                    const TokenGenerator = require('uuid-token-generator');
+                    socket.request.cookies["app.sid"] = new TokenGenerator(256).generate();
+                }
+
+                let session = global.initModel("session");
+                session.getData("session", { usersId: user.data[0].id }, {}, (sess) => {
+                    if (ipBlockData.length > 0) {
+                        ipBlock.deleteData("ip_block", { id: ipBlockData[0].id }, () => { })
+                    }
+                    if (sess.data.length == 0) {
+                        delete user.data[0].password;
+                        delete user.data[0].salt;
+                        session.postData("session", { usersId: user.data[0].id, session: socket.request.cookies["app.sid"], data: JSON.stringify(user.data[0]), dateAdded: new Date() }, () => {
+                            nextThen(user.data[0])
+                            return;
+                        })
+                    } else {
+                        delete user.data[0].password;
+                        delete user.data[0].salt;
+                        session.putData(
+                            "session",
+                            { session: socket.request.cookies["app.sid"], data: JSON.stringify(user.data[0]), dateAdded: new Date() },
+                            { id: sess.data[0].id },
+                            () => {
+                                nextThen(user.data[0])
+                                return;
+                            })
+                    }
+                })
+            } else {
+                updateIpBlock(ipBlockData, data.ipAddress)
+                socket.emit("RETURN_ERROR_MESSAGE", { message: "Incorrect username/password." })
+                return;
+            }
         }).then((nextThen, userDetails) => {
             if (userDetails.userType == "External") {
                 let members = global.initModel("members")
