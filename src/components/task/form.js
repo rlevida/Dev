@@ -182,7 +182,7 @@ export default class FormComponent extends React.Component {
             } else {
                 postData(`/api/task`, submitData, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "UPDATE_DATA_TASK_LIST", data: [c.data] })
+                        dispatch({ type: "UPDATE_DATA_TASK_LIST", data: c.data })
                         showToast("success", "Task successfully updated.");
                     } else {
                         showToast("error", "Something went wrong please try again later.");

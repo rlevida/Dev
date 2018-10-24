@@ -1,11 +1,13 @@
 const async = require("async");
 const _ = require("lodash");
 const moment = require("moment");
+// const Sequelize = require('sequelize');
 const models = require('../modelORM');
 const { TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, ActivityLogs } = models;
 const dbName = "task";
 const { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./");
-const func = global.initFunc()
+const func = global.initFunc();
+// const Op = Sequelize.Op
 const associationStack = [
     {
         model: Members,
@@ -141,52 +143,104 @@ exports.post = {
 
         try {
             Tasks.create(_.omit(body, ["task_dependency", "dependency_type", "assignedTo"])).then((response) => {
-                const newTaskObj = response.toJSON();
+                const newTaskResponse = response.toJSON();
+                async.waterfall([
+                    function (callback) {
+                        if (typeof body.periodic != "undefined" && body.periodic == 1) {
+                            const taskPromises = _.times(body.periodInstance - 1, (o) => {
+                                return new Promise((resolve) => {
+                                    const nextDueDate = moment(body.dueDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
+                                    const newPeriodTask = { ...body, dueDate: nextDueDate, periodTask: newTaskResponse.id, ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss') } : {} }
 
-                async.parallel({
-                    task_dependency: (parallelCallback) => {
-                        const taskDependencyPromise = _.map(body.task_dependency, (taskDependencyObj) => {
+                                    Tasks.create(_.omit(newPeriodTask, ["task_dependency", "dependency_type", "assignedTo"])).then((response) => {
+                                        const createTaskObj = response.toJSON();
+                                        resolve(createTaskObj);
+                                    });
+                                });
+                            });
+                            Promise.all(taskPromises).then((values) => {
+                                callback(null, [...[newTaskResponse], ...values])
+                            })
+                        } else {
+                            callback(null, [newTaskResponse])
+                        }
+                    },
+                    function (newTasksArgs, callback) {
+                        const taskAttrPromises = _.map(newTasksArgs, (taskObj) => {
                             return new Promise((resolve) => {
-                                const dependentObj = {
-                                    taskId: newTaskObj.id,
-                                    dependencyType: body.dependency_type,
-                                    linkTaskId: taskDependencyObj.value
-                                };
-                                TaskDependency.create(dependentObj).then((response) => {
-                                    resolve(response.toJSON());
+                                async.parallel({
+                                    task_dependency: (parallelCallback) => {
+                                        const taskDependencyPromise = _.map(body.task_dependency, (taskDependencyObj) => {
+                                            return new Promise((resolve) => {
+                                                const dependentObj = {
+                                                    taskId: taskObj.id,
+                                                    dependencyType: body.dependency_type,
+                                                    linkTaskId: taskDependencyObj.value
+                                                };
+                                                TaskDependency.create(dependentObj).then((response) => {
+                                                    resolve({ data: response.toJSON() });
+                                                })
+                                            })
+                                        });
+
+                                        Promise.all(taskDependencyPromise).then((values) => {
+                                            parallelCallback(null, values);
+                                        });
+                                    },
+                                    members: (parallelCallback) => {
+                                        const assignedTo = { linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" };
+                                        Members.create(assignedTo).then((response) => {
+                                            parallelCallback(null, response.toJSON());
+                                        });
+                                    }
+                                }, (err, response) => {
+                                    resolve(response)
                                 })
                             })
                         });
 
-                        Promise.all(taskDependencyPromise).then((values) => {
-                            parallelCallback(null, values);
+                        Promise.all(taskAttrPromises).then((values) => {
+                            callback(null, newTasksArgs)
                         });
                     },
-                    members: (parallelCallback) => {
-                        const assignedTo = { linkType: "task", linkId: newTaskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" };
-                        Members.create(assignedTo).then((response) => {
-                            parallelCallback(null, response.toJSON());
-                        });
+                    function (newTasksArgs, callback) {
+                        async.parallel({
+                            tasks: (parallelCallback) => {
+                                Tasks.findAll(
+                                    {
+                                        ...options,
+                                        where: {
+                                            id: {
+                                                [Sequelize.Op.in]: _.map(newTasksArgs, (o) => { return o.id })
+                                            }
+                                        }
+                                    }
+                                ).map((mapObject) => {
+                                    return mapObject.toJSON();
+                                }).then((response) => {
+                                    parallelCallback(null, response)
+                                });
+                            },
+                            activity_logs: (parallelCallback) => {
+                                const activityLogs = _.map(newTasksArgs, (taskObj) => {
+                                    return { usersId: body.userId, linkType: "task", linkId: taskObj.id, actionType: "created", new: JSON.stringify(taskObj) }
+                                })
+                                ActivityLogs.bulkCreate(activityLogs).then((response) => {
+                                    parallelCallback(null, response)
+                                });
+                            }
+                        }, (err, response) => {
+                            callback(null, response)
+                        })
+
                     }
-                }, (err, result) => {
-                    Tasks.findOne(
-                        { ...options, where: { id: newTaskObj.id } }
-                    ).then((response) => {
-                        const responseData = response.toJSON();
-                        cb({ status: true, data: responseData })
-                    });
-                })
+                ], function (err, result) {
+                    cb({ status: true, data: result.tasks });
+                });
             });
         } catch (err) {
             cb({ status: false, error: err })
         }
-        // defaultPost(dbName, req, (res) => {
-        //     if (res.success) {
-        //         cb({ status: true, data: res.data })
-        //     } else {
-        //         cb({ status: false, error: res.error })
-        //     }
-        // })
     }
 }
 
