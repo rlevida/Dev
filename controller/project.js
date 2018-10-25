@@ -21,10 +21,13 @@ const {
     DocumentLink,
     Members,
     Project,
-    Status,
     Tag,
     Tasks,
+    Teams,
     Type,
+    Users,
+    UsersTeam,
+    UsersRole,
     Workstream,
 } = models;
 
@@ -102,6 +105,81 @@ exports.get = {
                 })
             }
         })
+    },
+    getProjectMembers : (req,cb) => {
+        let d = req.query;
+        let filter = (typeof d.filter != "undefined") ? JSON.parse(d.filter) : {};
+
+        Members
+            .findAll({  
+                where : filter,
+                include: [
+                    {
+                        model: Users,
+                        as:'user',
+                        include : [
+                            {
+                                model: UsersRole,
+                                as: 'role',
+                            },
+                            {
+                                model: UsersTeam,
+                                as: 'team'
+                            }
+                        ]
+                    },
+                ]
+            })
+            .then((res) => {
+                cb({status:true, data: res})
+            })
+            .catch((err) => {
+                console.error(err)
+            })
+    },
+    getProjectTeams : (req,cb) => {
+        let d = req.query;
+        let filter = (typeof d.filter != "undefined") ? JSON.parse(d.filter) : {};
+        Members
+        .findAll({  
+            where : filter,
+            include: [
+                {
+                    model: Teams,
+                    as: 'team',
+                    include: [
+                        {
+                            model:Users,
+                            as:'teamLeader'
+                        },
+                        {
+                            model:UsersTeam,
+                            as:'users_team',
+                            include:[{
+                                model:Users,
+                                as:'user',
+                                include : [
+                                    {
+                                        model: UsersRole,
+                                        as: 'role',
+                                    },
+                                    {
+                                        model: UsersTeam,
+                                        as: 'team'
+                                    }
+                                ]
+                            }]
+                        }
+                    ]
+                },
+            ]
+        })
+        .then((res) => {
+            cb({status:true, data: res})
+        })
+        .catch((err) => {
+            console.error(err)
+        })
     }
 }
 
@@ -120,6 +198,132 @@ exports.post = {
                 })
             }
         })
+    },
+    projectMember: (req, cb) => {
+        let d = req.body
+        if(d.data.usersType == 'users'){
+            Members
+                .create(req.body.data)
+                .then((res) => {
+                    Members
+                        .findOne({ 
+                            where :{ userTypeLinkId:res.dataValues.userTypeLinkId, usersType: 'users'},
+                            include: [
+                                {
+                                    model: Users,
+                                    as:'user',
+                                    include : [
+                                        {
+                                            model: UsersRole,
+                                            as: 'role',
+                                        },
+                                        {
+                                            model: UsersTeam,
+                                            as: 'team'
+                                        }
+                                    ]
+                                },
+                            ]
+                        })
+                        .then((findRes) => {
+                            cb({ status: true, data: [findRes] });
+                        })
+                        .catch((err) => {
+                            console.log(err)
+                        })
+                    return null;
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+        }else{
+            async.waterfall([
+                function (callback) {
+                    UsersTeam
+                    .findAll({ 
+                        where : { teamId : d.data.userTypeLinkId },
+                    })
+                    .map((res) => {
+                        return res.usersId
+                    })
+                    .then((res) => {
+                       callback(null,res)
+                    })
+                },
+                function(userIds, callback){
+                    Members.destroy({
+                        where: { userTypeLinkId : userIds, usersType: 'users' }
+                    })
+                    .then((res) => {
+                        callback(null,res)
+                        return null;
+                    })
+                    .catch((err) => {
+                        callback(err,"")
+                    })
+                },
+                function(usersIds, callback){
+                    Members
+                    .create(req.body.data)
+                    .then((res) => {
+                        callback(null,res.dataValues.id)
+                        return null;
+                    })
+                    .catch((err) => {
+                        console.error(err)
+                    })
+                },
+                function(teamId, callback){
+                    Members
+                    .findOne({
+                        where: {id:teamId},
+                        include: [
+                            {
+                                model: Teams,
+                                as: 'team',
+                                include: [
+                                    {
+                                        model:Users,
+                                        as:'teamLeader'
+                                    },
+                                    {
+                                        model:UsersTeam,
+                                        as:'users_team',
+                                        include:[{
+                                            model:Users,
+                                            as:'user',
+                                            include : [
+                                                {
+                                                    model: UsersRole,
+                                                    as: 'role',
+                                                },
+                                                {
+                                                    model: UsersTeam,
+                                                    as: 'team'
+                                                }
+                                            ]
+                                        }]
+                                    }
+                                ]
+                            },
+                        ],
+                    })
+                    .then((findRes) => {
+                        callback(null,findRes)
+                        return null;
+                    })
+                    .catch((err) => {
+                        callback(err,"")
+                    })
+                }
+            ],function (err, result) {
+                if(err != null){
+                    cb({status: false, error:err})
+                }else{
+                    cb({status: true, data:[result]})
+                }
+            });
+        }
     }
 }
 
@@ -174,13 +378,25 @@ exports.put = {
                     })
                 })
         })
+    },
+    projectMember: (req,cb) => {
+        let d = req.body
+        let filter = d.filter
+
+        Members
+            .update( d.data, { where : filter })
+            .then((res) => {
+                cb({ status: true, data: res});
+            })
+            .catch((err) => {
+                cb({ status: false, error: err});
+            })
     }
 }
 
 exports.delete = {
     index: (req, cb) => {
         let d = req.params
-        
             async.waterfall([
                function (callback){
                     async.parallel({
@@ -356,5 +572,18 @@ exports.delete = {
             ], function (error, result) {
                 cb({ status: true , data : d.id })
             });
+    },
+    deleteProjectMember: (req, cb) => {
+        try{
+            let d = req.params
+            Members.destroy({
+                    where: { id: d.id }
+                })
+                .then((res) => {
+                    cb({ status: true, data: d.id })
+                })
+        }catch(err){
+            console.log(err)
+        }
     }
 }

@@ -41,72 +41,6 @@ exports.get = {
         } catch (err) {
             cb({ status: false, error: err })
         }
-    },
-    getProjectMembers : (req,cb) => {
-        let d = req.query;
-        let filter = (typeof d.filter != "undefined") ? JSON.parse(d.filter) : {};
-
-        Members
-            .findAll({  
-                where : filter,
-                include: [
-                    {
-                        model: Users,
-                        as:'user',
-                        include : [
-                            {
-                                model: UsersRole,
-                                as: 'role',
-                            },
-                            {
-                                model: UsersTeam,
-                                as: 'team'
-                            }
-                        ]
-                    },
-                ]
-            })
-            .then((res) => {
-                cb({status:true, data: res})
-            })
-            .catch((err) => {
-                console.error(err)
-            })
-    },
-    getProjectTeams : (req,cb) => {
-
-        let d = req.query;
-        let filter = (typeof d.filter != "undefined") ? JSON.parse(d.filter) : {};
-        Members
-        .findAll({  
-            where : filter,
-            include: [
-                {
-                    model: Teams,
-                    as: 'team',
-                    include: [
-                        {
-                            model:Users,
-                            as:'teamLeader'
-                        },
-                        {
-                            model:UsersTeam,
-                            as:'users_team',
-                            include:[{
-                                model:Users,
-                                as:'user'
-                            }]
-                        }
-                    ]
-                },
-            ],
-        })
-        .then((res) => {
-            cb({status:true, data: res})
-        })
-        .catch((err) => {
-            console.error(err)
-        })
     }
 }
 
@@ -135,18 +69,14 @@ exports.post = {
 }
 
 exports.put = {
-    index: (req, cb) => {
-        let d = req.body
-        let filter = d.filter
-
-        Members
-            .update( d.data, { where : filter })
-            .then((res) => {
-                cb({ status: true, data: res});
-            })
-            .catch((err) => {
-                cb({ status: false, error: err});
-            })
+    index : (req,cb) => {
+        defaultPut(dbName,req,(res)=>{
+            if(res.success){
+                cb({ status:true, data:res.data })
+            } else {
+                cb({ status:false, error:c.error })
+            }
+        })
     }
 }
 

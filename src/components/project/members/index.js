@@ -63,17 +63,15 @@ export default class MembersForm extends React.Component {
             memberType: 'assignedTo'
         }
 
-        postData(`/api/member`, { data: dataToSubmit }, (c) => {
+        postData(`/api/project/projectMember`, { data: dataToSubmit }, (c) => {
            if(members.Selected.type == "users"){
-                let newMemberToAdd = users.List.filter((e) => { return e.id == members.Selected.userTypeLinkId })[0]
-                members.List.push({ ...c.data , user: newMemberToAdd })
-                dispatch({type:"SET_MEMBERS_LIST", list : members.List })
+                dispatch({type:"ADD_MEMBER_TO_LIST", list : c.data })
            }else{
-                let newTeamToAdd = global.SelectList.teamList.filter((e) => { return e.id ==  members.Selected.userTypeLinkId })[0]
-                teams.List.push({ ...c.data, team: newTeamToAdd })
-                dispatch({type:"SET_TEAM_LIST", list : teams.List })
+                dispatch({type:"ADD_TEAM_TO_LIST", list : c.data })
            }
+           showToast("success","Successfully Added.")
            dispatch({type:"SET_MEMBERS_SELECTED", Selected: {}})
+           this.setState({ showAllUsers: false })
         })
     }
 
@@ -232,7 +230,7 @@ export default class MembersForm extends React.Component {
                                 <div class="col-md-7 col-xs-12">
                                     <DropDown multiple={false}
                                         required={true}
-                                        options={_.uniqWith(memberList, _.isEqual)}
+                                        options={memberList}
                                         selected={(typeof members.Selected.userTypeLinkId == "undefined") ? "" : members.Selected.userTypeLinkId}
                                         onChange={(e) => {
                                             this.setDropDown("userTypeLinkId", e.value);

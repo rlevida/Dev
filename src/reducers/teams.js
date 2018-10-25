@@ -8,6 +8,13 @@ export default function reducer(state = {
     Trainer: []
 }, action) {
     switch (action.type) {
+        case "ADD_TEAM_TO_LIST":{
+            let List = state.List;
+            action.list.map( e => {
+                List.push( e )
+            })
+            return {...state, List : List }
+        }
         case "SET_TEAM_LIST": {
             return { ...state, List: action.list }
         }
@@ -27,13 +34,11 @@ export default function reducer(state = {
             return { ...state, List: List }
         }
         case "REMOVE_DELETED_TEAM_LIST": {
-            let tempList = [];
-            action.List.map((e, i) => {
-                if (action.id != e.id) {
-                    tempList.push(e)
-                }
-            })
-            return { ...state, List: tempList }
+            const { List } = { ...state };
+            const updatedTest = _.filter(List, (o) => {
+                return o.id != action.id
+            });
+            return { ...state, List: updatedTest }
         }
         case "SET_TEAM_STATUS": {
             let List = state.List.map((e, i) => {
