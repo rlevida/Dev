@@ -1,9 +1,11 @@
 import React from "react";
 import Tooltip from "react-tooltip";
-import { HeaderButtonContainer } from "../../globalComponents";
-import moment from 'moment';
-import TaskStatus from "./taskStatus"
 import _ from "lodash";
+import moment from 'moment';
+
+import { HeaderButtonContainer, Loading } from "../../globalComponents";
+import { getData, showToast } from "../../globalFunction";
+import TaskStatus from "./taskStatus"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -15,36 +17,81 @@ import { connect } from "react-redux"
 })
 export default class List extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
 
-        this.deleteData = this.deleteData.bind(this)
-        this.updateActiveStatus = this.updateActiveStatus.bind(this)
-        this.renderStatus = this.renderStatus.bind(this)
+        this.deleteData = this.deleteData.bind(this);
+        this.updateActiveStatus = this.updateActiveStatus.bind(this);
+        this.renderStatus = this.renderStatus.bind(this);
+        this.fetchData = this.fetchData.bind(this);
     }
 
     componentWillMount() {
-        let { loggedUser } = this.props;
-        let intervalLoggedUser = setInterval(() => {
-            if (typeof this.props.loggedUser.data.id != "undefined") {
-                let filter = { filter: { projectId: project } };
-                if (this.props.loggedUser.data.userRole != 1 && this.props.loggedUser.data.userRole != 2) {
-                    filter = { filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
-                }
-                if (typeof this.props.task.Selected.task == "undefined") {
-                    this.props.socket.emit("GET_TASK_LIST", filter);
-                }
-                clearInterval(intervalLoggedUser)
-            }
-        }, 1000)
-        this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        this.props.socket.emit("GET_STATUS_LIST", {});
-        this.props.socket.emit("GET_TYPE_LIST", {});
-        this.props.socket.emit("GET_USER_LIST", {});
-        this.props.socket.emit("GET_TEAM_LIST", {});
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
+
+        // let intervalLoggedUser = setInterval(() => {
+        //     if (typeof this.props.loggedUser.data.id != "undefined") {
+        //         let filter = { filter: { projectId: project } };
+        //         if (this.props.loggedUser.data.userRole != 1 && this.props.loggedUser.data.userRole != 2) {
+        //             filter = { filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
+        //         }
+        //         if (typeof this.props.task.Selected.task == "undefined") {
+        //             this.props.socket.emit("GET_TASK_LIST", filter);
+        //         }
+        //         clearInterval(intervalLoggedUser)
+        //     }
+        // }, 1000)
+
     }
 
-    componentDidMount(){
+    componentDidMount() {
+        const { socket, task } = this.props;
+        const { Count } = task;
+
+        if (_.isEmpty(Count)) {
+            this.fetchData(1);
+        } else if (Count.current_page != Count.last_page) {
+            this.fetchData(Count.current_page + 1);
+        }
+        // getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=1`, {}, (c) => {
+        //     dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
+        //     dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+        //     showToast("success", "Task successfully retrieved.");
+        //     // dispatch({ type: "SET_TASK_LIST", list: c.data })
+        //     // if (taskId != "") {
+        //     //     let selectedTask = c.data.filter((e) => { return e.id == taskId })[0]
+        //     //     dispatch({ type: "SET_TASK_SELECTED", Selected: selectedTask })
+        //     //     dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
+        //     // }
+        //     // parallelCallback(null, "")
+        // });
+
+        socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
+        socket.emit("GET_STATUS_LIST", {});
+        socket.emit("GET_TYPE_LIST", {});
+        socket.emit("GET_USER_LIST", {});
+        socket.emit("GET_TEAM_LIST", {});
+        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } });
+    }
+
+    fetchData(page) {
+        let { loggedUser, dispatch } = this.props;
+        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${page}`, {}, (c) => {
+            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            showToast("success", "Task successfully retrieved.");
+            // dispatch({ type: "SET_TASK_LIST", list: c.data })
+            // if (taskId != "") {
+            //     let selectedTask = c.data.filter((e) => { return e.id == taskId })[0]
+            //     dispatch({ type: "SET_TASK_SELECTED", Selected: selectedTask })
+            //     dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
+            // }
+            // parallelCallback(null, "")
+        });
+    }
+
+    getNextResult() {
+        const { task } = { ...this.props };
+        const { Count } = task
+        this.fetchData(Count.current_page + 1);
     }
 
     updateActiveStatus(params) {
@@ -61,9 +108,18 @@ export default class List extends React.Component {
     }
 
     renderStatus(data) {
-        const { isActive, taskStatus } = { ...data };
+        const { isActive, dueDate } = { ...data };
+        const dueDateMoment = moment(dueDate);
+        const currentDateMoment = moment(new Date());
+        let taskStatus = 0;
         let className = "";
         let statusColor = "#000";
+
+        if (dueDateMoment.diff(currentDateMoment, 'days') < 0 && data.status != 'Completed') {
+            taskStatus = 2
+        } else if (dueDateMoment.diff(currentDateMoment, 'days') == 0 && data.status != 'Completed') {
+            taskStatus = 1
+        }
 
         if (isActive == 0) {
             className = "fa fa-circle";
@@ -84,8 +140,11 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { task, dispatch, loggedUser } = this.props;
-        let taskList = _(task.List)
+        const { task, dispatch, loggedUser } = this.props;
+        const currentPage = (typeof task.Count.current_page != "undefined") ? task.Count.current_page : 1;
+        const lastPage = (typeof task.Count.last_page != "undefined") ? task.Count.last_page : 1;
+
+        const taskList = _(task.List)
             .orderBy(['due_date_int'], ['asc'])
             .value();
 
@@ -94,17 +153,17 @@ export default class List extends React.Component {
 
                 <TaskStatus style={{ float: "right", marginBottom: 20, marginRight: 20 }} />
                 <HeaderButtonContainer withMargin={true}>
-                    {
-                        (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) &&
-                        <li class="btn btn-info" onClick={(e) => {
-                            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
-                            dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
-                            dispatch({ type: "SET_TASK_ID", SelectedId: [] })
-                        }}
-                        >
-                            <span>New Task</span>
-                        </li>
-                    }
+                    {/* {
+                        (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) && */}
+                    <li class="btn btn-info" onClick={(e) => {
+                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
+                        dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
+                        dispatch({ type: "SET_TASK_ID", SelectedId: [] })
+                    }}
+                    >
+                        <span>New Task</span>
+                    </li>
+                    {/* } */}
                 </HeaderButtonContainer>
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
@@ -119,45 +178,38 @@ export default class List extends React.Component {
                             <th class="text-center"></th>
                         </tr>
                         {
-                            (taskList.length == 0) &&
-                            <tr>
-                                <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                            </tr>
-                        }
-                        {
                             taskList.map((data, index) => {
-                                let taskStatus = 0;
-                                let dueDate = moment(data.dueDate);
-                                let currentDate = moment(new Date());
-                                let displayedDueDate = dueDate;
+                                const assignedUser = (_.filter(data.task_members, (o) => { return o.memberType == "assignedTo" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "assignedTo" })[0].user : "";
+                                const followers = (_.filter(data.task_members, (o) => { return o.memberType == "Follower" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "Follower" }) : "";
 
-                                if (dueDate.diff(currentDate, 'days') < 0 && data.status != 'Completed') {
-                                    taskStatus = 2
-                                } else if (dueDate.diff(currentDate, 'days') == 0 && data.status != 'Completed') {
-                                    taskStatus = 1
-                                }
-                                return <tr key={index}>
-                                    <td>
-                                        {this.renderStatus({ ...data, taskStatus })}
-                                    </td>
-                                    <td class="text-left">{data.workstream_workstream}</td>
-                                    <td class="text-left"><a href={`/project/${data.projectId}/workstream/${data.workstreamId}?task=${data.id}`}>{data.task}</a></td>
-                                    <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(displayedDueDate).format('YYYY MMM DD') : ''}</td>
-                                    <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
-                                    <td class="text-center">
-                                        {(data.followersName != null) &&
-                                            <div>
-                                                <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
-                                                <Tooltip id={`follower${index}`}>
-                                                    {data.followersName.split(",").map((e, fKey) => {
-                                                        return <p key={fKey}>{e != null ? e : ""} <br /></p>
-                                                    })}
-                                                </Tooltip>
-                                            </div>
-                                        }
-                                    </td>
-                                    <td class="text-left">{data.status}</td>
-                                    <td class="text-left">
+                                return (
+                                    <tr key={index}>
+                                        <td>
+                                            {
+                                                (data.dueDate != '' && data.dueDate != null) && this.renderStatus(data)
+                                            }
+                                        </td>
+                                        <td class="text-left">{data.workstream.workstream}</td>
+                                        <td class="text-left"><a href={`/project/${data.projectId}/workstream/${data.workstreamId}?task=${data.id}`}>{data.task}</a></td>
+                                        <td class="text-center">
+                                            {
+                                                (data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            {
+                                                (assignedUser != "" && assignedUser != null) && <span title={`${assignedUser.firstName} ${assignedUser.lastName}`}><i class="fa fa-user fa-lg"></i></span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            {(followers != "") &&
+                                                <div>
+                                                    <span title={`${_.map(followers, (o) => { return o.user.firstName + " " + o.user.lastName }).join("\r\n")}`}><i class="fa fa-users fa-lg"></i></span>
+                                                </div>
+                                            }
+                                        </td>
+                                        <td class="text-left">{data.status}</td>
+                                        {/* <td class="text-left">
                                         {
                                             (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) && <div>
                                                 <a href="javascript:void(0);" data-tip="EDIT"
@@ -184,12 +236,21 @@ export default class List extends React.Component {
                                                 <Tooltip />
                                             </div>
                                         }
-                                    </td>
-                                </tr>
+                                    </td> */}
+                                    </tr>
+                                )
                             })
                         }
                     </tbody>
                 </table>
+                {
+                    (task.Loading == "RETRIEVING") && <Loading />
+                }
+                <div class="text-center">
+                    {
+                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Task</a>
+                    }
+                </div>
             </div>
         )
     }

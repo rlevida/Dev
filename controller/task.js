@@ -13,7 +13,14 @@ const associationStack = [
         model: Members,
         as: 'task_members',
         required: false,
-        where: { linkType: 'task' }
+        where: { linkType: 'task' },
+        include: [
+            {
+                model: Users,
+                as: 'user',
+                attributes: ['id', 'firstName', 'lastName']
+            }
+        ]
     },
     {
         model: TaskDependency,
@@ -82,13 +89,56 @@ const associationStack = [
 
 exports.get = {
     index: (req, cb) => {
-        defaultGet(dbName, req, (res) => {
-            if (res.status) {
-                cb({ status: true, data: res.data })
-            } else {
-                cb({ status: false, error: res.error })
+        const queryString = req.query;
+        const limit = 10;
+        const whereObj = {
+            ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
+        };
+        const options = {
+            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+            include: associationStack
+        };
+
+        async.parallel({
+            count: function (callback) {
+                try {
+                    Tasks.findAndCountAll({ where: _.omit(whereObj, ['offset', 'limit']) }).then((response) => {
+                        const pageData = {
+                            total_count: response.count,
+                            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: _.toNumber(queryString.page), last_page: _.ceil(response.count / limit) } : {}
+                        }
+
+                        callback(null, pageData)
+                    });
+                } catch (err) {
+                    callback(err)
+                }
+            },
+            result: function (callback) {
+                try {
+                    Tasks.findAll({ ...options, where: whereObj }).map((mapObject) => {
+                        return mapObject.toJSON();
+                    }).then((resultArray) => {
+                        callback(null, resultArray);
+                    });
+                } catch (err) {
+                    callback(err)
+                }
             }
-        })
+        }, function (err, results) {
+            if (err != null) {
+                cb({ status: false, error: err });
+            } else {
+                cb({ status: true, data: results })
+            }
+        });
+        // defaultGet(dbName, req, (res) => {
+        //     if (res.status) {
+        //         cb({ status: true, data: res.data })
+        //     } else {
+        //         cb({ status: false, error: res.error })
+        //     }
+        // })
     },
     getById: (req, cb) => {
         const whereObj = {

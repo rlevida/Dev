@@ -8,6 +8,7 @@ export default function reducer(state = {
     Selected: {
         isActive: true
     },
+    Count: {},
     SelectedId: [],
     FormAction: "",
     Loading: "RETRIEVING",
@@ -16,7 +17,7 @@ export default function reducer(state = {
 }, action) {
     switch (action.type) {
         case "SET_TASK_LIST": {
-            return { ...state, List: action.list, Selected: { isActive: true } }
+            return { ...state, List: action.list, Count: action.count, Selected: { isActive: true } }
         }
         case "SET_TASK_COUNT_LIST": {
             return { ...state, CountList: action.list }
@@ -42,16 +43,18 @@ export default function reducer(state = {
         case "UPDATE_DATA_TASK_LIST": {
             const { List } = { ...state };
             const copyOfList = [...List];
-
-            _.map(action.data, (o) => {
+            
+            _.map(action.List, (o) => {
                 const updateIndex = _.findIndex(copyOfList, { id: o.id });
-                
+
                 if (updateIndex >= 0) {
                     copyOfList.splice(updateIndex, 1, o);
                 } else {
                     copyOfList.push(o);
                 }
             });
+
+            return { ...state, List: copyOfList, ...(typeof action.Count != "undefined") ? { Count: action.Count } : {}, FormActive: "List" }
 
             // const updateIndex = _.findIndex(copyOfList, { id: action.data.id });
             // copyOfList.splice(updateIndex, 1, action.data);
@@ -82,7 +85,7 @@ export default function reducer(state = {
             // //         })
             // //     }
             // // }
-            return { ...state, List: copyOfList, FormActive: "List" }
+
         }
         case "REMOVE_DELETED_TASK_LIST": {
             let tempList = [];

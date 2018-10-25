@@ -39,7 +39,7 @@ exports.get = {
         async.parallel({
             count: function (callback) {
                 try {
-                    ActivityLogs.findAndCountAll({ ...options, where: _.omit(whereObj, ['offset', 'limit']) }).then((response) => {
+                    ActivityLogs.findAndCountAll({ where: _.omit(whereObj, ['offset', 'limit']) }).then((response) => {
                         const pageData = {
                             total_count: response.count,
                             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: _.toNumber(queryString.page), last_page: _.ceil(response.count / limit) } : {}

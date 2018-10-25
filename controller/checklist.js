@@ -25,7 +25,7 @@ exports.get = {
         }
         try {
             TaskChecklist.findAll(
-                { ...options, where: whereObj }
+                { ..._.omit(options, ["includes"]), where: whereObj }
             ).map((mapObject) => {
                 return mapObject.toJSON();
             }).then((resultArray) => {

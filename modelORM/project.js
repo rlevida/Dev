@@ -73,35 +73,35 @@ module.exports = (sequelize, DataTypes) => {
       as: 'project_members',
       foreignKey: 'linkId'
     });
-    Project.belongsTo(models.Status, {
+    Projects.belongsTo(models.Status, {
       as: 'status',
       foreignKey: 'statusId',
     });
 
-    Project.belongsTo(models.Type, {
+    Projects.belongsTo(models.Type, {
       as: 'type',
       foreignKey: 'typeId'
     })
 
-    Project.hasMany(models.Members, {
+    Projects.hasMany(models.Members, {
       as: 'projectManager',
       foreignKey: 'linkId'
     })
 
-    Project.hasMany(models.Workstream, {
+    Projects.hasMany(models.Workstream, {
       as: 'projectWorkstream',
       foreignKey: 'projectId'
     })
 
-    Project.hasMany(models.Tasks, {
+    Projects.hasMany(models.Tasks, {
       as: 'taskActive',
       foreignKey: 'projectId'
     })
-    Project.hasMany(models.Tasks, {
+    Projects.hasMany(models.Tasks, {
       as: 'taskOverDue',
       foreignKey: 'projectId'
     })
-    Project.hasMany(models.Tasks, {
+    Projects.hasMany(models.Tasks, {
       as: 'taskDueToday',
       foreignKey: 'projectId'
     })
