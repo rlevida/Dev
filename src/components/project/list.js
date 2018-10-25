@@ -77,7 +77,6 @@ export default class List extends React.Component {
                 getData(`/api/teams`,{}, (c) => {
                     if(c.status == 200) {
                         dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'teamList' })
-                        // dispatch({type:"SET_TEAM_LIST",list : c.data})
                         parallelCallback(null,c.data)
                     }else{
                         parallelCallback(null,"")
@@ -89,14 +88,7 @@ export default class List extends React.Component {
                     dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'roleList' })
                     parallelCallback(null,"")
                 })
-            },
-            // usersTeam: (parallelCallback) => {
-            //     getData(`/api/global/selectList`,{ params: { selectName: "teamList" }},(c) => {
-            //         dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'teamList' })
-            //         parallelCallback(null,"")
-            //     })
-            // },
-
+            }
         } ,(error, result) => {
 
         })

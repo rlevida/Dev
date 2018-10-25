@@ -36,18 +36,18 @@ export default class FormComponent extends React.Component {
     }
 
     componentWillMount() {
-        let { dispatch } = this.props;
+        let { dispatch, project } = this.props;
         $(".form-container").validator();
-
         parallel({
            projectMemberList :(parallelCallback) => {
-                getData(`/api/project/getProjectMembers`,{ params:{ filter : { linkId: this.props.project.Selected.id, linkType: 'project', usersType : 'users' }}}, (c) => {
+                let params = ``
+                getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project&usersType=users`,{}, (c) => {
                     dispatch({ type:"SET_MEMBERS_LIST", list : c.data })
                     parallelCallback(null,c.data)
                 })
             },
             projectTeamList: (parallelCallback) => {
-                getData(`/api/project/getProjectTeams`,{ params:{ filter : { linkId: this.props.project.Selected.id, linkType: 'project', usersType : 'team' }}},(c) => {
+                getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`,{ },(c) => {
                     dispatch({type:"SET_TEAM_LIST",list : c.data})
                     parallelCallback(null,c.data)
                 })
