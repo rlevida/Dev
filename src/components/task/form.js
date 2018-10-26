@@ -132,13 +132,19 @@ export default class FormComponent extends React.Component {
     }
 
     updateActiveStatus() {
-        let { task, socket } = this.props;
-        let status = "Completed"
-        if (task.Selected.task_id && task.Selected.task_status != "Completed") {
-            status = "For Approval"
-        }
+        const { task, loggedUser, dispatch } = this.props;
+        const status = "For Approval";
 
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
+        putData(`/api/task/status/${task.Selected.id}`, { userId: loggedUser.data.id, periodTask: task.Selected.periodTask, periodic: task.Selected.periodic, id: task.Selected.id, status: status }, (c) => {
+            const selectedTask = _.filter(c.data, (dataObj) => { return dataObj.id == task.Selected.id });
+
+            if (c.status == 200) {
+                dispatch({ type: "SET_TASK_SELECTED", Selected: selectedTask[0] });
+                showToast("success", "Task successfully updated.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
     }
 
     handleSubmit(e) {
@@ -213,7 +219,7 @@ export default class FormComponent extends React.Component {
     setDropDownMultiple(name, values) {
         let { task, dispatch } = this.props;
         let Selected = Object.assign({}, task.Selected);
-        
+
         Selected[name] = values;
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
@@ -233,27 +239,16 @@ export default class FormComponent extends React.Component {
         const allowEdit = (loggedUser.data.userRole == 5 || loggedUser.data.userRole == 6) && (loggedUser.data.userType == "External") ? false : true;
         const taskList = _(task.List)
             .map((taskListObj) => { return { id: taskListObj.id, name: taskListObj.task } })
-            .filter((taskListObj) => { return  taskListObj.id != task.Selected.id })
+            .filter((taskListObj) => { return taskListObj.id != task.Selected.id })
             .value();
         const projectUserList = (typeof global.SelectList.ProjectMemberList != "undefined") ? _.map(global.SelectList.ProjectMemberList, (projectMemberObj) => { return { id: projectMemberObj.id, name: projectMemberObj.firstName + " " + projectMemberObj.lastName } }) : [];
-       // let canAssignDependency = (
-        //     loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 ||
-        //     _.findIndex(task.Selected.project_manager, (o) => { return o == loggedUser.data.id }) >= 0 ||
-        //     _.findIndex(task.Selected.workstream_responsible, (o) => { return o == loggedUser.data.id }) >= 0
-        // );
+        const canAssignDependency = (typeof task.Selected.workstream != "undefined") ?
+            (
+                (loggedUser.data.userRole < 3) ||
+                (_.findIndex(task.Selected.workstream.project.project_members, (memObj) => { return memObj.user.id == loggedUser.data.id && (memObj.memberType == "project manager" || memObj.memberType == "responsible") }) >= 0)
+            )
+            : true;
 
-        // status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
-
-        // if (typeof this.props.global.SelectList.taskList != "undefined") {
-        //     this.props.global.SelectList["taskList"].map((e) => {
-        //         taskList.push({ id: e.id, name: e.task })
-        //     })
-        // }
-
-        // if (typeof global.SelectList.ProjectMemberList != "undefined") {
-        //     console.log(global.SelectList)
-        //     //global.SelectList.ProjectMemberList.map((e, i) => { projectUserList.push({ id: e.id, name: e.firstName + " " + e.lastName }) })
-        // }
         return (
             <div>
                 <HeaderButtonContainer withMargin={true}>
@@ -309,15 +304,15 @@ export default class FormComponent extends React.Component {
                                         {
                                             (task.FormAction == "") &&
                                             <div class="form-group">
-                                                <label class="col-md-3 col-xs-12 control-label">Status</label>
+                                                <label class="col-md-3 col-xs-12 control-label pt0">Status</label>
                                                 <div class="col-md-7 col-xs-12">
                                                     <span>{(task.Selected.status) ? task.Selected.status : "In Progress"}</span>
-                                                    {/* {
-                                                    (task.Selected.status == "For Approval" && task.Selected.status == "Completed" && task.Selected.id) && */}
-                                                    <div class="mt5">
-                                                        <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
-                                                    </div>
-                                                    {/* } */}
+                                                    {
+                                                        (task.Selected.status != "Completed" && typeof task.Selected.id != "undefined" && task.Selected.approvalRequired == 1) &&
+                                                        <div class="mt5">
+                                                            <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
+                                                        </div>
+                                                    }
                                                 </div>
                                             </div>
                                         }

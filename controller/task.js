@@ -687,7 +687,7 @@ exports.put = {
         try {
             async.parallel({
                 periodic: (parallelCallback) => {
-                    if (body.periodic == 1) {
+                    if (body.periodic == 1 && body.status != "Completed") {
                         const periodTaskId = (body.periodTask == null) ? body.id : body.periodTask;
                         Tasks.findAll({
                             ...options,
