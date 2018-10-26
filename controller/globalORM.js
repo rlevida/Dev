@@ -53,56 +53,64 @@ exports.get = {
                     {
                         async.parallel({
                             members: (parallelCallback) => {
-                                Members
-                                    .findAll({
-                                        where: { ...whereObj,
-                                            usersType: 'users'
-                                        },
-                                        include: [{
-                                            model: Users,
-                                            as: 'user'
-                                        }]
-                                    })
-                                    .map((res) => {
-                                        return res.user.toJSON()
-                                    })
-                                    .then((res) => {
-                                        parallelCallback(null, res)
-                                    })
+                                try {
+                                    Members
+                                        .findAll({
+                                            where: { ...whereObj,
+                                                usersType: 'users'
+                                            },
+                                            include: [{
+                                                model: Users,
+                                                as: 'user'
+                                            }]
+                                        })
+                                        .map((res) => {
+                                            return res.user.toJSON()
+                                        })
+                                        .then((res) => {
+                                            parallelCallback(null, res)
+                                        })
+                                } catch (err) {
+                                    parallelCallback(null, [])
+                                }
                             },
                             teamMembers: (parallelCallback) => {
-                                Members
-                                    .findAll({
-                                        where: { ...whereObj,
-                                            usersType: 'team'
-                                        },
-                                        include: [{
-                                            model: Teams,
-                                            as: 'team',
+                                try {
+                                    Members
+                                        .findAll({
+                                            where: { ...whereObj,
+                                                usersType: 'team'
+                                            },
                                             include: [{
-                                                model: UsersTeam,
-                                                as: 'users_team',
+                                                model: Teams,
+                                                as: 'team',
                                                 include: [{
-                                                    model: Users,
-                                                    as: 'user'
+                                                    model: UsersTeam,
+                                                    as: 'users_team',
+                                                    include: [{
+                                                        model: Users,
+                                                        as: 'user'
+                                                    }]
                                                 }]
                                             }]
-                                        }]
-                                    })
-                                    .map((res) => {
-                                        return res.team.toJSON()
-                                    })
-                                    .then((res) => {
-                                        async.map(res, (o, mapCallback) => {
-                                            let users = [];
-                                            o.users_team.map((e) => {
-                                                users.push(e.user)
-                                            })
-                                            mapCallback(null, users)
-                                        }, (err, result) => {
-                                            parallelCallback(null, _.uniqBy(_.flatten(result), 'id'))
-                                        });
-                                    })
+                                        })
+                                        .map((res) => {
+                                            return res.team.toJSON()
+                                        })
+                                        .then((res) => {
+                                            async.map(res, (o, mapCallback) => {
+                                                let users = [];
+                                                o.users_team.map((e) => {
+                                                    users.push(e.user)
+                                                })
+                                                mapCallback(null, users)
+                                            }, (err, result) => {
+                                                parallelCallback(null, _.uniqBy(_.flatten(result), 'id'))
+                                            });
+                                        })
+                                } catch (err) {
+                                    parallelCallback(null, [])
+                                }
                             }
                         }, (err, result) => {
                             let memberList = _.merge(result.members, result.teamMembers)
@@ -113,6 +121,39 @@ exports.get = {
                         })
                         break;
                     }
+                case "teamList":
+                    {
+                        try {
+                            Teams
+                                .findAll({
+                                    include: [{
+                                            model: Users,
+                                            as: 'teamLeader'
+                                        },
+                                        {
+                                            model: UsersTeam,
+                                            as: 'users_team',
+                                            include: [{
+                                                model: Users,
+                                                as: 'user'
+                                            }]
+                                        }
+                                    ]
+                                })
+                                .then((res) => {
+                                    cb({
+                                        status: 200,
+                                        data: res
+                                    })
+                                })
+                        } catch (err) {
+                            cb({
+                                status: false,
+                                data: res
+                            })
+                        }
+                    }
+                    break;
                 default:
                     {
                         try {

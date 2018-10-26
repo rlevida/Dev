@@ -138,53 +138,7 @@ export default class MembersForm extends React.Component {
             }
         }
 
-        // let projectManagerId = (typeof project.Selected.projectManagerId != 'undefined') ? project.Selected.projectManagerId : 0;
-
-        // let userList = _(users.List)
-        //     .filter((o) => { return o.id != projectManagerId })
-        //     .map((e, i) => {
-        //         if (project.Selected.typeId == 1) {
-        //             return { id: e.id, name: e.firstName + ' ' + e.lastName }
-        //         } else if (project.Selected.typeId == 2) {
-        //             if (typeof e.role != "undefined" && e.userType == "Internal") {
-        //                 return { id: e.id, name: e.firstName + ' ' + e.lastName }
-        //             }
-        //         } else {
-        //             if (typeof e.role != "undefined" && e.role.length > 0) {
-        //                 return { id: e.id, name: e.firstName + ' ' + e.lastName }
-        //             }
-        //         }
-        //     })
-        //     .filter(e => { return typeof e != "undefined" })
-        //     .orderBy(['name'])
-        //     .value()
-            
-        // let userMemberListIds = _(users.List)
-        //     .filter((o) => {
-        //         const memberChecker = _.filter(members.List, (m) => {
-        //             let isMemberOfTeam = _.findIndex(o.team, (e) => { return e.teamId == m.userTypeLinkId && m.usersType == "team" });
-        //             return (m.userTypeLinkId == o.id && m.usersType == "users") || isMemberOfTeam >= 0;
-        //         })
-        //         return memberChecker.length > 0
-        //     })
-        //     .map((o) => { return o.id })
-        //     .value();
-
-        // userList = userList.filter((e, i) => { return (userMemberListIds).indexOf(e.id) === -1 });
-
-        // let teamList = _(teams.List)
-        //     .map((e, i) => { return { id: e.id, name: e.team } })
-        //     .orderBy(['name'])
-        //     .value();
-
-
-        // let teamListIds = _(members.List)
-        //     .filter((o) => { return o.usersType == 'team' })
-        //     .map((o) => { return o.userTypeLinkId })
-        //     .value();
-        // teamList = teamList.filter((e, i) => { return (teamListIds).indexOf(e.id) === -1 });
-
-        // let memberList = (members.Selected.type == 'team') ? teamList : (members.Selected.type == 'users') ? userList : [];
+        
         return (
             <div>
                 <HeaderButtonContainer withMargin={true}>
