@@ -17,7 +17,7 @@ const {
     Document,
     DocumentLink,
     Members,
-    Project,
+    Projects,
     Tag,
     Tasks,
     Teams,
@@ -30,10 +30,8 @@ const {
 
 exports.get = {
     index: (req, cb) => {
-        let d = req.query;
-        let filter = (typeof d.filter != "undefined") ? JSON.parse(d.filter) : {};
         try {
-            Project
+            Projects
                 .findAll({
                     raw: true,
                     include: [{
@@ -84,12 +82,14 @@ exports.get = {
                     group: ['id']
                 })
                 .then(res => {
+
                     cb({
                         status: true,
                         data: res
                     })
                 })
         } catch (err) {
+            console.log(err)
             cb({
                 status: false,
                 error: err

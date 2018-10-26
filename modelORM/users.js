@@ -90,7 +90,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'team',
       foreignKey: 'usersId'
     })
-
+    Users.hasMany(models.Members, {
+      as: 'projectId',
+      foreignKey: 'userTypeLinkId'
+    });
   };
 
   return Users;

@@ -20,6 +20,7 @@ const sequelize = new Sequelize(
 const ActivityLogs = require('./activity_logs')(sequelize, Sequelize.DataTypes);
 const Document = require('./document')(sequelize, Sequelize.DataTypes);
 const DocumentLink = require('./document_link')(sequelize, Sequelize.DataTypes);
+const IpBlock = require('./ip_block')(sequelize, Sequelize.DataTypes);
 const Folder = require('./folder')(sequelize, Sequelize.DataTypes);
 const Members = require('./members')(sequelize, Sequelize.DataTypes);
 const Tag = require('./tag')(sequelize, Sequelize.DataTypes);
@@ -40,6 +41,7 @@ const models = {
     ActivityLogs,
     Document,
     DocumentLink,
+    IpBlock,
     Folder,
     Members,
     Tag,

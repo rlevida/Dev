@@ -25,23 +25,13 @@ export default class List extends React.Component {
     }
 
     componentDidMount() {
-        let { dispatch } = this.props;
+        let { dispatch, loggedUser} = this.props;
         parallel({
             projects : (parallelCallback) => { 
-                let intervalLoggedUser = setInterval(() => {
-                    if (typeof this.props.loggedUser.data.id != "undefined") {
-                        let filter = {}
-                        if (this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2") {
-                            filter = { id: { name: "id", value: this.props.loggedUser.data.projectIds, condition: " IN " } } 
-                        }
-                        let dataToGet = { params : { filter : filter }}
-                        getData(`/api/project`,dataToGet, (c) => {
-                            dispatch({ type:"SET_PROJECT_LIST" , list : c.data })
-                            parallelCallback(null,c.data)
-                        })
-                        clearInterval(intervalLoggedUser)
-                    }
-                }, 1000)
+                getData(`/api/project`,{}, (c) => {
+                    dispatch({ type:"SET_PROJECT_LIST" , list : c.data })
+                    parallelCallback(null,c.data)
+                })
             },
             status: (parallelCallback) => {
                 getData(`/api/status`,{}, (c) => {
@@ -136,7 +126,7 @@ export default class List extends React.Component {
                             }
                         </tr>
                         {
-                            project.List.filter((data) => { return !data.isDeleted }).map((data, index) => {
+                            project.List.map((data, index) => {
                                 if ((data.typeId == 2 || data.typeId == 3) && (loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3 && loggedUser.data.userRole != 4 && loggedUser.data.userRole != 5 && loggedUser.data.userRole != 6)) {
                                     // if user is client the he can only see client project
                                 } else {
