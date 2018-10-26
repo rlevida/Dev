@@ -8,6 +8,13 @@ export default function reducer(state = {
     Loading: true
 }, action) {
     switch (action.type) {
+        case "ADD_MEMBER_TO_LIST": {
+            let List = state.List;
+            action.list.map((e) => {
+                List.push( e)
+            })
+            return {...state, List : List }
+        }
         case "SET_MEMBERS_LIST": {
             return { ...state, List: action.list, Loading: false }
         }
@@ -21,7 +28,7 @@ export default function reducer(state = {
             return { ...state, SelectedId: action.SelectedId }
         }
         case "UPDATE_DATA_MEMBERS_LIST": {
-            let tempList = action.List.map((e, i) => {
+            let tempList = state.List.map((e, i) => {
                 if (e.id == action.UpdatedData.id) {
                     return action.UpdatedData
                 }
@@ -32,7 +39,7 @@ export default function reducer(state = {
         case "REMOVE_DELETED_MEMBERS_LIST": {
             const { List } = { ...state };
             const updatedTest = _.filter(List, (o) => {
-                return o.userTypeLinkId != action.id
+                return o.id != action.id
             });
             return { ...state, List: updatedTest }
         }
@@ -49,6 +56,13 @@ export default function reducer(state = {
         }
         case "SET_FORM_MEMBERS_LOADING": {
             return { ...state, Loading: action.Loading }
+        }
+        case "DELETE_MEMBER_FROM_LIST": {
+            const { List } = { ...state };
+            const updatedList = _.filter(List, (o) => {
+                return o.user.id != action.id
+            });
+            return { ...state, List: updatedList }
         }
         default:
             return state;

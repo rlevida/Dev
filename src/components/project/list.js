@@ -24,25 +24,14 @@ export default class List extends React.Component {
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
     }
 
-    componentWillMount() {
-        let { dispatch } = this.props;
+    componentDidMount() {
+        let { dispatch, loggedUser} = this.props;
         parallel({
             projects : (parallelCallback) => { 
-                let intervalLoggedUser = setInterval(() => {
-                    if (typeof this.props.loggedUser.data.id != "undefined") {
-                        let filter = {}
-                        if (this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2") {
-                            filter = { id: { name: "id", value: this.props.loggedUser.data.projectIds, condition: " IN " } } 
-                        }
-                        let dataToGet = { params : { filter : filter }}
-                        // this.props.socket.emit("GET_PROJECT_LIST", filter);
-                        getData(`/api/project`,dataToGet, (c) => {
-                            dispatch({ type:"SET_PROJECT_LIST" , list : c.data })
-                            parallelCallback(null,c.data)
-                        })
-                        clearInterval(intervalLoggedUser)
-                    }
-                }, 1000)
+                getData(`/api/project`,{}, (c) => {
+                    dispatch({ type:"SET_PROJECT_LIST" , list : c.data })
+                    parallelCallback(null,c.data)
+                })
             },
             status: (parallelCallback) => {
                 getData(`/api/status`,{}, (c) => {
@@ -75,16 +64,17 @@ export default class List extends React.Component {
                 })
             },
             teams: (parallelCallback) => {
-                getData(`/api/teams`,{}, (c) => {
-                    if(c.status == 200) {
-                        dispatch({type:"SET_TEAM_LIST",list : c.data})
-                        parallelCallback(null,c.data)
-                    }else{
-                        parallelCallback(null,"")
-                    }
+                getData(`/api/globalORM/selectList?selectName=teamList`,{},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST", List: c.data, name: 'teamList' })
+                    parallelCallback(null,"")
+                })
+            },
+            roles: (parallelCallback) => {
+                getData(`/api/globalORM/selectList?selectName=roleList`,{},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'roleList' })
+                    parallelCallback(null,"")
                 })
             }
-
         } ,(error, result) => {
 
         })
@@ -136,7 +126,7 @@ export default class List extends React.Component {
                             }
                         </tr>
                         {
-                            project.List.filter((data) => { return !data.isDeleted }).map((data, index) => {
+                            project.List.map((data, index) => {
                                 if ((data.typeId == 2 || data.typeId == 3) && (loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3 && loggedUser.data.userRole != 4 && loggedUser.data.userRole != 5 && loggedUser.data.userRole != 6)) {
                                     // if user is client the he can only see client project
                                 } else {

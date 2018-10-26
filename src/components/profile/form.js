@@ -32,7 +32,7 @@ export default class FormComponent extends React.Component {
         $(".form-container").validator();
         socket.emit("GET_USER_LIST", {});
         socket.emit("GET_ROLE_LIST", {});
-        socket.emit("GET_TEAM_LIST", {});
+        // socket.emit("GET_TEAM_LIST", {});
         socket.emit("GET_PROJECT_LIST", {});
         socket.emit("GET_WORKSTREAM_LIST", {});
         socket.emit("GET_USERS_TEAM", {});

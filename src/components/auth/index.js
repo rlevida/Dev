@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
 import axios from "axios"
-import { showToast } from '../../globalFunction'
+import { showToast, getData } from '../../globalFunction'
 import ForgotPassword from  "../global/forgotPassword"
 import Captcha from 'react-captcha';
 
@@ -57,7 +57,7 @@ export default class Component extends React.Component {
         showToast("success", "Logging in, please wait ...", 360000)
         localStorage.setItem('username', Login.username)
         localStorage.setItem('rememberMe', Login.rememberMe)
-
+        
         socket.emit("USER_LOGGED_IN",{username:Login.username,password:Login.password,ipAddress:this.state.yourIp});
     }
 

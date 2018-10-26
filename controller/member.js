@@ -1,7 +1,9 @@
 const _ = require("lodash");
-const { defaultPut } = require("./");
+const { defaultPost, defaultPut, defaultDelete } = require("./");
+const Sequelize = require("sequelize")
+const Op = Sequelize.Op;
 const models = require('../modelORM');
-const { Members, Users } = models;
+const { Members, Users, UsersRole, UsersTeam,  Teams} = models;
 
 
 exports.get = {
@@ -55,7 +57,6 @@ exports.post = {
         const options = {
             ...(typeof req.body.includes != "undefined" && req.body.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex((req.body.includes).split(','), (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
         }
-
         try {
             Members.create(req.body.data).then((response) => {
                 Members.findOne({ ...options, where: { id: response.dataValues.id } }).then((response) => {
@@ -69,12 +70,12 @@ exports.post = {
 }
 
 exports.put = {
-    index: (req, cb) => {
-        defaultPut(dbName, req, (res) => {
-            if (res.success) {
-                cb({ status: true, data: res.data })
+    index : (req,cb) => {
+        defaultPut(dbName,req,(res)=>{
+            if(res.success){
+                cb({ status:true, data:res.data })
             } else {
-                cb({ status: false, error: c.error })
+                cb({ status:false, error:c.error })
             }
         })
     }

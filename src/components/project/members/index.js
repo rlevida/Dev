@@ -1,6 +1,6 @@
 import React from "react"
 
-import { showToast } from '../../../globalFunction'
+import { showToast, postData } from '../../../globalFunction'
 import { HeaderButtonContainer, DropDown } from "../../../globalComponents"
 
 import { connect } from "react-redux";
@@ -12,14 +12,18 @@ import _ from "lodash";
         users: store.users,
         members: store.members,
         teams: store.teams,
-        project: store.project
+        project: store.project,
+        loggedUser: store.loggedUser,
+        global: store.global
     }
 })
 
 export default class MembersForm extends React.Component {
     constructor(props) {
         super(props)
-
+        this.state = {
+            showAllUsers : false
+        }
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
     }
@@ -29,7 +33,7 @@ export default class MembersForm extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, members, type, dispatch, project } = this.props
+        let { socket, members, type, dispatch, project, users , teams , global } = this.props
         let result = true;
 
         $('.member-form-container *').validator('validate');
@@ -48,15 +52,27 @@ export default class MembersForm extends React.Component {
             return;
         }
         members.Selected.memberType = 1;
+
         dispatch({ type: "SET_FORM_MEMBERS_LOADING", Loading: true })
-        socket.emit("SAVE_OR_UPDATE_MEMBERS", {
-            data: {
-                ...members.Selected,
-                usersType: members.Selected.type,
-                linkType: "project",
-                linkId: project.Selected.id
-            }
-        });
+
+        let dataToSubmit = {
+            usersType: members.Selected.type,
+            userTypeLinkId: members.Selected.userTypeLinkId,
+            linkType: "project",
+            linkId: project.Selected.id,
+            memberType: 'assignedTo'
+        }
+
+        postData(`/api/project/projectMember`, { data: dataToSubmit }, (c) => {
+           if(members.Selected.type == "users"){
+                dispatch({type:"ADD_MEMBER_TO_LIST", list : c.data })
+           }else{
+                dispatch({type:"ADD_TEAM_TO_LIST", list : c.data })
+           }
+           showToast("success","Successfully Added.")
+           dispatch({type:"SET_MEMBERS_SELECTED", Selected: {}})
+           this.setState({ showAllUsers: false })
+        })
     }
 
     setDropDown(name, value) {
@@ -85,57 +101,44 @@ export default class MembersForm extends React.Component {
             [name]: JSON.stringify(values ? values : [])
         });
     }
-
+    
     render() {
-        let { users, members, teams, project } = this.props;
-        let projectManagerId = (typeof project.Selected.projectManagerId != 'undefined') ? project.Selected.projectManagerId : 0;
+        let { users, members, teams, project, loggedUser, global } = this.props;
+        let { showAllUsers } = this.state
+        let memberList = []
 
-        let userList = _(users.List)
-            .filter((o) => { return o.id != projectManagerId })
-            .map((e, i) => {
-                if (project.Selected.typeId == 1) {
-                    return { id: e.id, name: e.firstName + ' ' + e.lastName }
-                } else if (project.Selected.typeId == 2) {
-                    if (typeof e.role != "undefined" && e.userType == "Internal") {
-                        return { id: e.id, name: e.firstName + ' ' + e.lastName }
-                    }
-                } else {
-                    if (typeof e.role != "undefined" && e.role.length > 0) {
-                        return { id: e.id, name: e.firstName + ' ' + e.lastName }
-                    }
+        if(typeof members.Selected.type != "undefined"){
+            if(members.Selected.type == 'users'){
+                if(!showAllUsers){
+                    global.SelectList.teamList.map((e) => {
+                        if(e.teamLeaderId == loggedUser.data.id && e.users_team.length > 0){
+                            e.users_team.map((t) => {
+                                let index = _.findIndex(members.List,{ userTypeLinkId : t.user.id })
+                                if(index < 0){
+                                    memberList.push({ id: t.user.id , name:`${t.user.firstName} ${t.user.lastName}`})
+                                }
+                            })
+                        }
+                    })
+                }else{
+                    users.List.map((e) => {
+                        let index = _.findIndex(members.List,{ userTypeLinkId : e.id })
+                        if(index < 0){
+                            memberList.push({ id: e.id , name: `${e.firstName} ${e.lastName}`})
+                        }
+                    })
                 }
-            })
-            .filter(e => { return typeof e != "undefined" })
-            .orderBy(['name'])
-            .value()
-            
-        let userMemberListIds = _(users.List)
-            .filter((o) => {
-                const memberChecker = _.filter(members.List, (m) => {
-                    let isMemberOfTeam = _.findIndex(o.team, (e) => { return e.teamId == m.userTypeLinkId && m.usersType == "team" });
-                    return (m.userTypeLinkId == o.id && m.usersType == "users") || isMemberOfTeam >= 0;
+            }else if(members.Selected.type == 'team'){
+                global.SelectList.teamList.map((e) => {
+                    let index = _.findIndex(teams.List,{ userTypeLinkId : e.id })
+                    if(index < 0){
+                        memberList.push({ id: e.id, name: e.team })
+                    }
                 })
-                return memberChecker.length > 0
-            })
-            .map((o) => { return o.id })
-            .value();
+            }
+        }
 
-        userList = userList.filter((e, i) => { return (userMemberListIds).indexOf(e.id) === -1 });
-
-        let teamList = _(teams.List)
-            .map((e, i) => { return { id: e.id, name: e.team } })
-            .orderBy(['name'])
-            .value();
-
-
-        let teamListIds = _(members.List)
-            .filter((o) => { return o.usersType == 'team' })
-            .map((o) => { return o.userTypeLinkId })
-            .value();
-        teamList = teamList.filter((e, i) => { return (teamListIds).indexOf(e.id) === -1 });
-
-        let memberList = (members.Selected.type == 'team') ? teamList : (members.Selected.type == 'users') ? userList : [];
-
+        
         return (
             <div>
                 <HeaderButtonContainer withMargin={true}>
@@ -163,6 +166,19 @@ export default class MembersForm extends React.Component {
                                     <div class="help-block with-errors"></div>
                                 </div>
                             </div>
+                            { members.Selected.type == 'users' && 
+                                <div class="form-group">
+                                    <label class="col-md-3 col-xs-12 control-label">Show all users</label>
+                                    <div class="col-md-7 col-xs-12">
+                                        <input type="checkbox"
+                                            style={{ width: "15px", marginTop: "10px" }}
+                                            checked={showAllUsers}
+                                            onChange={() => { }}
+                                            onClick={(f) => this.setState({ showAllUsers : !showAllUsers })}
+                                        />
+                                    </div>
+                                </div>
+                            }
                             <div class="form-group">
                                 <label class="col-md-3 col-xs-12 control-label">Member</label>
                                 <div class="col-md-7 col-xs-12">

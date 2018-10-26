@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('team', {
+  const Teams = sequelize.define('team', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -40,6 +40,20 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-    tableName: 'team'
+    tableName: 'team',
+    timestamps: false
   });
+
+  Teams.associate = function (models) {
+    Teams.hasMany(models.UsersTeam, {
+      as: 'users_team',
+      foreignKey: 'teamId',
+    });
+    Teams.belongsTo(models.Users,{
+      as:'teamLeader',
+      foreignKey: 'teamLeaderId'
+    })
+  };
+
+  return Teams;
 };

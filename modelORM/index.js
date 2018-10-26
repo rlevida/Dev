@@ -20,6 +20,7 @@ const sequelize = new Sequelize(
 const ActivityLogs = require('./activity_logs')(sequelize, Sequelize.DataTypes);
 const Document = require('./document')(sequelize, Sequelize.DataTypes);
 const DocumentLink = require('./document_link')(sequelize, Sequelize.DataTypes);
+const IpBlock = require('./ip_block')(sequelize, Sequelize.DataTypes);
 const Folder = require('./folder')(sequelize, Sequelize.DataTypes);
 const Members = require('./members')(sequelize, Sequelize.DataTypes);
 const Projects = require('./project')(sequelize, Sequelize.DataTypes);
@@ -27,10 +28,13 @@ const Tag = require('./tag')(sequelize, Sequelize.DataTypes);
 const Tasks = require('./task')(sequelize, Sequelize.DataTypes);
 const TaskChecklist = require('./task_checklist')(sequelize, Sequelize.DataTypes);
 const TaskDependency = require('./task_dependency')(sequelize, Sequelize.DataTypes);
+const Teams = require('./team')(sequelize, Sequelize.DataTypes);
 const Users = require('./users')(sequelize, Sequelize.DataTypes);
 const UsersRole = require('./users_role')(sequelize, Sequelize.DataTypes);
+const UsersTeam = require('./users_team')(sequelize, Sequelize.DataTypes);
 const Workstream = require('./workstream')(sequelize , Sequelize.DataTypes);
 const Reminder = require('./reminder')(sequelize, Sequelize.DataTypes);
+const Roles = require('./role')(sequelize, Sequelize.DataTypes);
 const Status = require('./status')(sequelize, Sequelize.DataTypes);
 const Type = require('./type')(sequelize, Sequelize.DataTypes);
 
@@ -38,6 +42,7 @@ const models = {
     ActivityLogs,
     Document,
     DocumentLink,
+    IpBlock,
     Folder,
     Members,
     Projects,
@@ -45,12 +50,15 @@ const models = {
     Tasks,
     TaskChecklist,
     TaskDependency,
+    Teams,
     Users,
     Workstream,
     Reminder,
+    Roles,
     Status,
     Type,
     UsersRole,
+    UsersTeam
 };
 
 Object.keys(models).forEach((modelName) => {

@@ -10,9 +10,9 @@ var {
 const models = require('../modelORM');
 const {
     Users,
-    UsersRole
+    UsersRole,
+    UsersTeam
 } = models;
-
 
 exports.get = {
     index: (req, cb) => {
@@ -23,9 +23,13 @@ exports.get = {
                         model: UsersRole,
                         as: 'role',
                         attributes: ['roleId']
+                    },
+                    {
+                        model: UsersTeam,
+                        as: 'team'
                     }
                 ],
-                attributes: ['id','firstName','lastName','emailAddress','phoneNumber','avatar','isActive'],
+                attributes: ['id','username','firstName','lastName','emailAddress','phoneNumber','avatar','isActive','userType'],
             })
             .then((res) => {
                 cb({ status: true, data: res })
