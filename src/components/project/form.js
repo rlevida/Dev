@@ -3,7 +3,7 @@ import moment from 'moment';
 import Tooltip from "react-tooltip";
 import { connect } from "react-redux";
 import _ from "lodash";
-import { showToast, getData, putData, deleteData } from '../../globalFunction';
+import { showToast, getData, putData, deleteData, postData } from '../../globalFunction';
 import { HeaderButtonContainer, DropDown, Loading } from "../../globalComponents";
 import Members from "./members";
 import parallel from 'async/parallel';
@@ -27,7 +27,7 @@ import Workstreams from "./workstream";
 export default class FormComponent extends React.Component {
     constructor(props) {
         super(props)
-        
+
         this.handleChange = this.handleChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
@@ -39,45 +39,45 @@ export default class FormComponent extends React.Component {
         let { dispatch, project } = this.props;
         $(".form-container").validator();
         parallel({
-           projectMemberList :(parallelCallback) => {
-                getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project&usersType=users`,{}, (c) => {
-                    dispatch({ type:"SET_MEMBERS_LIST", list : c.data })
-                    parallelCallback(null,c.data)
+            projectMemberList: (parallelCallback) => {
+                getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project&usersType=users`, {}, (c) => {
+                    dispatch({ type: "SET_MEMBERS_LIST", list: c.data })
+                    parallelCallback(null, c.data)
                 })
             },
             projectTeamList: (parallelCallback) => {
-                getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`,{ },(c) => {
-                    dispatch({type:"SET_TEAM_LIST",list : c.data})
-                    parallelCallback(null,c.data)
+                getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`, {}, (c) => {
+                    dispatch({ type: "SET_TEAM_LIST", list: c.data })
+                    parallelCallback(null, c.data)
                 })
             },
             projectMemberListGlobal: (parallelCallback) => {
-                getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project.Selected.id}&linkType=project`,{},(c) => {
-                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'projectMemberList' })
-                    parallelCallback(null,"")
+                getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
+                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
+                    parallelCallback(null, "")
                 })
             }
-        },(err,result) => {
+        }, (err, result) => {
 
         })
     }
 
     deleteMember(value) {
-        let { dispatch , members} = this.props;
+        let { dispatch, members } = this.props;
         if (confirm("Do you really want to delete this record?")) {
             deleteData(`/api/project/deleteProjectMember/${value.id}`, {}, (c) => {
-                if(c.status == 200){
-                    if(value.usersType == "users"){
+                if (c.status == 200) {
+                    if (value.usersType == "users") {
                         dispatch({ type: "REMOVE_DELETED_MEMBERS_LIST", id: c.data })
-                    }else{
-                        let newMemberList = members.List.filter((e) => { return e.id != c.data})
-                    
+                    } else {
+                        let newMemberList = members.List.filter((e) => { return e.id != c.data })
+
                         dispatch({ type: "REMOVE_DELETED_TEAM_LIST", id: c.data })
                         dispatch({ type: "SET_MEMBERS_LIST", list: newMemberList })
                     }
-                    showToast("success","Successfully Deleted")
-                }else{
-                    showToast("error","Delete failed. Please try again.")
+                    showToast("success", "Successfully Deleted")
+                } else {
+                    showToast("error", "Delete failed. Please try again.")
                 }
             })
         }
@@ -87,7 +87,7 @@ export default class FormComponent extends React.Component {
         let { socket, dispatch, project } = this.props
         let Selected = Object.assign({}, project.Selected)
         this.setState({
-            currentProjectManager : Selected.projectManagerId
+            currentProjectManager: Selected.projectManagerId
         })
         Selected[e.target.name] = e.target.value;
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: Selected })
@@ -101,7 +101,7 @@ export default class FormComponent extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, project, loggedUser } = this.props
+        let { socket, project, loggedUser, dispatch } = this.props
         let result = true;
 
         $('.form-container *').validator('validate');
@@ -116,9 +116,32 @@ export default class FormComponent extends React.Component {
         }
         if (!project.Selected.id) {
             project.Selected.createdBy = loggedUser.data.id;
+
+            postData(`/api/project`, { ...project.Selected }, (c) => {
+                dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project })
+                dispatch({ type: "SET_MEMBERS_LIST", list: c.data.members })
+                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" })
+                showToast("success", "Successfully Added.")
+            })
+        } else {
+            let dataToSubmit = {
+                project: project.Selected.project,
+                isActive: project.Selected.isActive,
+                typeId: project.Selected.typeId,
+                tinNo: project.Selected.typeId,
+                companyAddress: project.Selected.companyAddress,
+                classification: project.Selected.classification,
+                projectNameCount: project.Selected.projectNameCount,
+                projectType: project.Selected.projectType,
+                projectManagerId: project.Selected.projectManagerId
+            }
+            putData(`/api/project/${project.Selected.id}`, dataToSubmit, (c) => {
+                dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project })
+                dispatch({ type: "SET_MEMBERS_LIST", list: c.data.members })
+                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" })
+                showToast("success", "Successfully Updated.")
+            })
         }
-        
-        socket.emit("SAVE_OR_UPDATE_PROJECT", { data: project.Selected });
     }
 
     setDropDown(name, value) {
@@ -141,32 +164,32 @@ export default class FormComponent extends React.Component {
         );
     }
 
-    handleReceiveNotifacation(value){
+    handleReceiveNotifacation(value) {
         let { dispatch, members } = this.props;
-        let dataToSubmit = { 
-            filter : { userTypeLinkId : value.user.id, usersType: 'users' },
-            data : { receiveNotification : value.receiveNotification ? 0 : 1 } 
+        let dataToSubmit = {
+            filter: { userTypeLinkId: value.user.id, usersType: 'users' },
+            data: { receiveNotification: value.receiveNotification ? 0 : 1 }
         }
 
         putData(`/api/project/projectMember/${value.id}`, dataToSubmit, (c) => {
-            if(c.status == 200){
+            if (c.status == 200) {
                 let dataToUpdate = members.List.filter((e) => { return e.user.id == value.user.id })[0]
-                    dataToUpdate = {...dataToUpdate, receiveNotification: value.receiveNotification ? 0 : 1}
-                dispatch({type: "UPDATE_DATA_MEMBERS_LIST", UpdatedData : dataToUpdate })
-                showToast('success',"Successfully Updated.")
-            }else{
-                showToast('error',"Update failed. Please try again.")
+                dataToUpdate = { ...dataToUpdate, receiveNotification: value.receiveNotification ? 0 : 1 }
+                dispatch({ type: "UPDATE_DATA_MEMBERS_LIST", UpdatedData: dataToUpdate })
+                showToast('success', "Successfully Updated.")
+            } else {
+                showToast('error', "Update failed. Please try again.")
             }
         })
     }
 
-    renderRoles(value){
+    renderRoles(value) {
         let { global: { SelectList } } = this.props;
         let roles = [];
 
-        value.map((e) =>{
+        value.map((e) => {
             SelectList.roleList.map((r) => {
-                if(r.id == e.roleId){
+                if (r.id == e.roleId) {
                     roles.push(r.role)
                 }
             })
@@ -177,12 +200,12 @@ export default class FormComponent extends React.Component {
         )
     }
 
-    renderTeams(value){
+    renderTeams(value) {
         let { global: { SelectList } } = this.props;
         let teams = [];
         value.map((e) => {
             SelectList.teamList.map((t) => {
-                if(t.id == e.teamId){
+                if (t.id == e.teamId) {
                     teams.push(t.team)
                 }
             })
@@ -193,55 +216,55 @@ export default class FormComponent extends React.Component {
         )
     }
 
-    renderTeamMembers(value){
+    renderTeamMembers(value) {
         let teamMembers = value.map((e) => {
             return `${e.user.firstName} ${e.user.lastName}`
         })
 
-        return(
+        return (
             teamMembers.join(", ")
         )
     }
 
     render() {
         let { dispatch, project, loggedUser, members, status, type, users, teams, workstream, global } = this.props;
-        let statusList = [], typeList = [],projectManagerOptions = [];
+        let statusList = [], typeList = [], projectManagerOptions = [];
 
-            status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
-            type.List.map((e, i) => {
-                if (e.linkType == "project") {
-                    let dontShowType = false;
-                    if (e.id == 1 && loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3) {
-                        dontShowType = true;
-                    }
+        status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
+        type.List.map((e, i) => {
+            if (e.linkType == "project") {
+                let dontShowType = false;
+                if (e.id == 1 && loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3) {
+                    dontShowType = true;
+                }
 
-                    if (!dontShowType) {
-                        typeList.push({ id: e.id, name: e.type })
+                if (!dontShowType) {
+                    typeList.push({ id: e.id, name: e.type })
+                }
+            }
+        });
+
+        if (users.List.length > 0) {
+            users.List.map((e) => {
+                if (e.role.length > 0) {
+                    if (e.role[0].roleId == 1 || e.role[0].roleId == 2) {
+                        projectManagerOptions.push({ id: e.id, name: `${e.firstName} ${e.lastName}` })
                     }
                 }
-            });
+            })
+        }
 
-            if (users.List.length > 0){
-                users.List.map((e) => {
-                    if(e.role.length > 0){
-                        if (e.role[0].roleId == 1 || e.role[0].roleId == 2 ){
-                            projectManagerOptions.push({ id: e.id , name: `${e.firstName} ${e.lastName}`})
-                        }
+        if (teams.List.length > 0) {
+            teams.List.map((e) => {
+                e.team.users_team.map((t) => {
+                    let index = _.findIndex(members.List, { userTypeLinkId: t.user.id })
+                    if (index < 0) {
+                        let userMemberToAdd = { id: e.id, usersType: "team", userTypeLinkId: t.user.id, linkType: "project", user: t.user }
+                        members.List.push(userMemberToAdd)
                     }
                 })
-            }
-            
-            if(teams.List.length > 0){
-                teams.List.map((e) => {
-                    e.team.users_team.map((t) => {
-                        let index = _.findIndex(members.List,{ userTypeLinkId : t.user.id })
-                        if(index < 0){
-                            let userMemberToAdd = { id: e.id, usersType: "team", userTypeLinkId: t.user.id, linkType: "project", user : t.user}
-                            members.List.push(userMemberToAdd)
-                        }
-                    })
-                })
-            }
+            })
+        }
 
         return (
             <div>
@@ -378,11 +401,11 @@ export default class FormComponent extends React.Component {
                                                                             <Tooltip id={`follower${index}`}>
                                                                                 {this.renderTeamMembers(data.team.users_team)}
                                                                             </Tooltip>
-                                                                            
+
                                                                         </td>
                                                                         <td class="text-center">
                                                                             <a href="javascript:void(0);" data-tip="DELETE"
-                                                                                onClick={(e) => this.deleteMember({usersType: 'team', id: data.id})}
+                                                                                onClick={(e) => this.deleteMember({ usersType: 'team', id: data.id })}
                                                                                 class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
                                                                                 <span class="glyphicon glyphicon-trash"></span></a>
                                                                             <Tooltip />
@@ -418,7 +441,7 @@ export default class FormComponent extends React.Component {
                                                             </tr>
                                                         }
                                                         {
-                                                         _.orderBy( members.List, ['memberType'], ['desc']).map((data, index) => {
+                                                            _.orderBy(members.List, ['memberType'], ['desc']).map((data, index) => {
                                                                 return (
                                                                     <tr key={index} style={{ color: (data.user.id == project.Selected.projectManagerId) ? "green" : "" }}>
                                                                         <td class="text-center">{data.user.id}</td>
@@ -427,26 +450,26 @@ export default class FormComponent extends React.Component {
                                                                         <td class="text-left">{data.user.lastName}</td>
                                                                         <td class="text-left">{data.user.emailAddress}</td>
                                                                         <td class="text-center">{data.user.userType}</td>
-                                                                        <td class="text-left">{this.renderRoles(data.user.role) }</td>
+                                                                        <td class="text-left">{this.renderRoles(data.user.role)}</td>
                                                                         <td class="text-left">{this.renderTeams(data.user.team)}</td>
                                                                         <td>
-                                                                            {   (data.usersType != "team") 
-                                                                                    ?   <input type="checkbox" checked={data.receiveNotification} onChange={()=> this.handleReceiveNotifacation(data)}/> 
-                                                                                    : "team member"
+                                                                            {(data.usersType != "team")
+                                                                                ? <input type="checkbox" checked={data.receiveNotification} onChange={() => this.handleReceiveNotifacation(data)} />
+                                                                                : "team member"
                                                                             }
                                                                         </td>
                                                                         <td class="text-center">
                                                                             {
-                                                                                ( data.user.id != project.Selected.projectManagerId && data.usersType != "team" ) 
-                                                                                    && <a href="javascript:void(0);" data-tip="DELETE"
-                                                                                            onClick={(e) => this.deleteMember({usersType: 'users', id: data.id})}
-                                                                                            class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}
-                                                                                        >
-                                                                                            <span class="glyphicon glyphicon-trash"></span>
-                                                                                        </a>
+                                                                                (data.user.id != project.Selected.projectManagerId && data.usersType != "team")
+                                                                                && <a href="javascript:void(0);" data-tip="DELETE"
+                                                                                    onClick={(e) => this.deleteMember({ usersType: 'users', id: data.id })}
+                                                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}
+                                                                                >
+                                                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                                                </a>
                                                                             }
                                                                             <Tooltip />
-                                                                        </td> 
+                                                                        </td>
                                                                     </tr>
                                                                 )
                                                             })
