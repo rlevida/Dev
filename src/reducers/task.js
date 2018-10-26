@@ -88,14 +88,14 @@ export default function reducer(state = {
             // // }
 
         }
-        case "REMOVE_DELETED_TASK_LIST": {
-            let tempList = [];
-            action.List.map((e, i) => {
-                if (action.id != e.id) {
-                    tempList.push(e)
-                }
-            })
-            return { ...state, List: tempList }
+        case "DELETE_TASK": {
+            const { List } = { ...state };
+            const copyOfList = [...List];
+            const updatedList = _.remove(copyOfList, (listObj) => {
+                return listObj.id != action.id;
+            });
+            
+            return { ...state, List: updatedList }
         }
         case "SET_TASK_STATUS": {
             let List = state.List.map((e, i) => {
