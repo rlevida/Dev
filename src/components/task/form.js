@@ -163,12 +163,11 @@ export default class FormComponent extends React.Component {
                 projectId: project,
                 period: (typeof task.Selected.period != "undefined" && task.Selected.period != "" && task.Selected.period != null) ? _.toNumber(task.Selected.period) : 0,
                 periodInstance: (typeof task.Selected.periodic != "undefined" && task.Selected.periodic == 1) ? 3 : 0,
-                startDate: (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "" && task.Selected.startDate != null) ? moment(task.Selected.startDate).format('YYYY-MM-DD 00:00:00') : null,
-                dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD 00:00:00') : null
+                startDate: (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "" && task.Selected.startDate != null) ? moment(task.Selected.startDate).format('YYYY-MM-DD HH:mm:ss') : null,
+                dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD HH:mm:ss') : null
             };
 
             dispatch({ type: "SET_TASK_LOADING", Loading: "SUBMITTING" });
-
             if (typeof task.Selected.id != "undefined") {
                 putData(`/api/task/${task.Selected.id}`, submitData, (c) => {
                     if (c.status == 200) {
@@ -200,7 +199,7 @@ export default class FormComponent extends React.Component {
         Selected[name] = value;
 
         if (name == "dependency_type" && value == "") {
-            Selected["linkTaskIds"] = [];
+            Selected["task_dependency"] = [];
         }
 
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
@@ -214,7 +213,7 @@ export default class FormComponent extends React.Component {
     setDropDownMultiple(name, values) {
         let { task, dispatch } = this.props;
         let Selected = Object.assign({}, task.Selected);
-
+        
         Selected[name] = values;
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
@@ -232,10 +231,12 @@ export default class FormComponent extends React.Component {
         const { dispatch, task, workstream, loggedUser, checklist, global } = this.props;
         const workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
         const allowEdit = (loggedUser.data.userRole == 5 || loggedUser.data.userRole == 6) && (loggedUser.data.userType == "External") ? false : true;
-        const taskList = _.map(task.List, (task) => { return { id: task.id, name: task.task } });
+        const taskList = _(task.List)
+            .map((taskListObj) => { return { id: taskListObj.id, name: taskListObj.task } })
+            .filter((taskListObj) => { return  taskListObj.id != task.Selected.id })
+            .value();
         const projectUserList = (typeof global.SelectList.ProjectMemberList != "undefined") ? _.map(global.SelectList.ProjectMemberList, (projectMemberObj) => { return { id: projectMemberObj.id, name: projectMemberObj.firstName + " " + projectMemberObj.lastName } }) : [];
-
-        // let canAssignDependency = (
+       // let canAssignDependency = (
         //     loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 ||
         //     _.findIndex(task.Selected.project_manager, (o) => { return o == loggedUser.data.id }) >= 0 ||
         //     _.findIndex(task.Selected.workstream_responsible, (o) => { return o == loggedUser.data.id }) >= 0

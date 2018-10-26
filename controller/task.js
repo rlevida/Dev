@@ -1,13 +1,11 @@
 const async = require("async");
 const _ = require("lodash");
 const moment = require("moment");
-// const Sequelize = require('sequelize');
 const models = require('../modelORM');
-const { TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, ActivityLogs } = models;
+const { TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, sequelize, ActivityLogs } = models;
 const dbName = "task";
-const { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./");
+const { defaultDelete } = require("./");
 const func = global.initFunc();
-// const Op = Sequelize.Op
 const associationStack = [
     {
         model: Members,
@@ -93,19 +91,27 @@ exports.get = {
         const limit = 10;
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
+            ...((typeof queryString.role != "undefined" && queryString.role != "" && queryString.role > 2) && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
+                "$task_members.userTypeLinkId$": queryString.userId,
+                "$task_members.usersType$": "users",
+                "$task_members.linkType$": "task",
+            } : {}
         };
+
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            include: associationStack
+            subQuery: false,
+            include: associationStack,
         };
+
 
         async.parallel({
             count: function (callback) {
                 try {
-                    Tasks.findAndCountAll({ where: _.omit(whereObj, ['offset', 'limit']) }).then((response) => {
+                    Tasks.findAndCountAll({ ...options, where: _.omit(whereObj, ["offset", "limit"]), distinct: true }).then((response) => {
                         const pageData = {
                             total_count: response.count,
-                            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: _.toNumber(queryString.page), last_page: _.ceil(response.count / limit) } : {}
+                            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
                         }
 
                         callback(null, pageData)
@@ -116,7 +122,9 @@ exports.get = {
             },
             result: function (callback) {
                 try {
-                    Tasks.findAll({ ...options, where: whereObj }).map((mapObject) => {
+                    Tasks.findAll({
+                        where: whereObj, ...options,
+                    }).map((mapObject) => {
                         return mapObject.toJSON();
                     }).then((resultArray) => {
                         callback(null, resultArray);
@@ -132,13 +140,6 @@ exports.get = {
                 cb({ status: true, data: results })
             }
         });
-        // defaultGet(dbName, req, (res) => {
-        //     if (res.status) {
-        //         cb({ status: true, data: res.data })
-        //     } else {
-        //         cb({ status: false, error: res.error })
-        //     }
-        // })
     },
     getById: (req, cb) => {
         const whereObj = {
@@ -238,10 +239,14 @@ exports.post = {
                                         });
                                     },
                                     members: (parallelCallback) => {
-                                        const assignedTo = { linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" };
-                                        Members.create(assignedTo).then((response) => {
-                                            parallelCallback(null, response.toJSON());
-                                        });
+                                        if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
+                                            const assignedTo = { linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" };
+                                            Members.create(assignedTo).then((response) => {
+                                                parallelCallback(null, response.toJSON());
+                                            });
+                                        } else {
+                                            parallelCallback(null, {});
+                                        }
                                     }
                                 }, (err, response) => {
                                     resolve(response)
@@ -308,15 +313,32 @@ exports.put = {
         try {
             async.parallel({
                 task: (parallelCallback) => {
-
                     try {
-                        Tasks.findOne({ ...options, where: whereObj }).then((response) => {
-                            const currentTask = _.omit(response.toJSON(), ["task_members", "task_dependency", "checklist", "workstream", "dateUpdated"]);
+                        Tasks.findOne({ where: whereObj }).then((response) => {
+                            const currentTask = _(response.toJSON())
+                                .omit(["dateUpdated", "dateAdded"])
+                                .mapValues((objVal, objKey) => {
+                                    if (objKey == "dueDate" || objKey == "startDate") {
+                                        return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                    } else {
+                                        return objVal;
+                                    }
+                                }).value();
+
                             Tasks.update(updateBody, { where: { id: body.id } }).then((response) => {
-                                return Tasks.findOne({ ...options, where: { id: body.id } })
+                                return Tasks.findOne({ where: { id: body.id } })
                             }).then((response) => {
                                 const updatedResponse = response.toJSON();
-                                const updatedTask = _.omit(updatedResponse, ["task_members", "task_dependency", "checklist", "workstream", "dateUpdated"]);
+                                const updatedTask = _(updatedResponse)
+                                    .omit(["dateUpdated", "dateAdded"])
+                                    .mapValues((objVal, objKey) => {
+                                        if (objKey == "dueDate" || objKey == "startDate") {
+                                            return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                        } else {
+                                            return objVal;
+                                        }
+                                    }).value();
+
                                 const newObject = func.changedObjAttributes(updatedTask, currentTask);
                                 const objectKeys = _.map(newObject, function (value, key) {
                                     return key;
@@ -339,13 +361,12 @@ exports.put = {
                 period: (parallelCallback) => {
                     if (body.periodic == 1) {
                         const taskId = (body.periodTask == null) ? body.id : body.periodTask;
-
                         Tasks.findAll(
                             {
                                 where: {
                                     periodTask: taskId,
                                     id: {
-                                        [Sequelize.Op.gt]: taskId
+                                        [Sequelize.Op.gt]: body.id
                                     }
                                 }
                             }
@@ -354,7 +375,16 @@ exports.put = {
                         }).then((resultArray) => {
                             if (resultArray.length > 0) {
                                 const periodTaskPromise = _.map(resultArray, (periodTaskObj, index) => {
-                                    const currentTask = _.omit(periodTaskObj, ["task_members", "task_dependency", "checklist", "workstream", "dateUpdated"]);
+                                    const currentTask = _(periodTaskObj)
+                                        .omit(["dateUpdated", "dateAdded"])
+                                        .mapValues((objVal, objKey) => {
+                                            if (objKey == "dueDate" || objKey == "startDate") {
+                                                return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                            } else {
+                                                return objVal;
+                                            }
+                                        }).value();
+
                                     const nextDueDate = moment(body.dueDate).add(body.periodType, (body.period * (index + 1))).format('YYYY-MM-DD HH:mm:ss');
                                     const newPeriodTask = { ...updateBody, dueDate: nextDueDate, ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, (body.period * (index + 1))).format('YYYY-MM-DD HH:mm:ss') } : {} }
 
@@ -363,9 +393,18 @@ exports.put = {
                                             return Tasks.findOne({ where: { id: periodTaskObj.id } });
                                         }).then((response) => {
                                             const updatedResponse = response.toJSON();
-                                            const updatedTask = _.omit(updatedResponse, ["task_members", "task_dependency", "checklist", "workstream", "dateUpdated"]);
+                                            const updatedTask = _(updatedResponse)
+                                                .omit(["dateUpdated", "dateAdded"])
+                                                .mapValues((objVal, objKey) => {
+                                                    if (objKey == "dueDate" || objKey == "startDate") {
+                                                        return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                                    } else {
+                                                        return objVal;
+                                                    }
+                                                }).value();
+
                                             const newObject = func.changedObjAttributes(updatedTask, currentTask);
-                                            const objectKeys = _.map(newObject, function (value, key) {
+                                            const objectKeys = _.map(newObject, function (_, key) {
                                                 return key;
                                             });
                                             resolve({
@@ -387,13 +426,14 @@ exports.put = {
                                 parallelCallback(null, []);
                             }
                         });
+                    } else {
+                        parallelCallback(null, []);
                     }
                 }
             }, (err, result) => {
                 const { period, task } = result;
-                period.push(task);
-
-                const taskLogStack = _(period)
+                const allTask = period.concat(task);
+                const taskLogStack = _(allTask)
                     .filter((periodObj) => {
                         return (typeof periodObj.logs != "undefined")
                     })
@@ -404,123 +444,306 @@ exports.put = {
                     .value();
 
 
-
-                // Updating of Members
-                const memberPromise = _.map(period, (relatedTaskObj) => {
-                    return new Promise((resolve) => {
-                        Members.findAll(
-                            {
-                                where: {
-                                    linkType: "task",
-                                    memberType: "assignedTo",
-                                    linkId: relatedTaskObj.data.id
-                                },
-                                include: [
+                async.parallel({
+                    members: (parallelCallback) => {
+                        const memberPromise = _.map(allTask, (relatedTaskObj) => {
+                            return new Promise((resolve) => {
+                                Members.findAll(
                                     {
-                                        model: Users,
-                                        as: 'user',
-                                        attributes: ['id', 'firstName', 'lastName']
+                                        where: {
+                                            linkType: "task",
+                                            memberType: "assignedTo",
+                                            linkId: relatedTaskObj.data.id
+                                        },
+                                        include: [
+                                            {
+                                                model: Users,
+                                                as: 'user',
+                                                attributes: ['id', 'firstName', 'lastName']
+                                            }
+                                        ]
                                     }
-                                ]
-                            }
-                        ).map((mapObject) => {
-                            return mapObject.toJSON();
-                        }).then((resultArray) => {
-                            const oldMembers = resultArray;
-                            Members.findAll(
-                                {
-                                    where: {
-                                        linkType: "task",
-                                        memberType: "assignedTo",
-                                        linkId: relatedTaskObj.data.id
-                                    },
-                                    include: [
-                                        {
-                                            model: Users,
-                                            as: 'user',
-                                            attributes: ['id', 'firstName', 'lastName']
+                                ).map((mapObject) => {
+                                    return mapObject.toJSON();
+                                }).then((resultArray) => {
+                                    const oldMembersStack = _(resultArray)
+                                        .map((oldMemberObj) => {
+                                            const omittedObject = _.omit(oldMemberObj, ["id", "dateAdded", "dateUpdated"]);
+                                            return { ...omittedObject, value: oldMemberObj.user.firstName + ' ' + oldMemberObj.user.lastName }
+                                        }).value();
+
+                                    Members.destroy({
+                                        where: {
+                                            linkType: "task",
+                                            linkId: relatedTaskObj.data.id,
+                                            usersType: "users",
+                                            memberType: "assignedTo"
                                         }
-                                    ]
+                                    }).then(() => {
+                                        if (body.assignedTo != "") {
+                                            const assignedTo = { linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" };
+                                            Members.create(assignedTo).then(() => {
+                                                return Members.findAll(
+                                                    {
+                                                        where: {
+                                                            linkType: "task",
+                                                            memberType: "assignedTo",
+                                                            linkId: relatedTaskObj.data.id
+                                                        },
+                                                        include: [
+                                                            {
+                                                                model: Users,
+                                                                as: 'user',
+                                                                attributes: ['id', 'firstName', 'lastName']
+                                                            }
+                                                        ]
+                                                    });
+                                            }).map((mapObject) => {
+                                                return mapObject.toJSON();
+                                            }).then((resultArray) => {
+                                                const newMembersStack = _(resultArray)
+                                                    .map((newMemberObj) => {
+                                                        const omittedObject = _.omit(newMemberObj, ["id", "dateAdded", "dateUpdated"]);
+                                                        return { ...omittedObject, value: newMemberObj.user.firstName + ' ' + newMemberObj.user.lastName }
+                                                    }).value();
+                                                const isEqualMembers = func.isArrayEqual(oldMembersStack, newMembersStack);
+                                                resolve({
+                                                    data: resultArray,
+                                                    ...(isEqualMembers == false) ? {
+                                                        logs: {
+                                                            old: JSON.stringify({ "members": { user: oldMembersStack } }),
+                                                            new: JSON.stringify({ "members": { user: newMembersStack } })
+                                                        }
+                                                    } : {}
+                                                });
+                                            });
+                                        } else {
+                                            const isEqualMembers = func.isArrayEqual(oldMembersStack, []);
+
+                                            resolve({
+                                                data: oldMembersStack,
+                                                ...(isEqualMembers == false) ? {
+                                                    logs: {
+                                                        old: JSON.stringify({ "members": { user: oldMembersStack } }),
+                                                        new: JSON.stringify({ "members": { user: [] } }),
+                                                    }
+                                                } : {}
+                                            });
+                                        }
+                                    });
+                                });
+                            });
+                        });
+
+                        Promise.all(memberPromise).then((values) => {
+                            const memberLogsStack = _(values)
+                                .filter((memberObj) => {
+                                    return (typeof memberObj.logs != "undefined")
+                                })
+                                .map((memberObj) => {
+                                    const { logs, data } = memberObj;
+                                    return { usersId: body.userId, linkType: "task", linkId: body.id, actionType: "modified", old: logs.old, new: logs.new }
+                                })
+                                .value();
+
+                            parallelCallback(null, memberLogsStack);
+                        });
+                    },
+                    task_dependency: (parallelCallback) => {
+                        const taskDependencyPromise = _.map(allTask, (relatedTaskObj) => {
+                            return new Promise((resolve) => {
+                                TaskDependency.findAll(
+                                    {
+                                        where: {
+                                            taskId: relatedTaskObj.data.id
+                                        },
+                                        include: [
+                                            {
+                                                model: Tasks,
+                                                as: 'task',
+                                                attributes: ['id', 'task']
+                                            }
+                                        ]
+                                    }
+                                ).map((mapObject) => {
+                                    return mapObject.toJSON();
+                                }).then((resultArray) => {
+                                    const oldTaskDependency = _(resultArray)
+                                        .map((taskDependencyObj) => { return { ..._.omit(taskDependencyObj, ["id", "dateAdded", "dateUpdated"]), value: taskDependencyObj.task.task } })
+                                        .value();
+
+                                    TaskDependency.destroy({
+                                        where: {
+                                            taskId: relatedTaskObj.data.id
+                                        }
+                                    }).then(() => {
+                                        if (typeof body.dependencyType == 'undefined' || body.dependencyType == '') {
+                                            const taskDependency = _.map(body.task_dependency, (taskDependencyObj) => { return { taskId: relatedTaskObj.data.id, dependencyType: body.dependency_type, linkTaskId: taskDependencyObj.value } })
+
+                                            TaskDependency.bulkCreate(taskDependency, { returning: true }).map((response) => {
+                                                return response.toJSON();
+                                            }).then((response) => {
+                                                TaskDependency.findAll(
+                                                    {
+                                                        where: {
+                                                            id: _.map(response, (responseObj) => { return responseObj.id })
+                                                        },
+                                                        include: [
+                                                            {
+                                                                model: Tasks,
+                                                                as: 'task',
+                                                                attributes: ['id', 'task']
+                                                            }
+                                                        ]
+                                                    }
+                                                ).map((mapObject) => {
+                                                    return mapObject.toJSON();
+                                                }).then((response) => {
+                                                    const newTaskDependencyStack = _(response)
+                                                        .map((newTaskDependencyObj) => {
+                                                            return { ..._.omit(newTaskDependencyObj, ["id", "dateAdded", "dateUpdated"]), value: newTaskDependencyObj.task.task }
+                                                        }).value();
+                                                    const isEqualTaskDependency = func.isArrayEqual(oldTaskDependency, newTaskDependencyStack);
+                                                    resolve({
+                                                        data: response,
+                                                        ...(isEqualTaskDependency == false) ? {
+                                                            logs: {
+                                                                old: JSON.stringify({ "task_dependencies": { task: oldTaskDependency } }),
+                                                                new: JSON.stringify({ "task_dependencies": { task: newTaskDependencyStack } }),
+                                                            }
+                                                        } : {}
+                                                    });
+                                                });
+                                            });
+
+                                        } else {
+                                            const isEqualTaskDependency = func.isArrayEqual(oldTaskDependency, []);
+
+                                            resolve({
+                                                data: oldTaskDependency,
+                                                ...(isEqualTaskDependency == false) ? {
+                                                    logs: {
+                                                        old: JSON.stringify({ "task_dependencies": { task: oldTaskDependency } }),
+                                                        new: JSON.stringify({ "task_dependencies": { task: [] } }),
+                                                    }
+                                                } : {}
+                                            });
+                                        }
+                                    })
+                                });
+                            })
+                        });
+
+                        Promise.all(taskDependencyPromise).then((values) => {
+                            const taskDependencyLogsStack = _(values)
+                                .filter((taskDependencyObj) => {
+                                    return (typeof taskDependencyObj.logs != "undefined")
+                                })
+                                .map((taskDependencyObj) => {
+                                    const { logs } = taskDependencyObj;
+                                    return { usersId: body.userId, linkType: "task", linkId: body.id, actionType: "modified", old: logs.old, new: logs.new }
+                                })
+                                .value();
+
+                            parallelCallback(null, taskDependencyLogsStack);
+                        });
+                    }
+                }, (err, { members, task_dependency }) => {
+                    async.parallel({
+                        activity_logs: (parallelCallback) => {
+                            const allLogsStack = [...members, ...task_dependency, ...taskLogStack];
+                            ActivityLogs.bulkCreate(allLogsStack).then((response) => {
+                                parallelCallback(null, response)
+                            });
+                        },
+                        tasks: (parallelCallback) => {
+                            Tasks.findAll(
+                                {
+                                    ...options,
+                                    where: {
+                                        id: _.map(allTask, (allTaskObj) => { return allTaskObj.data.id })
+                                    }
                                 }
                             ).map((mapObject) => {
                                 return mapObject.toJSON();
                             }).then((resultArray) => {
-                                const oldMembers = resultArray;
-                                Members.destroy({
-                                    where: {
-                                        linkType: "task",
-                                        linkId: relatedTaskObj.data.id,
-                                        usersType: "users",
-                                        memberType: "assignedTo"
-                                    }
-                                }).then(() => {
-                                    if (body.assignedTo != "") {
-                                        const assignedTo = { linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" };
-                                        Members.create(assignedTo).then(() => {
-                                            return Members.findAll(
-                                                {
-                                                    where: {
-                                                        linkType: "task",
-                                                        memberType: "assignedTo",
-                                                        linkId: relatedTaskObj.data.id
-                                                    },
-                                                    include: [
-                                                        {
-                                                            model: Users,
-                                                            as: 'user',
-                                                            attributes: ['id', 'firstName', 'lastName']
-                                                        }
-                                                    ]
-                                                });
-                                        }).map((mapObject) => {
-                                            return mapObject.toJSON();
-                                        }).then((resultArray) => {
-                                            const oldMembersStack = _(oldMembers)
-                                                .omit(oldMembers, ["dateAdded", "dateUpdated", "receiveNotification"])
-                                                .map((oldMemberObj) => { return { ...oldMemberObj, value: oldMemberObj.user.firstName + ' ' + oldMemberObj.user.lastName } });
-                                            const newMembersStack = _(resultArray)
-                                                .omit(resultArray, ["dateAdded", "dateUpdated", "receiveNotification"])
-                                                .map((newMemberObj) => { return { ...newMemberObj, value: newMemberObj.user.firstName + ' ' + newMemberObj.user.lastName } });
-                                            const isEqualMembers = func.isArrayEqual(oldMembersStack, newMembersStack);
-                                            resolve({
-                                                data: resultArray,
-                                                ...(isEqualMembers == false) ? {
-                                                    logs: {
-                                                        old: JSON.stringify({ "members": { user: oldMembersStack } }),
-                                                        new: JSON.stringify({ "members": { user: newMembersStack } })
-                                                    }
-                                                } : {}
-                                            });
-                                        });
-                                    } else {
-                                        resolve("");
-                                    }
-                                })
+                                parallelCallback(null, resultArray)
                             });
-
-                        })
+                        }
+                    }, (err, response) => {
+                        cb({ status: true, data: response.tasks });
                     });
-                });
-                Promise.all(memberPromise).then((values) => {
-                    const memberLogsStack = _(values)
-                        .filter((memberObj) => {
-                            return (typeof memberObj.logs != "undefined")
-                        })
-                        .map((memberObj) => {
-                            const { logs, data } = memberObj;
-                            return { usersId: body.userId, linkType: "task", linkId: data[0].linkId, actionType: "modified", old: logs.old, new: logs.new }
-                        })
-                        .value();
-                    const allLogsStack = taskLogStack.concat(memberLogsStack);
+                })
 
-                    ActivityLogs.bulkCreate(allLogsStack).then((response) => {
-                        cb({ status: true, data: _.map(period, (periodObj) => { return periodObj.data }) });
-                    });
-                });
             });
         } catch (err) {
             cb({ status: false, error: err })
         }
+    },
+    status: ({ body }, cb) => {
+        const options = {
+            include: associationStack
+        };
+        try {
+            async.parallel({
+                periodic: (parallelCallback) => {
+                    if (body.periodic == 1) {
+                        const periodTaskId = (body.periodTask == null) ? body.id : body.periodTask;
+                        Tasks.findAll({
+                            ...options,
+                            limit: 1,
+                            where: {
+                                periodTask: periodTaskId,
+                                id: {
+                                    [Sequelize.Op.gt]: body.id
+                                }
+                            },
+                            order: [['dueDate', 'DESC']]
+                        }).map((mapObject) => {
+                            return mapObject.toJSON();
+                        }).then((resultArray) => {
+                            const latestPeriodicTask = resultArray;
+                            const latestTaskDate = _.omit(latestPeriodicTask[0], ["status", "dateAdded", "dateUpdated"]);
+                            const nextDueDate = moment(latestTaskDate.dueDate).add(latestTaskDate.periodType, latestTaskDate.period).format('YYYY-MM-DD HH:mm:ss');
+                            const newPeriodTask = { ...latestTaskDate, id: "", dueDate: nextDueDate, periodTask: periodTaskId, ...(latestTaskDate.startDate != null && latestTaskDate.startDate != "") ? { startDate: moment(latestTaskDate.startDate).add(latestTaskDate.periodType, latestTaskDate.period).format('YYYY-MM-DD HH:mm:ss') } : {} }
+
+                            Tasks.create(newPeriodTask).then((response) => {
+                                const createTaskObj = response.toJSON();
+                                const periodTaskMembers = _.map(latestPeriodicTask[0].task_members, (membersObj) => { return _.omit({ ...membersObj, linkId: createTaskObj.id }, ["id", "user", "dateAdded", "dateUpdated"]) });
+                                const periodTaskDependencies = _.map(latestPeriodicTask[0].task_dependency, (dependencyObj) => { return _.omit({ ...dependencyObj, taskId: createTaskObj.id }, ["id", "task", "dateAdded", "dateUpdated"]) });
+
+                                async.parallel({
+                                    members: (parallelCallback) => {
+                                        Members.bulkCreate(periodTaskMembers, { returning: true }).then((response) => {
+                                            parallelCallback(null, response);
+                                        })
+                                    },
+                                    dependencies: (parallelCallback) => {
+                                        TaskDependency.bulkCreate(periodTaskDependencies, { returning: true }).then((response) => {
+                                            parallelCallback(null, response);
+                                        });
+                                    }
+                                }, (err, response) => {
+                                    console.log(response)
+                                })
+                            });
+                        });
+
+                    } else {
+                        parallelCallback(null, "");
+                    }
+                },
+                status: () => {
+
+                }
+            })
+        } catch (err) {
+            console.log(err)
+        }
+
+
+
+        //console.log(body)
     }
 }
 

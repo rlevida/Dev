@@ -4,7 +4,7 @@ import _ from "lodash";
 import moment from 'moment';
 
 import { HeaderButtonContainer, Loading } from "../../globalComponents";
-import { getData, showToast } from "../../globalFunction";
+import { getData, putData, showToast } from "../../globalFunction";
 import TaskStatus from "./taskStatus"
 
 import { connect } from "react-redux"
@@ -20,26 +20,9 @@ export default class List extends React.Component {
         super(props);
 
         this.deleteData = this.deleteData.bind(this);
-        this.updateActiveStatus = this.updateActiveStatus.bind(this);
+        this.updateStatus = this.updateStatus.bind(this);
         this.renderStatus = this.renderStatus.bind(this);
         this.fetchData = this.fetchData.bind(this);
-    }
-
-    componentWillMount() {
-
-        // let intervalLoggedUser = setInterval(() => {
-        //     if (typeof this.props.loggedUser.data.id != "undefined") {
-        //         let filter = { filter: { projectId: project } };
-        //         if (this.props.loggedUser.data.userRole != 1 && this.props.loggedUser.data.userRole != 2) {
-        //             filter = { filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
-        //         }
-        //         if (typeof this.props.task.Selected.task == "undefined") {
-        //             this.props.socket.emit("GET_TASK_LIST", filter);
-        //         }
-        //         clearInterval(intervalLoggedUser)
-        //     }
-        // }, 1000)
-
     }
 
     componentDidMount() {
@@ -73,18 +56,14 @@ export default class List extends React.Component {
     }
 
     fetchData(page) {
-        let { loggedUser, dispatch } = this.props;
-        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${page}`, {}, (c) => {
+        const { loggedUser, dispatch } = this.props;
+        const { data } = loggedUser;
+        const userRoles = _.map(data.role, (roleObj) => { return roleObj.roleId })[0];
+
+        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${page}&role=${userRoles}`, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
             showToast("success", "Task successfully retrieved.");
-            // dispatch({ type: "SET_TASK_LIST", list: c.data })
-            // if (taskId != "") {
-            //     let selectedTask = c.data.filter((e) => { return e.id == taskId })[0]
-            //     dispatch({ type: "SET_TASK_SELECTED", Selected: selectedTask })
-            //     dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
-            // }
-            // parallelCallback(null, "")
         });
     }
 
@@ -94,10 +73,19 @@ export default class List extends React.Component {
         this.fetchData(Count.current_page + 1);
     }
 
-    updateActiveStatus(params) {
+    updateStatus({ id, periodTask, periodic }) {
         let { socket, loggedUser } = this.props;
 
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...params, status: "Completed", action: "complete", userId: loggedUser.data.id } })
+        putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: "Completed" }, (c) => {
+            // if (c.status == 200) {
+            //     dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data })
+            //     showToast("success", "Task successfully updated.");
+            // } else {
+            //     showToast("error", "Something went wrong please try again later.");
+            // }
+            // dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+        });
+        // socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...params, status: "Completed", action: "complete", userId: loggedUser.data.id } })
     }
 
     deleteData(id) {
@@ -115,9 +103,9 @@ export default class List extends React.Component {
         let className = "";
         let statusColor = "#000";
 
-        if (dueDateMoment.diff(currentDateMoment, 'days') < 0 && data.status != 'Completed') {
+        if (dueDateMoment.isBefore(currentDateMoment, 'day') && data.status != 'Completed') {
             taskStatus = 2
-        } else if (dueDateMoment.diff(currentDateMoment, 'days') == 0 && data.status != 'Completed') {
+        } else if (dueDateMoment.isSame(currentDateMoment, 'day') && data.status != 'Completed') {
             taskStatus = 1
         }
 
@@ -145,6 +133,7 @@ export default class List extends React.Component {
         const lastPage = (typeof task.Count.last_page != "undefined") ? task.Count.last_page : 1;
 
         const taskList = _(task.List)
+            .map((taskObj) => { return { ...taskObj, due_date_int: moment(taskObj.dueDate).format("YYYYMMDD") } })
             .orderBy(['due_date_int'], ['asc'])
             .value();
 
@@ -209,9 +198,8 @@ export default class List extends React.Component {
                                             }
                                         </td>
                                         <td class="text-left">{data.status}</td>
-                                        {/* <td class="text-left">
-                                        {
-                                            (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) && <div>
+                                        <td class="text-left">
+                                            <div>
                                                 <a href="javascript:void(0);" data-tip="EDIT"
                                                     onClick={(e) => {
                                                         dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })
@@ -223,20 +211,19 @@ export default class List extends React.Component {
                                                     onClick={e => this.deleteData(data.id)}
                                                     class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
                                                     <span class="glyphicon glyphicon-trash"></span></a>
-                                                {
+                                                {/* {
                                                     (
                                                         (data.status == null || data.status == "In Progress" || data.status == "")
                                                         &&
                                                         (typeof data.isActive == 'undefined' || data.isActive == 1)
-                                                    ) && <a href="javascript:void(0);" data-tip="COMPLETE"
-                                                        onClick={e => this.updateActiveStatus({ id: data.id, periodTask: data.periodTask })}
-                                                        class="btn btn-success btn-sm ml10">
-                                                        <span class="glyphicon glyphicon-check"></span></a>
-                                                }
-                                                <Tooltip />
+                                                    ) && 
+                                                } */}
+                                                <a href="javascript:void(0);" data-tip="COMPLETE"
+                                                    onClick={e => this.updateStatus({ id: data.id, periodTask: data.periodTask, periodic: data.periodic })}
+                                                    class="btn btn-success btn-sm ml10">
+                                                    <span class="glyphicon glyphicon-check"></span></a>
                                             </div>
-                                        }
-                                    </td> */}
+                                        </td>
                                     </tr>
                                 )
                             })
@@ -249,6 +236,9 @@ export default class List extends React.Component {
                 <div class="text-center">
                     {
                         (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Task</a>
+                    }
+                    {
+                        (taskList.length == 0 && task.Loading != "RETRIEVING") && <p>No Records Found</p>
                     }
                 </div>
             </div>
