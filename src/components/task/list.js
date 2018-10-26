@@ -4,7 +4,7 @@ import _ from "lodash";
 import moment from 'moment';
 
 import { HeaderButtonContainer, Loading } from "../../globalComponents";
-import { getData, putData, showToast } from "../../globalFunction";
+import { getData, putData, deleteData, showToast } from "../../globalFunction";
 import TaskStatus from "./taskStatus"
 
 import { connect } from "react-redux"
@@ -34,18 +34,6 @@ export default class List extends React.Component {
         } else if (Count.current_page != Count.last_page) {
             this.fetchData(Count.current_page + 1);
         }
-        // getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=1`, {}, (c) => {
-        //     dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
-        //     dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-        //     showToast("success", "Task successfully retrieved.");
-        //     // dispatch({ type: "SET_TASK_LIST", list: c.data })
-        //     // if (taskId != "") {
-        //     //     let selectedTask = c.data.filter((e) => { return e.id == taskId })[0]
-        //     //     dispatch({ type: "SET_TASK_SELECTED", Selected: selectedTask })
-        //     //     dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
-        //     // }
-        //     // parallelCallback(null, "")
-        // });
 
         socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
         socket.emit("GET_STATUS_LIST", {});
@@ -74,24 +62,31 @@ export default class List extends React.Component {
     }
 
     updateStatus({ id, periodTask, periodic }) {
-        let { socket, loggedUser } = this.props;
+        let { dispatch, loggedUser } = this.props;
 
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: "Completed" }, (c) => {
-            // if (c.status == 200) {
-            //     dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data })
-            //     showToast("success", "Task successfully updated.");
-            // } else {
-            //     showToast("error", "Something went wrong please try again later.");
-            // }
-            // dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            if (c.status == 200) {
+                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data })
+                showToast("success", "Task successfully updated.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
         });
-        // socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...params, status: "Completed", action: "complete", userId: loggedUser.data.id } })
     }
 
     deleteData(id) {
-        let { socket } = this.props;
+        let { dispatch } = this.props;
+
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_TASK", { id: id })
+            deleteData(`/api/task/${id}`, {}, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "DELETE_TASK", id });
+                    showToast("success", "Task successfully deleted.");
+                } else {
+                    showToast("error", "Something went wrong please try again later.");
+                }
+            });
         }
     }
 

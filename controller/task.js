@@ -2,7 +2,7 @@ const async = require("async");
 const _ = require("lodash");
 const moment = require("moment");
 const models = require('../modelORM');
-const { TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, sequelize, ActivityLogs } = models;
+const { TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder } = models;
 const dbName = "task";
 const { defaultDelete } = require("./");
 const func = global.initFunc();
@@ -693,10 +693,7 @@ exports.put = {
                             ...options,
                             limit: 1,
                             where: {
-                                periodTask: periodTaskId,
-                                id: {
-                                    [Sequelize.Op.gt]: body.id
-                                }
+                                periodTask: periodTaskId
                             },
                             order: [['dueDate', 'DESC']]
                         }).map((mapObject) => {
@@ -722,36 +719,103 @@ exports.put = {
                                         TaskDependency.bulkCreate(periodTaskDependencies, { returning: true }).then((response) => {
                                             parallelCallback(null, response);
                                         });
+                                    },
+                                    activity_logs: (parallelCallback) => {
+                                        ActivityLogs.create({ usersId: body.userId, linkType: "task", linkId: createTaskObj.id, actionType: "created", new: JSON.stringify(createTaskObj) }).then((response) => {
+                                            parallelCallback(null, response)
+                                        });
                                     }
                                 }, (err, response) => {
-                                    console.log(response)
+                                    Tasks.findOne({ ...options, where: { id: createTaskObj.id } }).then((response) => {
+                                        const newTask = response.toJSON();
+                                        parallelCallback(null, newTask);
+                                    });
                                 })
                             });
                         });
-
                     } else {
                         parallelCallback(null, "");
                     }
                 },
-                status: () => {
+                status: (parallelCallback) => {
+                    const { status } = body;
 
+                    Tasks.update({ status }, { where: { id: body.id } }).then((response) => {
+                        return Tasks.findOne({ ...options, where: { id: body.id } });
+                    }).then((response) => {
+                        const updatedTask = response.toJSON();
+                        parallelCallback(null, updatedTask);
+                    });
                 }
+            }, (err, { status, periodic }) => {
+                cb({ status: true, data: [status, periodic] });
             })
         } catch (err) {
-            console.log(err)
+            cb({ status: false, error: err })
         }
 
 
-
-        //console.log(body)
     }
 }
 
 exports.delete = {
     index: (req, cb) => {
+        const params = req.params;
         defaultDelete(dbName, req, (res) => {
             if (res.success) {
-                cb({ status: true, data: res.data })
+                async.parallel({
+                    task_dependencies: (parallelCallback) => {
+                        TaskDependency.destroy({
+                            where: {
+                                linkTaskId: params.id
+                            }
+                        }).then(() => {
+                            parallelCallback(null)
+                        });
+                    },
+                    document_link: (parallelCallback) => {
+                        DocumentLink.destroy({
+                            where: {
+                                linkType: "task",
+                                linkId: params.id
+                            }
+                        }).then(() => {
+                            parallelCallback(null)
+                        });
+                    },
+                    members: (parallelCallback) => {
+                        Members.destroy({
+                            where: {
+                                linkType: "task",
+                                linkId: params.id
+                            }
+                        }).then(() => {
+                            parallelCallback(null)
+                        });
+                    },
+                    reminder: (parallelCallback) => {
+                        Reminder.destroy({
+                            where: {
+                                linkType: "task",
+                                linkId: params.id
+                            }
+                        }).then(() => {
+                            parallelCallback(null)
+                        });
+                    },
+                    task_checklist: (parallelCallback) => {
+                        TaskChecklist.destroy({
+                            where: {
+                                taskId: params.id
+                            }
+                        }).then(() => {
+                            parallelCallback(null)
+                        });
+                    }
+                }, (err, response) => {
+                    cb({ status: true, id: params.id });
+                })
+
             } else {
                 cb({ status: false, error: res.error })
             }

@@ -61,7 +61,9 @@ exports.post = {
                             {
                                 where: {
                                     periodTask: periodTask,
-                                    $and: Tasks.sequelize.where(Tasks.sequelize.fn('date', Tasks.sequelize.col('dueDate')), '>', moment(taskDueDate).format('YYYY-MM-DD HH:mm:ss'))
+                                    dueDate: {
+                                        [Op.gt]: moment(taskDueDate).format('YYYY-MM-DD HH:mm:ss')
+                                    }
                                 }
                             }
                         ).map((mapObject) => {
