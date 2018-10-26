@@ -7,9 +7,10 @@ import ApprovalModal from "./approvalModal";
 import RejectMessageModal from "./rejectMessageModal";
 import moment from 'moment';
 import _ from 'lodash';
-import { HeaderButtonContainer, DropDown } from "../../../globalComponents";
 import TaskComment from "./comment";
 import TaskActivities from "./taskActivities";
+import { DropDown } from "../../../globalComponents";
+import { postData, putData, deleteData } from "../../../globalFunction";
 
 @connect((store) => {
     return {
@@ -36,7 +37,9 @@ export default class FormComponent extends React.Component {
         this.setDropDownMultiple = this.setDropDownMultiple.bind(this);
         this.addChecklist = this.addChecklist.bind(this);
         this.addDependency = this.addDependency.bind(this);
-        this.saveChecklist = this.saveChecklist.bind(this);
+        this.updateChecklist = this.updateChecklist.bind(this);
+        this.completeChecklist = this.completeChecklist.bind(this);
+        this.deleteChecklist = this.deleteChecklist.bind(this);
         this.openCheckListUploadModal = this.openCheckListUploadModal.bind(this);
     }
 
@@ -48,7 +51,6 @@ export default class FormComponent extends React.Component {
     componentDidUpdate() {
         setDatePicker(this.handleDate, "dueDate");
     }
-
 
     followTask() {
         let { dispatch, socket, loggedUser, task, workstream } = this.props;
@@ -79,7 +81,7 @@ export default class FormComponent extends React.Component {
 
     markTaskAsCompleted() {
         let { socket, task, checklist, loggedUser } = this.props;
-       
+
         if (task.Selected.approvalRequired && loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3) {
             $(`#approvalModal`).modal("show");
         } else {
@@ -145,19 +147,75 @@ export default class FormComponent extends React.Component {
     }
 
     addChecklist() {
-        const { checklist, task, socket, loggedUser } = this.props;
+        const { checklist, task, loggedUser, dispatch } = this.props;
         const toBeSubmitted = {
             description: checklist.Selected.checklist,
-            types: (typeof checklist.Selected.types != "undefined") ? checklist.Selected.types : "",
             taskId: task.Selected.id,
             periodTask: (task.Selected.periodTask == null) ? task.Selected.id : task.Selected.periodTask,
             isPeriodicTask: task.Selected.periodic,
             taskDueDate: task.Selected.dueDate,
-            createdBy: loggedUser.data.id,
-            isDocument: (typeof checklist.Selected.isDocument != "undefined" && checklist.Selected.isDocument != "") ? checklist.Selected.isDocument : 0
+            isMandatory: (typeof checklist.Selected.isMandatory != "undefined" && checklist.Selected.isMandatory != "") ? checklist.Selected.isMandatory : 0,
+            isDocument: (typeof checklist.Selected.isDocument != "undefined" && checklist.Selected.isDocument != "") ? checklist.Selected.isDocument : 0,
+            createdBy: loggedUser.data.id
         };
 
-        socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
+        postData(`/api/checklist/`, toBeSubmitted, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "ADD_CHECKLIST", data: c.data });
+                dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
+                showToast("success", "Checklist successfully updated.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
+    }
+
+    updateChecklist() {
+        const { checklist, task, loggedUser, dispatch } = this.props;
+        const toBeSubmitted = {
+            id: checklist.Selected.id,
+            description: checklist.Selected.checklist,
+            taskId: task.Selected.id,
+            periodChecklist: checklist.Selected.periodChecklist,
+            periodTask: (task.Selected.periodTask == null) ? task.Selected.id : task.Selected.periodTask,
+            isPeriodicTask: task.Selected.periodic,
+            taskDueDate: task.Selected.dueDate,
+            isMandatory: (typeof checklist.Selected.isMandatory != "undefined" && checklist.Selected.isMandatory != "") ? checklist.Selected.isMandatory : 0,
+            isDocument: (typeof checklist.Selected.isDocument != "undefined" && checklist.Selected.isDocument != "") ? checklist.Selected.isDocument : 0,
+            createdBy: loggedUser.data.id
+        };
+        putData(`/api/checklist/${checklist.Selected.id}`, toBeSubmitted, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "UPDATE_CHECKLIST", data: c.data });
+                dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
+                showToast("success", "Checklist successfully updated.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
+    }
+
+    deleteChecklist(id) {
+        const { task, dispatch } = this.props;
+
+        deleteData(`/api/checklist/${id}?taskId=${task.Selected.id}`, {}, (c) => {
+            dispatch({ type: "DELETE_CHECKLIST", data: { id } });
+            showToast("success", "Item successfully deleted.");
+        });
+    }
+
+    completeChecklist(params) {
+        const { dispatch } = this.props;
+
+        putData(`/api/checklist/${params.id}`, params, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "UPDATE_CHECKLIST", data: c.data });
+                dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
+                showToast("success", "Checklist successfully updated.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
     }
 
     addDependency() {
@@ -169,27 +227,6 @@ export default class FormComponent extends React.Component {
             userId: loggedUser.data.id
         };
         socket.emit("ADD_TASK_DEPENDENCY", { data: toBeSubmitted })
-    }
-
-    saveChecklist() {
-        const { checklist, task, socket, loggedUser } = this.props;
-        const toBeSubmitted = {
-            id: checklist.Selected.id,
-            description: checklist.Selected.checklist,
-            types: checklist.Selected.types,
-            taskId: task.Selected.id,
-            periodChecklist: checklist.Selected.periodChecklist,
-            periodTask: (task.Selected.periodTask == null) ? task.Selected.id : task.Selected.periodTask,
-            periodTask: (task.Selected.periodTask == null) ? task.Selected.id : task.Selected.periodTask,
-            isPeriodicTask: task.Selected.periodic,
-            taskDueDate: task.Selected.dueDate,
-            createdBy: loggedUser.data.id
-        };
-        if (_.filter(checklist.Selected.types, (e) => { return e.value == "Document" }).length > 0 && checklist.Selected.documents.length > 0) {
-            socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted, documents: checklist.Selected.documents, project: project })
-        } else {
-            socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: toBeSubmitted })
-        }
     }
 
     handleCheckbox(name, value) {
@@ -368,12 +405,6 @@ export default class FormComponent extends React.Component {
 
         return (
             <div>
-                {/* <HeaderButtonContainer withMargin={true}>
-                    <li class="btn btn-info" style={{ marginRight: "2px" }}
-                        onClick={() => window.location.href = `/project/${project}`} >
-                        <span>Back</span>
-                    </li>
-                </HeaderButtonContainer> */}
                 <Tabs class="mb40">
                     <TabList>
                         <Tab>Overview</Tab>
@@ -469,17 +500,17 @@ export default class FormComponent extends React.Component {
                                                 || loggedUser.data.userRole == 1
                                                 || loggedUser.data.userRole == 2
                                                 || loggedUser.data.userRole == 3
-                                                || project.Selected.projectManagerId == loggedUser.data.id)  
+                                                || project.Selected.projectManagerId == loggedUser.data.id)
                                                 && task.Selected.status != "Completed"
                                                 ? true : false
 
                                             return (
                                                 <div className={
-                                                        (isEditable || task.Selected.assignedById == loggedUser.data.id) 
-                                                            ? (o.completed == 1) 
-                                                                ? "wrapper completed" 
-                                                                : "wrapper" 
-                                                            : "wrapper-disabled"} key={index}>
+                                                    (isEditable || task.Selected.assignedById == loggedUser.data.id)
+                                                        ? (o.isCompleted == 1)
+                                                            ? "wrapper completed"
+                                                            : "wrapper"
+                                                        : "wrapper-disabled"} key={index}>
                                                     {
                                                         (isEditable || (task.Selected.assignedById == loggedUser.data.id)) &&
                                                         <div class="dropdown task-checklist-actions">
@@ -492,13 +523,13 @@ export default class FormComponent extends React.Component {
                                                                 }
                                                                 {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
                                                                     <li>
-                                                                        <a onClick={() => { socket.emit("DELETE_CHECKLIST", { data: o.id }) }}>Delete</a>
+                                                                        <a onClick={() => { this.deleteChecklist(o.id) }}>Delete</a>
                                                                     </li>
                                                                 }
                                                                 {(task.Selected.assignedById == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
                                                                     <li>
-                                                                        <a onClick={() => { socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { id: o.id, completed: (o.completed != 1) ? 1 : 0 } }) }}>
-                                                                            {(o.completed) ? "Unchecked" : "Check"}
+                                                                        <a onClick={() => { this.completeChecklist({ id: o.id, isCompleted: (o.isCompleted != 1) ? 1 : 0 }) }}>
+                                                                            {(o.isCompleted) ? "Unchecked" : "Check"}
                                                                         </a>
                                                                     </li>
                                                                 }
@@ -514,9 +545,11 @@ export default class FormComponent extends React.Component {
                                                     <p>{o.description}</p>
                                                     <div id="checklist-action-wrapper">
                                                         {
+                                                            (o.isMandatory == 1) && <span class="label label-info mr5">Mandatory</span>
+                                                        }
+                                                        {
                                                             (o.isDocument == 1) && <span class="label label-success">Document</span>
                                                         }
-
                                                         {
                                                             ((o.documents != null && o.documents != "") && (o.documents).length > 0) && <div class="mt5">
                                                                 <p class="mb0">Documents:</p>
@@ -530,7 +563,7 @@ export default class FormComponent extends React.Component {
                                                             </div>
                                                         }
                                                         <p style={{ marginTop: 5, fontSize: 10 }}>
-                                                            <span>By : {o.users_firstName + ' ' + o.users_lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
+                                                            <span>By : {o.user.firstName + ' ' + o.user.lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
                                                         </p>
                                                     </div>
                                                 </div>
@@ -544,23 +577,40 @@ export default class FormComponent extends React.Component {
                                     <div class="col-md-12 pdr0">
                                         {
                                             ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id || loggedUser.data.userRole == 3) &&
-                                            <div class="form-group" style={{ marginBottom: 10 }}>
-                                                <label>Item</label>
-                                                <input type="text" name="checklist"
-                                                    class="form-control"
-                                                    placeholder="Add Item"
-                                                    onChange={this.handleChange}
-                                                    value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
+                                            <div>
+                                                <div class="form-group m0">
+                                                    <label>Item</label>
+                                                    <input type="text" name="checklist"
+                                                        class="form-control"
+                                                        placeholder="Add Item"
+                                                        onChange={this.handleChange}
+                                                        value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
 
-                                                />
-                                                <label class="checkbox-inline pd0" style={{ fontWeight: "bold" }}>
-                                                    Document ?
-                                                    <input type="checkbox"
-                                                        checked={checklist.Selected.isDocument ? true : false}
-                                                        onChange={() => { }}
-                                                        onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
                                                     />
-                                                </label>
+                                                </div>
+                                                <ul id="checklist-checkbox">
+                                                    <li>
+                                                        <input
+                                                            id="mandatory-checkbox"
+                                                            type="checkbox"
+                                                            checked={checklist.Selected.isMandatory ? true : false}
+                                                            onChange={() => { }}
+                                                            onClick={(f) => { this.handleCheckbox("isMandatory", (checklist.Selected.isMandatory) ? 0 : 1) }}
+                                                        />
+                                                        <label for="mandatory-checkbox">Mandatory Item</label>
+                                                    </li>
+                                                    <li>
+                                                        <input
+                                                            id="document-checkbox"
+                                                            type="checkbox"
+                                                            checked={checklist.Selected.isDocument ? true : false}
+                                                            onChange={() => { }}
+                                                            onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
+                                                        />
+                                                        <label for="document-checkbox">Document Item</label>
+                                                    </li>
+                                                </ul>
+
                                             </div>
                                         }
                                     </div>
@@ -604,7 +654,7 @@ export default class FormComponent extends React.Component {
                                                 :
                                                 <div>
                                                     <a href="javascript:void(0);" class="btn btn-primary mt5 mr5" title="Save"
-                                                        onClick={this.saveChecklist}
+                                                        onClick={this.updateChecklist}
                                                     >
                                                         Save
                                                     </a>

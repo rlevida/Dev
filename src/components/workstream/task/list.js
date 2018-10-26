@@ -59,7 +59,7 @@ export default class List extends React.Component {
                 })
             },
             taskCheckList: (parallelCallback) => {
-                getData(`/api/checklist/getCheckList`, { params: { filter: { taskId: taskId } } }, (c) => {
+                getData(`/api/checklist/getCheckList?taskId=${taskId}&includes=user`, {}, (c) => {
                     if (c.status == 200) {
                         dispatch({ type: "SET_CHECKLIST", list: c.data })
                     }
@@ -98,7 +98,7 @@ export default class List extends React.Component {
                 })
             }
         }, (error, result) => {
-
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" })
         })
     }
 
@@ -119,9 +119,10 @@ export default class List extends React.Component {
         let { dispatch, socket } = this.props;
         parallel({
             taskCheckList: (parallelCallback) => {
-                getData(`/api/checklist/getCheckList`, { params: { filter: { taskId: data.id } } }, (c) => {
+                getData(`/api/checklist/getCheckList?taskId=${data.id}&includes=user`, {}, (c) => {
                     if (c.status == 200) {
                         dispatch({ type: "SET_CHECKLIST", list: c.data })
+                        dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
                     }
                     parallelCallback(null, "")
                 })
@@ -147,11 +148,10 @@ export default class List extends React.Component {
             window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}?task=${data.id}`);
             dispatch({ type: "SET_TASK_SELECTED", Selected: data })
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
-            // console.log(`end loading`)
         })
 
-        // dispatch({ type: "SET_TASK_COMPONENT_CURRENT_PAGE" , Page: "Workstream Task"})
-        // socket.emit("GET_APPLICATION_SELECT_LIST",{ selectName : "workstreamMemberList" , filter: { id: data.workstreamId  } })
+        dispatch({ type: "SET_TASK_COMPONENT_CURRENT_PAGE", Page: "Workstream Task" })
+        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamMemberList", filter: { id: data.workstreamId } })
     }
 
     renderStatus(data) {
@@ -195,7 +195,7 @@ export default class List extends React.Component {
                             <th class="text-center">Followed By</th>
                         </tr>
                         {
-                            (task.List.length > 0 && !task.Loading) &&
+                            (task.List.length > 0 && task.Loading != "RETRIEVING") &&
                             _.orderBy(task.List, ['dueDate', 'asc']).map((data, index) => {
 
                                 let taskStatus = 0;
@@ -238,10 +238,10 @@ export default class List extends React.Component {
                     </tbody>
                 </table>
                 {
-                    (task.Loading) && <Loading />
+                    (task.Loading == "RETRIEVING") && <Loading />
                 }
                 {
-                    (task.List.length == 0 && task.Loading == false) && <p class="text-center">No Record Found!</p>
+                    (task.List.length == 0 && task.Loading != "RETRIEVING") && <p class="text-center">No Record Found!</p>
                 }
             </div>
         );

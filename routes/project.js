@@ -24,7 +24,8 @@ router.get('/', function (req, res, next) {
             page: 'project',
             subpage: '',
             project: "",
-            body: "./template/index"
+            body: "./template/index",
+            user: JSON.stringify(req.userDetails.data)
         });
     }else{
         let members = global.initModel("members")
@@ -37,7 +38,8 @@ router.get('/', function (req, res, next) {
                                 page: 'project',
                                 subpage: '',
                                 project: "",
-                                body: "./template/index"
+                                body: "./template/index",
+                                user: JSON.stringify(req.userDetails.data)
                             });
                         }else{
                             res.redirect(`/project/${c.data[0].linkId}`);
@@ -61,7 +63,8 @@ router.get('/:project', function (req, res, next) {
                         page: 'project',
                         subpage: 'home',
                         body: "./template/index",
-                        project: req.params.project
+                        project: req.params.project,
+                        user: JSON.stringify(req.userDetails.data)
                     });
                 }else{
                     res.render('index', {
@@ -87,7 +90,8 @@ router.get('/documents/:project', function (req, res, next) {
                         body: "./template/index",
                         project: req.params.project,
                         folder: req.query.folder,
-                        folderType: req.query.type
+                        folderType: req.query.type,
+                        user: JSON.stringify(req.userDetails.data)
                     });
                 }else{
                     res.render('index', {
@@ -111,7 +115,8 @@ router.get('/trash/:project', function (req, res, next) {
                         body: './template/index',
                         page: 'project',
                         subpage: 'trash',
-                        project: req.params.project
+                        project: req.params.project,
+                        user: JSON.stringify(req.userDetails.data)
                     });
                 }else{
                     res.render('index', {
@@ -160,7 +165,8 @@ router.get('/:project/workstream', function (req, res, next) {
                         body: './template/index',
                         page: 'project',
                         subpage: 'workstream',
-                        project: req.params.project
+                        project: req.params.project,
+                        user: JSON.stringify(req.userDetails.data)
                     });
                 }else{
                     res.render('index', {
@@ -187,7 +193,8 @@ router.get('/:project/workstream/:workstream', function (req, res, next) {
                         subpage: 'workstream',
                         project: req.params.project,
                         workstream : req.params.workstream,
-                        task : task
+                        task : task,
+                        user: JSON.stringify(req.userDetails.data)
                     });
                 }else{
                     res.render('index', {
@@ -210,7 +217,8 @@ router.get('/:project/task', function (req, res, next) {
                         body: './template/index',
                         page: 'project',
                         subpage: 'task',
-                        project: req.params.project
+                        project: req.params.project,
+                        user: JSON.stringify(req.userDetails.data)
                     });
                 }else{
                     res.render('index', {
@@ -234,7 +242,8 @@ router.get('/conversations/:project', function (req, res, next) {
                     body: './template/index',
                     page: 'project',
                     subpage: 'conversations',
-                    project: req.params.project
+                    project: req.params.project,
+                    user: JSON.stringify(req.userDetails.data)
                 });
             }else{
                 res.render('index', {

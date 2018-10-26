@@ -1,14 +1,24 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('task_checklist', {
+module.exports = (sequelize, DataTypes) => {
+  const TaskChecklist = sequelize.define('task_checklist', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
       autoIncrement: true
     },
-    completed: {
+    isCompleted: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '0'
+    },
+    isDocument: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '0'
+    },
+    isMandatory: {
       type: DataTypes.INTEGER(1),
       allowNull: true,
       defaultValue: '0'
@@ -35,14 +45,27 @@ module.exports = function(sequelize, DataTypes) {
     },
     dateAdded: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: true,
+      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     },
     dateUpdated: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
-  }, {
-    tableName: 'task_checklist'
-  });
+  },
+    {
+      timestamps: false,
+      tableName: 'task_checklist'
+    }
+  );
+
+  TaskChecklist.associate = function (models) {
+    TaskChecklist.belongsTo(models.Users, {
+      as: 'user',
+      foreignKey: 'createdBy'
+    });
+  };
+
+  return TaskChecklist;
 };

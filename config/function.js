@@ -118,7 +118,7 @@ var getTaskProjectId = exports.getTaskProjectId = (data, cb) => {
 var changedObjAttributes = exports.changedObjAttributes = (object, base) => {
     return _.transform(object, function (result, value, key) {
         if (!_.isEqual(value, base[key])) {
-            result[key] = (_.isObject(value) && _.isObject(base[key])) ? changes(value, base[key]) : value;
+            result[key] = (_.isObject(value) && _.isObject(base[key])) ? changedObjAttributes(value, base[key]) : value;
         }
     });
 }

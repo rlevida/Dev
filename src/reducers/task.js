@@ -1,4 +1,5 @@
 import _ from "lodash";
+import moment from "moment";
 
 export default function reducer(state = {
     List: [],
@@ -8,15 +9,16 @@ export default function reducer(state = {
     Selected: {
         isActive: true
     },
+    Count: {},
     SelectedId: [],
     FormAction: "",
-    Loading: true,
+    Loading: "RETRIEVING",
     ModalType: "",
-    TaskComponentCurrentPage : ""
+    TaskComponentCurrentPage: ""
 }, action) {
     switch (action.type) {
         case "SET_TASK_LIST": {
-            return { ...state, List: action.list, Loading: false, Selected: { isActive: true } }
+            return { ...state, List: action.list, Count: action.count, Selected: { isActive: true } }
         }
         case "SET_TASK_COUNT_LIST": {
             return { ...state, CountList: action.list }
@@ -31,44 +33,60 @@ export default function reducer(state = {
             return { ...state, Selected: action.Selected }
         }
         case "SET_TASK_ID": {
-            return { ...state, SelectedId: action.SelectedId }
+            return { ...state, SelectedId: action.SelectedId, Loading: "RETRIEVING" }
         }
         case "SET_TASK_LOADING": {
-            return { ...state, Loading: !state.Loading }
+            return { ...state, Loading: (typeof action.Loading != "undefined") ? action.Loading : "" }
         }
         case "SET_TASK_MODAL_TYPE": {
             return { ...state, ModalType: action.ModalType }
         }
         case "UPDATE_DATA_TASK_LIST": {
             const { List } = { ...state };
-            let copyOfList = [...List];
-            let updatedList = [];
-            
-            if (action.data.action == "add") {
-                updatedList = copyOfList.concat(action.data.data);
-            } else {
-               _.map(action.data.data, (o) => {
-                    var updateIndex = _.findIndex(copyOfList, { id: o.id });
-                    if (updateIndex >= 0) {
-                        copyOfList.splice(updateIndex, 1, o);
-                    } else {
-                        copyOfList.push(o);
-                    }
-                })
+            const copyOfList = [...List];
 
-                updatedList = copyOfList;
-                
-                // Deactivating a task disables creation of new instances
-                var dataIndex = _.findIndex(List, { id: action.data.data[0].id });
-                if(List[dataIndex].isActive != action.data.data[0].isActive){
-                    _.map( updatedList , (o) => {
-                        if(o.periodTask == action.data.data[0].id ){
-                            o.isActive = action.data.data[0].isActive
-                        }
-                    })
+            _.map(action.List, (o) => {
+                const updateIndex = _.findIndex(copyOfList, { id: o.id });
+
+                if (updateIndex >= 0) {
+                    copyOfList.splice(updateIndex, 1, o);
+                } else {
+                    copyOfList.push(o);
                 }
-            }
-            return { ...state, List: updatedList }
+            });
+
+            return { ...state, List: copyOfList, ...(typeof action.Count != "undefined") ? { Count: action.Count } : {}, FormActive: "List" }
+
+            // const updateIndex = _.findIndex(copyOfList, { id: action.data.id });
+            // copyOfList.splice(updateIndex, 1, action.data);
+
+            // // let updatedList = [];
+
+            // // if (action.data.action == "add") {
+            // //     updatedList = copyOfList.concat(action.data.data);
+            // // } else {
+            // //     _.map(action.data.data, (o) => {
+            // //         var updateIndex = _.findIndex(copyOfList, { id: o.id });
+            // //         if (updateIndex >= 0) {
+            // //             copyOfList.splice(updateIndex, 1, o);
+            // //         } else {
+            // //             copyOfList.push(o);
+            // //         }
+            // //     })
+
+            // //     updatedList = copyOfList;
+
+            // //     // Deactivating a task disables creation of new instances
+            // //     var dataIndex = _.findIndex(List, { id: action.data.data[0].id });
+            // //     if (List[dataIndex].isActive != action.data.data[0].isActive) {
+            // //         _.map(updatedList, (o) => {
+            // //             if (o.periodTask == action.data.data[0].id) {
+            // //                 o.isActive = action.data.data[0].isActive
+            // //             }
+            // //         })
+            // //     }
+            // // }
+
         }
         case "REMOVE_DELETED_TASK_LIST": {
             let tempList = [];
@@ -97,10 +115,10 @@ export default function reducer(state = {
             return { ...state, Selected: updatedSelected };
         }
         case "SET_TASK_FORM_ACTION": {
-            return { ...state, FormAction : action.FormAction}
+            return { ...state, FormAction: action.FormAction }
         }
-        case "SET_TASK_COMPONENT_CURRENT_PAGE" : {
-            return { ...state , TaskComponentCurrentPage : action.Page}
+        case "SET_TASK_COMPONENT_CURRENT_PAGE": {
+            return { ...state, TaskComponentCurrentPage: action.Page }
         }
         default:
             return state;

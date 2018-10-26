@@ -61,15 +61,20 @@ module.exports = function (sequelize, DataTypes) {
     });
 
   Workstream.associate = function (models) {
+    Workstream.belongsTo(models.Projects, {
+      foreignKey: 'projectId',
+      as: "project"
+    });
+
     Workstream.hasMany(models.Tag, {
       foreignKey: 'linkId',
       as: "tag"
     });
 
-    Workstream.hasMany(models.Members,{
+    Workstream.hasMany(models.Members, {
       foreignKey: 'linkId',
-      as:'responsible'
-    })
+      as: "responsible"
+    });
   };
 
   return Workstream;

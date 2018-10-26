@@ -19,7 +19,7 @@ CREATE TABLE `task` (
     `approvalRequired` TINYINT(1) DEFAULT '0',
     `approverId` BIGINT,
     `approvalDueDate` DATETIME,
-    `dateAdded` DATETIME,
+    `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;

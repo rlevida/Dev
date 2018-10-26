@@ -22,13 +22,14 @@ const Document = require('./document')(sequelize, Sequelize.DataTypes);
 const DocumentLink = require('./document_link')(sequelize, Sequelize.DataTypes);
 const Folder = require('./folder')(sequelize, Sequelize.DataTypes);
 const Members = require('./members')(sequelize, Sequelize.DataTypes);
+const Projects = require('./project')(sequelize, Sequelize.DataTypes);
 const Tag = require('./tag')(sequelize, Sequelize.DataTypes);
 const Tasks = require('./task')(sequelize, Sequelize.DataTypes);
+const TaskChecklist = require('./task_checklist')(sequelize, Sequelize.DataTypes);
 const TaskDependency = require('./task_dependency')(sequelize, Sequelize.DataTypes);
 const Users = require('./users')(sequelize, Sequelize.DataTypes);
 const UsersRole = require('./users_role')(sequelize, Sequelize.DataTypes);
 const Workstream = require('./workstream')(sequelize , Sequelize.DataTypes);
-const Project = require('./project')(sequelize, Sequelize.DataTypes);
 const Reminder = require('./reminder')(sequelize, Sequelize.DataTypes);
 const Status = require('./status')(sequelize, Sequelize.DataTypes);
 const Type = require('./type')(sequelize, Sequelize.DataTypes);
@@ -39,12 +40,13 @@ const models = {
     DocumentLink,
     Folder,
     Members,
+    Projects,
     Tag,
     Tasks,
+    TaskChecklist,
     TaskDependency,
     Users,
     Workstream,
-    Project,
     Reminder,
     Status,
     Type,

@@ -159,14 +159,6 @@ a {
   background: #ddd;
   border-radius: 5px;
 }
-// #checklist .wrapper a {
-//   top: 50%;
-//   right: 0;
-//   transform: translate(-50%,-50%);
-//   top: 50%;
-//   right: 0;
-//   transform: translate(-50%,-50%);
-// }
 
 #checklist .completed::before {
   content: '';
@@ -180,6 +172,32 @@ a {
   height: 15px;
   width: 7px;
 }
+
+#checklist-action-wrapper{
+  position: relative;
+}
+
+#checklist-checkbox{
+  padding-left: 0px;
+}
+
+#checklist-checkbox input{
+  width:20px;
+  position:relative;
+  left: 110px;
+  vertical-align:middle;
+  margin: 0px; 
+}
+
+#checklist-checkbox label{  
+  width:110px;       
+  position:relative;
+  left: -20px;
+  
+  display:inline-block;    
+  vertical-align:middle; 
+}
+
 .completed p {
   text-decoration:line-through
 }
@@ -191,9 +209,6 @@ a {
 }
 .checklist-actions a{
  margin:2px;
-}
-#checklist-action-wrapper{
-  position: relative;
 }
 
 .task-checklist-actions{

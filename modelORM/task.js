@@ -87,7 +87,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     dateAdded: {
       type: DataTypes.DATE,
-      allowNull: true
+      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     },
     dateUpdated: {
       type: DataTypes.DATE,
@@ -103,20 +103,31 @@ module.exports = (sequelize, DataTypes) => {
     Tasks.belongsTo(models.Tag, {
       foreignKey: 'id'
     });
-
+    Tasks.hasMany(models.TaskDependency, {
+      as: 'task_dependency',
+      foreignKey: 'taskId'
+    });
+    Tasks.hasMany(models.Members, {
+      as: 'task_members',
+      foreignKey: 'linkId'
+    });
+    Tasks.hasMany(models.TaskChecklist, {
+      as: 'checklist',
+      foreignKey: 'taskId'
+    });
     Tasks.hasMany(models.Members, {
       foreignKey: 'linkId',
       as: 'assignee'
-    })
-
-    Tasks.belongsTo(models.Workstream, {
-      foreignKey:'workstreamId',
-      as:'workstream'
     })
     Tasks.hasMany(models.Members, {
       foreignKey: "linkId",
       as: 'follower'
     })
+    Tasks.belongsTo(models.Workstream, {
+      foreignKey: 'workstreamId',
+      as: 'workstream'
+    })
+
   };
 
   return Tasks

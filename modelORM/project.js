@@ -1,7 +1,6 @@
 /* jshint indent: 2 */
-
-module.exports = function(sequelize, DataTypes) {
-  var Project = sequelize.define('project', {
+module.exports = (sequelize, DataTypes) => {
+  const Projects = sequelize.define('projects', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -65,43 +64,48 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-    tableName: 'project',
-    timestamps: false
-  });
+      tableName: 'project',
+      timestamps: false
+    });
 
-  Project.associate = function (models) {
-    Project.belongsTo(models.Status, {
+  Projects.associate = function (models) {
+    Projects.hasMany(models.Members, {
+      as: 'project_members',
+      foreignKey: 'linkId'
+    });
+    Projects.belongsTo(models.Status, {
       as: 'status',
       foreignKey: 'statusId',
     });
-    
-    Project.belongsTo(models.Type, {
+
+    Projects.belongsTo(models.Type, {
       as: 'type',
       foreignKey: 'typeId'
     })
 
-    Project.hasMany(models.Members, {
+    Projects.hasMany(models.Members, {
       as: 'projectManager',
       foreignKey: 'linkId'
     })
 
-    Project.hasMany(models.Workstream, {
+    Projects.hasMany(models.Workstream, {
       as: 'projectWorkstream',
       foreignKey: 'projectId'
     })
-    
-    Project.hasMany(models.Tasks, {
+
+    Projects.hasMany(models.Tasks, {
       as: 'taskActive',
       foreignKey: 'projectId'
     })
-    Project.hasMany(models.Tasks, {
+    Projects.hasMany(models.Tasks, {
       as: 'taskOverDue',
       foreignKey: 'projectId'
     })
-    Project.hasMany(models.Tasks, {
+    Projects.hasMany(models.Tasks, {
       as: 'taskDueToday',
       foreignKey: 'projectId'
     })
   };
-  return Project
+
+  return Projects
 };
