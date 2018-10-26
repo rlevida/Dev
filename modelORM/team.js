@@ -38,10 +38,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER(1),
       allowNull: true,
       defaultValue: '0'
-    },
-    projectId: {
-      type: DataTypes.BIGINT,
-      allowNull: true
     }
   }, {
     tableName: 'team',
