@@ -74,17 +74,13 @@ export default class List extends React.Component {
                 })
             },
             teams: (parallelCallback) => {
-                getData(`/api/teams`,{}, (c) => {
-                    if(c.status == 200) {
-                        dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'teamList' })
-                        parallelCallback(null,c.data)
-                    }else{
-                        parallelCallback(null,"")
-                    }
+                getData(`/api/globalORM/selectList?selectName=teamList`,{},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST", List: c.data, name: 'teamList' })
+                    parallelCallback(null,"")
                 })
             },
             roles: (parallelCallback) => {
-                getData(`/api/global/selectList`,{ params: { selectName: "roleList" }},(c) => {
+                getData(`/api/globalORM/selectList?selectName=roleList`,{},(c) => {
                     dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'roleList' })
                     parallelCallback(null,"")
                 })

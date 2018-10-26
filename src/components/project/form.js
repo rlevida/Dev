@@ -40,7 +40,6 @@ export default class FormComponent extends React.Component {
         $(".form-container").validator();
         parallel({
            projectMemberList :(parallelCallback) => {
-                let params = ``
                 getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project&usersType=users`,{}, (c) => {
                     dispatch({ type:"SET_MEMBERS_LIST", list : c.data })
                     parallelCallback(null,c.data)
@@ -50,6 +49,12 @@ export default class FormComponent extends React.Component {
                 getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`,{ },(c) => {
                     dispatch({type:"SET_TEAM_LIST",list : c.data})
                     parallelCallback(null,c.data)
+                })
+            },
+            projectMemberListGlobal: (parallelCallback) => {
+                getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project.Selected.id}&linkType=project`,{},(c) => {
+                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'projectMemberList' })
+                    parallelCallback(null,"")
                 })
             }
         },(err,result) => {
@@ -200,8 +205,7 @@ export default class FormComponent extends React.Component {
 
     render() {
         let { dispatch, project, loggedUser, members, status, type, users, teams, workstream, global } = this.props;
-        let statusList = [], typeList = [];
-        let memberList = members.List;
+        let statusList = [], typeList = [],projectManagerOptions = [];
 
             status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
             type.List.map((e, i) => {
@@ -217,8 +221,6 @@ export default class FormComponent extends React.Component {
                 }
             });
 
-        let projectManagerOptions = [] , projectManager = "";
-            
             if (users.List.length > 0){
                 users.List.map((e) => {
                     if(e.role.length > 0){
