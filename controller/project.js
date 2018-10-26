@@ -35,40 +35,40 @@ exports.get = {
                 .findAll({
                     raw: true,
                     include: [{
-                            model: Type,
-                            as: 'type',
-                            required: false,
-                            attributes: []
+                        model: Type,
+                        as: 'type',
+                        required: false,
+                        attributes: []
+                    },
+                    {
+                        model: Members,
+                        as: 'projectManager',
+                        where: {
+                            memberType: 'project manager'
                         },
-                        {
-                            model: Members,
-                            as: 'projectManager',
-                            where: {
-                                memberType: 'project manager'
-                            },
-                            required: false,
-                            attributes: []
-                        },
-                        {
-                            model: Tasks,
-                            as: 'taskActive',
-                            attributes: [],
-                            required: false
-                        },
-                        {
-                            model: Tasks,
-                            as: 'taskOverDue',
-                            where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskOverDue.dueDate')), '<', moment().format('YYYY-MM-DD 00:00:00')),
-                            required: false,
-                            attributes: []
-                        },
-                        {
-                            model: Tasks,
-                            as: 'taskDueToday',
-                            where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskDueToday.dueDate')), '=', moment().format('YYYY-MM-DD 00:00:00')),
-                            required: false,
-                            attributes: []
-                        }
+                        required: false,
+                        attributes: []
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskActive',
+                        attributes: [],
+                        required: false
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskOverDue',
+                        where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskOverDue.dueDate')), '<', moment().format('YYYY-MM-DD 00:00:00')),
+                        required: false,
+                        attributes: []
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskDueToday',
+                        where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskDueToday.dueDate')), '=', moment().format('YYYY-MM-DD 00:00:00')),
+                        required: false,
+                        attributes: []
+                    }
                     ],
                     attributes: {
                         include: [
@@ -89,7 +89,6 @@ exports.get = {
                     })
                 })
         } catch (err) {
-            console.log(err)
             cb({
                 status: false,
                 error: err
@@ -132,15 +131,15 @@ exports.get = {
                         model: Users,
                         as: 'user',
                         include: [{
-                                model: UsersRole,
-                                as: 'role',
-                            },
-                            {
-                                model: UsersTeam,
-                                as: 'team'
-                            }
+                            model: UsersRole,
+                            as: 'role',
+                        },
+                        {
+                            model: UsersTeam,
+                            as: 'team'
+                        }
                         ]
-                    }, ]
+                    },]
                 })
                 .then((res) => {
                     cb({
@@ -180,28 +179,28 @@ exports.get = {
                         model: Teams,
                         as: 'team',
                         include: [{
+                            model: Users,
+                            as: 'teamLeader'
+                        },
+                        {
+                            model: UsersTeam,
+                            as: 'users_team',
+                            include: [{
                                 model: Users,
-                                as: 'teamLeader'
-                            },
-                            {
-                                model: UsersTeam,
-                                as: 'users_team',
+                                as: 'user',
                                 include: [{
-                                    model: Users,
-                                    as: 'user',
-                                    include: [{
-                                            model: UsersRole,
-                                            as: 'role',
-                                        },
-                                        {
-                                            model: UsersTeam,
-                                            as: 'team'
-                                        }
-                                    ]
-                                }]
-                            }
+                                    model: UsersRole,
+                                    as: 'role',
+                                },
+                                {
+                                    model: UsersTeam,
+                                    as: 'team'
+                                }
+                                ]
+                            }]
+                        }
                         ]
-                    }, ]
+                    },]
                 })
                 .then((res) => {
                     cb({
@@ -220,18 +219,128 @@ exports.get = {
 
 exports.post = {
     index: (req, cb) => {
-        defaultPost(dbName, req, (res) => {
-            if (res.success) {
-                cb({
-                    status: true,
-                    data: res.data
+        let d = req.body
+        sequence.create().then((nextThen) => {
+            Projects
+                .findAll({
+                    raw: true,
+                    where: { project: d.project },
+                    order: [["projectNameCount", "DESC"]]
                 })
-            } else {
-                cb({
-                    status: false,
-                    error: res.error
+                .then((res) => {
+                    if (res.length) {
+                        d.projectNameCount = res[0].projectNameCount + 1
+                        nextThen()
+                    } else {
+                        d.projectNameCount = 0
+                        nextThen()
+                    }
                 })
-            }
+        }).then((nextThen) => {
+            Projects
+                .create(d)
+                .then((res) => {
+                    nextThen(res)
+                })
+        }).then((nextThen, result) => {
+            let workstreamData = {
+                projectId: result.dataValues.id,
+                workstream: "Default Workstream",
+                typeId: 4
+            };
+            Workstream
+                .create(workstreamData)
+                .then((res) => {
+                    nextThen(result)
+                })
+        }).then((nextThen, result) => {
+            let membersData = {
+                linkId: result.dataValues.id,
+                linkType: "project",
+                usersType: "users",
+                userTypeLinkId: d.projectManagerId,
+                memberType: "project manager"
+            };
+            Members
+                .create(membersData)
+                .then((res) => {
+                    Members
+                        .findAll({
+                            where: { id: res.dataValues.id },
+                            include: [{
+                                model: Users,
+                                as: 'user',
+                                include: [{
+                                    model: UsersRole,
+                                    as: 'role',
+                                },
+                                {
+                                    model: UsersTeam,
+                                    as: 'team'
+                                }
+                                ]
+                            },]
+                        })
+                        .then((findRes) => {
+                            nextThen(result, findRes)
+                        })
+                })
+
+        }).then((nextThen, project, members) => {
+            Projects
+                .findOne({
+                    where: { id: project.dataValues.id },
+                    raw: true,
+                    include: [{
+                        model: Type,
+                        as: 'type',
+                        required: false,
+                        attributes: []
+                    },
+                    {
+                        model: Members,
+                        as: 'projectManager',
+                        where: {
+                            memberType: 'project manager'
+                        },
+                        required: false,
+                        attributes: []
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskActive',
+                        attributes: [],
+                        required: false
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskOverDue',
+                        where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskOverDue.dueDate')), '<', moment().format('YYYY-MM-DD 00:00:00')),
+                        required: false,
+                        attributes: []
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskDueToday',
+                        where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskDueToday.dueDate')), '=', moment().format('YYYY-MM-DD 00:00:00')),
+                        required: false,
+                        attributes: []
+                    }
+                    ],
+                    attributes: {
+                        include: [
+                            [Sequelize.fn("COUNT", Sequelize.col("taskActive.id")), "taskActive"],
+                            [Sequelize.fn("COUNT", Sequelize.col("taskOverDue.id")), "taskOverDue"],
+                            [Sequelize.fn("COUNT", Sequelize.col("taskDueToday.id")), "taskDueToday"],
+                            [Sequelize.col("projectManager.userTypeLinkId"), "projectManagerId"],
+                            [Sequelize.col("type.type"), "type"]
+                        ]
+                    },
+                    group: ['id']
+                })
+                .then(res => {
+                    cb({ status: true, data: { project: { ...res }, members: members } })
+                })
         })
     },
     projectMember: (req, cb) => {
@@ -251,15 +360,15 @@ exports.post = {
                                     model: Users,
                                     as: 'user',
                                     include: [{
-                                            model: UsersRole,
-                                            as: 'role',
-                                        },
-                                        {
-                                            model: UsersTeam,
-                                            as: 'team'
-                                        }
+                                        model: UsersRole,
+                                        as: 'role',
+                                    },
+                                    {
+                                        model: UsersTeam,
+                                        as: 'team'
+                                    }
                                     ]
-                                }, ]
+                                },]
                             })
                             .then((findRes) => {
                                 cb({
@@ -300,11 +409,11 @@ exports.post = {
                 function (userIds, callback) {
                     try {
                         Members.destroy({
-                                where: {
-                                    userTypeLinkId: userIds,
-                                    usersType: 'users'
-                                }
-                            })
+                            where: {
+                                userTypeLinkId: userIds,
+                                usersType: 'users'
+                            }
+                        })
                             .then((res) => {
                                 callback(null, res)
                                 return null;
@@ -336,28 +445,28 @@ exports.post = {
                                     model: Teams,
                                     as: 'team',
                                     include: [{
+                                        model: Users,
+                                        as: 'teamLeader'
+                                    },
+                                    {
+                                        model: UsersTeam,
+                                        as: 'users_team',
+                                        include: [{
                                             model: Users,
-                                            as: 'teamLeader'
-                                        },
-                                        {
-                                            model: UsersTeam,
-                                            as: 'users_team',
+                                            as: 'user',
                                             include: [{
-                                                model: Users,
-                                                as: 'user',
-                                                include: [{
-                                                        model: UsersRole,
-                                                        as: 'role',
-                                                    },
-                                                    {
-                                                        model: UsersTeam,
-                                                        as: 'team'
-                                                    }
-                                                ]
-                                            }]
-                                        }
+                                                model: UsersRole,
+                                                as: 'role',
+                                            },
+                                            {
+                                                model: UsersTeam,
+                                                as: 'team'
+                                            }
+                                            ]
+                                        }]
+                                    }
                                     ]
-                                }, ],
+                                },],
                             })
                             .then((findRes) => {
                                 callback(null, findRes)
@@ -386,18 +495,122 @@ exports.post = {
 
 exports.put = {
     index: (req, cb) => {
-        defaultPut(dbName, req, (res) => {
-            if (res.success) {
-                cb({
-                    status: true,
-                    data: res.data
+        let dataToSubmit = req.body
+        let id = req.params.id
+
+        sequence.create().then((nextThen) => {
+            Projects
+                .findAll({
+                    raw: true,
+                    where: { project: dataToSubmit.project },
+                    order: [["projectNameCount", "DESC"]]
                 })
-            } else {
-                cb({
-                    status: false,
-                    error: c.error
+                .then((res) => {
+                    if (res.length) {
+                        let existingData = res.filter(f => f.id == id)
+                        if (existingData.length == 0) {
+                            dataToSubmit.projectNameCount = c.data[0].projectNameCount + 1
+                        }
+                        nextThen()
+                    } else {
+                        dataToSubmit.projectNameCount = 0
+                        nextThen()
+                    }
                 })
-            }
+        }).then((nextThen) => {
+            Projects
+                .update(dataToSubmit, { where: { id: id } })
+                .then((res) => {
+                    nextThen(res)
+                })
+        }).then((nextThen, result) => {
+            Members
+                .destroy({
+                    where: { linkType: "project", linkId: id, usersType: "users", memberType: "project manager" }
+                })
+                .then((res) => {
+                    nextThen(result)
+                })
+        }).then((nextThen, result) => {
+            Members
+                .create({ linkType: "project", linkId: id, usersType: "users", memberType: "project manager", userTypeLinkId: dataToSubmit.projectManagerId })
+                .then((res) => {
+                    Members
+                        .findAll({
+                            where: { id: res.dataValues.id },
+                            include: [{
+                                model: Users,
+                                as: 'user',
+                                include: [{
+                                    model: UsersRole,
+                                    as: 'role',
+                                },
+                                {
+                                    model: UsersTeam,
+                                    as: 'team'
+                                }
+                                ]
+                            },]
+                        })
+                        .then((findRes) => {
+                            nextThen(findRes)
+                        })
+                })
+        }).then((nextThen, members) => {
+            Projects
+                .findOne({
+                    where: { id: id },
+                    raw: true,
+                    include: [{
+                        model: Type,
+                        as: 'type',
+                        required: false,
+                        attributes: []
+                    },
+                    {
+                        model: Members,
+                        as: 'projectManager',
+                        where: {
+                            memberType: 'project manager'
+                        },
+                        required: false,
+                        attributes: []
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskActive',
+                        attributes: [],
+                        required: false
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskOverDue',
+                        where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskOverDue.dueDate')), '<', moment().format('YYYY-MM-DD 00:00:00')),
+                        required: false,
+                        attributes: []
+                    },
+                    {
+                        model: Tasks,
+                        as: 'taskDueToday',
+                        where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskDueToday.dueDate')), '=', moment().format('YYYY-MM-DD 00:00:00')),
+                        required: false,
+                        attributes: []
+                    }
+                    ],
+                    attributes: {
+                        include: [
+                            [Sequelize.fn("COUNT", Sequelize.col("taskActive.id")), "taskActive"],
+                            [Sequelize.fn("COUNT", Sequelize.col("taskOverDue.id")), "taskOverDue"],
+                            [Sequelize.fn("COUNT", Sequelize.col("taskDueToday.id")), "taskDueToday"],
+                            [Sequelize.col("projectManager.userTypeLinkId"), "projectManagerId"],
+                            [Sequelize.col("type.type"), "type"]
+                        ]
+                    },
+                    group: ['id']
+                })
+                .then(res => {
+                    cb({ status: true, data: { project: { ...res }, members: members } })
+                })
         })
     },
     archive: (req, cb) => {
@@ -410,10 +623,10 @@ exports.put = {
                     .update({
                         ...dataToSubmit
                     }, {
-                        where: {
-                            id: id
-                        },
-                    })
+                            where: {
+                                id: id
+                            },
+                        })
                     .then(res => {
                         nextThen(res)
                     })
@@ -616,21 +829,21 @@ exports.delete = {
                                 .destroy({
                                     where: {
                                         [Op.or]: [{
-                                                linkType: 'project',
-                                                linkId: d.id
-                                            },
-                                            {
-                                                linkType: 'workstream',
-                                                linkId: {
-                                                    [Op.or]: result.workstreams
-                                                }
-                                            },
-                                            {
-                                                linkType: 'task',
-                                                linkId: {
-                                                    [Op.or]: result.tasks
-                                                }
+                                            linkType: 'project',
+                                            linkId: d.id
+                                        },
+                                        {
+                                            linkType: 'workstream',
+                                            linkId: {
+                                                [Op.or]: result.workstreams
                                             }
+                                        },
+                                        {
+                                            linkType: 'task',
+                                            linkId: {
+                                                [Op.or]: result.tasks
+                                            }
+                                        }
                                         ]
                                     }
                                 })
@@ -711,10 +924,10 @@ exports.delete = {
         try {
             let d = req.params
             Members.destroy({
-                    where: {
-                        id: d.id
-                    }
-                })
+                where: {
+                    id: d.id
+                }
+            })
                 .then((res) => {
                     cb({
                         status: true,
