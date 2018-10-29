@@ -89,7 +89,7 @@ export default class List extends React.Component {
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
         getData(`/api/project?page=${Count.current_page + 1}`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_LIST", list: List.concat(c.data.result), count: c.data.count })
-            showToast("success","Project successfully retrieved.");
+            showToast("success", "Project successfully retrieved.");
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
         })
     }
@@ -164,7 +164,7 @@ export default class List extends React.Component {
                                         </td>
                                         <td class="text-left"><a href={"/project/" + data.id} target="_blank">{data.project + ((data.projectNameCount > 0) ? " (" + data.projectNameCount + ")" : "")}</a></td>
                                         <td class="text-center"><span class={(data.type == "Client") ? "fa fa-users" : (data.type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></span></td>
-                                        <td class="text-center">{(data.newDocCount > 0) ? <span class="fa fa-file"></span> : ""} {data.newDocCount}</td>
+                                        <td class="text-center">{(data.newDocuments > 0) ? <span class="fa fa-file">&nbsp;&nbsp;{data.newDocuments} </span> : ""}</td>
                                         <td class="text-center"><span><i class="fa fa-file-alt"></i></span></td>
                                         <td class="text-center">{data.workstream.length ? data.workstream.length : ""}</td>
                                         <td class="text-center">{lateWorkstream ? lateWorkstream : ""}</td>
