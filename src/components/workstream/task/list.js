@@ -25,18 +25,12 @@ export default class List extends React.Component {
     }
 
     componentWillMount() {
-        let { dispatch } = this.props;
-        let listToGet = { params: { filter: { projectId: project, workstreamId: workstreamId } } }
+        const { dispatch } = this.props;
 
         parallel({
             taskList: (parallelCallback) => {
-                getData(`/api/task/getTaskList`, listToGet, (c) => {
-                    dispatch({ type: "SET_TASK_LIST", list: c.data })
-                    if (taskId != "") {
-                        let selectedTask = c.data.filter((e) => { return e.id == taskId })[0]
-                        dispatch({ type: "SET_TASK_SELECTED", Selected: selectedTask })
-                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
-                    }
+                getData(`/api/task?projectId=${project}&workstreamId=${workstreamId}`, {}, (c) => {
+                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
                     parallelCallback(null, "")
                 })
             },
@@ -155,14 +149,20 @@ export default class List extends React.Component {
     }
 
     renderStatus(data) {
-        const { isActive, taskStatus } = { ...data };
+        const { isActive, dueDate } = { ...data };
+        const dueDateMoment = moment(dueDate);
+        const currentDateMoment = moment(new Date());
+        let taskStatus = 0;
         let className = "";
         let statusColor = "#000";
 
-        if (data.status == "Completed") {
-            className = "fa fa-circle"
-            statusColor = "#27ae60"
-        } else if (isActive == 0) {
+        if (dueDateMoment.isBefore(currentDateMoment, 'day') && data.status != 'Completed') {
+            taskStatus = 2
+        } else if (dueDateMoment.isSame(currentDateMoment, 'day') && data.status != 'Completed') {
+            taskStatus = 1
+        }
+
+        if (isActive == 0) {
             className = "fa fa-circle";
         } else if (taskStatus == 0) {
             className = "fa fa-circle";
@@ -171,7 +171,7 @@ export default class List extends React.Component {
             className = "fa fa-circle";
             statusColor = "#f39c12"
         } else if (taskStatus == 2) {
-            className = "fa fa-circle";
+            className = "fa fa-exclamation-circle";
             statusColor = "#c0392b"
         }
 
@@ -181,7 +181,8 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { task } = this.props;
+        const { task } = this.props;
+
         return (
             <div class="pd10">
                 <h3 class="m0">Tasks</h3>
@@ -197,20 +198,16 @@ export default class List extends React.Component {
                         {
                             (task.List.length > 0 && task.Loading != "RETRIEVING") &&
                             _.orderBy(task.List, ['dueDate', 'asc']).map((data, index) => {
-
-                                let taskStatus = 0;
-                                let dueDate = moment(data.dueDate);
-                                let currentDate = moment(new Date());
-
-                                if (dueDate.diff(currentDate, 'days') < 0) {
-                                    taskStatus = 2
-                                } else if (dueDate.diff(currentDate, 'days') == 0) {
-                                    taskStatus = 1
-                                }
+                                const assignedUser = (_.filter(data.task_members, (o) => { return o.memberType == "assignedTo" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "assignedTo" })[0].user : "";
+                                const followers = (_.filter(data.task_members, (o) => { return o.memberType == "Follower" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "Follower" }) : "";
 
                                 return (
                                     <tr key={index}>
-                                        <td>{this.renderStatus({ ...data, taskStatus })}</td>
+                                        <td>
+                                            {
+                                                (data.dueDate != '' && data.dueDate != null) && this.renderStatus(data)
+                                            }
+                                        </td>
                                         <td class="text-left">
                                             {/* <a href={`/project/${data.projectId}/processes/${data.workstreamId}?task=${data.id}`}> */}
                                             <a href="javascript:void(0);" onClick={() => this.selectedTask(data)}>
@@ -218,16 +215,15 @@ export default class List extends React.Component {
                                             </a>
                                         </td>
                                         <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
-                                        <td>{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
                                         <td>
-                                            {(data.followersName != null) &&
+                                            {
+                                                (assignedUser != "" && assignedUser != null) && <span title={`${assignedUser.firstName} ${assignedUser.lastName}`}><i class="fa fa-user fa-lg"></i></span>
+                                            }
+                                        </td>
+                                        <td>
+                                            {(followers != "") &&
                                                 <div>
-                                                    <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
-                                                    <Tooltip id={`follower${index}`}>
-                                                        {data.followersName.split(",").map((e, index) => {
-                                                            return <p key={index}>{e != null ? e : ""} <br /></p>
-                                                        })}
-                                                    </Tooltip>
+                                                    <span title={`${_.map(followers, (o) => { return o.user.firstName + " " + o.user.lastName }).join("\r\n")}`}><i class="fa fa-users fa-lg"></i></span>
                                                 </div>
                                             }
                                         </td>
