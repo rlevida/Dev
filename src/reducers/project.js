@@ -13,7 +13,7 @@ export default function reducer(state = {
 }, action) {
     switch (action.type) {
         case "SET_PROJECT_LIST": {
-            return { ...state, List: action.list, Loading: false }
+            return { ...state, List: action.list, Count: action.count }
         }
         case "SET_PROJECT_COUNT_LIST": {
             return { ...state, CountList: action.list }
@@ -27,8 +27,11 @@ export default function reducer(state = {
         case "SET_PROJECT_ID": {
             return { ...state, SelectedId: action.SelectedId }
         }
-        case "SET_PROJECT_MANAGER_ID" : {
+        case "SET_PROJECT_MANAGER_ID": {
             return { ...state, ProjectManagerId: action.id }
+        }
+        case "SET_TASK_LOADING": {
+            return { ...state, Loading: action.loading }
         }
         case "UPDATE_DATA_PROJECT_LIST": {
             let newList = state.List.map((e, i) => {
@@ -39,16 +42,16 @@ export default function reducer(state = {
             })
             return { ...state, List: newList }
         }
-        case "ARCHIVE_PROJECT":{
+        case "ARCHIVE_PROJECT": {
             const { List } = { ...state };
             const updatedList = filter(List, (o) => { return o.id != action.id });
-            
+
             return { ...state, List: updatedList }
         }
         case "REMOVE_DELETED_PROJECT_LIST": {
             const { List } = { ...state };
             const updatedList = filter(List, (o) => { return o.id != action.id });
-            
+
             return { ...state, List: updatedList }
         }
         case "SET_PROJECT_STATUS": {

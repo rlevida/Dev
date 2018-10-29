@@ -3,7 +3,7 @@ import Tooltip from "react-tooltip";
 import parallel from 'async/parallel';
 
 import { Loading } from "../../globalComponents";
-import { getData } from "../../globalFunction";
+import { showToast, getData } from "../../globalFunction";
 import ProjectFilter from "./projectFilter"
 import ProjectStatus from "./projectStatus"
 import ArchiveModal from "./archiveModal"
@@ -22,14 +22,17 @@ export default class List extends React.Component {
 
         this.deleteData = this.deleteData.bind(this)
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
+        this.getNextResult = this.getNextResult.bind(this)
     }
 
     componentDidMount() {
-        let { dispatch, loggedUser } = this.props;
+        let { dispatch, project } = this.props;
         parallel({
             projects: (parallelCallback) => {
-                getData(`/api/project`, {}, (c) => {
-                    dispatch({ type: "SET_PROJECT_LIST", list: c.data })
+                getData(`/api/project?page=${1}`, {}, (c) => {
+                    dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count })
+                    dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+                    showToast("success", "Task successfully retrieved.");
                     parallelCallback(null, c.data)
                 })
             },
@@ -80,6 +83,17 @@ export default class List extends React.Component {
         })
     }
 
+    getNextResult() {
+        const { project, dispatch } = { ...this.props };
+        const { Count, List } = project;
+        dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+        getData(`/api/project?page=${Count.current_page + 1}`, {}, (c) => {
+            dispatch({ type: "SET_PROJECT_LIST", list: List.concat(c.data.result), count: c.data.count })
+            showToast("success", "Task successfully retrieved.");
+            // dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+        })
+    }
+
     updateActiveStatus(id, active) {
         let { socket, dispatch } = this.props;
         dispatch({ type: "SET_PROJECT_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
@@ -101,6 +115,9 @@ export default class List extends React.Component {
 
     render() {
         let { project, loggedUser, dispatch } = this.props;
+        const currentPage = (typeof project.Count.current_page != "undefined") ? project.Count.current_page : 1;
+        const lastPage = (typeof project.Count.last_page != "undefined") ? project.Count.last_page : 1;
+
         return (
             <div>
                 <ProjectStatus style={{ float: "right", padding: "20px" }} />
@@ -178,11 +195,17 @@ export default class List extends React.Component {
                     </tbody>
                 </table>
                 {
-                    (project.Loading) && <Loading />
+                    (project.Loading == "RETRIEVING") && <Loading />
                 }
-                {
-                    (project.List.length == 0 && project.Loading == false) && <p class="text-center">No Record Found!</p>
-                }
+
+                <div class="text-center">
+                    {
+                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Task</a>
+                    }
+                    {
+                        (project.List.length == 0 && project.Loading != "RETRIEVING") && <p>No Records Found</p>
+                    }
+                </div>
                 <ArchiveModal />
             </div>
         )

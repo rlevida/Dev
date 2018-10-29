@@ -30,69 +30,101 @@ const {
 
 exports.get = {
     index: (req, cb) => {
-        try {
-            Projects
-                .findAll({
-                    include: [
-                        {
-                            model: Type,
-                            as: 'type',
-                            required: false,
-                            attributes: []
-                        },
-                        {
-                            model: Members,
-                            as: 'projectManager',
-                            where: {
-                                memberType: 'project manager'
-                            },
-                            required: false,
-                            attributes: []
-                        },
-                        {
-                            model: Tasks,
-                            as: 'taskActive',
-                            attributes: [],
-                            required: false
-                        },
-                        {
-                            model: Workstream,
-                            as: 'workstream',
+        const queryString = req.query
+        const limit = 10;
+
+        const options = {
+            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+        };
+
+        const whereObj = {
+            ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
+            ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {}
+        };
+
+        async.parallel({
+            count: function (callback) {
+                try {
+                    Projects.findAndCountAll({ ...options }).then((response) => {
+                        const pageData = {
+                            total_count: response.count,
+                            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
+                        }
+                        callback(null, pageData)
+                    });
+                } catch (err) {
+                    callback(err)
+                }
+            },
+            result: function (callback) {
+                try {
+                    Projects
+                        .findAll({
+                            where: whereObj, ...options,
                             include: [
                                 {
-                                    model: Tasks,
-                                    as: 'taskDueToday',
-                                    where: { dueDate: moment.utc().format("YYYY-MM-DD") },
+                                    model: Type,
+                                    as: 'type',
+                                    required: false,
+                                    attributes: []
+                                },
+                                {
+                                    model: Members,
+                                    as: 'projectManager',
+                                    where: {
+                                        memberType: 'project manager'
+                                    },
                                     required: false,
                                 },
                                 {
                                     model: Tasks,
-                                    as: 'taskOverDue',
-                                    where: { dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") } },
-                                    required: false,
+                                    as: 'taskActive',
+                                    attributes: [],
+                                    required: false
                                 },
-                            ],
-                        },
-                    ],
-                    attributes: {
-                        include: [
-                            [Sequelize.col("projectManager.userTypeLinkId"), "projectManagerId"],
-                            [Sequelize.col("type.type"), "type"]
-                        ]
-                    },
-                })
-                .then((res) => {
-                    cb({
-                        status: true,
-                        data: res
-                    })
-                })
-        } catch (err) {
-            cb({
-                status: false,
-                error: err
-            })
-        }
+                                {
+                                    model: Workstream,
+                                    as: 'workstream',
+                                    include: [
+                                        {
+                                            model: Tasks,
+                                            as: 'taskDueToday',
+                                            where: { dueDate: moment.utc().format("YYYY-MM-DD") },
+                                            required: false,
+                                        },
+                                        {
+                                            model: Tasks,
+                                            as: 'taskOverDue',
+                                            where: { dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") } },
+                                            required: false,
+                                        },
+                                    ],
+                                },
+                            ]
+                        })
+                        .map((res) => {
+                            let resToReturn = {
+                                ...res.dataValues,
+                                projectManagerId: res.projectManager[0].id
+                            }
+                            resToReturn = _.omit(resToReturn, "projectManager")
+                            return resToReturn
+                        })
+                        .then((res) => {
+                            callback(null, res)
+
+                        })
+                } catch (err) {
+                    callback(err)
+                }
+            }
+        }, (err, results) => {
+            if (err != null) {
+                cb({ status: false, error: err });
+            } else {
+                cb({ status: true, data: results })
+            }
+        })
     },
     getById: (req, cb) => {
         defaultGetById(dbName, req, (res) => {
