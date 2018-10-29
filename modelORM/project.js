@@ -98,14 +98,22 @@ module.exports = (sequelize, DataTypes) => {
       as: 'taskActive',
       foreignKey: 'projectId'
     })
+    
     Projects.hasMany(models.Tasks, {
       as: 'taskOverDue',
       foreignKey: 'projectId'
     })
+    
     Projects.hasMany(models.Tasks, {
       as: 'taskDueToday',
       foreignKey: 'projectId'
     })
+
+    Projects.hasMany(models.DocumentLink, {
+      as:'document_link',
+      foreignKey:'linkId'
+    })
+
   };
 
   return Projects

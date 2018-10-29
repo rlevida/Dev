@@ -3,30 +3,67 @@ const moment = require('moment');
 const sequence = require("sequence").Sequence;
 
 const dbName = "project";
-var {
-    defaultPost,
-    defaultPut,
-} = require("./")
 
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
-
 const models = require('../modelORM');
 
-const {
-    Document,
-    DocumentLink,
-    Members,
-    Projects,
-    Tag,
-    Tasks,
-    Teams,
-    Type,
-    Users,
-    UsersTeam,
-    UsersRole,
-    Workstream,
-} = models;
+const { Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Workstream } = models;
+
+const associationFindAllStack = [
+    {
+        model: DocumentLink,
+        as: 'document_link',
+        where: {
+            linkType: 'project'
+        },
+        required: false,
+        include: [{
+            model: Document,
+            as: 'document',
+            where: { status: 'new', isDeleted: 0 },
+            required: false
+        }]
+    },
+    {
+        model: Type,
+        as: 'type',
+        required: false,
+        attributes: []
+    },
+    {
+        model: Members,
+        as: 'projectManager',
+        where: {
+            memberType: 'project manager'
+        },
+        required: false,
+    },
+    {
+        model: Tasks,
+        as: 'taskActive',
+        attributes: [],
+        required: false
+    },
+    {
+        model: Workstream,
+        as: 'workstream',
+        include: [
+            {
+                model: Tasks,
+                as: 'taskDueToday',
+                where: { dueDate: moment.utc().format("YYYY-MM-DD") },
+                required: false,
+            },
+            {
+                model: Tasks,
+                as: 'taskOverDue',
+                where: { dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") } },
+                required: false,
+            },
+        ],
+    }
+]
 
 exports.get = {
     index: (req, cb) => {
@@ -34,6 +71,7 @@ exports.get = {
         const limit = 10;
 
         const options = {
+            include: associationFindAllStack,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
         };
 
@@ -60,54 +98,19 @@ exports.get = {
                 try {
                     Projects
                         .findAll({
-                            where: whereObj, ...options,
-                            include: [
-                                {
-                                    model: Type,
-                                    as: 'type',
-                                    required: false,
-                                    attributes: []
-                                },
-                                {
-                                    model: Members,
-                                    as: 'projectManager',
-                                    where: {
-                                        memberType: 'project manager'
-                                    },
-                                    required: false,
-                                },
-                                {
-                                    model: Tasks,
-                                    as: 'taskActive',
-                                    attributes: [],
-                                    required: false
-                                },
-                                {
-                                    model: Workstream,
-                                    as: 'workstream',
-                                    include: [
-                                        {
-                                            model: Tasks,
-                                            as: 'taskDueToday',
-                                            where: { dueDate: moment.utc().format("YYYY-MM-DD") },
-                                            required: false,
-                                        },
-                                        {
-                                            model: Tasks,
-                                            as: 'taskOverDue',
-                                            where: { dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") } },
-                                            required: false,
-                                        },
-                                    ],
-                                },
-                            ]
+                            ...options,
+                            where: whereObj,
                         })
                         .map((res) => {
                             let resToReturn = {
                                 ...res.dataValues,
-                                projectManagerId: res.projectManager[0].userTypeLinkId
+                                projectManagerId: res.projectManager[0].userTypeLinkId,
+                                newDocuments: res.document_link.length
+                                    ? res.document_link.filter((e) => { return e.document.status == 'new' }).length
+                                    : 0
                             }
-                            resToReturn = _.omit(resToReturn, "projectManager")
+
+                            resToReturn = _.omit(resToReturn, "projectManager", "document_link")
                             return resToReturn
                         })
                         .then((res) => {
