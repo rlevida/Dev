@@ -1,9 +1,10 @@
 import React from "react";
-import Tooltip from "react-tooltip";
-import { HeaderButtonContainer } from "../../../globalComponents";
+import { connect } from "react-redux"
 import moment from 'moment'
 
-import { connect } from "react-redux"
+import { showToast, getData } from "../../../globalFunction";
+import { Loading } from "../../../globalComponents";
+
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -12,29 +13,42 @@ import { connect } from "react-redux"
         loggedUser: store.loggedUser
     }
 })
+
 export default class List extends React.Component {
     constructor(props) {
         super(props)
 
-        this.deleteData = this.deleteData.bind(this)
-        this.updateActiveStatus = this.updateActiveStatus.bind(this)
+        this.deleteData = this.deleteData.bind(this);
+        this.updateActiveStatus = this.updateActiveStatus.bind(this);
+        this.fetchData = this.fetchData.bind(this);
     }
 
-    componentWillMount() {
-        let intervalLoggedUser = setInterval(() => {
-            if (typeof this.props.loggedUser.data.id != "undefined") {
-                let filter = { filter: { projectId: project } }
-                if (this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2") {
-                    filter = { filter: { projectId: project, id: { name: "id", value: this.props.loggedUser.data.taskIds, condition: " IN " } } }
-                }
-                this.props.socket.emit("GET_TASK_LIST", filter);
-                clearInterval(intervalLoggedUser)
-            }
-        }, 1000)
+    componentDidMount() {
+        const { socket, task } = this.props;
+        const { Count } = task;
+
+        if (_.isEmpty(Count)) {
+            this.fetchData(1);
+        } else if (Count.current_page != Count.last_page) {
+            this.fetchData(Count.current_page + 1);
+        }
+
         this.props.socket.emit("GET_STATUS_LIST", {});
         this.props.socket.emit("GET_TYPE_LIST", {});
         this.props.socket.emit("GET_USER_LIST", {});
         this.props.socket.emit("GET_TEAM_LIST", {});
+    }
+
+
+    fetchData(page) {
+        const { loggedUser, dispatch } = this.props;
+        const { data } = loggedUser;
+        const userRoles = _.map(data.role, (roleObj) => { return roleObj.roleId })[0];
+        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${page}&role=${userRoles}`, {}, (c) => {
+            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            showToast("success", "Task successfully retrieved.");
+        });
     }
 
     updateActiveStatus(id, active) {
@@ -51,34 +65,43 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { task, dispatch, socket ,loggedUser } = this.props;
-        let taskList = task.List.filter( e => { return e.status != "Completed" && e.assignedById == loggedUser.data.id})
-        return (
-            <table id="dataTable" class="table responsive-table m0">
-                <tbody>
-                    <tr>
-                        <th class="text-left">Task</th>
-                        <th class="text-left">WorkStream</th>
-                        <th class="text-center">Due Date</th>
-                    </tr>
-                    {
-                        (taskList.length == 0) &&
-                        <tr>
-                            <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                        </tr>
-                    }
+        let { task } = this.props;
+        const taskList = _(task.List)
+            .map((taskObj) => { return { ...taskObj, due_date_int: moment(taskObj.dueDate).format("YYYYMMDD") } })
+            .orderBy(['due_date_int'], ['asc'])
+            .value();
 
-                    {
-                       _.orderBy(taskList, ['dueDate', 'asc']).map((data, index) => {
-                            return <tr key={index}>
-                                <td class="text-left">{data.task}</td>
-                                <td class="text-left">{data.workstream_workstream}</td>
-                                <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
+        return (
+            <div>
+                <table id="dataTable" class="table responsive-table m0">
+                    <tbody>
+                        <tr>
+                            <th class="text-left">Task</th>
+                            <th class="text-left">WorkStream</th>
+                            <th class="text-center">Due Date</th>
+                        </tr>
+                        {
+                            (taskList.length == 0) &&
+                            <tr>
+                                <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
                             </tr>
-                        })
-                    }
-                </tbody>
-            </table>
+                        }
+                        {
+                            taskList.map((data, index) => {
+                                return <tr key={index}>
+                                    <td class="text-left">{data.task}</td>
+                                    <td class="text-left">{data.workstream.workstream}</td>
+                                    <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
+                                </tr>
+                            })
+                        }
+
+                    </tbody>
+                </table>
+                {
+                    (task.Loading == "RETRIEVING") && <Loading />
+                }
+            </div>
         )
     }
 }
