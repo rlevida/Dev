@@ -25,57 +25,57 @@ export default class List extends React.Component {
     }
 
     componentDidMount() {
-        let { dispatch, loggedUser} = this.props;
+        let { dispatch, loggedUser } = this.props;
         parallel({
-            projects : (parallelCallback) => { 
-                getData(`/api/project`,{}, (c) => {
-                    dispatch({ type:"SET_PROJECT_LIST" , list : c.data })
-                    parallelCallback(null,c.data)
+            projects: (parallelCallback) => {
+                getData(`/api/project`, {}, (c) => {
+                    dispatch({ type: "SET_PROJECT_LIST", list: c.data })
+                    parallelCallback(null, c.data)
                 })
             },
             status: (parallelCallback) => {
-                getData(`/api/status`,{}, (c) => {
-                    if(c.status == 200) {
-                        dispatch({type:"SET_STATUS_LIST",list : c.data})
-                        parallelCallback(null,c.data)
-                    }else{
-                        parallelCallback(null,"")
+                getData(`/api/status`, {}, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_STATUS_LIST", list: c.data })
+                        parallelCallback(null, c.data)
+                    } else {
+                        parallelCallback(null, "")
                     }
                 })
             },
             types: (parallelCallback) => {
-                getData(`/api/type`,{}, (c) => {
-                    if(c.status == 200) {
-                        dispatch({type:"SET_TYPE_LIST",list : c.data})
-                        parallelCallback(null,c.data)
-                    }else{
-                        parallelCallback(null,"")
+                getData(`/api/type`, {}, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_TYPE_LIST", list: c.data })
+                        parallelCallback(null, c.data)
+                    } else {
+                        parallelCallback(null, "")
                     }
                 })
             },
             user: (parallelCallback) => {
-                getData(`/api/user`,{}, (c) => {
-                    if(c.status == 200) {
-                        dispatch({type:"SET_USER_LIST",list : c.data})
-                        parallelCallback(null,c.data)
-                    }else{
-                        parallelCallback(null,"")
+                getData(`/api/user`, {}, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_USER_LIST", list: c.data })
+                        parallelCallback(null, c.data)
+                    } else {
+                        parallelCallback(null, "")
                     }
                 })
             },
             teams: (parallelCallback) => {
-                getData(`/api/globalORM/selectList?selectName=teamList`,{},(c) => {
-                    dispatch({type:"SET_APPLICATION_SELECT_LIST", List: c.data, name: 'teamList' })
-                    parallelCallback(null,"")
+                getData(`/api/globalORM/selectList?selectName=teamList`, {}, (c) => {
+                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'teamList' })
+                    parallelCallback(null, "")
                 })
             },
             roles: (parallelCallback) => {
-                getData(`/api/globalORM/selectList?selectName=roleList`,{},(c) => {
-                    dispatch({type:"SET_APPLICATION_SELECT_LIST",List: c.data , name: 'roleList' })
-                    parallelCallback(null,"")
+                getData(`/api/globalORM/selectList?selectName=roleList`, {}, (c) => {
+                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'roleList' })
+                    parallelCallback(null, "")
                 })
             }
-        } ,(error, result) => {
+        }, (error, result) => {
 
         })
     }
@@ -93,15 +93,14 @@ export default class List extends React.Component {
         }
     }
 
-    archive(data){
+    archive(data) {
         let { dispatch } = this.props;
-        dispatch({type: "SET_PROJECT_SELECTED", Selected: data })
+        dispatch({ type: "SET_PROJECT_SELECTED", Selected: data })
         $(`#archiveModal`).modal("show");
     }
 
     render() {
-        let { project, socket, loggedUser , dispatch } = this.props;
-        
+        let { project, loggedUser, dispatch } = this.props;
         return (
             <div>
                 <ProjectStatus style={{ float: "right", padding: "20px" }} />
@@ -147,14 +146,15 @@ export default class List extends React.Component {
                                             <td class="text-center">
                                                 <a href="javascript:void(0);" data-tip="EDIT"
                                                     onClick={(e) => {
-                                                        dispatch({type: "SET_PROJECT_SELECTED",Selected: data}) , 
-                                                        dispatch({type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form"})
-                                                        dispatch({type: "SET_PROJECT_MANAGER_ID", id: data.projectManagerId})}
+                                                        dispatch({ type: "SET_PROJECT_SELECTED", Selected: data }),
+                                                            dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" })
+                                                        dispatch({ type: "SET_PROJECT_MANAGER_ID", id: data.projectManagerId })
+                                                    }
                                                     }
                                                     class="btn btn-info btn-sm">
                                                     <span class="glyphicon glyphicon-pencil"></span></a>
-                                                    <a href="javascript:void(0);" data-tip="ARCHIVE"
-                                                        onClick={(e) => this.archive(data)}
+                                                <a href="javascript:void(0);" data-tip="ARCHIVE"
+                                                    onClick={(e) => this.archive(data)}
                                                     class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
                                                     <span class="fa fa-archive"></span></a>
                                                 <Tooltip />
@@ -172,7 +172,7 @@ export default class List extends React.Component {
                 {
                     (project.List.length == 0 && project.Loading == false) && <p class="text-center">No Record Found!</p>
                 }
-                <ArchiveModal/>
+                <ArchiveModal />
             </div>
         )
     }

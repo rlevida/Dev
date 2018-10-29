@@ -126,28 +126,26 @@ export default class List extends React.Component {
         const { task, dispatch, loggedUser } = this.props;
         const currentPage = (typeof task.Count.current_page != "undefined") ? task.Count.current_page : 1;
         const lastPage = (typeof task.Count.last_page != "undefined") ? task.Count.last_page : 1;
-
         const taskList = _(task.List)
             .map((taskObj) => { return { ...taskObj, due_date_int: moment(taskObj.dueDate).format("YYYYMMDD") } })
             .orderBy(['due_date_int'], ['asc'])
             .value();
-
         return (
             <div>
 
                 <TaskStatus style={{ float: "right", marginBottom: 20, marginRight: 20 }} />
                 <HeaderButtonContainer withMargin={true}>
-                    {/* {
-                        (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) && */}
-                    <li class="btn btn-info" onClick={(e) => {
-                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
-                        dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
-                        dispatch({ type: "SET_TASK_ID", SelectedId: [] })
-                    }}
-                    >
-                        <span>New Task</span>
-                    </li>
-                    {/* } */}
+                    {
+                        (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) &&
+                        <li class="btn btn-info" onClick={(e) => {
+                            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
+                            dispatch({ type: "SET_TASK_SELECTED", Selected: { isActive: true } });
+                            dispatch({ type: "SET_TASK_ID", SelectedId: [] })
+                        }}
+                        >
+                            <span>New Task</span>
+                        </li>
+                    }
                 </HeaderButtonContainer>
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
@@ -194,30 +192,29 @@ export default class List extends React.Component {
                                         </td>
                                         <td class="text-left">{data.status}</td>
                                         <td class="text-left">
-                                            <div>
-                                                <a href="javascript:void(0);" data-tip="EDIT"
-                                                    onClick={(e) => {
-                                                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })
-                                                        dispatch({ type: "SET_TASK_ID", SelectedId: [data.id] })
-                                                    }}
-                                                    class="btn btn-info btn-sm">
-                                                    <span class="glyphicon glyphicon-pencil"></span></a>
-                                                <a href="javascript:void(0);" data-tip="DELETE"
-                                                    onClick={e => this.deleteData(data.id)}
-                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                    <span class="glyphicon glyphicon-trash"></span></a>
-                                                {/* {
-                                                    (
-                                                        (data.status == null || data.status == "In Progress" || data.status == "")
-                                                        &&
-                                                        (typeof data.isActive == 'undefined' || data.isActive == 1)
-                                                    ) && 
-                                                } */}
-                                                <a href="javascript:void(0);" data-tip="COMPLETE"
-                                                    onClick={e => this.updateStatus({ id: data.id, periodTask: data.periodTask, periodic: data.periodic })}
-                                                    class="btn btn-success btn-sm ml10">
-                                                    <span class="glyphicon glyphicon-check"></span></a>
-                                            </div>
+                                            {
+                                                (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) && <div>
+                                                    <a href="javascript:void(0);" data-tip="EDIT"
+                                                        onClick={(e) => {
+                                                            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" })
+                                                            dispatch({ type: "SET_TASK_ID", SelectedId: [data.id] })
+                                                        }}
+                                                        class="btn btn-info btn-sm">
+                                                        <span class="glyphicon glyphicon-pencil"></span></a>
+                                                    <a href="javascript:void(0);" data-tip="DELETE"
+                                                        onClick={e => this.deleteData(data.id)}
+                                                        class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
+                                                        <span class="glyphicon glyphicon-trash"></span></a>
+                                                    {
+                                                        (
+                                                            (data.status == null || data.status == "In Progress" || data.status == "") && (typeof data.isActive == 'undefined' || data.isActive == 1)
+                                                        ) && <a href="javascript:void(0);" data-tip="COMPLETE"
+                                                            onClick={e => this.updateStatus({ id: data.id, periodTask: data.periodTask, periodic: data.periodic })}
+                                                            class="btn btn-success btn-sm ml10">
+                                                            <span class="glyphicon glyphicon-check"></span></a>
+                                                    }
+                                                </div>
+                                            }
                                         </td>
                                     </tr>
                                 )

@@ -18,11 +18,12 @@ const associationStack = [
                 as: 'user',
                 attributes: ['id', 'firstName', 'lastName']
             }
-        ]
+        ],
     },
     {
         model: TaskDependency,
         as: 'task_dependency',
+        required: false,
         include: [
             {
                 model: Tasks,
@@ -34,6 +35,7 @@ const associationStack = [
     {
         model: TaskChecklist,
         as: 'checklist',
+        required: false,
         include: [
             {
                 model: Users,
@@ -53,8 +55,8 @@ const associationStack = [
                 include: [
                     {
                         model: Members,
-                        required: false,
                         as: 'project_members',
+                        required: false,
                         attributes: ['id', 'linkId', 'memberType'],
                         where: { linkType: 'project' },
                         include: [
@@ -69,8 +71,8 @@ const associationStack = [
             },
             {
                 model: Members,
-                required: false,
                 as: 'responsible',
+                required: false,
                 attributes: ['id', 'linkId'],
                 where: { linkType: 'workstream', memberType: 'responsible' },
                 include: [
@@ -91,17 +93,22 @@ exports.get = {
         const limit = 10;
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
-            ...((typeof queryString.role != "undefined" && queryString.role != "" && queryString.role > 2) && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
-                "$task_members.userTypeLinkId$": queryString.userId,
-                "$task_members.usersType$": "users",
-                "$task_members.linkType$": "task",
-            } : {}
+            ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {}
         };
 
+
+        if (typeof queryString.role != "undefined" && queryString.role != "" && queryString.role > 2) {
+            _.find(associationStack, { as: 'task_members' }).required = true;
+            _.find(associationStack, { as: 'task_members' }).where = {
+                userTypeLinkId: queryString.userId,
+                usersType: "users",
+                linkType: "task"
+            };
+        }
+
         const options = {
-            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            subQuery: false,
             include: associationStack,
+            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
         };
 
 
