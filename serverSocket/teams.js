@@ -8,7 +8,6 @@ var init = exports.init = (socket) => {
         let team = global.initModel("team");
         let usersTeam = global.initModel("users_team");
         let filter = (typeof d.filter != "undefined") ? d.filter : {};
-        console.log(filter)
         team.getData("team", filter, {}, (c) => {
             if (c.status) {
                 async.map(c.data, (team, mapCallback) => {

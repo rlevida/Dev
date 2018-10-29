@@ -7,7 +7,9 @@ export default function reducer(state = {
     Selected: { isActive: true },
     SelectedId: [],
     Loading: true,
-    ProjectManagerId: ""
+    ProjectManagerId: "",
+    Count: {},
+    Loading: "RETRIEVING",
 }, action) {
     switch (action.type) {
         case "SET_PROJECT_LIST": {
