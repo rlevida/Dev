@@ -33,56 +33,55 @@ exports.get = {
         try {
             Projects
                 .findAll({
-                    raw: true,
-                    include: [{
-                        model: Type,
-                        as: 'type',
-                        required: false,
-                        attributes: []
-                    },
-                    {
-                        model: Members,
-                        as: 'projectManager',
-                        where: {
-                            memberType: 'project manager'
+                    include: [
+                        {
+                            model: Type,
+                            as: 'type',
+                            required: false,
+                            attributes: []
                         },
-                        required: false,
-                        attributes: []
-                    },
-                    {
-                        model: Tasks,
-                        as: 'taskActive',
-                        attributes: [],
-                        required: false
-                    },
-                    {
-                        model: Tasks,
-                        as: 'taskOverDue',
-                        where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskOverDue.dueDate')), '<', moment().format('YYYY-MM-DD 00:00:00')),
-                        required: false,
-                        attributes: []
-                    },
-                    {
-                        model: Tasks,
-                        as: 'taskDueToday',
-                        where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskDueToday.dueDate')), '=', moment().format('YYYY-MM-DD 00:00:00')),
-                        required: false,
-                        attributes: []
-                    }
+                        {
+                            model: Members,
+                            as: 'projectManager',
+                            where: {
+                                memberType: 'project manager'
+                            },
+                            required: false,
+                            attributes: []
+                        },
+                        {
+                            model: Tasks,
+                            as: 'taskActive',
+                            attributes: [],
+                            required: false
+                        },
+                        {
+                            model: Workstream,
+                            as: 'workstream',
+                            include: [
+                                {
+                                    model: Tasks,
+                                    as: 'taskDueToday',
+                                    where: { dueDate: moment.utc().format("YYYY-MM-DD") },
+                                    required: false,
+                                },
+                                {
+                                    model: Tasks,
+                                    as: 'taskOverDue',
+                                    where: { dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") } },
+                                    required: false,
+                                },
+                            ],
+                        },
                     ],
                     attributes: {
                         include: [
-                            [Sequelize.fn("COUNT", Sequelize.col("taskActive.id")), "taskActive"],
-                            [Sequelize.fn("COUNT", Sequelize.col("taskOverDue.id")), "taskOverDue"],
-                            [Sequelize.fn("COUNT", Sequelize.col("taskDueToday.id")), "taskDueToday"],
                             [Sequelize.col("projectManager.userTypeLinkId"), "projectManagerId"],
                             [Sequelize.col("type.type"), "type"]
                         ]
                     },
-                    group: ['id']
                 })
-                .then(res => {
-
+                .then((res) => {
                     cb({
                         status: true,
                         data: res

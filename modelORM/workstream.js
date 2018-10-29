@@ -75,6 +75,21 @@ module.exports = function (sequelize, DataTypes) {
       foreignKey: 'linkId',
       as: "responsible"
     });
+
+    Workstream.hasMany(models.Tasks, {
+      foreignKey: 'workstreamId',
+      as: 'task'
+    })
+
+    Workstream.hasMany(models.Tasks, {
+      foreignKey: "workstreamId",
+      as: "taskDueToday"
+    })
+
+    Workstream.hasMany(models.Tasks, {
+      foreignKey: "workstreamId",
+      as: "taskOverDue"
+    })
   };
 
   return Workstream;

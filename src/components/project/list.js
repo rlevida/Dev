@@ -129,17 +129,28 @@ export default class List extends React.Component {
                                 if ((data.typeId == 2 || data.typeId == 3) && (loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3 && loggedUser.data.userRole != 4 && loggedUser.data.userRole != 5 && loggedUser.data.userRole != 6)) {
                                     // if user is client the he can only see client project
                                 } else {
+                                    let lateWorkstream = 0;
+                                    let workstreamTaskDueToday = 0
+                                    data.workstream.map((e) => {
+                                        if (e.taskOverDue.length) {
+                                            lateWorkstream++;
+                                        }
+                                        if (e.taskDueToday.length) {
+                                            workstreamTaskDueToday++
+                                        }
+                                    })
+
                                     return <tr key={index}>
                                         <td>
                                             {(data.isActive == 0) && <span class="fa fa-circle"></span>}
-                                            {(data.isActive == 1) ? <span className={(data.taskOverDue > 0) ? "fa fa-exclamation-circle fa-lg" : "fa fa-circle fa-lg"} style={{ color: (data.taskOverDue > 0) ? "#c0392b" : (data.taskDueToday > 0) ? "#f39c12" : "#27ae60" }}></span> : ""}
+                                            {(data.isActive == 1) ? <span className={(lateWorkstream > 0) ? "fa fa-exclamation-circle fa-lg" : "fa fa-circle fa-lg"} style={{ color: (lateWorkstream > 0) ? "#c0392b" : (workstreamTaskDueToday > 0) ? "#f39c12" : "#27ae60" }}></span> : ""}
                                         </td>
                                         <td class="text-left"><a href={"/project/" + data.id} target="_blank">{data.project + ((data.projectNameCount > 0) ? " (" + data.projectNameCount + ")" : "")}</a></td>
                                         <td class="text-center"><span class={(data.type == "Client") ? "fa fa-users" : (data.type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></span></td>
                                         <td class="text-center">{(data.newDocCount > 0) ? <span class="fa fa-file"></span> : ""} {data.newDocCount}</td>
                                         <td class="text-center"><span><i class="fa fa-file-alt"></i></span></td>
-                                        <td class="text-center">{data.taskActive ? data.taskActive : ""}</td>
-                                        <td class="text-center">{data.taskOverDue ? data.taskOverDue : ""}</td>
+                                        <td class="text-center">{data.workstream.length ? data.workstream.length : ""}</td>
+                                        <td class="text-center">{lateWorkstream ? lateWorkstream : ""}</td>
                                         {(loggedUser.data.userRole == 1
                                             || loggedUser.data.userRole == 2
                                             || loggedUser.data.userRole == 3) &&

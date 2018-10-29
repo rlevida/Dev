@@ -117,7 +117,6 @@ var init = exports.init = (socket) => {
                     if (sess.data.length == 0) {
                         delete user.password;
                         delete user.salt;
-                        console.log(user)
                         session.postData("session", { usersId: user.id, session: socket.request.cookies["app.sid"], data: JSON.stringify(user), dateAdded: new Date() }, () => {
                             nextThen(user)
                             return;
