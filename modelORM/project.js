@@ -46,7 +46,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     dateAdded: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: false,
+      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     },
     dateUpdated: {
       type: DataTypes.DATE,
@@ -89,7 +90,7 @@ module.exports = (sequelize, DataTypes) => {
     })
 
     Projects.hasMany(models.Workstream, {
-      as: 'projectWorkstream',
+      as: 'workstream',
       foreignKey: 'projectId'
     })
 

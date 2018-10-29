@@ -51,6 +51,12 @@ export default class List extends React.Component {
         });
     }
 
+    getNextResult() {
+        const { task } = { ...this.props };
+        const { Count } = task
+        this.fetchData(Count.current_page + 1);
+    }
+
     updateActiveStatus(id, active) {
         let { socket, dispatch } = this.props;
         dispatch({ type: "SET_TASK_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
@@ -65,7 +71,10 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { task } = this.props;
+        const { task } = this.props;
+        const currentPage = (typeof task.Count.current_page != "undefined") ? task.Count.current_page : 1;
+        const lastPage = (typeof task.Count.last_page != "undefined") ? task.Count.last_page : 1;
+
         const taskList = _(task.List)
             .map((taskObj) => { return { ...taskObj, due_date_int: moment(taskObj.dueDate).format("YYYYMMDD") } })
             .orderBy(['due_date_int'], ['asc'])
@@ -101,6 +110,14 @@ export default class List extends React.Component {
                 {
                     (task.Loading == "RETRIEVING") && <Loading />
                 }
+                <div class="text-center">
+                    {
+                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Task</a>
+                    }
+                    {
+                        (taskList.length == 0 && task.Loading != "RETRIEVING") && <p>No Records Found</p>
+                    }
+                </div>
             </div>
         )
     }

@@ -111,7 +111,7 @@ exports.get = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
         };
 
-
+        
         async.parallel({
             count: function (callback) {
                 try {
