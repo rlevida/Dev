@@ -147,8 +147,9 @@ export default class List extends React.Component {
                                             <td class="text-center">
                                                 <a href="javascript:void(0);" data-tip="EDIT"
                                                     onClick={(e) => {
-                                                        dispatch({ type:"SET_PROJECT_SELECTED",Selected : data}) , 
-                                                        dispatch({type : "SET_PROJECT_FORM_ACTIVE", FormActive : "Form"})}
+                                                        dispatch({type: "SET_PROJECT_SELECTED",Selected: data}) , 
+                                                        dispatch({type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form"})
+                                                        dispatch({type: "SET_PROJECT_MANAGER_ID", id: data.projectManagerId})}
                                                     }
                                                     class="btn btn-info btn-sm">
                                                     <span class="glyphicon glyphicon-pencil"></span></a>

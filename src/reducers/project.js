@@ -6,7 +6,8 @@ export default function reducer(state = {
     FormActive: "List",
     Selected: { isActive: true },
     SelectedId: [],
-    Loading: true
+    Loading: true,
+    ProjectManagerId: ""
 }, action) {
     switch (action.type) {
         case "SET_PROJECT_LIST": {
@@ -23,6 +24,9 @@ export default function reducer(state = {
         }
         case "SET_PROJECT_ID": {
             return { ...state, SelectedId: action.SelectedId }
+        }
+        case "SET_PROJECT_MANAGER_ID" : {
+            return { ...state, ProjectManagerId: action.id }
         }
         case "UPDATE_DATA_PROJECT_LIST": {
             let newList = state.List.map((e, i) => {

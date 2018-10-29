@@ -145,11 +145,17 @@ export default class FormComponent extends React.Component {
     }
 
     setDropDown(name, value) {
-        let { socket, dispatch, project } = this.props
+        let { socket, dispatch, project, members, users } = this.props
         let Selected = Object.assign({}, project.Selected)
+        if (name == "projectManagerId") {
+            if (value != project.ProjectManagerId) {
+                let newMemberList = members.List.filter((e) => { return e.user.id !=  project.ProjectManagerId })
+                dispatch({ type: "SET_PROJECT_MANAGER_ID", id: name })
+                dispatch({ type: "SET_MEMBERS_LIST", list: newMemberList })
+            }
+        }
         Selected[name] = value;
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: Selected })
-
     }
 
     setDropDownMultiple(name, values) {
