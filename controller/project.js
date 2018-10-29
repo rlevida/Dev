@@ -105,7 +105,7 @@ exports.get = {
                         .map((res) => {
                             let resToReturn = {
                                 ...res.dataValues,
-                                projectManagerId: res.projectManager[0].id
+                                projectManagerId: res.projectManager[0].userTypeLinkId
                             }
                             resToReturn = _.omit(resToReturn, "projectManager")
                             return resToReturn
