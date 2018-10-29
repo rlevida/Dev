@@ -371,7 +371,7 @@ export default class DocumentLibrary extends React.Component {
                 })
             }
 
-            if(typeof global.SelectList.ProjectMemberList != "undefined"){ // FOR SHARE OPTIONS
+            if(typeof global.SelectList.projectMemberList != "undefined"){ // FOR SHARE OPTIONS
                 global.SelectList.ProjectMemberList.map(e =>{ 
                     if(e.userType == "External"){
                         shareOptions.push({ id: e.id , name : `${e.firstName} ${e.lastName}` })

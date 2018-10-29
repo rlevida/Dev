@@ -9,6 +9,7 @@ const {
     DocumentLink,
     Members,
     Project,
+    Share,
     Tag,
     Tasks,
     Teams,
@@ -41,7 +42,8 @@ exports.get = {
         const modelList = {
             teamList: "Teams",
             roleList: "Roles",
-            projectMemberList: "Project"
+            projectMemberList: "Project",
+            shareList: "Share"
         }
 
         modelName = modelList[queryString.selectName];
@@ -51,12 +53,14 @@ exports.get = {
             switch (queryString.selectName) {
                 case "projectMemberList":
                     {
+                        console.log(whereObj)
                         async.parallel({
                             members: (parallelCallback) => {
                                 try {
                                     Members
                                         .findAll({
-                                            where: { ...whereObj,
+                                            where: {
+                                                ...whereObj,
                                                 usersType: 'users'
                                             },
                                             include: [{
@@ -78,7 +82,8 @@ exports.get = {
                                 try {
                                     Members
                                         .findAll({
-                                            where: { ...whereObj,
+                                            where: {
+                                                ...whereObj,
                                                 usersType: 'team'
                                             },
                                             include: [{
@@ -127,17 +132,17 @@ exports.get = {
                             Teams
                                 .findAll({
                                     include: [{
+                                        model: Users,
+                                        as: 'teamLeader'
+                                    },
+                                    {
+                                        model: UsersTeam,
+                                        as: 'users_team',
+                                        include: [{
                                             model: Users,
-                                            as: 'teamLeader'
-                                        },
-                                        {
-                                            model: UsersTeam,
-                                            as: 'users_team',
-                                            include: [{
-                                                model: Users,
-                                                as: 'user'
-                                            }]
-                                        }
+                                            as: 'user'
+                                        }]
+                                    }
                                     ]
                                 })
                                 .then((res) => {
