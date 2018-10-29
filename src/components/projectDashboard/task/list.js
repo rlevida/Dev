@@ -90,12 +90,6 @@ export default class List extends React.Component {
                             <th class="text-center">Due Date</th>
                         </tr>
                         {
-                            (taskList.length == 0) &&
-                            <tr>
-                                <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                            </tr>
-                        }
-                        {
                             taskList.map((data, index) => {
                                 return <tr key={index}>
                                     <td class="text-left">{data.task}</td>

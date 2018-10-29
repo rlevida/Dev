@@ -32,7 +32,7 @@ export default class List extends React.Component {
                 getData(`/api/project?page=${1}`, {}, (c) => {
                     dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count })
                     dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-                    showToast("success", "Task successfully retrieved.");
+                    showToast("success", "Project successfully retrieved.");
                     parallelCallback(null, c.data)
                 })
             },
@@ -86,11 +86,11 @@ export default class List extends React.Component {
     getNextResult() {
         const { project, dispatch } = { ...this.props };
         const { Count, List } = project;
-        dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
         getData(`/api/project?page=${Count.current_page + 1}`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_LIST", list: List.concat(c.data.result), count: c.data.count })
-            showToast("success", "Task successfully retrieved.");
-            // dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            showToast("success","Project successfully retrieved.");
+            dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
         })
     }
 
