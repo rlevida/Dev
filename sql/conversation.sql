@@ -6,7 +6,7 @@ CREATE TABLE `conversation` (
     `linkType` ENUM("project","workstream","task","document"),
     `linkId` BIGINT,
     `status` BIGINT,
-    `dateAdded` DATETIME,
+    `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `isDeleted` TINYINT(1) DEFAULT '0',
     PRIMARY KEY(`id`)

@@ -4,7 +4,7 @@ CREATE TABLE `document_link` (
     `documentId` BIGINT,
     `linkType` ENUM("project","workstream","task","conversation"),
     `linkId` BIGINT,
-    `dateAdded` DATETIME,
+    `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;

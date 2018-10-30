@@ -65,9 +65,8 @@ export default class List extends React.Component {
         let { dispatch, loggedUser } = this.props;
 
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: "Completed" }, (c) => {
-            
             if (c.status == 200) {
-                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data })
+                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data });
                 showToast("success", "Task successfully updated.");
             } else {
                 showToast("error", "Something went wrong please try again later.");

@@ -35,7 +35,7 @@ export default function reducer(state = {
             const updateindex = _.findIndex(copyOfList, { id: data.id });
 
             if (updateindex < 0) {
-                copyOfList.unshift(data);
+                copyOfList.push(data);
             } else {
                 copyOfList.splice(updateindex, 1, data);
             }

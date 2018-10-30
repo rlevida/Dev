@@ -4,7 +4,7 @@ CREATE TABLE `checklist_documents` (
     `taskId` BIGINT,
     `documentId` BIGINT,
     `checklistId` BIGINT,
-    `dateAdded` DATETIME,
+    `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;

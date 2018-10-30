@@ -9,7 +9,7 @@ CREATE TABLE `reminder` (
     `linkType` ENUM("task","document","workstream"),
     `type` ENUM("For Approval","Task Rejected","Task Overdue","Task Due Today","Tag in Comment","Task Completed"),
     `createdBy` BIGINT,
-    `dateAdded` DATETIME,
+    `dateAdded` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;
