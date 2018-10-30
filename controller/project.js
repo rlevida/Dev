@@ -102,16 +102,14 @@ exports.get = {
                             where: whereObj,
                         })
                         .map((res) => {
+                            let documentCount = res.dataValues.document_link.filter((e) => { return e.document != null }).length
                             let resToReturn = {
                                 ...res.dataValues,
                                 projectManagerId: res.projectManager[0].userTypeLinkId,
-                                newDocuments: res.document_link.length
-                                    ? res.document_link.filter((e) => { return e.document.status == 'new' }).length
-                                    : 0
+                                newDocuments: documentCount
                             }
 
-                            resToReturn = _.omit(resToReturn, "projectManager", "document_link")
-                            return resToReturn
+                            return _.omit(resToReturn, "projectManager", "document_link")
                         })
                         .then((res) => {
                             callback(null, res)
