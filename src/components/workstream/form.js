@@ -1,5 +1,5 @@
 import React from "react"
-import { showToast } from '../../globalFunction'
+import { showToast, putData, postData } from '../../globalFunction'
 import { DropDown, HeaderButtonContainer } from "../../globalComponents";
 import { connect } from "react-redux";
 import _ from "lodash";
@@ -58,10 +58,13 @@ export default class FormComponent extends React.Component {
     }
 
     handleSubmit() {
-        let { socket, workstream } = this.props;
-        let isActive = (typeof workstream.Selected.isActive == 'undefined') ? 1 : workstream.Selected.isActive;
-
-        workstream.Selected.isActive = isActive;
+        const { workstream, dispatch } = this.props;
+        const dataToBeSubmitted = {
+            ..._.pick(workstream.Selected, ["workstream", "description", "typeId"]),
+            projectId: project,
+            numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0,
+            isActive: (typeof workstream.Selected.isActive == 'undefined') ? 1 : workstream.Selected.isActive
+        }
 
         let result = true;
         $('.form-container *').validator('validate');
@@ -76,7 +79,27 @@ export default class FormComponent extends React.Component {
             return;
         }
 
-        socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { ...workstream.Selected, projectId: project, numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0 } });
+
+        if (typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") {
+            putData(`/api/workstream/${workstream.Selected.id}`, dataToBeSubmitted, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "UPDATE_DATA_WORKSTREAM_LIST", data: c.data });
+                    showToast("success", "Workstream successfully updated.");
+                } else {
+                    showToast("error", "Something went wrong please try again later.");
+                }
+            });
+        } else {
+            postData(`/api/workstream`, dataToBeSubmitted, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "UPDATE_DATA_WORKSTREAM_LIST", data: c.data });
+                    showToast("success", "Workstream successfully updated.");
+                } else {
+                    showToast("error", "Something went wrong please try again later.");
+                }
+            });
+        }
+
     }
 
     deleteData(params) {
@@ -105,14 +128,14 @@ export default class FormComponent extends React.Component {
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
         dispatch({ type: "SET_MEMBERS_LIST", list: [] });
         dispatch({ type: "SET_TASK_LIST", list: [] });
-        dispatch({ type: "SET_TASK_LOADING" });
+        dispatch({ type: "SET_WORKSTREAM_LOADING" });
         dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
         dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "" })
         window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
     }
 
     render() {
-        let { dispatch, workstream, status, type, global, users } = this.props
+        let { workstream, status, type, global } = this.props
         let statusList = [], typeList = [], projectUserList = [];
 
         status.List.map((e, i) => { if (e.linkType == "workstream") { statusList.push({ id: e.id, name: e.status }) } })
@@ -127,6 +150,10 @@ export default class FormComponent extends React.Component {
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
+                <li class="btn btn-info" style={{ marginRight: "2px" }}
+                    onClick={(e) => this.resetData()} >
+                    <span>Back</span>
+                </li>
                 {
                     (typeof workstream.SelectedLink == "undefined" || workstream.SelectedLink == "") &&
                     <li class="btn btn-info" onClick={() => this.handleSubmit()} >
@@ -183,7 +210,7 @@ export default class FormComponent extends React.Component {
                                     <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Description</label>
                                         <div class="col-md-7 col-xs-12">
-                                            <textarea name="projectDescription" value={(typeof workstream.Selected.projectDescription == "undefined") ? "" : workstream.Selected.projectDescription} class="form-control" placeholder="Description" onChange={this.handleChange} />
+                                            <textarea name="description" value={(typeof workstream.Selected.description == "undefined") ? "" : workstream.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>

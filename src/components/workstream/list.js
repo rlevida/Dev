@@ -1,7 +1,7 @@
 import React from "react";
 import Tooltip from "react-tooltip";
 import { HeaderButtonContainer, Loading } from "../../globalComponents";
-import { getData } from "../../globalFunction";
+import { getData, showToast } from "../../globalFunction";
 import WorkstreamStatus from "./workstreamStatus"
 
 import { connect } from "react-redux"
@@ -18,31 +18,58 @@ export default class List extends React.Component {
     constructor(props) {
         super(props)
 
-        this.deleteData = this.deleteData.bind(this)
-        this.updateActiveStatus = this.updateActiveStatus.bind(this)
+        this.deleteData = this.deleteData.bind(this);
+        this.updateActiveStatus = this.updateActiveStatus.bind(this);
+        this.fetchData = this.fetchData.bind(this);
+        this.getNextResult = this.getNextResult.bind(this);
     }
 
-    componentWillMount() {
-        let { dispatch } = this.props;
+    componentDidMount() {
+        const { workstream, socket } = this.props;
+        const { Count } = workstream;
 
-        if (workstreamId != "") {
-            let dataToGet = { params: { id: workstreamId } }
-            getData(`/api/workstream/getWorkstreamDetail`, dataToGet, (c) => {
-                dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: c.data })
-                dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
-                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
-                this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
-            })
-        } else {
-            this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-            this.props.socket.emit("GET_STATUS_LIST", {});
-            this.props.socket.emit("GET_TYPE_LIST", {});
-            this.props.socket.emit("GET_USER_LIST", {});
-            this.props.socket.emit("GET_TEAM_LIST", {});
-            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } })
-            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } })
-            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
+        if (_.isEmpty(Count)) {
+            this.fetchData(1);
         }
+
+        socket.emit("GET_TYPE_LIST", {});
+        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } });
+        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } });
+        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
+        // if (workstreamId != "") {
+        //     // let dataToGet = { params: { id: workstreamId } }
+        //     // getData(`/api/workstream/getWorkstreamDetail`, dataToGet, (c) => {
+        //     //     dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: c.data })
+        //     //     dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
+        //     //     dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
+        //     //     this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
+        //     // })
+        // } else {
+
+        //     // this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
+        //     // this.props.socket.emit("GET_STATUS_LIST", {});
+
+        // }
+    }
+
+    fetchData(page) {
+        const { dispatch, loggedUser } = this.props;
+
+        getData(`/api/workstream?project=${project}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_WORKSTREAM_LIST", List: c.data.result, Count: c.data.count })
+                showToast("success", "Workstream successfully retrieved.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+            dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
+        })
+    }
+
+    getNextResult() {
+        const { workstream } = { ...this.props };
+        const { Count } = workstream
+        this.fetchData(Count.current_page + 1);
     }
 
     updateActiveStatus(id, active) {
@@ -59,24 +86,17 @@ export default class List extends React.Component {
     }
 
     renderStatus(data) {
-        const { isActive, taskStatus } = { ...data };
-        let className = "";
+        const { issues, dueToday } = { ...data };
+        let className = "fa fa-circle";
         let statusColor = "#000";
 
-        if (data.status == "Completed") {
-            className = "fa fa-circle"
-            statusColor = "#27ae60"
-        } else if (isActive == 0) {
-            className = "fa fa-circle";
-        } else if (taskStatus == 0) {
-            className = "fa fa-circle";
-            statusColor = "#27ae60"
-        } else if (taskStatus == 1) {
-            className = "fa fa-circle";
-            statusColor = "#f39c12"
-        } else if (taskStatus == 2) {
-            className = "fa fa-circle";
+        if (issues.length > 0) {
+            className = "fa fa-exclamation-circle";
             statusColor = "#c0392b"
+        } else if (dueToday.length > 0) {
+            statusColor = "#f39c12"
+        } else {
+            statusColor = "#27ae60"
         }
 
         return (
@@ -86,15 +106,17 @@ export default class List extends React.Component {
 
     render() {
         const { workstream, dispatch, socket, loggedUser, global, projectData } = this.props;
-        const workstreamList = _.filter(workstream.List, (workstreamObj, index) => {
-            if (loggedUser.data.userType == "External") {
-                const members = (workstreamObj.memberIds).split(",");
-                const findMemberIndex = _.findIndex(members, (memberId) => { return _.toNumber(memberId) == loggedUser.data.id });
-                return findMemberIndex >= 0;
-            } else {
-                return workstreamObj.id != 0;
-            }
-        });
+        const currentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
+        const lastPage = (typeof workstream.Count.last_page != "undefined") ? workstream.Count.last_page : 1;
+        // const workstreamList = _.filter(workstream.List, (workstreamObj, index) => {
+        //     if (loggedUser.data.userType == "External") {
+        //         const members = (workstreamObj.memberIds).split(",");
+        //         const findMemberIndex = _.findIndex(members, (memberId) => { return _.toNumber(memberId) == loggedUser.data.id });
+        //         return findMemberIndex >= 0;
+        //     } else {
+        //         return workstreamObj.id != 0;
+        //     }
+        // });
 
         return (
             <div>
@@ -105,6 +127,7 @@ export default class List extends React.Component {
                         <li class="btn btn-info" onClick={(e) => {
                             dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
                             dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
+                            dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} })
                         }}
                         >
                             <span>New Workstream</span>
@@ -130,78 +153,57 @@ export default class List extends React.Component {
                                 <th></th>
                             }
                         </tr>
-                        {(workstream.Loading) &&
-                            <tr>
-                                <td style={{ textAlign: "center" }} colSpan={9}><Loading /></td>
-                            </tr>
-                        }
                         {
-                            (workstreamList.length == 0 && !workstream.Loading) &&
-                            <tr>
-                                <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                            </tr>
-                        }
-                        {(!workstream.Loading) &&
-                            workstreamList.map((data, index) => {
-                                let workStreamStatus = (data.Issues > 0) ? 2 : (data.OnDue > 0) ? 1 : (data.Completed == data.TasksNumber || data.OnTrack > 0) ? 0 : '';
-
+                            _.map(workstream.List, (workstreamObj, index) => {
                                 return (
                                     <tr key={index}>
                                         <td>
-                                            {(data.isActive == 1) && <span className={(workStreamStatus == 2) ? "fa fa-exclamation-circle" : "fa fa-circle"} style={{ color: (workStreamStatus == 2) ? '#c0392b' : (workStreamStatus == 1) ? '#f39c12' : (workStreamStatus == 0) ? '#27ae60' : '' }}></span>}
-                                            {(data.isActive == 0) && <span className={"fa fa-circle"}></span>}
+                                            {(workstreamObj.task.length > 0) && this.renderStatus(workstreamObj)}
                                         </td>
                                         <td class="text-left" style={{ cursor: "pointer" }}>
-                                            <a
-                                                href={`/project/${data.projectId}/workstream/${data.id}`}
-                                            // href="javascript:void(0);"
-                                            // onClick={(e) => {
-                                            //     // socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
-                                            //     dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: data })
-                                            //     dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
-                                            //     dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
-                                            // }}
-                                            >
-                                                {data.workstream}
+                                            <a href={`/project/${workstreamObj.projectId}/workstream/${workstreamObj.id}`} >
+                                                {workstreamObj.workstream}
                                             </a>
                                         </td>
-                                        <td class="text-center">{data.OnTrack}</td>
-                                        <td class="text-center">{data.Completed}</td>
-                                        <td class="text-center">{data.Issues}</td>
+                                        <td class="text-center">{(workstreamObj.pending).length}</td>
+                                        <td class="text-center">{(workstreamObj.completed).length}</td>
+                                        <td class="text-center">{(workstreamObj.issues).length}</td>
+                                        <td class="text-center">{(workstreamObj.new_documents).length}</td>
+                                        <td class="text-center">{(workstreamObj.members.length > 0) && <span title={`${_.map(workstreamObj.members, (o) => { return o.user.firstName + " " + o.user.lastName }).join("\r\n")}`}><i class="fa fa-users fa-lg"></i></span>}</td>
+                                        <td class="text-center"><span title={`${workstreamObj.type.type}`} class={workstreamObj.type.type == "Output based" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
                                         <td class="text-center">
-                                            {(typeof global.SelectList.workstreamDocumentList != "undefined") &&
-                                                global.SelectList.workstreamDocumentList.filter(t => { return t.workstreamId == data.id && t.linkType == "workstream" }).length
-                                            }
+                                            <a href="javascript:void(0);"
+                                                data-tip="EDIT"
+                                                class="btn btn-info btn-sm"
+                                                onClick={(e) => {
+                                                    socket.emit("GET_WORKSTREAM_DETAIL", { id: workstreamObj.id });
+                                                    dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
+                                                }}
+                                            >
+                                                <span class="glyphicon glyphicon-pencil"></span></a>
+                                            <a href="javascript:void(0);" data-tip="DELETE"
+                                                onClick={e => this.deleteData(workstreamObj.id)}
+                                                class="btn btn-danger btn-sm ml10">
+                                                <span class="glyphicon glyphicon-trash"></span>
+                                            </a>
                                         </td>
-                                        <td class="text-center">{(data.memberNames) ? <span style={{ color: "#46b8da" }} title={data.memberNames}><i class="fa fa-user fa-lg"></i></span> : ""}   {/*&nbsp;&nbsp;<span style={{color:"#006400"}}><i class="fa fa-user fa-lg"></i></span>*/}</td>
-                                        <td class="text-center"><span class={data.type_type == "Output based" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
-                                        <td class="text-center"><span><i class="fa fa-users fa-lg"></i></span></td>
-                                        {(loggedUser.data.userRole == 1
-                                            || loggedUser.data.userRole == 2
-                                            || loggedUser.data.userRole == 3) &&
-                                            <td class="text-center">
-                                                <a href="javascript:void(0);"
-                                                    data-tip="EDIT"
-                                                    class="btn btn-info btn-sm"
-                                                    onClick={(e) => {
-                                                        socket.emit("GET_WORKSTREAM_DETAIL", { id: data.id });
-                                                        dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
-                                                    }}
-                                                >
-                                                    <span class="glyphicon glyphicon-pencil"></span></a>
-                                                <a href="javascript:void(0);" data-tip="DELETE"
-                                                    onClick={e => this.deleteData(data.id)}
-                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                    <span class="glyphicon glyphicon-trash"></span></a>
-                                                <Tooltip />
-                                            </td>
-                                        }
                                     </tr>
                                 )
                             })
                         }
                     </tbody>
                 </table>
+                {
+                    (workstream.Loading == "RETRIEVING") && <Loading />
+                }
+                <div class="text-center">
+                    {
+                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Workstream</a>
+                    }
+                    {
+                        ((workstream.List).length == 0 && workstream.Loading != "RETRIEVING") && <p>No Records Found</p>
+                    }
+                </div>
             </div>
         )
     }

@@ -67,7 +67,10 @@ export default class FormComponent extends React.Component {
         const selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY MMM DD') : '';
         let selectedObj = Object.assign({}, { ...task.Selected })
 
-        if ((e.target.name == "startDate" || e.target.name == "dueDate") && e.target.value != "" && ((typeof selectedObj.startDate != "undefined" && selectedObj.startDate != "") || (typeof selectedObj.dueDate != "undefined" && selectedObj.dueDate != ""))) {
+        if (
+            (e.target.name == "startDate" && (typeof selectedObj.dueDate != "undefined" && selectedObj.dueDate != "")) ||
+            (e.target.name == "dueDate" && (typeof selectedObj.startDate != "undefined" && selectedObj.startDate != ""))
+        ) {
             const startDate = moment(selectedObj.startDate);
             const dueDate = moment(selectedObj.dueDate);
             const comparison = (e.target.name == "startDate") ? moment(dueDate).diff(e.target.value, 'days') : moment(e.target.value).diff(startDate, 'days');

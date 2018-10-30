@@ -20,7 +20,7 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.STRING(50),
       allowNull: true
     },
-    projectDescription: {
+    description: {
       type: DataTypes.TEXT,
       allowNull: true
     },
@@ -74,6 +74,16 @@ module.exports = function (sequelize, DataTypes) {
     Workstream.hasMany(models.Members, {
       foreignKey: 'linkId',
       as: "responsible"
+    });
+
+    Workstream.belongsTo(models.Type, {
+      foreignKey: 'typeId',
+      as: 'type'
+    });
+
+    Workstream.hasMany(models.Tasks, {
+      foreignKey: 'workstreamId',
+      as: 'task'
     });
   };
 

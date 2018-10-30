@@ -114,8 +114,8 @@ export default class List extends React.Component {
                         <li style={{ width: "100x" }}>&nbsp;&nbsp;<span class="label label-success" style={{ margin: "5px" }}>{workstream.Selected.workstream}</span></li>
                     </ul>
                     {
-                        (workstream.Selected.projectDescription != "") && <ul class="list-inline" style={{ margin: "20px" }}>
-                            <li>{workstream.Selected.projectDescription}</li>
+                        (workstream.Selected.description != "") && <ul class="list-inline" style={{ margin: "20px" }}>
+                            <li>{workstream.Selected.description}</li>
                         </ul>
                     }
                 </div>

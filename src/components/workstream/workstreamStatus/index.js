@@ -22,9 +22,9 @@ export default class WorkstreamStatus extends React.Component {
         }
     }
 
-    componentWillMount() {
-        this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        this.props.socket.emit("GET_WORKSTREAM_COUNT_LIST", { filter: { projectId: project } })
+    componentDidMount() {
+        // this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
+        // this.props.socket.emit("GET_WORKSTREAM_COUNT_LIST", { filter: { projectId: project } })
     }
 
     showModal(status) {
