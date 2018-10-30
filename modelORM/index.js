@@ -1,13 +1,13 @@
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(
-    process.env.CLOUD_CFO_DB, 
-    process.env.CLOUD_CFO_DB_USER, 
-    process.env.CLOUD_CFO_DB_PASSWORD, 
+    process.env.CLOUD_CFO_DB,
+    process.env.CLOUD_CFO_DB_USER,
+    process.env.CLOUD_CFO_DB_PASSWORD,
     {
         host: process.env.CLOUD_CFO_DB_HOST,
         dialect: 'mysql',
         operatorsAliases: false,
-        logging:false,
+        logging: false,
         pool: {
             max: 5,
             min: 0,
@@ -32,9 +32,10 @@ const Teams = require('./team')(sequelize, Sequelize.DataTypes);
 const Users = require('./users')(sequelize, Sequelize.DataTypes);
 const UsersRole = require('./users_role')(sequelize, Sequelize.DataTypes);
 const UsersTeam = require('./users_team')(sequelize, Sequelize.DataTypes);
-const Workstream = require('./workstream')(sequelize , Sequelize.DataTypes);
+const Workstream = require('./workstream')(sequelize, Sequelize.DataTypes);
 const Reminder = require('./reminder')(sequelize, Sequelize.DataTypes);
 const Roles = require('./role')(sequelize, Sequelize.DataTypes);
+const Share = require('./share')(sequelize, Sequelize.DataTypes);
 const Status = require('./status')(sequelize, Sequelize.DataTypes);
 const Type = require('./type')(sequelize, Sequelize.DataTypes);
 
@@ -55,6 +56,7 @@ const models = {
     Workstream,
     Reminder,
     Roles,
+    Share,
     Status,
     Type,
     UsersRole,

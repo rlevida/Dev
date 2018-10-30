@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('share', {
+module.exports = function (sequelize, DataTypes) {
+  const Share = sequelize.define('share', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -9,7 +9,7 @@ module.exports = function(sequelize, DataTypes) {
       autoIncrement: true
     },
     usersType: {
-      type: DataTypes.ENUM('users','team'),
+      type: DataTypes.ENUM('users', 'team'),
       allowNull: true
     },
     userTypeLinkId: {
@@ -17,7 +17,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     linkType: {
-      type: DataTypes.ENUM('project','workstream','task'),
+      type: DataTypes.ENUM('project', 'workstream', 'task'),
       allowNull: true
     },
     linkId: {
@@ -25,7 +25,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     shareType: {
-      type: DataTypes.ENUM('document','folder'),
+      type: DataTypes.ENUM('document', 'folder'),
       allowNull: true
     },
     shareId: {
@@ -46,6 +46,9 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'share'
-  });
+      tableName: 'share',
+      timestamps: false,
+    });
+
+  return Share
 };

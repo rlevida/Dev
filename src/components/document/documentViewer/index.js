@@ -105,7 +105,7 @@ export default class DocumentViewerComponent extends React.Component {
     render() {
         let { dispatch, document, settings, global, starred } = this.props , 
             isDocument = true, ext = "", documentContentType = "";
-        let uploadedBy =  global.SelectList.ProjectMemberList.filter( e =>{ return e.id == document.Selected.uploadedBy});
+        let uploadedBy =  global.SelectList.projectMemberList.filter( e =>{ return e.id == document.Selected.uploadedBy});
             ext = getFilePathExtension(document.Selected.name).toLowerCase();
             documentContentType = mime.contentType(document.Selected.name)
             if(ext == "pdf" || ext == "jpeg" || ext == "png"){

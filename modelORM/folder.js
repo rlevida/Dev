@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
   const Folder = sequelize.define('folder', {
     id: {
       type: DataTypes.BIGINT,
@@ -41,7 +41,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '1'
     },
     type: {
-      type: DataTypes.ENUM('new','library','archived'),
+      type: DataTypes.ENUM('new', 'library', 'archived'),
       allowNull: true
     },
     createdBy: {
@@ -49,9 +49,23 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     }
   }, {
-    tableName: 'folder',
-    timestamps: false
-  });
+      tableName: 'folder',
+      timestamps: false
+    });
+
+  Folder.associate = function (models) {
+
+    Folder.hasMany(models.Tag, {
+      as: 'tagFolderWorkstream',
+      foreignKey: 'tagTypeId',
+    });
+
+    Folder.hasMany(models.Tag, {
+      as: 'tagFolderTask',
+      foreignKey: 'tagTypeId',
+    });
+
+  };
 
   return Folder;
 };
