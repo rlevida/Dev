@@ -115,7 +115,7 @@ exports.get = {
         const options = {
             include: associationStack,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            order: [['dueDate', 'DESC']]
+            // order: [['dueDate', 'DESC']]
         };
 
 

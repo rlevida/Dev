@@ -95,14 +95,14 @@ export default class FormComponent extends React.Component {
                 } else {
                     putData(`/api/task/status/${task.Selected.id}`, { userId: loggedUser.data.id, periodTask: task.Selected.periodTask, periodic: task.Selected.periodic, id: task.Selected.id, status: "Completed" }, (c) => {
                         if (c.status == 200) {
-                            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data })
+                            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data });
+                            dispatch({ type: "SET_TASK_SELECTED", Selected: c.data[0] });
                             showToast("success", "Task successfully updated.");
                         } else {
                             showToast("error", "Something went wrong please try again later.");
                         }
                         dispatch({ type: "SET_TASK_LOADING", Loading: "" });
                     });
-                    socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete", userId: loggedUser.data.id } })
                 }
             } else {
                 showToast("error", "There are items to be completed in the checklist before completing the task.")

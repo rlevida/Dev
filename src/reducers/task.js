@@ -54,7 +54,7 @@ export default function reducer(state = {
                 }
             });
 
-            return { ...state, List: copyOfList, ...(typeof action.Count != "undefined") ? { Count: action.Count } : {}, FormActive: "List" }
+            return { ...state, List: copyOfList, ...(typeof action.Count != "undefined") ? { Count: action.Count } : {} }
 
             // const updateIndex = _.findIndex(copyOfList, { id: action.data.id });
             // copyOfList.splice(updateIndex, 1, action.data);
@@ -93,7 +93,7 @@ export default function reducer(state = {
             const updatedList = _.remove(copyOfList, (listObj) => {
                 return listObj.id != action.id;
             });
-            
+
             return { ...state, List: updatedList }
         }
         case "SET_TASK_STATUS": {

@@ -7,7 +7,7 @@ CREATE TABLE `members` (
     `linkId` BIGINT,
     `memberType` ENUM("assignedTo","Follower","responsible", "project manager"),
     `receiveNotification` TINYINT(1) DEFAULT '1',
-    `dateAdded` DATETIME,
+    `dateAdded` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;

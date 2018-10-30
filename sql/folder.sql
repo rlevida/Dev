@@ -4,11 +4,11 @@ CREATE TABLE `folder` (
     `name` TEXT,
     `projectId`BIGINT,
     `parentId` BIGINT,
-    `dateAdded` DATETIME,
-    `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `isDeleted` TINYINT(1) DEFAULT '0',
     `isFolder` TINYINT(1) DEFAULT 1,
     `type` ENUM("new","library","archived"),
     `createdBy`BIGINT,
+    `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)
 ) ENGINE=INNODB;

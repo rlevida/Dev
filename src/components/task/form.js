@@ -183,7 +183,8 @@ export default class FormComponent extends React.Component {
             if (typeof task.Selected.id != "undefined") {
                 putData(`/api/task/${task.Selected.id}`, submitData, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data })
+                        dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data });
+                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
                         showToast("success", "Task successfully updated.");
                     } else {
                         showToast("error", "Something went wrong please try again later.");
@@ -193,7 +194,8 @@ export default class FormComponent extends React.Component {
             } else {
                 postData(`/api/task`, submitData, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data })
+                        dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data });
+                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
                         showToast("success", "Task successfully updated.");
                     } else {
                         showToast("error", "Something went wrong please try again later.");
