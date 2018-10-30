@@ -83,7 +83,7 @@ exports.get = {
         async.parallel({
             count: function (callback) {
                 try {
-                    Projects.findAndCountAll({ ...options }).then((response) => {
+                    Projects.findAndCountAll({ ...options,  distinct: true }).then((response) => {
                         const pageData = {
                             total_count: response.count,
                             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
