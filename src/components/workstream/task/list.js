@@ -3,9 +3,10 @@ import moment from 'moment';
 import Tooltip from "react-tooltip";
 import { connect } from "react-redux";
 import parallel from 'async/parallel';
+import _ from "lodash";
 
 import { Loading } from "../../../globalComponents";
-import { getData } from "../../../globalFunction";
+import { getData, showToast } from "../../../globalFunction";
 
 @connect((store) => {
     return {
@@ -20,85 +21,83 @@ export default class List extends React.Component {
     constructor(props) {
         super(props)
 
-        this.deleteData = this.deleteData.bind(this)
-        this.updateActiveStatus = this.updateActiveStatus.bind(this)
+        this.deleteData = this.deleteData.bind(this);
+        this.updateActiveStatus = this.updateActiveStatus.bind(this);
+        this.fetchData = this.fetchData.bind(this);
+        this.getNextResult = this.getNextResult.bind(this);
     }
 
-    componentWillMount() {
-        const { dispatch } = this.props;
+    componentDidMount() {
+        const { task, dispatch } = this.props;
+        const { Count } = task;
 
-        parallel({
-            taskList: (parallelCallback) => {
-                getData(`/api/task?projectId=${project}&workstreamId=${workstreamId}`, {}, (c) => {
-                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
-                    if (taskId != "") {
-                        let selectedTask = (c.data.result).filter((e) => { return e.id == taskId })[0]
-                        dispatch({ type: "SET_TASK_SELECTED", Selected: selectedTask })
-                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
+        if (_.isEmpty(Count)) {
+            this.fetchData(1);
+        } else if (Count.current_page != Count.last_page) {
+            this.fetchData(Count.current_page + 1);
+        }
+
+        if (taskId != "") {
+            getData(`/api/task/detail/${taskId}`, {}, ({ data }) => {
+                parallel({
+                    taskCheckList: (parallelCallback) => {
+                        getData(`/api/checklist/getCheckList?taskId=${data.id}&includes=user`, {}, (c) => {
+                            if (c.status == 200) {
+                                dispatch({ type: "SET_CHECKLIST", list: c.data });
+                                dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
+                                parallelCallback(null, "");
+                            } else {
+                                parallelCallback("No record found.");
+                            }
+                        })
+                    },
+                    taskCommentList: (parallelCallback) => {
+                        getData(`/api/conversation/getConversationList`, { params: { filter: { linkType: "task", linkId: data.id } } }, (c) => {
+                            if (c.status == 200) {
+                                dispatch({ type: "SET_COMMENT_LIST", list: c.data })
+                            }
+                            parallelCallback(null, "")
+                        })
+                    },
+                    activities: (parallelCallback) => {
+                        getData(`/api/activityLog?taskId=${data.id}&page=1&includes=user`, {}, (c) => {
+                            if (c.status == 200) {
+                                const { data } = c;
+                                dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+                            }
+                            parallelCallback(null, "")
+                        })
                     }
-                    parallelCallback(null, "")
-                })
-            },
-            document: (parallelCallback) => {
-                getData(`/api/document/`, { params: { filter: { documentFilter: { isDeleted: 0 }, documentLinkFilter: { linkId: project, linkType: "project" } } } }, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_DOCUMENT_LIST", list: c.data })
-                        parallelCallback(null, "")
+                }, (error, result) => {
+                    if (error == null) {
+                        dispatch({ type: "SET_TASK_SELECTED", Selected: data })
+                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
                     } else {
-                        parallelCallback(null, "")
+                        showToast("success", result);
                     }
                 });
-            },
-            tagList: (parallelCallback) => {
-                getData(`/api/global/selectList`, { params: { selectName: "tagList" } }, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'tagList' })
-                    }
-                    parallelCallback(null, "")
-                })
-            },
-            taskCheckList: (parallelCallback) => {
-                getData(`/api/checklist/getCheckList?taskId=${taskId}&includes=user`, {}, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_CHECKLIST", list: c.data })
-                    }
-                    parallelCallback(null, "")
-                })
-            },
-            workstreamMemberList: (parallelCallback) => {
-                getData(`/api/global/selectList`, { params: { selectName: "workstreamMemberList", filter: { id: workstreamId } } }, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamMemberList' })
-                    }
-                    parallelCallback(null, "")
-                })
-            },
-            taskCommentList: (parallelCallback) => {
-                getData(`/api/conversation/getConversationList`, { params: { filter: { linkType: "task", linkId: taskId } } }, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_COMMENT_LIST", list: c.data })
-                    }
-                    parallelCallback(null, "")
-                })
-            },
-            projectMemberList: (parallelCallback) => {
-                getData(`/api/global/selectList`, { params: { selectName: "ProjectMemberList", filter: { linkType: "project", linkId: project } } }, (c) => {
-                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'ProjectMemberList' })
-                    parallelCallback(null, "")
-                })
-            },
-            activities: (parallelCallback) => {
-                getData(`/api/activityLog?taskId=${taskId}&page=1&includes=user`, {}, (c) => {
-                    if (c.status == 200) {
-                        const { data } = c;
-                        dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
-                    }
-                    parallelCallback(null, "")
-                })
-            }
-        }, (error, result) => {
-            dispatch({ type: "SET_TASK_LOADING", Loading: "" })
-        })
+            });
+        }
+    }
+
+    fetchData(page) {
+        const { loggedUser, dispatch, task } = this.props;
+        const { data } = loggedUser;
+        const userRoles = _.map(data.role, (roleObj) => { return roleObj.roleId })[0];
+
+        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${page}&role=${userRoles}`, {}, (c) => {
+            const currentPage = (typeof task.Count.current_page != "undefined") ? task.Count.current_page : 1;
+
+            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            showToast("success", "Task successfully retrieved.");
+        });
+    }
+
+    getNextResult() {
+        const { task } = { ...this.props };
+        const { Count } = task
+        this.fetchData(Count.current_page + 1);
     }
 
     updateActiveStatus(id, active) {
@@ -115,7 +114,8 @@ export default class List extends React.Component {
     }
 
     selectedTask(data) {
-        let { dispatch, socket } = this.props;
+        const { dispatch, socket } = this.props;
+
         parallel({
             taskCheckList: (parallelCallback) => {
                 getData(`/api/checklist/getCheckList?taskId=${data.id}&includes=user`, {}, (c) => {
@@ -187,6 +187,9 @@ export default class List extends React.Component {
 
     render() {
         const { task } = this.props;
+        const currentPage = (typeof task.Count.current_page != "undefined") ? task.Count.current_page : 1;
+        const lastPage = (typeof task.Count.last_page != "undefined") ? task.Count.last_page : 1;
+        const taskList = task.List;
 
         return (
             <div class="pd10">
@@ -238,12 +241,17 @@ export default class List extends React.Component {
                         }
                     </tbody>
                 </table>
-                {
-                    (task.Loading == "RETRIEVING") && <Loading />
-                }
-                {
-                    (task.List.length == 0 && task.Loading != "RETRIEVING") && <p class="text-center">No Record Found!</p>
-                }
+                <div class="text-center">
+                    {
+                        (task.Loading == "RETRIEVING") && <Loading />
+                    }
+                    {
+                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Task</a>
+                    }
+                    {
+                        (taskList.length == 0 && task.Loading != "RETRIEVING") && <p>No Records Found</p>
+                    }
+                </div>
             </div>
         );
     }
