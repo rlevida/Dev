@@ -16,10 +16,41 @@ const {
 } = models;
 
 var {
-    defaultGet,
     defaultPut,
     defaultDelete
 } = require("./")
+
+const associationFindAllStack = [{
+    model: Document,
+    as: 'document',
+    include: [{
+        model: Tag,
+        where: {
+            linkType: 'workstream', tagType: 'document'
+        },
+        as: 'tagDocumentWorkstream',
+        required: false,
+        include: [
+            {
+                model: Workstream,
+                as: 'tagWorkstream',
+            }
+        ]
+    },
+    {
+        model: Tag,
+        where: {
+            linkType: 'task', tagType: 'document'
+        },
+        as: 'tagDocumentTask',
+        required: false,
+        include: [{
+            model: Tasks,
+            as: 'tagTask',
+        }],
+    }]
+}]
+
 
 exports.get = {
     index: (req, cb) => {
@@ -40,37 +71,7 @@ exports.get = {
                 .findAll({
                     ...options,
                     where: whereObj,
-                    include: [{
-                        model: Document,
-                        as: 'document',
-                        include: [{
-                            model: Tag,
-                            where: {
-                                linkType: 'workstream', tagType: 'document'
-                            },
-                            as: 'tagDocumentWorkstream',
-                            required: false,
-                            include: [
-                                {
-                                    model: Workstream,
-                                    as: 'tagWorkstream',
-                                }
-                            ]
-                        },
-                        {
-                            model: Tag,
-                            where: {
-                                linkType: 'task', tagType: 'document'
-                            },
-                            as: 'tagDocumentTask',
-                            required: false,
-                            include: [{
-                                model: Tasks,
-                                as: 'tagTask',
-                            }],
-                        }
-                        ],
-                    }]
+                    include: associationFindAllStack
                 })
                 .map((res) => {
                     let resToReturn = {
@@ -197,37 +198,7 @@ exports.post = {
                 DocumentLink
                     .findAll({
                         where: { documentId: result },
-                        include: [{
-                            model: Document,
-                            as: 'document',
-                            include: [{
-                                model: Tag,
-                                where: {
-                                    linkType: 'workstream', tagType: 'document'
-                                },
-                                as: 'tagDocumentWorkstream',
-                                required: false,
-                                include: [
-                                    {
-                                        model: Workstream,
-                                        as: 'tagWorkstream',
-                                    }
-                                ]
-                            },
-                            {
-                                model: Tag,
-                                where: {
-                                    linkType: 'task', tagType: 'document'
-                                },
-                                as: 'tagDocumentTask',
-                                required: false,
-                                include: [{
-                                    model: Tasks,
-                                    as: 'tagTask',
-                                }],
-                            }
-                            ],
-                        }]
+                        include: associationFindAllStack
                     })
                     .map((res) => {
                         let resToReturn = {
@@ -465,19 +436,30 @@ exports.post = {
 
 exports.put = {
     index: (req, cb) => {
-        defaultPut(dbName, req, (res) => {
-            if (res.success) {
-                cb({
-                    status: true,
-                    data: res.data
+        const dataToSubmit = req.body
+        const id = req.params.id
+        try {
+            Document
+                .update(dataToSubmit, { where: { id: id } })
+                .then((res) => {
+                    DocumentLink
+                        .findOne({
+                            where: { documentId: id },
+                            include: associationFindAllStack
+                        })
+                        .then((findRes) => {
+                            let resToReturn = {
+                                ...findRes.dataValues.document.toJSON(),
+                                tags: findRes.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                    .concat(findRes.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                            }
+                            cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
+                        })
                 })
-            } else {
-                cb({
-                    status: false,
-                    error: c.error
-                })
-            }
-        })
+        } catch (err) {
+            cb({ status: false, error: err })
+
+        }
     },
     putDocumentName: (req, cb) => {
         let d = req.body
