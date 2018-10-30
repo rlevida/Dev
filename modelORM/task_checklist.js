@@ -65,6 +65,11 @@ module.exports = (sequelize, DataTypes) => {
       as: 'user',
       foreignKey: 'createdBy'
     });
+
+    TaskChecklist.hasMany(models.ChecklistDocuments, {
+      as: 'tagDocuments',
+      foreignKey: 'checklistId'
+    })
   };
 
   return TaskChecklist;

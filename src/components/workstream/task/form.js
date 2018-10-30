@@ -551,10 +551,10 @@ export default class FormComponent extends React.Component {
                                                             (o.isDocument == 1) && <span class="label label-success">Document</span>
                                                         }
                                                         {
-                                                            ((o.documents != null && o.documents != "") && (o.documents).length > 0) && <div class="mt5">
+                                                            (typeof o.document != "undefined" && o.document.length > 0) && <div class="mt5">
                                                                 <p class="mb0">Documents:</p>
                                                                 {
-                                                                    _.map(o.documents, (o, index) => {
+                                                                    _.map(o.document, (o, index) => {
                                                                         return (
                                                                             <p class="ml15 mt0 m0" key={index}>{o.origin}</p>
                                                                         )

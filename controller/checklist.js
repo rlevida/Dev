@@ -1,8 +1,9 @@
 const moment = require("moment");
 const _ = require("lodash");
 const Sequelize = require('sequelize');
+const sequence = require('sequence').Sequence;
 const models = require('../modelORM');
-const { Tasks, TaskChecklist, Users } = models;
+const { ChecklistDocuments, Tag, Tasks, TaskChecklist, Users, Document, DocumentLink } = models;
 const Op = Sequelize.Op
 
 exports.get = {
@@ -14,6 +15,14 @@ exports.get = {
                 model: Users,
                 as: 'user',
                 attributes: ['firstName', 'lastName']
+            },
+            {
+                model: ChecklistDocuments,
+                as: 'tagDocuments',
+                include: [{
+                    model: Document,
+                    as: 'document'
+                }]
             }
         ]
         const whereObj = {
@@ -21,13 +30,22 @@ exports.get = {
         }
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            ...(typeof queryString.includes != "undefined" && queryString.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex((queryString.includes).split(','), (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
+            // ...(typeof queryString.includes != "undefined" && queryString.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex((queryString.includes).split(','), (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
         }
         try {
             TaskChecklist.findAll(
-                { ..._.omit(options, ["includes"]), where: whereObj }
+                {
+                    where: whereObj,
+                    include: association,
+                    options
+                    // ..._.omit(options, ["includes"]), where: whereObj
+                }
             ).map((mapObject) => {
-                return mapObject.toJSON();
+                const objToReturn = {
+                    ...mapObject.dataValues,
+                    document: mapObject.dataValues.tagDocuments.map((e) => { return e.document })
+                }
+                return _.omit(objToReturn, "tagDocuments");
             }).then((resultArray) => {
                 cb({ status: true, data: resultArray });
             });
@@ -160,6 +178,151 @@ exports.put = {
         } catch (err) {
             cb({ status: false, error: err })
         }
+    },
+    updateChecklistDocument: (req, cb) => {
+        const data = req.body
+        const id = req.params.id
+        const projectId = data.projectId
+        const taskId = data.taskId
+
+        sequence.create().then((nextThen) => {
+            async.map(data.documents, (e, mapCallback) => {
+                try {
+                    Document
+                        .findAll({
+                            where: {
+                                origin: e.origin
+                            },
+                            order: Sequelize.literal('documentNameCount DESC'),
+                            raw: true,
+                        })
+                        .then(res => {
+                            if (res.length > 0) {
+                                e.documentNameCount = res[0].documentNameCount + 1
+                                mapCallback(null, e)
+                            } else {
+                                e.projectNameCount = 0;
+                                mapCallback(null, e)
+                            }
+                        })
+                } catch (err) {
+                    mapCallback(err)
+                }
+            }, (err, result) => {
+                if (err != null) {
+                    cb({ status: false, error: err })
+                } else {
+                    nextThen(result)
+                }
+            })
+
+        }).then((nextThen, result) => {
+            async.map(result, (e, mapCallback) => {
+                let tags = e.tags
+                delete e.tags
+                Document
+                    .create(e)
+                    .then((res) => {
+                        async.parallel({
+                            documentLink: (parallelCallback) => {
+                                let linkData = {
+                                    documentId: res.dataValues.id,
+                                    linkType: "project",
+                                    linkId: projectId
+                                }
+                                try {
+                                    DocumentLink
+                                        .create(linkData)
+                                        .then(c => {
+                                            parallelCallback(null, c.dataValues)
+                                        })
+                                } catch (err) {
+                                    parallelCallback(err)
+                                }
+                            },
+                            documentTag: (parallelCallback) => {
+                                if (typeof tags != "undefined") {
+                                    async.map(JSON.parse(tags), (t, tagMapCallback) => {
+                                        let tagData = {
+                                            linkType: t.value.split("-")[0],
+                                            linkId: t.value.split("-")[1],
+                                            tagType: "document",
+                                            tagTypeId: res.dataValues.id,
+                                        }
+
+                                        try {
+                                            Tag.create(tagData)
+                                                .then(c => {
+                                                    tagMapCallback(null, c.data)
+                                                })
+                                        } catch (err) {
+                                            parallelCallback(err)
+                                        }
+
+                                    }, (err, tagMapCallbackResult) => {
+                                        parallelCallback(null, "")
+                                    })
+                                } else {
+                                    parallelCallback(null, "")
+                                }
+                            },
+                            checklistDocuments: (parallelCallback) => {
+                                ChecklistDocuments
+                                    .create({ checklistId: id, documentId: res.dataValues.id, taskId: taskId })
+                                    .then((c) => {
+                                        parallelCallback(null, c.dataValues)
+                                    })
+                            }
+                        }, (err, parallelCallbackResult) => {
+                            if (err != null) {
+                                mapCallback(err)
+                            } else {
+                                mapCallback(null, parallelCallbackResult.documentLink.documentId)
+                            }
+                        })
+                    })
+            }, (err, mapCallbackResult) => {
+                nextThen(mapCallbackResult)
+            })
+        }).then((nextThen, result) => {
+            let dataToSubmit = {
+                isCompleted: 1,
+            }
+            try {
+                TaskChecklist
+                    .update(dataToSubmit, { where: { id: id } })
+                    .then((res) => {
+                        TaskChecklist
+                            .findOne({
+                                where: { id: id },
+                                include: [
+                                    {
+                                        model: Users,
+                                        as: 'user',
+                                        attributes: ['firstName', 'lastName']
+                                    },
+                                    {
+                                        model: ChecklistDocuments,
+                                        as: 'tagDocuments',
+                                        include: [{
+                                            model: Document,
+                                            as: 'document'
+                                        }]
+                                    }
+                                ]
+                            })
+                            .then((findRes) => {
+                                let resToReturn = {
+                                    ...findRes.dataValues,
+                                    document: findRes.dataValues.tagDocuments.map((e) => { return e.document })
+                                }
+                                cb({ status: true, data: _.omit(resToReturn, "tagDocuments") })
+                            })
+                    })
+            } catch (err) {
+                cb({ status: false, error: err })
+            }
+        })
     }
 }
 

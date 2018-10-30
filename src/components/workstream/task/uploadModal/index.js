@@ -1,7 +1,7 @@
 import React from "react"
 import Dropzone from 'react-dropzone';
 import { DropDown } from "../../../../globalComponents";
-import { showToast } from '../../../../globalFunction';
+import { showToast, putData } from '../../../../globalFunction';
 import { connect } from "react-redux";
 import axios from "axios";
 @connect((store) => {
@@ -67,7 +67,10 @@ export default class UploadModal extends React.Component {
             })
 
             if (task.ModalType == "checklist") {
-                socket.emit("SAVE_OR_UPDATE_CHECKLIST", { data: { ...checklist.Selected, completed: 1 }, documents: tempData, project: project, documentIds: documentIds, })
+                const dataToSubmit = { completed: 1, documentIds: documentIds, documents: tempData, projectId: project, taskId: checklist.Selected.taskId }
+                putData(`/api/checklist/updateChecklistDocument/${checklist.Selected.id}?projectId=${project}`, dataToSubmit, (c) => {
+                    dispatch({ type: "UPDATE_CHECKLIST", data: c.data })
+                })
                 this.setState({ tempData: [], loading: false, upload: false })
                 $(`#uploadFileModal`).modal("hide");
             } else {

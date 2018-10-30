@@ -412,7 +412,7 @@ export default class DocumentLibrary extends React.Component {
                             </tr>
                         }
                         {(!document.Loading) &&
-                            folderList.map((data, index) => {
+                            _.orderBy(folderList, ["dateAdded"], ["desc"]).map((data, index) => {
                                 if ((!data.parentId && !folder.SelectedLibraryFolder.id) || (data.parentId && folder.SelectedLibraryFolder.id == data.parentId)) {
                                     return (
                                         <tr key={index}>
@@ -491,7 +491,7 @@ export default class DocumentLibrary extends React.Component {
                             })
                         }
                         {(!document.Loading) &&
-                            documentList.library.map((data, index) => {
+                            _.orderBy(documentList.library, ["dateAdded"], ["desc"]).map((data, index) => {
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                 return (
                                     // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id ,"document")} documentToMove={(data)=> this.documentToMove(data)} docType="document"/>
