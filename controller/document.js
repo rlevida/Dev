@@ -23,83 +23,69 @@ var {
 
 exports.get = {
     index: (req, cb) => {
-        let d = req.query
-        let filter = (typeof d.filter != "undefined") ? JSON.parse(d.filter) : {};
-        let documentLinkFilter = filter.documentLinkFilter
-        let documentFilter = filter.documentFilter
+        const queryString = req.query;
+        const limit = 10;
 
-        sequence.create().then((nextThen) => {
-            // GET ALL DOCUMENTS LINK TO PROJECT
+        const options = {
+            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+        };
+
+        const whereObj = {
+            ...(typeof queryString.linkId != "undefined" && queryString.linkId != "") ? { linkId: queryString.linkId } : {},
+            ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {}
+        };
+
+        try {
             DocumentLink
                 .findAll({
-                    where: documentLinkFilter,
-                    raw: true
-                })
-                .map(res => {
-                    return res.documentId
-                })
-                .then(res => {
-                    nextThen(res)
-                })
-                .catch(err => {
-                    console.log(err)
-                })
-        }).then((nextThen, result) => {
-            Document
-                .findAll({
-                    where: {
-                        id: {
-                            [Sequelize.Op.in]: result
-                        },
-                        ...documentFilter,
-                    },
+                    ...options,
+                    where: whereObj,
                     include: [{
-                        model: Tag,
-                        where: {
-                            linkType: 'workstream'
-                        },
-                        as: 'tagDocumentWorkstream',
-                        required: false,
-                        include: [
-                            {
-                                model: Workstream,
-                                as: 'tagWorkstream',
-                                attributes: ['id', 'workstream']
-                            }
-                        ],
-                        attributes: ['id']
-                    },
-                    {
-                        model: Tag,
-                        where: {
-                            linkType: 'task'
-                        },
-                        as: 'tagDocumentTask',
-                        required: false,
+                        model: Document,
+                        as: 'document',
                         include: [{
-                            model: Tasks,
-                            as: 'tagTask',
-                            attributes: ['id', 'task']
-                        }],
-                        attributes: ['id']
+                            model: Tag,
+                            where: {
+                                linkType: 'workstream', tagType: 'document'
+                            },
+                            as: 'tagDocumentWorkstream',
+                            required: false,
+                            include: [
+                                {
+                                    model: Workstream,
+                                    as: 'tagWorkstream',
+                                }
+                            ]
+                        },
+                        {
+                            model: Tag,
+                            where: {
+                                linkType: 'task', tagType: 'document'
+                            },
+                            as: 'tagDocumentTask',
+                            required: false,
+                            include: [{
+                                model: Tasks,
+                                as: 'tagTask',
+                            }],
+                        }
+                        ],
+                    }]
+                })
+                .map((res) => {
+                    let resToReturn = {
+                        ...res.dataValues.document.toJSON(),
+                        tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                            .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
                     }
-                    ],
+                    return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
                 })
-                .map(res => {
-                    return res.toJSON()
+                .then((res) => {
+                    cb({ status: true, data: res })
                 })
-                .then(res => {
-                    cb({
-                        status: true,
-                        data: res
-                    })
-                }).catch(err => {
-                    cb({
-                        status: false,
-                        error: err
-                    })
-                })
-        })
+        } catch (err) {
+            cb({ statu: false, error: err })
+        }
     },
     getPrinterList: (req, cb) => {
         cb({
@@ -116,115 +102,237 @@ exports.post = {
 
         sequence.create().then((nextThen) => {
             let newData = [];
-
-            data.map(file => {
-                newData.push(new Promise((resolve, reject) => {
+            async.map(data, (e, mapCallback) => {
+                try {
                     Document
                         .findAll({
                             where: {
-                                origin: file.origin
+                                origin: e.origin
                             },
                             order: Sequelize.literal('documentNameCount DESC'),
                             raw: true,
                         })
                         .then(res => {
                             if (res.length > 0) {
-                                file.documentNameCount = res[0].documentNameCount + 1
-                                resolve(file)
+                                e.documentNameCount = res[0].documentNameCount + 1
+                                mapCallback(null, e)
                             } else {
-                                file.projectNameCount = 0;
-                                resolve(file)
+                                e.projectNameCount = 0;
+                                mapCallback(null, e)
                             }
                         })
-                        .catch(err => {
-                            reject()
+                } catch (err) {
+                    mapCallback(err)
+                }
+            }, (err, result) => {
+                if (err != null) {
+                    cb({ status: false, error: err })
+                } else {
+                    nextThen(result)
+                }
+            })
+
+        }).then((nextThen, result) => {
+            async.map(result, (e, mapCallback) => {
+                let tags = e.tags
+                delete e.tags
+                Document
+                    .create(e)
+                    .then((res) => {
+                        async.parallel({
+                            documentLink: (parallelCallback) => {
+                                let linkData = {
+                                    documentId: res.dataValues.id,
+                                    linkType: "project",
+                                    linkId: projectId
+                                }
+                                try {
+                                    DocumentLink
+                                        .create(linkData)
+                                        .then(c => {
+                                            parallelCallback(null, c.dataValues)
+                                        })
+                                } catch (err) {
+                                    parallelCallback(err)
+                                }
+                            },
+                            documentTag: (parallelCallback) => {
+                                if (typeof tags != "undefined") {
+                                    async.map(JSON.parse(tags), (t, tagMapCallback) => {
+                                        let tagData = {
+                                            linkType: t.value.split("-")[0],
+                                            linkId: t.value.split("-")[1],
+                                            tagType: "document",
+                                            tagTypeId: res.dataValues.id,
+                                            projectId: projectId
+                                        }
+                                        try {
+                                            Tag.create(tagData)
+                                                .then(c => {
+                                                    tagMapCallback(null, c.data)
+                                                })
+                                        } catch (err) {
+                                            parallelCallback(err)
+                                        }
+                                    }, (err, tagMapCallbackResult) => {
+                                        parallelCallback(null, "")
+                                    })
+                                } else {
+                                    parallelCallback(null, "")
+                                }
+                            }
+                        }, (err, parallelCallbackResult) => {
+                            if (err != null) {
+                                mapCallback(err)
+                            } else {
+                                mapCallback(null, parallelCallbackResult.documentLink.documentId)
+                            }
                         })
-                }))
+                    })
+            }, (err, mapCallbackResult) => {
+                nextThen(mapCallbackResult)
             })
-
-            Promise.all(newData).then((values) => {
-                nextThen(values)
-            })
-
         }).then((nextThen, result) => {
-            let dataToReturn = []
-            if (result.length > 0) {
-                result.map(file => {
-                    dataToReturn.push(new Promise((resolve, reject) => {
-                        let tagList = file.tags
-                        delete file.tags
-                        Document.create(file)
-                            .then(res => {
-                                let resData = res.toJSON();
-
-                                async.parallel({
-                                    documentLink: (parallelCallback) => {
-                                        let linkData = {
-                                            documentId: resData.id,
-                                            linkType: "project",
-                                            linkId: projectId
-                                        }
-                                        DocumentLink.create(linkData)
-                                            .then(c => {
-                                                parallelCallback(null, c)
-                                            })
-                                            .catch(err => {
-                                                parallelCallback(null, "")
-                                            })
-                                    },
-                                    documentTag: (parallelCallback) => {
-                                        if (typeof tagList != "undefined") {
-                                            JSON.parse(tagList).map(t => {
-                                                let tagData = {
-                                                    linkType: t.value.split("-")[0],
-                                                    linkId: t.value.split("-")[1],
-                                                    tagType: "document",
-                                                    tagTypeId: resData.id,
-                                                    projectId: projectId
-                                                }
-                                                Tag.create(tagData)
-                                                    .then(c => { })
-                                                    .catch(err => { })
-                                            })
-                                            parallelCallback(null, "")
-                                        } else {
-                                            parallelCallback(null, "")
-                                        }
+            try {
+                DocumentLink
+                    .findAll({
+                        where: { documentId: result },
+                        include: [{
+                            model: Document,
+                            as: 'document',
+                            include: [{
+                                model: Tag,
+                                where: {
+                                    linkType: 'workstream', tagType: 'document'
+                                },
+                                as: 'tagDocumentWorkstream',
+                                required: false,
+                                include: [
+                                    {
+                                        model: Workstream,
+                                        as: 'tagWorkstream',
                                     }
-                                }, (err, parallelResults) => {
-                                    resolve(resData)
-                                })
-                            })
-                            .catch(err => {
-                                reject()
-                            })
-                    }))
-                })
+                                ]
+                            },
+                            {
+                                model: Tag,
+                                where: {
+                                    linkType: 'task', tagType: 'document'
+                                },
+                                as: 'tagDocumentTask',
+                                required: false,
+                                include: [{
+                                    model: Tasks,
+                                    as: 'tagTask',
+                                }],
+                            }
+                            ],
+                        }]
+                    })
+                    .map((res) => {
+                        let resToReturn = {
+                            ...res.dataValues.document.toJSON(),
+                            tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                        }
+                        return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
+                    })
+                    .then((res) => {
+                        cb({ status: true, data: res })
+                    })
 
-                Promise.all(dataToReturn).then(values => {
-                    nextThen(values)
-                })
+            } catch (err) {
+                cb({ status: false, error: err })
             }
-        }).then((nextThen, result) => {
-            Tag.findAll({
-                raw: true
-            }).then(res => {
-                cb({
-                    status: true,
-                    data: {
-                        list: result,
-                        tagList: res
+        })
+    },
+    postDocumentTag: (req, cb) => {
+        const dataToSubmit = req.body
+        const queryString = req.query
+        const whereObj = {
+            ...(typeof queryString.tagTypeId != "undefined" && queryString.tagTypeId != "") ? { tagTypeId: queryString.tagTypeId } : {},
+            ...(typeof queryString.tagType != "undefined" && queryString.tagType != "") ? { tagType: queryString.tagType } : {}
+        };
+
+        sequence.create().then((nextThen) => {
+
+            try {
+                Tag.destroy({
+                    where: whereObj
+                }).then(res => {
+                    if (JSON.parse(dataToSubmit.tags).length > 0) {
+                        nextThen(dataToSubmit.tags)
+                    } else {
+                        cb({ status: true, data: [] })
                     }
                 })
-            }).catch(err => {
-                cb({
-                    status: true,
-                    data: {
-                        list: result,
-                        tagList: []
-                    }
-                })
+            } catch (err) {
+                cb({ status: false, error: err })
+            }
+
+        }).then((nextThen, data) => {
+            async.map(JSON.parse(data), (e, mapCallback) => {
+                let tagData = {
+                    ...whereObj,
+                    linkType: e.value.split("-")[0],
+                    linkId: e.value.split("-")[1],
+                }
+
+                Tag.create(tagData)
+                    .then(res => {
+                        mapCallback(null, res)
+                    })
+            }, (err, result) => {
+                if (err != null) {
+                    cb({ status: false, error: err })
+                } else {
+                    nextThen()
+                }
             })
+        }).then((nextThen, result) => {
+            DocumentLink
+                .findOne({
+                    where: { documentId: queryString.tagTypeId },
+                    include: [{
+                        model: Document,
+                        as: 'document',
+                        include: [{
+                            model: Tag,
+                            where: {
+                                linkType: 'workstream', tagType: 'document'
+                            },
+                            as: 'tagDocumentWorkstream',
+                            required: false,
+                            include: [
+                                {
+                                    model: Workstream,
+                                    as: 'tagWorkstream',
+                                }
+                            ],
+                            attributes: ['id']
+                        },
+                        {
+                            model: Tag,
+                            where: {
+                                linkType: 'task', tagType: 'document'
+                            },
+                            as: 'tagDocumentTask',
+                            required: false,
+                            include: [{
+                                model: Tasks,
+                                as: 'tagTask',
+                            }],
+                        }
+                        ],
+                    }]
+                }).then((res) => {
+                    let resToReturn = {
+                        ...res.dataValues.document.toJSON(),
+                        tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                            .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                    }
+                    cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
+                })
         })
     },
     upload: (req, cb) => {
@@ -249,44 +357,44 @@ exports.post = {
                     Id: Id
                 });
 
-                func.uploadFile({
-                    file: file,
-                    form: type,
-                    filename: filename
-                }, response => {
-                    if (response.Message == 'Success') {
-                        resolve(filenameList)
-                    } else {
-                        reject()
-                    }
-                });
+                // func.uploadFile({
+                //     file: file,
+                //     form: type,
+                //     filename: filename
+                // }, response => {
+                //     if (response.Message == 'Success') {
+                //         resolve(filenameList)
+                //     } else {
+                //         reject()
+                //     }
+                // });
             });
         }))
 
-        Promise.all(files).then(e => {
-            if (e.length > 0) {
-                cb({
-                    status: true,
-                    data: e[0]
-                })
-            } else {
-                cb({
-                    status: false,
-                    data: []
-                })
-            }
-        })
+        // Promise.all(files).then(e => {
+        //     if (e.length > 0) {
+        //         cb({
+        //             status: true,
+        //             data: e[0]
+        //         })
+        //     } else {
+        //         cb({
+        //             status: false,
+        //             data: []
+        //         })
+        //     }
+        // })
         // log any errors that occur
         form.on('error', function (err) {
             console.log('An error has occured: \n' + err);
         });
         // once all the files have been uploaded, send a response to the client
-        // form.on('end', function () {
-        //     cb({
-        //         status: true,
-        //         data: filenameList
-        //     })
-        // });
+        form.on('end', function () {
+            cb({
+                status: true,
+                data: filenameList
+            })
+        });
         // once all the files have been uploaded, send a response to the client
         // form.on('end', function () {
         //     cb({ status: true, data: filenameList })
@@ -372,7 +480,6 @@ exports.put = {
         })
     },
     putDocumentName: (req, cb) => {
-        // let document = global.initModel("document")
         let d = req.body
         let id = req.params.id
 
@@ -413,56 +520,6 @@ exports.put = {
                 }).catch(err => {
                     console.log(err)
                 })
-        })
-    },
-    putDocumentTags: (req, cb) => {
-        let d = req.body;
-        let filter = (typeof d.filter != "undefined") ? d.filter : {};
-        sequence.create().then((nextThen) => {
-            Tag.destroy({
-                where: {
-                    ...filter
-                }
-            }).then(res => {
-                if (JSON.parse(d.data.tags).length > 0) {
-                    nextThen(JSON.parse(d.data.tags), d.data.id)
-                } else {
-                    cb({
-                        status: true,
-                        data: res.data
-                    })
-                }
-            }).catch(err => {
-                console.log(err)
-            })
-
-        }).then((nextThen, tags, id) => {
-            let tagPromise = []
-            tagPromise.push(new Promise((resolve, reject) => {
-                tags.map(t => {
-                    let tagData = {
-                        linkType: t.value.split("-")[0],
-                        linkId: t.value.split("-")[1],
-                        tagType: "document",
-                        tagTypeId: id,
-                        projectId: d.project
-                    }
-                    Tag.create(tagData)
-                        .then(res => {
-                            resolve(res)
-                        }).catch(err => {
-                            reject()
-                            console.log(err)
-                        })
-                })
-            }))
-
-            Promise.all(tagPromise).then(values => {
-                cb({
-                    status: true,
-                    data: ""
-                })
-            })
         })
     }
 }

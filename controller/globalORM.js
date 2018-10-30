@@ -53,7 +53,6 @@ exports.get = {
             switch (queryString.selectName) {
                 case "projectMemberList":
                     {
-                        console.log(whereObj)
                         async.parallel({
                             members: (parallelCallback) => {
                                 try {

@@ -1,6 +1,5 @@
 import React from "react";
 import moment from 'moment'
-import LibraryDocument from './libraryDocument'
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DragDropContext } from 'react-dnd';
 import { DropDown , Loading } from "../../../globalComponents"
@@ -372,7 +371,7 @@ export default class DocumentLibrary extends React.Component {
             }
 
             if(typeof global.SelectList.projectMemberList != "undefined"){ // FOR SHARE OPTIONS
-                global.SelectList.ProjectMemberList.map(e =>{ 
+                global.SelectList.projectMemberList.map(e =>{ 
                     if(e.userType == "External"){
                         shareOptions.push({ id: e.id , name : `${e.firstName} ${e.lastName}` })
                     }

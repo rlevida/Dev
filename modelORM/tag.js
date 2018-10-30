@@ -36,10 +36,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    projectId: {
-      type: DataTypes.BIGINT,
-      allowNull: false,
-    },
     dateAdded: {
       type: DataTypes.DATE,
       allowNull: true
@@ -70,6 +66,11 @@ module.exports = (sequelize, DataTypes) => {
       as: 'tagTask',
       foreignKey: 'linkId',
     })
+
+    Tags.belongsTo(models.Workstream, {
+      as: 'workstream',
+      foreignKey: 'linkId',
+    });
   };
 
   return Tags;
