@@ -1,7 +1,7 @@
 import _ from "lodash";
 export default function reducer(state = {
     List: [],
-    CountList: [],
+    StatusCount: {},
     FormActive: "List",
     Selected: {},
     SelectedId: [],
@@ -12,12 +12,12 @@ export default function reducer(state = {
     switch (action.type) {
         case "SET_WORKSTREAM_LIST": {
             const { List } = { ...state };
-            const updatedList = [...List, ...action.List];
+            const updatedList = [...List, ...action.list];
 
             return { ...state, List: updatedList, ...(typeof action.Count != "undefined") ? { Count: action.Count } : {} }
         }
         case "SET_WORKSTREAM_COUNT_LIST": {
-            return { ...state, CountList: action.list }
+            return { ...state, StatusCount: action.list }
         }
         case "SET_WORKSTREAM_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }

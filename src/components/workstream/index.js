@@ -20,12 +20,12 @@ export default class Component extends React.Component {
     render() {
         const { workstream } = this.props;
         const Component = <div>
-            {/* {
+            {
                 (
                     (workstream.FormActive == "Form" && typeof workstream.Selected.id != "undefined") &&
                     (typeof workstream.SelectedLink != "undefined" && workstream.SelectedLink != "")
                 ) && <Link />
-            } */}
+            }
 
             {workstream.FormActive == "List" &&
                 <List />

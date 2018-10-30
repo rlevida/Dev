@@ -150,10 +150,12 @@ export default class FormComponent extends React.Component {
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" style={{ marginRight: "2px" }}
-                    onClick={(e) => this.resetData()} >
-                    <span>Back</span>
-                </li>
+                {
+                    (typeof workstream.SelectedLink == "undefined" || workstream.SelectedLink == "") && <li class="btn btn-info" style={{ marginRight: "2px" }}
+                        onClick={(e) => this.resetData()} >
+                        <span>Back</span>
+                    </li>
+                }
                 {
                     (typeof workstream.SelectedLink == "undefined" || workstream.SelectedLink == "") &&
                     <li class="btn btn-info" onClick={() => this.handleSubmit()} >

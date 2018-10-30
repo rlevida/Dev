@@ -22,7 +22,7 @@ const {
 exports.get = {
     selectList: (req, cb) => {
         const queryString = req.query
-
+        
         const whereObj = {
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? {
                 linkType: queryString.linkType
@@ -41,7 +41,8 @@ exports.get = {
         const modelList = {
             teamList: "Teams",
             roleList: "Roles",
-            projectMemberList: "Project"
+            projectMemberList: "Project",
+            workstreamList: "Workstream"
         }
 
         modelName = modelList[queryString.selectName];

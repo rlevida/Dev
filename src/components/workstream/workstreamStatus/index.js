@@ -1,7 +1,5 @@
 import React from "react"
-import ReactDOM from "react-dom"
-import Tooltip from "react-tooltip";
-import { showToast } from '../../../globalFunction'
+import { getData } from '../../../globalFunction'
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -23,52 +21,43 @@ export default class WorkstreamStatus extends React.Component {
     }
 
     componentDidMount() {
-        // this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        // this.props.socket.emit("GET_WORKSTREAM_COUNT_LIST", { filter: { projectId: project } })
+        const { loggedUser, dispatch } = this.props;
+        const { data } = loggedUser;
+        const userRoles = _.map(data.role, (roleObj) => { return roleObj.roleId })[0];
+
+        getData(`/api/workstream/status?projectId=${project}&userId=${loggedUser.data.id}&role=${userRoles}&date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, (c) => {
+            dispatch({ type: "SET_WORKSTREAM_COUNT_LIST", list: c.data })
+        });
     }
 
     showModal(status) {
-        let { workstream, task } = this.props;
-        let issueList = []
-        if (status == "Issues") {
-            task.List.map(e => {
-                if (new Date().getTime() > new Date(e.dueDate).getTime() && e.status != "Completed" && moment(new Date().getTime()).format('L') != moment(e.dueDate).format('L')) {
-                    issueList.push(e)
-                }
-            })
-            this.setState({ list: issueList, status: status }, () => {
-                $('#workstreamStatusModal').modal("show");
-            })
-        } else {
-            this.setState({ list: task.List })
-        }
+        const { loggedUser } = this.props;
+        const { data } = loggedUser;
+        const userRoles = _.map(data.role, (roleObj) => { return roleObj.roleId })[0];
 
+        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&role=${userRoles}&date=${JSON.stringify({ opt: "lt", value: moment(new Date()).format("YYYY-MM-DD") })}`, {}, (c) => {
+            this.setState({ list: c.data.result }, () => {
+                $('#workstreamStatusModal').modal("show");
+            });
+        });
     }
 
     render() {
-        let { workstream, loggedUser } = this.props, { status } = this.state;
-        let data = { Active: 0, OnTrack: 0, Issues: 0 }
-
-        this.props.workstream.CountList.map((e, i) => {
-            data = {
-                Active: (typeof e.Active != "undefined" && e.Active) ? e.Active : 0,
-                OnTrack: (typeof e.OnTrack != "undefined" && e.OnTrack) ? e.OnTrack : 0,
-                Issues: (typeof e.Issues != "undefined" && e.Issues) ? e.Issues : 0
-            }
-        })
+        const { workstream } = this.props;
+        const { StatusCount } = workstream;
 
         return <div style={this.props.style}>
             <table>
                 <tbody>
                     <tr>
                         <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left", color: "white" }}>Active</span><span style={{ float: "right", color: "white" }}>{(data.Active - data.Issues) + data.Issues}</span>
+                            <span style={{ float: "left", color: "white" }}>Active</span><span style={{ float: "right", color: "white" }}>{(StatusCount.active - StatusCount.issues) + StatusCount.issues}</span>
                         </td>
                         <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                            <span style={{ float: "left", color: "white" }}>On Time</span><span style={{ float: "right", color: "white" }}>{data.Active - data.Issues}</span>
+                            <span style={{ float: "left", color: "white" }}>On Time</span><span style={{ float: "right", color: "white" }}>{StatusCount.active - StatusCount.issues}</span>
                         </td>
                         <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#d4a2a2", color: "white", cursor: "pointer" }} onClick={() => this.showModal("Issues")}>
-                            <span style={{ float: "left", color: "white" }}>Issues</span><span style={{ float: "right", color: "white" }}>{data.Issues > 0 && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}{data.Issues}</span>
+                            <span style={{ float: "left", color: "white" }}>Issues</span><span style={{ float: "right", color: "white" }}>{StatusCount.issues > 0 && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}{StatusCount.issues}</span>
                         </td>
                     </tr>
                 </tbody>
@@ -96,12 +85,18 @@ export default class WorkstreamStatus extends React.Component {
                                     </tr>
                                     {this.state.list.length > 0 &&
                                         this.state.list.map((data, index) => {
+                                            const assignedUser = (_.filter(data.task_members, (o) => { return o.memberType == "assignedTo" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "assignedTo" })[0].user : "";
+
                                             return (
                                                 <tr key={index}>
-                                                    <td>{data.workstream_workstream}</td>
+                                                    <td>{data.workstream.workstream}</td>
                                                     <td>{data.task}</td>
                                                     <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
-                                                    <td>{(data.assignedBy != null) ? data.assignedBy : ''}</td>
+                                                    <td>
+                                                        {
+                                                            (assignedUser != "" && assignedUser != null) && <span title={`${assignedUser.firstName} ${assignedUser.lastName}`}><i class="fa fa-user fa-lg"></i></span>
+                                                        }
+                                                    </td>
                                                 </tr>
                                             )
                                         })

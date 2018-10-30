@@ -2,7 +2,7 @@ const async = require("async");
 const _ = require("lodash");
 const moment = require("moment");
 const models = require('../modelORM');
-const { TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder } = models;
+const { TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, sequelize } = models;
 const dbName = "task";
 const { defaultDelete } = require("./");
 const func = global.initFunc();
@@ -91,9 +91,15 @@ exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
         const limit = 10;
+        const date = (typeof queryString.date != "undefined") ? JSON.parse(queryString.date) : "";
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
-            ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {}
+            ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
+            ...(date != "") ? {
+                dueDate: {
+                    [Sequelize.Op[date.opt]]: date.value
+                }
+            } : {}
         };
 
 
@@ -109,6 +115,7 @@ exports.get = {
         const options = {
             include: associationStack,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+            order: [['dueDate', 'DESC']]
         };
 
 

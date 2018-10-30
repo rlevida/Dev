@@ -39,7 +39,7 @@ export default class FormComponent extends React.Component {
     }
 
     componentDidMount() {
-        let { task, dispatch, global } = { ...this.props };
+        let { task, dispatch } = { ...this.props };
 
         if ((task.SelectedId).length > 0) {
             getData(`/api/task/detail/${task.SelectedId[0]}`, {}, (c) => {
@@ -54,6 +54,9 @@ export default class FormComponent extends React.Component {
         } else {
             dispatch({ type: "SET_TASK_LOADING" });
         }
+        getData(`/api/globalORM/selectList?projectId=${project}&selectName=workstreamList`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamList' });
+        });
 
     }
 
@@ -238,7 +241,7 @@ export default class FormComponent extends React.Component {
 
     render() {
         const { dispatch, task, workstream, loggedUser, checklist, global } = this.props;
-        const workstreamList = workstream.List.map((e, i) => { return { id: e.id, name: e.workstream } });
+        const workstreamList =  (typeof global.SelectList.workstreamList != "undefined") ? _.map(global.SelectList.workstreamList, (workstreamObj) => { return { id: workstreamObj.id, name: workstreamObj.workstream } }) : [];
         const allowEdit = (loggedUser.data.userRole == 5 || loggedUser.data.userRole == 6) && (loggedUser.data.userType == "External") ? false : true;
         const taskList = _(task.List)
             .map((taskListObj) => { return { id: taskListObj.id, name: taskListObj.task } })

@@ -197,8 +197,58 @@ exports.get = {
             })
         })
     },
-    count: (req, cb) => {
+    status: (req, cb) => {
+        const queryString = req.query;
         
+        try {
+            async.parallel({
+                active: (parallelCallback) => {
+                    Workstream.count({
+                        distinct: true,
+                        col: 'id',
+                        where: {
+                            projectId: queryString.projectId,
+                            isActive: 1
+                        }
+                    }).then((response) => {
+                        parallelCallback(null, response)
+                    });
+                },
+                issues: (parallelCallback) => {
+                    Workstream.count({
+                        distinct: true,
+                        col: 'id',
+                        where: {
+                            projectId: queryString.projectId
+                        },
+                        include: [
+                            {
+                                model: Tasks,
+                                as: 'task',
+                                required: true,
+                                where: {
+                                    dueDate: {
+                                        [Sequelize.Op.lt]: queryString.date
+                                    },
+                                    status: {
+                                        [Sequelize.Op.or]: {
+                                            [Sequelize.Op.ne]: "Completed",
+                                            [Sequelize.Op.eq]: null
+                                        }
+                                    }
+                                }
+                            },
+                        ]
+                    }).then((response) => {
+                        parallelCallback(null, response)
+                    });
+                }
+            }, (err, result) => {
+                cb({ status: true, data: result });
+            })
+        } catch (err) {
+            callback(err)
+        }
     }
 }
 

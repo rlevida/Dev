@@ -126,10 +126,8 @@ export default class List extends React.Component {
         const { task, dispatch, loggedUser } = this.props;
         const currentPage = (typeof task.Count.current_page != "undefined") ? task.Count.current_page : 1;
         const lastPage = (typeof task.Count.last_page != "undefined") ? task.Count.last_page : 1;
-        const taskList = _(task.List)
-            .map((taskObj) => { return { ...taskObj, due_date_int: moment(taskObj.dueDate).format("YYYYMMDD") } })
-            .orderBy(['due_date_int'], ['asc'])
-            .value();
+        const taskList = task.List;
+        
         return (
             <div>
 

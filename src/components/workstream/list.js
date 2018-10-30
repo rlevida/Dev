@@ -25,31 +25,29 @@ export default class List extends React.Component {
     }
 
     componentDidMount() {
-        const { workstream, socket } = this.props;
+        const { workstream, socket, dispatch } = this.props;
         const { Count } = workstream;
 
-        if (_.isEmpty(Count)) {
-            this.fetchData(1);
+
+        if (workstreamId != "") {
+            const dataToGet = { params: { id: workstreamId } }
+            getData(`/api/workstream/getWorkstreamDetail`, dataToGet, (c) => {
+                dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: c.data })
+                dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
+                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
+                socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
+            })
+        } else {
+            if (_.isEmpty(Count)) {
+                this.fetchData(1);
+            }
+
+            socket.emit("GET_TYPE_LIST", {});
+            socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } });
+            socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } });
+            socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
+
         }
-
-        socket.emit("GET_TYPE_LIST", {});
-        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } });
-        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } });
-        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
-        // if (workstreamId != "") {
-        //     // let dataToGet = { params: { id: workstreamId } }
-        //     // getData(`/api/workstream/getWorkstreamDetail`, dataToGet, (c) => {
-        //     //     dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: c.data })
-        //     //     dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
-        //     //     dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
-        //     //     this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
-        //     // })
-        // } else {
-
-        //     // this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        //     // this.props.socket.emit("GET_STATUS_LIST", {});
-
-        // }
     }
 
     fetchData(page) {
@@ -57,7 +55,7 @@ export default class List extends React.Component {
 
         getData(`/api/workstream?project=${project}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_WORKSTREAM_LIST", List: c.data.result, Count: c.data.count })
+                dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
                 showToast("success", "Workstream successfully retrieved.");
             } else {
                 showToast("error", "Something went wrong please try again later.");
