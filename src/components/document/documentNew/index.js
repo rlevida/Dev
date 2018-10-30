@@ -387,7 +387,7 @@ export default class DocumentNew extends React.Component {
                         }
 
                         {(!document.Loading) &&
-                            folderList.map((data, index) => {
+                            _.orderBy(folderList,["dateAdded"],["desc"]).map((data, index) => {
                                 if ((!data.parentId && !folder.SelectedNewFolder.id) || (data.parentId && folder.SelectedNewFolder.id == data.parentId)) {
                                     return (
                                         <tr key={index}>
@@ -447,7 +447,7 @@ export default class DocumentNew extends React.Component {
                             })
                         }
                         {(!document.Loading) &&
-                            documentList.newUpload.map((data, index) => {
+                           _.orderBy(documentList.newUpload,["dateAdded"],["desc"]).map((data, index) => {
                                 let ext = getFilePathExtension(data.origin)
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                 return (

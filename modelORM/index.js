@@ -18,6 +18,7 @@ const sequelize = new Sequelize(
 );
 
 const ActivityLogs = require('./activity_logs')(sequelize, Sequelize.DataTypes);
+const ChecklistDocuments = require('./checklist_documents')(sequelize, Sequelize.DataTypes);
 const Document = require('./document')(sequelize, Sequelize.DataTypes);
 const DocumentLink = require('./document_link')(sequelize, Sequelize.DataTypes);
 const IpBlock = require('./ip_block')(sequelize, Sequelize.DataTypes);
@@ -41,6 +42,7 @@ const Type = require('./type')(sequelize, Sequelize.DataTypes);
 
 const models = {
     ActivityLogs,
+    ChecklistDocuments,
     Document,
     DocumentLink,
     IpBlock,
