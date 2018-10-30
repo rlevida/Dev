@@ -31,6 +31,11 @@ export default class List extends React.Component {
             taskList: (parallelCallback) => {
                 getData(`/api/task?projectId=${project}&workstreamId=${workstreamId}`, {}, (c) => {
                     dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
+                    if (taskId != "") {
+                        let selectedTask = (c.data.result).filter((e) => { return e.id == taskId })[0]
+                        dispatch({ type: "SET_TASK_SELECTED", Selected: selectedTask })
+                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
+                    }
                     parallelCallback(null, "")
                 })
             },
