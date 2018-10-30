@@ -701,7 +701,7 @@ exports.put = {
         try {
             async.parallel({
                 periodic: (parallelCallback) => {
-                    if (body.periodic == 1 && body.status != "Completed") {
+                    if (body.periodic == 1 && body.status == "Completed") {
                         const periodTaskId = (body.periodTask == null) ? body.id : body.periodTask;
                         Tasks.findAll({
                             ...options,
@@ -762,7 +762,11 @@ exports.put = {
                     });
                 }
             }, (err, { status, periodic }) => {
-                cb({ status: true, data: [status, periodic] });
+                const statusStack = [status];
+                if (periodic != "") {
+                    statusStack.push(periodic)
+                }
+                cb({ status: true, data: statusStack });
             })
         } catch (err) {
             cb({ status: false, error: err })
