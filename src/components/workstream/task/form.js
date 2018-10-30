@@ -80,21 +80,28 @@ export default class FormComponent extends React.Component {
     }
 
     markTaskAsCompleted() {
-        let { socket, task, checklist, loggedUser } = this.props;
-
+        let { socket, task, checklist, loggedUser, dispatch } = this.props;
         if (task.Selected.approvalRequired && loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3) {
             $(`#approvalModal`).modal("show");
         } else {
             const mandatory = checklist.List.filter((e, index) => {
-                return !e.completed;
+                return !e.isCompleted;
             });
-
             if (mandatory.length == 0) {
                 let status = "Completed"
                 if (task.Selected.task_id && task.Selected.task_status != "Completed") {
                     status = "For Approval"
                     socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
                 } else {
+                    putData(`/api/task/status/${task.Selected.id}`, { userId: loggedUser.data.id, periodTask: task.Selected.periodTask, periodic: task.Selected.periodic, id: task.Selected.id, status: "Completed" }, (c) => {
+                        if (c.status == 200) {
+                            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data })
+                            showToast("success", "Task successfully updated.");
+                        } else {
+                            showToast("error", "Something went wrong please try again later.");
+                        }
+                        dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+                    });
                     socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete", userId: loggedUser.data.id } })
                 }
             } else {
@@ -300,6 +307,7 @@ export default class FormComponent extends React.Component {
             dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
         }
     }
+
 
     render() {
         let { dispatch, task, status, global, loggedUser, document, workstream, checklist, socket, project } = { ...this.props };

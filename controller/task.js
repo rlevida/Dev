@@ -2,7 +2,7 @@ const async = require("async");
 const _ = require("lodash");
 const moment = require("moment");
 const models = require('../modelORM');
-const { TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder } = models;
+const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder } = models;
 const dbName = "task";
 const { defaultDelete } = require("./");
 const func = global.initFunc();
@@ -111,7 +111,7 @@ exports.get = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
         };
 
-        
+
         async.parallel({
             count: function (callback) {
                 try {
@@ -753,6 +753,26 @@ exports.put = {
                         const updatedTask = response.toJSON();
                         parallelCallback(null, updatedTask);
                     });
+                },
+                document: (parallelCallback) => {
+                    ChecklistDocuments
+                        .findAll({
+                            where: { taskId: body.id }
+                        })
+                        .map((res) => {
+                            return res.id
+                        })
+                        .then((res) => {
+                            if (res.length > 0) {
+                                Document
+                                    .update({ isCompleted: 1 }, { where: { id: res } })
+                                    .then((documentRes) => {
+                                        parallelCallback(null, documentRes)
+                                    })
+                            } else {
+                                parallelCallback(null, res)
+                            }
+                        })
                 }
             }, (err, { status, periodic }) => {
                 cb({ status: true, data: [status, periodic] });
@@ -760,8 +780,6 @@ exports.put = {
         } catch (err) {
             cb({ status: false, error: err })
         }
-
-
     }
 }
 
