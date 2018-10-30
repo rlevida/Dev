@@ -21,6 +21,7 @@ export default class List extends React.Component {
         this.deleteData = this.deleteData.bind(this);
         this.updateActiveStatus = this.updateActiveStatus.bind(this);
         this.fetchData = this.fetchData.bind(this);
+        this.getNextResult = this.getNextResult.bind(this);
     }
 
     componentDidMount() {
@@ -47,7 +48,6 @@ export default class List extends React.Component {
         getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${page}&role=${userRoles}`, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-            showToast("success", "Task successfully retrieved.");
         });
     }
 
@@ -74,11 +74,7 @@ export default class List extends React.Component {
         const { task } = this.props;
         const currentPage = (typeof task.Count.current_page != "undefined") ? task.Count.current_page : 1;
         const lastPage = (typeof task.Count.last_page != "undefined") ? task.Count.last_page : 1;
-
-        const taskList = _(task.List)
-            .map((taskObj) => { return { ...taskObj, due_date_int: moment(taskObj.dueDate).format("YYYYMMDD") } })
-            .orderBy(['due_date_int'], ['asc'])
-            .value();
+        const taskList = task.List;
 
         return (
             <div>

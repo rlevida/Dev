@@ -1,36 +1,46 @@
+import _ from "lodash";
 export default function reducer(state = {
     List: [],
-    CountList: [],
+    StatusCount: {},
     FormActive: "List",
     Selected: {},
     SelectedId: [],
     SelectedLink: "",
-    Loading: true
+    Count: {},
+    Loading: "RETRIEVING",
 }, action) {
     switch (action.type) {
         case "SET_WORKSTREAM_LIST": {
-            return { ...state, List: action.list, Loading: false }
+            const { List } = { ...state };
+            const updatedList = [...List, ...action.list];
+
+            return { ...state, List: updatedList, ...(typeof action.Count != "undefined") ? { Count: action.Count } : {} }
         }
         case "SET_WORKSTREAM_COUNT_LIST": {
-            return { ...state, CountList: action.list }
+            return { ...state, StatusCount: action.list }
         }
         case "SET_WORKSTREAM_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
         }
         case "SET_WORKSTREAM_SELECTED": {
-            return { ...state, Selected: action.Selected ,  Loading: false }
+            return { ...state, Selected: action.Selected }
         }
         case "SET_WORKSTREAM_ID": {
             return { ...state, SelectedId: action.SelectedId }
         }
         case "UPDATE_DATA_WORKSTREAM_LIST": {
-            let tempList = action.List.map((e, i) => {
-                if (e.id == action.UpdatedData.id) {
-                    return action.UpdatedData
-                }
-                return e
-            })
-            return { ...state, List: tempList }
+            const { List } = { ...state };
+            const copyOfList = [...List];
+            const { data } = action;
+            const updateindex = _.findIndex(copyOfList, { id: data.id });
+
+            if (updateindex < 0) {
+                copyOfList.unshift(data);
+            } else {
+                copyOfList.splice(updateindex, 1, data);
+            }
+
+            return { ...state, List: copyOfList, FormActive: "List", Selected: {} }
         }
         case "REMOVE_DELETED_WORKSTREAM_LIST": {
             let tempList = [];
@@ -53,7 +63,10 @@ export default function reducer(state = {
             return { ...state, List: List }
         }
         case "SET_WORKSTREAM_SELECTED_LINK": {
-            return { ...state, SelectedLink: action.SelectedLink, Loading: true }
+            return { ...state, SelectedLink: action.SelectedLink }
+        }
+        case "SET_WORKSTREAM_LOADING": {
+            return { ...state, Loading: (typeof action.Loading != "undefined") ? action.Loading : "" }
         }
         default:
             return state;

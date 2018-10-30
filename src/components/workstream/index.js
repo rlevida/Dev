@@ -18,8 +18,8 @@ export default class Component extends React.Component {
     }
 
     render() {
-        let { workstream } = this.props;
-        let Component = <div>
+        const { workstream } = this.props;
+        const Component = <div>
             {
                 (
                     (workstream.FormActive == "Form" && typeof workstream.Selected.id != "undefined") &&

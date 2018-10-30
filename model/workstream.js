@@ -21,9 +21,9 @@ var field = exports.field = {
         'projectName' : {type : 'string' , access : "public" },
 
         /**
-         * projectDescription (text)
+         * description (text)
          */
-        'projectDescription' : {type : 'string' , access : "public" },
+        'description' : {type : 'string' , access : "public" },
 
         /**
          * numberOfHours (BIGINT)
