@@ -328,44 +328,44 @@ exports.post = {
                     Id: Id
                 });
 
-                // func.uploadFile({
-                //     file: file,
-                //     form: type,
-                //     filename: filename
-                // }, response => {
-                //     if (response.Message == 'Success') {
-                //         resolve(filenameList)
-                //     } else {
-                //         reject()
-                //     }
-                // });
+                func.uploadFile({
+                    file: file,
+                    form: type,
+                    filename: filename
+                }, response => {
+                    if (response.Message == 'Success') {
+                        resolve(filenameList)
+                    } else {
+                        reject()
+                    }
+                });
             });
         }))
 
-        // Promise.all(files).then(e => {
-        //     if (e.length > 0) {
-        //         cb({
-        //             status: true,
-        //             data: e[0]
-        //         })
-        //     } else {
-        //         cb({
-        //             status: false,
-        //             data: []
-        //         })
-        //     }
-        // })
+        Promise.all(files).then(e => {
+            if (e.length > 0) {
+                cb({
+                    status: true,
+                    data: e[0]
+                })
+            } else {
+                cb({
+                    status: false,
+                    data: []
+                })
+            }
+        })
         // log any errors that occur
         form.on('error', function (err) {
             console.log('An error has occured: \n' + err);
         });
         // once all the files have been uploaded, send a response to the client
-        form.on('end', function () {
-            cb({
-                status: true,
-                data: filenameList
-            })
-        });
+        // form.on('end', function () {
+        //     cb({
+        //         status: true,
+        //         data: filenameList
+        //     })
+        // });
         // once all the files have been uploaded, send a response to the client
         // form.on('end', function () {
         //     cb({ status: true, data: filenameList })
