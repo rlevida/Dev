@@ -23,20 +23,16 @@ export default class Component extends React.Component {
     }
 
     componentDidMount() {
-        let intervalLoggedUser = setInterval(() => {
-            if (typeof this.props.loggedUser.data.id != "undefined") {
-                let filter = {}
-                if (this.props.loggedUser.data.userRole != "1" && this.props.loggedUser.data.userRole != "2") {
-                    filter = {
-                        filter: {
-                            id: { name: "id", value: this.props.loggedUser.data.projectIds, condition: " IN " }
-                        }
-                    }
+        let { loggedUser } = this.props;
+        let filter = {}
+        if (loggedUser.data.userRole != "1" && loggedUser.data.userRole != "2") {
+            filter = {
+                filter: {
+                    id: { name: "id", value: loggedUser.data.projectId, condition: " IN " }
                 }
-                this.props.socket.emit("GET_PROJECT_LIST", filter);
-                clearInterval(intervalLoggedUser)
             }
-        }, 1000)
+        }
+        this.props.socket.emit("GET_PROJECT_LIST", filter);
     }
 
     editData(id) {
