@@ -2,7 +2,7 @@ const async = require("async");
 const _ = require("lodash");
 const moment = require("moment");
 const models = require('../modelORM');
-const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder } = models;
+const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, sequelize } = models;
 const dbName = "task";
 const { defaultDelete } = require("./");
 const func = global.initFunc();
@@ -128,7 +128,7 @@ exports.get = {
                 linkType: "task"
             };
         }
-        
+
         const options = {
             include: associationArray,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
@@ -183,13 +183,14 @@ exports.get = {
                 { ...options, where: whereObj }
             ).then((response) => {
                 const responseData = response.toJSON();
+                const assignedTaskMembers = _.filter(responseData.task_members, (member) => { return member.memberType == "assignedTo" });
                 cb({
                     status: true,
                     data: {
                         ...responseData,
                         dependency_type: ((responseData.task_dependency).length > 0) ? responseData.task_dependency[0].dependencyType : "",
                         task_dependency: _.map(responseData.task_dependency, (taskDependencyObj) => { return { value: taskDependencyObj.task.id, label: taskDependencyObj.task.task } }),
-                        assignedTo: ((responseData.task_members).length > 0) ? _.filter(responseData.task_members, (member) => { return member.memberType == "assignedTo" })[0].userTypeLinkId : ""
+                        assignedTo: ((assignedTaskMembers).length > 0) ? assignedTaskMembers[0].userTypeLinkId : ""
                     }
                 });
             });
@@ -215,9 +216,7 @@ exports.get = {
     status: (req, cb) => {
         const queryString = req.query;
         const associationArray = _.cloneDeep(associationStack);
-
-        const options = {
-            include: associationArray,
+        const whereObj = {
             ...((typeof queryString.type != "undefined" && queryString.type == "myTask") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
                 [Sequelize.Op.or]: [
                     {
@@ -236,16 +235,22 @@ exports.get = {
                 ]
             } : {}
         };
-
+        const options = {
+            include: associationArray,
+        };
         try {
-            // Tasks.findAll({
-            //     ...options,
-            // }).map((mapObject) => {
-            //     return mapObject.toJSON();
-            // }).then((resultArray) => {
-            //     //console.log(resultArray)
-            //     //callback(null, resultArray);
-            // });
+            Tasks.findAndCountAll({
+                ...options,
+                where: whereObj,
+                distinct: true,
+                attributes: [
+                    [sequelize.fn('COUNT', sequelize.col('id') < `10`), 'assigned_task'],
+                ],
+                logging: true
+            }).then((result) => {
+                console.log(result)
+                //callback(null, resultArray);
+            });
         } catch (err) {
             callback(err)
         }
