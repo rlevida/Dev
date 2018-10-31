@@ -67,6 +67,12 @@ export default class List extends React.Component {
                             }
                             parallelCallback(null, "")
                         })
+                    },
+                    projectMemberListGlobal: (parallelCallback) => {
+                        getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project}&linkType=project`, {}, (c) => {
+                            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
+                            parallelCallback(null, "")
+                        })
                     }
                 }, (error, result) => {
                     if (error == null) {
