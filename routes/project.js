@@ -70,7 +70,8 @@ router.get('/:project', function (req, res, next) {
                     res.render('index', {
                         title: global.site_name + " - pageNotAvailable",
                         body: './template/index',
-                        page: 'pageNotAvailable'
+                        page: 'pageNotAvailable',
+                        user: JSON.stringify(req.userDetails.data)
                     });
                 }
             })
@@ -97,7 +98,8 @@ router.get('/documents/:project', function (req, res, next) {
                     res.render('index', {
                         title: global.site_name + " - pageNotAvailable",
                         body: './template/index',
-                        page: 'pageNotAvailable'
+                        page: 'pageNotAvailable',
+                        user: JSON.stringify(req.userDetails.data)
                     });
                 }
             })
@@ -122,7 +124,8 @@ router.get('/trash/:project', function (req, res, next) {
                     res.render('index', {
                         title: global.site_name + " - pageNotAvailable",
                         body: './template/index',
-                        page: 'pageNotAvailable'
+                        page: 'pageNotAvailable',
+                        user: JSON.stringify(req.userDetails.data)
                     });
                 }
             })  
@@ -172,7 +175,8 @@ router.get('/:project/workstream', function (req, res, next) {
                     res.render('index', {
                         title: global.site_name + " - pageNotAvailable",
                         body: './template/index',
-                        page: 'pageNotAvailable'
+                        page: 'pageNotAvailable',
+                        user: JSON.stringify(req.userDetails.data)
                     });
                 }
             })  
@@ -200,7 +204,8 @@ router.get('/:project/workstream/:workstream', function (req, res, next) {
                     res.render('index', {
                         title: global.site_name + " - pageNotAvailable",
                         body: './template/index',
-                        page: 'pageNotAvailable'
+                        page: 'pageNotAvailable',
+                        user: JSON.stringify(req.userDetails.data)
                     });
                 }
             })  
@@ -224,7 +229,8 @@ router.get('/:project/task', function (req, res, next) {
                     res.render('index', {
                         title: global.site_name + " - pageNotAvailable",
                         body: './template/index',
-                        page: 'pageNotAvailable'
+                        page: 'pageNotAvailable',
+                        user: JSON.stringify(req.userDetails.data)
                     });
                 }
             })  
@@ -249,7 +255,8 @@ router.get('/conversations/:project', function (req, res, next) {
                 res.render('index', {
                     title: global.site_name + " - pageNotAvailable",
                     body: './template/index',
-                    page: 'pageNotAvailable'
+                    page: 'pageNotAvailable',
+                    user: JSON.stringify(req.userDetails.data)
                 });
             }
         })   

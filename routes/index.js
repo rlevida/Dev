@@ -29,7 +29,8 @@ router.use(function (req,res,next){
                         res.render('index', {
                             title: global.site_name,
                             page: 'noProjectAvailable',
-                            body: "./template/index"
+                            body: "./template/index",
+                            user: JSON.stringify(req.userDetails.data)
                         });
                     }
                 } else {
