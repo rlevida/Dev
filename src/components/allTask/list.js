@@ -1,73 +1,106 @@
 import React from "react";
 import Tooltip from "react-tooltip";
-import { HeaderButtonContainer } from "../../globalComponents";
-import moment from 'moment';
-import TaskStatus from './taskStatus'
-import ApprovalModal from './approvalModal'
 import _ from "lodash";
-import TaskComponent from '../taskComponent'
+import moment from 'moment';
+
+import { HeaderButtonContainer, Loading } from "../../globalComponents";
+import { getData, putData, deleteData, showToast } from "../../globalFunction";
+import TaskStatus from "./taskStatus"
 
 import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
         task: store.task,
-        loggedUser: store.loggedUser,
-        global: store.global
+        loggedUser: store.loggedUser
     }
 })
 export default class List extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
 
-        this.deleteData = this.deleteData.bind(this)
-        this.updateActiveStatus = this.updateActiveStatus.bind(this)
-        this.renderStatus = this.renderStatus.bind(this)
+        this.deleteData = this.deleteData.bind(this);
+        this.updateStatus = this.updateStatus.bind(this);
+        this.renderStatus = this.renderStatus.bind(this);
+        this.fetchData = this.fetchData.bind(this);
     }
 
-    componentWillMount() {
-        let { socket, global, loggedUser } = this.props;
-        let intervalLoggedUser = setInterval(() => {
-            if (typeof this.props.loggedUser.data.id != "undefined") {
-                let userFollowedTasks = global.SelectList.userFollowedTasks
-                    .filter((e, index) => { return e.userTypeLinkId == this.props.loggedUser.data.id })
-                    .map((e, index) => { return e.linkId })
-                let taskListId = _.merge(userFollowedTasks, this.props.loggedUser.data.taskIds)
-                let filter = { filter: { id: { name: "id", value: taskListId, condition: " IN " } } }
-                this.props.socket.emit("GET_TASK_LIST", filter);
-                clearInterval(intervalLoggedUser)
-            }
-        }, 1000)
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "userFollowedTasks", filter: { linkType: 'task', memberType: "Follower" } })
-        this.props.socket.emit("GET_WORKSTREAM_LIST", { filter: {} });
-        this.props.socket.emit("GET_STATUS_LIST", {});
-        this.props.socket.emit("GET_TYPE_LIST", {});
-        this.props.socket.emit("GET_USER_LIST", {});
-        // this.props.socket.emit("GET_TEAM_LIST", {});
-    }
+    componentDidMount() {
+        const { socket, task } = this.props;
+        const { Count } = task;
 
-    updateActiveStatus(data, approvalRequired, workstreamId, taskData) {
-        let { socket, dispatch } = this.props;
-        if (approvalRequired) {
-            socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamMemberList", filter: { id: workstreamId } })
-            dispatch({ type: "SET_TASK_SELECTED", Selected: taskData })
-            $(`#approvalModal`).modal("show")
-        } else {
-            socket.emit("SAVE_OR_UPDATE_TASK", { data: { ...data, status: "Completed", action: "complete" } })
+        if (_.isEmpty(Count)) {
+            this.fetchData(1);
+        } else if (Count.current_page != Count.last_page) {
+            this.fetchData(Count.current_page + 1);
         }
+
+        socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
+        socket.emit("GET_STATUS_LIST", {});
+        socket.emit("GET_TYPE_LIST", {});
+        socket.emit("GET_USER_LIST", {});
+        socket.emit("GET_TEAM_LIST", {});
+        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } });
+    }
+
+    fetchData(page) {
+        const { loggedUser, dispatch } = this.props;
+
+        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${page}&type=myTask`, {}, (c) => {
+            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            showToast("success", "Task successfully retrieved.");
+        });
+    }
+
+    getNextResult() {
+        const { task } = { ...this.props };
+        const { Count } = task
+        this.fetchData(Count.current_page + 1);
+    }
+
+    updateStatus({ id, periodTask, periodic }) {
+        let { dispatch, loggedUser } = this.props;
+
+        putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: "Completed" }, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data });
+                showToast("success", "Task successfully updated.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+        });
     }
 
     deleteData(id) {
-        let { socket } = this.props;
+        let { dispatch } = this.props;
+
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_TASK", { id: id })
+            deleteData(`/api/task/${id}`, {}, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "DELETE_TASK", id });
+                    showToast("success", "Task successfully deleted.");
+                } else {
+                    showToast("error", "Something went wrong please try again later.");
+                }
+            });
         }
     }
 
     renderStatus(data) {
-        const { isActive, taskStatus } = { ...data };
+        const { isActive, dueDate } = { ...data };
+        const dueDateMoment = moment(dueDate);
+        const currentDateMoment = moment(new Date());
+        let taskStatus = 0;
         let className = "";
         let statusColor = "#000";
+
+        if (dueDateMoment.isBefore(currentDateMoment, 'day') && data.status != 'Completed') {
+            taskStatus = 2
+        } else if (dueDateMoment.isSame(currentDateMoment, 'day') && data.status != 'Completed') {
+            taskStatus = 1
+        }
 
         if (isActive == 0) {
             className = "fa fa-circle";
@@ -88,91 +121,74 @@ export default class List extends React.Component {
     }
 
     render() {
-        let { task, socket, loggedUser } = this.props;
-        let taskList = _(task.List)
-            .map((o) => {
-                return { ...o, due_date_int: moment(o.dueDate).format('YYYYMMDD') }
-            })
-            .filter(e => { return typeof e != "undefined" && e.status != "Completed" })
-            .orderBy(['due_date_int'], ['asc'])
-            .value();
+        const { task } = this.props;
+        const currentPage = (typeof task.Count.current_page != "undefined") ? task.Count.current_page : 1;
+        const lastPage = (typeof task.Count.last_page != "undefined") ? task.Count.last_page : 1;
+        const taskList = task.List;
+
         return (
             <div>
-                <TaskStatus style={{ float: "right", padding: "20px" }} />
+                <TaskStatus style={{ float: "right", padding: 20 }} />
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
                         <tr>
                             <th></th>
-                            <th class="text-left">Project</th>
                             <th class="text-left">Workstream</th>
                             <th class="text-left">Task Name</th>
                             <th class="text-center">Due Date</th>
                             <th class="text-center">Assigned</th>
-                            <th class="text-center"></th>
+                            <th class="text-center">Followed By</th>
+                            <th class="text-left">Status</th>
                         </tr>
                         {
-                            (taskList.length == 0) &&
-                            <tr>
-                                <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                            </tr>
-                        }
-                        {
                             taskList.map((data, index) => {
-                                let taskStatus = 0;
-                                let dueDate = moment(data.dueDate);
-                                let currentDate = moment(new Date());
-
-                                if (dueDate.diff(currentDate, 'days') < 0 && data.status != 'Completed') {
-                                    taskStatus = 2
-                                } else if (dueDate.diff(currentDate, 'days') == 0 && data.status != 'Completed') {
-                                    taskStatus = 1
-                                }
+                                const assignedUser = (_.filter(data.task_members, (o) => { return o.memberType == "assignedTo" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "assignedTo" })[0].user : "";
+                                const followers = (_.filter(data.task_members, (o) => { return o.memberType == "Follower" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "Follower" }) : "";
 
                                 return (
                                     <tr key={index}>
                                         <td>
-                                            {this.renderStatus({ ...data, taskStatus })}
-                                        </td>
-                                        <td class="text-left">{data.project_project}</td>
-                                        <td class="text-left">{data.workstream_workstream}</td>
-                                        <td class="text-left"><a href={`/project/${data.projectId}/workstream/${data.workstreamId}?task=${data.id}`}>{data.task}</a></td>
-                                        <td class="text-center">{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
-                                        <td class="text-center">{(data.assignedById) ? <span title={data.assignedBy}><i class="fa fa-user fa-lg"></i></span> : ""}</td>
-                                        <td class="text-left">
                                             {
-                                                (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) && <div>
-                                                    <a href="javascript:void(0);" data-tip="EDIT"
-                                                        onClick={(e) => {
-                                                            socket.emit("GET_TASK_DETAIL", { id: data.id, action: 'edit' })
-                                                        }}
-                                                        class="btn btn-info btn-sm">
-                                                        <span class="glyphicon glyphicon-pencil"></span></a>
-                                                    <a href="javascript:void(0);" data-tip="DELETE"
-                                                        onClick={e => this.deleteData(data.id)}
-                                                        class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                        <span class="glyphicon glyphicon-trash"></span></a>
-
-                                                    {
-                                                        (
-                                                            (data.status == null || data.status == "In Progress" || data.status == "")
-                                                            &&
-                                                            (typeof data.isActive == 'undefined' || data.isActive == 1)
-                                                        ) && <a href="javascript:void(0);" data-tip="COMPLETE"
-                                                            onClick={e => this.updateActiveStatus({ id: data.id, periodTask: data.periodTask }, data.approvalRequired, data.workstreamId, data)}
-                                                            class="btn btn-success btn-sm ml10">
-                                                            <span class="glyphicon glyphicon-check"></span></a>
-                                                    }
+                                                (data.dueDate != '' && data.dueDate != null) && this.renderStatus(data)
+                                            }
+                                        </td>
+                                        <td class="text-left">{data.workstream.workstream}</td>
+                                        <td class="text-left"><a href={`/project/${data.projectId}/workstream/${data.workstreamId}?task=${data.id}`}>{data.task}</a></td>
+                                        <td class="text-center">
+                                            {
+                                                (data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            {
+                                                (assignedUser != "" && assignedUser != null) && <span title={`${assignedUser.firstName} ${assignedUser.lastName}`}><i class="fa fa-user fa-lg"></i></span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            {(followers != "") &&
+                                                <div>
+                                                    <span title={`${_.map(followers, (o) => { return o.user.firstName + " " + o.user.lastName }).join("\r\n")}`}><i class="fa fa-users fa-lg"></i></span>
                                                 </div>
                                             }
-                                            <Tooltip />
                                         </td>
+                                        <td class="text-left">{data.status}</td>
                                     </tr>
                                 )
                             })
                         }
                     </tbody>
                 </table>
-                <ApprovalModal />
+                {
+                    (task.Loading == "RETRIEVING") && <Loading />
+                }
+                <div class="text-center">
+                    {
+                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Task</a>
+                    }
+                    {
+                        (taskList.length == 0 && task.Loading != "RETRIEVING") && <p>No Records Found</p>
+                    }
+                </div>
             </div>
         )
     }

@@ -63,7 +63,8 @@ export default class FormComponent extends React.Component {
             ..._.pick(workstream.Selected, ["workstream", "description", "typeId"]),
             projectId: project,
             numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0,
-            isActive: (typeof workstream.Selected.isActive == 'undefined') ? 1 : workstream.Selected.isActive
+            isActive: (typeof workstream.Selected.isActive == 'undefined') ? 1 : workstream.Selected.isActive,
+            responsible: workstream.Selected.responsible
         }
 
         let result = true;
@@ -212,7 +213,7 @@ export default class FormComponent extends React.Component {
                                     <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Description</label>
                                         <div class="col-md-7 col-xs-12">
-                                            <textarea name="description" value={(typeof workstream.Selected.description == "undefined") ? "" : workstream.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
+                                            <textarea name="description" value={(typeof workstream.Selected.description == "undefined" || workstream.Selected.description == null) ? "" : workstream.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
                                             <div class="help-block with-errors"></div>
                                         </div>
                                     </div>

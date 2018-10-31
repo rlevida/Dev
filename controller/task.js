@@ -2,7 +2,7 @@ const async = require("async");
 const _ = require("lodash");
 const moment = require("moment");
 const models = require('../modelORM');
-const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, sequelize } = models;
+const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder } = models;
 const dbName = "task";
 const { defaultDelete } = require("./");
 const func = global.initFunc();
@@ -89,6 +89,7 @@ const associationStack = [
 
 exports.get = {
     index: (req, cb) => {
+        const associationArray = _.cloneDeep(associationStack);
         const queryString = req.query;
         const limit = 10;
         const date = (typeof queryString.date != "undefined") ? JSON.parse(queryString.date) : "";
@@ -99,26 +100,40 @@ exports.get = {
                 dueDate: {
                     [Sequelize.Op[date.opt]]: date.value
                 }
+            } : {},
+            ...((typeof queryString.type != "undefined" && queryString.type == "myTask") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
+                [Sequelize.Op.or]: [
+                    {
+                        id: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = ${queryString.userId})`)
+                        }
+                    },
+                    {
+                        workstreamId: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT linkId FROM members WHERE memberType="responsible" AND linkType="workstream" AND userTypeLinkId = ${queryString.userId})`)
+                        }
+                    },
+                    {
+                        approverId: queryString.userId
+                    }
+                ]
             } : {}
         };
 
-
         if (typeof queryString.role != "undefined" && queryString.role != "" && queryString.role > 2) {
-            _.find(associationStack, { as: 'task_members' }).required = true;
-            _.find(associationStack, { as: 'task_members' }).where = {
+            _.find(associationArray, { as: 'task_members' }).required = true;
+            _.find(associationArray, { as: 'task_members' }).where = {
                 userTypeLinkId: queryString.userId,
                 usersType: "users",
                 linkType: "task"
             };
         }
-
+        
         const options = {
-            include: associationStack,
+            include: associationArray,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            // order: [['dueDate', 'DESC']]
+            order: [['dueDate', 'ASC']]
         };
-
-
         async.parallel({
             count: function (callback) {
                 try {
@@ -196,6 +211,45 @@ exports.get = {
                 cb({ status: true, data: result })
             });
         })
+    },
+    status: (req, cb) => {
+        const queryString = req.query;
+        const associationArray = _.cloneDeep(associationStack);
+
+        const options = {
+            include: associationArray,
+            ...((typeof queryString.type != "undefined" && queryString.type == "myTask") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
+                [Sequelize.Op.or]: [
+                    {
+                        id: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = ${queryString.userId})`)
+                        }
+                    },
+                    {
+                        workstreamId: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT linkId FROM members WHERE memberType="responsible" AND linkType="workstream" AND userTypeLinkId = ${queryString.userId})`)
+                        }
+                    },
+                    {
+                        approverId: queryString.userId
+                    }
+                ]
+            } : {}
+        };
+
+        try {
+            // Tasks.findAll({
+            //     ...options,
+            // }).map((mapObject) => {
+            //     return mapObject.toJSON();
+            // }).then((resultArray) => {
+            //     //console.log(resultArray)
+            //     //callback(null, resultArray);
+            // });
+        } catch (err) {
+            callback(err)
+        }
+
     }
 }
 

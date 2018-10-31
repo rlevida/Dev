@@ -9,6 +9,7 @@ export default function reducer(state = {
         isActive: true
     },
     Count: {},
+    StatusCount: {},
     SelectedId: [],
     FormAction: "",
     Loading: "RETRIEVING",

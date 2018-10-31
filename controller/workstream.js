@@ -138,7 +138,17 @@ exports.get = {
                             })
                             .value()
                         ];
-                        return { ...resultObj, pending: pendingTasks, completed: completedTasks, issues: issuesTasks, dueToday: dueTodayTask, new_documents: newDoc, members }
+                        const responsible = _.filter(members, (member) => { return member.memberType == "responsible" });
+                        return {
+                            ...resultObj,
+                            pending: pendingTasks,
+                            completed: completedTasks,
+                            issues: issuesTasks,
+                            dueToday: dueTodayTask,
+                            new_documents: newDoc,
+                            members,
+                            responsible: ((responsible).length > 0) ? responsible[0].userTypeLinkId : ""
+                        }
                     }).then((resultArray) => {
                         callback(null, resultArray);
                     })
@@ -199,7 +209,7 @@ exports.get = {
     },
     status: (req, cb) => {
         const queryString = req.query;
-        
+
         try {
             async.parallel({
                 active: (parallelCallback) => {
@@ -261,11 +271,45 @@ exports.post = {
         try {
             Workstream.create(body).then((response) => {
                 const resultObj = response.toJSON();
-                return Workstream.findOne({ where: { id: resultObj.id }, ...options });
-            }).then((response) => {
-                const resultObj = response.toJSON();
-                cb({ status: true, data: { ...resultObj, pending: [], completed: [], issues: [], dueToday: [], new_documents: [], members: [] } });
-            });
+                const responsible = { linkType: "workstream", linkId: resultObj.id, usersType: "users", userTypeLinkId: body.responsible, memberType: "responsible" };
+
+                Members.create(responsible).then((response) => {
+                    return Workstream.findOne({ where: { id: resultObj.id }, ...options }).then((response) => {
+                        const resultObj = response.toJSON();
+                        const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
+                        const issuesTasks = _.filter(resultObj.task, (taskObj) => {
+                            const dueDateMoment = moment(taskObj.dueDate);
+                            const currentDateMoment = moment(new Date());
+                            return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status != "Completed"
+                        });
+                        const pendingTasks = _.filter(resultObj.task, (taskObj) => {
+                            const dueDateMoment = moment(taskObj.dueDate);
+                            const currentDateMoment = moment(new Date());
+                            return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && taskObj.status != "Completed"
+                        });
+                        const dueTodayTask = _.filter(resultObj.task, (taskObj) => {
+                            const dueDateMoment = moment(taskObj.dueDate);
+                            const currentDateMoment = moment(new Date());
+                            return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status != "Completed"
+                        });
+                        const newDoc = _.filter(resultObj.tag, (tagObj) => {
+                            return tagObj.document.status == "new"
+                        });
+                        const members = [...resultObj.responsible,
+                        ..._(resultObj.task)
+                            .map((o) => { return o.task_members })
+                            .flatten()
+                            .uniqBy((e) => {
+                                return e.user.id;
+                            })
+                            .value()
+                        ];
+
+                        cb({ status: true, data: { ...resultObj, pending: pendingTasks, completed: completedTasks, issues: issuesTasks, dueToday: dueTodayTask, new_documents: newDoc, members } });
+                    })
+                });
+
+            })
         } catch (err) {
             cb({ status: false, error: "Something went wrong. Please try again later." })
         }
@@ -279,58 +323,57 @@ exports.put = {
         const options = {
             include: associationStack
         };
-
         try {
             Workstream.update(body, { where: { id: workstreamId } }).then((response) => {
                 return Workstream.findOne({ where: { id: workstreamId }, ...options, })
             }).then((response) => {
                 const resultObj = response.toJSON();
-                const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
-                const issuesTasks = _.filter(resultObj.task, (taskObj) => {
-                    const dueDateMoment = moment(taskObj.dueDate);
-                    const currentDateMoment = moment(new Date());
-                    return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status != "Completed"
-                });
-                const pendingTasks = _.filter(resultObj.task, (taskObj) => {
-                    const dueDateMoment = moment(taskObj.dueDate);
-                    const currentDateMoment = moment(new Date());
-                    return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && taskObj.status != "Completed"
-                });
-                const dueTodayTask = _.filter(resultObj.task, (taskObj) => {
-                    const dueDateMoment = moment(taskObj.dueDate);
-                    const currentDateMoment = moment(new Date());
-                    return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status != "Completed"
-                });
-                const newDoc = _.filter(resultObj.tag, (tagObj) => {
-                    return tagObj.document.status == "new"
-                });
-                const members = [...resultObj.responsible,
-                ..._(resultObj.task)
-                    .map((o) => { return o.task_members })
-                    .flatten()
-                    .uniqBy((e) => {
-                        return e.user.id;
-                    })
-                    .value()
-                ];
 
-                cb({ status: true, data: { ...resultObj, pending: pendingTasks, completed: completedTasks, issues: issuesTasks, dueToday: dueTodayTask, new_documents: newDoc, members } });
+                Members.destroy({
+                    where: { linkType: "workstream", linkId: resultObj.id, usersType: "users", memberType: "responsible" }
+                }).then((response) => {
+                    const responsible = { linkType: "workstream", linkId: resultObj.id, usersType: "users", userTypeLinkId: body.responsible, memberType: "responsible" };
+
+                    Members.create(responsible).then((response) => {
+                        return Workstream.findOne({ where: { id: resultObj.id }, ...options }).then((response) => {
+                            const resultObj = response.toJSON();
+                            const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
+                            const issuesTasks = _.filter(resultObj.task, (taskObj) => {
+                                const dueDateMoment = moment(taskObj.dueDate);
+                                const currentDateMoment = moment(new Date());
+                                return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status != "Completed"
+                            });
+                            const pendingTasks = _.filter(resultObj.task, (taskObj) => {
+                                const dueDateMoment = moment(taskObj.dueDate);
+                                const currentDateMoment = moment(new Date());
+                                return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && taskObj.status != "Completed"
+                            });
+                            const dueTodayTask = _.filter(resultObj.task, (taskObj) => {
+                                const dueDateMoment = moment(taskObj.dueDate);
+                                const currentDateMoment = moment(new Date());
+                                return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status != "Completed"
+                            });
+                            const newDoc = _.filter(resultObj.tag, (tagObj) => {
+                                return tagObj.document.status == "new"
+                            });
+                            const members = [...resultObj.responsible,
+                            ..._(resultObj.task)
+                                .map((o) => { return o.task_members })
+                                .flatten()
+                                .uniqBy((e) => {
+                                    return e.user.id;
+                                })
+                                .value()
+                            ];
+                            cb({ status: true, data: { ...resultObj, pending: pendingTasks, completed: completedTasks, issues: issuesTasks, dueToday: dueTodayTask, new_documents: newDoc, members } });
+                        });
+                    });
+                });
             });
 
         } catch (err) {
             cb({ status: false, error: "Something went wrong. Please try again later." })
         }
-
-
-
-        // defaultPut(dbName, req, (res) => {
-        //     console.log(res)
-        //     // if (res.success) {
-        //     //     cb({ status: true, data: res.data })
-        //     // } else {
-        //     //     cb({ status: false, error: c.error })
-        //     // }
-        // })
     }
 }
 

@@ -1,7 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom"
 
-import { showToast } from '../../../globalFunction'
+import { showToast, getData } from '../../../globalFunction'
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -14,47 +14,52 @@ import { connect } from "react-redux"
 
 export default class TaskStatus extends React.Component {
     constructor(props) {
-        super(props)
-        this.state = {
+        super(props);
+    }
 
-        }
+    componentDidMount() {
+        const { loggedUser, dispatch } = this.props;
+
+        getData(`/api/task/status?projectId=${project}&userId=${loggedUser.data.id}&type=myTask&date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, (c) => {
+           
+        });
     }
 
     render() {
-        let { task , loggedUser } = this.props;
+        let { task, loggedUser } = this.props;
         let data = {
             assignedTo: { Active: 0, DueToday: 0, Issues: 0 },
             responsible: { Active: 0, DueToday: 0, Issues: 0 },
             Follower: { Active: 0, DueToday: 0, Issues: 0 }
         }
-        if(task.List.length){
+        if (task.List.length) {
             let userId = loggedUser.data.id;
-            task.List.map((e,index)=>{
+            task.List.map((e, index) => {
                 let dueDate = moment(e.dueDate)
                 let currentDate = moment(new Date())
-                
-                if (e.assignedById == userId ){
+
+                if (e.assignedById == userId) {
                     data.assignedTo.Active += 1;
-                    if(dueDate.diff(currentDate,'days') == 0){
+                    if (dueDate.diff(currentDate, 'days') == 0) {
                         data.assignedTo.DueToday += 1;
-                    }else if(dueDate.diff(currentDate,'days') < 0 ){
+                    } else if (dueDate.diff(currentDate, 'days') < 0) {
                         data.assignedTo.Issues += 1;
                     }
                 }
-                if ( e.followersIds != null && e.followersIds.split(",").includes(`${userId}`)){
+                if (e.followersIds != null && e.followersIds.split(",").includes(`${userId}`)) {
                     data.Follower.Active += 1;
-                    if(dueDate.diff(currentDate,'days') == 0){
+                    if (dueDate.diff(currentDate, 'days') == 0) {
                         data.Follower.DueToday += 1;
-                    }else if(dueDate.diff(currentDate,'days') < 0){
+                    } else if (dueDate.diff(currentDate, 'days') < 0) {
                         data.Follower.Issues += 1;
                     }
                 }
 
-                if ( e.responsible_id == userId ){
+                if (e.responsible_id == userId) {
                     data.responsible.Active += 1;
-                    if(dueDate.diff(currentDate,'days') == 0){
+                    if (dueDate.diff(currentDate, 'days') == 0) {
                         data.responsible.DueToday += 1;
-                    }else if(dueDate.diff(currentDate,'days') < 0){
+                    } else if (dueDate.diff(currentDate, 'days') < 0) {
                         data.responsible.Issues += 1;
                     }
                 }

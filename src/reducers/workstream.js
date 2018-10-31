@@ -16,8 +16,8 @@ export default function reducer(state = {
 
             return { ...state, List: updatedList, ...(typeof action.Count != "undefined") ? { Count: action.Count } : {} }
         }
-        case "SET_WORKSTREAM_COUNT_LIST": {
-            return { ...state, StatusCount: action.list }
+        case "SET_WORKSTREAM_STATUS_COUNT": {
+            return { ...state, StatusCount: action.count }
         }
         case "SET_WORKSTREAM_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
