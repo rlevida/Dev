@@ -76,7 +76,6 @@ export default class FormComponent extends React.Component {
             } else if (document.EditType == "tags") {
                 let dataToSubmit = { tags: document.Selected.tags }
                 postData(`/api/document/postDocumentTag?tagTypeId=${document.Selected.id}&tagType=document`, dataToSubmit, (c) => {
-                    console.log(c)
                     if (c.status == 200) {
                         dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
                         showToast("success", "Successfully Updated.")
