@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
   const Reminder = sequelize.define('reminder', {
     id: {
       type: DataTypes.BIGINT,
@@ -30,11 +30,11 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     linkType: {
-      type: DataTypes.ENUM('task','document'),
+      type: DataTypes.ENUM('task', 'document'),
       allowNull: true
     },
     type: {
-      type: DataTypes.ENUM('For Approval','Task Rejected','Task Overdue','Task Due Today','Tag in Comment'),
+      type: DataTypes.ENUM('For Approval', 'Task Rejected', 'Task Overdue', 'Task Due Today', 'Tag in Comment'),
       allowNull: true
     },
     createdBy: {
@@ -51,9 +51,19 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'reminder',
-    timestamps: false
-  });
+      tableName: 'reminder',
+      timestamps: false
+    });
 
+  Reminder.associate = (models) => {
+    Reminder.belongsTo(models.Users, {
+      as: 'user',
+      foreignKey: 'createdBy',
+    });
+    Reminder.belongsTo(models.Workstream, {
+      as: 'workstream',
+      foreignKey: 'linkId',
+    });
+  };
   return Reminder
 };
