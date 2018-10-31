@@ -35,21 +35,21 @@ export default class Component extends React.Component {
             <div class="row pdl20 pdr20 mb20">
                 <div class="col-md-8">
                     <h4 class="mt20 mb20">My Tasks</h4>
-                    <a class="more" href={"/project/tasks/" + project}>+ More</a>
+                    <a class="more" href={`/project/${project}/task`}>+ More</a>
                     <Task />
                 </div>
             </div>
             <div class="row pdl20 pdr20 mb20">
                 <div class="col-md-6">
                     <h4 class="mt20 mb20">Workstreams</h4>
-                    <a class="more" href={"/project/workstream/" + project}> + More</a>
+                    <a class="more" href={`/project/${project}/workstream`}> + More</a>
                     <WorkstreamStatus />
                 </div>
             </div>
             <div class="row pdl20 pdr20">
                 <div class="col-md-6">
                     <h4 class="mt20 mb20">Documents</h4>
-                    <a class="more" href={"/project/documents/" + project}> + More</a>
+                    <a class="more" href={`/project/documents/${project}`}> + More</a>
                     <DocumentStatus />
                 </div>
             </div>
