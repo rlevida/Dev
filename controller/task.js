@@ -907,6 +907,64 @@ exports.put = {
         }, (err, result) => {
             cb({ status: true, data: result })
         })
+    },
+    taskReject: (req, cb) => {
+        const body = req.body
+        const id = req.params.id
+
+        async.parallel({
+            task: (parallelCallback) => {
+                try {
+                    Tasks
+                        .update(body.data, { where: { id: id } })
+                        .then((res) => {
+                            Tasks
+                                .findOne({
+                                    where: { id: id },
+                                    include: associationStack
+                                })
+                                .then((findRes) => {
+                                    parallelCallback(null, [findRes])
+                                })
+                        })
+                } catch (err) {
+                    parallelCallback(err)
+                }
+            },
+            reminder: (parallelCallback) => {
+                try {
+                    Reminder
+                        .create(body.reminder)
+                        .then((res) => {
+                            parallelCallback(null, res)
+                        })
+                } catch (err) {
+                    parallelCallback(err)
+                }
+            },
+            email: (parallelCallback) => {
+                try {
+                    if (body.mailDetails.receiveNotification) {
+                        const mailOptions = {
+                            from: '"no-reply" <no-reply@c_cfo.com>',
+                            to: `${body.mailDetails.emailAddress}`,
+                            subject: '[CLOUD-CFO]',
+                            text: 'Task Rejected',
+                            html: `<p> ${body.mailDetails.rejectMessage}</p>
+                                <p>${body.mailDetails.task}</p>
+                                <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${body.mailDetails.project}/workstream/${body.mailDetails.workstreamId}?task=${body.mailDetails.taskId}">Click here</a>`
+                        }
+                        global.emailtransport(mailOptions)
+                    }
+                    parallelCallback(null, "")
+                } catch (err) {
+                    parallelCallback(err)
+                }
+            }
+        }, (err, result) => {
+            cb({ status: true, data: result })
+        })
+
     }
 }
 
