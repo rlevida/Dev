@@ -226,84 +226,88 @@ exports.post = {
         };
 
         sequence.create().then((nextThen) => {
-
             try {
                 Tag.destroy({
                     where: whereObj
                 }).then(res => {
-                    if (JSON.parse(dataToSubmit.tags).length > 0) {
-                        nextThen(dataToSubmit.tags)
-                    } else {
-                        cb({ status: true, data: [] })
-                    }
+                    nextThen(dataToSubmit.tags)
                 })
             } catch (err) {
                 cb({ status: false, error: err })
             }
 
         }).then((nextThen, data) => {
-            async.map(JSON.parse(data), (e, mapCallback) => {
-                let tagData = {
-                    ...whereObj,
-                    linkType: e.value.split("-")[0],
-                    linkId: e.value.split("-")[1],
-                }
-
-                Tag.create(tagData)
-                    .then(res => {
-                        mapCallback(null, res)
-                    })
-            }, (err, result) => {
-                if (err != null) {
-                    cb({ status: false, error: err })
-                } else {
-                    nextThen()
-                }
-            })
-        }).then((nextThen, result) => {
-            DocumentLink
-                .findOne({
-                    where: { documentId: queryString.tagTypeId },
-                    include: [{
-                        model: Document,
-                        as: 'document',
-                        include: [{
-                            model: Tag,
-                            where: {
-                                linkType: 'workstream', tagType: 'document'
-                            },
-                            as: 'tagDocumentWorkstream',
-                            required: false,
-                            include: [
-                                {
-                                    model: Workstream,
-                                    as: 'tagWorkstream',
-                                }
-                            ],
-                            attributes: ['id']
-                        },
-                        {
-                            model: Tag,
-                            where: {
-                                linkType: 'task', tagType: 'document'
-                            },
-                            as: 'tagDocumentTask',
-                            required: false,
-                            include: [{
-                                model: Tasks,
-                                as: 'tagTask',
-                            }],
-                        }
-                        ],
-                    }]
-                }).then((res) => {
-                    let resToReturn = {
-                        ...res.dataValues.document.toJSON(),
-                        tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                            .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+            if (JSON.parse(data).length > 0) {
+                async.map(JSON.parse(data), (e, mapCallback) => {
+                    let tagData = {
+                        ...whereObj,
+                        linkType: e.value.split("-")[0],
+                        linkId: e.value.split("-")[1],
                     }
-                    cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
+
+                    Tag.create(tagData)
+                        .then(res => {
+                            mapCallback(null, res)
+                        })
+
+                }, (err, result) => {
+                    if (err != null) {
+                        cb({ status: false, error: err })
+                    } else {
+                        nextThen()
+                    }
                 })
+            } else {
+                nextThen()
+            }
+        }).then((nextThen, result) => {
+            try {
+                DocumentLink
+                    .findOne({
+                        where: { documentId: queryString.tagTypeId },
+                        include: [{
+                            model: Document,
+                            as: 'document',
+                            include: [{
+                                model: Tag,
+                                where: {
+                                    linkType: 'workstream', tagType: 'document'
+                                },
+                                as: 'tagDocumentWorkstream',
+                                required: false,
+                                include: [
+                                    {
+                                        model: Workstream,
+                                        as: 'tagWorkstream',
+                                    }
+                                ],
+                                attributes: ['id']
+                            },
+                            {
+                                model: Tag,
+                                where: {
+                                    linkType: 'task', tagType: 'document'
+                                },
+                                as: 'tagDocumentTask',
+                                required: false,
+                                include: [{
+                                    model: Tasks,
+                                    as: 'tagTask',
+                                }],
+                            }
+                            ],
+                        }]
+                    }).then((res) => {
+                        let resToReturn = {
+                            ...res.dataValues.document.toJSON(),
+                            tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                        }
+                        cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
+                    })
+            } catch (err) {
+                cb({ status: false, error: err })
+            }
         })
     },
     upload: (req, cb) => {

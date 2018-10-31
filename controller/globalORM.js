@@ -44,7 +44,8 @@ exports.get = {
             roleList: "Roles",
             projectMemberList: "Project",
             shareList: "Share",
-            workstreamList: "Workstream"
+            workstreamList: "Workstream",
+            taskList: "Tasks"
         }
 
         modelName = modelList[queryString.selectName];

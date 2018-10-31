@@ -61,16 +61,6 @@ export default class List extends React.Component {
                         }
                     });
                 },
-                workstream: (parallelCallback) => {
-                    getData(`/api/workstream/`, { params: { filter: { projectId: project } } }, (c) => {
-                        if (c.status == 200) {
-                            dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data })
-                            parallelCallback(null, "")
-                        } else {
-                            parallelCallback(null, "")
-                        }
-                    });
-                },
                 document: (parallelCallback) => {
                     getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}`, {}, (c) => {
                         if (c.status == 200) {
@@ -96,6 +86,18 @@ export default class List extends React.Component {
                 projectMemberListGlobal: (parallelCallback) => {
                     getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project}&linkType=project`, {}, (c) => {
                         dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
+                        parallelCallback(null, "")
+                    })
+                },
+                workstreamList: (parallelCallback) => {
+                    getData(`/api/globalORM/selectList?selectName=workstreamList&projectId=${project}`, {}, (c) => {
+                        dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamList' })
+                        parallelCallback(null, "")
+                    })
+                },
+                taskList: (parallelCallback) => {
+                    getData(`/api/globalORM/selectList?selectName=taskList&projectId=${project}`, {}, (c) => {
+                        dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'taskList' })
                         parallelCallback(null, "")
                     })
                 }

@@ -11,7 +11,8 @@ import { connect } from "react-redux"
         status: store.status,
         type: store.type,
         workstream: store.workstream,
-        task: store.task
+        task: store.task,
+        global: store.global
     }
 })
 
@@ -75,6 +76,7 @@ export default class FormComponent extends React.Component {
             } else if (document.EditType == "tags") {
                 let dataToSubmit = { tags: document.Selected.tags }
                 postData(`/api/document/postDocumentTag?tagTypeId=${document.Selected.id}&tagType=document`, dataToSubmit, (c) => {
+                    console.log(c)
                     if (c.status == 200) {
                         dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
                         showToast("success", "Successfully Updated.")
@@ -95,10 +97,10 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, document, workstream, task } = this.props;
+        let { dispatch, document, workstream, task, global } = this.props;
         let tagOptions = [];
-        workstream.List.map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) });
-        task.List.filter(e => { return e.status != "Completed" }).map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) });
+        global.SelectList.workstreamList.map((e) => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) });
+        global.SelectList.taskList.filter((e) => { return e.status != "Completed" }).map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) });
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
