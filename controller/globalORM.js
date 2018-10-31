@@ -65,11 +65,20 @@ exports.get = {
                                             },
                                             include: [{
                                                 model: Users,
-                                                as: 'user'
+                                                as: 'user',
+                                                include: [{
+                                                    model: UsersRole,
+                                                    as: 'role',
+                                                }]
                                             }]
                                         })
                                         .map((res) => {
-                                            return res.user.toJSON()
+                                            let resToReturn = {
+                                                ...res.user.toJSON(),
+                                                receiveNotification: res.dataValues.receiveNotification
+                                            }
+                                            return resToReturn
+
                                         })
                                         .then((res) => {
                                             parallelCallback(null, res)
@@ -94,7 +103,11 @@ exports.get = {
                                                     as: 'users_team',
                                                     include: [{
                                                         model: Users,
-                                                        as: 'user'
+                                                        as: 'user',
+                                                        include: [{
+                                                            model: UsersRole,
+                                                            as: 'role',
+                                                        }]
                                                     }]
                                                 }]
                                             }]

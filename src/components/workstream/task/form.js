@@ -1,16 +1,20 @@
 import React from "react";
-import { setDatePicker, showToast } from '../../../globalFunction';
+import _ from 'lodash';
+import moment from 'moment';
 import { connect } from "react-redux";
+import parallel from 'async/parallel';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+
+
+import { setDatePicker, showToast, postData, putData, deleteData } from '../../../globalFunction';
+import { DropDown } from "../../../globalComponents";
+
+import TaskComment from "./comment";
+import TaskActivities from "./taskActivities";
+
 import UploadModal from "./uploadModal";
 import ApprovalModal from "./approvalModal";
 import RejectMessageModal from "./rejectMessageModal";
-import moment from 'moment';
-import _ from 'lodash';
-import TaskComment from "./comment";
-import TaskActivities from "./taskActivities";
-import { DropDown } from "../../../globalComponents";
-import { postData, putData, deleteData } from "../../../globalFunction";
 
 @connect((store) => {
     return {
@@ -111,32 +115,38 @@ export default class FormComponent extends React.Component {
     }
 
     approveTask() {
-        const { socket, task, checklist, loggedUser } = this.props;
+        const { socket, task, checklist, loggedUser, dispatch } = this.props;
         const mandatory = checklist.List.filter((e, index) => {
-            return !e.completed;
+            return !e.isCompleted;
         });
-        if (mandatory.length == 0) {
-            let status = "Completed"
-            if (task.Selected.task_id && task.Selected.task_status != "Completed") {
-                status = "For Approval"
-                socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
-            } else {
-                let reminderDetails = {
-                    seen: 0,
-                    usersId: task.Selected.assignedById,
-                    projectId: task.Selected.projectId,
-                    linkType: "task",
-                    linkId: task.Selected.id,
-                    type: "Task Completed",
-                    createdBy: loggedUser.data.id,
-                    reminderDetail: "Task Completed"
-                }
+        if (!mandatory.length) {
 
-                socket.emit("SAVE_OR_UPDATE_TASK", {
-                    data: { id: task.Selected.id, periodTask: task.Selected.periodTask, status: "Completed", action: "complete" },
-                    reminder: reminderDetails
-                })
+            let reminderDetails = {
+                seen: 0,
+                usersId: task.Selected.assignedTo,
+                projectId: task.Selected.projectId,
+                linkType: "task",
+                linkId: task.Selected.id,
+                type: "Task Completed",
+                createdBy: loggedUser.data.id,
+                reminderDetail: "Task Completed"
             }
+
+            putData(`/api/task/status/${task.Selected.id}`, { userId: loggedUser.data.id, periodTask: task.Selected.periodTask, periodic: task.Selected.periodic, id: task.Selected.id, status: "Completed" }, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data });
+                    dispatch({ type: "SET_TASK_SELECTED", Selected: c.data[0] });
+                    showToast("success", "Task successfully updated.");
+                    
+                    postData(`/api/reminder`, reminderDetails, (r) => {
+                        dispatch({ type: "ADD_REMINDER_LIST", list: r.data })
+                    })
+
+                } else {
+                    showToast("error", "Something went wrong please try again later.");
+                }
+                dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            })
         } else {
             showToast("error", "There are items to be completed in the checklist before completing the task.")
         }

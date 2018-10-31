@@ -16,10 +16,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    taskId: {
-      type: DataTypes.BIGINT,
-      allowNull: true
-    },
     seen: {
       type: DataTypes.INTEGER(1),
       allowNull: true,
