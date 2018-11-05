@@ -5,6 +5,9 @@ const sequelize = new Sequelize(
     process.env.CLOUD_CFO_DB_PASSWORD,
     {
         host: process.env.CLOUD_CFO_DB_HOST,
+        dialectOptions: {
+            timezone: 'UTC'
+        },
         dialect: 'mysql',
         operatorsAliases: false,
         logging: false,
