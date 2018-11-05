@@ -420,7 +420,7 @@ export default class FormComponent extends React.Component {
                 return { id: e.id, name: e.task }
             })
             .value();
-
+            
         return (
             <div>
                 <Tabs class="mb40">
@@ -430,9 +430,9 @@ export default class FormComponent extends React.Component {
                     </TabList>
                     <TabPanel>
                         <h4 class="mt20">
-                            {(taskStatus == 0) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60" }}></span>}
-                            {(taskStatus == 1) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
-                            {(taskStatus == 2) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
+                            {(taskStatus == 0 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60" }}></span>}
+                            {(taskStatus == 1 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
+                            {(taskStatus == 2 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
                             &nbsp; &nbsp;{task.Selected.task} &nbsp;&nbsp;
                                 {(task.Selected.status == "Completed") && "( Completed )"}
                             {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
