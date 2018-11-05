@@ -35,19 +35,17 @@ export default class List extends React.Component {
                 dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: c.data })
                 dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
                 dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
-                socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
             })
         } else {
             if (_.isEmpty(Count)) {
                 this.fetchData(1);
-            }
-
-            socket.emit("GET_TYPE_LIST", {});
-            socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } });
-            socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } });
-            socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
-
+            }    
         }
+        
+        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
+        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } });
+        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } });
+        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
     }
 
     fetchData(page) {

@@ -34,7 +34,7 @@ export default class Form extends React.Component {
     fetchUsers(query, callback) {
         const { loggedUser , global } = { ...this.props };
 
-        return global.SelectList.workstreamMemberList.map((o) => {
+        return global.SelectList.projectMemberList.map((o) => {
             let userName = o.firstName + " " + o.lastName ;
                 if(userName.includes(query) && o.id != loggedUser.data.id){
                     return { display: o.firstName + " " + o.lastName, id: o.id }

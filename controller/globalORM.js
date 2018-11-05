@@ -69,7 +69,7 @@ exports.get = {
                                                 as: 'user',
                                                 include: [{
                                                     model: UsersRole,
-                                                    as: 'role',
+                                                    as: 'user_role',
                                                 }]
                                             }]
                                         })
@@ -107,7 +107,7 @@ exports.get = {
                                                         as: 'user',
                                                         include: [{
                                                             model: UsersRole,
-                                                            as: 'role',
+                                                            as: 'user_role',
                                                         }]
                                                     }]
                                                 }]
