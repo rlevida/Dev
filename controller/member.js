@@ -3,7 +3,7 @@ const { defaultPost, defaultPut, defaultDelete } = require("./");
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const models = require('../modelORM');
-const { Members, Users, UsersRole, Roles } = models;
+const { Members, Users, UsersRole, Roles, UsersTeam, Teams } = models;
 
 
 exports.get = {
@@ -23,6 +23,16 @@ exports.get = {
                             {
                                 model: Roles,
                                 as: 'role'
+                            }
+                        ]
+                    },
+                    {
+                        model: UsersTeam,
+                        as: 'users_team',
+                        include: [
+                            {
+                                model: Teams,
+                                as: 'team'
                             }
                         ]
                     }

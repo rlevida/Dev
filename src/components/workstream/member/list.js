@@ -50,7 +50,7 @@ export default class List extends React.Component {
         const currentPage = (typeof members.Count.current_page != "undefined") ? members.Count.current_page : 1;
         const lastPage = (typeof members.Count.last_page != "undefined") ? members.Count.last_page : 1;
         const memberList = members.List;
-        
+
         return (
             <div class="row pd20">
                 <h3 class="m0">Members</h3>
@@ -82,7 +82,11 @@ export default class List extends React.Component {
                                                 `${_.map(data.user.user_role, ({ role }) => { return role.role }).join("\r\n")}`
                                             }
                                         </td>
-                                        <td></td>
+                                        <td class="text-left">
+                                            {
+                                                `${_.map(data.user.users_team, ({ team }) => { return team.team }).join("\r\n")}`
+                                            }
+                                        </td>
                                     </tr>
                                 )
                             })
