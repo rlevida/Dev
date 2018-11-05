@@ -61,10 +61,20 @@ export default class List extends React.Component {
                         }
                     });
                 },
-                document: (parallelCallback) => {
-                    getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}`, {}, (c) => {
+                documentNew: (parallelCallback) => {
+                    getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
                         if (c.status == 200) {
-                            dispatch({ type: "SET_DOCUMENT_LIST", list: c.data })
+                            dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data })
+                            parallelCallback(null, "")
+                        } else {
+                            parallelCallback(null, "")
+                        }
+                    });
+                },
+                documentLibrary: (parallelCallback) => {
+                    getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
+                        if (c.status == 200) {
+                            dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: c.data })
                             parallelCallback(null, "")
                         } else {
                             parallelCallback(null, "")

@@ -5,7 +5,7 @@ const sequence = require("sequence").Sequence,
     Printer = require('node-printer');
 const dbName = "document";
 const Sequelize = require("sequelize")
-
+const Op = Sequelize.Op;
 const models = require('../modelORM');
 const {
     Document,
@@ -13,7 +13,8 @@ const {
     DocumentLink,
     Workstream,
     Tasks,
-    Users
+    Users,
+    Share
 } = models;
 
 var {
@@ -21,43 +22,39 @@ var {
     defaultDelete
 } = require("./")
 
-const associationFindAllStack = [{
-    model: Document,
-    as: 'document',
-    include: [
-        {
-            model: Tag,
-            where: {
-                linkType: 'workstream', tagType: 'document'
-            },
-            as: 'tagDocumentWorkstream',
-            required: false,
-            include: [
-                {
-                    model: Workstream,
-                    as: 'tagWorkstream',
-                }
-            ]
+const associationFindAllStack = [
+    {
+        model: Tag,
+        where: {
+            linkType: 'workstream', tagType: 'document'
         },
-        {
-            model: Tag,
-            where: {
-                linkType: 'task', tagType: 'document'
-            },
-            as: 'tagDocumentTask',
-            required: false,
-            include: [{
-                model: Tasks,
-                as: 'tagTask',
-            }],
+        as: 'tagDocumentWorkstream',
+        required: false,
+        include: [
+            {
+                model: Workstream,
+                as: 'tagWorkstream',
+            }
+        ]
+    },
+    {
+        model: Tag,
+        where: {
+            linkType: 'task', tagType: 'document'
         },
-        {
-            model: Users,
-            as: 'user',
-            attributes:['firstName','lastName','phoneNumber','emailAddress']
-        }
-    ]
-}]
+        as: 'tagDocumentTask',
+        required: false,
+        include: [{
+            model: Tasks,
+            as: 'tagTask',
+        }],
+    },
+    {
+        model: Users,
+        as: 'user',
+        attributes: ['firstName', 'lastName', 'phoneNumber', 'emailAddress']
+    }
+]
 
 
 exports.get = {
@@ -69,17 +66,39 @@ exports.get = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
         };
 
-        const whereObj = {
+        const documentLinkWhereObj = {
             ...(typeof queryString.linkId != "undefined" && queryString.linkId != "") ? { linkId: queryString.linkId } : {},
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {}
         };
+
+        let documentWhereObj = {
+            ...(typeof queryString.status != "undefined" && queryString.status != "") ? { status: queryString.status } : {},
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
+            [Op.or]: {
+                ...(typeof queryString.userType != "undefined" && queryString.userType == "External" && typeof queryString.userId != "undefined" && queryString.userId != "") ? {
+                    [Op.or]: [
+                        {
+                            id: {
+                                [Op.in]: Sequelize.literal(`(SELECT DISTINCT shareId FROM share where userTypeLinkId = ${queryString.userId})`)
+                            },
+                        },
+                    ]
+                } : {},
+                uploadedBy: queryString.userId
+            }
+        }
 
         try {
             DocumentLink
                 .findAll({
                     ...options,
-                    where: whereObj,
-                    include: associationFindAllStack
+                    where: documentLinkWhereObj,
+                    include: [{
+                        model: Document,
+                        as: 'document',
+                        where: documentWhereObj,
+                        include: associationFindAllStack
+                    }],
                 })
                 .map((res) => {
                     let resToReturn = {
@@ -90,13 +109,12 @@ exports.get = {
                     return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
                 })
                 .then((res) => {
-                    console.log(res)
                     cb({ status: true, data: res })
                 })
         } catch (err) {
-            console.log(err)
             cb({ statu: false, error: err })
         }
+
     },
     getPrinterList: (req, cb) => {
         cb({
@@ -208,7 +226,11 @@ exports.post = {
                 DocumentLink
                     .findAll({
                         where: { documentId: result },
-                        include: associationFindAllStack
+                        include: [{
+                            model: Document,
+                            as: 'document',
+                            include: associationFindAllStack
+                        }],
                     })
                     .map((res) => {
                         let resToReturn = {
@@ -222,99 +244,6 @@ exports.post = {
                         cb({ status: true, data: res })
                     })
 
-            } catch (err) {
-                cb({ status: false, error: err })
-            }
-        })
-    },
-    postDocumentTag: (req, cb) => {
-        const dataToSubmit = req.body
-        const queryString = req.query
-        const whereObj = {
-            ...(typeof queryString.tagTypeId != "undefined" && queryString.tagTypeId != "") ? { tagTypeId: queryString.tagTypeId } : {},
-            ...(typeof queryString.tagType != "undefined" && queryString.tagType != "") ? { tagType: queryString.tagType } : {}
-        };
-
-        sequence.create().then((nextThen) => {
-            try {
-                Tag.destroy({
-                    where: whereObj
-                }).then(res => {
-                    nextThen(dataToSubmit.tags)
-                })
-            } catch (err) {
-                cb({ status: false, error: err })
-            }
-
-        }).then((nextThen, data) => {
-            if (JSON.parse(data).length > 0) {
-                async.map(JSON.parse(data), (e, mapCallback) => {
-                    let tagData = {
-                        ...whereObj,
-                        linkType: e.value.split("-")[0],
-                        linkId: e.value.split("-")[1],
-                    }
-
-                    Tag.create(tagData)
-                        .then(res => {
-                            mapCallback(null, res)
-                        })
-
-                }, (err, result) => {
-                    if (err != null) {
-                        cb({ status: false, error: err })
-                    } else {
-                        nextThen()
-                    }
-                })
-            } else {
-                nextThen()
-            }
-        }).then((nextThen, result) => {
-            try {
-                DocumentLink
-                    .findOne({
-                        where: { documentId: queryString.tagTypeId },
-                        include: [{
-                            model: Document,
-                            as: 'document',
-                            include: [{
-                                model: Tag,
-                                where: {
-                                    linkType: 'workstream', tagType: 'document'
-                                },
-                                as: 'tagDocumentWorkstream',
-                                required: false,
-                                include: [
-                                    {
-                                        model: Workstream,
-                                        as: 'tagWorkstream',
-                                    }
-                                ],
-                                attributes: ['id']
-                            },
-                            {
-                                model: Tag,
-                                where: {
-                                    linkType: 'task', tagType: 'document'
-                                },
-                                as: 'tagDocumentTask',
-                                required: false,
-                                include: [{
-                                    model: Tasks,
-                                    as: 'tagTask',
-                                }],
-                            }
-                            ],
-                        }]
-                    }).then((res) => {
-                        let resToReturn = {
-                            ...res.dataValues.document.toJSON(),
-                            tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
-                        }
-                        cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
-                    })
             } catch (err) {
                 cb({ status: false, error: err })
             }
@@ -449,31 +378,79 @@ exports.post = {
 }
 
 exports.put = {
-    index: (req, cb) => {
+    documentTag: (req, cb) => {
         const dataToSubmit = req.body
         const id = req.params.id
-        try {
-            Document
-                .update(dataToSubmit, { where: { id: id } })
-                .then((res) => {
-                    DocumentLink
-                        .findOne({
-                            where: { documentId: id },
-                            include: associationFindAllStack
-                        })
-                        .then((findRes) => {
-                            let resToReturn = {
-                                ...findRes.dataValues.document.toJSON(),
-                                tags: findRes.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                    .concat(findRes.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
-                            }
-                            cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
-                        })
-                })
-        } catch (err) {
-            cb({ status: false, error: err })
+        const queryString = req.query
 
+        const documentWhereObj = {
+            ...(typeof queryString.status != "undefined" && queryString.status != "") ? { status: queryString.status } : {},
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {}
         }
+
+        const tagWhereObj = {
+            ...(typeof queryString.tagTypeId != "undefined" && queryString.tagTypeId != "") ? { tagTypeId: queryString.tagTypeId } : {},
+            ...(typeof queryString.tagType != "undefined" && queryString.tagType != "") ? { tagType: queryString.tagType } : {}
+        };
+
+        sequence.create().then((nextThen) => {
+            try {
+                Tag.destroy({
+                    where: tagWhereObj
+                }).then(res => {
+                    nextThen(dataToSubmit.tags)
+                })
+            } catch (err) {
+                cb({ status: false, error: err })
+            }
+        }).then((nextThen, data) => {
+            if (JSON.parse(data).length > 0) {
+                async.map(JSON.parse(data), (e, mapCallback) => {
+                    let tagData = {
+                        ...tagWhereObj,
+                        linkType: e.value.split("-")[0],
+                        linkId: e.value.split("-")[1],
+                    }
+
+                    Tag.create(tagData)
+                        .then(res => {
+                            mapCallback(null, res)
+                        })
+
+                }, (err, result) => {
+                    if (err != null) {
+                        cb({ status: false, error: err })
+                    } else {
+                        nextThen()
+                    }
+                })
+            } else {
+                nextThen()
+            }
+        }).then((nextThen, result) => {
+            try {
+                DocumentLink
+                    .findOne({
+                        where: { documentId: queryString.tagTypeId },
+                        include: [{
+                            model: Document,
+                            as: 'document',
+                            where: documentWhereObj,
+                            include: associationFindAllStack
+                        }]
+                    }).then((res) => {
+                        let resToReturn = {
+                            ...res.dataValues.document.toJSON(),
+                            tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                        }
+                        cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
+                    })
+            } catch (err) {
+                console.log(err)
+                cb({ status: false, error: err })
+            }
+        })
     },
     putDocumentName: (req, cb) => {
         let d = req.body

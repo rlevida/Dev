@@ -248,7 +248,7 @@ exports.get = {
                 ],
                 logging: true
             }).then((result) => {
-                console.log(result)
+                // console.log(result)
                 //callback(null, resultArray);
             });
         } catch (err) {

@@ -373,14 +373,14 @@ export default class DocumentNew extends React.Component {
                             <th>Tags</th>
                             <th></th>
                         </tr>
-                        {
+                        {/* {
                             (document.Loading) &&
                             <tr>
                                 <td colSpan={8}><Loading /></td>
                             </tr>
-                        }
+                        } */}
                         {
-                            (documentList.newUpload.length == 0 && folderList.length == 0 && !document.Loading) &&
+                            (document.New.length == 0 && folderList.length == 0) &&
                             <tr>
                                 <td colSpan={8}>No Record Found!</td>
                             </tr>
@@ -446,7 +446,7 @@ export default class DocumentNew extends React.Component {
                             })
                         }
                         {(!document.Loading) &&
-                            _.orderBy(documentList.newUpload, ["dateAdded"], ["desc"]).map((data, index) => {
+                            _.orderBy(document.New, ["dateAdded"], ["desc"]).map((data, index) => {
                                 let ext = getFilePathExtension(data.origin)
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                 return (

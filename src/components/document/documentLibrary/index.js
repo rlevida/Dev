@@ -406,7 +406,7 @@ export default class DocumentLibrary extends React.Component {
                             </tr>
                         }
                         {
-                            (documentList.library.length == 0 && folder.List.length == 0 && !document.Loading) &&
+                            (document.Library.length == 0 && folder.List.length == 0 && !document.Loading) &&
                             <tr>
                                 <td colSpan={8}>No Record Found!</td>
                             </tr>
@@ -490,8 +490,9 @@ export default class DocumentLibrary extends React.Component {
                                 }
                             })
                         }
+
                         {(!document.Loading) &&
-                            _.orderBy(documentList.library, ["dateAdded"], ["desc"]).map((data, index) => {
+                            _.orderBy(document.Library, ["dateAdded"], ["desc"]).map((data, index) => {
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                 return (
                                     // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id ,"document")} documentToMove={(data)=> this.documentToMove(data)} docType="document"/>
