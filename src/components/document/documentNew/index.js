@@ -387,7 +387,7 @@ export default class DocumentNew extends React.Component {
                         }
 
                         {(!document.Loading) &&
-                            _.orderBy(folderList,["dateAdded"],["desc"]).map((data, index) => {
+                            _.orderBy(folderList, ["dateAdded"], ["desc"]).map((data, index) => {
                                 if ((!data.parentId && !folder.SelectedNewFolder.id) || (data.parentId && folder.SelectedNewFolder.id == data.parentId)) {
                                     return (
                                         <tr key={index}>
@@ -395,8 +395,7 @@ export default class DocumentNew extends React.Component {
                                             <td ><span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span></td>
                                             <td class="library-document"><a href="javascript:void(0)" onClick={() => dispatch({ type: "SET_NEW_FOLDER_SELECTED", Selected: data })}><span class="fa fa-folder" style={{ marginRight: "20px" }}></span>{data.name}</a></td>
                                             <td>{moment(data.dateUpdated).format('L')}</td>
-                                            <td> {users.List.map((e, mIndex) => { if (data.createdBy == e.id) { return e.emailAddress } })}
-                                            </td>
+                                            <td>{data.user.emailAddress}</td>
                                             <td>
                                                 <ul style={{ listStyleType: "none", padding: "0" }}>
                                                     {(data.tags.length > 0) &&
@@ -447,7 +446,7 @@ export default class DocumentNew extends React.Component {
                             })
                         }
                         {(!document.Loading) &&
-                           _.orderBy(documentList.newUpload,["dateAdded"],["desc"]).map((data, index) => {
+                            _.orderBy(documentList.newUpload, ["dateAdded"], ["desc"]).map((data, index) => {
                                 let ext = getFilePathExtension(data.origin)
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                 return (
@@ -465,7 +464,7 @@ export default class DocumentNew extends React.Component {
                                         </td>
                                         <td class="new-document"> <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}><span class="glyphicon glyphicon-file"></span>{documentName}</a></td>
                                         <td>{moment(data.dateAdded).format('L')}</td>
-                                        <td>{(users.List.length > 0) ? users.List.filter(f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
+                                        <td>{data.user.emailAddress}</td>
                                         <td>
                                             {(data.tags.length > 0) &&
                                                 data.tags.map((t, tIndex) => {

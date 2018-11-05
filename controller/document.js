@@ -12,7 +12,8 @@ const {
     Tag,
     DocumentLink,
     Workstream,
-    Tasks
+    Tasks,
+    Users
 } = models;
 
 var {
@@ -23,32 +24,39 @@ var {
 const associationFindAllStack = [{
     model: Document,
     as: 'document',
-    include: [{
-        model: Tag,
-        where: {
-            linkType: 'workstream', tagType: 'document'
+    include: [
+        {
+            model: Tag,
+            where: {
+                linkType: 'workstream', tagType: 'document'
+            },
+            as: 'tagDocumentWorkstream',
+            required: false,
+            include: [
+                {
+                    model: Workstream,
+                    as: 'tagWorkstream',
+                }
+            ]
         },
-        as: 'tagDocumentWorkstream',
-        required: false,
-        include: [
-            {
-                model: Workstream,
-                as: 'tagWorkstream',
-            }
-        ]
-    },
-    {
-        model: Tag,
-        where: {
-            linkType: 'task', tagType: 'document'
+        {
+            model: Tag,
+            where: {
+                linkType: 'task', tagType: 'document'
+            },
+            as: 'tagDocumentTask',
+            required: false,
+            include: [{
+                model: Tasks,
+                as: 'tagTask',
+            }],
         },
-        as: 'tagDocumentTask',
-        required: false,
-        include: [{
-            model: Tasks,
-            as: 'tagTask',
-        }],
-    }]
+        {
+            model: Users,
+            as: 'user',
+            attributes:['firstName','lastName','phoneNumber','emailAddress']
+        }
+    ]
 }]
 
 
@@ -82,9 +90,11 @@ exports.get = {
                     return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
                 })
                 .then((res) => {
+                    console.log(res)
                     cb({ status: true, data: res })
                 })
         } catch (err) {
+            console.log(err)
             cb({ statu: false, error: err })
         }
     },
