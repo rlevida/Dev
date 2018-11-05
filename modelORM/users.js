@@ -98,11 +98,6 @@ module.exports = (sequelize, DataTypes) => {
     Users.hasMany(models.Teams, {
       as: 'team_as_teamLeader',
       foreignKey: 'teamLeaderId'
-    }),
-    
-    Users.hasMany(models.UsersTeam, {
-      as: 'users_team',
-      foreignKey: 'usersId'
     })
 
   };
