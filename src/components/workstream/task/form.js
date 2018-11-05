@@ -137,7 +137,7 @@ export default class FormComponent extends React.Component {
                     dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data });
                     dispatch({ type: "SET_TASK_SELECTED", Selected: c.data[0] });
                     showToast("success", "Task successfully updated.");
-                    
+
                     postData(`/api/reminder`, reminderDetails, (r) => {
                         dispatch({ type: "ADD_REMINDER_LIST", list: r.data })
                     })
@@ -454,7 +454,6 @@ export default class FormComponent extends React.Component {
                                 : <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Follow task" onClick={() => this.followTask()}>Follow Task</a>
                             }
                         </div>
-
                         {
                             (typeof task.Selected.description != "undefined"
                                 && task.Selected.description != ""
@@ -560,7 +559,12 @@ export default class FormComponent extends React.Component {
                                                             </ul>
                                                         </div>
                                                     }
-                                                    <p>{o.description}</p>
+                                                    <p>
+                                                        {
+                                                            (o.isMandatory == 1) && <span style={{ color: "red" }}>*</span>
+                                                        }
+                                                        {o.description}
+                                                    </p>
                                                     <div id="checklist-action-wrapper">
                                                         {
                                                             (o.isMandatory == 1) && <span class="label label-info mr5">Mandatory</span>
@@ -691,7 +695,6 @@ export default class FormComponent extends React.Component {
                                 </div>
                             }
                         </div>
-
                         {(task.Selected.isActive > 0) &&
                             <div style={{ position: "relative" }} class="mt20">
                                 <h5 class="mb0">Documents</h5>

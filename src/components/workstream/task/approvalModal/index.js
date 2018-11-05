@@ -97,7 +97,7 @@ export default class ApprovalModal extends React.Component {
         let approverOptions = []
         if (typeof global.SelectList.projectMemberList != "undefined") {
             global.SelectList.projectMemberList.map(e => {
-                if (e.role[0].roleId == 1 || e.role[0].roleId == 2 || e.role[0].roleId == 3 || e.role[0].roleId == 5) {
+                if (e.user_role[0].roleId == 1 || e.user_role[0].roleId == 2 || e.user_role[0].roleId == 3 || e.user_role[0].roleId == 5) {
                     approverOptions.push({ id: e.id, name: `${e.firstName} ${e.lastName}` })
                 }
             })
