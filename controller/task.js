@@ -213,7 +213,7 @@ exports.get = {
             });
         })
     },
-    status: (req, cb) => {
+    myTaskStatus: (req, cb) => {
         const queryString = req.query;
 
         try {
@@ -257,6 +257,40 @@ exports.get = {
             )
                 .then((response) => {
                     cb({ status: true, data: response[0] });
+                })
+        } catch (err) {
+            callback(err)
+        }
+
+    },
+    taskStatus: (req, cb) => {
+        const queryString = req.query;
+        
+        try {
+            sequelize.query(`
+            SELECT
+            SUM(CASE WHEN task.dueDate < :date AND (task.status != "Completed" OR task.status IS NULL) then 1 else 0 end)  AS assigned_issues,
+            SUM(CASE WHEN task.dueDate = :date AND (task.status != "Completed" OR task.status IS NULL) then 1 else 0 end)  AS assigned_due_today,
+            COUNT(*)  AS assigned_active
+            FROM task 
+            WHERE
+            task.id > 0 
+            ${(queryString.role > 2) ? `
+            AND
+            task.id IN (SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = :user_id AND members.memberType = :member_type )
+            `
+                    : ``}
+            `, {
+                    replacements: {
+                        user_id: queryString.userId,
+                        date: moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm"),
+                        member_type: "assignedTo"
+                    },
+                    type: sequelize.QueryTypes.SELECT
+                }
+            )
+                .then((response) => {
+                    cb({ status: true, data: _.mapValues(response[0], function (v) { return _.toNumber(v); }) });
                 })
         } catch (err) {
             callback(err)

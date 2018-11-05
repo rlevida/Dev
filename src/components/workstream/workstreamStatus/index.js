@@ -23,7 +23,7 @@ export default class WorkstreamStatus extends React.Component {
     componentDidMount() {
         const { loggedUser, dispatch } = this.props;
         const { data } = loggedUser;
-        const userRoles = _.map(data.role, (roleObj) => { return roleObj.roleId })[0];
+        const userRoles = _.map(data.user_role, (roleObj) => { return roleObj.roleId })[0];
 
         getData(`/api/workstream/status?projectId=${project}&userId=${loggedUser.data.id}&role=${userRoles}&date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, (c) => {
             dispatch({ type: "SET_WORKSTREAM_STATUS_COUNT", count: c.data })
@@ -33,7 +33,7 @@ export default class WorkstreamStatus extends React.Component {
     showModal(status) {
         const { loggedUser } = this.props;
         const { data } = loggedUser;
-        const userRoles = _.map(data.role, (roleObj) => { return roleObj.roleId })[0];
+        const userRoles = _.map(data.user_role, (roleObj) => { return roleObj.roleId })[0];
 
         getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&role=${userRoles}&date=${JSON.stringify({ opt: "lt", value: moment(new Date()).format("YYYY-MM-DD") })}`, {}, (c) => {
             this.setState({ list: c.data.result }, () => {

@@ -20,7 +20,7 @@ export default class TaskStatus extends React.Component {
     componentDidMount() {
         const { loggedUser, dispatch } = this.props;
 
-        getData(`/api/task/status?projectId=${project}&userId=${loggedUser.data.id}&type=myTask&date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, (c) => {
+        getData(`/api/task/myTaskStatus?projectId=${project}&userId=${loggedUser.data.id}&type=myTask&date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, (c) => {
             dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: c.data });
         });
     }

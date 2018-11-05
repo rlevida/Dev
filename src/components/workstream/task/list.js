@@ -88,7 +88,7 @@ export default class List extends React.Component {
     fetchData(page) {
         const { loggedUser, dispatch, task } = this.props;
         const { data } = loggedUser;
-        const userRoles = _.map(data.role, (roleObj) => { return roleObj.roleId })[0];
+        const userRoles = _.map(data.user_role, (roleObj) => { return roleObj.roleId })[0];
 
         getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${page}&role=${userRoles}`, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
