@@ -75,6 +75,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'tagDocumentTask',
       foreignKey: 'tagTypeId',
     });
+    Document.belongsTo(models.Users, {
+      as: 'user',
+      foreignKey: 'uploadedBy',
+    });
   };
 
   return Document;

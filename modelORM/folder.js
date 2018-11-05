@@ -65,6 +65,11 @@ module.exports = function (sequelize, DataTypes) {
       foreignKey: 'tagTypeId',
     });
 
+    Folder.belongsTo(models.Users, {
+      as: 'user',
+      foreignKey: 'createdBy',
+    });
+    
   };
 
   return Folder;

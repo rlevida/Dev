@@ -11,7 +11,8 @@ const {
     Folder,
     Tag,
     Tasks,
-    Workstream
+    Workstream,
+    Users
 } = models;
 
 exports.get = {
@@ -45,6 +46,11 @@ exports.get = {
                                 as: 'tagTask'
                             }],
                             required: false
+                        },
+                        {
+                            model: Users,
+                            as: 'user',
+                            attributes:['firstName','lastName','phoneNumber','emailAddress']
                         }
                     ]
                 })
