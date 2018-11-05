@@ -164,7 +164,7 @@ exports.get = {
                         as: 'user',
                         include: [{
                             model: UsersRole,
-                            as: 'role',
+                            as: 'user_role',
                         },
                         {
                             model: UsersTeam,
@@ -222,7 +222,7 @@ exports.get = {
                                 as: 'user',
                                 include: [{
                                     model: UsersRole,
-                                    as: 'role',
+                                    as: 'user_role',
                                 },
                                 {
                                     model: UsersTeam,
@@ -304,7 +304,7 @@ exports.post = {
                                 as: 'user',
                                 include: [{
                                     model: UsersRole,
-                                    as: 'role',
+                                    as: 'user_role',
                                 },
                                 {
                                     model: UsersTeam,
@@ -393,7 +393,7 @@ exports.post = {
                                     as: 'user',
                                     include: [{
                                         model: UsersRole,
-                                        as: 'role',
+                                        as: 'user_role',
                                     },
                                     {
                                         model: UsersTeam,
@@ -488,7 +488,7 @@ exports.post = {
                                             as: 'user',
                                             include: [{
                                                 model: UsersRole,
-                                                as: 'role',
+                                                as: 'user_role',
                                             },
                                             {
                                                 model: UsersTeam,
@@ -575,7 +575,7 @@ exports.put = {
                                 as: 'user',
                                 include: [{
                                     model: UsersRole,
-                                    as: 'role',
+                                    as: 'user_role',
                                 },
                                 {
                                     model: UsersTeam,

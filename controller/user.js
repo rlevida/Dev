@@ -21,7 +21,7 @@ exports.get = {
                 include: [
                     {
                         model: UsersRole,
-                        as: 'role',
+                        as: 'user_role',
                         attributes: ['roleId']
                     },
                     {

@@ -59,7 +59,7 @@ var init = exports.init = (socket) => {
                         include: [
                             {
                                 model: UsersRole,
-                                as: 'role'
+                                as: 'user_role'
                             },
                             {
                                 model: Members,
@@ -86,7 +86,7 @@ var init = exports.init = (socket) => {
                         let responseToReturn = {
                             ...res.dataValues,
                             projectId: res.projectId.map((e) => { return e.linkId }),
-                            userRole: res.dataValues.role[0].roleId,
+                            userRole: res.dataValues.user_role[0].roleId,
                             team: res.dataValues.team_as_teamLeader.concat(res.dataValues.users_team.map((e) => { return e.team }))
                         }
                         nextThen(_.omit(responseToReturn, "team_as_teamLeader","users_team"), ipBlockData)
