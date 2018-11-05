@@ -21,87 +21,51 @@ export default class TaskStatus extends React.Component {
         const { loggedUser, dispatch } = this.props;
 
         getData(`/api/task/status?projectId=${project}&userId=${loggedUser.data.id}&type=myTask&date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, (c) => {
-           
+            dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: c.data });
         });
     }
 
     render() {
-        let { task, loggedUser } = this.props;
-        let data = {
-            assignedTo: { Active: 0, DueToday: 0, Issues: 0 },
-            responsible: { Active: 0, DueToday: 0, Issues: 0 },
-            Follower: { Active: 0, DueToday: 0, Issues: 0 }
-        }
-        if (task.List.length) {
-            let userId = loggedUser.data.id;
-            task.List.map((e, index) => {
-                let dueDate = moment(e.dueDate)
-                let currentDate = moment(new Date())
+        const { task, style } = this.props;
+        const { StatusCount } = task;
 
-                if (e.assignedById == userId) {
-                    data.assignedTo.Active += 1;
-                    if (dueDate.diff(currentDate, 'days') == 0) {
-                        data.assignedTo.DueToday += 1;
-                    } else if (dueDate.diff(currentDate, 'days') < 0) {
-                        data.assignedTo.Issues += 1;
-                    }
-                }
-                if (e.followersIds != null && e.followersIds.split(",").includes(`${userId}`)) {
-                    data.Follower.Active += 1;
-                    if (dueDate.diff(currentDate, 'days') == 0) {
-                        data.Follower.DueToday += 1;
-                    } else if (dueDate.diff(currentDate, 'days') < 0) {
-                        data.Follower.Issues += 1;
-                    }
-                }
-
-                if (e.responsible_id == userId) {
-                    data.responsible.Active += 1;
-                    if (dueDate.diff(currentDate, 'days') == 0) {
-                        data.responsible.DueToday += 1;
-                    } else if (dueDate.diff(currentDate, 'days') < 0) {
-                        data.responsible.Issues += 1;
-                    }
-                }
-            })
-        }
-        return <div style={this.props.style}>
+        return <div style={style}>
             <table>
                 <tbody>
                     <tr>
                         <td style={{ padding: "10px 5px", width: "120px" }}>Assigned</td>
                         <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{data.assignedTo.Active}</span>
+                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{StatusCount.assigned_active}</span>
                         </td>
                         <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                            <span style={{ float: "left" }}>Due Today</span><span style={{ float: "right" }}>{data.assignedTo.DueToday}</span>
+                            <span style={{ float: "left" }}>Due Today</span><span style={{ float: "right" }}>{StatusCount.assigned_due_today}</span>
                         </td>
                         <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
-                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{data.assignedTo.Issues}</span>
+                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{StatusCount.assigned_issues}</span>
                         </td>
                     </tr>
                     <tr>
                         <td style={{ padding: "10px 5px", width: "120px" }}>Responsible</td>
                         <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{data.responsible.Active}</span>
+                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{StatusCount.responsible_active}</span>
                         </td>
                         <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                            <span style={{ float: "left" }}>Due Today</span><span style={{ float: "right" }}>{data.responsible.DueToday}</span>
+                            <span style={{ float: "left" }}>Due Today</span><span style={{ float: "right" }}>{StatusCount.responsible_due_today}</span>
                         </td>
                         <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
-                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{data.responsible.Issues}</span>
+                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{StatusCount.responsible_issues}</span>
                         </td>
                     </tr>
                     <tr>
                         <td style={{ padding: "10px 5px", width: "120px" }}>Following</td>
                         <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{data.Follower.Active}</span>
+                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{StatusCount.followed_active}</span>
                         </td>
                         <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                            <span style={{ float: "left" }}>Due Today</span><span style={{ float: "right" }}>{data.Follower.DueToday}</span>
+                            <span style={{ float: "left" }}>Due Today</span><span style={{ float: "right" }}>{StatusCount.followed_due_today}</span>
                         </td>
                         <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
-                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{data.Follower.Issues}</span>
+                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{StatusCount.followed_issues}</span>
                         </td>
                     </tr>
                 </tbody>

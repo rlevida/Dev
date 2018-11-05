@@ -5,18 +5,22 @@ export default function reducer(state = {
     FormActive: "List",
     Selected: {},
     SelectedId: [],
-    Loading: true
+    Loading: "RETRIEVING",
+    Count: {}
 }, action) {
     switch (action.type) {
         case "ADD_MEMBER_TO_LIST": {
             let List = state.List;
             action.list.map((e) => {
-                List.push( e)
+                List.push(e)
             })
-            return {...state, List : List }
+            return { ...state, List: List }
         }
         case "SET_MEMBERS_LIST": {
-            return { ...state, List: action.list, Loading: false }
+            return { ...state, List: action.list, Count: action.count }
+        }
+        case "SET_TASK_LOADING": {
+            return { ...state, Loading: (typeof action.Loading != "undefined") ? action.Loading : "" }
         }
         case "SET_MEMBERS_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
@@ -28,13 +32,20 @@ export default function reducer(state = {
             return { ...state, SelectedId: action.SelectedId }
         }
         case "UPDATE_DATA_MEMBERS_LIST": {
-            let tempList = state.List.map((e, i) => {
-                if (e.id == action.UpdatedData.id) {
-                    return action.UpdatedData
+            const { List } = { ...state };
+            const copyOfList = [...List];
+
+            _.map(action.List, (o) => {
+                const updateIndex = _.findIndex(copyOfList, { id: o.id });
+
+                if (updateIndex >= 0) {
+                    copyOfList.splice(updateIndex, 1, o);
+                } else {
+                    copyOfList.push(o);
                 }
-                return e
-            })
-            return { ...state, List: tempList, Loading: false }
+            });
+
+            return { ...state, List: copyOfList, ...(typeof action.Count != "undefined") ? { Count: action.Count } : {} }
         }
         case "REMOVE_DELETED_MEMBERS_LIST": {
             const { List } = { ...state };
