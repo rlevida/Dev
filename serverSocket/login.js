@@ -4,9 +4,11 @@ var func = global.initFunc(),
 
 const models = require('../modelORM');
 const {
-    UsersRole,
     Users,
-    Members
+    UsersRole,
+    UsersTeam,
+    Members,
+    Teams
 } = models;
 
 var init = exports.init = (socket) => {
@@ -52,7 +54,7 @@ var init = exports.init = (socket) => {
         }).then((nextThen, ipBlockData) => {
             try {
                 Users
-                    .findAll({
+                    .findOne({
                         where: { username: data.username },
                         include: [
                             {
@@ -62,23 +64,32 @@ var init = exports.init = (socket) => {
                             {
                                 model: Members,
                                 as: 'projectId',
-                                where: { usersType: 'users', linkType: 'project'},
+                                where: { usersType: 'users', linkType: 'project' },
                                 required: false,
                                 attributes: ['linkId']
+                            },
+                            {
+                                model: Teams,
+                                as: 'team_as_teamLeader'
+                            },
+                            {
+                                model: UsersTeam,
+                                as: 'users_team',
+                                include: [{
+                                    model: Teams,
+                                    as: 'team'
+                                }]
                             }
                         ]
                     })
-                    .map((res) => {
+                    .then((res) => {
                         let responseToReturn = {
                             ...res.dataValues,
                             projectId: res.projectId.map((e) => { return e.linkId }),
-                            userRole: res.dataValues.role[0].roleId
+                            userRole: res.dataValues.role[0].roleId,
+                            team: res.dataValues.team_as_teamLeader.concat(res.dataValues.users_team.map((e) => { return e.team }))
                         }
-                       
-                        return responseToReturn
-                    })
-                    .then((res) => {
-                        nextThen(res[0], ipBlockData)
+                        nextThen(_.omit(responseToReturn, "team_as_teamLeader","users_team"), ipBlockData)
                     })
 
             } catch (err) {

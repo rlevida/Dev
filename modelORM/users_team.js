@@ -45,6 +45,11 @@ module.exports = function(sequelize, DataTypes) {
       as: 'user',
       foreignKey: 'usersId',
     });
+
+    UsersTeam.belongsTo(models.Teams, {
+      as: 'team',
+      foreignKey: 'teamId',
+    });
   };
 
   return UsersTeam

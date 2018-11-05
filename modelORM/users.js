@@ -81,12 +81,12 @@ module.exports = (sequelize, DataTypes) => {
       as: 'members',
       foreignKey: 'userTypeLinkId'
     });
-    
+
     Users.hasMany(models.UsersRole, {
       as: 'role',
       foreignKey: 'usersId'
     })
-    Users.hasMany(models.UsersTeam,{
+    Users.hasMany(models.UsersTeam, {
       as: 'team',
       foreignKey: 'usersId'
     })
@@ -94,6 +94,17 @@ module.exports = (sequelize, DataTypes) => {
       as: 'projectId',
       foreignKey: 'userTypeLinkId'
     });
+
+    Users.hasMany(models.Teams, {
+      as: 'team_as_teamLeader',
+      foreignKey: 'teamLeaderId'
+    }),
+    
+    Users.hasMany(models.UsersTeam, {
+      as: 'users_team',
+      foreignKey: 'usersId'
+    })
+
   };
 
   return Users;
