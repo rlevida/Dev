@@ -54,7 +54,7 @@ export default class FormComponent extends React.Component {
     handleSubmit(e) {
         let { socket, teams, loggedUser, dispatch } = this.props
         let result = true;
-        let myCurrentTeam = JSON.parse(loggedUser.data.team);
+        let myCurrentTeam = loggedUser.data.team;
         let myTeamIndex = _.findIndex(myCurrentTeam, (o) => { return o.value == teams.Selected.id });
         let selectedTeamMembers = (typeof teams.Selected.users != 'undefined') ? JSON.parse(teams.Selected.users) : [];
 
