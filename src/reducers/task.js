@@ -3,7 +3,6 @@ import _ from "lodash";
 export default function reducer(state = {
     List: [],
     CountList: [],
-    AllCountList: [],
     FormActive: "List",
     Selected: {
         isActive: true
@@ -23,8 +22,8 @@ export default function reducer(state = {
         case "SET_TASK_COUNT_LIST": {
             return { ...state, CountList: action.list }
         }
-        case "SET_ALL_TASK_COUNT_LIST": {
-            return { ...state, AllCountList: action.list }
+        case "SET_STATUS_TASK_COUNT_LIST": {
+            return { ...state, StatusCount: action.count }
         }
         case "SET_TASK_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }

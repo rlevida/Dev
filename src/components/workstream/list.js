@@ -106,16 +106,7 @@ export default class List extends React.Component {
         const { workstream, dispatch, socket, loggedUser, global, projectData } = this.props;
         const currentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
         const lastPage = (typeof workstream.Count.last_page != "undefined") ? workstream.Count.last_page : 1;
-        // const workstreamList = _.filter(workstream.List, (workstreamObj, index) => {
-        //     if (loggedUser.data.userType == "External") {
-        //         const members = (workstreamObj.memberIds).split(",");
-        //         const findMemberIndex = _.findIndex(members, (memberId) => { return _.toNumber(memberId) == loggedUser.data.id });
-        //         return findMemberIndex >= 0;
-        //     } else {
-        //         return workstreamObj.id != 0;
-        //     }
-        // });
-
+        
         return (
             <div>
                 <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>

@@ -3,42 +3,121 @@ const { defaultPost, defaultPut, defaultDelete } = require("./");
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const models = require('../modelORM');
-const { Members, Users, UsersRole, UsersTeam,  Teams} = models;
+const { Members, Users, UsersRole, Roles, UsersTeam, Teams } = models;
 
 
 exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
         const limit = 5;
-        const association = [
+        const associationArray = [
             {
                 model: Users,
                 as: 'user',
-                attributes: ['firstName', 'lastName']
+                attributes: ["firstName", "lastName", "username", "emailAddress", "userType"],
+                include: [
+                    {
+                        model: UsersRole,
+                        as: 'user_role',
+                        include: [
+                            {
+                                model: Roles,
+                                as: 'role'
+                            }
+                        ]
+                    },
+                    {
+                        model: UsersTeam,
+                        as: 'users_team',
+                        include: [
+                            {
+                                model: Teams,
+                                as: 'team'
+                            }
+                        ]
+                    }
+                ]
             }
         ]
-        _.filter(association, (associationObj) => { 
-            return _.findIndex((queryString.includes).split(','), (includesObj) => { return includesObj == associationObj.as }) >= 0 
-        })
         const whereObj = {
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {},
             ...(typeof queryString.linkId != "undefined" && queryString.linkId != "") ? { linkId: queryString.linkId } : {},
             ...(typeof queryString.memberType != "undefined" && queryString.memberType != "") ? { memberType: queryString.memberType } : {},
             ...(typeof queryString.usersType != "undefined" && queryString.usersType != "") ? { usersType: queryString.usersType } : {},
+            ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? {
+                [Sequelize.Op.or]: [
+                    {
+                        userTypeLinkId: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT userTypeLinkId FROM members WHERE linkType = "workstream" AND members.linkId = ${queryString.workstreamId})`)
+                        }
+                    },
+                    {
+                        userTypeLinkId: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT members.userTypeLinkId FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND task.workstreamId = ${queryString.workstreamId})`)
+                        }
+                    }
+                ],
+                linkType: {
+                    [Sequelize.Op.or]: [
+                        {
+                            [Sequelize.Op.eq]: "workstream"
+                        },
+                        {
+                            [Sequelize.Op.eq]: "task"
+                        }
+                    ]
+                },
+                memberType: "assignedTo"
+            } : {}
         }
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            ...(typeof queryString.includes != "undefined" && queryString.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex((queryString.includes).split(','), (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
+            include: associationArray
         }
 
         try {
-            Members.findAll(
-                { ...options, where: whereObj }
-            ).map((mapObject) => {
-                return mapObject.toJSON();
-            }).then((resultArray) => {
-                cb({ status: true, data: resultArray });
+            async.parallel({
+                count: function (callback) {
+                    try {
+                        Members.findAndCountAll({
+                            ...options,
+                            where: _.omit(whereObj, ["offset", "limit"]),
+                            distinct: true,
+                            col: "userTypeLinkId"
+                        }).then((response) => {
+                            const pageData = {
+                                total_count: response.count,
+                                ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
+                            };
+                            callback(null, pageData)
+                        });
+                    } catch (err) {
+                        callback(err)
+                    }
+                },
+                result: function (callback) {
+                    try {
+                        Members.findAll({
+                            where: whereObj,
+                            ...options,
+                            group: ['userTypeLinkId']
+                        }).map((mapObject) => {
+                            return mapObject.toJSON();
+                        }).then((resultArray) => {
+                            callback(null, resultArray);
+                        });
+                    } catch (err) {
+                        callback(err)
+                    }
+                }
+            }, function (err, results) {
+                if (err != null) {
+                    cb({ status: false, error: err });
+                } else {
+                    cb({ status: true, data: results })
+                }
             });
+
         } catch (err) {
             cb({ status: false, error: err })
         }
@@ -70,12 +149,12 @@ exports.post = {
 }
 
 exports.put = {
-    index : (req,cb) => {
-        defaultPut(dbName,req,(res)=>{
-            if(res.success){
-                cb({ status:true, data:res.data })
+    index: (req, cb) => {
+        defaultPut(dbName, req, (res) => {
+            if (res.success) {
+                cb({ status: true, data: res.data })
             } else {
-                cb({ status:false, error:c.error })
+                cb({ status: false, error: c.error })
             }
         })
     }

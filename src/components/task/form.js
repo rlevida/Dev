@@ -242,7 +242,7 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        const { dispatch, task, workstream, loggedUser, checklist, global } = this.props;
+        const { dispatch, task, loggedUser, checklist, global } = this.props;
         const workstreamList =  (typeof global.SelectList.workstreamList != "undefined") ? _.map(global.SelectList.workstreamList, (workstreamObj) => { return { id: workstreamObj.id, name: workstreamObj.workstream } }) : [];
         const allowEdit = (loggedUser.data.userRole == 5 || loggedUser.data.userRole == 6) && (loggedUser.data.userType == "External") ? false : true;
         const taskList = _(task.List)

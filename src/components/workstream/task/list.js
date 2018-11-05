@@ -1,6 +1,5 @@
 import React from "react";
 import moment from 'moment';
-import Tooltip from "react-tooltip";
 import { connect } from "react-redux";
 import parallel from 'async/parallel';
 import _ from "lodash";
@@ -92,8 +91,6 @@ export default class List extends React.Component {
         const userRoles = _.map(data.role, (roleObj) => { return roleObj.roleId })[0];
 
         getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${page}&role=${userRoles}`, {}, (c) => {
-            const currentPage = (typeof task.Count.current_page != "undefined") ? task.Count.current_page : 1;
-
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
             showToast("success", "Task successfully retrieved.");
@@ -223,7 +220,6 @@ export default class List extends React.Component {
                                             }
                                         </td>
                                         <td class="text-left">
-                                            {/* <a href={`/project/${data.projectId}/processes/${data.workstreamId}?task=${data.id}`}> */}
                                             <a href="javascript:void(0);" onClick={() => this.selectedTask(data)}>
                                                 {data.task}
                                             </a>

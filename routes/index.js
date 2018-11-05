@@ -92,7 +92,7 @@ router.get('/company', function (req, res, next) {
 
 router.get('/mytask', function (req, res, next) {
     res.render('index', {
-        title: global.site_name + " - Teams",
+        title: global.site_name + " - My Tasks",
         body: './template/index',
         page: 'mytask',
         user: JSON.stringify(req.userDetails.data)

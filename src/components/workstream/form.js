@@ -36,11 +36,6 @@ export default class FormComponent extends React.Component {
 
     componentDidMount() {
         $(".form-container").validator();
-        let { workstream } = this.props
-
-        if (typeof workstream.Selected.id != 'undefined') {
-            this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: workstream.Selected.id, linkType: 'workstream' } });
-        }
     }
 
     handleChange(e) {

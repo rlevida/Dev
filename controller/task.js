@@ -215,42 +215,49 @@ exports.get = {
     },
     status: (req, cb) => {
         const queryString = req.query;
-        const associationArray = _.cloneDeep(associationStack);
-        const whereObj = {
-            ...((typeof queryString.type != "undefined" && queryString.type == "myTask") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
-                [Sequelize.Op.or]: [
-                    {
-                        id: {
-                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = ${queryString.userId})`)
-                        }
-                    },
-                    {
-                        workstreamId: {
-                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT linkId FROM members WHERE memberType="responsible" AND linkType="workstream" AND userTypeLinkId = ${queryString.userId})`)
-                        }
-                    },
-                    {
-                        approverId: queryString.userId
-                    }
-                ]
-            } : {}
-        };
-        const options = {
-            include: associationArray,
-        };
+
         try {
-            Tasks.findAndCountAll({
-                ...options,
-                where: whereObj,
-                distinct: true,
-                attributes: [
-                    [sequelize.fn('COUNT', sequelize.col('id') < `10`), 'assigned_task'],
-                ],
-                logging: true
-            }).then((result) => {
-                console.log(result)
-                //callback(null, resultArray);
-            });
+            sequelize.query(`
+            SELECT
+
+            SUM(CASE WHEN task.dueDate < :date AND (task.status != "Completed" OR task.status IS NULL) AND task_members.memberType="assignedTo" AND task_members.userTypeLinkId = :user_id then 1 else 0 end)  AS assigned_issues,
+            SUM(CASE WHEN task.dueDate = :date AND (task.status != "Completed" OR task.status IS NULL) AND task_members.memberType="assignedTo" AND task_members.userTypeLinkId = :user_id then 1 else 0 end)  AS assigned_due_today,
+            SUM(CASE WHEN task_members.memberType="assignedTo" AND task_members.userTypeLinkId = :user_id then 1 else 0 end)  AS assigned_active,
+            
+            SUM(CASE WHEN task.dueDate < :date AND (task.status != "Completed" OR task.status IS NULL) AND task_members.memberType="Follower" AND task_members.userTypeLinkId = :user_id then 1 else 0 end)  AS followed_issues,
+            SUM(CASE WHEN task.dueDate = :date AND (task.status != "Completed" OR task.status IS NULL) AND task_members.memberType="Follower" AND task_members.userTypeLinkId = :user_id then 1 else 0 end)  AS followed_due_today,
+            SUM(CASE WHEN task_members.memberType="Follower" AND task_members.userTypeLinkId = :user_id then 1 else 0 end)  AS followed_active,
+
+            SUM(CASE WHEN task.dueDate < :date AND (task.status != "Completed" OR task.status IS NULL) AND workstream_members.memberType="responsible" AND workstream_members.userTypeLinkId = :user_id then 1 else 0 end)  AS responsible_issues,
+            SUM(CASE WHEN task.dueDate = :date AND (task.status != "Completed" OR task.status IS NULL) AND workstream_members.memberType="responsible" AND workstream_members.userTypeLinkId = :user_id then 1 else 0 end)  AS responsible_due_today,
+            SUM(CASE WHEN workstream_members.memberType="responsible" AND workstream_members.userTypeLinkId = :user_id then 1 else 0 end)  AS responsible_active
+
+            FROM 
+            
+            task 
+            LEFT JOIN( SELECT * FROM members WHERE linkType = "task" ) AS task_members ON task_members.linkId = task.id
+            LEFT JOIN workstream ON task.workstreamId = workstream.id
+            LEFT JOIN ( SELECT * FROM members WHERE linkType = "workstream" ) AS workstream_members ON workstream_members.linkId = task.workstreamId
+            
+            WHERE 
+            
+            task.id IN (SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = :user_id)
+            OR
+            workstream.id = (SELECT DISTINCT linkId FROM members WHERE memberType="responsible" AND linkType="workstream" AND userTypeLinkId = :user_id)
+            OR
+            task.approverId = ${queryString.userId}
+           
+            `, {
+                    replacements: {
+                        user_id: queryString.userId,
+                        date: moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")
+                    },
+                    type: sequelize.QueryTypes.SELECT
+                }
+            )
+                .then((response) => {
+                    cb({ status: true, data: response[0] });
+                })
         } catch (err) {
             callback(err)
         }

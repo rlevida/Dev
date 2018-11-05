@@ -4,7 +4,7 @@ import _ from "lodash";
 import moment from 'moment';
 
 import { HeaderButtonContainer, Loading } from "../../globalComponents";
-import { getData, putData, deleteData, showToast } from "../../globalFunction";
+import { getData, showToast } from "../../globalFunction";
 import TaskStatus from "./taskStatus"
 
 import { connect } from "react-redux"
@@ -19,8 +19,6 @@ export default class List extends React.Component {
     constructor(props) {
         super(props);
 
-        this.deleteData = this.deleteData.bind(this);
-        this.updateStatus = this.updateStatus.bind(this);
         this.renderStatus = this.renderStatus.bind(this);
         this.fetchData = this.fetchData.bind(this);
     }
@@ -35,12 +33,12 @@ export default class List extends React.Component {
             this.fetchData(Count.current_page + 1);
         }
 
-        socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        socket.emit("GET_STATUS_LIST", {});
-        socket.emit("GET_TYPE_LIST", {});
-        socket.emit("GET_USER_LIST", {});
-        socket.emit("GET_TEAM_LIST", {});
-        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } });
+        // socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
+        // socket.emit("GET_STATUS_LIST", {});
+        // socket.emit("GET_TYPE_LIST", {});
+        // socket.emit("GET_USER_LIST", {});
+        // socket.emit("GET_TEAM_LIST", {});
+        // socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } });
     }
 
     fetchData(page) {
@@ -57,35 +55,6 @@ export default class List extends React.Component {
         const { task } = { ...this.props };
         const { Count } = task
         this.fetchData(Count.current_page + 1);
-    }
-
-    updateStatus({ id, periodTask, periodic }) {
-        let { dispatch, loggedUser } = this.props;
-
-        putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: "Completed" }, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data });
-                showToast("success", "Task successfully updated.");
-            } else {
-                showToast("error", "Something went wrong please try again later.");
-            }
-            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-        });
-    }
-
-    deleteData(id) {
-        let { dispatch } = this.props;
-
-        if (confirm("Do you really want to delete this record?")) {
-            deleteData(`/api/task/${id}`, {}, (c) => {
-                if (c.status == 200) {
-                    dispatch({ type: "DELETE_TASK", id });
-                    showToast("success", "Task successfully deleted.");
-                } else {
-                    showToast("error", "Something went wrong please try again later.");
-                }
-            });
-        }
     }
 
     renderStatus(data) {

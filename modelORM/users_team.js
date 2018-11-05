@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
   const UsersTeam = sequelize.define('users_team', {
     id: {
       type: DataTypes.BIGINT,
@@ -36,9 +36,9 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-    tableName: 'users_team',
-    timestamps: false
-  });
+      tableName: 'users_team',
+      timestamps: false
+    });
 
   UsersTeam.associate = function (models) {
     UsersTeam.belongsTo(models.Users, {
