@@ -35,7 +35,7 @@ export default class WorkstreamStatus extends React.Component {
         const { data } = loggedUser;
         const userRoles = _.map(data.user_role, (roleObj) => { return roleObj.roleId })[0];
 
-        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&role=${userRoles}&date=${JSON.stringify({ opt: "lt", value: moment(new Date()).format("YYYY-MM-DD") })}`, {}, (c) => {
+        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&role=${userRoles}&date=${JSON.stringify({ opt: "lt", value: moment(new Date()).format("YYYY-MM-DD") })}&status=${JSON.stringify({ opt: "not", value: "Completed" })}`, {}, (c) => {
             this.setState({ list: c.data.result }, () => {
                 $('#workstreamStatusModal').modal("show");
             });
@@ -49,17 +49,20 @@ export default class WorkstreamStatus extends React.Component {
         return <div style={this.props.style}>
             <table>
                 <tbody>
-                    <tr>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left", color: "white" }}>Active</span><span style={{ float: "right", color: "white" }}>{(StatusCount.active - StatusCount.issues) + StatusCount.issues}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                            <span style={{ float: "left", color: "white" }}>On Time</span><span style={{ float: "right", color: "white" }}>{StatusCount.active - StatusCount.issues}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#d4a2a2", color: "white", cursor: "pointer" }} onClick={() => this.showModal("Issues")}>
-                            <span style={{ float: "left", color: "white" }}>Issues</span><span style={{ float: "right", color: "white" }}>{StatusCount.issues > 0 && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}{StatusCount.issues}</span>
-                        </td>
-                    </tr>
+                    {
+                        (_.isEmpty(StatusCount) == false) &&
+                        <tr>
+                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
+                                <span style={{ float: "left", color: "white" }}>Active</span><span style={{ float: "right", color: "white" }}>{(StatusCount.active - StatusCount.issues) + StatusCount.issues}</span>
+                            </td>
+                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
+                                <span style={{ float: "left", color: "white" }}>On Time</span><span style={{ float: "right", color: "white" }}>{StatusCount.active - StatusCount.issues}</span>
+                            </td>
+                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#d4a2a2", color: "white", cursor: "pointer" }} onClick={() => this.showModal("Issues")}>
+                                <span style={{ float: "left", color: "white" }}>Issues</span><span style={{ float: "right", color: "white" }}>{StatusCount.issues > 0 && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}{StatusCount.issues}</span>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
 
@@ -67,21 +70,17 @@ export default class WorkstreamStatus extends React.Component {
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="workstreamStatusModalLabel">Issues</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Issues</h4>
                         </div>
                         <div class="modal-body">
                             <table id="dataTable" class="table responsive-table">
                                 <tbody>
                                     <tr>
-                                        <th style={{ textAlign: "center" }}>Workstream</th>
-                                        <th style={{ textAlign: "center" }}>Task</th>
+                                        <th class="text-left">Workstream</th>
+                                        <th class="text-left">Task</th>
                                         <th style={{ textAlign: "center" }}>Due date</th>
                                         <th style={{ textAlign: "center" }}>Assignees</th>
-
-                                        <th></th>
                                     </tr>
                                     {this.state.list.length > 0 &&
                                         this.state.list.map((data, index) => {
@@ -89,8 +88,8 @@ export default class WorkstreamStatus extends React.Component {
 
                                             return (
                                                 <tr key={index}>
-                                                    <td>{data.workstream.workstream}</td>
-                                                    <td>{data.task}</td>
+                                                    <td class="text-left">{data.workstream.workstream}</td>
+                                                    <td class="text-left">{data.task}</td>
                                                     <td>{(data.dueDate != '' && data.dueDate != null) ? moment(data.dueDate).format('YYYY MMM DD') : ''}</td>
                                                     <td>
                                                         {

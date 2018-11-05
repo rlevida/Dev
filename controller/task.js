@@ -93,6 +93,8 @@ exports.get = {
         const queryString = req.query;
         const limit = 10;
         const date = (typeof queryString.date != "undefined") ? JSON.parse(queryString.date) : "";
+        const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
+
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
@@ -100,6 +102,18 @@ exports.get = {
                 dueDate: {
                     [Sequelize.Op[date.opt]]: date.value
                 }
+            } : {},
+            ...(status != "") ? {
+                [Sequelize.Op.or]: [
+                    {
+                        status: {
+                            [Sequelize.Op[status.opt]]: status.value
+                        }
+                    },
+                    {
+                        status: null
+                    }
+                ]
             } : {},
             ...((typeof queryString.type != "undefined" && queryString.type == "myTask") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
                 [Sequelize.Op.or]: [
@@ -152,7 +166,8 @@ exports.get = {
             result: function (callback) {
                 try {
                     Tasks.findAll({
-                        where: whereObj, ...options,
+                        where: whereObj,
+                        ...options
                     }).map((mapObject) => {
                         return mapObject.toJSON();
                     }).then((resultArray) => {
@@ -265,7 +280,7 @@ exports.get = {
     },
     taskStatus: (req, cb) => {
         const queryString = req.query;
-        
+
         try {
             sequelize.query(`
             SELECT
@@ -278,9 +293,9 @@ exports.get = {
             ${(queryString.role > 2) ? `
             AND
             task.id IN (SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = :user_id AND members.memberType = :member_type )
-            `
-                    : ``}
-            `, {
+            ` : ``}
+            `,
+                {
                     replacements: {
                         user_id: queryString.userId,
                         date: moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm"),
