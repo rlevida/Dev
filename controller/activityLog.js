@@ -42,7 +42,7 @@ exports.get = {
                     ActivityLogs.findAndCountAll({ where: _.omit(whereObj, ['offset', 'limit']) }).then((response) => {
                         const pageData = {
                             total_count: response.count,
-                            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: _.toNumber(queryString.page), last_page: _.ceil(response.count / limit) } : {}
+                            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
                         }
 
                         callback(null, pageData)
