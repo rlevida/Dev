@@ -218,7 +218,7 @@ export default class DocumentLibrary extends React.Component {
         dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "RETRIEVING" })
         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data.result, count: { Count: c.data.count } })
+                dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: c.data.result, count: { Count: c.data.count } })
                 dispatch({ type: "SET_LIBRARY_FOLDER_SELECTED", Selected: data })
                 dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
             }
@@ -243,9 +243,11 @@ export default class DocumentLibrary extends React.Component {
 
     getNextResult() {
         let { document, loggedUser, dispatch } = this.props;
+        dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "RETRIEVING" })
         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${document.LibraryCount.Count.current_page + 1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: document.Library.concat(c.data.result), count: { Count: c.data.count } })
+                dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
             } else {
             }
         });
@@ -345,7 +347,8 @@ export default class DocumentLibrary extends React.Component {
                             <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Tags</th>
                             <th></th>
                         </tr>
-                        {(document.LibraryDocumentLoading != "RETRIEVING") &&
+                        {
+                            (document.LibraryDocumentLoading != "RETRIEVING") &&
                             _.orderBy(folderList, ["dateAdded"], ["desc"]).map((data, index) => {
                                 if ((!data.parentId && !folder.SelectedLibraryFolder.id) || (data.parentId && folder.SelectedLibraryFolder.id == data.parentId)) {
                                     return (
@@ -424,8 +427,7 @@ export default class DocumentLibrary extends React.Component {
                                 }
                             })
                         }
-
-                        {(document.LibraryDocumentLoading != "RETRIEVING") &&
+                        {
                             _.orderBy(document.Library, ["dateAdded"], ["desc"]).map((data, index) => {
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                 return (
@@ -449,18 +451,20 @@ export default class DocumentLibrary extends React.Component {
                                             <div>
                                                 <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
                                                 <Tooltip id={`follower${index}`}>
-                                                    {global.SelectList.projectMemberList.map((e, mIndex) => {
-                                                        if (e.userType == "Internal") {
-                                                            return <p key={mIndex}>{`${e.firstName} ${e.lastName}`} <br /></p>
-                                                        } else {
-                                                            if (global.SelectList.shareList.length > 0) {
-                                                                let isShared = global.SelectList.shareList.filter(s => { return s.userTypeLinkId == e.id && data.id == s.shareId && s.shareType == "document" }).length ? 1 : 0
-                                                                if (isShared) {
-                                                                    return <p key={mIndex}>{`${e.firstName} ${e.lastName}`} <br /></p>
+                                                    {(typeof global.SelectList.projectMemberList != "undefined") &&
+                                                        global.SelectList.projectMemberList.map((e, mIndex) => {
+                                                            if (e.userType == "Internal") {
+                                                                return <p key={mIndex}>{`${e.firstName} ${e.lastName}`} <br /></p>
+                                                            } else {
+                                                                if (global.SelectList.shareList.length > 0) {
+                                                                    let isShared = global.SelectList.shareList.filter(s => { return s.userTypeLinkId == e.id && data.id == s.shareId && s.shareType == "document" }).length ? 1 : 0
+                                                                    if (isShared) {
+                                                                        return <p key={mIndex}>{`${e.firstName} ${e.lastName}`} <br /></p>
+                                                                    }
                                                                 }
                                                             }
-                                                        }
-                                                    })}
+                                                        })
+                                                    }
                                                 </Tooltip>
                                             </div>
                                         </td>
@@ -528,7 +532,7 @@ export default class DocumentLibrary extends React.Component {
                 </table>
                 <div class="text-center">
                     {
-                        ((currentPage != lastPage) && document.Library.length > 0) && <a onClick={() => this.getNextResult()}>Load More Documents</a>
+                        ((currentPage != lastPage) && document.Library.length > 0 && document.LibraryDocumentLoading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
                     }
                     {
                         (document.Library.length == 0 && folderList.length == 0 && document.LibraryDocumentLoading != "RETRIEVING") && <p>No Records Found</p>
