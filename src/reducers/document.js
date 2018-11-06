@@ -14,7 +14,8 @@ export default function reducer(state = {
     NewDocumentLoading: "RETRIEVING",
     LibraryDocumentLoading: "RETRIEVING",
     NewCount: { Count: {} },
-    LibraryCount: { Count: {} }
+    LibraryCount: { Count: {} },
+    NewUploadCount: 0
 }, action) {
     switch (action.type) {
         case "ADD_DOCUMENT_LIST": {
@@ -78,6 +79,9 @@ export default function reducer(state = {
         }
         case "SET_LIBRARY_DOCUMENT_LOADING": {
             return { ...state, LibraryDocumentLoading: action.Loading }
+        }
+        case "SET_DOCUMENT_NEW_UPLOAD_COUNT": {
+            return { ...state, NewUploadCount: action.Count }
         }
         case "UPDATE_DATA_DOCUMENT_LIST": {
             if (action.Status == "new") {

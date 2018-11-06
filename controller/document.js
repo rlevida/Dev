@@ -154,6 +154,48 @@ exports.get = {
             status: 200,
             data: Printer.list()
         })
+    },
+    getDocumentCount: (req, cb) => {
+        const queryString = req.query
+        const documentLinkWhereObj = {
+            ...(typeof queryString.linkId != "undefined" && queryString.linkId != "") ? { linkId: queryString.linkId } : {},
+            ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {}
+        };
+        const documentWhereObj = {
+            ...(typeof queryString.status != "undefined" && queryString.status != "") ? { status: queryString.status } : {},
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
+            ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
+            [Op.or]: {
+                ...(typeof queryString.userType != "undefined" && queryString.userType == "External" && typeof queryString.userId != "undefined" && queryString.userId != "") ? {
+                    [Op.or]: [
+                        {
+                            id: {
+                                [Op.in]: Sequelize.literal(`(SELECT DISTINCT shareId FROM share where userTypeLinkId = ${queryString.userId})`)
+                            },
+                        },
+                    ]
+                } : {},
+                uploadedBy: queryString.userId
+            },
+        }
+
+        try {
+            DocumentLink
+                .findAndCountAll({
+                    where: documentLinkWhereObj,
+                    include: [{
+                        model: Document,
+                        as: 'document',
+                        where: documentWhereObj,
+                        include: associationFindAllStack
+                    }],
+                })
+                .then((res) => {
+                    cb({ status: true, data: { newUploadCount: res.count } })
+                })
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
     }
 }
 

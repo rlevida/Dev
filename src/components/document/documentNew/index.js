@@ -96,13 +96,14 @@ export default class DocumentNew extends React.Component {
     }
 
     moveToLibrary(data) {
-        let { socket, dispatch } = this.props;
+        let { dispatch, document } = this.props;
         let dataToSubmit = { status: "library", id: data.id }
         putData(`/api/document/${data.id}`, dataToSubmit, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data, Status: data.status })
                 dispatch({ type: "MOVE_DOCUMENT_TO_LIBRARY", UpdatedData: c.data })
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+                dispatch({ type: "SET_DOCUMENT_NEW_UPLOAD_COUNT", Count: document.NewUploadCount - 1 })
                 showToast("success", "Successfully Updated.")
             } else {
                 showToast("error", "Updating failed. Please try again.")
