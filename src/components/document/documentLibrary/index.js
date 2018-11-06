@@ -218,7 +218,7 @@ export default class DocumentLibrary extends React.Component {
         dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "RETRIEVING" })
         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: c.data })
+                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data.result, count: { Count: c.data.count } })
                 dispatch({ type: "SET_LIBRARY_FOLDER_SELECTED", Selected: data })
                 dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
             }
@@ -234,7 +234,7 @@ export default class DocumentLibrary extends React.Component {
         dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "RETRIEVING" })
         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&isCompleted=${isCompleted}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: c.data })
+                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data.result, count: { Count: c.data.count } })
                 dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
                 this.setState({ selectedFilter: e.value })
             }

@@ -67,16 +67,14 @@ exports.get = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
             order: [['dateAdded', 'DESC']]
         };
-
         const documentLinkWhereObj = {
             ...(typeof queryString.linkId != "undefined" && queryString.linkId != "") ? { linkId: queryString.linkId } : {},
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {}
         };
-
-        let documentWhereObj = {
+        const documentWhereObj = {
             ...(typeof queryString.status != "undefined" && queryString.status != "") ? { status: queryString.status } : {},
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
-            ...(typeof queryString.folderId != "undefined" && queryString.folderId != "") ? { folderId: queryString.folderId } : { folderId: null },
+            ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "") ? { folderId: queryString.folderId } : { folderId: null },
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
             [Op.or]: {
                 ...(typeof queryString.userType != "undefined" && queryString.userType == "External" && typeof queryString.userId != "undefined" && queryString.userId != "") ? {

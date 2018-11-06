@@ -217,7 +217,7 @@ export default class DocumentNew extends React.Component {
         dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "RETRIEVING" })
         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data })
+                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data.result, count: { Count: c.data.count } })
                 dispatch({ type: "SET_NEW_FOLDER_SELECTED", Selected: data })
                 dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
             }
@@ -231,9 +231,9 @@ export default class DocumentNew extends React.Component {
             isCompleted = e.value == 1 ? 1 : 0;
         }
         dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "RETRIEVING" })
-        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&isCompleted=${isCompleted}`, {}, (c) => {
+        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&isCompleted=${isCompleted}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data })
+                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data.result, count: { Count: c.data.count } })
                 dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
                 this.setState({ selectedFilter: e.value })
             }
@@ -245,7 +245,6 @@ export default class DocumentNew extends React.Component {
         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${document.NewCount.Count.current_page + 1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: document.New.concat(c.data.result), count: { Count: c.data.count } })
-            } else {
             }
         });
     }
@@ -287,7 +286,7 @@ export default class DocumentNew extends React.Component {
                 folderParentId = parentFolder[0].parentId;
             }
         }
-        
+
         return <div>
             <br />
             <div class="col-lg-12 col-md-12">
