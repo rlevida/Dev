@@ -76,14 +76,15 @@ export default class UploadModal extends React.Component {
     }
 
     render() {
-        let { workstream, task } = this.props;
+        let { workstream, task, global } = this.props;
         let tagOptions = [];
-        workstream.List
-            .map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) })
-        task.List
-            .filter(e => { return e.status != "Completed" })
-            .map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) })
-
+        if (typeof global.SelectList.workstreamList != "undefined" && typeof global.SelectList.taskList != "undefined") {
+            global.SelectList.workstreamList
+                .map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) })
+            global.SelectList.taskList
+                .filter(e => { return e.status != "Completed" })
+                .map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) })
+        }
         return <div>
             <div class="modal fade" id="uploadFileModal" tabIndex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg" role="document">

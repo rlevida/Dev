@@ -112,7 +112,8 @@ export default class List extends React.Component {
                     })
                 }
             }, (error, result) => {
-                dispatch({ type: "SET_DOCUMENT_LOADING", Loading: false })
+                dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
+                dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
             })
         }
     }

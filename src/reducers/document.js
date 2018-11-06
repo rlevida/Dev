@@ -10,11 +10,11 @@ export default function reducer(state = {
     DocumentToPrint: "",
     PrinterList: [],
     Library: [],
-    New: []
+    New: [],
+    NewDocumentLoading: "RETRIEVING",
+    LibraryDocumentLoading: "RETRIEVING"
 }, action) {
     switch (action.type) {
-
-        //ADD
         case "ADD_DOCUMENT_LIST": {
             let { New } = { ...state };
             action.list.map(e => {
@@ -22,8 +22,11 @@ export default function reducer(state = {
             })
             return { ...state, New: New }
         }
-
-        //SET
+        case "MOVE_DOCUMENT_TO_LIBRARY": {
+            let { Library } = { ...state };
+            Library.push(action.UpdatedData)
+            return { ...state, Library: Library }
+        }
         case "SET_DOCUMENT_LIST": {
             return { ...state, List: action.list }
         }
@@ -68,7 +71,12 @@ export default function reducer(state = {
         case "SET_DOCUMENT_LOADING": {
             return { ...state, Loading: action.Loading }
         }
-        //UPDATE
+        case "SET_NEW_DOCUMENT_LOADING": {
+            return { ...state, NewDocumentLoading: action.Loading }
+        }
+        case "SET_LIBRARY_DOCUMENT_LOADING": {
+            return { ...state, LibraryDocumentLoading: action.Loading }
+        }
         case "UPDATE_DATA_DOCUMENT_LIST": {
             if (action.Status == "new") {
                 let tempList = state.New.map((e, i) => {
@@ -88,7 +96,23 @@ export default function reducer(state = {
                 return { ...state, Library: tempList }
             }
         }
-        //REMOVE
+        case "REMOVE_DOCUMENT_FROM_LIST": {
+            if (action.Status == "new") {
+                let tempList = state.New.filter((e, i) => {
+                    if (e.id != action.UpdatedData.id) {
+                        return action.UpdatedData
+                    }
+                })
+                return { ...state, New: tempList }
+            } else {
+                let tempList = state.Library.filter((e, i) => {
+                    if (e.id != action.UpdatedData.id) {
+                        return action.UpdatedData
+                    }
+                })
+                return { ...state, Library: tempList }
+            }
+        }
         case "REMOVE_DELETED_DOCUMENT_LIST": {
             let tempList = [];
             state.List.map((e, i) => {

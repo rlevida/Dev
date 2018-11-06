@@ -3,7 +3,7 @@ import moment from 'moment'
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DragDropContext } from 'react-dnd';
 import { DropDown, Loading } from "../../../globalComponents"
-import { getFilePathExtension, putData, deleteData, showToast, postData, removeTempFile } from '../../../globalFunction'
+import { deleteData, getData, getFilePathExtension, postData, putData, removeTempFile, showToast } from '../../../globalFunction'
 import Tooltip from "react-tooltip";
 import PrintComponent from "../print"
 
@@ -108,7 +108,7 @@ export default class DocumentLibrary extends React.Component {
     addFolder() {
         let { loggedUser, folder, dispatch } = this.props;
         let { folderName } = this.state;
-        let dataToSubmit = { projectId: project, name: folderName, createdBy: loggedUser.data.id, parentId: folder.SelectedNewFolder.id, type: "library" };
+        let dataToSubmit = { projectId: project, name: folderName, createdBy: loggedUser.data.id, parentId: folder.SelectedLibraryFolder.id, type: "library" };
         postData(`/api/folder?projectId=${project}`, dataToSubmit, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "ADD_FOLDER_LIST", list: [c.data] });
@@ -126,7 +126,7 @@ export default class DocumentLibrary extends React.Component {
         let dataToSubmit = { ...documentData, status: folderData.type, folderId: folderData.id };
         putData(`/api/document/${documentData.id}`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data, Status: documentData.status })
                 showToast("success", "Successfully Updated.")
             } else {
                 showToast("danger", "Updating failed. Please try again")
@@ -240,6 +240,34 @@ export default class DocumentLibrary extends React.Component {
         })
     }
 
+    getFolderDocuments(data) {
+        let { dispatch, loggedUser } = this.props;
+        dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "RETRIEVING" })
+        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: c.data })
+                dispatch({ type: "SET_LIBRARY_FOLDER_SELECTED", Selected: data })
+                dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
+            }
+        });
+    }
+
+    libraryDocumentFilter(e) {
+        let { dispatch, loggedUser } = this.props;
+        let isCompleted = 0
+        if (e.value != 0) {
+            isCompleted = e.value == 1 ? 1 : 0;
+        }
+        dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "RETRIEVING" })
+        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&isCompleted=${isCompleted}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: c.data })
+                dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
+                this.setState({ selectedFilter: e.value })
+            }
+        });
+    }
+
     render() {
         let { document, workstream, starred, global, task, folder, dispatch, loggedUser } = this.props, { selectedFilter } = this.state;
         let documentList = { newUpload: [], library: [] }, tagList = [], tagOptions = [], shareOptions = [], folderList = [], tagCount = 0
@@ -247,70 +275,70 @@ export default class DocumentLibrary extends React.Component {
         workstream.List.map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) })
         task.List.map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) })
 
-        if (document.List.length > 0 && typeof global.SelectList.tagList != "undefined" && typeof global.SelectList.shareList != "undefined" && loggedUser.data.userType != "") {
-            if (typeof folder.SelectedLibraryFolder.id == "undefined") {
-                document.List
-                    .filter(e => { return e.status == "library" && e.folderId == null })
-                    .map(e => {
-                        if (loggedUser.data.userType == "Internal" && !e.isCompleted) {
-                            if (e.folderId == null) {
-                                if (selectedFilter == 0) {
-                                    documentList.library.push(e)
-                                } else if (selectedFilter == 1 && e.isCompleted == 1) {
-                                    documentList.library.push(e)
-                                } else if (selectedFilter == 2 && e.isCompleted == 0) {
-                                    documentList.library.push(e)
-                                }
-                            }
-                        } else {
-                            if (e.folderId == null && !e.isCompleted) {
-                                let isShared = global.SelectList.shareList.filter(s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id }).length ? 1 : 0;
-                                if (isShared || e.uploadedBy == loggedUser.data.id) {
-                                    if (selectedFilter == 0) {
-                                        documentList.library.push(e)
-                                    } else if (selectedFilter == 1 && e.isCompleted == 1) {
-                                        documentList.library.push(e)
-                                    } else if (selectedFilter == 2 && e.isCompleted == 0) {
-                                        documentList.library.push(e)
-                                    }
-                                }
-                            }
-                        }
-                    })
-            } else {
-                document.List
-                    .filter(e => { return e.status == "library" && e.folderId != null })
-                    .map(e => {
-                        if (loggedUser.data.userType == "Internal") {
-                            if (e.folderId == folder.SelectedLibraryFolder.id) {
-                                if (selectedFilter == 0) {
-                                    documentList.library.push(e)
-                                } else if (selectedFilter == 1 && e.isCompleted == 1) {
-                                    documentList.library.push(e)
-                                } else if (selectedFilter == 2 && e.isCompleted == 0) {
-                                    documentList.library.push(e)
-                                }
-                            }
-                        } else {
-                            if (e.folderId == folder.SelectedLibraryFolder.id) {
-                                let isShared = global.SelectList.shareList
-                                    .filter(s => {
-                                        return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedLibraryFolder.id) && (s.shareType == "document" || s.shareType == "folder")
-                                    }).length ? 1 : 0;
-                                if (isShared || e.uploadedBy == loggedUser.data.id) {
-                                    if (selectedFilter == 0) {
-                                        documentList.library.push(e)
-                                    } else if (selectedFilter == 1 && e.isCompleted == 1) {
-                                        documentList.library.push(e)
-                                    } else if (selectedFilter == 2 && e.isCompleted == 0) {
-                                        documentList.library.push(e)
-                                    }
-                                }
-                            }
-                        }
-                    })
-            }
-        }
+        // if (document.List.length > 0 && typeof global.SelectList.tagList != "undefined" && typeof global.SelectList.shareList != "undefined" && loggedUser.data.userType != "") {
+        //     if (typeof folder.SelectedLibraryFolder.id == "undefined") {
+        //         document.List
+        //             .filter(e => { return e.status == "library" && e.folderId == null })
+        //             .map(e => {
+        //                 if (loggedUser.data.userType == "Internal" && !e.isCompleted) {
+        //                     if (e.folderId == null) {
+        //                         if (selectedFilter == 0) {
+        //                             documentList.library.push(e)
+        //                         } else if (selectedFilter == 1 && e.isCompleted == 1) {
+        //                             documentList.library.push(e)
+        //                         } else if (selectedFilter == 2 && e.isCompleted == 0) {
+        //                             documentList.library.push(e)
+        //                         }
+        //                     }
+        //                 } else {
+        //                     if (e.folderId == null && !e.isCompleted) {
+        //                         let isShared = global.SelectList.shareList.filter(s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id }).length ? 1 : 0;
+        //                         if (isShared || e.uploadedBy == loggedUser.data.id) {
+        //                             if (selectedFilter == 0) {
+        //                                 documentList.library.push(e)
+        //                             } else if (selectedFilter == 1 && e.isCompleted == 1) {
+        //                                 documentList.library.push(e)
+        //                             } else if (selectedFilter == 2 && e.isCompleted == 0) {
+        //                                 documentList.library.push(e)
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             })
+        //     } else {
+        //         document.List
+        //             .filter(e => { return e.status == "library" && e.folderId != null })
+        //             .map(e => {
+        //                 if (loggedUser.data.userType == "Internal") {
+        //                     if (e.folderId == folder.SelectedLibraryFolder.id) {
+        //                         if (selectedFilter == 0) {
+        //                             documentList.library.push(e)
+        //                         } else if (selectedFilter == 1 && e.isCompleted == 1) {
+        //                             documentList.library.push(e)
+        //                         } else if (selectedFilter == 2 && e.isCompleted == 0) {
+        //                             documentList.library.push(e)
+        //                         }
+        //                     }
+        //                 } else {
+        //                     if (e.folderId == folder.SelectedLibraryFolder.id) {
+        //                         let isShared = global.SelectList.shareList
+        //                             .filter(s => {
+        //                                 return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedLibraryFolder.id) && (s.shareType == "document" || s.shareType == "folder")
+        //                             }).length ? 1 : 0;
+        //                         if (isShared || e.uploadedBy == loggedUser.data.id) {
+        //                             if (selectedFilter == 0) {
+        //                                 documentList.library.push(e)
+        //                             } else if (selectedFilter == 1 && e.isCompleted == 1) {
+        //                                 documentList.library.push(e)
+        //                             } else if (selectedFilter == 2 && e.isCompleted == 0) {
+        //                                 documentList.library.push(e)
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             })
+        //     }
+        // }
 
         if (typeof global.SelectList.projectMemberList != "undefined") { // FOR SHARE OPTIONS
             global.SelectList.projectMemberList.map(e => {
@@ -348,14 +376,14 @@ export default class DocumentLibrary extends React.Component {
             let parentFolder = folderList.filter(e => e.id == folderParentId);
             folderParentId = null;
             if (parentFolder.length > 0) {
-                folderName.unshift(<span> > <a style={{ cursor: "pointer" }} onClick={() => dispatch({ type: "SET_LIBRARY_FOLDER_SELECTED", Selected: parentFolder[0] })}>{
+                folderName.unshift(<span> > <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments(parentFolder[0])}>{
                     ((typeof parentFolder[0].name != "undefined") ? `${parentFolder[0].name}` : "")}</a></span>)
                 folderParentId = parentFolder[0].parentId;
             }
         }
         return <div>
             <div class="col-lg-12 col-md-12">
-                <h3><a style={{ cursor: "pointer" }} onClick={() => dispatch({ type: "SET_LIBRARY_FOLDER_SELECTED", Selected: {} })}>Library</a>
+                <h3><a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>Library</a>
                     {folderName.map((e, index) => { return <span key={index}>{e}</span>; })}
                 </h3>
 
@@ -373,7 +401,7 @@ export default class DocumentLibrary extends React.Component {
                                     required={false}
                                     options={[{ id: 0, name: "All" }, { id: 1, name: "Completed" }, { id: 2, name: "Uncompleted" }]}
                                     selected={this.state.selectedFilter}
-                                    onChange={(e) => this.setState({ selectedFilter: e.value })} />
+                                    onChange={(e) => this.libraryDocumentFilter(e)} />
                             </div>
                         </div>
                     </form>
@@ -399,26 +427,14 @@ export default class DocumentLibrary extends React.Component {
                             <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Tags</th>
                             <th></th>
                         </tr>
-                        {
-                            (document.Loading) &&
-                            <tr>
-                                <td colSpan={8}><Loading /></td>
-                            </tr>
-                        }
-                        {
-                            (document.Library.length == 0 && folder.List.length == 0 && !document.Loading) &&
-                            <tr>
-                                <td colSpan={8}>No Record Found!</td>
-                            </tr>
-                        }
-                        {(!document.Loading) &&
+                        {(document.LibraryDocumentLoading != "RETRIEVING") &&
                             _.orderBy(folderList, ["dateAdded"], ["desc"]).map((data, index) => {
                                 if ((!data.parentId && !folder.SelectedLibraryFolder.id) || (data.parentId && folder.SelectedLibraryFolder.id == data.parentId)) {
                                     return (
                                         <tr key={index}>
                                             <td><input type="checkbox" /></td>
                                             <td ><span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span></td>
-                                            <td class="library-document"><a href="javascript:void(0)" onClick={() => dispatch({ type: "SET_LIBRARY_FOLDER_SELECTED", Selected: data })}><span class="fa fa-folder" style={{ marginRight: "20px" }}></span>{data.name}</a></td>
+                                            <td class="library-document"><a href="javascript:void(0)" onClick={() => this.getFolderDocuments(data)}><span class="fa fa-folder" style={{ marginRight: "20px" }}></span>{data.name}</a></td>
                                             <td>{moment(data.dateUpdated).format('L')}</td>
                                             <td>
                                                 <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
@@ -491,7 +507,7 @@ export default class DocumentLibrary extends React.Component {
                             })
                         }
 
-                        {(!document.Loading) &&
+                        {(document.LibraryDocumentLoading != "RETRIEVING") &&
                             _.orderBy(document.Library, ["dateAdded"], ["desc"]).map((data, index) => {
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                 return (
@@ -592,6 +608,17 @@ export default class DocumentLibrary extends React.Component {
                         }
                     </tbody>
                 </table>
+                <div class="text-center">
+                    {/* {
+                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Projects</a>
+                    } */}
+                    {
+                        (document.Library.length == 0 && folderList.length == 0 && document.LibraryDocumentLoading != "RETRIEVING") && <p>No Records Found</p>
+                    }
+                </div>
+                {
+                    (document.LibraryDocumentLoading == "RETRIEVING") && <Loading />
+                }
                 <div class="modal fade" id="shareModal" tabIndex="-1" role="dialog" aria-labelledby="shareModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">

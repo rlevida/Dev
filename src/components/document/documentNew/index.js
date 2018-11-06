@@ -1,6 +1,6 @@
 import React from "react";
 import { DropDown, Loading } from "../../../globalComponents"
-import { getFilePathExtension, putData, deleteData, showToast, postData, removeTempFile } from '../../../globalFunction'
+import { deleteData, getData, getFilePathExtension, postData, putData, removeTempFile, showToast } from '../../../globalFunction'
 import moment from 'moment'
 import { connect } from "react-redux"
 
@@ -100,9 +100,9 @@ export default class DocumentNew extends React.Component {
         let dataToSubmit = { status: "library", id: data.id }
         putData(`/api/document/${data.id}`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data, Status: data.status })
+                dispatch({ type: "MOVE_DOCUMENT_TO_LIBRARY", UpdatedData: c.data })
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
-                dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
                 showToast("success", "Successfully Updated.")
             } else {
                 showToast("error", "Updating failed. Please try again.")
@@ -129,7 +129,7 @@ export default class DocumentNew extends React.Component {
         let dataToSubmit = { ...documentData, status: folderData.type, folderId: folderData.id };
         putData(`/api/document/${documentData.id}`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data, Status: documentData.status })
                 showToast("success", "Successfully Updated.")
             } else {
                 showToast("danger", "Updating failed. Please try again")
@@ -212,80 +212,108 @@ export default class DocumentNew extends React.Component {
         window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
     }
 
+    getFolderDocuments(data) {
+        let { dispatch, loggedUser } = this.props;
+        dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "RETRIEVING" })
+        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data })
+                dispatch({ type: "SET_NEW_FOLDER_SELECTED", Selected: data })
+                dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
+            }
+        });
+    }
+
+    newDocumentFilter(e) {
+        let { dispatch, loggedUser } = this.props;
+        let isCompleted = 0
+        if (e.value != 0) {
+            isCompleted = e.value == 1 ? 1 : 0;
+        }
+        dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "RETRIEVING" })
+        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&isCompleted=${isCompleted}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data })
+                dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
+                this.setState({ selectedFilter: e.value })
+            }
+        });
+    }
+
     render() {
         let { document, workstream, starred, global, task, folder, dispatch, loggedUser, users } = this.props, { selectedFilter } = this.state;
         let documentList = { newUpload: [], library: [] }, tagOptions = [], shareOptions = [], tagCount = 0;
         let folderList = [];
         workstream.List.map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) })
         task.List.map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) })
-        if (typeof folder.SelectedNewFolder.id == "undefined" && folder.SelectedNewFolder.type != "new"
-            && typeof global.SelectList.tagList != "undefined" && typeof global.SelectList.shareList != "undefined" && loggedUser.data.userType != "") {
-            if (document.List.length > 0) {
-                document.List
-                    .filter(e => { return e.status == "new" })
-                    .map(e => {
-                        // let tagStatus = global.SelectList.tagList
-                        //     .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
-                        // let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
-                        if (loggedUser.data.userType == "Internal") {
-                            if (e.folderId == null) {
-                                if (selectedFilter == 0) {
-                                    documentList.newUpload.push(e)
-                                } else if (selectedFilter == 1 && e.isCompleted == 1) {
-                                    documentList.newUpload.push(e)
-                                } else if (selectedFilter == 2 && e.isCompleted == 0) {
-                                    documentList.newUpload.push(e)
-                                }
-                            }
-                        } else {
-                            if (e.folderId == null) {
-                                let isShared = global.SelectList.shareList.filter(s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id }).length ? 1 : 0;
-                                if (isShared || e.uploadedBy == loggedUser.data.id) {
-                                    if (selectedFilter == 0) {
-                                        documentList.newUpload.push(e)
-                                    } else if (selectedFilter == 1 && e.isCompleted == 1) {
-                                        documentList.newUpload.push(e)
-                                    } else if (selectedFilter == 2 && e.isCompleted == 0) {
-                                        documentList.newUpload.push(e)
-                                    }
-                                }
-                            }
-                        }
-                    })
-            }
-        } else if (folder.SelectedNewFolder.type == "new") {
-            document.List
-                .filter(e => { return e.status == "new" && e.folderId != null })
-                .map(e => {
-                    let tagStatus = global.SelectList.tagList.filter(t => { return t.tagTypeId == e.id && t.tagType == "document" })
-                    let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
+        // if (typeof folder.SelectedNewFolder.id == "undefined" && folder.SelectedNewFolder.type != "new"
+        //     && typeof global.SelectList.tagList != "undefined" && typeof global.SelectList.shareList != "undefined" && loggedUser.data.userType != "") {
+        //     if (document.List.length > 0) {
+        //         document.List
+        //             .filter(e => { return e.status == "new" })
+        //             .map(e => {
+        //                 // let tagStatus = global.SelectList.tagList
+        //                 //     .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
+        //                 // let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
+        //                 if (loggedUser.data.userType == "Internal") {
+        //                     if (e.folderId == null) {
+        //                         if (selectedFilter == 0) {
+        //                             documentList.newUpload.push(e)
+        //                         } else if (selectedFilter == 1 && e.isCompleted == 1) {
+        //                             documentList.newUpload.push(e)
+        //                         } else if (selectedFilter == 2 && e.isCompleted == 0) {
+        //                             documentList.newUpload.push(e)
+        //                         }
+        //                     }
+        //                 } else {
+        //                     if (e.folderId == null) {
+        //                         let isShared = global.SelectList.shareList.filter(s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id }).length ? 1 : 0;
+        //                         if (isShared || e.uploadedBy == loggedUser.data.id) {
+        //                             if (selectedFilter == 0) {
+        //                                 documentList.newUpload.push(e)
+        //                             } else if (selectedFilter == 1 && e.isCompleted == 1) {
+        //                                 documentList.newUpload.push(e)
+        //                             } else if (selectedFilter == 2 && e.isCompleted == 0) {
+        //                                 documentList.newUpload.push(e)
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             })
+        //     }
+        // } else if (folder.SelectedNewFolder.type == "new") {
+        //     document.List
+        //         .filter(e => { return e.status == "new" && e.folderId != null })
+        //         .map(e => {
+        //             let tagStatus = global.SelectList.tagList.filter(t => { return t.tagTypeId == e.id && t.tagType == "document" })
+        //             let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
 
-                    if (loggedUser.data.userType == "Internal" && !e.isCompleted && e.status == "new") {
-                        if (e.folderId == folder.SelectedNewFolder.id) {
-                            if (selectedFilter == 0) {
-                                documentList.newUpload.push(e)
-                            } else if (selectedFilter == 1 && e.isCompleted == 1) {
-                                documentList.newUpload.push(e)
-                            } else if (selectedFilter == 2 && e.isCompleted == 0) {
-                                documentList.newUpload.push(e)
-                            }
-                        }
-                    } else if (e.status == "new" && e.folderId == folder.SelectedNewFolder.id && !e.isCompleted) {
-                        let isShared = global.SelectList.shareList
-                            .filter(s => { return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedNewFolder.id) && (s.shareType == "document" || s.shareType == "folder") }).length
-                            ? 1 : 0;
-                        if (isShared || e.uploadedBy == loggedUser.data.id) {
-                            if (selectedFilter == 0) {
-                                documentList.newUpload.push(e)
-                            } else if (selectedFilter == 1 && e.isCompleted == 1) {
-                                documentList.newUpload.push(e)
-                            } else if (selectedFilter == 2 && e.isCompleted == 0) {
-                                documentList.newUpload.push(e)
-                            }
-                        }
-                    }
-                })
-        }
+        //             if (loggedUser.data.userType == "Internal" && !e.isCompleted && e.status == "new") {
+        //                 if (e.folderId == folder.SelectedNewFolder.id) {
+        //                     if (selectedFilter == 0) {
+        //                         documentList.newUpload.push(e)
+        //                     } else if (selectedFilter == 1 && e.isCompleted == 1) {
+        //                         documentList.newUpload.push(e)
+        //                     } else if (selectedFilter == 2 && e.isCompleted == 0) {
+        //                         documentList.newUpload.push(e)
+        //                     }
+        //                 }
+        //             } else if (e.status == "new" && e.folderId == folder.SelectedNewFolder.id && !e.isCompleted) {
+        //                 let isShared = global.SelectList.shareList
+        //                     .filter(s => { return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedNewFolder.id) && (s.shareType == "document" || s.shareType == "folder") }).length
+        //                     ? 1 : 0;
+        //                 if (isShared || e.uploadedBy == loggedUser.data.id) {
+        //                     if (selectedFilter == 0) {
+        //                         documentList.newUpload.push(e)
+        //                     } else if (selectedFilter == 1 && e.isCompleted == 1) {
+        //                         documentList.newUpload.push(e)
+        //                     } else if (selectedFilter == 2 && e.isCompleted == 0) {
+        //                         documentList.newUpload.push(e)
+        //                     }
+        //                 }
+        //             }
+        //         })
+        // }
 
         if (typeof global.SelectList.ProjectMemberList != "undefined") { // FOR SHARE OPTIONS
             global.SelectList.ProjectMemberList.map(e => {
@@ -320,7 +348,7 @@ export default class DocumentNew extends React.Component {
             let parentFolder = folderList.filter(e => e.id == folderParentId);
             folderParentId = null;
             if (parentFolder.length > 0) {
-                folderName.unshift(<span> > <a style={{ cursor: "pointer" }} onClick={() => dispatch({ type: "SET_NEW_FOLDER_SELECTED", Selected: parentFolder[0] })}>{
+                folderName.unshift(<span> > <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments(parentFolder[0])}>{
                     ((typeof parentFolder[0].name != "undefined") ? `${parentFolder[0].name}` : "")}</a></span>)
                 folderParentId = parentFolder[0].parentId;
             }
@@ -329,7 +357,7 @@ export default class DocumentNew extends React.Component {
             <br />
             <div class="col-lg-12 col-md-12">
                 <h3>
-                    <a style={{ cursor: "pointer" }} onClick={() => dispatch({ type: "SET_NEW_FOLDER_SELECTED", Selected: {} })}>New Documents</a>
+                    <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>New Documents</a>
                     {folderName.map((e, index) => { return <span key={index}>{e}</span> })}
                 </h3>
 
@@ -347,7 +375,7 @@ export default class DocumentNew extends React.Component {
                                     required={false}
                                     options={[{ id: 0, name: "All" }, { id: 1, name: "Completed" }, { id: 2, name: "Uncompleted" }]}
                                     selected={this.state.selectedFilter}
-                                    onChange={(e) => this.setState({ selectedFilter: e.value })} />
+                                    onChange={(e) => this.newDocumentFilter(e)} />
                             </div>
                         </div>
                     </form>
@@ -373,27 +401,15 @@ export default class DocumentNew extends React.Component {
                             <th>Tags</th>
                             <th></th>
                         </tr>
-                        {/* {
-                            (document.Loading) &&
-                            <tr>
-                                <td colSpan={8}><Loading /></td>
-                            </tr>
-                        } */}
-                        {
-                            (document.New.length == 0 && folderList.length == 0) &&
-                            <tr>
-                                <td colSpan={8}>No Record Found!</td>
-                            </tr>
-                        }
 
-                        {(!document.Loading) &&
+                        {(!document.NewDocumentLoading != "RETRIEVING") &&
                             _.orderBy(folderList, ["dateAdded"], ["desc"]).map((data, index) => {
                                 if ((!data.parentId && !folder.SelectedNewFolder.id) || (data.parentId && folder.SelectedNewFolder.id == data.parentId)) {
                                     return (
                                         <tr key={index}>
                                             <td><input type="checkbox" /></td>
                                             <td ><span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span></td>
-                                            <td class="library-document"><a href="javascript:void(0)" onClick={() => dispatch({ type: "SET_NEW_FOLDER_SELECTED", Selected: data })}><span class="fa fa-folder" style={{ marginRight: "20px" }}></span>{data.name}</a></td>
+                                            <td class="library-document"><a href="javascript:void(0)" onClick={() => this.getFolderDocuments(data)}><span class="fa fa-folder" style={{ marginRight: "20px" }}></span>{data.name}</a></td>
                                             <td>{moment(data.dateUpdated).format('L')}</td>
                                             <td>{data.user.emailAddress}</td>
                                             <td>
@@ -434,7 +450,6 @@ export default class DocumentNew extends React.Component {
                                                                 })}
                                                             </div>
                                                         </li>
-                                                        {/* <li><a href="javascript:void(0)" data-tip="Edit" onClick={()=> this.editFolder(data , "folder")}>Rename</a></li> */}
                                                         <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteFolder(data.id)}>Delete</a></li>
                                                         <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>
                                                     </ul>
@@ -445,7 +460,8 @@ export default class DocumentNew extends React.Component {
                                 }
                             })
                         }
-                        {(!document.Loading) &&
+
+                        {(document.NewDocumentLoading != "RETRIEVING") &&
                             _.orderBy(document.New, ["dateAdded"], ["desc"]).map((data, index) => {
                                 let ext = getFilePathExtension(data.origin)
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
@@ -516,6 +532,17 @@ export default class DocumentNew extends React.Component {
                         }
                     </tbody>
                 </table>
+                <div class="text-center">
+                    {/* {
+                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Projects</a>
+                    } */}
+                    {
+                        (document.New.length == 0 && folderList.length == 0 && document.NewDocumentLoading != "RETRIEVING") && <p>No Records Found</p>
+                    }
+                </div>
+                {
+                    (document.NewDocumentLoading == "RETRIEVING") && <Loading />
+                }
             </div>
         </div>
     }
