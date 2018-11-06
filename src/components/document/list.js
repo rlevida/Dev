@@ -1,16 +1,17 @@
 import React from "react";
 import parallel from 'async/parallel';
 
-import { showToast, getData } from '../../globalFunction';
+import { getData } from '../../globalFunction';
 
 import DocumentNew from "./documentNew";
 import DocumentStatus from "./documentStatus";
 import DocumentLibrary from "./documentLibrary";
 
-import PrintModal from './documentPrinterModal'
-import UploadModal from './uploadModal'
+import PrintModal from "./documentPrinterModal";
+import UploadModal from "./uploadModal";
+import ShareModal from "./shareModal";
 
-import { connect } from "react-redux"
+import { connect } from "react-redux";
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -64,7 +65,7 @@ export default class List extends React.Component {
                 documentNew: (parallelCallback) => {
                     getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
                         if (c.status == 200) {
-                            dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data })
+                            dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data.result, count: { Count: c.data.count } })
                             parallelCallback(null, "")
                         } else {
                             parallelCallback(null, "")
@@ -74,7 +75,7 @@ export default class List extends React.Component {
                 documentLibrary: (parallelCallback) => {
                     getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
                         if (c.status == 200) {
-                            dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: c.data })
+                            dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: c.data.result, count: { Count: c.data.count } })
                             parallelCallback(null, "")
                         } else {
                             parallelCallback(null, "")
@@ -146,6 +147,7 @@ export default class List extends React.Component {
             </div>
             <PrintModal />
             <UploadModal />
+            <ShareModal />
         </div>
     }
 }

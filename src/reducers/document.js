@@ -12,7 +12,9 @@ export default function reducer(state = {
     Library: [],
     New: [],
     NewDocumentLoading: "RETRIEVING",
-    LibraryDocumentLoading: "RETRIEVING"
+    LibraryDocumentLoading: "RETRIEVING",
+    NewCount: { Count: {} },
+    LibraryCount: { Count: {} }
 }, action) {
     switch (action.type) {
         case "ADD_DOCUMENT_LIST": {
@@ -31,10 +33,10 @@ export default function reducer(state = {
             return { ...state, List: action.list }
         }
         case "SET_DOCUMENT_NEW_LIST": {
-            return { ...state, New: action.list }
+            return { ...state, New: action.list, NewCount: action.count }
         }
         case "SET_DOCUMENT_LIBRARY_LIST": {
-            return { ...state, Library: action.list }
+            return { ...state, Library: action.list, LibraryCount: action.count }
         }
         case "SET_DOCUMENT_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }

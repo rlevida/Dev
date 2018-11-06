@@ -3,6 +3,7 @@ const sequence = require("sequence").Sequence,
     mime = require('mime-types'),
     path = require('path'),
     Printer = require('node-printer');
+const _ = require("lodash");
 const dbName = "document";
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
@@ -64,6 +65,7 @@ exports.get = {
 
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+            order: [['dateAdded', 'DESC']]
         };
 
         const documentLinkWhereObj = {
@@ -86,44 +88,75 @@ exports.get = {
                         },
                     ]
                 } : {},
-                    uploadedBy: queryString.userId
-    },
-}
+                uploadedBy: queryString.userId
+            },
+        }
 
-try {
-    DocumentLink
-        .findAll({
-            ...options,
-            where: documentLinkWhereObj,
-            include: [{
-                model: Document,
-                as: 'document',
-                where: documentWhereObj,
-                include: associationFindAllStack
-            }],
-        })
-        .map((res) => {
-            let resToReturn = {
-                ...res.dataValues.document.toJSON(),
-                tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                    .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+        async.parallel({
+            count: function (parallelCallback) {
+                DocumentLink
+                    .findAndCountAll({
+                        ...options,
+                        where: documentLinkWhereObj,
+                        include: [{
+                            model: Document,
+                            as: 'document',
+                            where: documentWhereObj,
+                            include: associationFindAllStack
+                        }],
+                    })
+                    .then((res) => {
+                        const pageData = {
+                            total_count: res.count,
+                            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (res.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(res.count / limit) } : {}
+                        }
+                        parallelCallback(null, pageData)
+                    })
+            },
+            result: function (parallelCallback) {
+                try {
+                    DocumentLink
+                        .findAll({
+                            ...options,
+                            where: documentLinkWhereObj,
+                            include: [{
+                                model: Document,
+                                as: 'document',
+                                where: documentWhereObj,
+                                include: associationFindAllStack
+                            }],
+                        })
+                        .map((res) => {
+                            let resToReturn = {
+                                ...res.dataValues.document.toJSON(),
+                                tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                    .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                            }
+                            return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
+                        })
+                        .then((res) => {
+                            parallelCallback(null, res)
+                        })
+                } catch (err) {
+                    parallelCallback(err)
+                }
             }
-            return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
+        }, (err, results) => {
+            if (err != null) {
+                cb({ status: false, error: err });
+            } else {
+                cb({ status: true, data: results })
+            }
         })
-        .then((res) => {
-            cb({ status: true, data: res })
-        })
-} catch (err) {
-    cb({ statu: false, error: err })
-}
+
 
     },
-getPrinterList: (req, cb) => {
-    cb({
-        status: 200,
-        data: Printer.list()
-    })
-}
+    getPrinterList: (req, cb) => {
+        cb({
+            status: 200,
+            data: Printer.list()
+        })
+    }
 }
 
 exports.post = {

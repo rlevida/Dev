@@ -240,88 +240,21 @@ export default class DocumentNew extends React.Component {
         });
     }
 
+    getNextResult() {
+        let { document, loggedUser, dispatch } = this.props;
+        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${document.NewCount.Count.current_page + 1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: document.New.concat(c.data.result), count: { Count: c.data.count } })
+            } else {
+            }
+        });
+    }
+
     render() {
-        let { document, workstream, starred, global, task, folder, dispatch, loggedUser, users } = this.props, { selectedFilter } = this.state;
-        let documentList = { newUpload: [], library: [] }, tagOptions = [], shareOptions = [], tagCount = 0;
-        let folderList = [];
-        workstream.List.map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) })
-        task.List.map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) })
-        // if (typeof folder.SelectedNewFolder.id == "undefined" && folder.SelectedNewFolder.type != "new"
-        //     && typeof global.SelectList.tagList != "undefined" && typeof global.SelectList.shareList != "undefined" && loggedUser.data.userType != "") {
-        //     if (document.List.length > 0) {
-        //         document.List
-        //             .filter(e => { return e.status == "new" })
-        //             .map(e => {
-        //                 // let tagStatus = global.SelectList.tagList
-        //                 //     .filter( t => { return t.tagTypeId == e.id && t.tagType == "document"})
-        //                 // let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
-        //                 if (loggedUser.data.userType == "Internal") {
-        //                     if (e.folderId == null) {
-        //                         if (selectedFilter == 0) {
-        //                             documentList.newUpload.push(e)
-        //                         } else if (selectedFilter == 1 && e.isCompleted == 1) {
-        //                             documentList.newUpload.push(e)
-        //                         } else if (selectedFilter == 2 && e.isCompleted == 0) {
-        //                             documentList.newUpload.push(e)
-        //                         }
-        //                     }
-        //                 } else {
-        //                     if (e.folderId == null) {
-        //                         let isShared = global.SelectList.shareList.filter(s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id }).length ? 1 : 0;
-        //                         if (isShared || e.uploadedBy == loggedUser.data.id) {
-        //                             if (selectedFilter == 0) {
-        //                                 documentList.newUpload.push(e)
-        //                             } else if (selectedFilter == 1 && e.isCompleted == 1) {
-        //                                 documentList.newUpload.push(e)
-        //                             } else if (selectedFilter == 2 && e.isCompleted == 0) {
-        //                                 documentList.newUpload.push(e)
-        //                             }
-        //                         }
-        //                     }
-        //                 }
-        //             })
-        //     }
-        // } else if (folder.SelectedNewFolder.type == "new") {
-        //     document.List
-        //         .filter(e => { return e.status == "new" && e.folderId != null })
-        //         .map(e => {
-        //             let tagStatus = global.SelectList.tagList.filter(t => { return t.tagTypeId == e.id && t.tagType == "document" })
-        //             let isCompleted = tagStatus.length > 0 ? tagStatus[0].isCompleted : 0
-
-        //             if (loggedUser.data.userType == "Internal" && !e.isCompleted && e.status == "new") {
-        //                 if (e.folderId == folder.SelectedNewFolder.id) {
-        //                     if (selectedFilter == 0) {
-        //                         documentList.newUpload.push(e)
-        //                     } else if (selectedFilter == 1 && e.isCompleted == 1) {
-        //                         documentList.newUpload.push(e)
-        //                     } else if (selectedFilter == 2 && e.isCompleted == 0) {
-        //                         documentList.newUpload.push(e)
-        //                     }
-        //                 }
-        //             } else if (e.status == "new" && e.folderId == folder.SelectedNewFolder.id && !e.isCompleted) {
-        //                 let isShared = global.SelectList.shareList
-        //                     .filter(s => { return s.userTypeLinkId == loggedUser.data.id && (s.shareId == e.id || s.shareId == folder.SelectedNewFolder.id) && (s.shareType == "document" || s.shareType == "folder") }).length
-        //                     ? 1 : 0;
-        //                 if (isShared || e.uploadedBy == loggedUser.data.id) {
-        //                     if (selectedFilter == 0) {
-        //                         documentList.newUpload.push(e)
-        //                     } else if (selectedFilter == 1 && e.isCompleted == 1) {
-        //                         documentList.newUpload.push(e)
-        //                     } else if (selectedFilter == 2 && e.isCompleted == 0) {
-        //                         documentList.newUpload.push(e)
-        //                     }
-        //                 }
-        //             }
-        //         })
-        // }
-
-        if (typeof global.SelectList.ProjectMemberList != "undefined") { // FOR SHARE OPTIONS
-            global.SelectList.ProjectMemberList.map(e => {
-                if (e.userType == "External") {
-                    shareOptions.push({ id: e.id, name: `${e.firstName} ${e.lastName}` })
-                }
-            })
-        }
+        let { document, starred, global, folder, dispatch, loggedUser } = this.props
+        let tagCount = 0, folderList = [];
+        const currentPage = (typeof document.NewCount.Count.current_page != "undefined") ? document.NewCount.Count.current_page : 1;
+        const lastPage = (typeof document.NewCount.Count.last_page != "undefined") ? document.NewCount.Count.last_page : 1;
 
         if (folder.List.length > 0) {
             if (loggedUser.data.userType == "Internal") {
@@ -341,6 +274,7 @@ export default class DocumentNew extends React.Component {
                 }
             }
         }
+
         let folderName = [];
         folderName.unshift(<span>{(typeof folder.SelectedNewFolder.name != "undefined" && folder.SelectedNewFolder.type == "new") ? ` > ${folder.SelectedNewFolder.name}` : ""}</span>)
         let folderParentId = folder.SelectedNewFolder.parentId;
@@ -353,6 +287,7 @@ export default class DocumentNew extends React.Component {
                 folderParentId = parentFolder[0].parentId;
             }
         }
+        
         return <div>
             <br />
             <div class="col-lg-12 col-md-12">
@@ -533,9 +468,9 @@ export default class DocumentNew extends React.Component {
                     </tbody>
                 </table>
                 <div class="text-center">
-                    {/* {
-                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Projects</a>
-                    } */}
+                    {
+                        ((currentPage != lastPage) && document.New.length > 0) && <a onClick={() => this.getNextResult()}>Load More Documents</a>
+                    }
                     {
                         (document.New.length == 0 && folderList.length == 0 && document.NewDocumentLoading != "RETRIEVING") && <p>No Records Found</p>
                     }
