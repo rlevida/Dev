@@ -234,7 +234,7 @@ export default class DocumentLibrary extends React.Component {
         dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "RETRIEVING" })
         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&isCompleted=${isCompleted}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data.result, count: { Count: c.data.count } })
+                dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: c.data.result, count: { Count: c.data.count } })
                 dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
                 this.setState({ selectedFilter: e.value })
             }
@@ -255,19 +255,9 @@ export default class DocumentLibrary extends React.Component {
 
     render() {
         let { document, starred, global, folder, dispatch, loggedUser } = this.props;
-        let shareOptions = [], folderList = [], tagCount = 0
+        let folderList = [], tagCount = 0
         const currentPage = (typeof document.LibraryCount.Count.current_page != "undefined") ? document.LibraryCount.Count.current_page : 1;
         const lastPage = (typeof document.LibraryCount.Count.last_page != "undefined") ? document.LibraryCount.Count.last_page : 1;
-
-
-        if (typeof global.SelectList.projectMemberList != "undefined") { // FOR SHARE OPTIONS
-            global.SelectList.projectMemberList.map(e => {
-                if (e.userType == "External") {
-                    shareOptions.push({ id: e.id, name: `${e.firstName} ${e.lastName}` })
-                }
-            })
-        }
-
         if (folder.List.length > 0) {
             if (loggedUser.data.userType == "Internal") {
                 folder.List.map(e => {
