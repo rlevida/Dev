@@ -242,9 +242,11 @@ export default class DocumentNew extends React.Component {
 
     getNextResult() {
         let { document, loggedUser, dispatch } = this.props;
+        dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "RETRIEVING" })
         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${document.NewCount.Count.current_page + 1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: document.New.concat(c.data.result), count: { Count: c.data.count } })
+                dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
             }
         });
     }
@@ -395,7 +397,7 @@ export default class DocumentNew extends React.Component {
                             })
                         }
 
-                        {(document.NewDocumentLoading != "RETRIEVING") &&
+                        {
                             _.orderBy(document.New, ["dateAdded"], ["desc"]).map((data, index) => {
                                 let ext = getFilePathExtension(data.origin)
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
@@ -468,7 +470,7 @@ export default class DocumentNew extends React.Component {
                 </table>
                 <div class="text-center">
                     {
-                        ((currentPage != lastPage) && document.New.length > 0) && <a onClick={() => this.getNextResult()}>Load More Documents</a>
+                        ((currentPage != lastPage) && document.New.length > 0 && document.NewDocumentLoading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
                     }
                     {
                         (document.New.length == 0 && folderList.length == 0 && document.NewDocumentLoading != "RETRIEVING") && <p>No Records Found</p>
