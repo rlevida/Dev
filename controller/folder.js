@@ -50,7 +50,7 @@ exports.get = {
                         {
                             model: Users,
                             as: 'user',
-                            attributes:['firstName','lastName','phoneNumber','emailAddress']
+                            attributes: ['firstName', 'lastName', 'phoneNumber', 'emailAddress']
                         }
                     ]
                 })
@@ -121,6 +121,11 @@ exports.post = {
                                         as: 'tagTask'
                                     }],
                                     required: false
+                                },
+                                {
+                                    model: Users,
+                                    as: 'user',
+                                    attributes: ['firstName', 'lastName', 'phoneNumber', 'emailAddress']
                                 }
                             ]
                         })
@@ -135,6 +140,7 @@ exports.post = {
                 })
         } catch (err) {
             console.log(err)
+            cb({ status: false, error: err })
         }
     },
     postFolderTag: (req, cb) => {
@@ -240,6 +246,94 @@ exports.put = {
                     status: false,
                     error: c.error
                 })
+            }
+        })
+    },
+    folderTag: (req, cb) => {
+        const dataToSubmit = req.body;
+        const queryString = req.query
+        const whereObj = {
+            ...(typeof queryString.tagTypeId != "undefined" && queryString.tagTypeId != "") ? { tagTypeId: queryString.tagTypeId } : {},
+            ...(typeof queryString.tagType != "undefined" && queryString.tagType != "") ? { tagType: queryString.tagType } : {}
+        };
+
+        sequence.create().then((nextThen) => {
+            Tag
+                .destroy({
+                    where: whereObj
+                })
+                .then(res => {
+                    nextThen(dataToSubmit)
+                })
+        }).then((nextThen, data) => {
+            if (JSON.parse(data.tags).length) {
+                async.map(JSON.parse(data.tags), (e, mapCallback) => {
+                    let tagData = {
+                        linkType: e.value.split("-")[0],
+                        linkId: e.value.split("-")[1],
+                        tagType: "folder",
+                        tagTypeId: data.id
+                    }
+
+                    try {
+                        Tag.create(tagData)
+                            .then(res => {
+                                mapCallback(null, res)
+                            })
+
+                    } catch (err) {
+                        mapCallback(res)
+                    }
+
+                }, (err, result) => {
+                    if (err != null) {
+                        cb({ status: false, error: err })
+                    } else {
+                        nextThen()
+                    }
+                })
+            } else {
+                nextThen()
+            }
+        }).then((nextThen, data) => {
+            try {
+                Folder
+                    .findOne({
+                        where: { id: queryString.tagTypeId },
+                        include: [
+                            {
+                                model: Tag,
+                                as: 'tagFolderWorkstream',
+                                where: { tagType: 'folder', linkType: 'workstream' },
+                                include: [{
+                                    model: Workstream,
+                                    as: 'tagWorkstream'
+                                }],
+                                required: false
+                            },
+                            {
+                                model: Tag,
+                                as: 'tagFolderTask',
+                                where: { tagType: 'folder', linkType: 'task' },
+                                include: [{
+                                    model: Tasks,
+                                    as: 'tagTask'
+                                }],
+                                required: false
+                            }
+                        ]
+                    })
+                    .then((res) => {
+                        let resToReturn = {
+                            ...res.dataValues,
+                            tags:
+                                res.dataValues.tagFolderWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                    .concat(res.dataValues.tagFolderTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                        }
+                        cb({ status: true, data: _.omit(resToReturn, "tagFolderWorkstream", "tagFolderTask") })
+                    })
+            } catch (err) {
+                cb({ status: false, error: err })
             }
         })
     }

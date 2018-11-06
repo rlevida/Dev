@@ -54,7 +54,7 @@ export default class FormComponent extends React.Component {
         if (document.Selected.isFolder) {
             if (document.EditType == "tags") {
                 let dataToSubmit = { ...document.Selected }
-                postData(`/api/folder/postFolderTag?tagTypeId=${document.Selected.id}&tagType=folder`, dataToSubmit, (c) => {
+                putData(`/api/folder/folderTag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=folder`, dataToSubmit, (c) => {
                     dispatch({ type: "UPDATE_DATA_FOLDER_LIST", UpdatedData: c.data })
                     dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
                     showToast("success", "Successfully Updated.")
@@ -75,12 +75,12 @@ export default class FormComponent extends React.Component {
                 })
             } else if (document.EditType == "tags") {
                 let dataToSubmit = { tags: document.Selected.tags }
-                postData(`/api/document/postDocumentTag?tagTypeId=${document.Selected.id}&tagType=document`, dataToSubmit, (c) => {
+                putData(`/api/document/documentTag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}`, dataToSubmit, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
+                        dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: document.Selected.status })
                         showToast("success", "Successfully Updated.")
                     } else {
-                        showToast("danger", "Updating failed. Please try again.")
+                        showToast("error", "Updating failed. Please try again.")
                     }
                     dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
                 })

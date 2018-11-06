@@ -111,6 +111,6 @@ exports.getListData = exports.getListData = (data, advance, cb) => {
         } else {
             
         }
-        console.log(results)
+        // console.log(results)
     });
 }; 
