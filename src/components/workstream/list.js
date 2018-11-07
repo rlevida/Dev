@@ -1,5 +1,4 @@
 import React from "react";
-import Tooltip from "react-tooltip";
 import { HeaderButtonContainer, Loading } from "../../globalComponents";
 import { getData, showToast } from "../../globalFunction";
 import WorkstreamStatus from "./workstreamStatus"
@@ -41,11 +40,6 @@ export default class List extends React.Component {
                 this.fetchData(1);
             }    
         }
-        
-        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
-        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } });
-        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } });
-        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamDocumentList", filter: { isDeleted: 0, linkId: project, linkType: "project", status: "new" } });
     }
 
     fetchData(page) {

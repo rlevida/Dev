@@ -766,7 +766,7 @@ export default class FormComponent extends React.Component {
                         {
                             (preceedingTask.length > 0) && <div>
                                 <h5 class="mt10">Preceded by</h5>
-                                <div class="pdl15 pdr15">
+                                <div class="pdl15">
                                     <table class="table responsive-table m0">
                                         <tbody>
                                             <tr>
@@ -800,7 +800,7 @@ export default class FormComponent extends React.Component {
                         {
                             (succedingTask.length > 0) && <div class="mb20">
                                 <h5 class="mt10">Succeeding</h5>
-                                <div class="pdl15 pdr15">
+                                <div class="pdl15">
                                     <table class="table responsive-table m0">
                                         <tbody>
                                             <tr>

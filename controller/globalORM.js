@@ -45,13 +45,14 @@ exports.get = {
             projectMemberList: "Project",
             shareList: "Share",
             workstreamList: "Workstream",
-            taskList: "Tasks"
+            taskList: "Tasks",
+            type: "Type"
         }
 
         modelName = modelList[queryString.selectName];
 
         if (modelName != "") {
-            const model = models[modelName]
+            const model = models[modelName];
             switch (queryString.selectName) {
                 case "projectMemberList":
                     {

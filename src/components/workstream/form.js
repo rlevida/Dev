@@ -1,5 +1,5 @@
 import React from "react"
-import { showToast, putData, postData } from '../../globalFunction'
+import { showToast, putData, postData, getData } from '../../globalFunction'
 import { DropDown, HeaderButtonContainer } from "../../globalComponents";
 import { connect } from "react-redux";
 import _ from "lodash";
@@ -35,18 +35,27 @@ export default class FormComponent extends React.Component {
     }
 
     componentDidMount() {
+        const { dispatch } = this.props;
         $(".form-container").validator();
+
+        getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project}&linkType=project`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' });
+        });
+
+        getData(`/api/globalORM/selectList?selectName=type`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'typeList' });
+        });
     }
 
     handleChange(e) {
-        let { socket, dispatch, workstream } = this.props
+        const { dispatch, workstream } = this.props
         let Selected = Object.assign({}, workstream.Selected)
         Selected[e.target.name] = e.target.value;
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: Selected })
     }
 
     handleCheckbox(name, value) {
-        let { socket, dispatch, workstream } = this.props
+        const { dispatch, workstream } = this.props
         let Selected = Object.assign({}, workstream.Selected)
         Selected[name] = value;
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: Selected })
@@ -61,8 +70,8 @@ export default class FormComponent extends React.Component {
             isActive: (typeof workstream.Selected.isActive == 'undefined') ? 1 : workstream.Selected.isActive,
             responsible: workstream.Selected.responsible
         }
-
         let result = true;
+
         $('.form-container *').validator('validate');
         $('.form-container .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
@@ -131,19 +140,23 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { workstream, status, type, global } = this.props
-        let statusList = [], typeList = [], projectUserList = [];
-
-        status.List.map((e, i) => { if (e.linkType == "workstream") { statusList.push({ id: e.id, name: e.status }) } })
-        type.List.map((e, i) => { if (e.linkType == "workstream") { typeList.push({ id: e.id, name: e.type }) } })
-        
-        if (typeof global.SelectList.projectMemberList != "undefined") {
-            global.SelectList.projectMemberList.map((e, i) => {
-                if ((e.roleId == 1 || e.roleId == 2 || e.roleId == 3 || e.roleId == 4)) {
-                    projectUserList.push({ id: e.id, name: e.firstName + " " + e.lastName })
-                }
+        const { workstream, global } = this.props
+        const typeList = (typeof global.SelectList.typeList != "undefined") ? _(global.SelectList.typeList)
+            .filter((e, i) => {
+                return e.linkType == "workstream";
             })
-        }
+            .map((o, i) => { return { id: o.id, name: o.type } })
+            .value()
+            : [];
+        const projectUserList = (typeof global.SelectList.projectMemberList != "undefined") ?
+            _(global.SelectList.projectMemberList)
+                .filter((e, i) => {
+                    const roleIndex = _.filter(e.user_role, (userRoleObj) => { return userRoleObj.roleId <= 4 });
+                    return roleIndex.length > 0;
+                })
+                .map((o, i) => { return { id: o.id, name: o.firstName + " " + o.lastName } })
+                .value()
+            : [];
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
