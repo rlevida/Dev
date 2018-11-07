@@ -21,18 +21,6 @@ const associationStack = [
         ],
     },
     {
-        model: TaskDependency,
-        as: 'task_dependency',
-        required: false,
-        include: [
-            {
-                model: Tasks,
-                required: false,
-                as: 'task'
-            }
-        ]
-    },
-    {
         model: TaskChecklist,
         as: 'checklist',
         required: false,
@@ -94,10 +82,18 @@ exports.get = {
         const limit = 10;
         const date = (typeof queryString.date != "undefined") ? JSON.parse(queryString.date) : "";
         const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
-
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
+            ...(typeof queryString.task != "undefined" && queryString.task != "") ? {
+                [Sequelize.Op.and]: [
+                    Sequelize.where(Sequelize.fn('lower', Sequelize.col('task.task')),
+                        {
+                            [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.task}%`)
+                        }
+                    )
+                ]
+            } : {},
             ...(date != "") ? {
                 dueDate: {
                     [Sequelize.Op[date.opt]]: date.value
@@ -203,8 +199,6 @@ exports.get = {
                     status: true,
                     data: {
                         ...responseData,
-                        dependency_type: ((responseData.task_dependency).length > 0) ? responseData.task_dependency[0].dependencyType : "",
-                        task_dependency: _.map(responseData.task_dependency, (taskDependencyObj) => { return { value: taskDependencyObj.task.id, label: taskDependencyObj.task.task } }),
                         assignedTo: ((assignedTaskMembers).length > 0) ? assignedTaskMembers[0].userTypeLinkId : ""
                     }
                 });
@@ -677,110 +671,11 @@ exports.put = {
 
                             parallelCallback(null, memberLogsStack);
                         });
-                    },
-                    task_dependency: (parallelCallback) => {
-                        const taskDependencyPromise = _.map(allTask, (relatedTaskObj) => {
-                            return new Promise((resolve) => {
-                                TaskDependency.findAll(
-                                    {
-                                        where: {
-                                            taskId: relatedTaskObj.data.id
-                                        },
-                                        include: [
-                                            {
-                                                model: Tasks,
-                                                as: 'task',
-                                                attributes: ['id', 'task']
-                                            }
-                                        ]
-                                    }
-                                ).map((mapObject) => {
-                                    return mapObject.toJSON();
-                                }).then((resultArray) => {
-                                    const oldTaskDependency = _(resultArray)
-                                        .map((taskDependencyObj) => { return { ..._.omit(taskDependencyObj, ["id", "dateAdded", "dateUpdated"]), value: taskDependencyObj.task.task } })
-                                        .value();
-
-                                    TaskDependency.destroy({
-                                        where: {
-                                            taskId: relatedTaskObj.data.id
-                                        }
-                                    }).then(() => {
-                                        if (typeof body.dependencyType == 'undefined' || body.dependencyType == '') {
-                                            const taskDependency = _.map(body.task_dependency, (taskDependencyObj) => { return { taskId: relatedTaskObj.data.id, dependencyType: body.dependency_type, linkTaskId: taskDependencyObj.value } })
-
-                                            TaskDependency.bulkCreate(taskDependency, { returning: true }).map((response) => {
-                                                return response.toJSON();
-                                            }).then((response) => {
-                                                TaskDependency.findAll(
-                                                    {
-                                                        where: {
-                                                            id: _.map(response, (responseObj) => { return responseObj.id })
-                                                        },
-                                                        include: [
-                                                            {
-                                                                model: Tasks,
-                                                                as: 'task',
-                                                                attributes: ['id', 'task']
-                                                            }
-                                                        ]
-                                                    }
-                                                ).map((mapObject) => {
-                                                    return mapObject.toJSON();
-                                                }).then((response) => {
-                                                    const newTaskDependencyStack = _(response)
-                                                        .map((newTaskDependencyObj) => {
-                                                            return { ..._.omit(newTaskDependencyObj, ["id", "dateAdded", "dateUpdated"]), value: newTaskDependencyObj.task.task }
-                                                        }).value();
-                                                    const isEqualTaskDependency = func.isArrayEqual(oldTaskDependency, newTaskDependencyStack);
-                                                    resolve({
-                                                        data: response,
-                                                        ...(isEqualTaskDependency == false) ? {
-                                                            logs: {
-                                                                old: JSON.stringify({ "task_dependencies": { task: oldTaskDependency } }),
-                                                                new: JSON.stringify({ "task_dependencies": { task: newTaskDependencyStack } }),
-                                                            }
-                                                        } : {}
-                                                    });
-                                                });
-                                            });
-
-                                        } else {
-                                            const isEqualTaskDependency = func.isArrayEqual(oldTaskDependency, []);
-
-                                            resolve({
-                                                data: oldTaskDependency,
-                                                ...(isEqualTaskDependency == false) ? {
-                                                    logs: {
-                                                        old: JSON.stringify({ "task_dependencies": { task: oldTaskDependency } }),
-                                                        new: JSON.stringify({ "task_dependencies": { task: [] } }),
-                                                    }
-                                                } : {}
-                                            });
-                                        }
-                                    })
-                                });
-                            })
-                        });
-
-                        Promise.all(taskDependencyPromise).then((values) => {
-                            const taskDependencyLogsStack = _(values)
-                                .filter((taskDependencyObj) => {
-                                    return (typeof taskDependencyObj.logs != "undefined")
-                                })
-                                .map((taskDependencyObj) => {
-                                    const { logs } = taskDependencyObj;
-                                    return { usersId: body.userId, linkType: "task", linkId: body.id, actionType: "modified", old: logs.old, new: logs.new }
-                                })
-                                .value();
-
-                            parallelCallback(null, taskDependencyLogsStack);
-                        });
                     }
-                }, (err, { members, task_dependency }) => {
+                }, (err, { members }) => {
                     async.parallel({
                         activity_logs: (parallelCallback) => {
-                            const allLogsStack = [...members, ...task_dependency, ...taskLogStack];
+                            const allLogsStack = [...members, ...taskLogStack];
                             ActivityLogs.bulkCreate(allLogsStack).then((response) => {
                                 parallelCallback(null, response)
                             });

@@ -23,6 +23,7 @@ import reminder from "./reminder"
 import usersTeam from "./usersTeam"
 import checklist from "./checklist"
 import activityLog from "./activityLog"
+import taskDependency from "./taskDependency"
 
 export default combineReducers({
     socket,
@@ -49,5 +50,6 @@ export default combineReducers({
     reminder,
     usersTeam,
     checklist,
-    activityLog
+    activityLog,
+    taskDependency
 })

@@ -2,17 +2,20 @@ import React from "react";
 import { connect } from "react-redux";
 import moment from 'moment';
 import _ from "lodash";
+import parallel from 'async/parallel';
 
 import { showToast, setDatePicker, getData, displayDate, putData, postData, deleteData } from '../../globalFunction';
 import { HeaderButtonContainer, Loading, DropDown } from "../../globalComponents";
 
 import Checklist from "./checklist";
+import TaskDependency from "./taskDependency";
 
 
 @connect((store) => {
     return {
         socket: store.socket.container,
         task: store.task,
+        taskDependency: store.taskDependency,
         status: store.status,
         workstream: store.workstream,
         checklist: store.checklist,
@@ -36,20 +39,37 @@ export default class FormComponent extends React.Component {
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
         this.generateDueDate = this.generateDueDate.bind(this)
         this.deleteChecklist = this.deleteChecklist.bind(this)
+        this.deleteTaskDependency = this.deleteTaskDependency.bind(this);
     }
 
     componentDidMount() {
         let { task, dispatch } = { ...this.props };
 
         if ((task.SelectedId).length > 0) {
-            getData(`/api/task/detail/${task.SelectedId[0]}`, {}, (c) => {
-                if (c.status == 200) {
-                    dispatch({ type: "SET_CHECKLIST", list: c.data.checklist });
-                    dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
-                } else {
-                    showToast("success", "Error retrieving task. Please try again later.");
+            parallel({
+                task: (parallelCallback) => {
+                    getData(`/api/task/detail/${task.SelectedId[0]}`, {}, (c) => {
+                        if (c.status == 200) {
+                            dispatch({ type: "SET_CHECKLIST", list: c.data.checklist });
+                            dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
+                            parallelCallback(null);
+                        } else {
+                            parallelCallback("Error retrieving task. Please try again later.");
+                        }
+                    });
+                },
+                taskDependency: (parallelCallback) => {
+                    getData(`/api/taskDependency?includes=task&taskId=${task.SelectedId[0]}`, {}, (c) => {
+                        dispatch({ type: "SET_TASK_DEPENDENCY_LIST", List: c.data })
+                        parallelCallback(null, "")
+                    })
                 }
-                dispatch({ type: "SET_TASK_LOADING" });
+            }, (error, result) => {
+                if (error != null) {
+                    showToast("success", "Error retrieving task. Please try again later.");
+                } else {
+                    dispatch({ type: "SET_TASK_LOADING" });
+                }
             });
         } else {
             dispatch({ type: "SET_TASK_LOADING" });
@@ -241,9 +261,19 @@ export default class FormComponent extends React.Component {
         });
     }
 
+    deleteTaskDependency(id) {
+        const { dispatch } = this.props;
+
+        deleteData(`/api/taskDependency/${id}`, {}, (c) => {
+
+        })
+        dispatch({ type: "DELETE_TASK_DEPENDENCY", id });
+        showToast("success", "Task Dependency successfully deleted.");
+    }
+
     render() {
-        const { dispatch, task, loggedUser, checklist, global } = this.props;
-        const workstreamList =  (typeof global.SelectList.workstreamList != "undefined") ? _.map(global.SelectList.workstreamList, (workstreamObj) => { return { id: workstreamObj.id, name: workstreamObj.workstream } }) : [];
+        const { dispatch, task, loggedUser, checklist, global, taskDependency } = this.props;
+        const workstreamList = (typeof global.SelectList.workstreamList != "undefined") ? _.map(global.SelectList.workstreamList, (workstreamObj) => { return { id: workstreamObj.id, name: workstreamObj.workstream } }) : [];
         const allowEdit = (loggedUser.data.userRole == 5 || loggedUser.data.userRole == 6) && (loggedUser.data.userType == "External") ? false : true;
         const taskList = _(task.List)
             .map((taskListObj) => { return { id: taskListObj.id, name: taskListObj.task } })
@@ -256,6 +286,24 @@ export default class FormComponent extends React.Component {
                 (_.findIndex(task.Selected.workstream.project.project_members, (memObj) => { return memObj.user.id == loggedUser.data.id && (memObj.memberType == "project manager" || memObj.memberType == "responsible") }) >= 0)
             )
             : true;
+
+        const preceedingTask = _(taskDependency.List)
+            .filter((o) => {
+                return o.dependencyType == "Preceded by"
+            })
+            .map((o) => {
+                let depencyTask = _.filter(task.List, (c) => { return c.id == o.linkTaskId });
+                return { ...o, task: (depencyTask.length > 0) ? depencyTask[0] : '' }
+            })
+            .value();
+
+        const succedingTask = _(taskDependency.List)
+            .filter((o) => { return o.dependencyType == "Succeeding" })
+            .map((o) => {
+                let depencyTask = _.filter(task.List, (c) => { return c.id == o.linkTaskId });
+                return { ...o, task: (depencyTask.length > 0) ? depencyTask[0] : '' }
+            })
+            .value();
 
         return (
             <div>
@@ -293,264 +341,308 @@ export default class FormComponent extends React.Component {
                                     (task.Loading == "RETRIEVING") && <Loading />
                                 }
                                 {
-                                    (task.Loading != "RETRIEVING") && <div><form
-                                        onSubmit={this.handleSubmit}
-                                        class="form-horizontal form-container"
-                                        style={{ pointerEvents: (typeof task.Selected.action != 'undefined' && task.Selected.action == 'view') ? 'none' : 'auto' }}
-                                    >
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Active?</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <input type="checkbox"
-                                                    style={{ width: "15px", marginTop: "10px" }}
-                                                    checked={task.Selected.isActive ? true : false}
-                                                    onChange={() => { }}
-                                                    onClick={(f) => { this.handleCheckbox("isActive", (task.Selected.isActive) ? 0 : 1) }}
-                                                />
-                                            </div>
-                                        </div>
-                                        {
-                                            (task.FormAction == "") &&
+                                    (task.Loading != "RETRIEVING") &&
+                                    <div>
+                                        <form
+                                            onSubmit={this.handleSubmit}
+                                            class="form-horizontal form-container"
+                                            style={{ pointerEvents: (typeof task.Selected.action != 'undefined' && task.Selected.action == 'view') ? 'none' : 'auto' }}
+                                        >
                                             <div class="form-group">
-                                                <label class="col-md-3 col-xs-12 control-label pt0">Status</label>
+                                                <label class="col-md-3 col-xs-12 control-label">Active?</label>
                                                 <div class="col-md-7 col-xs-12">
-                                                    <span>{(task.Selected.status) ? task.Selected.status : "In Progress"}</span>
-                                                    {
-                                                        (task.Selected.status != "Completed" && typeof task.Selected.id != "undefined" && task.Selected.approvalRequired == 1) &&
-                                                        <div class="mt5">
-                                                            <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            </div>
-                                        }
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Workstream *</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <DropDown multiple={false}
-                                                    required={true}
-                                                    options={workstreamList}
-                                                    selected={(typeof task.Selected.workstreamId == "undefined") ? "" : task.Selected.workstreamId}
-                                                    onChange={(e) => this.setDropDown("workstreamId", e.value)}
-                                                    disabled={!allowEdit}
-                                                />
-                                                <div class="help-block with-errors"></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Task Name *</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} disabled={!allowEdit} />
-                                                <div class="help-block with-errors"></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Description</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <textarea name="description" value={(typeof task.Selected.description == "undefined") ? "" : task.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Dependency Type</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <DropDown multiple={false}
-                                                    required={false}
-                                                    options={_.map(['Preceded by', 'Succeeding'], (o) => { return { id: o, name: o } })}
-                                                    selected={(typeof task.Selected.dependency_type == "undefined") ? "" : task.Selected.dependency_type}
-                                                    onChange={(e) => {
-                                                        this.setDropDown("dependency_type", (e == null) ? "" : e.value);
-                                                    }}
-                                                    disabled={!allowEdit && canAssignDependency == false}
-                                                    isClearable={true}
-                                                />
-                                                <div class="help-block with-errors"></div>
-                                            </div>
-                                        </div>
-                                        {
-                                            (
-                                                typeof task.Selected.dependency_type != "undefined"
-                                                &&
-                                                (task.Selected.dependency_type != "" && task.Selected.dependency_type != null)
-                                            ) && <div class="form-group">
-                                                <label class="col-md-3 col-xs-12 control-label">Dependent Tasks *</label>
-                                                <div class="col-md-7 col-xs-12">
-                                                    <DropDown multiple={true}
-                                                        required={typeof task.Selected.dependency_type != "undefined"
-                                                            && (task.Selected.dependency_type != "" &&
-                                                                task.Selected.dependency_type != null)}
-                                                        options={taskList}
-                                                        onChange={(e) => this.setDropDownMultiple("task_dependency", e)}
-                                                        selected={task.Selected.task_dependency}
-                                                        disabled={!allowEdit && canAssignDependency == false}
+                                                    <input type="checkbox"
+                                                        style={{ width: "15px", marginTop: "10px" }}
+                                                        checked={task.Selected.isActive ? true : false}
+                                                        onChange={() => { }}
+                                                        onClick={(f) => { this.handleCheckbox("isActive", (task.Selected.isActive) ? 0 : 1) }}
                                                     />
-                                                    <div class="help-block with-errors"></div>
                                                 </div>
                                             </div>
-                                        }
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Periodic?</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <input type="checkbox"
-                                                    style={{ width: "15px", marginTop: "10px" }}
-                                                    checked={task.Selected.periodic ? true : false}
-                                                    onChange={() => { }}
-                                                    onClick={(f) => { this.handleCheckbox("periodic", (task.Selected.periodic) ? 0 : 1) }}
-                                                />
-                                            </div>
-                                        </div>
-                                        {
-                                            (task.Selected.periodic == 1) && <div class="form-group">
-                                                <label class="col-md-3 col-xs-12 control-label">Every *</label>
-                                                <div class="col-md-7 col-xs-12">
-                                                    <input
-                                                        type="number"
-                                                        name="period"
-                                                        required={task.Selected.periodic == 1}
-                                                        value={(typeof task.Selected.period == "undefined" || task.Selected.period == "") ? 1 : task.Selected.period}
-                                                        class="form-control" placeholder="Period" onChange={(e) => {
-                                                            if (((e.target.value).length <= 4 && _.isNumber(_.toNumber(e.target.value)) && e.target.value > 0) || e.target.value == "") {
-                                                                this.handleChange(e);
-                                                            }
-                                                        }}
-                                                        disabled={!allowEdit}
-                                                    />
-                                                    <div class="help-block with-errors"></div>
+                                            {
+                                                (task.FormAction == "") &&
+                                                <div class="form-group">
+                                                    <label class="col-md-3 col-xs-12 control-label pt0">Status</label>
+                                                    <div class="col-md-7 col-xs-12">
+                                                        <span>{(task.Selected.status) ? task.Selected.status : "In Progress"}</span>
+                                                        {
+                                                            (task.Selected.status != "Completed" && typeof task.Selected.id != "undefined" && task.Selected.approvalRequired == 1) &&
+                                                            <div class="mt5">
+                                                                <a href="javascript:void(0)" class="btn btn-success" onClick={this.updateActiveStatus}>Approve</a>
+                                                            </div>
+                                                        }
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        }
-                                        {
-                                            (task.Selected.periodic == 1) && <div class="form-group">
-                                                <label class="col-md-3 col-xs-12 control-label">Period Type *</label>
+                                            }
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-xs-12 control-label">Workstream *</label>
                                                 <div class="col-md-7 col-xs-12">
                                                     <DropDown multiple={false}
-                                                        required={(task.Selected.periodic == 1)}
-                                                        options={_.map(['Year', 'Month', 'Week', 'Day'], (o) => { return { id: (o + 's').toLowerCase(), name: o } })}
-                                                        selected={(typeof task.Selected.periodType == "undefined") ? "" : task.Selected.periodType}
-                                                        onChange={(e) => this.setDropDown("periodType", e.value)}
+                                                        required={true}
+                                                        options={workstreamList}
+                                                        selected={(typeof task.Selected.workstreamId == "undefined") ? "" : task.Selected.workstreamId}
+                                                        onChange={(e) => this.setDropDown("workstreamId", e.value)}
                                                         disabled={!allowEdit}
                                                     />
                                                     <div class="help-block with-errors"></div>
                                                 </div>
                                             </div>
-                                        }
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Start Date</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <div class="input-group date">
-                                                    <input type="text"
-                                                        class="form-control datepicker"
-                                                        style={{ backgroundColor: "#eee" }}
-                                                        id="startDate"
-                                                        name="startDate"
-                                                        value={((typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null) && task.Selected.startDate != '') ? displayDate(task.Selected.startDate) : ""}
-                                                        onChange={() => { }}
-                                                        required={task.Selected.periodic == 1}
-                                                        disabled={!allowEdit}
-                                                    />
-                                                    <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
-                                                    </span>
-                                                </div>
-
-                                                <div class="help-block with-errors"></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Due Date</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <div class="input-group date">
-                                                    <input type="text"
-                                                        class="form-control datepicker"
-                                                        style={{ backgroundColor: "#eee" }}
-                                                        id="dueDate"
-                                                        name="dueDate"
-                                                        value={((typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != null) && task.Selected.dueDate != '') ? displayDate(task.Selected.dueDate) : ""}
-                                                        onChange={() => { }}
-                                                        required={task.Selected.periodic == 1}
-                                                        disabled={!allowEdit}
-                                                    />
-                                                    <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="help-block with-errors"></div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label pt0">Assigned</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <DropDown multiple={false}
-                                                    required={false}
-                                                    options={_.orderBy(projectUserList, ["name"], ["desc"])}
-                                                    selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
-                                                    onChange={(e) => {
-                                                        this.setDropDown("assignedTo", (e == null) ? "" : e.value);
-                                                    }}
-                                                    disabled={!allowEdit}
-                                                    isClearable={(projectUserList.length > 0)}
-                                                />
-                                                <div class="help-block with-errors"></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Approval Required?</label>
-                                            <div class="col-md-7 col-xs-12">
-                                                <input type="checkbox"
-                                                    style={{ width: "15px", marginTop: "10px" }}
-                                                    checked={task.Selected.approvalRequired ? true : false}
-                                                    onChange={() => { }}
-                                                    onClick={(f) => { this.handleCheckbox("approvalRequired", (task.Selected.approvalRequired) ? 0 : 1) }}
-                                                />
-                                            </div>
-                                        </div>
-                                        {
-                                            (typeof task.Selected.id != "undefined" && task.Selected.id != "") && <div class="form-group" style={{ marginTop: 25 }}>
-                                                <label class="col-md-3 col-xs-12 control-label pt0">Checklist</label>
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-xs-12 control-label">Task Name *</label>
                                                 <div class="col-md-7 col-xs-12">
-                                                    <a href="#" type="button" data-toggle="modal" data-target="#checklistModal">
-                                                        Add Checklist
-                                                </a>
+                                                    <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} disabled={!allowEdit} />
+                                                    <div class="help-block with-errors"></div>
                                                 </div>
                                             </div>
-                                        }
-                                    </form>
-                                        {
-                                            (typeof task.Selected.id != "undefined" && task.Selected.id != "") && <div class="row">
-                                                <div id="checklist">
-                                                    {
-                                                        _.map(checklist.List, (checklistObj, index) => {
-                                                            return (
-                                                                <div class="col-md-7 col-md-offset-3 col-sm-12 mb10" key={index}>
-                                                                    <div class="wrapper">
-                                                                        <p>{checklistObj.description}</p>
-                                                                        <div id="checklist-action-wrapper">
-                                                                            {
-                                                                                _.map(checklistObj.types, (o, index) => {
-                                                                                    return (
-                                                                                        <p key={index}><span class="label label-success">{o.value}</span></p>
-                                                                                    )
-                                                                                })
-                                                                            }
-                                                                            {
-                                                                                (checklistObj.isDocument == 1) && <span class="label label-success">Document</span>
-                                                                            }
-                                                                            <p style={{ marginTop: 5, fontSize: 10 }}>
-                                                                                <span>By : {checklistObj.user.firstName + ' ' + checklistObj.user.lastName + ' - ' + moment(checklistObj.dateAdded).format("MMM DD, YYYY")}</span>
-                                                                            </p>
-                                                                            <div class="checklist-actions">
-                                                                                <a class="btn btn-danger"
-                                                                                    onClick={() => this.deleteChecklist(checklistObj.id)}
-                                                                                >
-                                                                                    <span class="glyphicon glyphicon-trash"></span>
-                                                                                </a>
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-xs-12 control-label">Description</label>
+                                                <div class="col-md-7 col-xs-12">
+                                                    <textarea name="description" value={(typeof task.Selected.description == "undefined") ? "" : task.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-xs-12 control-label">Periodic?</label>
+                                                <div class="col-md-7 col-xs-12">
+                                                    <input type="checkbox"
+                                                        style={{ width: "15px", marginTop: "10px" }}
+                                                        checked={task.Selected.periodic ? true : false}
+                                                        onChange={() => { }}
+                                                        onClick={(f) => { this.handleCheckbox("periodic", (task.Selected.periodic) ? 0 : 1) }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            {
+                                                (task.Selected.periodic == 1) && <div class="form-group">
+                                                    <label class="col-md-3 col-xs-12 control-label">Every *</label>
+                                                    <div class="col-md-7 col-xs-12">
+                                                        <input
+                                                            type="number"
+                                                            name="period"
+                                                            required={task.Selected.periodic == 1}
+                                                            value={(typeof task.Selected.period == "undefined" || task.Selected.period == "") ? 1 : task.Selected.period}
+                                                            class="form-control" placeholder="Period" onChange={(e) => {
+                                                                if (((e.target.value).length <= 4 && _.isNumber(_.toNumber(e.target.value)) && e.target.value > 0) || e.target.value == "") {
+                                                                    this.handleChange(e);
+                                                                }
+                                                            }}
+                                                            disabled={!allowEdit}
+                                                        />
+                                                        <div class="help-block with-errors"></div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            {
+                                                (task.Selected.periodic == 1) && <div class="form-group">
+                                                    <label class="col-md-3 col-xs-12 control-label">Period Type *</label>
+                                                    <div class="col-md-7 col-xs-12">
+                                                        <DropDown multiple={false}
+                                                            required={(task.Selected.periodic == 1)}
+                                                            options={_.map(['Year', 'Month', 'Week', 'Day'], (o) => { return { id: (o + 's').toLowerCase(), name: o } })}
+                                                            selected={(typeof task.Selected.periodType == "undefined") ? "" : task.Selected.periodType}
+                                                            onChange={(e) => this.setDropDown("periodType", e.value)}
+                                                            disabled={!allowEdit}
+                                                        />
+                                                        <div class="help-block with-errors"></div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-xs-12 control-label">Start Date</label>
+                                                <div class="col-md-7 col-xs-12">
+                                                    <div class="input-group date">
+                                                        <input type="text"
+                                                            class="form-control datepicker"
+                                                            style={{ backgroundColor: "#eee" }}
+                                                            id="startDate"
+                                                            name="startDate"
+                                                            value={((typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null) && task.Selected.startDate != '') ? displayDate(task.Selected.startDate) : ""}
+                                                            onChange={() => { }}
+                                                            required={task.Selected.periodic == 1}
+                                                            disabled={!allowEdit}
+                                                        />
+                                                        <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="help-block with-errors"></div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-xs-12 control-label">Due Date</label>
+                                                <div class="col-md-7 col-xs-12">
+                                                    <div class="input-group date">
+                                                        <input type="text"
+                                                            class="form-control datepicker"
+                                                            style={{ backgroundColor: "#eee" }}
+                                                            id="dueDate"
+                                                            name="dueDate"
+                                                            value={((typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != null) && task.Selected.dueDate != '') ? displayDate(task.Selected.dueDate) : ""}
+                                                            onChange={() => { }}
+                                                            required={task.Selected.periodic == 1}
+                                                            disabled={!allowEdit}
+                                                        />
+                                                        <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="help-block with-errors"></div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-xs-12 control-label pt0">Assigned</label>
+                                                <div class="col-md-7 col-xs-12">
+                                                    <DropDown multiple={false}
+                                                        required={false}
+                                                        options={_.orderBy(projectUserList, ["name"], ["desc"])}
+                                                        selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
+                                                        onChange={(e) => {
+                                                            this.setDropDown("assignedTo", (e == null) ? "" : e.value);
+                                                        }}
+                                                        disabled={!allowEdit}
+                                                        isClearable={(projectUserList.length > 0)}
+                                                    />
+                                                    <div class="help-block with-errors"></div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-xs-12 control-label">Approval Required?</label>
+                                                <div class="col-md-7 col-xs-12">
+                                                    <input type="checkbox"
+                                                        style={{ width: "15px", marginTop: "10px" }}
+                                                        checked={task.Selected.approvalRequired ? true : false}
+                                                        onChange={() => { }}
+                                                        onClick={(f) => { this.handleCheckbox("approvalRequired", (task.Selected.approvalRequired) ? 0 : 1) }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            {
+                                                (typeof task.Selected.id != "undefined" && task.Selected.id != "") && <div class="form-group" style={{ marginTop: 25 }}>
+                                                    <label class="col-md-3 col-xs-12 control-label pt0">Task Dependencies</label>
+                                                    <div class="col-md-7 col-xs-12">
+                                                        <a href="#" type="button" data-toggle="modal" data-target="#taskDependencyModal">
+                                                            Add Task Dependency
+                                                    </a>
+                                                    </div>
+                                                </div>
+                                            }
+                                            <div class="col-md-7 col-md-offset-3 col-sm-12 mb10">
+                                                {
+                                                    (preceedingTask.length > 0) && <div>
+                                                        <h5 class="mt10">Preceded by</h5>
+                                                        <div class="pdl15 pdr15">
+                                                            <table class="table responsive-table m0">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <th>Task</th>
+                                                                        <th>Description</th>
+                                                                        <th></th>
+                                                                    </tr>
+                                                                    {
+                                                                        _.map(preceedingTask, (succTask, index) => {
+                                                                            return (
+                                                                                <tr key={index}>
+                                                                                    <td class="text-left">{succTask.task.task}</td>
+                                                                                    <td class="description-td text-left">{succTask.task.description}</td>
+                                                                                    <td style={{ maxWidth: 15 }}>
+                                                                                        <a class="btn btn-danger"
+                                                                                            onClick={() => this.deleteTaskDependency(succTask.id)}
+                                                                                        >
+                                                                                            <span class="glyphicon glyphicon-trash"></span>
+                                                                                        </a>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            )
+                                                                        })
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+
+                                                }
+                                                {
+                                                    (succedingTask.length > 0) && <div class="mb20">
+                                                        <h5 class="mt10">Succeeding</h5>
+                                                        <div class="pdl15 pdr15">
+                                                            <table class="table responsive-table m0">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <th>Task</th>
+                                                                        <th>Description</th>
+                                                                        <th></th>
+                                                                    </tr>
+                                                                    {
+                                                                        _.map(succedingTask, (succTask, index) => {
+                                                                            return (
+                                                                                <tr key={index}>
+                                                                                    <td class="text-left">{succTask.task.task}</td>
+                                                                                    <td class="description-td text-left">{succTask.task.description}</td>
+                                                                                    <td style={{ maxWidth: 15 }}>
+                                                                                        <a class="btn btn-danger"
+                                                                                            onClick={() => this.deleteTaskDependency(succTask.id)}
+                                                                                        >
+                                                                                            <span class="glyphicon glyphicon-trash"></span>
+                                                                                        </a>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            )
+                                                                        })
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                            {
+                                                (typeof task.Selected.id != "undefined" && task.Selected.id != "") && <div class="form-group" style={{ marginTop: 25 }}>
+                                                    <label class="col-md-3 col-xs-12 control-label pt0">Checklist</label>
+                                                    <div class="col-md-7 col-xs-12">
+                                                        <a href="#" type="button" data-toggle="modal" data-target="#checklistModal">
+                                                            Add Checklist
+                                                </a>
+                                                    </div>
+                                                </div>
+                                            }
+                                            {
+                                                (typeof task.Selected.id != "undefined" && task.Selected.id != "") && <div class="row">
+                                                    <div id="checklist">
+                                                        {
+                                                            _.map(checklist.List, (checklistObj, index) => {
+                                                                return (
+                                                                    <div class="col-md-7 col-md-offset-3 col-sm-12 mb10" key={index}>
+                                                                        <div class="wrapper">
+                                                                            <p>{checklistObj.description}</p>
+                                                                            <div id="checklist-action-wrapper">
+                                                                                {
+                                                                                    _.map(checklistObj.types, (o, index) => {
+                                                                                        return (
+                                                                                            <p key={index}><span class="label label-success">{o.value}</span></p>
+                                                                                        )
+                                                                                    })
+                                                                                }
+                                                                                {
+                                                                                    (checklistObj.isDocument == 1) && <span class="label label-success">Document</span>
+                                                                                }
+                                                                                <p style={{ marginTop: 5, fontSize: 10 }}>
+                                                                                    <span>By : {checklistObj.user.firstName + ' ' + checklistObj.user.lastName + ' - ' + moment(checklistObj.dateAdded).format("MMM DD, YYYY")}</span>
+                                                                                </p>
+                                                                                <div class="checklist-actions">
+                                                                                    <a class="btn btn-danger"
+                                                                                        onClick={() => this.deleteChecklist(checklistObj.id)}
+                                                                                    >
+                                                                                        <span class="glyphicon glyphicon-trash"></span>
+                                                                                    </a>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
-                                                            )
-                                                        })
-                                                    }
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        }
+                                            }
+                                        </form>
                                     </div>
                                 }
                             </div>
@@ -566,6 +658,19 @@ export default class FormComponent extends React.Component {
                             </div>
                             <div class="modal-body">
                                 <Checklist />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="taskDependencyModal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
+                    <div class="modal-dialog modal-md" role="taskDependency">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="myModalLabel">Add Task Dependencies</h4>
+                            </div>
+                            <div class="modal-body">
+                                <TaskDependency />
                             </div>
                         </div>
                     </div>

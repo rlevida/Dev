@@ -72,6 +72,12 @@ export default class List extends React.Component {
                             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
                             parallelCallback(null, "")
                         })
+                    },
+                    taskDependency: (parallelCallback) => {
+                        getData(`/api/taskDependency?includes=task&taskId=${taskId}`, {}, (c) => {
+                            dispatch({ type: "SET_TASK_DEPENDENCY_LIST", List: c.data })
+                            parallelCallback(null, "")
+                        })
                     }
                 }, (error, result) => {
                     if (error == null) {
@@ -143,6 +149,14 @@ export default class List extends React.Component {
                         const { data } = c;
                         dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
                     }
+                    parallelCallback(null, "")
+                })
+            },
+            taskDependency: (parallelCallback) => {
+                getData(`/api/taskDependency?includes=task&taskId=${data.id}`, {}, (c) => {
+                    dispatch({ type: "SET_TASK_DEPENDENCY_LIST", List: c.data });
+                    dispatch({ type: "SET_TASK_SELECT_LIST", List: [] });
+                    
                     parallelCallback(null, "")
                 })
             }

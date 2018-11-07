@@ -6,7 +6,7 @@ import parallel from 'async/parallel';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 
-import { setDatePicker, showToast, postData, putData, deleteData } from '../../../globalFunction';
+import { setDatePicker, showToast, postData, putData, deleteData, getData } from '../../../globalFunction';
 import { DropDown } from "../../../globalComponents";
 
 import TaskComment from "./comment";
@@ -16,10 +16,13 @@ import UploadModal from "./uploadModal";
 import ApprovalModal from "./approvalModal";
 import RejectMessageModal from "./rejectMessageModal";
 
+let keyTimer;
+
 @connect((store) => {
     return {
         socket: store.socket.container,
         task: store.task,
+        taskDependency: store.taskDependency,
         loggedUser: store.loggedUser,
         status: store.status,
         workstream: store.workstream,
@@ -45,6 +48,8 @@ export default class FormComponent extends React.Component {
         this.completeChecklist = this.completeChecklist.bind(this);
         this.deleteChecklist = this.deleteChecklist.bind(this);
         this.openCheckListUploadModal = this.openCheckListUploadModal.bind(this);
+        this.getTaskList = this.getTaskList.bind(this);
+        this.deleteTaskDependency = this.deleteTaskDependency.bind(this);
     }
 
     componentDidMount() {
@@ -236,14 +241,20 @@ export default class FormComponent extends React.Component {
     }
 
     addDependency() {
-        const { task, socket, loggedUser } = this.props;
+        const { task, loggedUser, dispatch } = this.props;
         const toBeSubmitted = {
-            type: task.Selected.dependencyType,
-            task_id: task.Selected.id,
-            task_dependencies: task.Selected.linkTaskIds,
+            dependencyType: task.Selected.dependency_type,
+            taskId: task.Selected.id,
+            task_dependencies: task.Selected.task_dependency,
             userId: loggedUser.data.id
         };
-        socket.emit("ADD_TASK_DEPENDENCY", { data: toBeSubmitted })
+        postData(`/api/taskDependency`, toBeSubmitted, (c) => {
+            dispatch({ type: "UPDATE_DATA_TASK_DEPENDENCY_LIST", List: c.data });
+            dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, dependency_type: "", task_dependency: [] } });
+            dispatch({ type: "SET_TASK_SELECT_LIST", List: [] });
+            showToast("success", "Task Dependency successfully updated.");
+            keyTimer && clearTimeout(keyTimer);
+        });
     }
 
     handleCheckbox(name, value) {
@@ -256,6 +267,7 @@ export default class FormComponent extends React.Component {
     setDropDownMultiple(name, values) {
         let { checklist, task, dispatch } = this.props;
 
+
         if (values.filter(e => { return e.value == "Document" }).length) {
             dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "checklist" })
             $('#uploadFileModal').modal({
@@ -263,8 +275,7 @@ export default class FormComponent extends React.Component {
                 keyboard: false
             })
         }
-
-        if (name == "linkTaskIds") {
+        if (name == "task_dependency") {
             dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, [name]: values } })
         } else {
             dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...checklist.Selected, [name]: values } })
@@ -277,8 +288,9 @@ export default class FormComponent extends React.Component {
         Selected[name] = value;
 
         if (name == "dependencyType" && value == "") {
-            Selected["linkTaskIds"] = [];
+            Selected["task_dependency"] = [];
         }
+
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
     }
 
@@ -318,9 +330,41 @@ export default class FormComponent extends React.Component {
         }
     }
 
+    getTaskList(options) {
+        const { loggedUser, dispatch, task, taskDependency } = this.props;
+        const { data } = loggedUser;
+        const userRoles = _.map(data.user_role, (roleObj) => { return roleObj.roleId })[0];
+
+        if (options != "") {
+            keyTimer && clearTimeout(keyTimer);
+            keyTimer = setTimeout(() => {
+                getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=1&role=${userRoles}&task=${options}`, {}, (c) => {
+                    const taskOptions = _(c.data.result)
+                        .filter((o) => {
+                            const findSelectedTaskIndex = _.findIndex(taskDependency.List, (taskDependencyObj) => { return taskDependencyObj.task.id == o.id });
+                            return findSelectedTaskIndex < 0 && o.id != task.Selected.id;
+                        })
+                        .map((e) => { return { id: e.id, name: e.task } })
+                        .value();
+                    dispatch({ type: "SET_TASK_SELECT_LIST", List: _.concat(taskOptions, _.map(task.Selected.task_dependency, (o) => { return { id: o.value, name: o.label } })) });
+                });
+            }, 1500)
+        }
+    }
+
+    deleteTaskDependency(id) {
+        const { dispatch } = this.props;
+
+        deleteData(`/api/taskDependency/${id}`, {}, (c) => {
+
+        })
+        dispatch({ type: "DELETE_TASK_DEPENDENCY", id });
+        showToast("success", "Task Dependency successfully deleted.");
+    }
+
 
     render() {
-        let { dispatch, task, status, global, loggedUser, document, workstream, checklist, socket, project } = { ...this.props };
+        const { dispatch, task, status, global, loggedUser, document, checklist, project, taskDependency } = { ...this.props };
         let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false, documentList = [];
 
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
@@ -389,8 +433,7 @@ export default class FormComponent extends React.Component {
                     })
                 })
         }
-
-        let preceedingTask = _(task.Selected.dependencies)
+        const preceedingTask = _(taskDependency.List)
             .filter((o) => {
                 return o.dependencyType == "Preceded by"
             })
@@ -399,28 +442,14 @@ export default class FormComponent extends React.Component {
                 return { ...o, task: (depencyTask.length > 0) ? depencyTask[0] : '' }
             })
             .value();
-        let succedingTask = _(task.Selected.dependencies)
+
+        const succedingTask = _(taskDependency.List)
             .filter((o) => { return o.dependencyType == "Succeeding" })
             .map((o) => {
                 let depencyTask = _.filter(task.List, (c) => { return c.id == o.linkTaskId });
                 return { ...o, task: (depencyTask.length > 0) ? depencyTask[0] : '' }
             })
             .value();
-        let dependentTaskList = _(task.List)
-            .filter((o) => {
-                let alreadyPreceedingTask = _.findIndex(preceedingTask, (succId) => {
-                    return succId.linkTaskId == o.id
-                });
-                let alreadySuccedingTask = _.findIndex(succedingTask, (succId) => {
-                    return succId.linkTaskId == o.id
-                });
-                return alreadyPreceedingTask < 0 && alreadySuccedingTask < 0 && task.Selected.id != o.id;
-            })
-            .map((e) => {
-                return { id: e.id, name: e.task }
-            })
-            .value();
-            
         return (
             <div>
                 <Tabs class="mb40">
@@ -751,7 +780,13 @@ export default class FormComponent extends React.Component {
                                                         <tr key={index}>
                                                             <td class="text-left">{succTask.task.task}</td>
                                                             <td class="description-td text-left">{succTask.task.description}</td>
-                                                            <td></td>
+                                                            <td style={{ maxWidth: 15 }}>
+                                                                <a class="btn btn-danger"
+                                                                    onClick={() => this.deleteTaskDependency(succTask.id)}
+                                                                >
+                                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                                </a>
+                                                            </td>
                                                         </tr>
                                                     )
                                                 })
@@ -779,7 +814,13 @@ export default class FormComponent extends React.Component {
                                                         <tr key={index}>
                                                             <td class="text-left">{succTask.task.task}</td>
                                                             <td class="description-td text-left">{succTask.task.description}</td>
-                                                            <td></td>
+                                                            <td style={{ maxWidth: 15 }}>
+                                                                <a class="btn btn-danger"
+                                                                    onClick={() => this.deleteTaskDependency(succTask.id)}
+                                                                >
+                                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                                </a>
+                                                            </td>
                                                         </tr>
                                                     )
                                                 })
@@ -792,22 +833,22 @@ export default class FormComponent extends React.Component {
                         {(task.Selected.isActive > 0) &&
                             <div class="row" style={{ marginLeft: 2 }}>
                                 <div class="col-md-4 pdr0">
-                                    <label>Dependency Type</label>
+                                    <label>Dependency Type *</label>
                                     <DropDown multiple={false}
-                                        required={false}
+                                        required={true}
                                         options={_.map(['Preceded by', 'Succeeding'], (o) => { return { id: o, name: o } })}
-                                        selected={(typeof task.Selected.dependencyType == "undefined") ? "" : task.Selected.dependencyType}
+                                        selected={(typeof task.Selected.dependency_type == "undefined") ? "" : task.Selected.dependency_type}
                                         onChange={(e) => {
-                                            this.setDropDown("dependencyType", (e == null) ? "" : e.value);
+                                            this.setDropDown("dependency_type", (e == null) ? "" : e.value);
                                         }}
                                         isClearable={true}
                                     />
                                     {
                                         (
-                                            (typeof task.Selected.dependencyType != "undefined" &&
-                                                typeof task.Selected.linkTaskIds != "undefined") &&
-                                            (task.Selected.dependencyType != "" &&
-                                                task.Selected.linkTaskIds != "")
+                                            (typeof task.Selected.dependency_type != "undefined" &&
+                                                typeof task.Selected.task_dependency != "undefined") &&
+                                            (task.Selected.dependency_type != "" &&
+                                                task.Selected.task_dependency != "")
                                         ) && <div>
                                             <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
                                                 onClick={this.addDependency}
@@ -820,12 +861,14 @@ export default class FormComponent extends React.Component {
                                 <div class="col-md-8">
                                     <label>Dependent Tasks *</label>
                                     <DropDown multiple={true}
-                                        required={typeof task.Selected.dependencyType != "undefined"
-                                            && (task.Selected.dependencyType != "" &&
-                                                task.Selected.dependencyType != null)}
-                                        options={dependentTaskList}
-                                        selected={(typeof task.Selected.linkTaskIds == "undefined") ? [] : task.Selected.linkTaskIds}
-                                        onChange={(e) => this.setDropDownMultiple("linkTaskIds", e)}
+                                        required={typeof task.Selected.dependency_type != "undefined"
+                                            && (task.Selected.dependency_type != "" &&
+                                                task.Selected.dependency_type != null)}
+                                        options={task.SelectList}
+                                        onInputChange={this.getTaskList}
+                                        selected={(typeof task.Selected.task_dependency == "undefined") ? [] : task.Selected.task_dependency}
+                                        onChange={(e) => this.setDropDownMultiple("task_dependency", e)}
+                                        placeholder={"Type to Search Task"}
                                     />
                                 </div>
                             </div>

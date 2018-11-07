@@ -1,18 +1,19 @@
 import _ from "lodash";
 
 export default function reducer(state = {
-    List: [],
+    Count: {},
     CountList: [],
     FormActive: "List",
+    FormAction: "",
+    List: [],
+    Loading: "RETRIEVING",
+    ModalType: "",
+    StatusCount: {},
     Selected: {
         isActive: true
     },
-    Count: {},
-    StatusCount: {},
     SelectedId: [],
-    FormAction: "",
-    Loading: "RETRIEVING",
-    ModalType: "",
+    SelectList: [],
     TaskComponentCurrentPage: ""
 }, action) {
     switch (action.type) {
@@ -107,17 +108,14 @@ export default function reducer(state = {
             })
             return { ...state, List: List }
         }
-        case "UPDATE_TASK_DEPENDENCIES": {
-            let currentTask = { ...state.Selected };
-            let updatedSelected = { ...currentTask, dependencies: action.data, dependencyType: "", linkTaskIds: [] };
-
-            return { ...state, Selected: updatedSelected };
-        }
         case "SET_TASK_FORM_ACTION": {
             return { ...state, FormAction: action.FormAction }
         }
         case "SET_TASK_COMPONENT_CURRENT_PAGE": {
             return { ...state, TaskComponentCurrentPage: action.Page }
+        }
+        case "SET_TASK_SELECT_LIST": {
+            return { ...state, SelectList: action.List }
         }
         default:
             return state;

@@ -9,7 +9,8 @@ export const DropDown = React.createClass({
         return {
             records: [],
             selected: (this.props.multiple) ? [] : "",
-            disabled: (this.props.disabled) ? true : false
+            disabled: (this.props.disabled) ? true : false,
+            noResultsText: "No Results Found"
         };
     },
     componentWillReceiveProps: function (props) {
@@ -17,7 +18,7 @@ export const DropDown = React.createClass({
         if (!props.multiple && records.length == 0) {
             records.unshift({ value: "", label: "(None)" })
         }
-        this.setState({ records: records });
+        this.setState({ records: records, noResultsText: "No Results Found" });
 
         if (typeof props.selected != "undefined") {
             if (props.multiple) {
@@ -29,7 +30,8 @@ export const DropDown = React.createClass({
         }
     },
     componentWillMount: function () {
-        var records = this.props.options.map((d, index) => { return { value: d.id, label: d.name }; });
+        var records = this.props.options.map((d, index) => { return { value: d.id, label: d.name }; })
+
         this.setState({ records: records });
 
         if (typeof this.props.selected != "undefined") {
@@ -41,21 +43,34 @@ export const DropDown = React.createClass({
             }
         }
     },
+    onInputChange: function (option) {
+        if (typeof this.props.onInputChange != "undefined" && option != "") {
+            this.props.onInputChange(option);
+            this.setState({ noResultsText: "Loading ..." })
+        }
+    },
     render: function () {
         var self = this;
-
         var handleChange = function (option) {
             self.props.onChange(option);
-            self.setState({ selected: (self.props.multiple) ? option : option ? option.value : "" });
+            self.setState({ selected: (self.props.multiple) ? option : option ? option.value : "", });
         };
+
         return (
             <Select multi={this.props.multiple}
                 disabled={this.state.disabled}
                 options={self.state.records}
                 style={this.props.style}
-                value={this.state.selected} onChange={handleChange}
+                value={this.state.selected}
+                onChange={handleChange}
                 clearable={(typeof this.props.isClearable != 'undefined') ? this.props.isClearable : false}
                 required={this.props.required}
+                onInputChange={this.onInputChange}
+                noResultsText={self.state.noResultsText}
+                onSelectResetsInput={false}
+                onBlurResetsInput={true}
+                autoBlur
+                placeholder={(typeof this.props.placeholder != "undefined") ? this.props.placeholder : "Select"}
             />
         );
     }

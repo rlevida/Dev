@@ -25,7 +25,7 @@ export default class TaskActivities extends React.Component {
     componentDidMount() {
         const { activityLog } = { ...this.props };
         const { Count } = activityLog;
-
+        
         if (_.isEmpty(Count)) {
             this.fetchData(1);
         } else if (Count.current_page != Count.last_page) {
