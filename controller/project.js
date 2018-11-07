@@ -416,6 +416,10 @@ exports.post = {
                                     include: [{
                                         model: UsersRole,
                                         as: 'user_role',
+                                        include: [{
+                                            model: Roles,
+                                            as: 'role',
+                                        }]
                                     },
                                     {
                                         model: UsersTeam,
@@ -511,6 +515,10 @@ exports.post = {
                                             include: [{
                                                 model: UsersRole,
                                                 as: 'user_role',
+                                                include: [{
+                                                    model: Roles,
+                                                    as: 'role',
+                                                }]
                                             },
                                             {
                                                 model: UsersTeam,
