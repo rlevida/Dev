@@ -8,7 +8,7 @@ const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const models = require('../modelORM');
 
-const { Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Workstream } = models;
+const { Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream } = models;
 
 const associationFindAllStack = [
     {
@@ -83,7 +83,7 @@ exports.get = {
         async.parallel({
             count: function (callback) {
                 try {
-                    Projects.findAndCountAll({ ...options,  distinct: true }).then((response) => {
+                    Projects.findAndCountAll({ ...options, distinct: true }).then((response) => {
                         const pageData = {
                             total_count: response.count,
                             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
@@ -105,7 +105,7 @@ exports.get = {
                             let documentCount = res.dataValues.document_link.filter((e) => { return e.document != null }).length
                             let resToReturn = {
                                 ...res.dataValues,
-                                projectManagerId: res.projectManager[0].userTypeLinkId,
+                                projectManagerId: ((res.projectManager).length > 0) ? res.projectManager[0].userTypeLinkId : "",
                                 newDocuments: documentCount
                             }
 
@@ -159,21 +159,32 @@ exports.get = {
             Members
                 .findAll({
                     where: whereObj,
+                    logging: true,
                     include: [{
                         model: Users,
                         as: 'user',
-                        include: [{
-                            model: UsersRole,
-                            as: 'user_role',
-                        },
-                        {
-                            model: UsersTeam,
-                            as: 'team'
-                        }
+                        include: [
+                            {
+                                model: UsersRole,
+                                as: 'user_role',
+                                include: [{
+                                    model: Roles,
+                                    as: 'role',
+                                }]
+                            },
+                            {
+                                model: UsersTeam,
+                                as: 'users_team',
+                                include: [{
+                                    model: Teams,
+                                    as: 'team',
+                                }]
+                            }
                         ]
                     },]
-                })
-                .then((res) => {
+                }).map((mapObject) => {
+                    return mapObject.toJSON();
+                }).then((res) => {
                     cb({
                         status: true,
                         data: res
@@ -223,6 +234,10 @@ exports.get = {
                                 include: [{
                                     model: UsersRole,
                                     as: 'user_role',
+                                    include: [{
+                                        model: Roles,
+                                        as: 'role',
+                                    }]
                                 },
                                 {
                                     model: UsersTeam,
@@ -564,30 +579,34 @@ exports.put = {
                     nextThen(result)
                 })
         }).then((nextThen, result) => {
-            Members
-                .create({ linkType: "project", linkId: id, usersType: "users", memberType: "project manager", userTypeLinkId: dataToSubmit.projectManagerId })
-                .then((res) => {
-                    Members
-                        .findAll({
-                            where: { id: res.dataValues.id },
-                            include: [{
-                                model: Users,
-                                as: 'user',
+            if (dataToSubmit.projectManagerId != "") {
+                Members
+                    .create({ linkType: "project", linkId: id, usersType: "users", memberType: "project manager", userTypeLinkId: dataToSubmit.projectManagerId })
+                    .then((res) => {
+                        Members
+                            .findAll({
+                                where: { id: res.dataValues.id },
                                 include: [{
-                                    model: UsersRole,
-                                    as: 'user_role',
-                                },
-                                {
-                                    model: UsersTeam,
-                                    as: 'team'
-                                }
-                                ]
-                            },]
-                        })
-                        .then((findRes) => {
-                            nextThen(findRes)
-                        })
-                })
+                                    model: Users,
+                                    as: 'user',
+                                    include: [{
+                                        model: UsersRole,
+                                        as: 'user_role',
+                                    },
+                                    {
+                                        model: UsersTeam,
+                                        as: 'team'
+                                    }
+                                    ]
+                                },]
+                            })
+                            .then((findRes) => {
+                                nextThen(findRes)
+                            })
+                    })
+            } else {
+                nextThen([])
+            }
         }).then((nextThen, members) => {
             Projects
                 .findOne({

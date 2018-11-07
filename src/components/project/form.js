@@ -35,31 +35,21 @@ export default class FormComponent extends React.Component {
         this.renderArrayTd = this.renderArrayTd.bind(this)
     }
 
-    componentWillMount() {
-        let { dispatch, project } = this.props;
+    componentDidMount() {
+        const { dispatch, project } = this.props;
         $(".form-container").validator();
-        parallel({
-            projectMemberList: (parallelCallback) => {
-                getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project&usersType=users`, {}, (c) => {
-                    dispatch({ type: "SET_MEMBERS_LIST", list: c.data })
-                    parallelCallback(null, c.data)
-                })
-            },
-            projectTeamList: (parallelCallback) => {
-                getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`, {}, (c) => {
-                    dispatch({ type: "SET_TEAM_LIST", list: c.data })
-                    parallelCallback(null, c.data)
-                })
-            },
-            projectMemberListGlobal: (parallelCallback) => {
-                getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
-                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
-                    parallelCallback(null, "")
-                })
-            }
-        }, (err, result) => {
 
-        })
+        getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project&usersType=users`, {}, (c) => {
+            dispatch({ type: "SET_MEMBERS_LIST", list: c.data });
+        });
+
+        getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`, {}, (c) => {
+            dispatch({ type: "SET_TEAM_LIST", list: c.data })
+        });
+
+        getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
+        });
     }
 
     deleteMember(value) {
@@ -84,11 +74,13 @@ export default class FormComponent extends React.Component {
     }
 
     handleChange(e) {
-        let { socket, dispatch, project } = this.props
+        const { dispatch, project } = this.props
         let Selected = Object.assign({}, project.Selected)
+
         this.setState({
             currentProjectManager: Selected.projectManagerId
-        })
+        });
+
         Selected[e.target.name] = e.target.value;
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: Selected })
     }
@@ -128,7 +120,7 @@ export default class FormComponent extends React.Component {
                 project: project.Selected.project,
                 isActive: project.Selected.isActive,
                 typeId: project.Selected.typeId,
-                tinNo: project.Selected.typeId,
+                tinNo: project.Selected.tinNo,
                 companyAddress: project.Selected.companyAddress,
                 classification: project.Selected.classification,
                 projectNameCount: project.Selected.projectNameCount,
@@ -136,20 +128,20 @@ export default class FormComponent extends React.Component {
                 projectManagerId: project.Selected.projectManagerId
             }
             putData(`/api/project/${project.Selected.id}`, dataToSubmit, (c) => {
-                dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project })
-                dispatch({ type: "SET_MEMBERS_LIST", list: c.data.members })
-                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" })
+                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
+                dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
                 showToast("success", "Successfully Updated.")
             })
         }
     }
 
     setDropDown(name, value) {
-        let { socket, dispatch, project, members, users } = this.props
-        let Selected = Object.assign({}, project.Selected)
-        if (name == "projectManagerId") {
+        const { dispatch, project, members } = this.props;
+        const Selected = Object.assign({}, project.Selected);
+
+        if (name == "projectManagerId" && value != "") {
             if (value != project.ProjectManagerId) {
-                let newMemberList = members.List.filter((e) => { return e.user.id !=  project.ProjectManagerId })
+                let newMemberList = members.List.filter((e) => { return e.user.id != project.ProjectManagerId })
                 dispatch({ type: "SET_PROJECT_MANAGER_ID", id: name })
                 dispatch({ type: "SET_MEMBERS_LIST", list: newMemberList })
             }
@@ -190,36 +182,17 @@ export default class FormComponent extends React.Component {
     }
 
     renderRoles(value) {
-        let { global: { SelectList } } = this.props;
-        let roles = [];
-
-        value.map((e) => {
-            SelectList.roleList.map((r) => {
-                if (r.id == e.roleId) {
-                    roles.push(r.role)
-                }
-            })
-        })
-
         return (
-            roles.join("\r\n")
-        )
+            (_.map(value, (valueObj) => {
+                return valueObj.role.role
+            })).join("\r\n")
+        );
     }
 
     renderTeams(value) {
-        let { global: { SelectList } } = this.props;
-        let teams = [];
-        value.map((e) => {
-            SelectList.teamList.map((t) => {
-                if (t.id == e.teamId) {
-                    teams.push(t.team)
-                }
-            })
-        })
-
         return (
-            teams.join("\r\n")
-        )
+            (_.map(value, (valueObj) => { return valueObj.team.team })).join("\r\n")
+        );
     }
 
     renderTeamMembers(value) {
@@ -233,8 +206,8 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        let { dispatch, project, loggedUser, members, status, type, users, teams, workstream, global } = this.props;
-        let statusList = [], typeList = [], projectManagerOptions = [];
+        const { dispatch, project, loggedUser, members, status, type, users, teams, workstream } = { ...this.props };
+        let statusList = [], typeList = [];
 
         status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
         type.List.map((e, i) => {
@@ -250,15 +223,15 @@ export default class FormComponent extends React.Component {
             }
         });
 
-        if (users.List.length > 0) {
-            users.List.map((e) => {
-                if (e.role.length > 0) {
-                    if (e.role[0].roleId == 1 || e.role[0].roleId == 2) {
-                        projectManagerOptions.push({ id: e.id, name: `${e.firstName} ${e.lastName}` })
-                    }
-                }
+        const projectManagerOptions = _(users.List)
+            .filter((userObj) => {
+                const role = (typeof userObj.user_role != "undefined") ? userObj.user_role : userObj.role;
+                const roleChecker = _.filter(role, (roleObj) => { return roleObj.roleId < 3 });
+                return roleChecker.length > 0;
             })
-        }
+            .map((e) => {
+                return { id: e.id, name: `${e.firstName} ${e.lastName}` }
+            }).value();
 
         if (teams.List.length > 0) {
             teams.List.map((e) => {
@@ -279,6 +252,7 @@ export default class FormComponent extends React.Component {
                         onClick={(e) => {
                             dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
                             dispatch({ type: "SET_PROJECT_SELECTED", Selected: {} });
+                            dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
                         }} >
                         <span>Back</span>
                     </li>
@@ -316,7 +290,7 @@ export default class FormComponent extends React.Component {
                                             <div class="form-group">
                                                 <label class="col-md-3 col-xs-12 control-label">Project *</label>
                                                 <div class="col-md-7 col-xs-12">
-                                                    <input type="text" name="project" required value={(typeof project.Selected.project == "undefined") ? "" : project.Selected.project} class="form-control" placeholder="Project" onChange={this.handleChange} />
+                                                    <input type="text" name="project" required value={(typeof project.Selected.project == "undefined" || project.Selected.project == null) ? "" : project.Selected.project} class="form-control" placeholder="Project" onChange={this.handleChange} />
                                                     <div class="help-block with-errors"></div>
                                                 </div>
                                             </div>
@@ -336,7 +310,7 @@ export default class FormComponent extends React.Component {
                                                 <div class="form-group">
                                                     <label class="col-md-3 col-xs-12 control-label">Tin No.</label>
                                                     <div class="col-md-7 col-xs-12">
-                                                        <input type="text" name="tinNo" value={(typeof project.Selected.tinNo == "undefined") ? "" : project.Selected.tinNo} class="form-control" placeholder="Tin No." onChange={this.handleChange} />
+                                                        <input type="text" name="tinNo" value={(typeof project.Selected.tinNo == "undefined" || project.Selected.tinNo == null) ? "" : project.Selected.tinNo} class="form-control" placeholder="Tin No." onChange={this.handleChange} />
                                                         <div class="help-block with-errors"></div>
                                                     </div>
                                                 </div>
@@ -345,7 +319,7 @@ export default class FormComponent extends React.Component {
                                                 <div class="form-group">
                                                     <label class="col-md-3 col-xs-12 control-label">Company Address</label>
                                                     <div class="col-md-7 col-xs-12">
-                                                        <input type="text" name="companyAddress" value={(typeof project.Selected.companyAddress == "undefined") ? "" : project.Selected.companyAddress} class="form-control" placeholder="Company Address" onChange={this.handleChange} />
+                                                        <input type="text" name="companyAddress" value={(typeof project.Selected.companyAddress == "undefined" || project.Selected.companyAddress == null) ? "" : project.Selected.companyAddress} class="form-control" placeholder="Company Address" onChange={this.handleChange} />
                                                         <div class="help-block with-errors"></div>
                                                     </div>
                                                 </div>
@@ -385,7 +359,7 @@ export default class FormComponent extends React.Component {
                                                             <th class="text-center">Id</th>
                                                             <th class="text-left">Team</th>
                                                             <th class="text-left">Team Leader</th>
-                                                            <th class="text-left">Members</th>
+                                                            <th class="text-center">Members</th>
                                                             <th class="text-center"></th>
                                                         </tr>
                                                         {
@@ -402,12 +376,8 @@ export default class FormComponent extends React.Component {
                                                                         <td class="text-center">{(typeof data.team.id != 'undefined') ? data.team.id : ''}</td>
                                                                         <td class="text-left">{(typeof data.team.id != 'undefined') ? data.team.team : ''}</td>
                                                                         <td class="text-left">{(typeof data.team.teamLeaderId != 'undefined') ? `${data.team.teamLeader.firstName} ${data.team.teamLeader.lastName}` : ''}</td>
-                                                                        <td class="text-left">
-                                                                            <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
-                                                                            <Tooltip id={`follower${index}`}>
-                                                                                {this.renderTeamMembers(data.team.users_team)}
-                                                                            </Tooltip>
-
+                                                                        <td class="text-center">
+                                                                            {((data.team.users_team).length > 0) && <span title={`${_.map(data.team.users_team, (o) => { return o.user.firstName + " " + o.user.lastName }).join("\r\n")}`}><i class="fa fa-users fa-lg"></i></span>}
                                                                         </td>
                                                                         <td class="text-center">
                                                                             <a href="javascript:void(0);" data-tip="DELETE"
@@ -456,8 +426,8 @@ export default class FormComponent extends React.Component {
                                                                         <td class="text-left">{data.user.lastName}</td>
                                                                         <td class="text-left">{data.user.emailAddress}</td>
                                                                         <td class="text-center">{data.user.userType}</td>
-                                                                        <td class="text-left">{this.renderRoles(data.user.role)}</td>
-                                                                        <td class="text-left">{this.renderTeams(data.user.team)}</td>
+                                                                        <td class="text-left">{this.renderRoles(data.user.user_role)}</td>
+                                                                        <td class="text-left">{this.renderTeams(data.user.users_team)}</td>
                                                                         <td>
                                                                             {(data.usersType != "team")
                                                                                 ? <input type="checkbox" checked={data.receiveNotification} onChange={() => this.handleReceiveNotifacation(data)} />
@@ -487,8 +457,8 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 }
                                 {
-                                    (typeof project.Selected.id != 'undefined') && <div class="row pd20">
-                                        <h3>Workstream</h3>
+                                    (typeof project.Selected.id != 'undefined') && <div class="row">
+                                        <h3 class="ml20">Workstreams</h3>
                                         <Workstreams />
                                     </div>
                                 }

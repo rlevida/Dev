@@ -1,9 +1,8 @@
 import React from "react"
-import { showToast } from '../../../globalFunction'
-import { HeaderButtonContainer, DropDown } from "../../../globalComponents";
 import { connect } from "react-redux";
 import _ from "lodash";
-
+import { showToast, putData, getData } from '../../../globalFunction'
+import { DropDown, HeaderButtonContainer } from "../../../globalComponents";
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -14,7 +13,6 @@ import _ from "lodash";
         members: store.members,
         teams: store.teams,
         type: store.type,
-        project: store.project,
         global: store.global
     }
 })
@@ -28,33 +26,40 @@ export default class FormComponent extends React.Component {
         this.setDropDown = this.setDropDown.bind(this)
         this.deleteData = this.deleteData.bind(this)
         this.handleCheckbox = this.handleCheckbox.bind(this)
+        this.resetData = this.resetData.bind(this)
     }
 
     componentDidMount() {
+        const { dispatch } = this.props;
         $(".form-container").validator();
-        let { workstream } = this.props
 
-        if (typeof workstream.Selected.id != 'undefined') {
-            this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: workstream.Selected.id, linkType: 'workstream' } });
-        }
+        getData(`/api/globalORM/selectList?selectName=type`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'typeList' });
+        });
     }
 
     handleChange(e) {
-        let { socket, dispatch, workstream } = this.props
+        const { dispatch, workstream } = this.props
         let Selected = Object.assign({}, workstream.Selected)
         Selected[e.target.name] = e.target.value;
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: Selected })
     }
 
     handleCheckbox(name, value) {
-        let { socket, dispatch, workstream } = this.props
+        const { dispatch, workstream } = this.props
         let Selected = Object.assign({}, workstream.Selected)
         Selected[name] = value;
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: Selected })
     }
 
     handleSubmit() {
-        let { socket, workstream, project } = this.props
+        const { workstream, dispatch } = this.props;
+        const dataToBeSubmitted = {
+            ..._.pick(workstream.Selected, ["workstream", "description", "typeId"]),
+            numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0,
+            isActive: (typeof workstream.Selected.isActive == 'undefined') ? 1 : workstream.Selected.isActive,
+            responsible: workstream.Selected.responsible
+        }
         let result = true;
 
         $('.form-container *').validator('validate');
@@ -69,8 +74,17 @@ export default class FormComponent extends React.Component {
             return;
         }
 
-        socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { ...workstream.Selected, projectId: project.Selected.id, numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0 } });
-        socket.emit("GET_MEMBERS_LIST", { filter: { linkId: project.Selected.id, linkType: 'project' } });
+
+        putData(`/api/workstream/${workstream.Selected.id}`, dataToBeSubmitted, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "UPDATE_DATA_WORKSTREAM_LIST", data: c.data });
+                dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
+                showToast("success", "Workstream successfully updated.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
+
     }
 
     deleteData(params) {
@@ -93,48 +107,59 @@ export default class FormComponent extends React.Component {
         });
     }
 
-    render() {
-        let { socket ,dispatch, workstream, status, type, global, users } = this.props
-        let statusList = [], typeList = [], projectUserList = [];
+    resetData() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
+        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
+        dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
+    }
 
-        status.List.map((e, i) => { if (e.linkType == "workstream") { statusList.push({ id: e.id, name: e.status }) } })
-        type.List.map((e, i) => { if (e.linkType == "workstream") { typeList.push({ id: e.id, name: e.type }) } })
-        if (typeof global.SelectList.ProjectMemberList != "undefined") {
-            global.SelectList.ProjectMemberList.map((e, i) => {
-                let roleId = users.List.filter(u => { return u.id == e.id })[0].role[0].role_id;
-                if (roleId == 1 || roleId == 2 || roleId == 3 || roleId == 4) {
-                    projectUserList.push({ id: e.id, name: e.username + " - " + e.firstName })
-                }
+    render() {
+        const { workstream, global } = this.props
+        const typeList = (typeof global.SelectList.typeList != "undefined") ? _(global.SelectList.typeList)
+            .filter((e, i) => {
+                return e.linkType == "workstream";
             })
-        }
+            .map((o, i) => { return { id: o.id, name: o.type } })
+            .value()
+            : [];
+        const projectUserList = (typeof global.SelectList.projectMemberList != "undefined") ?
+            _(global.SelectList.projectMemberList)
+                .filter((e, i) => {
+                    const roleIndex = _.filter(e.user_role, (userRoleObj) => { return userRoleObj.roleId <= 4 });
+                    return roleIndex.length > 0;
+                })
+                .map((o, i) => { return { id: o.id, name: o.firstName + " " + o.lastName } })
+                .value()
+            : [];
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
-                <li class="btn btn-info" style={{ marginRight: "2px" }}
-                    onClick={(e) => {
-                        socket.emit("GET_MEMBERS_LIST", { filter: { linkId: this.props.project.Selected.id, linkType: 'project' } });
-                        dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
-                        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
-                        dispatch({ type: "SET_SELECTED_WORKSTREAM_LINK", SelectedLink: "" });
-                    }} >
-                    <span>Back</span>
-                </li>
-                <li class="btn btn-info" onClick={() => this.handleSubmit()} >
-                    <span>Save</span>
-                </li>
+                {
+                    (typeof workstream.SelectedLink == "undefined" || workstream.SelectedLink == "") && <li class="btn btn-info" style={{ marginRight: "2px" }}
+                        onClick={(e) => this.resetData()} >
+                        <span>Back</span>
+                    </li>
+                }
+                {
+                    (typeof workstream.SelectedLink == "undefined" || workstream.SelectedLink == "") &&
+                    <li class="btn btn-info" onClick={() => this.handleSubmit()} >
+                        <span>Save</span>
+                    </li>
+                }
             </HeaderButtonContainer>
             <div class="row mt10">
                 <div class="col-lg-12 col-md-12 col-xs-12">
                     {(workstream.SelectedLink == "") &&
                         <form class="form-horizontal form-container">
                             <div class="form-group">
-                                <label class="col-md-3 col-xs-12 control-label">Is Active?</label>
+                                <label class="col-md-3 col-xs-12 control-label">Active?</label>
                                 <div class="col-md-7 col-xs-12">
                                     <input type="checkbox"
                                         style={{ width: "15px", marginTop: "10px" }}
-                                        checked={workstream.Selected.isActive ? true : false}
+                                        checked={(workstream.Selected.isActive || typeof workstream.Selected.isActive == 'undefined') ? true : false}
                                         onChange={() => { }}
-                                        onClick={(f) => { this.handleCheckbox("isActive", (workstream.Selected.isActive) ? 0 : 1) }}
+                                        onClick={(f) => { this.handleCheckbox("isActive", (workstream.Selected.isActive || typeof workstream.Selected.isActive == 'undefined') ? 0 : 1) }}
                                     />
                                 </div>
                             </div>
@@ -167,17 +192,10 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                             }
-                            {/* <div class="form-group">
-                                <label class="col-md-3 col-xs-12 control-label">Project Name *</label>
-                                <div class="col-md-7 col-xs-12">
-                                    <input type="text" name="projectName" required value={(typeof workstream.Selected.projectName == "undefined") ? "" : workstream.Selected.projectName} class="form-control" placeholder="Project Name" onChange={this.handleChange} />
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                            </div> */}
                             <div class="form-group">
                                 <label class="col-md-3 col-xs-12 control-label">Description</label>
                                 <div class="col-md-7 col-xs-12">
-                                    <textarea name="description" value={(typeof workstream.Selected.description == "undefined") ? "" : workstream.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
+                                    <textarea name="description" value={(typeof workstream.Selected.description == "undefined" || workstream.Selected.description == null) ? "" : workstream.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
                                     <div class="help-block with-errors"></div>
                                 </div>
                             </div>
@@ -186,7 +204,7 @@ export default class FormComponent extends React.Component {
                                 <div class="col-md-7 col-xs-12">
                                     <DropDown multiple={false}
                                         required={true}
-                                        options={projectUserList}
+                                        options={_.orderBy(projectUserList, ["name"], ["asc"])}
                                         selected={(typeof workstream.Selected.responsible == "undefined") ? "" : workstream.Selected.responsible}
                                         onChange={(e) => {
                                             this.setDropDown("responsible", e.value);

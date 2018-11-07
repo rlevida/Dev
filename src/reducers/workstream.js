@@ -68,6 +68,9 @@ export default function reducer(state = {
         case "SET_WORKSTREAM_LOADING": {
             return { ...state, Loading: (typeof action.Loading != "undefined") ? action.Loading : "" }
         }
+        case "EMPTY_WORKSTREAM_LIST": {
+            return { ...state, List: [] }
+        }
         default:
             return state;
     }

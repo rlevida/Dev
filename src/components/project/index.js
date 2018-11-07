@@ -30,7 +30,7 @@ export default class Component extends React.Component {
     }
 
     render() {
-        let { socket, project, dispatch } = this.props
+        let { socket, project, dispatch } = this.props;
         let Component = <div>
                 {project.FormActive == "List" &&
                     <List />
