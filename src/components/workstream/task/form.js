@@ -868,6 +868,7 @@ export default class FormComponent extends React.Component {
                                         onInputChange={this.getTaskList}
                                         selected={(typeof task.Selected.task_dependency == "undefined") ? [] : task.Selected.task_dependency}
                                         onChange={(e) => this.setDropDownMultiple("task_dependency", e)}
+                                        placeholder={"Type to Search Task"}
                                     />
                                 </div>
                             </div>

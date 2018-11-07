@@ -10,7 +10,7 @@ export const DropDown = React.createClass({
             records: [],
             selected: (this.props.multiple) ? [] : "",
             disabled: (this.props.disabled) ? true : false,
-            noResultsText: "No results found"
+            noResultsText: "No Results Found"
         };
     },
     componentWillReceiveProps: function (props) {
@@ -18,7 +18,7 @@ export const DropDown = React.createClass({
         if (!props.multiple && records.length == 0) {
             records.unshift({ value: "", label: "(None)" })
         }
-        this.setState({ records: records, noResultsText: "No results found" });
+        this.setState({ records: records, noResultsText: "No Results Found" });
 
         if (typeof props.selected != "undefined") {
             if (props.multiple) {
@@ -67,9 +67,10 @@ export const DropDown = React.createClass({
                 required={this.props.required}
                 onInputChange={this.onInputChange}
                 noResultsText={self.state.noResultsText}
-                onSelectResetsInput={false} 
+                onSelectResetsInput={false}
                 onBlurResetsInput={true}
                 autoBlur
+                placeholder={(typeof this.props.placeholder != "undefined") ? this.props.placeholder : "Select"}
             />
         );
     }
