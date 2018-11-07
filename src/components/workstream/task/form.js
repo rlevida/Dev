@@ -780,7 +780,7 @@ export default class FormComponent extends React.Component {
                                                         <tr key={index}>
                                                             <td class="text-left">{succTask.task.task}</td>
                                                             <td class="description-td text-left">{succTask.task.description}</td>
-                                                            <td style={{ maxWidth: 15 }}>
+                                                            <td>
                                                                 <a class="btn btn-danger"
                                                                     onClick={() => this.deleteTaskDependency(succTask.id)}
                                                                 >
@@ -814,7 +814,7 @@ export default class FormComponent extends React.Component {
                                                         <tr key={index}>
                                                             <td class="text-left">{succTask.task.task}</td>
                                                             <td class="description-td text-left">{succTask.task.description}</td>
-                                                            <td style={{ maxWidth: 15 }}>
+                                                            <td>
                                                                 <a class="btn btn-danger"
                                                                     onClick={() => this.deleteTaskDependency(succTask.id)}
                                                                 >
