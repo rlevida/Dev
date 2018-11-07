@@ -13,7 +13,8 @@ import { DropDown, HeaderButtonContainer } from "../../../globalComponents";
         members: store.members,
         teams: store.teams,
         type: store.type,
-        global: store.global
+        global: store.global,
+        project: store.project
     }
 })
 
@@ -30,12 +31,17 @@ export default class FormComponent extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch } = this.props;
+        const { dispatch, project } = this.props;
         $(".form-container").validator();
+        
+        getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' });
+        });
 
         getData(`/api/globalORM/selectList?selectName=type`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'typeList' });
         });
+        
     }
 
     handleChange(e) {

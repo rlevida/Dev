@@ -9,7 +9,7 @@ import { connect } from "react-redux"
         workstream: store.workstream,
         loggedUser: store.loggedUser,
         global: store.global,
-        projectData: store.project
+        project: store.project
     }
 })
 export default class List extends React.Component {
@@ -27,9 +27,9 @@ export default class List extends React.Component {
     }
 
     fetchData() {
-        const { dispatch, loggedUser } = this.props;
+        const { dispatch, loggedUser, project } = this.props;
 
-        getData(`/api/workstream?project=${project}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}`, {}, (c) => {
+        getData(`/api/workstream?projectId=${project.Selected.id}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count });
             } else {
@@ -78,7 +78,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        const { workstream, dispatch, socket, loggedUser, global, projectData } = this.props;
+        const { workstream, dispatch, socket, loggedUser } = this.props;
         const currentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
         const lastPage = (typeof workstream.Count.last_page != "undefined") ? workstream.Count.last_page : 1;
         

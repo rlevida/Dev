@@ -45,7 +45,7 @@ export default class List extends React.Component {
     fetchData(page) {
         const { dispatch, loggedUser } = this.props;
 
-        getData(`/api/workstream?project=${project}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}`, {}, (c) => {
+        getData(`/api/workstream?projectId=${project}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
                 showToast("success", "Workstream successfully retrieved.");
