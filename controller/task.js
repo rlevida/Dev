@@ -67,7 +67,7 @@ const associationStack = [
                     {
                         model: Users,
                         as: 'user',
-                        attributes: ['id', 'firstName', 'lastName']
+                        attributes: ['id', 'firstName', 'lastName', 'emailAddress']
                     }
                 ]
             }
@@ -763,12 +763,107 @@ exports.put = {
                 },
                 status: (parallelCallback) => {
                     const { status } = body;
+                    Tasks.findOne({ ...options, where: { id: body.id } }).then((response) => {
+                        const currentTask = _(response.toJSON())
+                            .omit(["dateUpdated", "dateAdded"])
+                            .mapValues((objVal, objKey) => {
+                                if (objKey == "dueDate" || objKey == "startDate") {
+                                    return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                } else {
+                                    return objVal;
+                                }
+                            }).value();
 
-                    Tasks.update({ status }, { where: { id: body.id } }).then((response) => {
-                        return Tasks.findOne({ ...options, where: { id: body.id } });
-                    }).then((response) => {
-                        const updatedTask = response.toJSON();
-                        parallelCallback(null, updatedTask);
+                        Tasks.update({ status }, { where: { id: body.id } }).then((response) => {
+                            return Tasks.findOne({ ...options, where: { id: body.id } });
+                        }).then((response) => {
+                            const updatedResponse = response.toJSON();
+                            const updatedTask = _(updatedResponse)
+                                .omit(["dateUpdated", "dateAdded"])
+                                .mapValues((objVal, objKey) => {
+                                    if (objKey == "dueDate" || objKey == "startDate") {
+                                        return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                    } else {
+                                        return objVal;
+                                    }
+                                }).value();
+                            const newObject = func.changedObjAttributes(updatedTask, currentTask);
+                            const objectKeys = _.map(newObject, function (value, key) { return key; });
+
+
+                            async.parallel({
+                                reminder: (parallelCallback) => {
+                                    // const reminderDetails = {
+                                    //     createdBy: body.userId,
+                                    //     linkId: body.id,
+                                    //     linkType: "task",
+                                    //     projectId: updatedResponse.projectId,
+                                    //     seen: 0,
+                                    //     type: "Task Completed",
+                                    //     usersId: body.userId
+                                    // }
+                                    // console.log(reminderDetails)
+                                },
+                                email: (parallelCallback) => {
+                                    // const assignedMembers = _.filter(updatedResponse.task_members, (membersObj) => { return membersObj.memberType == "assignedTo" });
+                                    // const message = (typeof body.message)
+                                    // if (assignedMembers.length > 0) {
+                                    //     const mailOptions = {
+                                    //         from: '"no-reply" <no-reply@c_cfo.com>',
+                                    //         to: `${assignedMembers[0].user.emailAddress}`,
+                                    //         subject: '[CLOUD-CFO]',
+                                    //         text: 'Task Rejected',
+                                    //         html: `<p> ${body.message}</p>
+                                    //             <p>${body.mailDetails.task}</p>
+                                    //             <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${body.mailDetails.project}/workstream/${body.mailDetails.workstreamId}?task=${body.mailDetails.taskId}">Click here</a>`
+                                    //     }
+
+                                    //     //global.emailtransport(mailOptions)
+                                    // } else {
+                                    //     parallelCallback(null)
+                                    // }
+                                },
+                                activity_logs: (parallelCallback) => {
+                                    ActivityLogs.create({
+                                        usersId: body.userId,
+                                        linkType: "task",
+                                        linkId: body.id,
+                                        actionType: "modified",
+                                        old: JSON.stringify({ "task_details": _.pick(currentTask, objectKeys) }),
+                                        new: JSON.stringify({ "task_details": newObject })
+                                    }).then((response) => {
+                                        const responseObj = response.toJSON();
+                                        return ActivityLogs.findOne({
+                                            include: [
+                                                {
+                                                    model: Users,
+                                                    as: 'user',
+                                                    attributes: ['firstName', 'lastName']
+                                                }
+                                            ], 
+                                            where: { id: responseObj.id }
+                                        })
+                                    }).then((response) => {
+                                        const responseObj = response.toJSON();
+                                        parallelCallback(null, { task: updatedResponse, activity_log: responseObj });
+                                    });
+                                }
+                            }, ()=>{
+
+                            })
+
+
+
+
+
+
+
+
+
+
+                            //console.log(updatedResponse)
+
+                        });
                     });
                 },
                 document: (parallelCallback) => {
@@ -792,11 +887,11 @@ exports.put = {
                         })
                 }
             }, (err, { status, periodic }) => {
-                const statusStack = [status];
+                const statusStack = [status.task];
                 if (periodic != "") {
                     statusStack.push(periodic)
                 }
-                cb({ status: true, data: statusStack });
+                cb({ status: true, data: { tasks: statusStack, activity_log: status.activity_log } });
             })
         } catch (err) {
             cb({ status: false, error: err })

@@ -53,7 +53,7 @@ exports.get = {
             },
             result: function (callback) {
                 try {
-                    ActivityLogs.findAll({ ...options, where: whereObj }).map((mapObject) => {
+                    ActivityLogs.findAll({ ...options, where: whereObj, order: [['dateAdded', 'DESC']] }).map((mapObject) => {
                         return mapObject.toJSON();
                     }).then((resultArray) => {
                         callback(null, resultArray);

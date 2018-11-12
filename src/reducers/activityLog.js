@@ -8,6 +8,13 @@ export default function reducer(state = {
     Count: {}
 }, action) {
     switch (action.type) {
+        case "ADD_ACTIVITYLOG": {
+            const { List } = { ...state };
+            List.unshift(action.activity_log);
+            console.log(action.activity_log)
+            console.log(List)
+            return { ...state, List }
+        }
         case "SET_ACTIVITYLOG_LIST": {
             return { ...state, List: action.list, Count: action.count }
         }

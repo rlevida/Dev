@@ -95,7 +95,7 @@ export default class FormComponent extends React.Component {
         } else {
             const checklistToComplete = checklist.List
                 .filter((e, index) => {
-                    return e.isMandatory && !e.isCompleted ;
+                    return e.isMandatory && !e.isCompleted;
                 })
             if (checklistToComplete.length == 0) {
                 let status = "Completed"
@@ -103,16 +103,24 @@ export default class FormComponent extends React.Component {
                     status = "For Approval"
                     socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
                 } else {
-                    putData(`/api/task/status/${task.Selected.id}`, { userId: loggedUser.data.id, periodTask: task.Selected.periodTask, periodic: task.Selected.periodic, id: task.Selected.id, status: "Completed" }, (c) => {
-                        if (c.status == 200) {
-                            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data });
-                            dispatch({ type: "SET_TASK_SELECTED", Selected: c.data[0] });
-                            showToast("success", "Task successfully updated.");
-                        } else {
-                            showToast("error", "Something went wrong please try again later.");
-                        }
-                        dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-                    });
+                    putData(`/api/task/status/${task.Selected.id}`,
+                        {
+                            userId: loggedUser.data.id,
+                            periodTask: task.Selected.periodTask,
+                            periodic: task.Selected.periodic,
+                            id: task.Selected.id,
+                            status: "Completed"
+                        }, (c) => {
+                            if (c.status == 200) {
+                                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.tasks });
+                                dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.tasks[0] });
+                                dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
+                                showToast("success", "Task successfully updated.");
+                            } else {
+                                showToast("error", "Something went wrong please try again later.");
+                            }
+                            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+                        });
                 }
             } else {
                 showToast("error", "There are items to be completed in the checklist before completing the task.")
@@ -121,7 +129,7 @@ export default class FormComponent extends React.Component {
     }
 
     approveTask() {
-        const { socket, task, checklist, loggedUser, dispatch } = this.props;
+        const { task, checklist, loggedUser, dispatch } = this.props;
         const mandatory = checklist.List.filter((e, index) => {
             return !e.isCompleted;
         });
@@ -140,8 +148,9 @@ export default class FormComponent extends React.Component {
 
             putData(`/api/task/status/${task.Selected.id}`, { userId: loggedUser.data.id, periodTask: task.Selected.periodTask, periodic: task.Selected.periodic, id: task.Selected.id, status: "Completed" }, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data });
-                    dispatch({ type: "SET_TASK_SELECTED", Selected: c.data[0] });
+                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.tasks });
+                    dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.tasks[0] });
+                    dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                     showToast("success", "Task successfully updated.");
 
                     postData(`/api/reminder`, reminderDetails, (r) => {
@@ -357,10 +366,9 @@ export default class FormComponent extends React.Component {
         const { dispatch } = this.props;
 
         deleteData(`/api/taskDependency/${id}`, {}, (c) => {
-
-        })
-        dispatch({ type: "DELETE_TASK_DEPENDENCY", id });
-        showToast("success", "Task Dependency successfully deleted.");
+            dispatch({ type: "DELETE_TASK_DEPENDENCY", id });
+            showToast("success", "Task Dependency successfully deleted.");
+        });
     }
 
 
@@ -473,7 +481,7 @@ export default class FormComponent extends React.Component {
                             {(isVisible && task.Selected.status != "For Approval") &&
                                 <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
                             }
-                            {(task.Selected.status == "For Approval" && task.Selected.approverId == loggedUser.data.id) &&
+                            {(task.Selected.status == "For Approval") &&
                                 <span>
                                     <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.approveTask()}>Approve</a>
                                     <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Reject Task" onClick={() => this.rejectTask()}>Reject</a>

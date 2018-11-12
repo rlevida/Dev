@@ -37,7 +37,7 @@ export default class ApprovalModal extends React.Component {
     }
 
     handleSubmit() {
-        let { dispatch, socket, task, loggedUser, global, workstream } = this.props;
+        let { dispatch, task, loggedUser, global, workstream } = this.props;
         let result = true;
 
         $('.form-container *').validator('validate');
@@ -79,11 +79,11 @@ export default class ApprovalModal extends React.Component {
                 project: project
             }
 
-            putData(`/api/task/taskApproval/${task.Selected.id}`, { data: dataToSubmit, reminder: reminderDetails, receiveNotification: approver.receiveNotification, mailDetails: mailDetails }, (c) => {
-                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task })
-                dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task[0] })
-                showToast("success", "Sucessfully Updated.")
-            })
+            // putData(`/api/task/taskApproval/${task.Selected.id}`, { data: dataToSubmit, reminder: reminderDetails, receiveNotification: approver.receiveNotification, mailDetails: mailDetails }, (c) => {
+            //     dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task })
+            //     dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task[0] })
+            //     showToast("success", "Sucessfully Updated.")
+            // })
             $(`#approvalModal`).modal(`hide`);
         }
     }
