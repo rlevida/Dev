@@ -130,7 +130,7 @@ exports.get = {
             } : {}
         };
 
-        if (typeof queryString.role != "undefined" && queryString.role != "" && queryString.role > 2) {
+        if (typeof queryString.role != "undefined" && queryString.role != "" && queryString == 6) {
             _.find(associationArray, { as: 'task_members' }).required = true;
             _.find(associationArray, { as: 'task_members' }).where = {
                 userTypeLinkId: queryString.userId,

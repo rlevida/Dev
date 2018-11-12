@@ -14,11 +14,10 @@ exports.get = {
         const whereObj = {
             ...(typeof queryString.usersId != "undefined" && queryString.usersId != "") ? { usersId: queryString.usersId } : {},
         };
-
         try {
             Reminder
                 .findAll({
-                    where: { ...whereObj },
+                    where: whereObj,
                     include: [
                         {
                             model: Users,
@@ -34,7 +33,7 @@ exports.get = {
                     const resToReturn = {
                         ...res.dataValues,
                         createdByName: `${res.dataValues.user.firstName} ${res.dataValues.user.lastName}`,
-                        workstreamId: res.dataValues.workstream.id
+                        workstreamId: res.dataValues.workstream != null ? res.dataValues.workstream.id : ''
                     }
                     return _.omit(resToReturn, "user", "workstream")
                 })

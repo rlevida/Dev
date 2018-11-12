@@ -83,15 +83,20 @@ var init = exports.init = (socket) => {
                         ]
                     })
                     .then((res) => {
-                        let responseToReturn = {
-                            ...res.dataValues,
-                            projectId: res.projectId.map((e) => { return e.linkId }),
-                            userRole: res.dataValues.user_role[0].roleId,
-                            team: res.dataValues.team_as_teamLeader.concat(res.dataValues.users_team.map((e) => { return e.team }))
+                        if(res == null){
+                            updateIpBlock(ipBlockData, data.ipAddress)
+                            socket.emit("RETURN_ERROR_MESSAGE", { message: "Incorrect username/password." })
+                            return;
+                        }else{
+                            let responseToReturn = {
+                                ...res.dataValues,
+                                projectId: res.projectId.map((e) => { return e.linkId }),
+                                userRole: res.dataValues.user_role[0].roleId,
+                                team: res.dataValues.team_as_teamLeader.concat(res.dataValues.users_team.map((e) => { return e.team }))
+                            }
+                            nextThen(_.omit(responseToReturn, "team_as_teamLeader","users_team"), ipBlockData)
                         }
-                        nextThen(_.omit(responseToReturn, "team_as_teamLeader","users_team"), ipBlockData)
                     })
-
             } catch (err) {
                 if (err) { socket.emit("RETURN_ERROR_MESSAGE", { message: (err.error.sqlMessage) ? err.error.sqlMessage : err.error.code }); return }
                 updateIpBlock(ipBlockData, data.ipAddress)
