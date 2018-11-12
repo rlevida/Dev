@@ -93,10 +93,11 @@ export default class FormComponent extends React.Component {
         if (task.Selected.approvalRequired && loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3) {
             $(`#approvalModal`).modal("show");
         } else {
-            const mandatory = checklist.List.filter((e, index) => {
-                return !e.isCompleted;
-            });
-            if (mandatory.length == 0) {
+            const checklistToComplete = checklist.List
+                .filter((e, index) => {
+                    return e.isMandatory && !e.isCompleted ;
+                })
+            if (checklistToComplete.length == 0) {
                 let status = "Completed"
                 if (task.Selected.task_id && task.Selected.task_status != "Completed") {
                     status = "For Approval"
@@ -393,7 +394,7 @@ export default class FormComponent extends React.Component {
             isVisible = true
         } else if ((task.Selected.status != "Completed" && task.Selected.assignedUserType == "Internal" && task.Selected.isActive == 1)) {
             let userData = loggedUser.data
-            if (loggedUser.data.userType == "Internal" && (userData.userRole == 1 || userData.userRole == 2 || userData.userRole == 3 || task.Selected.assignedById == userData.id)) {
+            if (loggedUser.data.userType == "Internal" && (userData.userRole == 1 || userData.userRole == 2 || userData.userRole == 3 || task.Selected.assignedTo == userData.id)) {
                 isVisible = true;
             }
         }
@@ -552,13 +553,13 @@ export default class FormComponent extends React.Component {
 
                                             return (
                                                 <div className={
-                                                    (isEditable || task.Selected.assignedById == loggedUser.data.id)
+                                                    (isEditable || task.Selected.assignedTo == loggedUser.data.id)
                                                         ? (o.isCompleted == 1)
                                                             ? "wrapper completed"
                                                             : "wrapper"
                                                         : "wrapper-disabled"} key={index}>
                                                     {
-                                                        (isEditable || (task.Selected.assignedById == loggedUser.data.id)) &&
+                                                        (isEditable || (task.Selected.assignedTo == loggedUser.data.id)) &&
                                                         <div class="dropdown task-checklist-actions">
                                                             <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                             <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
@@ -572,7 +573,7 @@ export default class FormComponent extends React.Component {
                                                                         <a onClick={() => { this.deleteChecklist(o.id) }}>Delete</a>
                                                                     </li>
                                                                 }
-                                                                {(task.Selected.assignedById == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
+                                                                {(task.Selected.assignedTo == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
                                                                     <li>
                                                                         <a onClick={() => { this.completeChecklist({ id: o.id, isCompleted: (o.isCompleted != 1) ? 1 : 0 }) }}>
                                                                             {(o.isCompleted) ? "Unchecked" : "Check"}
@@ -627,7 +628,7 @@ export default class FormComponent extends React.Component {
                                 <div class="row" style={{ paddingLeft: 15 }}>
                                     <div class="col-md-12 pdr0">
                                         {
-                                            ((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id || loggedUser.data.userRole == 3) &&
+                                            ((task.Selected.assignedTo == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id || loggedUser.data.userRole == 3) &&
                                             <div>
                                                 <div class="form-group m0">
                                                     <label>Item</label>
@@ -727,7 +728,7 @@ export default class FormComponent extends React.Component {
                         {(task.Selected.isActive > 0) &&
                             <div style={{ position: "relative" }} class="mt20">
                                 <h5 class="mb0">Documents</h5>
-                                {((task.Selected.assignedById == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
+                                {((task.Selected.assignedTo == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
                                     <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" onClick={() => dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "task" })}>Add</a>
                                 }
                             </div>
