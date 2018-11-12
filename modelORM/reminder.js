@@ -58,12 +58,16 @@ module.exports = function (sequelize, DataTypes) {
   Reminder.associate = (models) => {
     Reminder.belongsTo(models.Users, {
       as: 'user',
-      foreignKey: 'createdBy',
+      foreignKey: 'createdBy'
     });
     Reminder.belongsTo(models.Workstream, {
       as: 'workstream',
-      foreignKey: 'linkId',
+      foreignKey: 'linkId'
     });
+    Reminder.belongsTo(models.Tasks, {
+      as: 'task',
+      foreignKey: 'linkId'
+    })
   };
   return Reminder
 };
