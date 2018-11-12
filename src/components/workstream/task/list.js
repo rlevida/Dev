@@ -92,11 +92,11 @@ export default class List extends React.Component {
     }
 
     fetchData(page) {
-        const { loggedUser, dispatch, task } = this.props;
+        const { loggedUser, dispatch, task, workstream } = this.props;
         const { data } = loggedUser;
         const userRoles = _.map(data.user_role, (roleObj) => { return roleObj.roleId })[0];
 
-        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${page}&role=${userRoles}`, {}, (c) => {
+        getData(`/api/task?projectId=${project}&workstreamId=${workstream.Selected.id}&userId=${loggedUser.data.id}&page=${page}&role=${userRoles}`, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
             showToast("success", "Task successfully retrieved.");
@@ -156,7 +156,7 @@ export default class List extends React.Component {
                 getData(`/api/taskDependency?includes=task&taskId=${data.id}`, {}, (c) => {
                     dispatch({ type: "SET_TASK_DEPENDENCY_LIST", List: c.data });
                     dispatch({ type: "SET_TASK_SELECT_LIST", List: [] });
-                    
+
                     parallelCallback(null, "")
                 })
             }

@@ -95,7 +95,7 @@ export default class FormComponent extends React.Component {
         } else {
             const checklistToComplete = checklist.List
                 .filter((e, index) => {
-                    return e.isMandatory && !e.isCompleted ;
+                    return e.isMandatory && !e.isCompleted;
                 })
             if (checklistToComplete.length == 0) {
                 let status = "Completed"
@@ -548,18 +548,16 @@ export default class FormComponent extends React.Component {
                                                 || loggedUser.data.userRole == 2
                                                 || loggedUser.data.userRole == 3
                                                 || project.Selected.projectManagerId == loggedUser.data.id)
-                                                && task.Selected.status != "Completed"
                                                 ? true : false
-
                                             return (
                                                 <div className={
-                                                    (isEditable || task.Selected.assignedTo == loggedUser.data.id)
+                                                    ((isEditable || task.Selected.assignedTo == loggedUser.data.id) && task.Selected.status != "Completed")
                                                         ? (o.isCompleted == 1)
                                                             ? "wrapper completed"
                                                             : "wrapper"
                                                         : "wrapper-disabled"} key={index}>
                                                     {
-                                                        (isEditable || (task.Selected.assignedTo == loggedUser.data.id)) &&
+                                                        ((isEditable || task.Selected.assignedTo == loggedUser.data.id) && task.Selected.status !== "Completed") &&
                                                         <div class="dropdown task-checklist-actions">
                                                             <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                             <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">

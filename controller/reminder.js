@@ -5,7 +5,8 @@ const models = require('../modelORM');
 const {
     Reminder,
     Users,
-    Workstream
+    Workstream,
+    Tasks
 } = models;
 
 exports.get = {
@@ -24,18 +25,19 @@ exports.get = {
                             as: 'user'
                         },
                         {
-                            model: Workstream,
-                            as: 'workstream'
-                        }
+                            model:Tasks,
+                            as: 'task'
+                        },
+
                     ]
                 })
                 .map((res) => {
                     const resToReturn = {
                         ...res.dataValues,
                         createdByName: `${res.dataValues.user.firstName} ${res.dataValues.user.lastName}`,
-                        workstreamId: res.dataValues.workstream != null ? res.dataValues.workstream.id : ''
+                        workstreamId: res.dataValues.task != null ? res.dataValues.task.workstreamId : ''
                     }
-                    return _.omit(resToReturn, "user", "workstream")
+                    return _.omit(resToReturn, "user", "task")
                 })
                 .then((res) => {
                     cb({ status: true, data: res })

@@ -165,7 +165,13 @@ exports.get = {
                         where: whereObj,
                         ...options
                     }).map((mapObject) => {
-                        return mapObject.toJSON();
+                        const responseData = mapObject.toJSON();
+                        const assignedTaskMembers = _.filter(responseData.task_members, (member) => { return member.memberType == "assignedTo" });
+                        const data = {
+                            ...responseData,
+                            assignedTo: ((assignedTaskMembers).length > 0) ? assignedTaskMembers[0].userTypeLinkId : ""
+                        }
+                        return data;
                     }).then((resultArray) => {
                         callback(null, resultArray);
                     });
@@ -182,6 +188,7 @@ exports.get = {
         });
     },
     getById: (req, cb) => {
+        console.log(`here`)
         const whereObj = {
             id: req.params.id
         };
@@ -790,6 +797,10 @@ exports.put = {
                                 parallelCallback(null, res)
                             }
                         })
+                },
+                sendMail: (parallelCallback) => {
+                    console.log(`send mail`)
+                    parallelCallback(null)
                 }
             }, (err, { status, periodic }) => {
                 const statusStack = [status];
