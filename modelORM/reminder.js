@@ -34,7 +34,7 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: true
     },
     type: {
-      type: DataTypes.ENUM('For Approval', 'Task Rejected', 'Task Overdue', 'Task Due Today', 'Tag in Comment'),
+      type: DataTypes.ENUM('Task For Approval', 'Task Rejected', 'Task Overdue', 'Task Due Today', 'Tag in Comment'),
       allowNull: true
     },
     createdBy: {

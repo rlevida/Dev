@@ -25,43 +25,30 @@ export default class ModalComponent extends React.Component {
     }
 
     handleSubmit() {
-        let { dispatch, task, loggedUser, global, workstream } = this.props;
+        let { dispatch, task, loggedUser } = this.props;
 
-        let dataToSubmit = {
-            id: task.Selected.id,
-            status: null,
-            approverId: task.Selected.approverId,
-            approvalDueDate: null
-        }
+        putData(`/api/task/status/${task.Selected.id}`,
+            {
+                userId: loggedUser.data.id,
+                periodTask: task.Selected.periodTask,
+                periodic: task.Selected.periodic,
+                id: task.Selected.id,
+                status: "Rejected",
+                message: task.Selected.rejectMessage,
+                approvalDueDate: null
+            }, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [c.data.task] });
+                    dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task });
+                    dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
+                    showToast("success", "Task successfully updated.");
+                } else {
+                    showToast("error", "Something went wrong please try again later.");
+                }
+                dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            });
 
-        let assignee = global.SelectList.projectMemberList.filter(e => { return e.id == task.Selected.assignedTo })[0]
-
-        let reminderDetails = {
-            workstreamId: task.Selected.workstreamId,
-            projectId: task.Selected.projectId,
-            reminderDetail: task.Selected.rejectMessage,
-            seen: 0,
-            linkType: "task",
-            linkId: task.Selected.id,
-            type: "Task Rejected",
-            usersId: assignee.id,
-            createdBy: loggedUser.data.id
-        }
-
-        let mailDetails = {
-            workstreamId: workstream.Selected.id,
-            taskId: task.Selected.id,
-            task: task.Selected.task,
-            receiveNotification: assignee.receiveNotification,
-            emailAddress: assignee.emailAddress,
-            project: project
-        }
-
-        putData(`/api/task/taskReject/${task.Selected.id}`, { data: dataToSubmit, reminder: reminderDetails, mailDetails: mailDetails }, (c) => {
-            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task })
-            dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task[0] })
-            showToast("success", "Sucessfully Updated.")
-        })
+        $(`#rejectMessageModal`).modal("hide");
 
         $(`#rejectMessageModal`).modal("hide");
     }

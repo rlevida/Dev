@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     memberType: {
-      type: DataTypes.ENUM('assignedTo', 'Follower', 'responsible', 'project manager'),
+      type: DataTypes.ENUM('assignedTo', 'Follower', 'responsible', 'project manager','approver'),
       allowNull: true
     },
     receiveNotification: {

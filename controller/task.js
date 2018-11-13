@@ -16,7 +16,7 @@ const associationStack = [
             {
                 model: Users,
                 as: 'user',
-                attributes: ['id', 'firstName', 'lastName']
+                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
             }
         ],
     },
@@ -28,7 +28,7 @@ const associationStack = [
             {
                 model: Users,
                 as: 'user',
-                attributes: ['id', 'firstName', 'lastName']
+                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
             }
         ]
     },
@@ -51,7 +51,7 @@ const associationStack = [
                             {
                                 model: Users,
                                 as: 'user',
-                                attributes: ['id', 'firstName', 'lastName']
+                                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
                             }
                         ]
                     }
@@ -67,7 +67,7 @@ const associationStack = [
                     {
                         model: Users,
                         as: 'user',
-                        attributes: ['id', 'firstName', 'lastName']
+                        attributes: ['id', 'firstName', 'lastName', 'emailAddress']
                     }
                 ]
             }
@@ -770,44 +770,151 @@ exports.put = {
                 },
                 status: (parallelCallback) => {
                     const { status } = body;
+                    Tasks.findOne({ ...options, where: { id: body.id } }).then((response) => {
+                        const currentTask = _(response.toJSON())
+                            .omit(["dateUpdated", "dateAdded"])
+                            .mapValues((objVal, objKey) => {
+                                if (objKey == "dueDate" || objKey == "startDate") {
+                                    return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                } else {
+                                    return objVal;
+                                }
+                            }).value();
 
-                    Tasks.update({ status }, { where: { id: body.id } }).then((response) => {
-                        return Tasks.findOne({ ...options, where: { id: body.id } });
-                    }).then((response) => {
-                        const updatedTask = response.toJSON();
-                        parallelCallback(null, updatedTask);
+                        Tasks.update({ status }, { where: { id: body.id } }).then((response) => {
+                            return Tasks.findOne({ ...options, where: { id: body.id } });
+                        }).then((response) => {
+                            const updatedResponse = response.toJSON();
+                            const updatedTask = _(updatedResponse)
+                                .omit(["dateUpdated", "dateAdded"])
+                                .mapValues((objVal, objKey) => {
+                                    if (objKey == "dueDate" || objKey == "startDate") {
+                                        return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                    } else {
+                                        return objVal;
+                                    }
+                                }).value();
+                            const newObject = func.changedObjAttributes(updatedTask, currentTask);
+                            const objectKeys = _.map(newObject, function (value, key) { return key; });
+
+                            const taskMembers = _.uniq(_.map(updatedResponse.task_members, (member) => { return member.user }));
+                            const workstreamResponsible = _.map(updatedResponse.workstream.responsible, (responsible) => { return responsible.user })
+                            const membersToRemind = _.filter(taskMembers.concat(workstreamResponsible), (member) => { return member.id != body.userId });
+
+                            async.parallel({
+                                approver: (statusParallelCallback) => {
+                                    if (body.status == "For Approval") {
+                                        Members
+                                            .destroy({ where: { linkId: updatedResponse.id, linkType: 'task', memberType: 'approver' } })
+                                            .then((res) => {
+                                                Members
+                                                    .create({ userTypeLinkId: updatedResponse.approverId, usersType: 'users', linkType: 'task', linkId: updatedResponse.id, memberType: 'approver', receiveNotification: 1 })
+                                                    .then((createRes) => {
+                                                        statusParallelCallback(null)
+                                                    })
+                                            })
+                                    } else {
+                                        statusParallelCallback(null)
+                                    }
+                                },
+                                reminder: (statusParallelCallback) => {
+                                    async.map(membersToRemind, (e, mapCallback) => {
+                                        const reminderDetails = {
+                                            createdBy: body.userId,
+                                            linkId: body.id,
+                                            linkType: "task",
+                                            projectId: updatedResponse.projectId,
+                                            seen: 0,
+                                            type: `Task ${body.status}`,
+                                            usersId: e.id,
+                                            reminderDetail: (typeof body.message !== 'undefined') ? body.message : `Task ${body.status}`
+                                        }
+                                        Reminder.create(reminderDetails).then((res) => {
+                                            mapCallback(null, res)
+                                        })
+                                    }, (err, mapCallbackResult) => {
+                                        statusParallelCallback(null)
+                                    })
+                                },
+                                email: (statusParallelCallback) => {
+                                    async.map(membersToRemind, (e, mapCallback) => {
+                                        const message = (typeof body.message != "undefined") ? body.message : ''
+                                        const mailOptions = {
+                                            from: '"no-reply" <no-reply@c_cfo.com>',
+                                            to: `${e.emailAddress}`,
+                                            subject: '[CLOUD-CFO]',
+                                            text: `Task ${body.status}`,
+                                            html: `<p> ${message}</p>
+                                                        <p>${updatedResponse.task} ${body.status}</p>
+                                                        <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${updatedResponse.projectId}/workstream/${updatedResponse.workstreamId}?task=${updatedResponse.id}">Click here</a>`
+                                        }
+                                        global.emailtransport(mailOptions)
+                                        mapCallback()
+                                    }, (err, mapCallbackResult) => {
+                                        statusParallelCallback(null)
+                                    })
+                                },
+                                activity_logs: (statusParallelCallback) => {
+                                    ActivityLogs.create({
+                                        usersId: body.userId,
+                                        linkType: "task",
+                                        linkId: body.id,
+                                        actionType: "modified",
+                                        old: JSON.stringify({ "task_details": _.pick(currentTask, objectKeys) }),
+                                        new: JSON.stringify({ "task_details": newObject })
+                                    }).then((response) => {
+                                        const responseObj = response.toJSON();
+                                        return ActivityLogs.findOne({
+                                            include: [
+                                                {
+                                                    model: Users,
+                                                    as: 'user',
+                                                    attributes: ['firstName', 'lastName']
+                                                }
+                                            ],
+                                            where: { id: responseObj.id }
+                                        })
+                                    }).then((response) => {
+                                        const responseObj = response.toJSON();
+                                        statusParallelCallback(null, { task: updatedResponse, activity_log: responseObj });
+                                    });
+                                }
+                            }, (err, { activity_logs }) => {
+                                parallelCallback(null, activity_logs)
+                            })
+                        });
                     });
                 },
                 document: (parallelCallback) => {
-                    ChecklistDocuments
-                        .findAll({
-                            where: { taskId: body.id }
-                        })
-                        .map((res) => {
-                            return res.id
-                        })
-                        .then((res) => {
-                            if (res.length > 0) {
-                                Document
-                                    .update({ isCompleted: 1 }, { where: { id: res } })
-                                    .then((documentRes) => {
-                                        parallelCallback(null, documentRes)
-                                    })
-                            } else {
-                                parallelCallback(null, res)
-                            }
-                        })
-                },
-                sendMail: (parallelCallback) => {
-                    console.log(`send mail`)
-                    parallelCallback(null)
+                    if (body.status == "Completed") {
+                        ChecklistDocuments
+                            .findAll({
+                                where: { taskId: body.id }
+                            })
+                            .map((res) => {
+                                return res.id
+                            })
+                            .then((res) => {
+                                if (res.length > 0) {
+                                    Document
+                                        .update({ isCompleted: 1 }, { where: { id: res } })
+                                        .then((documentRes) => {
+                                            parallelCallback(null, documentRes)
+                                        })
+                                } else {
+                                    parallelCallback(null, res)
+                                }
+                            })
+                    } else {
+                        parallelCallback(null)
+                    }
                 }
-            }, (err, { status, periodic }) => {
-                const statusStack = [status];
-                if (periodic != "") {
-                    statusStack.push(periodic)
-                }
-                cb({ status: true, data: statusStack });
+            }, (err, { status, periodic, }) => {
+                // const statusStack = [status.task];
+                // if (periodic != "") {
+                //     statusStack.push(periodic)
+                // }
+                cb({ status: true, data: { ...status } });
             })
         } catch (err) {
             cb({ status: false, error: err })

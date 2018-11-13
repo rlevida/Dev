@@ -37,7 +37,7 @@ export default class ApprovalModal extends React.Component {
     }
 
     handleSubmit() {
-        let { dispatch, socket, task, loggedUser, global, workstream } = this.props;
+        let { dispatch, task, loggedUser, global } = this.props;
         let result = true;
 
         $('.form-container *').validator('validate');
@@ -51,39 +51,27 @@ export default class ApprovalModal extends React.Component {
             showToast("error", "Form did not fullfill the required value.")
         } else {
 
-            let approver = global.SelectList.projectMemberList.filter(e => { return e.id == task.Selected.approverId })[0]
+            putData(`/api/task/status/${task.Selected.id}`,
+                {
+                    approverId: task.Selected.approverId,
+                    approvalDueDate: task.Selected.approvalDueDate,
+                    userId: loggedUser.data.id,
+                    periodTask: task.Selected.periodTask,
+                    periodic: task.Selected.periodic,
+                    id: task.Selected.id,
+                    status: "For Approval"
+                }, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [c.data.task] });
+                        dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task });
+                        dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
+                        showToast("success", "Task successfully updated.");
+                    } else {
+                        showToast("error", "Something went wrong please try again later.");
+                    }
+                    dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+                });
 
-            let dataToSubmit = {
-                id: task.Selected.id, status: "For Approval",
-                approverId: task.Selected.approverId,
-                approvalDueDate: task.Selected.approvalDueDate,
-            }
-
-            let reminderDetails = {
-                seen: 0,
-                usersId: task.Selected.approverId,
-                projectId: task.Selected.projectId,
-                linkType: "task",
-                linkId: task.Selected.id,
-                type: "For Approval",
-                createdBy: loggedUser.data.id,
-                reminderDetail: "Assigned as approver"
-            }
-
-            let mailDetails = {
-                workstreamId: workstream.Selected.id,
-                taskId: task.Selected.id,
-                task: task.Selected.task,
-                receiveNotification: approver.receiveNotification,
-                emailAddress: approver.emailAddress,
-                project: project
-            }
-
-            putData(`/api/task/taskApproval/${task.Selected.id}`, { data: dataToSubmit, reminder: reminderDetails, receiveNotification: approver.receiveNotification, mailDetails: mailDetails }, (c) => {
-                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task })
-                dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task[0] })
-                showToast("success", "Sucessfully Updated.")
-            })
             $(`#approvalModal`).modal(`hide`);
         }
     }
