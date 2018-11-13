@@ -39,7 +39,7 @@ export default class List extends React.Component {
             if (c.status == 200) {
                 dispatch({ type: "SET_DOCUMENT_LIST", List: document.Trash.concat(c.data.result), Count: { Count: c.data.count }, DocumentType: 'Trash', CountType: 'TrashCount' })
                 dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'TrashDocumentLoading' })
-                showToast('success', 'Documents Successfully Retrieve')
+                showToast('success', 'Documents successfully retrieved.')
             } else {
                 dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'TrashDocumentLoading' })
                 showToast('error', 'Something went wrong!')
