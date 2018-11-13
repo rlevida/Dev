@@ -16,7 +16,7 @@ const associationStack = [
             {
                 model: Users,
                 as: 'user',
-                attributes: ['id', 'firstName', 'lastName']
+                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
             }
         ],
     },
@@ -28,7 +28,7 @@ const associationStack = [
             {
                 model: Users,
                 as: 'user',
-                attributes: ['id', 'firstName', 'lastName']
+                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
             }
         ]
     },
@@ -51,7 +51,7 @@ const associationStack = [
                             {
                                 model: Users,
                                 as: 'user',
-                                attributes: ['id', 'firstName', 'lastName']
+                                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
                             }
                         ]
                     }
@@ -790,40 +790,64 @@ exports.put = {
                             const newObject = func.changedObjAttributes(updatedTask, currentTask);
                             const objectKeys = _.map(newObject, function (value, key) { return key; });
 
+                            const taskMembers = _.uniq(_.map(updatedResponse.task_members, (member) => { return member.user }));
+                            const workstreamResponsible = _.map(updatedResponse.workstream.responsible, (responsible) => { return responsible.user })
+                            const membersToRemind = _.filter(taskMembers.concat(workstreamResponsible), (member) => { return member.id != body.userId });
 
                             async.parallel({
-                                reminder: (parallelCallback) => {
-                                    // const reminderDetails = {
-                                    //     createdBy: body.userId,
-                                    //     linkId: body.id,
-                                    //     linkType: "task",
-                                    //     projectId: updatedResponse.projectId,
-                                    //     seen: 0,
-                                    //     type: "Task Completed",
-                                    //     usersId: body.userId
-                                    // }
-                                    // console.log(reminderDetails)
+                                approver: (statusParallelCallback) => {
+                                    if (body.status == "For Approval") {
+                                        Members
+                                            .destroy({ where: { linkId: updatedResponse.id, linkType: 'task', memberType: 'approver' } })
+                                            .then((res) => {
+                                                Members
+                                                    .create({ userTypeLinkId: updatedResponse.approverId, usersType: 'users', linkType: 'task', linkId: updatedResponse.id, memberType: 'approver', receiveNotification: 1 })
+                                                    .then((createRes) => {
+                                                        statusParallelCallback(null)
+                                                    })
+                                            })
+                                    } else {
+                                        statusParallelCallback(null)
+                                    }
                                 },
-                                email: (parallelCallback) => {
-                                    // const assignedMembers = _.filter(updatedResponse.task_members, (membersObj) => { return membersObj.memberType == "assignedTo" });
-                                    // const message = (typeof body.message)
-                                    // if (assignedMembers.length > 0) {
-                                    //     const mailOptions = {
-                                    //         from: '"no-reply" <no-reply@c_cfo.com>',
-                                    //         to: `${assignedMembers[0].user.emailAddress}`,
-                                    //         subject: '[CLOUD-CFO]',
-                                    //         text: 'Task Rejected',
-                                    //         html: `<p> ${body.message}</p>
-                                    //             <p>${body.mailDetails.task}</p>
-                                    //             <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${body.mailDetails.project}/workstream/${body.mailDetails.workstreamId}?task=${body.mailDetails.taskId}">Click here</a>`
-                                    //     }
-
-                                    //     //global.emailtransport(mailOptions)
-                                    // } else {
-                                    //     parallelCallback(null)
-                                    // }
+                                reminder: (statusParallelCallback) => {
+                                    async.map(membersToRemind, (e, mapCallback) => {
+                                        const reminderDetails = {
+                                            createdBy: body.userId,
+                                            linkId: body.id,
+                                            linkType: "task",
+                                            projectId: updatedResponse.projectId,
+                                            seen: 0,
+                                            type: `Task ${body.status}`,
+                                            usersId: e.id,
+                                            reminderDetail: (typeof body.message !== 'undefined') ? body.message : `Task ${body.status}`
+                                        }
+                                        Reminder.create(reminderDetails).then((res) => {
+                                            mapCallback(null, res)
+                                        })
+                                    }, (err, mapCallbackResult) => {
+                                        statusParallelCallback(null)
+                                    })
                                 },
-                                activity_logs: (parallelCallback) => {
+                                email: (statusParallelCallback) => {
+                                    async.map(membersToRemind, (e, mapCallback) => {
+                                        const message = (typeof body.message != "undefined") ? body.message : ''
+                                        const mailOptions = {
+                                            from: '"no-reply" <no-reply@c_cfo.com>',
+                                            to: `${e.emailAddress}`,
+                                            subject: '[CLOUD-CFO]',
+                                            text: `Task ${body.status}`,
+                                            html: `<p> ${message}</p>
+                                                        <p>${updatedResponse.task} ${body.status}</p>
+                                                        <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${updatedResponse.projectId}/workstream/${updatedResponse.workstreamId}?task=${updatedResponse.id}">Click here</a>`
+                                        }
+                                        global.emailtransport(mailOptions)
+                                        mapCallback()
+                                    }, (err, mapCallbackResult) => {
+                                        statusParallelCallback(null)
+                                    })
+                                },
+                                activity_logs: (statusParallelCallback) => {
                                     ActivityLogs.create({
                                         usersId: body.userId,
                                         linkType: "task",
@@ -840,58 +864,50 @@ exports.put = {
                                                     as: 'user',
                                                     attributes: ['firstName', 'lastName']
                                                 }
-                                            ], 
+                                            ],
                                             where: { id: responseObj.id }
                                         })
                                     }).then((response) => {
                                         const responseObj = response.toJSON();
-                                        parallelCallback(null, { task: updatedResponse, activity_log: responseObj });
+                                        statusParallelCallback(null, { task: updatedResponse, activity_log: responseObj });
                                     });
                                 }
-                            }, ()=>{
-
+                            }, (err, { activity_logs }) => {
+                                parallelCallback(null, activity_logs)
                             })
-
-
-
-
-
-
-
-
-
-
-                            //console.log(updatedResponse)
-
                         });
                     });
                 },
                 document: (parallelCallback) => {
-                    ChecklistDocuments
-                        .findAll({
-                            where: { taskId: body.id }
-                        })
-                        .map((res) => {
-                            return res.id
-                        })
-                        .then((res) => {
-                            if (res.length > 0) {
-                                Document
-                                    .update({ isCompleted: 1 }, { where: { id: res } })
-                                    .then((documentRes) => {
-                                        parallelCallback(null, documentRes)
-                                    })
-                            } else {
-                                parallelCallback(null, res)
-                            }
-                        })
+                    if (body.status == "Completed") {
+                        ChecklistDocuments
+                            .findAll({
+                                where: { taskId: body.id }
+                            })
+                            .map((res) => {
+                                return res.id
+                            })
+                            .then((res) => {
+                                if (res.length > 0) {
+                                    Document
+                                        .update({ isCompleted: 1 }, { where: { id: res } })
+                                        .then((documentRes) => {
+                                            parallelCallback(null, documentRes)
+                                        })
+                                } else {
+                                    parallelCallback(null, res)
+                                }
+                            })
+                    } else {
+                        parallelCallback(null)
+                    }
                 }
-            }, (err, { status, periodic }) => {
-                const statusStack = [status.task];
-                if (periodic != "") {
-                    statusStack.push(periodic)
-                }
-                cb({ status: true, data: { tasks: statusStack, activity_log: status.activity_log } });
+            }, (err, { status, periodic, }) => {
+                // const statusStack = [status.task];
+                // if (periodic != "") {
+                //     statusStack.push(periodic)
+                // }
+                cb({ status: true, data: { ...status } });
             })
         } catch (err) {
             cb({ status: false, error: err })

@@ -36,7 +36,7 @@ var field = exports.field = {
     'linkType' : {type : 'string' , access : "public" },
 
     /**
-     * type (ENUM("For Approval","Task Rejected","Task Overdue","Task Due Today","Tag in Comment"))
+     * type (ENUM("Task For Approval","Task Rejected","Task Overdue","Task Due Today","Tag in Comment"))
      */
     'type' : {type : 'string' , access : "public" },
 

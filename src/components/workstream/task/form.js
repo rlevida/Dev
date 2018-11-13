@@ -112,8 +112,8 @@ export default class FormComponent extends React.Component {
                             status: "Completed"
                         }, (c) => {
                             if (c.status == 200) {
-                                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.tasks });
-                                dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.tasks[0] });
+                                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [c.data.task] });
+                                dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task });
                                 dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                                 showToast("success", "Task successfully updated.");
                             } else {
@@ -125,45 +125,6 @@ export default class FormComponent extends React.Component {
             } else {
                 showToast("error", "There are items to be completed in the checklist before completing the task.")
             }
-        }
-    }
-
-    approveTask() {
-        const { task, checklist, loggedUser, dispatch } = this.props;
-        const mandatory = checklist.List.filter((e, index) => {
-            return !e.isCompleted;
-        });
-        if (!mandatory.length) {
-
-            let reminderDetails = {
-                seen: 0,
-                usersId: task.Selected.assignedTo,
-                projectId: task.Selected.projectId,
-                linkType: "task",
-                linkId: task.Selected.id,
-                type: "Task Completed",
-                createdBy: loggedUser.data.id,
-                reminderDetail: "Task Completed"
-            }
-
-            putData(`/api/task/status/${task.Selected.id}`, { userId: loggedUser.data.id, periodTask: task.Selected.periodTask, periodic: task.Selected.periodic, id: task.Selected.id, status: "Completed" }, (c) => {
-                if (c.status == 200) {
-                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.tasks });
-                    dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.tasks[0] });
-                    dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
-                    showToast("success", "Task successfully updated.");
-
-                    postData(`/api/reminder`, reminderDetails, (r) => {
-                        dispatch({ type: "ADD_REMINDER_LIST", list: r.data })
-                    })
-
-                } else {
-                    showToast("error", "Something went wrong please try again later.");
-                }
-                dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-            })
-        } else {
-            showToast("error", "There are items to be completed in the checklist before completing the task.")
         }
     }
 
@@ -481,9 +442,9 @@ export default class FormComponent extends React.Component {
                             {(isVisible && task.Selected.status != "For Approval") &&
                                 <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
                             }
-                            {(task.Selected.status == "For Approval") &&
+                            {(task.Selected.status == "For Approval" && task.Selected.assignedTo != loggedUser.data.id) &&
                                 <span>
-                                    <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.approveTask()}>Approve</a>
+                                    <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Approve</a>
                                     <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Reject Task" onClick={() => this.rejectTask()}>Reject</a>
                                 </span>
                             }

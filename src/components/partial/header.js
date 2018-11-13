@@ -118,7 +118,7 @@ export default class Component extends React.Component {
                                     if (data.type == "Task Rejected") {
                                         label = `Task`
                                         description = `${data.taskName} has been rejected by ${data.createdByName}`
-                                    } else if (data.type == "For Approval") {
+                                    } else if (data.type == "Task For Approval") {
                                         label = `Task`
                                         description = `${data.createdByName} assigned you as approver.`
                                     } else if (data.type == "Task Overdue") {
