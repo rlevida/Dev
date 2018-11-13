@@ -10,6 +10,7 @@ import DocumentLibrary from "./documentLibrary";
 import PrintModal from "./documentPrinterModal";
 import UploadModal from "./uploadModal";
 import ShareModal from "./shareModal";
+import EditModal from "./editModal";
 
 import { connect } from "react-redux";
 @connect((store) => {
@@ -62,26 +63,6 @@ export default class List extends React.Component {
                         }
                     });
                 },
-                documentNew: (parallelCallback) => {
-                    getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
-                        if (c.status == 200) {
-                            dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data.result, count: { Count: c.data.count } })
-                            parallelCallback(null, "")
-                        } else {
-                            parallelCallback(null, "")
-                        }
-                    });
-                },
-                documentLibrary: (parallelCallback) => {
-                    getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
-                        if (c.status == 200) {
-                            dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: c.data.result, count: { Count: c.data.count } })
-                            parallelCallback(null, "")
-                        } else {
-                            parallelCallback(null, "")
-                        }
-                    });
-                },
                 tagList: (parallelCallback) => {
                     getData(`/api/global/selectList`, { params: { selectName: "tagList" } }, (c) => {
                         dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'tagList' })
@@ -113,8 +94,8 @@ export default class List extends React.Component {
                     })
                 }
             }, (error, result) => {
-                dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
-                dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
+                // dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
+                // dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
             })
         }
     }
@@ -148,6 +129,7 @@ export default class List extends React.Component {
             <PrintModal />
             <UploadModal />
             <ShareModal />
+            <EditModal />
         </div>
     }
 }

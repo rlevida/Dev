@@ -11,10 +11,13 @@ export default function reducer(state = {
     PrinterList: [],
     Library: [],
     New: [],
+    Trash: [],
     NewDocumentLoading: "RETRIEVING",
     LibraryDocumentLoading: "RETRIEVING",
+    TrashDocumentLoading: "RETRIEVING",
     NewCount: { Count: {} },
     LibraryCount: { Count: {} },
+    TrashCount: { Count: {} },
     NewUploadCount: 0
 }, action) {
     switch (action.type) {
@@ -31,13 +34,13 @@ export default function reducer(state = {
             return { ...state, Library: Library }
         }
         case "SET_DOCUMENT_LIST": {
-            return { ...state, List: action.list }
+            return { ...state, [action.DocumentType]: action.List, [action.CountType]: action.Count }
         }
         case "SET_DOCUMENT_NEW_LIST": {
-            return { ...state, New: action.list, NewCount: action.count }
+            return { ...state, New: action.list, NewCount: (typeof action.count != "undefined") ? action.count : state.NewCount }
         }
         case "SET_DOCUMENT_LIBRARY_LIST": {
-            return { ...state, Library: action.list, LibraryCount: action.count }
+            return { ...state, Library: action.list, LibraryCount: (typeof action.count != "undefined") ? action.count : state.NewCount }
         }
         case "SET_DOCUMENT_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
@@ -72,7 +75,7 @@ export default function reducer(state = {
             return { ...state, PrinterList: action.List }
         }
         case "SET_DOCUMENT_LOADING": {
-            return { ...state, Loading: action.Loading }
+            return { ...state, [action.LoadingType]: action.Loading }
         }
         case "SET_NEW_DOCUMENT_LOADING": {
             return { ...state, NewDocumentLoading: action.Loading }
@@ -120,13 +123,7 @@ export default function reducer(state = {
             }
         }
         case "REMOVE_DELETED_DOCUMENT_LIST": {
-            let tempList = [];
-            state.List.map((e, i) => {
-                if (action.id != e.id) {
-                    tempList.push(e)
-                }
-            })
-            return { ...state, List: tempList }
+            return { ...state, [action.DocumentType]: _.filter(state[action.DocumentType], (e) => { return e.id !== action.Id }) }
         }
 
         default:

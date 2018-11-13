@@ -574,28 +574,40 @@ exports.put = {
                         d.documentNameCount = res[0].documentNameCount + 1
                         nextThen(d)
                     } else {
-                        d.projectNameCount = 0;
+                        d.documentNameCount = 0;
                         nextThen(d)
                     }
                 })
                 .catch(err => {
-                    console.log(err)
+                    console.error(err)
+                    cb({ status: false, error: err })
                 })
         }).then((nextThen, result) => {
-            Document.update({
-                ...result,
-            }, {
-                    where: {
-                        id: id
-                    }
-                })
+            Document
+                .update({
+                    ...result,
+                }, { where: { id: id } })
                 .then(res => {
-                    cb({
-                        status: true,
-                        data: res.data
-                    })
+                    DocumentLink
+                        .findOne({
+                            where: { documentId: id },
+                            include: [{
+                                model: Document,
+                                as: 'document',
+                                include: associationFindAllStack
+                            }]
+                        })
+                        .then((findRes) => {
+                            let dataToReturn = {
+                                ...findRes.dataValues.document.toJSON(),
+                                tags: findRes.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                    .concat(findRes.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                            }
+                            cb({ status: true, data: _.omit(dataToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
+                        })
                 }).catch(err => {
-                    console.log(err)
+                    console.error(err)
+                    cb({ status: false, error: err })
                 })
         })
     }
