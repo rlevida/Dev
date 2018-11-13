@@ -31,7 +31,7 @@ var sendForgotPasswordmail = exports.sendForgotPasswordmail = (responseId, email
 
     let ufp = global.initModel("users_forgot_password");
     ufp.deleteData("users_forgot_password", { usersId: responseId }, () => {
-        ufp.postData("users_forgot_password", { hash_word: hash, usersId: responseId }, (c) => {
+        ufp.postData("users_forgot_password", { hash: hash, usersId: responseId }, (c) => {
             var mailOptions = {
                 from: 'noreply<mobbizapps12345@gmail.com>',
                 to: email,
