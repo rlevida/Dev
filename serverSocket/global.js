@@ -7,7 +7,7 @@ var init = exports.init = (socket) => {
         let users = global.initModel("users");
         let type = (typeof d.type != 'undefined') ? d.type : 'client';
 
-        users.getData("users", { email: d.email }, {}, (c) => {
+        users.getData("users", { emailAddress: d.email }, {}, (c) => {
             if (c.data.length > 0) {
                 func.sendForgotPasswordmail(c.data[0].id, d.email, type, (d, res) => {
                     if (type == 'mobile') {

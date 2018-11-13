@@ -4,9 +4,8 @@ var router = express();
 router.get('/', function (req, res, next) {
     var ufp = global.initModel('users_forgot_password'),
         hash = req.query.hash;
-
-    ufp.getData("users_forgot_password",{hash:hash},{}, (ufp) => {
-        if (ufp.data.length > 0) {
+    ufp.getData("users_forgot_password",{hash:hash},{}, (response) => {
+        if (response.data.length > 0) {
             res.render('index', {
                 title: global.site_name + ' - Forgot Password',
                 global: global,
