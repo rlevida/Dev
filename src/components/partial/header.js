@@ -115,30 +115,11 @@ export default class Component extends React.Component {
                                 reminderUnseen.map((data, index) => {
                                     let label = ""
                                     let description = ""
-                                    if (data.type == "Task Rejected") {
-                                        label = `Task`
-                                        description = `${data.taskName} has been rejected by ${data.createdByName}`
-                                    } else if (data.type == "Task For Approval") {
-                                        label = `Task`
-                                        description = `${data.createdByName} assigned you as approver.`
-                                    } else if (data.type == "Task Overdue") {
-                                        label = data.linkType == "workstream" ? `Workstream Task Overdue` : `Task Overdue`
-                                        description = `${data.reminderDetail}`
-                                    } else if (data.type == "Task Due Today") {
-                                        label = `Task Due Today`
-                                        description = `${data.reminderDetail}`
-                                    } else if (data.type == "Tag in Comment") {
-                                        label = `Comment`
-                                        description = `${data.createdByName} tagged you in a comment.`
-                                    } else if (data.type == "Task Completed") {
-                                        description = `${data.taskName} has been completed by ${data.createdByName}`
-                                    }
-
                                     return (
                                         <li key={index} style={{ height: '100%' }}>
                                             {/* <span class="label label-primary" style={{marginLeft:'5px'}}>{label}</span> */}
                                             <a href={`/reminder`} key={index} style={{ textDecoration: "none", fontWeight: "bold" }}>
-                                                <span>{description}</span>
+                                                <span>{data.reminderDetail}</span>
                                                 <br />
                                             </a>
                                         </li>

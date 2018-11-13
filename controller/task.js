@@ -796,11 +796,9 @@ exports.put = {
                                 }).value();
                             const newObject = func.changedObjAttributes(updatedTask, currentTask);
                             const objectKeys = _.map(newObject, function (value, key) { return key; });
-
-                            const taskMembers = _.uniq(_.map(updatedResponse.task_members, (member) => { return member.user }));
+                            const taskMembers = _.map(updatedResponse.task_members, (member) => { return member.user });
                             const workstreamResponsible = _.map(updatedResponse.workstream.responsible, (responsible) => { return responsible.user })
-                            const membersToRemind = _.filter(taskMembers.concat(workstreamResponsible), (member) => { return member.id != body.userId });
-
+                            const membersToRemind = _.uniqBy(_.filter(taskMembers.concat(workstreamResponsible), (member) => { return member.id != body.userId }),'id');
                             async.parallel({
                                 approver: (statusParallelCallback) => {
                                     if (body.status == "For Approval") {
