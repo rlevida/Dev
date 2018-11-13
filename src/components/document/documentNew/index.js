@@ -53,17 +53,20 @@ export default class DocumentNew extends React.Component {
         this.fetchData(1)
     }
 
-    fetchData(page) {
-        const { dispatch, loggedUser, document } = this.props;
-        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
+    addFolder() {
+        let { loggedUser, folder, dispatch } = this.props;
+        let { folderName } = this.state;
+        let dataToSubmit = { projectId: project, name: folderName, createdBy: loggedUser.data.id, parentId: folder.SelectedNewFolder.id, type: "new" };
+        postData(`/api/folder?projectId=${project}`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIST", List: document.New.concat(c.data.result), DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-                dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-                showToast('success', 'Documents successfully retrieved.')
+                dispatch({ type: "ADD_FOLDER_LIST", list: [c.data] });
+                showToast("success", "Successfully Added.");
             } else {
-                showToast('success', 'Something went wrong!')
+                showToast("error", "Saving failed. Please try again.");
             }
-        });
+
+            this.setState({ folderAction: "", folderName: "" });
+        })
     }
 
     deleteDocument(id) {
@@ -80,26 +83,52 @@ export default class DocumentNew extends React.Component {
         }
     }
 
-    viewDocument(data) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+    downloadDocument(document) {
+        window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
     }
 
-    starDocument(data, isStarred) {
-        let { starred, loggedUser, dispatch } = this.props;
-        if (isStarred) {
-            let id = starred.List.filter(s => { return s.linkId == data.id })[0].id
-            deleteData(`/api/starred/${id}`, {}, (c) => {
-                dispatch({ type: "REMOVE_DELETED_STARRED_LIST", id: data.id })
-            })
-        } else {
-            let dataToSubmit = { usersId: loggedUser.data.id, linkType: "project", linkId: data.id }
-            postData(`/api/starred/`, dataToSubmit, (c) => {
-                dispatch({ type: "ADD_STARRED_LIST", list: c.data })
+    duplicateDocument(data) {
+        const { dispatch, document } = this.props;
+        const dataToSubmit = [{ name: data.name, origin: data.origin, project: project, uploadedBy: data.uploadedBy, status: data.status, tags: JSON.stringify(data.tags) }]
+        postData(`/api/document`, dataToSubmit, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: data.status == 'new' ? 'New' : 'Library' });
+                if (data.status == 'new') {
+                    dispatch({ type: "SET_DOCUMENT_NEW_UPLOAD_COUNT", Count: document.NewUploadCount + 1 })
+                }
+                showToast("success", "Successfully Added.")
+            } else {
+                showToast("error", "Saving failed. Please Try again later.")
+            }
+        })
+    }
+
+    deleteFolder(id) {
+        let { dispatch } = this.props;
+        if (confirm("Do you really want to delete this folder?")) {
+            deleteData(`/api/folder/${id}`, { projectId: project }, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "REMOVE_DELETED_FOLDER_LIST", id: id })
+                    showToast("success", "Successfully Deleted.");
+                } else {
+                    showToast("danger", "Delete failed. Please try again.");
+                }
             })
         }
     }
+
+    downloadFolder(folder) {
+        let { document } = this.props;
+        let fileList = [];
+        document.List.filter(e => {
+            if (e.folderId == folder.id) {
+                fileList.push({ origin: e.origin, name: e.name })
+            }
+        })
+        window.open(encodeURI(`/api/downloadFolder?data=${JSON.stringify(fileList)}&folderName=${folder.name}`));
+    }
+
+
 
     editDocument(data, type) {
         let { dispatch } = this.props;
@@ -110,6 +139,19 @@ export default class DocumentNew extends React.Component {
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: newData });
         dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type });
         $(`#editModal`).modal('show');
+    }
+
+    fetchData(page) {
+        const { dispatch, loggedUser, document } = this.props;
+        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_DOCUMENT_LIST", List: document.New.concat(c.data.result), DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
+                showToast('success', 'Documents successfully retrieved.')
+            } else {
+                showToast('success', 'Something went wrong!')
+            }
+        });
     }
 
     moveToLibrary(data) {
@@ -157,79 +199,6 @@ export default class DocumentNew extends React.Component {
         })
     }
 
-    addFolder() {
-        let { loggedUser, folder, dispatch } = this.props;
-        let { folderName } = this.state;
-        let dataToSubmit = { projectId: project, name: folderName, createdBy: loggedUser.data.id, parentId: folder.SelectedNewFolder.id, type: "new" };
-        postData(`/api/folder?projectId=${project}`, dataToSubmit, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "ADD_FOLDER_LIST", list: [c.data] });
-                showToast("success", "Successfully Added.");
-            } else {
-                showToast("error", "Saving failed. Please try again.");
-            }
-
-            this.setState({ folderAction: "", folderName: "" });
-        })
-    }
-
-    deleteFolder(id) {
-        let { dispatch } = this.props;
-        if (confirm("Do you really want to delete this folder?")) {
-            deleteData(`/api/folder/${id}`, { projectId: project }, (c) => {
-                if (c.status == 200) {
-                    dispatch({ type: "REMOVE_DELETED_FOLDER_LIST", id: id })
-                    showToast("success", "Successfully Deleted.");
-                } else {
-                    showToast("danger", "Delete failed. Please try again.");
-                }
-            })
-        }
-    }
-
-    downloadFolder(folder) {
-        let { document } = this.props;
-        let fileList = [];
-        document.List.filter(e => {
-            if (e.folderId == folder.id) {
-                fileList.push({ origin: e.origin, name: e.name })
-            }
-        })
-        window.open(encodeURI(`/api/downloadFolder?data=${JSON.stringify(fileList)}&folderName=${folder.name}`));
-    }
-
-    // printDocument(data){
-    //     let { dispatch } = this.props
-    //     getData(`/api/document/getPrinterList`,{},(c) => {
-    //         dispatch({ type : "SET_PRINTER_LIST" , List: c.data })
-    //         dispatch({ type : "SET_DOCUMENT_SELECTED" , Selected: data })
-    //         $(`#printerModal`).modal("show")
-    //     })
-    // }
-
-
-    printDocument(file) {
-        let { dispatch } = this.props;
-        let dataToSubmit = { fileName: file.name, fileOrigin: file.origin };
-        postData(`/api/document/printDocument`, dataToSubmit, (c) => {
-            document.getElementById("printDocument").src = `/temp/${c.data}`;
-            setTimeout(() => {
-                document.getElementById('printDocument').contentWindow.print();
-
-                let onFocus = true
-                window.onfocus = function () {
-                    if (onFocus) {
-                        removeTempFile(c.data, (c) => { onFocus = false })
-                    }
-                }
-            }, 2000)
-        })
-    }
-
-    downloadDocument(document) {
-        window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
-    }
-
     getFolderDocuments(data) {
         let { dispatch, loggedUser } = this.props;
         dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "RETRIEVING" })
@@ -275,6 +244,27 @@ export default class DocumentNew extends React.Component {
             })
             dispatch({ type: "SET_DOCUMENT_LIST", List: sortedDocument, DocumentType: 'New', Count: document.NewCount, CountType: 'NewCount' })
         }
+    }
+
+    starDocument(data, isStarred) {
+        let { starred, loggedUser, dispatch } = this.props;
+        if (isStarred) {
+            let id = starred.List.filter(s => { return s.linkId == data.id })[0].id
+            deleteData(`/api/starred/${id}`, {}, (c) => {
+                dispatch({ type: "REMOVE_DELETED_STARRED_LIST", id: data.id })
+            })
+        } else {
+            let dataToSubmit = { usersId: loggedUser.data.id, linkType: "project", linkId: data.id }
+            postData(`/api/starred/`, dataToSubmit, (c) => {
+                dispatch({ type: "ADD_STARRED_LIST", list: c.data })
+            })
+        }
+    }
+
+    viewDocument(data) {
+        let { socket, dispatch } = this.props;
+        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
     }
 
     render() {
@@ -461,6 +451,7 @@ export default class DocumentNew extends React.Component {
                                                         <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={() => dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data })}>Share</a></li>
                                                     }
                                                     <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(data)}>Download</a></li>
+                                                    <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.duplicateDocument(data)}>Duplicate</a></li>
                                                     <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "rename")}>Rename</a></li>
                                                     <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>
                                                     <li>{starred.List.filter(s => { return s.linkId == data.id }).length > 0
