@@ -276,6 +276,22 @@ export default class DocumentLibrary extends React.Component {
         }
     }
 
+    duplicateDocument(data) {
+        const { dispatch, document } = this.props;
+        const dataToSubmit = [{ name: data.name, origin: data.origin, project: project, uploadedBy: data.uploadedBy, status: data.status, tags: JSON.stringify(data.tags) }]
+        postData(`/api/document`, dataToSubmit, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: data.status == 'new' ? 'New' : 'Library' });
+                if (data.status == 'new') {
+                    dispatch({ type: "SET_DOCUMENT_NEW_UPLOAD_COUNT", Count: document.NewUploadCount + 1 })
+                }
+                showToast("success", "Successfully Added.")
+            } else {
+                showToast("error", "Saving failed. Please Try again later.")
+            }
+        })
+    }
+
     render() {
         let { document, starred, global, folder, dispatch, loggedUser } = this.props;
         let folderList = [], tagCount = 0
@@ -526,6 +542,7 @@ export default class DocumentLibrary extends React.Component {
                                                     </li>
                                                     <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>
                                                     <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(data)}>Download</a></li>
+                                                    <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.duplicateDocument(data)}>Duplicate</a></li>
                                                     <li>
                                                         {starred.List.filter(s => { return s.linkId == data.id }).length > 0
                                                             ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={() => this.starDocument(data, 1)}>Unstarred</a>
