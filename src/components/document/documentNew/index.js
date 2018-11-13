@@ -59,7 +59,7 @@ export default class DocumentNew extends React.Component {
             if (c.status == 200) {
                 dispatch({ type: "SET_DOCUMENT_LIST", List: document.New.concat(c.data.result), DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-                showToast('success', 'Documents successfully retrieve.')
+                showToast('success', 'Documents successfully retrieved.')
             } else {
                 showToast('success', 'Something went wrong!')
             }

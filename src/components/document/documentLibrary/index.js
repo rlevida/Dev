@@ -68,7 +68,7 @@ export default class DocumentLibrary extends React.Component {
             if (c.status == 200) {
                 dispatch({ type: "SET_DOCUMENT_LIST", List: document.Library.concat(c.data.result), DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
-                showToast('success', 'Documents successfully retrieve.');
+                showToast('success', 'Documents successfully retrieved.');
             } else {
                 showToast('error', 'Something went wrong!');
             }
