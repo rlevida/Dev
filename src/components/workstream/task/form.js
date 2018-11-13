@@ -434,15 +434,16 @@ export default class FormComponent extends React.Component {
                             {(taskStatus == 2 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
                             &nbsp; &nbsp;{task.Selected.task} &nbsp;&nbsp;
                                 {(task.Selected.status == "Completed") && "( Completed )"}
-                            {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
-                            {(task.Selected.status == "For Approval") && "( For Approval )"}
+                                {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
+                                {(task.Selected.status == "For Approval") && "( For Approval )"}
+                                {(task.Selected.status == "Rejected") && "( Rejected )"}
                         </h4>
 
                         <div class="form-group text-center m0">
                             {(isVisible && task.Selected.status != "For Approval") &&
                                 <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
                             }
-                            {(task.Selected.status == "For Approval" && task.Selected.assignedTo != loggedUser.data.id) &&
+                            {(task.Selected.status == "For Approval" && task.Selected.assignedTo !== loggedUser.data.id) &&
                                 <span>
                                     <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Approve</a>
                                     <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Reject Task" onClick={() => this.rejectTask()}>Reject</a>

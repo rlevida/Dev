@@ -796,9 +796,11 @@ exports.put = {
                                 }).value();
                             const newObject = func.changedObjAttributes(updatedTask, currentTask);
                             const objectKeys = _.map(newObject, function (value, key) { return key; });
+
                             const taskMembers = _.map(updatedResponse.task_members, (member) => { return member.user });
                             const workstreamResponsible = _.map(updatedResponse.workstream.responsible, (responsible) => { return responsible.user })
                             const membersToRemind = _.uniqBy(_.filter(taskMembers.concat(workstreamResponsible), (member) => { return member.id != body.userId }),'id');
+
                             async.parallel({
                                 approver: (statusParallelCallback) => {
                                     if (body.status == "For Approval") {
@@ -806,7 +808,7 @@ exports.put = {
                                             .destroy({ where: { linkId: updatedResponse.id, linkType: 'task', memberType: 'approver' } })
                                             .then((res) => {
                                                 Members
-                                                    .create({ userTypeLinkId: updatedResponse.approverId, usersType: 'users', linkType: 'task', linkId: updatedResponse.id, memberType: 'approver', receiveNotification: 1 })
+                                                    .create({ userTypeLinkId: body.approverId, usersType: 'users', linkType: 'task', linkId: updatedResponse.id, memberType: 'approver', receiveNotification: 1 })
                                                     .then((createRes) => {
                                                         statusParallelCallback(null)
                                                     })
@@ -874,7 +876,12 @@ exports.put = {
                                         })
                                     }).then((response) => {
                                         const responseObj = response.toJSON();
-                                        statusParallelCallback(null, { task: updatedResponse, activity_log: responseObj });
+                                        const assignedTaskMembers = _.filter(updatedResponse.task_members, (member) => { return member.memberType == "assignedTo" });
+                                        const data = {
+                                            ...updatedResponse,
+                                            assignedTo: ((assignedTaskMembers).length > 0) ? assignedTaskMembers[0].userTypeLinkId : ""
+                                        }
+                                        statusParallelCallback(null, { task: data, activity_log: responseObj });
                                     });
                                 }
                             }, (err, { activity_logs }) => {
