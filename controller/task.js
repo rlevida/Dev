@@ -130,7 +130,7 @@ exports.get = {
             } : {}
         };
 
-        if (typeof queryString.role != "undefined" && queryString.role != "" && queryString == 6) {
+        if (typeof queryString.role != "undefined" && queryString.role != "" && queryString.role == 6) {
             _.find(associationArray, { as: 'task_members' }).required = true;
             _.find(associationArray, { as: 'task_members' }).where = {
                 userTypeLinkId: queryString.userId,
@@ -138,7 +138,7 @@ exports.get = {
                 linkType: "task"
             };
         }
-
+        
         const options = {
             include: associationArray,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
@@ -188,7 +188,6 @@ exports.get = {
         });
     },
     getById: (req, cb) => {
-        console.log(`here`)
         const whereObj = {
             id: req.params.id
         };
