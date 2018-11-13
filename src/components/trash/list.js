@@ -121,12 +121,6 @@ export default class List extends React.Component {
                         <th></th>
                     </tr>
                     {
-                        (document.Trash.length == 0) &&
-                        <tr>
-                            <td style={{ textAlign: "center" }} colSpan={8}>No Record Found!</td>
-                        </tr>
-                    }
-                    {
                         document.Trash.map((data, index) => {
                             return <tr key={index}>
                                 <td> <input type="checkbox" /></td>
