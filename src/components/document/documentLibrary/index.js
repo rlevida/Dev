@@ -3,7 +3,7 @@ import moment from 'moment'
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DragDropContext } from 'react-dnd';
 import { DropDown, Loading } from "../../../globalComponents"
-import { deleteData, getData, postData, putData, removeTempFile, showToast } from '../../../globalFunction'
+import { deleteData, displayDate, getData, postData, putData, removeTempFile, showToast } from '../../../globalFunction'
 import Tooltip from "react-tooltip";
 import PrintComponent from "../print"
 
@@ -40,8 +40,10 @@ export default class DocumentLibrary extends React.Component {
             files: [],
             folderAction: "",
             folderName: "",
-            selectedFilter: 0
+            selectedFilter: 0,
+            order: 'asc'
         }
+        this.fetchData = this.fetchData.bind(this);
     }
 
     componentDidMount() {
@@ -57,6 +59,20 @@ export default class DocumentLibrary extends React.Component {
                 }
             }, 1000)
         }
+        this.fetchData(1)
+    }
+
+    fetchData(page) {
+        const { dispatch, document, loggedUser } = this.props;
+        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_DOCUMENT_LIST", List: document.Library.concat(c.data.result), DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
+                showToast('success', 'Documents successfully retrieve.');
+            } else {
+                showToast('error', 'Something went wrong!');
+            }
+        });
     }
 
     deleteDocument(id) {
@@ -64,7 +80,7 @@ export default class DocumentLibrary extends React.Component {
         if (confirm("Do you really want to delete this record?")) {
             putData(`/api/document/${id}`, { isDeleted: 1 }, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", id: id })
+                    dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'Library', Id: id })
                     showToast("success", "Successfully Deleted.");
                 } else {
                     showToast("error", "Delete failed. Please try again later.");
@@ -100,9 +116,9 @@ export default class DocumentLibrary extends React.Component {
 
         newData = { ...data, tags: JSON.stringify(data.tags) }
 
-        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" });
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: newData });
         dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type })
+        $(`#editModal`).modal('show');
     }
 
     addFolder() {
@@ -242,15 +258,22 @@ export default class DocumentLibrary extends React.Component {
     }
 
     getNextResult() {
-        let { document, loggedUser, dispatch } = this.props;
+        let { document, dispatch } = this.props;
         dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "RETRIEVING" })
-        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${document.LibraryCount.Count.current_page + 1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: document.Library.concat(c.data.result), count: { Count: c.data.count } })
-                dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
-            } else {
-            }
-        });
+        this.fetchData(document.LibraryCount.Count.current_page + 1)
+    }
+
+    sortDocument(type) {
+        const { dispatch, document } = this.props;
+        const { order } = this.state;
+        if (document.Library.length > 0) {
+            const sortedDocument = _.orderBy(document.Library, [`${type}`], [`${order == 'asc' ? 'desc' : 'asc'}`]).map((e) => { return e })
+            this.setState({
+                ...this.state,
+                order: order == 'asc' ? 'desc' : 'asc'
+            })
+            dispatch({ type: "SET_DOCUMENT_LIST", List: sortedDocument, DocumentType: 'Library', Count: document.LibraryCount, CountType: 'LibraryCount' })
+        }
     }
 
     render() {
@@ -331,8 +354,8 @@ export default class DocumentLibrary extends React.Component {
                         <tr>
                             <th></th>
                             <th></th>
-                            <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Name</th>
-                            <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Modified</th>
+                            <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i> <a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>Name</a></th>
+                            <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateUpdated')}>Modified</a></th>
                             <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Members</th>
                             <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Tags</th>
                             <th></th>
@@ -346,7 +369,7 @@ export default class DocumentLibrary extends React.Component {
                                             <td><input type="checkbox" /></td>
                                             <td ><span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span></td>
                                             <td class="library-document"><a href="javascript:void(0)" onClick={() => this.getFolderDocuments(data)}><span class="fa fa-folder" style={{ marginRight: "20px" }}></span>{data.name}</a></td>
-                                            <td>{moment(data.dateUpdated).format('L')}</td>
+                                            <td>{displayDate(data.dateUpdated)}</td>
                                             <td>
                                                 <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
                                                 <Tooltip id={`follower${index}`}>
@@ -418,7 +441,7 @@ export default class DocumentLibrary extends React.Component {
                             })
                         }
                         {
-                            _.orderBy(document.Library, ["dateAdded"], ["desc"]).map((data, index) => {
+                            document.Library.map((data, index) => {
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                 return (
                                     // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id ,"document")} documentToMove={(data)=> this.documentToMove(data)} docType="document"/>
@@ -436,7 +459,7 @@ export default class DocumentLibrary extends React.Component {
                                             }
                                         </td>
                                         <td class="library-document"><a href="javascript:void(0)" onClick={() => this.viewDocument(data)}><span class="glyphicon glyphicon-file"></span>{documentName}</a></td>
-                                        <td>{moment(data.dateUpdated).format('L')}</td>
+                                        <td>{displayDate(data.dateUpdated)}</td>
                                         <td>
                                             <div>
                                                 <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>

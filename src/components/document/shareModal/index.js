@@ -1,12 +1,8 @@
 import React from "react";
-import HTML5Backend from 'react-dnd-html5-backend';
-import { DragDropContext } from 'react-dnd';
 import { DropDown, Loading } from "../../../globalComponents"
 import { postData, showToast } from '../../../globalFunction'
 
 import { connect } from "react-redux"
-
-@DragDropContext(HTML5Backend)
 
 @connect((store) => {
     return {
@@ -85,42 +81,43 @@ export default class ShareModal extends React.Component {
             })
         }
 
-        return <div>
-
-            <div class="modal fade" id="shareModal" tabIndex="-1" role="dialog" aria-labelledby="shareModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="shareModal">Share</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <div class="col-md-12 col-xs-12">
-                                    <DropDown
-                                        name="share"
-                                        multiple={true}
-                                        required={false}
-                                        options={shareOptions}
-                                        selected={(document.Selected.share != null) ? JSON.parse(document.Selected.share) : []}
-                                        onChange={(e) => this.selectShare(e, document.Selected)}
-                                    />
-                                    <div class="help-block with-errors"></div>
-                                </div>
+        return (
+            <div>
+                <div class="modal fade" id="shareModal" tabIndex="-1" role="dialog" aria-labelledby="shareModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="shareModal">Share</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
                             </div>
-                            <br />
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            {(document.Selected.share != null) &&
-                                <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={() => this.share()}>Share</button>
-                            }
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <div class="col-md-12 col-xs-12">
+                                        <DropDown
+                                            name="share"
+                                            multiple={true}
+                                            required={false}
+                                            options={shareOptions}
+                                            selected={(document.Selected.share != null) ? JSON.parse(document.Selected.share) : []}
+                                            onChange={(e) => this.selectShare(e, document.Selected)}
+                                        />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <br />
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                {(document.Selected.share != null) &&
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={() => this.share()}>Share</button>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        )
     }
 }

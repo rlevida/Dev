@@ -1,6 +1,6 @@
 import React from "react";
 import { DropDown, Loading } from "../../../globalComponents"
-import { deleteData, getData, getFilePathExtension, postData, putData, removeTempFile, showToast } from '../../../globalFunction'
+import { deleteData, displayDate, getData, getFilePathExtension, postData, putData, removeTempFile, showToast } from '../../../globalFunction'
 import moment from 'moment'
 import { connect } from "react-redux"
 
@@ -30,8 +30,10 @@ export default class DocumentNew extends React.Component {
             tags: [],
             files: [],
             folderAction: "",
-            selectedFilter: 0
+            selectedFilter: 0,
+            order: 'asc'
         }
+        this.fetchData = this.fetchData.bind(this);
     }
 
     componentDidMount() {
@@ -47,6 +49,21 @@ export default class DocumentNew extends React.Component {
                 }
             }, 1000)
         }
+
+        this.fetchData(1)
+    }
+
+    fetchData(page) {
+        const { dispatch, loggedUser, document } = this.props;
+        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_DOCUMENT_LIST", List: document.New.concat(c.data.result), DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
+                showToast('success', 'Documents successfully retrieve.')
+            } else {
+                showToast('success', 'Something went wrong!')
+            }
+        });
     }
 
     deleteDocument(id) {
@@ -54,7 +71,7 @@ export default class DocumentNew extends React.Component {
         if (confirm("Do you really want to delete this record?")) {
             putData(`/api/document/${id}`, { isDeleted: 1 }, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", id: id })
+                    dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'New', Id: id })
                     showToast("success", "Successfully Deleted.");
                 } else {
                     showToast("error", "Delete failed. Please try again later.");
@@ -90,9 +107,9 @@ export default class DocumentNew extends React.Component {
 
         newData = { ...data, tags: JSON.stringify(data.tags) }
 
-        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" });
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: newData });
-        dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type })
+        dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type });
+        $(`#editModal`).modal('show');
     }
 
     moveToLibrary(data) {
@@ -244,12 +261,20 @@ export default class DocumentNew extends React.Component {
     getNextResult() {
         let { document, loggedUser, dispatch } = this.props;
         dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "RETRIEVING" })
-        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${document.NewCount.Count.current_page + 1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: document.New.concat(c.data.result), count: { Count: c.data.count } })
-                dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
-            }
-        });
+        this.fetchData(document.NewCount.Count.current_page + 1)
+    }
+
+    sortDocument(type) {
+        const { dispatch, document } = this.props;
+        const { order } = this.state;
+        if (document.New.length > 0) {
+            const sortedDocument = _.orderBy(document.New, [`${type}`], [`${order == 'asc' ? 'desc' : 'asc'}`]).map((e) => { return e })
+            this.setState({
+                ...this.state,
+                order: order == 'asc' ? 'desc' : 'asc'
+            })
+            dispatch({ type: "SET_DOCUMENT_LIST", List: sortedDocument, DocumentType: 'New', Count: document.NewCount, CountType: 'NewCount' })
+        }
     }
 
     render() {
@@ -332,8 +357,8 @@ export default class DocumentNew extends React.Component {
                         <tr>
                             <th></th>
                             <th></th>
-                            <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Name</th>
-                            <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Uploaded</th>
+                            <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i><a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>Name</a></th>
+                            <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateAdded')}>Uploaded</a></th>
                             <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>By</th>
                             <th>Tags</th>
                             <th></th>
@@ -399,7 +424,7 @@ export default class DocumentNew extends React.Component {
                         }
 
                         {
-                            _.orderBy(document.New, ["dateAdded"], ["desc"]).map((data, index) => {
+                            document.New.map((data, index) => {
                                 let ext = getFilePathExtension(data.origin)
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                 return (
@@ -416,7 +441,7 @@ export default class DocumentNew extends React.Component {
                                             }
                                         </td>
                                         <td class="new-document"> <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}><span class="glyphicon glyphicon-file"></span>{documentName}</a></td>
-                                        <td>{moment(data.dateAdded).format('L')}</td>
+                                        <td>{displayDate(data.dateAdded)}</td>
                                         <td>{data.user.emailAddress}</td>
                                         <td>
                                             {(data.tags.length > 0) &&
