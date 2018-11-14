@@ -16,7 +16,7 @@ export default class TaskActivities extends React.Component {
     constructor(props) {
         super(props);
 
-        this.generateCreate = this.generateCreate.bind(this);
+        this.generateCreateorDelete = this.generateCreateorDelete.bind(this);
         this.generateModified = this.generateModified.bind(this);
         this.getNextResult = this.getNextResult.bind(this);
         this.fetchData = this.fetchData.bind(this);
@@ -25,7 +25,7 @@ export default class TaskActivities extends React.Component {
     componentDidMount() {
         const { activityLog } = { ...this.props };
         const { Count } = activityLog;
-        
+
         if (_.isEmpty(Count)) {
             this.fetchData(1);
         } else if (Count.current_page != Count.last_page) {
@@ -49,13 +49,21 @@ export default class TaskActivities extends React.Component {
         })
     }
 
-    generateCreate(params) {
+    generateCreateorDelete(params) {
         const { user } = params;
         const { firstName, lastName, dateAdded } = user;
+        const objValue = (params.new != null) ? JSON.parse(params.new) : JSON.parse(params.old);
+        const modifiedObject = _.keys(objValue)[0];
+        const attributeEdited = (modifiedObject.replace('_', ' '));
+        const actionLabel = (params.actionType == "created") ? `Created` : `Deleted`;
+
         return (
             <div>
-                <p class="m0">Task Created</p>
-                <p style={{ marginTop: 5, fontSize: 10, marginBottom: 0 }}>
+                <p class="m0">
+                    {actionLabel + " " + attributeEdited.replace(/_/g, ' ').replace(/(?: |\b)(\w)/g, function (key) { return key.toUpperCase() })}
+                </p>
+                <p style={{ marginTop: 5, marginBottom: 5, fontSize: 10, marginLeft: 5 }}><strong>{objValue[modifiedObject].value}</strong></p>
+                <p style={{ marginTop: 5, marginBottom: 0, fontSize: 10, }}>
                     {`${moment(dateAdded).format("MMM DD, YYYY")} - ${firstName} ${lastName}`}
                 </p>
             </div>
@@ -72,42 +80,40 @@ export default class TaskActivities extends React.Component {
 
         return (
             <div>
-                <p class="m0">Task Updated</p>
-                <p style={{ marginTop: 5, marginBottom: 5, fontSize: 10 }}>
-                    {`Edited ${attributeEdited.replace(/_/g, ' ').replace(/(?: |\b)(\w)/g, function (key) { return key.toUpperCase() })}`}
-                </p>
+                <p class="m0">{`Edited ${attributeEdited.replace(/_/g, ' ').replace(/(?: |\b)(\w)/g, function (key) { return key.toUpperCase() })}`}</p>
                 {
                     _.map(oldValue[modifiedObject], (objectValues, key) => {
                         let fromValue = (objectValues != null) ? objectValues : "";
                         let toValue = (typeof newValue[modifiedObject][key] != "undefined" && newValue[modifiedObject][key] != null) ? newValue[modifiedObject][key] : "";
 
-
                         if (Array.isArray(fromValue) || Array.isArray(toValue)) {
                             return (
                                 <div key={key} >
-                                    <p style={{ fontSize: 10, margin: 0 }}>From:</p>
                                     {
-                                        (fromValue.length > 0) && _.map(fromValue, (fromValueObj, index) => {
-                                            return (
-                                                <p key={index} style={{ fontSize: 10, marginTop: 0, marginBottom: 0, marginLeft: 5 }}>{fromValueObj.value}</p>
-                                            )
-                                        })
+                                        (toValue.length == 0 && fromValue.length > 0) && <div>
+                                            <p style={{ fontSize: 10, marginTop: 0, marginBottom: 0, marginLeft: 5 }}>Removed:</p>
+                                            {
+                                                (fromValue.length > 0) && _.map(fromValue, (fromValueObj, index) => {
+                                                    return (
+                                                        <p key={index} style={{ fontSize: 10, marginTop: 0, marginBottom: 0, marginLeft: 5 }}><strong>{fromValueObj.value}</strong></p>
+                                                    )
+                                                })
+                                            }
+                                        </div>
                                     }
                                     {
-                                        (fromValue.length == 0) && <p style={{ fontSize: 10, marginTop: 0, marginBottom: 0, marginLeft: 5 }}>""</p>
+                                        (toValue.length > 0 && fromValue.length == 0) && <div>
+                                            <p style={{ fontSize: 10, marginTop: 0, marginBottom: 0, marginLeft: 5 }}>Added:</p>
+                                            {
+                                                (toValue.length > 0) && _.map(toValue, (toValueObj, index) => {
+                                                    return (
+                                                        <p key={index} style={{ fontSize: 10, marginTop: 0, marginBottom: 0, marginLeft: 5 }}><strong>{toValueObj.value}</strong></p>
+                                                    )
+                                                })
+                                            }
+                                        </div>
                                     }
 
-                                    <p style={{ fontSize: 10, margin: 0 }}>To:</p>
-                                    {
-                                        (toValue.length > 0) && _.map(toValue, (toValueObj, index) => {
-                                            return (
-                                                <p key={index} style={{ fontSize: 10, marginTop: 0, marginBottom: 0, marginLeft: 5 }}>{toValueObj.value}</p>
-                                            )
-                                        })
-                                    }
-                                    {
-                                        (toValue.length == 0) && <p style={{ fontSize: 10, marginTop: 0, marginBottom: 0, marginLeft: 5 }}>""</p>
-                                    }
                                 </div>
                             )
                         } else {
@@ -115,9 +121,15 @@ export default class TaskActivities extends React.Component {
                                 fromValue = (fromValue != "") ? moment(fromValue).format("MMM DD, YYYY") : "";
                                 toValue = (toValue != "") ? moment(toValue).format("MMM DD, YYYY") : "";
                             }
-
                             return (
-                                <p key={key} style={{ fontSize: 10, margin: 0 }}>{`From: ${(fromValue != "") ? fromValue : "''"} To: ${(toValue != "") ? toValue : "''"}`}</p>
+                                <div key={key}>
+                                    {
+                                        (toValue != "" && fromValue == "") && <p style={{ fontSize: 10, margin: 0 }}><strong>{toValue}</strong></p>
+                                    }
+                                    {
+                                        (toValue != "" && fromValue != "") && <p style={{ fontSize: 10, margin: 0 }}>To: <strong>{toValue}</strong> From: <strong>{fromValue}</strong></p>
+                                    }
+                                </div>
                             );
                         }
                     })
@@ -141,7 +153,7 @@ export default class TaskActivities extends React.Component {
                         return (
                             <div key={index} style={{ marginLeft: 15, padding: 5, backgroundColor: (index % 2) ? "#ddd" : "fff" }}>
                                 {
-                                    (activityLogObj.actionType == "created") && this.generateCreate(activityLogObj)
+                                    (activityLogObj.actionType == "created" || activityLogObj.actionType == "deleted") && this.generateCreateorDelete(activityLogObj)
                                 }
                                 {
                                     (activityLogObj.actionType == "modified") && this.generateModified(activityLogObj)

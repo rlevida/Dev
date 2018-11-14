@@ -154,7 +154,8 @@ export default class FormComponent extends React.Component {
 
         postData(`/api/checklist/`, toBeSubmitted, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "ADD_CHECKLIST", data: c.data });
+                dispatch({ type: "ADD_CHECKLIST", data: c.data.checklist });
+                dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                 dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
                 showToast("success", "Checklist successfully updated.");
             } else {
@@ -179,7 +180,8 @@ export default class FormComponent extends React.Component {
         };
         putData(`/api/checklist/${checklist.Selected.id}`, toBeSubmitted, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "UPDATE_CHECKLIST", data: c.data });
+                dispatch({ type: "UPDATE_CHECKLIST", data: c.data.checklist });
+                dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                 dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
                 showToast("success", "Checklist successfully updated.");
             } else {
@@ -189,10 +191,11 @@ export default class FormComponent extends React.Component {
     }
 
     deleteChecklist(id) {
-        const { task, dispatch } = this.props;
+        const { task, dispatch, loggedUser } = this.props;
 
-        deleteData(`/api/checklist/${id}?taskId=${task.Selected.id}`, {}, (c) => {
+        deleteData(`/api/checklist/${id}?taskId=${task.Selected.id}&userId=${loggedUser.data.id}`, {}, (c) => {
             dispatch({ type: "DELETE_CHECKLIST", data: { id } });
+            dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
             showToast("success", "Item successfully deleted.");
         });
     }
