@@ -4,7 +4,7 @@ CREATE TABLE `activity_logs` (
     `usersId` BIGINT,
     `linkType` ENUM("project","workstream","task"),
     `linkId` BIGINT,
-    `actionType` ENUM("created","modified","deleted"),
+    `actionType` ENUM("created","modified","deleted", "added"),
     `old` TEXT,
     `new` TEXT,
     `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

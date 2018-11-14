@@ -408,7 +408,8 @@ exports.post = {
                             },
                             activity_logs: (parallelCallback) => {
                                 const activityLogs = _.map(newTasksArgs, (taskObj) => {
-                                    return { usersId: body.userId, linkType: "task", linkId: taskObj.id, actionType: "created", new: JSON.stringify(taskObj) }
+                                    const activityObj = _.omit({ ...taskObj, value: taskObj.task }, ["dateAdded", "dateUpdated"]);
+                                    return { usersId: body.userId, linkType: "task", linkId: taskObj.id, actionType: "created", new: JSON.stringify({ task: activityObj }) }
                                 })
                                 ActivityLogs.bulkCreate(activityLogs).then((response) => {
                                     parallelCallback(null, response)
@@ -672,7 +673,7 @@ exports.put = {
                                 })
                                 .map((memberObj) => {
                                     const { logs, data } = memberObj;
-                                    return { usersId: body.userId, linkType: "task", linkId: body.id, actionType: "modified", old: logs.old, new: logs.new }
+                                    return { usersId: body.userId, linkType: "task", linkId: data[0].linkId, actionType: "modified", old: logs.old, new: logs.new }
                                 })
                                 .value();
 
@@ -858,8 +859,8 @@ exports.put = {
                                         linkType: "task",
                                         linkId: body.id,
                                         actionType: "modified",
-                                        old: JSON.stringify({ "task_details": _.pick(currentTask, objectKeys) }),
-                                        new: JSON.stringify({ "task_details": newObject })
+                                        old: JSON.stringify({ "task_status": _.pick(currentTask, objectKeys) }),
+                                        new: JSON.stringify({ "task_status": newObject })
                                     }).then((response) => {
                                         const responseObj = response.toJSON();
                                         return ActivityLogs.findOne({
