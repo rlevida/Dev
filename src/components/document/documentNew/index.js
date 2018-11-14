@@ -457,7 +457,6 @@ export default class DocumentNew extends React.Component {
                                     <tr key={index}>
                                         <td>
                                             <input type="checkbox"
-                                            // onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }
                                             />
                                         </td>
                                         <td>
@@ -507,9 +506,6 @@ export default class DocumentNew extends React.Component {
                                                                         <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo(f, data)}>{f.name}</a>
                                                                     )
                                                                 })
-                                                                // folder.List.map((f, fIndex) => {
-
-                                                                // })
                                                             }
                                                         </div>
                                                     </li>

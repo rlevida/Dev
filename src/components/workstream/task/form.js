@@ -7,7 +7,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 
 import { setDatePicker, showToast, postData, putData, deleteData, getData } from '../../../globalFunction';
-import { DropDown } from "../../../globalComponents";
+import { DropDown, Loading } from "../../../globalComponents";
 
 import TaskComment from "./comment";
 import TaskActivities from "./taskActivities";
@@ -370,7 +370,6 @@ export default class FormComponent extends React.Component {
                 isVisible = true;
             }
         }
-        const documentList = document.New.concat(document.Library)
 
         const preceedingTask = _(taskDependency.List)
             .filter((o) => {
@@ -672,8 +671,11 @@ export default class FormComponent extends React.Component {
                         }
 
                         <div id="documentList">
-                            {(documentList.length > 0) &&
-                                (documentList).map((data, index) => {
+                            {
+                                (document.Loading == "RETRIEVING") && <Loading />
+                            }
+                            {(document.List.length > 0 && document.Loading != "RETRIEVING") &&
+                                (document.List).map((data, index) => {
                                     return (
                                         <div class="details pt10" key={index}>
                                             <span class="fa fa-paperclip"></span>
@@ -683,6 +685,7 @@ export default class FormComponent extends React.Component {
                                     )
                                 })
                             }
+
                         </div>
                     </TabPanel>
                     <TabPanel>

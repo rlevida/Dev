@@ -46,15 +46,6 @@ export default class FormComponent extends React.Component {
         getData(`/api/globalORM/selectList?selectName=type`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'typeList' });
         });
-
-        getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstream=${workstream.Selected.id}&tagType=document`, {}, (c) => {
-            dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-        });
-
-        getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstream=${workstream.Selected.id}&tagType=document`, {}, (c) => {
-            dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
-        });
-
     }
 
     handleChange(e) {

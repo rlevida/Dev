@@ -1,12 +1,13 @@
 export default function reducer(state = {
     List: [],
+    Count: {},
     FormActive: "List",
     Selected: {},
     SelectedId: [],
     EditType: "",
     DocumentToMove: {},
     DocumentToMoveType: "",
-    Loading: true,
+    Loading: "RETRIEVING",
     DocumentToPrint: "",
     PrinterList: [],
     Library: [],
@@ -91,7 +92,7 @@ export default function reducer(state = {
                     return e
                 })
                 return { ...state, New: tempList }
-            } else {
+            } else if (action.Status == "library") {
                 let tempList = state.Library.map((e, i) => {
                     if (e.id == action.UpdatedData.id) {
                         return action.UpdatedData
@@ -99,6 +100,14 @@ export default function reducer(state = {
                     return e
                 })
                 return { ...state, Library: tempList }
+            } else {
+                let tempList = state.List.map((e, i) => {
+                    if (e.id == action.UpdatedData.id) {
+                        return action.UpdatedData
+                    }
+                    return e
+                })
+                return { ...state, List: tempList }
             }
         }
         case "REMOVE_DOCUMENT_FROM_LIST": {
