@@ -262,13 +262,12 @@ export default class FormComponent extends React.Component {
     }
 
     deleteTaskDependency(id) {
-        const { dispatch } = this.props;
+        const { dispatch, loggedUser } = this.props;
 
-        deleteData(`/api/taskDependency/${id}`, {}, (c) => {
-
-        })
-        dispatch({ type: "DELETE_TASK_DEPENDENCY", id });
-        showToast("success", "Task Dependency successfully deleted.");
+        deleteData(`/api/taskDependency/${id}?userId=${loggedUser.data.id}`, {}, (c) => {
+            dispatch({ type: "DELETE_TASK_DEPENDENCY", id });
+            showToast("success", "Task Dependency successfully deleted.");
+        });
     }
 
     render() {
