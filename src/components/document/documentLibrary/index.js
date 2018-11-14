@@ -90,9 +90,19 @@ export default class DocumentLibrary extends React.Component {
     }
 
     viewDocument(data) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+        let { dispatch, loggedUser } = this.props;
+        if (data.type !== 'folder') {
+            dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+        } else {
+            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
+                    showToast('success', 'Documents successfully retrieved.')
+                }
+            });
+        }
     }
 
     starDocument(data, isStarred) {
@@ -124,22 +134,47 @@ export default class DocumentLibrary extends React.Component {
     addFolder() {
         let { loggedUser, folder, dispatch } = this.props;
         let { folderName } = this.state;
-        let dataToSubmit = { projectId: project, name: folderName, createdBy: loggedUser.data.id, parentId: folder.SelectedLibraryFolder.id, type: "library" };
-        postData(`/api/folder?projectId=${project}`, dataToSubmit, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "ADD_FOLDER_LIST", list: [c.data] });
-                showToast("success", "Successfully Added.");
-            } else {
-                showToast("error", "Saving failed. Please try again.");
+        let dataToSubmit = [
+            {
+                name: folderName,
+                projectId: project,
+                origin: folderName,
+                createdBy: loggedUser.data.id,
+                type: "folder",
+                folderId: folder.Selected.id,
+                project: project,
+                uploadedBy: loggedUser.data.id,
+                status: 'library'
             }
+        ];
 
+        postData(`/api/document`, dataToSubmit, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: 'Library' });
+                showToast("success", "Successfully Added.")
+            } else {
+                showToast("error", "Saving failed. Please Try again later.")
+            }
             this.setState({ folderAction: "", folderName: "" });
         })
+
+        // const dataToSubmit = [{ name: data.name, origin: data.origin, project: project, uploadedBy: data.uploadedBy, status: data.status, tags: JSON.stringify(data.tags) }]
+        // console.log(dataToSubmit)
+        // postData(`/api/folder?projectId=${project}&type=new`, dataToSubmit, (c) => {
+        //     if (c.status == 200) {
+        //         dispatch({ type: "ADD_FOLDER_LIST", list: [c.data] });
+        //         showToast("success", "Successfully Added.");
+        //     } else {
+        //         showToast("error", "Saving failed. Please try again.");
+        //     }
+
+        //     this.setState({ folderAction: "", folderName: "" });
+        // })
     }
 
     moveTo(folderData, documentData) {
         let { dispatch } = this.props;
-        let dataToSubmit = { ...documentData, status: folderData.type, folderId: folderData.id };
+        let dataToSubmit = { ...documentData, status: folderData.status, folderId: folderData.id };
         putData(`/api/document/${documentData.id}`, dataToSubmit, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data, Status: documentData.status })
@@ -474,7 +509,7 @@ export default class DocumentLibrary extends React.Component {
                                                     : <span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span>
                                             }
                                         </td>
-                                        <td class="library-document"><a href="javascript:void(0)" onClick={() => this.viewDocument(data)}><span class="glyphicon glyphicon-file"></span>{documentName}</a></td>
+                                        <td class="library-document"><a href="javascript:void(0)" onClick={() => this.viewDocument(data)}><span class={data.type != 'folder' ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span>{documentName}</a></td>
                                         <td>{displayDate(data.dateUpdated)}</td>
                                         <td>
                                             <div>
@@ -523,21 +558,14 @@ export default class DocumentLibrary extends React.Component {
                                                             {(typeof folder.SelectedLibraryFolder.id != "undefined") &&
                                                                 <a href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo({ id: null }, data)}>Library</a>
                                                             }
-                                                            {folder.List.map((f, fIndex) => {
-                                                                if (f.type == "library") {
-                                                                    if (typeof folder.SelectedLibraryFolder.id == "undefined") {
-                                                                        return (
-                                                                            <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo(f, data)}>{f.name}</a>
-                                                                        )
-                                                                    } else {
-                                                                        if (folder.SelectedLibraryFolder.id != f.id) {
-                                                                            return (
-                                                                                <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo(f, data)}>{f.name}</a>
-                                                                            )
-                                                                        }
-                                                                    }
-                                                                }
-                                                            })}
+                                                            {
+                                                                _.filter(document.Library, (d) => { return d.type == 'folder' }).map((f, fIndex) => {
+                                                                    let folderName = `${f.origin}${f.documentNameCount > 0 ? `(${f.documentNameCount})` : ``}`
+                                                                    return (
+                                                                        <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo(f, data)}>{folderName}</a>
+                                                                    )
+                                                                })
+                                                            }
                                                         </div>
                                                     </li>
                                                     <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>

@@ -70,7 +70,7 @@ export default class UploadModal extends React.Component {
 
         postData(`/api/document/upload`, data, (c) => {
             c.data.map(e => {
-                dataToSubmit.push({ name: e.filename, origin: e.origin, project: project, uploadedBy: loggedUser.data.id, status: "new" })
+                dataToSubmit.push({ name: e.filename, origin: e.origin, project: project, uploadedBy: loggedUser.data.id, status: "new", type: 'document' })
             })
             this.setState({ dataToSubmit: dataToSubmit, loading: false, upload: false })
         })

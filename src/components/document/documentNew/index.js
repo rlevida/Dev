@@ -56,17 +56,39 @@ export default class DocumentNew extends React.Component {
     addFolder() {
         let { loggedUser, folder, dispatch } = this.props;
         let { folderName } = this.state;
-        let dataToSubmit = { projectId: project, name: folderName, createdBy: loggedUser.data.id, parentId: folder.SelectedNewFolder.id, type: "new" };
-        postData(`/api/folder?projectId=${project}`, dataToSubmit, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "ADD_FOLDER_LIST", list: [c.data] });
-                showToast("success", "Successfully Added.");
-            } else {
-                showToast("error", "Saving failed. Please try again.");
+        let dataToSubmit = [
+            {
+                name: folderName, projectId: project,
+                createdBy: loggedUser.data.id,
+                type: "folder",
+                folderId: folder.Selected.id,
+                project: project,
+                uploadedBy: loggedUser.data.id,
+                status: 'new'
             }
+        ];
 
-            this.setState({ folderAction: "", folderName: "" });
+        postData(`/api/document`, dataToSubmit, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: 'New' });
+                showToast("success", "Successfully Added.")
+            } else {
+                showToast("error", "Saving failed. Please Try again later.")
+            }
         })
+
+        // const dataToSubmit = [{ name: data.name, origin: data.origin, project: project, uploadedBy: data.uploadedBy, status: data.status, tags: JSON.stringify(data.tags) }]
+        // console.log(dataToSubmit)
+        // postData(`/api/folder?projectId=${project}&type=new`, dataToSubmit, (c) => {
+        //     if (c.status == 200) {
+        //         dispatch({ type: "ADD_FOLDER_LIST", list: [c.data] });
+        //         showToast("success", "Successfully Added.");
+        //     } else {
+        //         showToast("error", "Saving failed. Please try again.");
+        //     }
+
+        //     this.setState({ folderAction: "", folderName: "" });
+        // })
     }
 
     deleteDocument(id) {
@@ -170,23 +192,23 @@ export default class DocumentNew extends React.Component {
         })
     }
 
-    moveFolderTo(folderData, selectedFolder) {
-        let { dispatch } = this.props;
-        let dataToSubmit = { ...selectedFolder, parentId: folderData.id };
-        putData(`/api/folder/${selectedFolder.id}`, dataToSubmit, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "UPDATE_DATA_FOLDER_LIST", UpdatedData: c.data })
-                showToast("success", "Successfully Updated.");
-            } else {
-                showToast("error", 'Updating failed. Please try again.');
-            }
-            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
-        })
-    }
+    // moveFolderTo(folderData, selectedFolder) {
+    //     let { dispatch } = this.props;
+    //     let dataToSubmit = { ...selectedFolder, parentId: folderData.id };
+    //     putData(`/api/folder/${selectedFolder.id}`, dataToSubmit, (c) => {
+    //         if (c.status == 200) {
+    //             dispatch({ type: "UPDATE_DATA_FOLDER_LIST", UpdatedData: c.data })
+    //             showToast("success", "Successfully Updated.");
+    //         } else {
+    //             showToast("error", 'Updating failed. Please try again.');
+    //         }
+    //         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+    //     })
+    // }
 
     moveTo(folderData, documentData) {
         let { dispatch } = this.props;
-        let dataToSubmit = { ...documentData, status: folderData.type, folderId: folderData.id };
+        let dataToSubmit = { ...documentData, status: folderData.status, folderId: folderData.id };
         putData(`/api/document/${documentData.id}`, dataToSubmit, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data, Status: documentData.status })
@@ -202,11 +224,13 @@ export default class DocumentNew extends React.Component {
     getFolderDocuments(data) {
         let { dispatch, loggedUser } = this.props;
         dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "RETRIEVING" })
-        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
+        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data.result, count: { Count: c.data.count } })
-                dispatch({ type: "SET_NEW_FOLDER_SELECTED", Selected: data })
-                dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
+                dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
+                showToast('success', 'Documents successfully retrieved.')
+            } else {
+                showToast('success', 'Something went wrong!')
             }
         });
     }
@@ -228,7 +252,7 @@ export default class DocumentNew extends React.Component {
     }
 
     getNextResult() {
-        let { document, loggedUser, dispatch } = this.props;
+        let { document, dispatch } = this.props;
         dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "RETRIEVING" })
         this.fetchData(document.NewCount.Count.current_page + 1)
     }
@@ -262,9 +286,19 @@ export default class DocumentNew extends React.Component {
     }
 
     viewDocument(data) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+        let { dispatch, loggedUser } = this.props;
+        if (data.type !== 'folder') {
+            dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+        } else {
+            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
+                    showToast('success', 'Documents successfully retrieved.')
+                }
+            });
+        }
     }
 
     render() {
@@ -356,13 +390,14 @@ export default class DocumentNew extends React.Component {
 
                         {(!document.NewDocumentLoading != "RETRIEVING") &&
                             _.orderBy(folderList, ["dateAdded"], ["desc"]).map((data, index) => {
+                                let documentName = `${data.name}${data.folderNameCount > 0 ? `(${data.folderNameCount})` : ``}`
                                 if ((!data.parentId && !folder.SelectedNewFolder.id) || (data.parentId && folder.SelectedNewFolder.id == data.parentId)) {
                                     return (
                                         <tr key={index}>
                                             <td><input type="checkbox" /></td>
                                             <td ><span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span></td>
-                                            <td class="library-document"><a href="javascript:void(0)" onClick={() => this.getFolderDocuments(data)}><span class="fa fa-folder" style={{ marginRight: "20px" }}></span>{data.name}</a></td>
-                                            <td>{moment(data.dateUpdated).format('L')}</td>
+                                            <td class="library-document"><a href="javascript:void(0)" onClick={() => this.getFolderDocuments(data)}><span class="fa fa-folder" style={{ marginRight: "20px" }}></span>{documentName}</a></td>
+                                            <td>{displayDate(data.dateUpdated)}</td>
                                             <td>{data.user.emailAddress}</td>
                                             <td>
                                                 <ul style={{ listStyleType: "none", padding: "0" }}>
@@ -387,19 +422,21 @@ export default class DocumentNew extends React.Component {
                                                                 {(typeof folder.SelectedNewFolder.id != "undefined") &&
                                                                     <a href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveFolderTo({ id: null }, data)}>Library</a>
                                                                 }
-                                                                {folder.List.map((f, fIndex) => {
-                                                                    if (typeof folder.SelectedNewFolder.id == "undefined" && f.id != data.id) {
-                                                                        return (
-                                                                            <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveFolderTo(f, data)}>{`${f.name} ${f.type == "new" ? "( new document )" : "( library )"}`}</a>
-                                                                        )
-                                                                    } else {
-                                                                        if (folder.SelectedNewFolder.id != f.id && f.id != data.id) {
+                                                                {
+                                                                    folder.List.map((f, fIndex) => {
+                                                                        if (typeof folder.SelectedNewFolder.id == "undefined" && f.id != data.id) {
                                                                             return (
-                                                                                <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveFolderTo(f, data)}>{f.name}</a>
+                                                                                <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveFolderTo(f, data)}>{`${f.name} ${f.type == "new" ? "( new document )" : "( library )"}`}</a>
                                                                             )
+                                                                        } else {
+                                                                            if (folder.SelectedNewFolder.id != f.id && f.id != data.id) {
+                                                                                return (
+                                                                                    <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveFolderTo(f, data)}>{f.name}</a>
+                                                                                )
+                                                                            }
                                                                         }
-                                                                    }
-                                                                })}
+                                                                    })
+                                                                }
                                                             </div>
                                                         </li>
                                                         <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteFolder(data.id)}>Delete</a></li>
@@ -415,7 +452,6 @@ export default class DocumentNew extends React.Component {
 
                         {
                             document.New.map((data, index) => {
-                                let ext = getFilePathExtension(data.origin)
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                 return (
                                     <tr key={index}>
@@ -430,7 +466,7 @@ export default class DocumentNew extends React.Component {
                                                 : <span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span>
                                             }
                                         </td>
-                                        <td class="new-document"> <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}><span class="glyphicon glyphicon-file"></span>{documentName}</a></td>
+                                        <td class="new-document"> <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span>{documentName}</a></td>
                                         <td>{displayDate(data.dateAdded)}</td>
                                         <td>{data.user.emailAddress}</td>
                                         <td>
@@ -465,11 +501,16 @@ export default class DocumentNew extends React.Component {
                                                             {(loggedUser.data.userRole != 6) &&
                                                                 <a href="javascript:void(0)" style={{ textDecoration: "none" }} data-tip="Move to library" onClick={() => this.moveToLibrary(data)}>Move to library</a>
                                                             }
-                                                            {folder.List.map((f, fIndex) => {
-                                                                return (
-                                                                    <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo(f, data)}>{f.name} {`${f.type == "new" ? "( new document )" : "( library )"}`}</a>
-                                                                )
-                                                            })}
+                                                            {
+                                                                _.filter(document.New, (d) => { return d.type == 'folder' }).map((f, fIndex) => {
+                                                                    return (
+                                                                        <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo(f, data)}>{f.name}</a>
+                                                                    )
+                                                                })
+                                                                // folder.List.map((f, fIndex) => {
+
+                                                                // })
+                                                            }
                                                         </div>
                                                     </li>
 

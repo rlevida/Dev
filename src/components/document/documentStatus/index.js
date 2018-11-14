@@ -20,7 +20,7 @@ export default class DocumentStatus extends React.Component {
 
     componentDidMount() {
         let { dispatch, loggedUser } = this.props;
-        getData(`/api/document/getDocumentCount?isDeleted=0&linkId=${project}&linkType=project&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
+        getData(`/api/document/getDocumentCount?isDeleted=0&linkId=${project}&linkType=project&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&type=document`, {}, (c) => {
             dispatch({ type: "SET_DOCUMENT_NEW_UPLOAD_COUNT", Count: c.data.newUploadCount })
         })
     }
