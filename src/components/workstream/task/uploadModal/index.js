@@ -106,8 +106,9 @@ export default class UploadModal extends React.Component {
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="uploadFileModalLabel">Upload File</h5>
-                        </div>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="myModalLabel">Upload File</h4>
+                            </div>
                         <div class="modal-body">
                             {(!this.state.loading && this.state.tempData.length == 0) &&
                                 <Dropzone onDrop={this.onDrop.bind(this)}
