@@ -22,6 +22,7 @@ let keyTimer;
     return {
         socket: store.socket.container,
         task: store.task,
+        activity_log: store.activityLog,
         taskDependency: store.taskDependency,
         loggedUser: store.loggedUser,
         status: store.status,
@@ -215,7 +216,7 @@ export default class FormComponent extends React.Component {
     }
 
     addDependency() {
-        const { task, loggedUser, dispatch } = this.props;
+        const { task, loggedUser, dispatch, activity_log } = this.props;
         const toBeSubmitted = {
             dependencyType: task.Selected.dependency_type,
             taskId: task.Selected.id,
@@ -223,7 +224,9 @@ export default class FormComponent extends React.Component {
             userId: loggedUser.data.id
         };
         postData(`/api/taskDependency`, toBeSubmitted, (c) => {
-            dispatch({ type: "UPDATE_DATA_TASK_DEPENDENCY_LIST", List: c.data });
+            const updatedActivityLog = _.concat(c.data.activity_log, activity_log.List);
+            dispatch({ type: "UPDATE_DATA_TASK_DEPENDENCY_LIST", List: c.data.task_dependencies });
+            dispatch({ type: "SET_ACTIVITYLOG_LIST", list: updatedActivityLog });
             dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, dependency_type: "", task_dependency: [] } });
             dispatch({ type: "SET_TASK_SELECT_LIST", List: [] });
             showToast("success", "Task Dependency successfully updated.");
@@ -327,10 +330,10 @@ export default class FormComponent extends React.Component {
     }
 
     deleteTaskDependency(id) {
-        const { dispatch } = this.props;
-
-        deleteData(`/api/taskDependency/${id}`, {}, (c) => {
+        const { dispatch, loggedUser } = this.props;
+        deleteData(`/api/taskDependency/${id}?userId=${loggedUser.data.id}`, {}, (c) => {
             dispatch({ type: "DELETE_TASK_DEPENDENCY", id });
+            dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
             showToast("success", "Task Dependency successfully deleted.");
         });
     }

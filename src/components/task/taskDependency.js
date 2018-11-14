@@ -36,7 +36,7 @@ export default class TaskDependency extends React.Component {
         };
 
         postData(`/api/taskDependency`, toBeSubmitted, (c) => {
-            dispatch({ type: "UPDATE_DATA_TASK_DEPENDENCY_LIST", List: c.data });
+            dispatch({ type: "UPDATE_DATA_TASK_DEPENDENCY_LIST", List: c.data.task_dependencies });
             dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, dependency_type: "", task_dependency: [] } });
             dispatch({ type: "SET_TASK_SELECT_LIST", List: [] });
             showToast("success", "Task Dependency successfully updated.");

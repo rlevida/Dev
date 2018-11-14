@@ -1,7 +1,7 @@
 const async = require("async");
 const _ = require("lodash");
 const models = require('../modelORM');
-const { TaskDependency, Tasks, ActivityLogs } = models;
+const { TaskDependency, Tasks, ActivityLogs, Users, Sequelize } = models;
 const func = global.initFunc();
 
 exports.get = {
@@ -56,9 +56,6 @@ exports.post = {
         ).map((mapObject) => {
             return mapObject.toJSON();
         }).then((resultArray) => {
-            const oldTaskDependency = _(resultArray)
-                .map((taskDependencyObj) => { return { ..._.omit(taskDependencyObj, ["id", "dateAdded", "dateUpdated"]), value: taskDependencyObj.task.task } })
-                .value();
             const taskDependency = _.map(body.task_dependencies, (taskDependencyObj) => { return { taskId: body.taskId, dependencyType: body.dependencyType, linkTaskId: taskDependencyObj.value } });
 
             TaskDependency.bulkCreate(taskDependency, { returning: true }).map((response) => {
@@ -80,46 +77,40 @@ exports.post = {
                 ).map((mapObject) => {
                     return mapObject.toJSON();
                 }).then((response) => {
-                    const newTaskDependencyStack = _(response)
-                        .map((newTaskDependencyObj) => {
-                            return { ..._.omit(newTaskDependencyObj, ["id", "dateAdded", "dateUpdated"]), value: newTaskDependencyObj.task.task }
+                    const insertResponse = response;
+                    const taskDependencyActivityLog = _(insertResponse)
+                        .map((o) => {
+                            const taskDependencyObj = _.omit({ ...o, value: o.task.task }, ["dateAdded", "dateUpdated"]);
+                            return { usersId: body.userId, linkType: "task", linkId: body.taskId, actionType: "created", new: JSON.stringify({ task_dependency: taskDependencyObj }) }
                         }).value();
-                    const isEqualTaskDependency = func.isArrayEqual(oldTaskDependency, newTaskDependencyStack);
 
-                    if (isEqualTaskDependency == false) {
-                        ActivityLogs.create({ usersId: body.userId, linkType: "task", linkId: body.taskId, actionType: "modified", old: JSON.stringify({ "task_dependencies": { task: oldTaskDependency } }), new: JSON.stringify({ "task_dependencies": { task: newTaskDependencyStack } }) }).then((activityResponse) => {
-                            cb({ status: true, data: response });
-                        });
-                    }else{
-                        cb({ status: true, data: response });
-                    }
+                    ActivityLogs.bulkCreate(taskDependencyActivityLog).map((response) => {
+                        return response.toJSON();
+                    }).then((resultArray) => {
+                        const responseObj = _.map(resultArray, (o) => { return o.id });
+                        return ActivityLogs.findAll({
+                            include: [
+                                {
+                                    model: Users,
+                                    as: 'user',
+                                    attributes: ['firstName', 'lastName']
+                                }
+                            ],
+                            where: {
+                                id: {
+                                    [Sequelize.Op.in]: responseObj
+                                }
+                            }
+                        })
+                    }).map((response) => {
+                        const responseObj = response.toJSON();
+                        return responseObj;
+                    }).then((resultArray) => {
+                        cb({ status: true, data: { task_dependencies: insertResponse, activity_log: resultArray } });
+                    })
                 });
             });
         });
-        // const association = [
-        //     {
-        //         model: Tasks,
-        //         as: 'parent_task'
-        //     },
-        //     {
-        //         model: Tasks,
-        //         as: 'task'
-        //     }
-        // ];
-        // const options = {
-        //     ...(typeof req.body.includes != "undefined" && req.body.includes != "") ? { include: _.filter(association, (associationObj) => { return _.findIndex((req.body.includes).split(','), (includesObj) => { return includesObj == associationObj.as }) >= 0 }) } : {}
-        // };
-        // try {
-        //     TaskDependency.bulkCreate(req.body.data).then(() => {
-        //         TaskDependency.findAll({ ...options, where: { taskId: req.body.task_id } }).map((mapObject) => {
-        //             return mapObject.toJSON();
-        //         }).then((resultArray) => {
-        //             cb({ status: true, data: resultArray });
-        //         });
-        //     })
-        // } catch (err) {
-        //     cb({ status: false, error: err })
-        // }
     }
 }
 
@@ -127,18 +118,55 @@ exports.delete = {
     index: (req, cb) => {
         const queryString = req.query;
         const params = req.params;
+        const association = [
+            {
+                model: Tasks,
+                as: 'task',
+                attributes: ['id', 'task', 'description']
+            }
+        ];
         const whereObj = {
             ...(typeof queryString.taskId != "undefined" && queryString.taskId != "") ? { taskId: queryString.taskId } : {},
             ...(typeof params.id != "undefined" && queryString.id != "") ? { id: params.id } : {}
         };
-        const options = {
-            raw: true
-        };
         try {
-            TaskDependency.destroy(
-                { ...options, where: whereObj }
-            ).then((response) => {
-                cb({ status: true });
+            TaskDependency.findOne({
+                include: association,
+                where: whereObj
+            }).then((response) => {
+                const taskDependencyObj = response.toJSON();
+                const ActivityLogObj = _.omit({ ...taskDependencyObj, value: taskDependencyObj.task.task }, ["dateAdded", "dateUpdated"]);
+              
+                ActivityLogs.create({
+                    usersId: queryString.userId,
+                    linkType: "task",
+                    linkId: ActivityLogObj.taskId,
+                    actionType: "deleted",
+                    old: JSON.stringify({
+                        task_dependency: ActivityLogObj
+                    })
+                }).then((result) => {
+                    const responseObj = result.toJSON();
+                    return ActivityLogs.findOne({
+                        include: [
+                            {
+                                model: Users,
+                                as: 'user',
+                                attributes: ['firstName', 'lastName']
+                            }
+                        ],
+                        where: {
+                            id: responseObj.id
+                        }
+                    })
+                }).then((response) => {
+                    const responseObj = response.toJSON();
+                    TaskDependency.destroy(
+                        { where: whereObj }
+                    ).then((response) => {
+                        cb({ status: true, data: { activity_log: responseObj } });
+                    });
+                });
             });
         } catch (err) {
             cb({ status: false, error: err })
