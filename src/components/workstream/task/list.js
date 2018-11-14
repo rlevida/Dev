@@ -13,7 +13,8 @@ import { getData, showToast } from "../../../globalFunction";
         task: store.task,
         workstream: store.workstream,
         loggedUser: store.loggedUser,
-        global: store.global
+        global: store.global,
+        document: store.document
     }
 })
 export default class List extends React.Component {
@@ -27,7 +28,7 @@ export default class List extends React.Component {
     }
 
     componentDidMount() {
-        const { task, dispatch } = this.props;
+        const { task, dispatch, document, loggedUser, workstream } = this.props;
         const { Count } = task;
 
         if (_.isEmpty(Count)) {

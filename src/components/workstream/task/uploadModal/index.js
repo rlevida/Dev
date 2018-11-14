@@ -1,7 +1,7 @@
 import React from "react"
 import Dropzone from 'react-dropzone';
 import { DropDown } from "../../../../globalComponents";
-import { showToast, putData } from '../../../../globalFunction';
+import { showToast, postData, putData } from '../../../../globalFunction';
 import { connect } from "react-redux";
 import axios from "axios";
 @connect((store) => {
@@ -18,7 +18,7 @@ export default class UploadModal extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            tempData: [],
+            dataToSubmit: [],
             upload: false,
             loading: false,
             tags: [],
@@ -69,12 +69,13 @@ export default class UploadModal extends React.Component {
             if (task.ModalType == "checklist") {
                 const dataToSubmit = { completed: 1, documentIds: documentIds, documents: tempData, projectId: project, taskId: checklist.Selected.taskId }
                 putData(`/api/checklist/updateChecklistDocument/${checklist.Selected.id}?projectId=${project}`, dataToSubmit, (c) => {
-                    dispatch({ type: "UPDATE_CHECKLIST", data: c.data })
+                    dispatch({ type: "UPDATE_CHECKLIST", data: c.data.checklist })
+                    dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.document, DocumentType: 'New' });
                 })
-                this.setState({ tempData: [], loading: false, upload: false })
+                this.setState({ dataToSubmit: [], loading: false, upload: false })
                 $(`#uploadFileModal`).modal("hide");
             } else {
-                this.setState({ tempData: tempData, loading: false, upload: false })
+                this.setState({ dataToSubmit: tempData, loading: false, upload: false })
             }
         }).catch((error) => {
             this.setState({ loading: false, upload: false })
@@ -83,12 +84,18 @@ export default class UploadModal extends React.Component {
     }
 
     saveDocument() {
-        let { socket, loggedUser } = this.props;
-        let { tempData, tags } = this.state;
-        socket.emit("SAVE_OR_UPDATE_DOCUMENT", {
-            data: tempData, userId: loggedUser.data.id, project: project, tags: JSON.stringify(tags)
-        });
-        this.setState({ upload: false, tempData: [], tags: [] });
+        let { dispatch } = this.props;
+        let { dataToSubmit } = this.state;
+
+        postData(`/api/document`, dataToSubmit, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: 'New' });
+                showToast("success", "Successfully Added.")
+                this.setState({ upload: false, tempData: [], tags: [] });
+            } else {
+                showToast("error", "Saving failed. Please Try again later.")
+            }
+        })
     }
 
     closeModal() {
@@ -96,7 +103,7 @@ export default class UploadModal extends React.Component {
     }
 
     render() {
-        let { socket, task, project, dispatch, workstream } = this.props
+        let { task, workstream } = this.props
         let tagOptions = [];
         workstream.List.map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) })
         task.List.map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) })
@@ -106,11 +113,11 @@ export default class UploadModal extends React.Component {
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 class="modal-title" id="myModalLabel">Upload File</h4>
-                            </div>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Upload File</h4>
+                        </div>
                         <div class="modal-body">
-                            {(!this.state.loading && this.state.tempData.length == 0) &&
+                            {(!this.state.loading && this.state.dataToSubmit.length == 0) &&
                                 <Dropzone onDrop={this.onDrop.bind(this)}
                                     class="document-file-upload"
                                 >
@@ -124,9 +131,7 @@ export default class UploadModal extends React.Component {
                                     </div>
                                 </Dropzone>
                             }
-
                             <br />
-
                             {(this.state.upload && !this.state.loading) &&
                                 <div class="form-group text-center">
                                     <button class="btn btn-success" onClick={() => this.uploadFile()}> Upload</button>
@@ -135,13 +140,13 @@ export default class UploadModal extends React.Component {
 
                             <table id="dataTable" class="table responsive-table" >
                                 <tbody>
-                                    {(this.state.tempData.length == 0 && this.state.loading) &&
+                                    {(this.state.dataToSubmit.length == 0 && this.state.loading) &&
                                         <tr>
                                             <td colSpan={8}><i class="fa fa-spinner fa-spin" style={{ fontSize: "36px", marginTop: "50px" }}></i></td>
                                         </tr>
                                     }
-                                    {(this.state.tempData.length > 0) &&
-                                        this.state.tempData.map((data, index) => {
+                                    {(this.state.dataToSubmit.length > 0) &&
+                                        this.state.dataToSubmit.map((data, index) => {
                                             return (
                                                 <tr key={index}>
                                                     <td style={{ border: "none", width: "20%" }}><span class="pull-left"><i class="fa fa-file" aria-hidden="true"></i>&nbsp;&nbsp;{data.origin}</span></td>
@@ -166,10 +171,10 @@ export default class UploadModal extends React.Component {
 
                         </div>
                         <div class="modal-footer">
-                            {(this.state.tempData.length == 0) &&
+                            {(this.state.dataToSubmit.length == 0) &&
                                 <button type="button" class="btn btn-secondary" onClick={() => this.closeModal()}>Close</button>
                             }
-                            {(this.state.tempData.length > 0) &&
+                            {(this.state.dataToSubmit.length > 0) &&
                                 <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={() => this.saveDocument()}>Save</button>
                             }
                         </div>
