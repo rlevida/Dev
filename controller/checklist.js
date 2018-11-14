@@ -3,9 +3,42 @@ const _ = require("lodash");
 const Sequelize = require('sequelize');
 const sequence = require('sequence').Sequence;
 const models = require('../modelORM');
-const { ChecklistDocuments, Tag, Tasks, TaskChecklist, Users, Document, DocumentLink, ActivityLogs } = models;
+const { ChecklistDocuments, Tag, Tasks, TaskChecklist, Users, Document, DocumentLink, ActivityLogs, Workstream } = models;
 const Op = Sequelize.Op
 const func = global.initFunc();
+const documentAssociationStack = [
+    {
+        model: Tag,
+        where: {
+            linkType: 'workstream', tagType: 'document'
+        },
+        as: 'tagDocumentWorkstream',
+        required: false,
+        include: [
+            {
+                model: Workstream,
+                as: 'tagWorkstream',
+            }
+        ]
+    },
+    {
+        model: Tag,
+        where: {
+            linkType: 'task', tagType: 'document'
+        },
+        as: 'tagDocumentTask',
+        required: false,
+        include: [{
+            model: Tasks,
+            as: 'tagTask',
+        }],
+    },
+    {
+        model: Users,
+        as: 'user',
+        attributes: ['firstName', 'lastName', 'phoneNumber', 'emailAddress']
+    }
+]
 
 exports.get = {
     getCheckList: (req, cb) => {
@@ -284,9 +317,10 @@ exports.put = {
         const id = req.params.id
         const projectId = data.projectId
         const taskId = data.taskId
+        const documents = data.documents
 
         sequence.create().then((nextThen) => {
-            async.map(data.documents, (e, mapCallback) => {
+            async.map(documents, (e, mapCallback) => {
                 try {
                     Document
                         .findAll({
@@ -348,8 +382,8 @@ exports.put = {
                                             linkId: t.value.split("-")[1],
                                             tagType: "document",
                                             tagTypeId: res.dataValues.id,
+                                            projectId: projectId
                                         }
-
                                         try {
                                             Tag.create(tagData)
                                                 .then(c => {
@@ -358,7 +392,6 @@ exports.put = {
                                         } catch (err) {
                                             parallelCallback(err)
                                         }
-
                                     }, (err, tagMapCallbackResult) => {
                                         parallelCallback(null, "")
                                     })
@@ -385,12 +418,35 @@ exports.put = {
                 nextThen(mapCallbackResult)
             })
         }).then((nextThen, result) => {
-            let dataToSubmit = {
-                isCompleted: 1,
+            try {
+                DocumentLink
+                    .findAll({
+                        where: { documentId: result },
+                        include: [{
+                            model: Document,
+                            as: 'document',
+                            include: documentAssociationStack
+                        }],
+                    })
+                    .map((res) => {
+                        let resToReturn = {
+                            ...res.dataValues.document.toJSON(),
+                            tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                        }
+                        return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
+                    })
+                    .then((res) => {
+                        nextThen(res)
+                    })
+
+            } catch (err) {
+                cb({ status: false, error: err })
             }
+        }).then((nextThen, result) => {
             try {
                 TaskChecklist
-                    .update(dataToSubmit, { where: { id: id } })
+                    .update({ isCompleted: 1 }, { where: { id: id } })
                     .then((res) => {
                         TaskChecklist
                             .findOne({
@@ -416,13 +472,164 @@ exports.put = {
                                     ...findRes.dataValues,
                                     document: findRes.dataValues.tagDocuments.map((e) => { return e.document })
                                 }
-                                cb({ status: true, data: _.omit(resToReturn, "tagDocuments") })
+                                cb({ status: true, data: { checklist: _.omit(resToReturn, "tagDocuments"), document: result } })
                             })
                     })
             } catch (err) {
                 cb({ status: false, error: err })
             }
         })
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // sequence.create().then((nextThen) => {
+        //     async.map(data.documents, (e, mapCallback) => {
+        //         try {
+        //             Document
+        //                 .findAll({
+        //                     where: {
+        //                         origin: e.origin
+        //                     },
+        //                     order: Sequelize.literal('documentNameCount DESC'),
+        //                     raw: true,
+        //                 })
+        //                 .then(res => {
+        //                     if (res.length > 0) {
+        //                         e.documentNameCount = res[0].documentNameCount + 1
+        //                         mapCallback(null, e)
+        //                     } else {
+        //                         e.projectNameCount = 0;
+        //                         mapCallback(null, e)
+        //                     }
+        //                 })
+        //         } catch (err) {
+        //             mapCallback(err)
+        //         }
+        //     }, (err, result) => {
+        //         if (err != null) {
+        //             cb({ status: false, error: err })
+        //         } else {
+        //             nextThen(result)
+        //         }
+        //     })
+
+        // }).then((nextThen, result) => {
+        //     async.map(result, (e, mapCallback) => {
+        //         let tags = e.tags
+        //         delete e.tags
+        //         Document
+        //             .create(e)
+        //             .then((res) => {
+        //                 async.parallel({
+        //                     documentLink: (parallelCallback) => {
+        //                         let linkData = {
+        //                             documentId: res.dataValues.id,
+        //                             linkType: "project",
+        //                             linkId: projectId
+        //                         }
+        //                         try {
+        //                             DocumentLink
+        //                                 .create(linkData)
+        //                                 .then(c => {
+        //                                     parallelCallback(null, c.dataValues)
+        //                                 })
+        //                         } catch (err) {
+        //                             parallelCallback(err)
+        //                         }
+        //                     },
+        //                     documentTag: (parallelCallback) => {
+        //                         if (typeof tags != "undefined") {
+        //                             async.map(JSON.parse(tags), (t, tagMapCallback) => {
+        //                                 let tagData = {
+        //                                     linkType: t.value.split("-")[0],
+        //                                     linkId: t.value.split("-")[1],
+        //                                     tagType: "document",
+        //                                     tagTypeId: res.dataValues.id,
+        //                                 }
+
+        //                                 try {
+        //                                     Tag.create(tagData)
+        //                                         .then(c => {
+        //                                             tagMapCallback(null, c.data)
+        //                                         })
+        //                                 } catch (err) {
+        //                                     parallelCallback(err)
+        //                                 }
+
+        //                             }, (err, tagMapCallbackResult) => {
+        //                                 parallelCallback(null, "")
+        //                             })
+        //                         } else {
+        //                             parallelCallback(null, "")
+        //                         }
+        //                     },
+        //                     checklistDocuments: (parallelCallback) => {
+        //                         ChecklistDocuments
+        //                             .create({ checklistId: id, documentId: res.dataValues.id, taskId: taskId })
+        //                             .then((c) => {
+        //                                 parallelCallback(null, c.dataValues)
+        //                             })
+        //                     }
+        //                 }, (err, parallelCallbackResult) => {
+        //                     if (err != null) {
+        //                         mapCallback(err)
+        //                     } else {
+        //                         mapCallback(null, parallelCallbackResult.documentLink.documentId)
+        //                     }
+        //                 })
+        //             })
+        //     }, (err, mapCallbackResult) => {
+        //         nextThen(mapCallbackResult)
+        //     })
+        // }).then((nextThen, result) => {
+        //     let dataToSubmit = {
+        //         isCompleted: 1,
+        //     }
+        //     try {
+        //         TaskChecklist
+        //             .update(dataToSubmit, { where: { id: id } })
+        //             .then((res) => {
+        //                 TaskChecklist
+        //                     .findOne({
+        //                         where: { id: id },
+        //                         include: [
+        //                             {
+        //                                 model: Users,
+        //                                 as: 'user',
+        //                                 attributes: ['firstName', 'lastName']
+        //                             },
+        //                             {
+        //                                 model: ChecklistDocuments,
+        //                                 as: 'tagDocuments',
+        //                                 include: [{
+        //                                     model: Document,
+        //                                     as: 'document'
+        //                                 }]
+        //                             }
+        //                         ]
+        //                     })
+        //                     .then((findRes) => {
+        //                         let resToReturn = {
+        //                             ...findRes.dataValues,
+        //                             document: findRes.dataValues.tagDocuments.map((e) => { return e.document })
+        //                         }
+        //                         cb({ status: true, data: _.omit(resToReturn, "tagDocuments") })
+        //                     })
+        //             })
+        //     } catch (err) {
+        //         cb({ status: false, error: err })
+        //     }
+        // })
     }
 }
 

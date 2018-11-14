@@ -338,7 +338,7 @@ export default class FormComponent extends React.Component {
 
     render() {
         const { dispatch, task, status, global, loggedUser, document, checklist, project, taskDependency } = { ...this.props };
-        let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false, documentList = [];
+        let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false;
 
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
@@ -370,42 +370,8 @@ export default class FormComponent extends React.Component {
                 isVisible = true;
             }
         }
-        if (typeof global.SelectList.tagList != "undefined") {
-            let tempTagList = [];
-            global.SelectList.tagList.map(tag => {
-                if (tag.linkType == "workstream" && tag.linkId == task.Selected.workstreamId) {
-                    tempTagList.push(tag)
-                }
+        const documentList = document.New.concat(document.Library)
 
-                if (tag.linkType == "task" && tag.linkId == task.Selected.id) {
-                    tempTagList.push(tag)
-                }
-            })
-            if (tempTagList.length) {
-                tempTagList.map(temp => {
-                    document.List
-                        .filter(e => { return e.type != "attachment" })
-                        .map(e => {
-                            if (e.id == temp.tagTypeId && temp.linkId == task.Selected.id && temp.linkType == "task") {
-                                documentList.push(e)
-                            }
-                            if (e.id == temp.tagTypeId && temp.linkId == task.Selected.workstreamId && temp.linkType == "workstream") {
-                                documentList.push(e)
-                            }
-                        })
-                })
-            }
-        }
-
-        if (checklist.List.length) {
-            checklist.List
-                .filter((c) => { return c.isDocument && c.documents != null })
-                .map((c) => {
-                    c.documents.map((d) => {
-                        documentList.push(d)
-                    })
-                })
-        }
         const preceedingTask = _(taskDependency.List)
             .filter((o) => {
                 return o.dependencyType == "Preceded by"
@@ -437,9 +403,9 @@ export default class FormComponent extends React.Component {
                             {(taskStatus == 2 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
                             &nbsp; &nbsp;{task.Selected.task} &nbsp;&nbsp;
                                 {(task.Selected.status == "Completed") && "( Completed )"}
-                                {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
-                                {(task.Selected.status == "For Approval") && "( For Approval )"}
-                                {(task.Selected.status == "Rejected") && "( Rejected )"}
+                            {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
+                            {(task.Selected.status == "For Approval") && "( For Approval )"}
+                            {(task.Selected.status == "Rejected") && "( Rejected )"}
                         </h4>
 
                         <div class="form-group text-center m0">
@@ -700,7 +666,7 @@ export default class FormComponent extends React.Component {
                             <div style={{ position: "relative" }} class="mt20">
                                 <h5 class="mb0">Documents</h5>
                                 {((task.Selected.assignedTo == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
-                                    <a href="javascript:void(0)" class="task-action" data-toggle="modal" data-target="#uploadFileModal" onClick={() => dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "task" })}>Add</a>
+                                    <a href="javascript:void(0);" class="task-action" data-toggle="modal" data-target="#uploadFileModal" onClick={() => dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "task" })}>Add</a>
                                 }
                             </div>
                         }
