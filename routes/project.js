@@ -5,9 +5,9 @@ var router = express();
 
 router.use(function (req, res, next) {
     let session = global.initModel("session");
-    session.getData("session",{session:req.cookies["app.sid"]},{},(ret)=>{
-        if(ret.status && ret.data.length > 0){
-            session.putData("session",{dateUpdated:new Date()},{id:ret.data[0].id},()=>{
+    session.getData("session", { session: req.cookies["app.sid"] }, {}, (ret) => {
+        if (ret.status && ret.data.length > 0) {
+            session.putData("session", { dateUpdated: new Date() }, { id: ret.data[0].id }, () => {
                 req.userDetails = ret.data[0];
                 next();
             })
@@ -18,7 +18,7 @@ router.use(function (req, res, next) {
 });
 
 router.get('/', function (req, res, next) {
-    if(req.userDetails.users_userType != "External"){
+    if (req.userDetails.users_userType != "External") {
         res.render('project', {
             title: global.site_name,
             page: 'project',
@@ -27,37 +27,47 @@ router.get('/', function (req, res, next) {
             body: "./template/index",
             user: JSON.stringify(req.userDetails.data)
         });
-    }else{
+    } else {
         let members = global.initModel("members")
-            members.getData("members", { userTypeLinkId : req.userDetails.usersId , linkType : "project" }, {}, (c) => {
-                if (c.status) {
-                    if(c.data.length){
-                        if(c.data.length > 1){
-                            res.render('project', {
-                                title: global.site_name,
-                                page: 'project',
-                                subpage: '',
-                                project: "",
-                                body: "./template/index",
-                                user: JSON.stringify(req.userDetails.data)
-                            });
-                        }else{
-                            res.redirect(`/project/${c.data[0].linkId}`);
-                        }
+        members.getData("members", { userTypeLinkId: req.userDetails.usersId, linkType: "project" }, {}, (c) => {
+            if (c.status) {
+                if (c.data.length) {
+                    if (c.data.length > 1) {
+                        res.render('project', {
+                            title: global.site_name,
+                            page: 'project',
+                            subpage: '',
+                            project: "",
+                            body: "./template/index",
+                            user: JSON.stringify(req.userDetails.data)
+                        });
+                    } else {
+                        res.redirect(`/project/${c.data[0].linkId}`);
                     }
-                } else {
-                    if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
                 }
-            })
+            } else {
+                if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
+            }
+        })
     }
 });
 
 router.get('/:project', function (req, res, next) {
-   
-    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
-        let func = global.initFunc();
-            func.getUserAllowedAccess({ userId: req.userDetails.usersId , params:req.params.project },resp=>{
-                if(resp.status){
+    if (typeof req.params != "undefined" && typeof req.params.project != "undefined") {
+        const func = global.initFunc();
+        const userRole = JSON.parse(req.userDetails.data).userRole;
+        if (userRole != 5 && userRole != 6) {
+            res.render('project', {
+                title: global.site_name,
+                page: 'project',
+                subpage: 'home',
+                body: "./template/index",
+                project: req.params.project,
+                user: JSON.stringify(req.userDetails.data)
+            });
+        } else {
+            func.getUserAllowedAccess({ userId: req.userDetails.usersId, params: req.params.project }, resp => {
+                if (resp.status) {
                     res.render('project', {
                         title: global.site_name,
                         page: 'project',
@@ -66,7 +76,7 @@ router.get('/:project', function (req, res, next) {
                         project: req.params.project,
                         user: JSON.stringify(req.userDetails.data)
                     });
-                }else{
+                } else {
                     res.render('index', {
                         title: global.site_name + " - pageNotAvailable",
                         body: './template/index',
@@ -75,15 +85,27 @@ router.get('/:project', function (req, res, next) {
                     });
                 }
             })
+        }
     }
 });
 
 router.get('/documents/:project', function (req, res, next) {
 
-    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
-        let func = global.initFunc();
-            func.getUserAllowedAccess({ userId: req.userDetails.usersId , params:req.params.project },resp=>{
-                if(resp.status){
+    if (typeof req.params != "undefined" && typeof req.params.project != "undefined") {
+        const func = global.initFunc();
+        const userRole = JSON.parse(req.userDetails.data).userRole;
+        if (userRole != 5 && userRole != 6) {
+            res.render('project', {
+                title: global.site_name,
+                page: 'project',
+                subpage: 'home',
+                body: "./template/index",
+                project: req.params.project,
+                user: JSON.stringify(req.userDetails.data)
+            });
+        } else {
+            func.getUserAllowedAccess({ userId: req.userDetails.usersId, params: req.params.project }, resp => {
+                if (resp.status) {
                     res.render('project', {
                         title: global.site_name,
                         page: 'project',
@@ -94,7 +116,7 @@ router.get('/documents/:project', function (req, res, next) {
                         folderType: req.query.type,
                         user: JSON.stringify(req.userDetails.data)
                     });
-                }else{
+                } else {
                     res.render('index', {
                         title: global.site_name + " - pageNotAvailable",
                         body: './template/index',
@@ -103,15 +125,27 @@ router.get('/documents/:project', function (req, res, next) {
                     });
                 }
             })
+        }
     }
 });
 
 router.get('/trash/:project', function (req, res, next) {
 
-    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
-        let func = global.initFunc();
-            func.getUserAllowedAccess({ userId: req.userDetails.usersId , params:req.params.project },resp=>{
-                if(resp.status){
+    if (typeof req.params != "undefined" && typeof req.params.project != "undefined") {
+        const func = global.initFunc();
+        const userRole = JSON.parse(req.userDetails.data).userRole;
+        if (userRole != 5 && userRole != 6) {
+            res.render('project', {
+                title: global.site_name + " - Trash",
+                body: './template/index',
+                page: 'project',
+                subpage: 'trash',
+                project: req.params.project,
+                user: JSON.stringify(req.userDetails.data)
+            });
+        } else {
+            func.getUserAllowedAccess({ userId: req.userDetails.usersId, params: req.params.project }, resp => {
+                if (resp.status) {
                     res.render('project', {
                         title: global.site_name + " - Trash",
                         body: './template/index',
@@ -120,7 +154,7 @@ router.get('/trash/:project', function (req, res, next) {
                         project: req.params.project,
                         user: JSON.stringify(req.userDetails.data)
                     });
-                }else{
+                } else {
                     res.render('index', {
                         title: global.site_name + " - pageNotAvailable",
                         body: './template/index',
@@ -128,41 +162,27 @@ router.get('/trash/:project', function (req, res, next) {
                         user: JSON.stringify(req.userDetails.data)
                     });
                 }
-            })  
+            })
+        }
     }
 });
 
-// router.get('/processes/:project', function (req, res, next) {
-    
-//     if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
-//         let func = global.initFunc();
-//             func.getUserAllowedAccess({ userId: req.userDetails.usersId , params:req.params.project },resp=>{
-//                 if(resp.status){
-//                     res.render('project', {
-//                         title: global.site_name + " - Processes",
-//                         body: './template/index',
-//                         page: 'project',
-//                         subpage: 'processes',
-//                         project: req.params.project
-//                     });
-//                 }else{
-//                     res.render('index', {
-//                         title: global.site_name + " - pageNotAvailable",
-//                         body: './template/index',
-//                         page: 'pageNotAvailable'
-//                     });
-//                 }
-//             })  
-//     }
-// });
-
-
 router.get('/:project/workstream', function (req, res, next) {
-    
-    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
-        let func = global.initFunc();
-            func.getUserAllowedAccess({ userId: req.userDetails.usersId , params:req.params.project },resp=>{
-                if(resp.status){
+    if (typeof req.params != "undefined" && typeof req.params.project != "undefined") {
+        const func = global.initFunc();
+        const userRole = JSON.parse(req.userDetails.data).userRole;
+        if (userRole != 5 && userRole != 6) {
+            res.render('project', {
+                title: global.site_name + " - Workstream",
+                body: './template/index',
+                page: 'project',
+                subpage: 'workstream',
+                project: req.params.project,
+                user: JSON.stringify(req.userDetails.data)
+            });
+        } else {
+            func.getUserAllowedAccess({ userId: req.userDetails.usersId, params: req.params.project }, resp => {
+                if (resp.status) {
                     res.render('project', {
                         title: global.site_name + " - Workstream",
                         body: './template/index',
@@ -171,7 +191,7 @@ router.get('/:project/workstream', function (req, res, next) {
                         project: req.params.project,
                         user: JSON.stringify(req.userDetails.data)
                     });
-                }else{
+                } else {
                     res.render('index', {
                         title: global.site_name + " - pageNotAvailable",
                         body: './template/index',
@@ -179,28 +199,42 @@ router.get('/:project/workstream', function (req, res, next) {
                         user: JSON.stringify(req.userDetails.data)
                     });
                 }
-            })  
+            })
+        }
     }
 });
 
 
 router.get('/:project/workstream/:workstream', function (req, res, next) {
-    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
-        let task = (typeof req.query.task != "undefined" ? req.query.task : undefined )
-        let func = global.initFunc();
-            func.getUserAllowedAccess({ userId: req.userDetails.usersId , params:req.params.project },resp=>{
-                if(resp.status){
+    if (typeof req.params != "undefined" && typeof req.params.project != "undefined") {
+        let task = (typeof req.query.task != "undefined" ? req.query.task : undefined)
+        const func = global.initFunc();
+        const userRole = JSON.parse(req.userDetails.data).userRole;
+        if (userRole != 5 && userRole != 6) {
+            res.render('project', {
+                title: global.site_name + " - Workstream",
+                body: './template/index',
+                page: 'project',
+                subpage: 'workstream',
+                project: req.params.project,
+                workstream: req.params.workstream,
+                task: task,
+                user: JSON.stringify(req.userDetails.data)
+            });
+        } else {
+            func.getUserAllowedAccess({ userId: req.userDetails.usersId, params: req.params.project }, resp => {
+                if (resp.status) {
                     res.render('project', {
                         title: global.site_name + " - Workstream",
                         body: './template/index',
                         page: 'project',
                         subpage: 'workstream',
                         project: req.params.project,
-                        workstream : req.params.workstream,
-                        task : task,
+                        workstream: req.params.workstream,
+                        task: task,
                         user: JSON.stringify(req.userDetails.data)
                     });
-                }else{
+                } else {
                     res.render('index', {
                         title: global.site_name + " - pageNotAvailable",
                         body: './template/index',
@@ -208,15 +242,27 @@ router.get('/:project/workstream/:workstream', function (req, res, next) {
                         user: JSON.stringify(req.userDetails.data)
                     });
                 }
-            })  
+            })
+        }
     }
 });
 
 router.get('/:project/task', function (req, res, next) {
-    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
-        let func = global.initFunc();
-            func.getUserAllowedAccess({ userId: req.userDetails.usersId , params:req.params.project },resp=>{
-                if(resp.status){
+    if (typeof req.params != "undefined" && typeof req.params.project != "undefined") {
+        const func = global.initFunc();
+        const userRole = JSON.parse(req.userDetails.data).userRole;
+        if (userRole != 5 && userRole != 6) {
+            res.render('project', {
+                title: global.site_name + " - Tasks",
+                body: './template/index',
+                page: 'project',
+                subpage: 'task',
+                project: req.params.project,
+                user: JSON.stringify(req.userDetails.data)
+            });
+        } else {
+            func.getUserAllowedAccess({ userId: req.userDetails.usersId, params: req.params.project }, resp => {
+                if (resp.status) {
                     res.render('project', {
                         title: global.site_name + " - Tasks",
                         body: './template/index',
@@ -225,7 +271,7 @@ router.get('/:project/task', function (req, res, next) {
                         project: req.params.project,
                         user: JSON.stringify(req.userDetails.data)
                     });
-                }else{
+                } else {
                     res.render('index', {
                         title: global.site_name + " - pageNotAvailable",
                         body: './template/index',
@@ -233,33 +279,45 @@ router.get('/:project/task', function (req, res, next) {
                         user: JSON.stringify(req.userDetails.data)
                     });
                 }
-            })  
+            })
+        }
     }
 });
 
 router.get('/conversations/:project', function (req, res, next) {
-
-    if(typeof req.params != "undefined" && typeof req.params.project != "undefined"){
-        let func = global.initFunc();
-        func.getUserAllowedAccess({ userId: req.userDetails.usersId , params:req.params.project },resp=>{
-            if(resp.status){
-                res.render('project', {
-                    title: global.site_name + " - Conversations",
-                    body: './template/index',
-                    page: 'project',
-                    subpage: 'conversations',
-                    project: req.params.project,
-                    user: JSON.stringify(req.userDetails.data)
-                });
-            }else{
-                res.render('index', {
-                    title: global.site_name + " - pageNotAvailable",
-                    body: './template/index',
-                    page: 'pageNotAvailable',
-                    user: JSON.stringify(req.userDetails.data)
-                });
-            }
-        })   
+    if (typeof req.params != "undefined" && typeof req.params.project != "undefined") {
+        const func = global.initFunc();
+        const userRole = JSON.parse(req.userDetails.data).userRole;
+        if (userRole != 5 && userRole != 6) {
+            res.render('project', {
+                title: global.site_name + " - Conversations",
+                body: './template/index',
+                page: 'project',
+                subpage: 'conversations',
+                project: req.params.project,
+                user: JSON.stringify(req.userDetails.data)
+            });
+        } else {
+            func.getUserAllowedAccess({ userId: req.userDetails.usersId, params: req.params.project }, resp => {
+                if (resp.status) {
+                    res.render('project', {
+                        title: global.site_name + " - Conversations",
+                        body: './template/index',
+                        page: 'project',
+                        subpage: 'conversations',
+                        project: req.params.project,
+                        user: JSON.stringify(req.userDetails.data)
+                    });
+                } else {
+                    res.render('index', {
+                        title: global.site_name + " - pageNotAvailable",
+                        body: './template/index',
+                        page: 'pageNotAvailable',
+                        user: JSON.stringify(req.userDetails.data)
+                    });
+                }
+            })
+        }
     }
 });
 
