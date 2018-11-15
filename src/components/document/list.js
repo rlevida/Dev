@@ -36,23 +36,6 @@ export default class List extends React.Component {
         let { dispatch, loggedUser, document } = this.props
         if (typeof document.Selected.id == "undefined") {
             parallel({
-                folder: (parallelCallback) => {
-                    getData(`/api/folder?projectId=${project}`, {}, (c) => {
-                        if (c.status == 200) {
-                            dispatch({ type: "SET_FOLDER_LIST", list: c.data })
-                            parallelCallback(null, "")
-                        } else {
-                            parallelCallback(null, "")
-                        }
-                    });
-                },
-                task: (parallelCallback) => {
-                    getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${1}&role=${loggedUser.data.userRole}`, {}, (c) => {
-                        dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
-                        dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-                        parallelCallback(null, "")
-                    });
-                },
                 starred: (parallelCallback) => {
                     getData(`/api/starred/`, { params: { filter: { projectId: project } } }, (c) => {
                         if (c.status == 200) {
@@ -62,12 +45,6 @@ export default class List extends React.Component {
                             parallelCallback(null, "")
                         }
                     });
-                },
-                tagList: (parallelCallback) => {
-                    getData(`/api/global/selectList`, { params: { selectName: "tagList" } }, (c) => {
-                        dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'tagList' })
-                        parallelCallback(null, "")
-                    })
                 },
                 shareList: (parallelCallback) => {
                     getData(`/api/globalORM/selectList?selectName=shareList&linkId=${project}&linkType=project`, {}, (c) => {

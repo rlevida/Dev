@@ -35,7 +35,7 @@ export default class ShareModal extends React.Component {
     }
 
     share() {
-        let { document, loggedUser } = this.props;
+        let { dispatch, document, loggedUser } = this.props;
         let dataToSubmit = {
             users: document.Selected.share,
             linkType: "project",
@@ -47,6 +47,7 @@ export default class ShareModal extends React.Component {
 
         postData(`/api/share`, dataToSubmit, (c) => {
             if (c.status == 200) {
+                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: document.Selected.status })
                 showToast("success", "Successfully Shared.");
             } else {
                 showToast("danger", "Sharing failed. Please try again.");
@@ -65,7 +66,6 @@ export default class ShareModal extends React.Component {
                 }
             })
         }
-
         return (
             <div>
                 <div class="modal fade" id="shareModal" tabIndex="-1" role="dialog" aria-labelledby="shareModalLabel" aria-hidden="true">

@@ -386,7 +386,9 @@ export default class DocumentNew extends React.Component {
                                                         <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={() => dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data })}>Share</a></li>
                                                     }
                                                     <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(data)}>Download</a></li>
-                                                    <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.duplicateDocument(data)}>Duplicate</a></li>
+                                                    {(data.type != 'folder') &&
+                                                        <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.duplicateDocument(data)}>Duplicate</a></li>
+                                                    }
                                                     <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "rename")}>Rename</a></li>
                                                     <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>
                                                     <li>{starred.List.filter(s => { return s.linkId == data.id }).length > 0
@@ -401,9 +403,10 @@ export default class DocumentNew extends React.Component {
                                                                 <a href="javascript:void(0)" style={{ textDecoration: "none" }} data-tip="Move to library" onClick={() => this.moveToLibrary(data)}>Move to library</a>
                                                             }
                                                             {
-                                                                _.filter(document.New, (d) => { return d.type == 'folder' }).map((f, fIndex) => {
+                                                                _.filter(document.New, (d) => { return d.type == 'folder' && d.id != data.id }).map((f, fIndex) => {
+                                                                    let folderName = `${f.origin}${f.documentNameCount > 0 ? `(${f.documentNameCount})` : ``}`
                                                                     return (
-                                                                        <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo(f, data)}>{f.name}</a>
+                                                                        <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo(f, data)}>{folderName}</a>
                                                                     )
                                                                 })
                                                             }

@@ -50,5 +50,12 @@ module.exports = function (sequelize, DataTypes) {
       timestamps: false,
     });
 
+  Share.associate = function (models) {
+    Share.belongsTo(models.Users, {
+      as: 'user',
+      foreignKey: 'userTypeLinkId'
+    })
+  }
+
   return Share
 };

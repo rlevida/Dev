@@ -351,7 +351,11 @@ export default class DocumentLibrary extends React.Component {
 
                         {(document.LibraryDocumentLoading != "RETRIEVING") &&
                             document.Library.map((data, index) => {
-                                let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
+                                const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`;
+                                let documentMembers = data.members;
+                                if (typeof global.SelectList.projectMemberList != 'undefined') {
+                                    documentMembers = _.uniqBy(documentMembers.concat(global.SelectList.projectMemberList.filter((e) => { return e.userType == 'Internal' })), 'id')
+                                }
                                 return (
                                     // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id ,"document")} documentToMove={(data)=> this.documentToMove(data)} docType="document"/>
                                     <tr key={index}>
@@ -373,20 +377,9 @@ export default class DocumentLibrary extends React.Component {
                                             <div>
                                                 <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
                                                 <Tooltip id={`follower${index}`}>
-                                                    {(typeof global.SelectList.projectMemberList != "undefined") &&
-                                                        global.SelectList.projectMemberList.map((e, mIndex) => {
-                                                            if (e.userType == "Internal") {
-                                                                return <p key={mIndex}>{`${e.firstName} ${e.lastName}`} <br /></p>
-                                                            } else {
-                                                                if (global.SelectList.shareList.length > 0) {
-                                                                    let isShared = global.SelectList.shareList.filter(s => { return s.userTypeLinkId == e.id && data.id == s.shareId && s.shareType == "document" }).length ? 1 : 0
-                                                                    if (isShared) {
-                                                                        return <p key={mIndex}>{`${e.firstName} ${e.lastName}`} <br /></p>
-                                                                    }
-                                                                }
-                                                            }
-                                                        })
-                                                    }
+                                                    {documentMembers.map((e, i) => {
+                                                        return <p key={i}>{`${e.firstName} ${e.lastName}`} <br /></p>
+                                                    })}
                                                 </Tooltip>
                                             </div>
                                         </td>
@@ -417,7 +410,7 @@ export default class DocumentLibrary extends React.Component {
                                                                 <a href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo({ id: null }, data)}>Library</a>
                                                             }
                                                             {
-                                                                _.filter(document.Library, (d) => { return d.type == 'folder' }).map((f, fIndex) => {
+                                                                _.filter(document.Library, (d) => { return d.type == 'folder' && d.id != data.id }).map((f, fIndex) => {
                                                                     let folderName = `${f.origin}${f.documentNameCount > 0 ? `(${f.documentNameCount})` : ``}`
                                                                     return (
                                                                         <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo(f, data)}>{folderName}</a>
@@ -428,7 +421,9 @@ export default class DocumentLibrary extends React.Component {
                                                     </li>
                                                     <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>
                                                     <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(data)}>Download</a></li>
-                                                    <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.duplicateDocument(data)}>Duplicate</a></li>
+                                                    {(data.type != 'folder') &&
+                                                        <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.duplicateDocument(data)}>Duplicate</a></li>
+                                                    }
                                                     <li>
                                                         {starred.List.filter(s => { return s.linkId == data.id }).length > 0
                                                             ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={() => this.starDocument(data, 1)}>Unstarred</a>
