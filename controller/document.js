@@ -314,14 +314,16 @@ exports.post = {
         let projectId = req.body[0].project;
 
         sequence.create().then((nextThen) => {
-            let newData = [];
             async.map(data, (e, mapCallback) => {
+                let whereObj = {
+                    ...(typeof e.origin != "undefined" && e.origin != "") ? { origin: e.origin } : {},
+                    ...(typeof e.folderId != "undefined" && e.folderId != "") ? { folderId: e.folderId } : { folderId: null },
+                    ...(typeof e.status != "undefined" && e.status != "") ? { status: e.status } : {}
+                }
                 try {
                     Document
                         .findAll({
-                            where: {
-                                origin: e.origin
-                            },
+                            where: whereObj,
                             order: Sequelize.literal('documentNameCount DESC'),
                             raw: true,
                         })
