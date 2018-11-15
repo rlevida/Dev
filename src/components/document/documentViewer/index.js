@@ -116,7 +116,6 @@ export default class DocumentViewerComponent extends React.Component {
                     <li class="btn btn-info" style={{ marginRight: "2px" }}
                         onClick={(e) => {
                             dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
-                            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
                         }} >
                         <span>Back</span>
                     </li>

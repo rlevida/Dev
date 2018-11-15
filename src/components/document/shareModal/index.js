@@ -27,21 +27,6 @@ export default class ShareModal extends React.Component {
         super(props)
     }
 
-    componentDidMount() {
-        // automatically move to selected folder
-        if (folderParams != "" && folderParamsType == "library") {
-            let folderSelectedInterval = setInterval(() => {
-                if (this.props.folder.List.length > 0) {
-                    clearInterval(folderSelectedInterval)
-                    let folderData = this.props.folder.List.filter(e => e.id == folderParams)
-                    if (folderData.length > 0) {
-                        this.props.dispatch({ type: "SET_LIBRARY_FOLDER_SELECTED", Selected: folderData[0] })
-                    }
-                }
-            }, 1000)
-        }
-    }
-
     selectShare(e, data) {
         let { dispatch, document } = this.props;
         let Selected = Object.assign({}, document.Selected);
@@ -50,18 +35,19 @@ export default class ShareModal extends React.Component {
     }
 
     share() {
-        let { socket, document, loggedUser } = this.props;
+        let { dispatch, document, loggedUser } = this.props;
         let dataToSubmit = {
             users: document.Selected.share,
             linkType: "project",
             linkId: project,
-            shareType: document.Selected.isFolder ? "folder" : "document",
+            shareType: document.Selected.type,
             shareId: document.Selected.id,
             sharedBy: loggedUser.data.id
         }
 
-        postData(`/api/share/`, dataToSubmit, (c) => {
+        postData(`/api/share`, dataToSubmit, (c) => {
             if (c.status == 200) {
+                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: document.Selected.status })
                 showToast("success", "Successfully Shared.");
             } else {
                 showToast("danger", "Sharing failed. Please try again.");
@@ -80,7 +66,6 @@ export default class ShareModal extends React.Component {
                 }
             })
         }
-
         return (
             <div>
                 <div class="modal fade" id="shareModal" tabIndex="-1" role="dialog" aria-labelledby="shareModalLabel" aria-hidden="true">

@@ -62,9 +62,9 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    timestamps: false,
-    tableName: 'document'
-  });
+      timestamps: false,
+      tableName: 'document'
+    });
 
   Document.associate = function (models) {
     Document.hasMany(models.Tag, {
@@ -79,6 +79,14 @@ module.exports = (sequelize, DataTypes) => {
       as: 'user',
       foreignKey: 'uploadedBy',
     });
+    Document.hasMany(models.Share, {
+      as: 'share',
+      foreignKey: 'shareId'
+    })
+    Document.hasMany(models.DocumentLink,{
+      as:'project_member',
+      foreignKey:'documentId'
+    })
   };
 
   return Document;

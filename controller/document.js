@@ -12,14 +12,15 @@ const {
     Document,
     Tag,
     DocumentLink,
+    Members,
     Workstream,
     Tasks,
     Users,
+    UsersRole,
     Share
 } = models;
 
 var {
-    defaultPut,
     defaultDelete
 } = require("./")
 
@@ -54,12 +55,25 @@ const associationFindAllStack = [
         model: Users,
         as: 'user',
         attributes: ['firstName', 'lastName', 'phoneNumber', 'emailAddress']
-    }
+    },
+    {
+        model: Share,
+        as: 'share',
+        include: [{
+            model: Users,
+            as: 'user',
+            include: [{
+                model: UsersRole,
+                as: 'user_role',
+            }]
+        }],
+    },
 ]
 
 
 exports.get = {
     index: (req, cb) => {
+
         const queryString = req.query;
         const limit = 10;
 
@@ -87,7 +101,12 @@ exports.get = {
                                 id: {
                                     [Op.in]: Sequelize.literal(`(SELECT DISTINCT shareId FROM share where userTypeLinkId = ${queryString.userId})`)
                                 },
-                            },
+
+                            }, {
+                                id: {
+                                    [Op.in]: Sequelize.literal(`(SELECT DISTINCT document.id FROM document LEFT JOIN share ON document.folderId = share.shareId where share.shareType = 'folder' AND share.userTypeLinkId = ${queryString.userId} )`)
+                                }
+                            }
                         ]
                     } : {},
                     uploadedBy: queryString.userId
@@ -133,9 +152,11 @@ exports.get = {
                             let resToReturn = {
                                 ...res.dataValues.document.toJSON(),
                                 tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                    .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                                    .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })),
+                                members: res.dataValues.document.share.map((e) => { return e.user }),
+                                share: JSON.stringify(res.dataValues.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
                             }
-                            return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
+                            return _.omit(resToReturn, 'tagDocumentWorkstream', 'tagDocumentTask')
                         })
                         .then((res) => {
                             parallelCallback(null, res)
@@ -315,7 +336,8 @@ exports.post = {
                 let whereObj = {
                     ...(typeof e.origin != "undefined" && e.origin != "") ? { origin: e.origin } : {},
                     ...(typeof e.folderId != "undefined" && e.folderId != "") ? { folderId: e.folderId } : { folderId: null },
-                    ...(typeof e.status != "undefined" && e.status != "") ? { status: e.status } : {}
+                    ...(typeof e.status != "undefined" && e.status != "") ? { status: e.status } : {},
+                    ...(typeof e.type != "undefined" && e.type != "") ? { type: e.type } : {}
                 }
                 try {
                     Document

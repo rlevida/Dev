@@ -15,7 +15,8 @@ import { connect } from "react-redux"
         starred: store.starred,
         global: store.global,
         task: store.task,
-        projectData: store.project
+        projectData: store.project,
+        folder: store.folder
 
     }
 })
@@ -32,7 +33,7 @@ export default class UploadModal extends React.Component {
     }
 
     saveDocument() {
-        let { dispatch, document } = this.props;
+        const { dispatch, document } = this.props;
         let { dataToSubmit } = this.state;
         postData(`/api/document`, dataToSubmit, (c) => {
             if (c.status == 200) {
@@ -58,7 +59,7 @@ export default class UploadModal extends React.Component {
     }
 
     uploadFile() {
-        let { loggedUser } = this.props,
+        let { loggedUser, folder } = this.props,
             { files } = this.state
         let data = new FormData(), dataToSubmit = [];
         this.setState({ loading: true })
@@ -67,17 +68,19 @@ export default class UploadModal extends React.Component {
             data.append("file", e)
         })
 
-
         postData(`/api/document/upload`, data, (c) => {
             c.data.map(e => {
-                dataToSubmit.push({ name: e.filename, origin: e.origin, project: project, uploadedBy: loggedUser.data.id, status: "new", type: 'document' })
+                dataToSubmit.push({
+                    name: e.filename, origin: e.origin, project: project, uploadedBy: loggedUser.data.id,
+                    status: 'new', type: 'document', folderId: folder.SelectedNewFolder.id
+                })
             })
             this.setState({ dataToSubmit: dataToSubmit, loading: false, upload: false })
         })
     }
 
     render() {
-        let { workstream, task, global } = this.props;
+        let { global } = this.props;
         let tagOptions = [];
         if (typeof global.SelectList.workstreamList != "undefined" && typeof global.SelectList.taskList != "undefined") {
             global.SelectList.workstreamList

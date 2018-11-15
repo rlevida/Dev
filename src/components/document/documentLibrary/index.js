@@ -48,6 +48,7 @@ export default class DocumentLibrary extends React.Component {
     }
 
     componentDidMount() {
+        const { document } = this.props;
         // automatically move to selected folder
         if (folderParams != "" && folderParamsType == "library") {
             let folderSelectedInterval = setInterval(() => {
@@ -60,7 +61,9 @@ export default class DocumentLibrary extends React.Component {
                 }
             }, 1000)
         }
-        this.fetchData(1)
+        if (_.isEmpty(document.LibraryCount.Count)) {
+            this.fetchData(1)
+        }
     }
 
     addFolder() {
@@ -73,7 +76,7 @@ export default class DocumentLibrary extends React.Component {
                 origin: folderName,
                 createdBy: loggedUser.data.id,
                 type: "folder",
-                folderId: folder.Selected.id,
+                folderId: folder.SelectedLibraryFolder.id,
                 project: project,
                 uploadedBy: loggedUser.data.id,
                 status: 'library'
@@ -184,13 +187,11 @@ export default class DocumentLibrary extends React.Component {
     }
 
     getFolderDocuments(data) {
-        const { dispatch, loggedUser } = this.props;
-        const { selectedFolderName } = this.state;
-        let folderList = selectedFolderName
-        dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'LibraryDocumentLoading' })
+        const { dispatch, loggedUser, folder } = this.props;
+        let folderList = folder.SelectedLibraryFolderName
         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                dispatch({ type: 'SET_DOCUMENT_LIST', List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedLibraryFolder' })
 
@@ -205,7 +206,7 @@ export default class DocumentLibrary extends React.Component {
                         hasFolder = false;
                     }
                 }
-                this.setState({ selectedFolderName: folderList });
+                dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList, Type: 'SelectedLibraryFolderName' });
                 showToast('success', 'Documents successfully retrieved.');
             } else {
                 showToast('success', 'Something went wrong!')
@@ -215,7 +216,6 @@ export default class DocumentLibrary extends React.Component {
 
     getNextResult() {
         let { document, dispatch } = this.props;
-        dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "RETRIEVING" })
         this.fetchData(document.LibraryCount.Count.current_page + 1)
     }
 
@@ -279,18 +279,17 @@ export default class DocumentLibrary extends React.Component {
     }
 
     viewDocument(data) {
-        let { dispatch, loggedUser } = this.props;
-        let { selectedFolderName } = this.state;
+        let { dispatch, loggedUser, folder } = this.props;
         if (data.type !== 'folder') {
-            dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
-            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+            dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: "DocumentViewer" });
+            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
         } else {
             getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                    dispatch({ type: 'SET_DOCUMENT_LIST', List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
                     dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedLibraryFolder' })
-                    this.setState({ selectedFolderName: selectedFolderName.concat([data]) })
+                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedLibraryFolderName.concat([data]), Type: 'SelectedLibraryFolderName' })
                     showToast('success', 'Documents successfully retrieved.')
                 }
             });
@@ -306,7 +305,7 @@ export default class DocumentLibrary extends React.Component {
             <div class="col-lg-12 col-md-12">
                 <h3>
                     <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>Library</a>
-                    {this.state.selectedFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
+                    {folder.SelectedLibraryFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
                 </h3>
 
                 {(this.state.folderAction == "") &&
@@ -342,6 +341,7 @@ export default class DocumentLibrary extends React.Component {
                         <tr>
                             <th></th>
                             <th></th>
+                            <th></th>
                             <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i> <a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>Name</a></th>
                             <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateUpdated')}>Modified</a></th>
                             <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Members</th>
@@ -349,9 +349,13 @@ export default class DocumentLibrary extends React.Component {
                             <th></th>
                         </tr>
 
-                        {
+                        {(document.LibraryDocumentLoading != "RETRIEVING") &&
                             document.Library.map((data, index) => {
-                                let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
+                                const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`;
+                                let documentMembers = data.members;
+                                if (typeof global.SelectList.projectMemberList != 'undefined') {
+                                    documentMembers = _.uniqBy(documentMembers.concat(global.SelectList.projectMemberList.filter((e) => { return e.userType == 'Internal' })), 'id')
+                                }
                                 return (
                                     // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id ,"document")} documentToMove={(data)=> this.documentToMove(data)} docType="document"/>
                                     <tr key={index}>
@@ -366,26 +370,16 @@ export default class DocumentLibrary extends React.Component {
                                                     : <span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span>
                                             }
                                         </td>
-                                        <td class="library-document"><a href="javascript:void(0)" onClick={() => this.viewDocument(data)}><span class={data.type != 'folder' ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span>{documentName}</a></td>
+                                        <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td>
+                                        <td class="library-document"><a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>{documentName}</a></td>
                                         <td>{displayDate(data.dateUpdated)}</td>
                                         <td>
                                             <div>
                                                 <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
                                                 <Tooltip id={`follower${index}`}>
-                                                    {(typeof global.SelectList.projectMemberList != "undefined") &&
-                                                        global.SelectList.projectMemberList.map((e, mIndex) => {
-                                                            if (e.userType == "Internal") {
-                                                                return <p key={mIndex}>{`${e.firstName} ${e.lastName}`} <br /></p>
-                                                            } else {
-                                                                if (global.SelectList.shareList.length > 0) {
-                                                                    let isShared = global.SelectList.shareList.filter(s => { return s.userTypeLinkId == e.id && data.id == s.shareId && s.shareType == "document" }).length ? 1 : 0
-                                                                    if (isShared) {
-                                                                        return <p key={mIndex}>{`${e.firstName} ${e.lastName}`} <br /></p>
-                                                                    }
-                                                                }
-                                                            }
-                                                        })
-                                                    }
+                                                    {documentMembers.map((e, i) => {
+                                                        return <p key={i}>{`${e.firstName} ${e.lastName}`} <br /></p>
+                                                    })}
                                                 </Tooltip>
                                             </div>
                                         </td>
@@ -416,7 +410,7 @@ export default class DocumentLibrary extends React.Component {
                                                                 <a href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo({ id: null }, data)}>Library</a>
                                                             }
                                                             {
-                                                                _.filter(document.Library, (d) => { return d.type == 'folder' }).map((f, fIndex) => {
+                                                                _.filter(document.Library, (d) => { return d.type == 'folder' && d.id != data.id }).map((f, fIndex) => {
                                                                     let folderName = `${f.origin}${f.documentNameCount > 0 ? `(${f.documentNameCount})` : ``}`
                                                                     return (
                                                                         <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => this.moveTo(f, data)}>{folderName}</a>
@@ -427,7 +421,9 @@ export default class DocumentLibrary extends React.Component {
                                                     </li>
                                                     <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>
                                                     <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(data)}>Download</a></li>
-                                                    <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.duplicateDocument(data)}>Duplicate</a></li>
+                                                    {(data.type != 'folder') &&
+                                                        <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.duplicateDocument(data)}>Duplicate</a></li>
+                                                    }
                                                     <li>
                                                         {starred.List.filter(s => { return s.linkId == data.id }).length > 0
                                                             ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={() => this.starDocument(data, 1)}>Unstarred</a>
