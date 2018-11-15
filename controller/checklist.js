@@ -61,7 +61,7 @@ exports.get = {
         ]
         const whereObj = {
             ...(typeof queryString.taskId != "undefined" && queryString.taskId != "") ? { taskId: queryString.taskId } : {},
-            isDeleted:0
+            isDeleted: 0
         }
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
@@ -212,6 +212,14 @@ exports.put = {
                     model: Users,
                     as: 'user',
                     attributes: ['firstName', 'lastName']
+                },
+                {
+                    model: ChecklistDocuments,
+                    as: 'tagDocuments',
+                    include: [{
+                        model: Document,
+                        as: 'document'
+                    }]
                 }
             ]
         }
@@ -221,18 +229,25 @@ exports.put = {
                 let oldTaskChecklist = responseObj;
                 let isMandatory = (oldTaskChecklist.isMandatory == 1) ? "Mandatory" : "Non Mandatory";
                 let isDocument = (oldTaskChecklist.isDocument == 1) ? "Document" : "Non Document";
+                let status = (oldTaskChecklist.isCompleted == 1) ? "Complete" : "Not Complete";
+
                 checklistType = isMandatory + " and " + isDocument;
-                oldTaskChecklist = _.pick({ ...oldTaskChecklist, type: checklistType }, ["description", "type"]);
+                oldTaskChecklist = _.pick({ ...oldTaskChecklist, type: checklistType, status }, ["description", "type", "status"]);
 
                 TaskChecklist.update(body, { where: { id: body.id } }).then((response) => {
                     return TaskChecklist.findOne({ ...options, where: { id: body.id } });
                 }).then((response) => {
-                    const updateResponse = response.toJSON();
+                    const updateResponse = _.omit({
+                        ...response.dataValues,
+                        document: response.dataValues.tagDocuments.map((e) => { return e.document })
+                    }, "tagDocuments");
+
                     isMandatory = (updateResponse.isMandatory == 1) ? "Mandatory" : "Non Mandatory";
                     isDocument = (updateResponse.isDocument == 1) ? "Document" : "Non Document";
                     checklistType = isMandatory + " and " + isDocument;
-                    const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, type: checklistType }, ["description", "type"]), oldTaskChecklist);
+                    status = (updateResponse.isCompleted == 1) ? "Complete" : "Not Complete";
 
+                    const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, type: checklistType, status }, ["description", "type", "status"]), oldTaskChecklist);
                     if (_.isEmpty(newObject)) {
                         cb({ status: true, data: { checklist: updateResponse } });
                     } else {

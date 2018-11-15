@@ -407,8 +407,15 @@ exports.post = {
                             },
                             activity_logs: (parallelCallback) => {
                                 const activityLogs = _.map(newTasksArgs, (taskObj) => {
-                                    const activityObj = _.omit({ ...taskObj, value: taskObj.task }, ["dateAdded", "dateUpdated"]);
-                                    return { usersId: body.userId, linkType: "task", linkId: taskObj.id, actionType: "created", new: JSON.stringify({ task: activityObj }) }
+                                    const activityObj = _.omit(taskObj, ["dateAdded", "dateUpdated"]);
+                                    return { 
+                                        usersId: body.userId, 
+                                        linkType: "task", 
+                                        linkId: taskObj.id, 
+                                        actionType: "created", 
+                                        new: JSON.stringify({ task: activityObj }), 
+                                        title: taskObj.task 
+                                    }
                                 })
                                 ActivityLogs.bulkCreate(activityLogs).then((response) => {
                                     parallelCallback(null, response)
@@ -760,7 +767,14 @@ exports.put = {
                                         });
                                     },
                                     activity_logs: (parallelCallback) => {
-                                        ActivityLogs.create({ usersId: body.userId, linkType: "task", linkId: createTaskObj.id, actionType: "created", new: JSON.stringify(createTaskObj) }).then((response) => {
+                                        ActivityLogs.create({
+                                            usersId: body.userId,
+                                            linkType: "task",
+                                            linkId: createTaskObj.id,
+                                            actionType: "created",
+                                            new: JSON.stringify({ task: _.omit(createTaskObj, ["dateAdded", "dateUpdated"]) }),
+                                            title: createTaskObj.task
+                                        }).then((response) => {
                                             parallelCallback(null, response)
                                         });
                                     }
@@ -869,7 +883,8 @@ exports.put = {
                                         linkId: body.id,
                                         actionType: "modified",
                                         old: JSON.stringify({ "task_status": _.pick(currentTask, objectKeys) }),
-                                        new: JSON.stringify({ "task_status": newObject })
+                                        new: JSON.stringify({ "task_status": newObject }),
+                                        title: updatedResponse.task
                                     }).then((response) => {
                                         const responseObj = response.toJSON();
                                         return ActivityLogs.findOne({
@@ -922,12 +937,12 @@ exports.put = {
                         parallelCallback(null)
                     }
                 }
-            }, (err, { status, periodic, }) => {
-                // const statusStack = [status.task];
-                // if (periodic != "") {
-                //     statusStack.push(periodic)
-                // }
-                cb({ status: true, data: { ...status } });
+            }, (err, { status, periodic }) => {
+                const statusStack = [status.task];
+                if (periodic != "") {
+                    statusStack.push(periodic)
+                }
+                cb({ status: true, data: { task: statusStack, activity_log: status.activity_log } });
             })
         } catch (err) {
             cb({ status: false, error: err })
