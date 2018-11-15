@@ -49,7 +49,7 @@ export default class Component extends React.Component {
             <div class="row pdl20 pdr20">
                 <div class="col-md-6">
                     <h4 class="mt20 mb20">Documents</h4>
-                    <a class="more" href={`/project/documents/${project}`}> + More</a>
+                    <a class="more" href={`/project/${project}/documents`}> + More</a>
                     <DocumentStatus />
                 </div>
             </div>
