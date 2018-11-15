@@ -1,10 +1,7 @@
 import React from "react";
-import { showToast, displayDate, numberFormat, getData } from '../../../globalFunction';
-import { DropDown, } from "../../../globalComponents";
-import moment from 'moment'
-import FileUpload from 'react-fileupload';
-import Dropzone from 'react-dropzone';
-
+import { displayDate, getData } from '../../../globalFunction';
+import { DropDown, Loading } from "../../../globalComponents";
+import EditModal from "./editModal"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
@@ -29,27 +26,36 @@ export default class List extends React.Component {
             upload: false,
             loading: false,
             tags: [],
-            files: []
+            files: [],
+            sort: 'asc'
         }
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
         this.handleChange = this.handleChange.bind(this)
         this.fetchData = this.fetchData.bind(this)
+        this.getNextResult = this.getNextResult.bind(this)
     }
 
     componentWillMount() {
-        let { socket, workstream, document } = this.props
+        let { dispatch, document } = this.props
+
+        getData(`/api/globalORM/selectList?selectName=workstreamList&projectId=${project}`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamList' })
+        })
+
+        getData(`/api/globalORM/selectList?selectName=taskList&projectId=${project}`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'taskList' })
+        })
+
+        if (_.isEmpty(document.Count)) {
+            this.fetchData(1)
+        }
     }
 
     fetchData(page) {
         const { dispatch, loggedUser, document, workstream, task } = this.props;
-        getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstream=${workstream.Selected.id}&task=${task.Selected.id}&tagType=document`, {}, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIST", List: document.New.concat(c.data.result), DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-                dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-                showToast('success', 'Documents successfully retrieved.')
-            } else {
-                showToast('success', 'Something went wrong!')
-            }
+        getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=workstream&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream.Selected.id}&tagType=document`, {}, (c) => {
+            dispatch({ type: "SET_DOCUMENT_LIST", List: document.List.concat(c.data.result), DocumentType: 'List', Count: c.data.count, CountType: 'Count' })
+            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'Loading' })
         });
     }
 
@@ -105,29 +111,6 @@ export default class List extends React.Component {
         }
     }
 
-    editDocument(data, type, list) {
-        let { dispatch } = this.props;
-        let newData = { ...data }, tempTags = [];
-        if (typeof list != "undefined") {
-            list.map(e => {
-                if (e.tagTypeId == data.id && e.linkType == "workstream") {
-                    tempTags.push({ value: `workstream-${e.linkId}`, label: e.name })
-                }
-                if (e.tagTypeId == data.id && e.linkType == "task") {
-                    tempTags.push({ value: `task-${e.linkId}`, label: e.name })
-                }
-            })
-        }
-
-        newData = { ...data, tags: JSON.stringify(tempTags) }
-
-        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" });
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: newData });
-        dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type });
-        $("#workstreamDocumentModal").modal("show");
-
-    }
-
     handleChange(e) {
         let { socket, dispatch, document } = this.props
         let Selected = Object.assign({}, document.Selected)
@@ -160,10 +143,39 @@ export default class List extends React.Component {
         window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
     }
 
+    getNextResult() {
+        let { document } = this.props;
+        this.fetchData(document.Count.current_page + 1)
+    }
+
+    editDocument(data, type) {
+        let { dispatch } = this.props;
+        let newData = { ...data };
+
+        newData = { ...data, tags: JSON.stringify(data.tags) }
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: newData });
+        dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type });
+        $(`#editModal`).modal('show');
+    }
+
+    sortDocument(type) {
+        const { dispatch, document } = this.props;
+        const { order } = this.state;
+        if (document.List.length > 0) {
+            const sortedDocument = _.orderBy(document.List, [`${type}`], [`${order == 'asc' ? 'desc' : 'asc'}`]).map((e) => { return e })
+            this.setState({
+                ...this.state,
+                order: order == 'asc' ? 'desc' : 'asc'
+            })
+            dispatch({ type: "SET_DOCUMENT_LIST", List: sortedDocument, DocumentType: 'List', Count: document.Count, CountType: 'Count' })
+        }
+    }
+
     render() {
         let { document, starred } = this.props;
-        let tagList = [], tagOptions = [], tagCount = 0;
-        const workstreamDocuments = document.New.concat(document.Library);
+        let tagCount = 0;
+        const currentPage = (typeof document.Count.current_page != "undefined") ? document.Count.current_page : 1;
+        const lastPage = (typeof document.Count.last_page != "undefined") ? document.Count.last_page : 1;
         return <div>
             <div class="row">
                 <br />
@@ -174,20 +186,19 @@ export default class List extends React.Component {
                             <tr>
                                 <th></th>
                                 <th></th>
-                                <th>Name</th>
-                                <th>Uploaded date</th>
+                                <th><a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>Name</a></th>
+                                <th><a href="javascript:void(0)" onClick={() => this.sortDocument('dateAdded')}>Uploaded date</a></th>
                                 <th>Uploaded by</th>
                                 <th>Tags</th>
                                 <th></th>
                             </tr>
-                            {
-                                workstreamDocuments.map((data, index) => {
+                            {(document.Loading != "RETRIEVING") &&
+                                document.List.map((data, index) => {
                                     let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                     return (
                                         <tr key={index}>
                                             <td>
                                                 <input type="checkbox"
-                                                // onChange={ () => this.handleIsCompleted(data , data.isCompleted ) } checked={ data.isCompleted }
                                                 />
                                             </td>
                                             <td>
@@ -214,9 +225,9 @@ export default class List extends React.Component {
                                                     <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                     <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
                                                         <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(data)}>Download</a></li>
-                                                        <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "rename", tagList)}>Rename</a></li>
-                                                        <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags", tagList)}>Edit Tags</a></li>
-                                                        <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.goToFolder(data)}>Go to folder</a></li>
+                                                        <li><a href="javascript:void(0)" data-tip="Rename" onClick={() => this.editDocument(data, "rename")}>Rename</a></li>
+                                                        <li><a href="javascript:void(0)" data-tip="Edit tags" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>
+                                                        <li><a href="javascript:void(0)" data-tip="Goto folder" onClick={() => this.goToFolder(data)}>Go to folder</a></li>
                                                         <li>{starred.List.filter(s => { return s.linkId == data.id }).length > 0
                                                             ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={() => this.starDocument(data, 1)}>Unstarred</a>
                                                             : <a href="javascript:void(0)" data-tip="Star" onClick={() => this.starDocument(data, 0)}>Star</a>
@@ -229,117 +240,23 @@ export default class List extends React.Component {
                                     )
                                 })
                             }
-                            {/* {
-                                    (documentList.length > 0) &&
-                                    documentList.map((data, index) => {
-                                        return (
-                                            <tr key={index}>
-                                                <td>
-                                                    <input type="checkbox"
-                                                    />
-                                                </td>
-                                                <td>
-                                                    {
-                                                        starred.List.filter(s => { return s.linkId == data.id }).length > 0
-                                                            ? <span class="glyphicon glyphicon-star" onClick={() => this.starDocument(data, 1)} style={{ cursor: "pointer" }}></span>
-                                                            : <span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span>
-                                                    }
-                                                </td>
-                                                <td class="library-document"> <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}><span class="glyphicon glyphicon-file"></span>{data.origin}</a></td>
-                                                <td>{moment(data.dateAdded).format('L')}</td>
-                                                <td>{(users.List.length > 0) ? users.List.filter(f => { return f.id == data.uploadedBy })[0].emailAddress : ""}</td>
-                                                <td>
-                                                    {(tagList.length > 0) &&
-                                                        tagList.map((t, tIndex) => {
-                                                            if (t.tagTypeId == data.id) {
-                                                                return <span key={tIndex} class="label label-primary" style={{ margin: "5px" }}>{t.name}</span>
-                                                            }
-                                                        })
-                                                    }
-                                                </td>
-                                                <td>
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                                        <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
-                                                            <li><a href={settings.imageUrl + "/upload/" + data.name} data-tip="Download">Download</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "rename", tagList)}>Rename</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags", tagList)}>Edit Tags</a></li>
-                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.goToFolder(data)}>Go to folder</a></li>
-                                                            <li>{starred.List.filter(s => { return s.linkId == data.id }).length > 0
-                                                                ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={() => this.starDocument(data, 1)}>Unstarred</a>
-                                                                : <a href="javascript:void(0)" data-tip="Star" onClick={() => this.starDocument(data, 0)}>Star</a>
-                                                            }
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })
-                                } */}
+
                         </tbody>
                     </table>
-                    {/*                     
-                    {(typeof folder.Selected.id != "undefined") &&
-                        <table id="dataTable" class="table responsive-table document-table mt30">
-                            <tbody>
-                                <tr>
-                                    <td><input type="checkbox" /></td>
-                                    <td><span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(folder.Selected, 0)} style={{ cursor: "pointer" }}></span></td>
-                                    <td><a href="javascript:void(0)" onClick={() => dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} })}><span class="fa fa-folder" style={{ marginRight: "20px" }}></span>{folder.Selected.name}</a></td>
-                                    <td>{moment(folder.Selected.dateUpdated).format('L')}</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    } */}
-                </div>
-            </div>
-            <div class="modal fade" id="workstreamDocumentModal" tabIndex="-1" role="dialog" aria-labelledby="workstreamDocumentModal" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="workstreamDocumentModal">Edit</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            {(document.EditType == "rename") &&
-                                <div class="form-group" style={{ marginBottom: "30px" }}>
-                                    <label class="col-md-3 col-xs-12 control-label">Document Name *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <input type="text" name="origin" required value={(typeof document.Selected.origin == "undefined") ? "" : document.Selected.origin} class="form-control" placeholder="Document" onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                            }
-                            {(document.EditType == "tags" && tagOptions.length > 0) &&
-                                <div class="form-group" style={{ marginBottom: "30px" }}>
-                                    <label class="col-md-3 col-xs-12 control-label">Document Tags *</label>
-                                    <div class="col-md-7 col-xs-12">
-                                        <DropDown
-                                            name="tags"
-                                            multiple={true}
-                                            required={false}
-                                            options={tagOptions}
-                                            selected={(document.Selected.tags != null) ? JSON.parse(document.Selected.tags) : []}
-                                            onChange={(e) => this.selectTag(e, document.Selected)}
-                                        />
-                                        <div class="help-block with-errors"></div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={() => this.saveDocument()}>Save</button>
-                        </div>
+                    <div class="text-center">
+                        {
+                            ((currentPage != lastPage) && document.List.length > 0 && document.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
+                        }
+                        {
+                            (document.List.length == 0 && document.Loading != "RETRIEVING") && <p>No Records Found</p>
+                        }
                     </div>
+                    {
+                        (document.Loading == "RETRIEVING") && <Loading />
+                    }
                 </div>
             </div>
+            <EditModal />
         </div>
     }
 }

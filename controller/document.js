@@ -216,41 +216,36 @@ exports.get = {
             order: [['dateAdded', 'DESC']]
         };
 
-        const tagWhereObj = {
-            ...(typeof queryString.workstream != "undefined" && queryString.workstream != "") ? { workstream: queryString.workstream } : {},
-            ...(typeof queryString.task != "undefined" && queryString.task != "undefined" && queryString.task != "") ? { task: queryString.task } : {},
-            ...(typeof queryString.tagType != "undefined" && queryString.tagType != "") ? { tagType: queryString.tagType } : {}
-        }
-
         let documentWhereObj = {
             ...(typeof queryString.status != "undefined" && queryString.status != "") ? { status: queryString.status } : {},
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
             ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "") ? { folderId: queryString.folderId } : {},
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
-            ...(typeof queryString.workstream != "undefined" && queryString.workstream == "") ? {
+        }
+
+        const tagWhereObj = {
+            ...(typeof queryString.tagType != "undefined" && queryString.tagType != "") ? { tagType: queryString.tagType } : {},
+            ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? {
                 [Op.or]: [
                     {
-                        id: {
-                            [Op.in]: Sequelize.literal(`(SELECT task shareId FROM share where userTypeLinkId = ${queryString.userId})`)
+                        linkId: {
+                            [Op.in]: Sequelize.literal(`(SELECT id FROM task where workstreamId = ${queryString.workstreamId} AND id = ${typeof queryString.taskId != "undefined" ? queryString.taskId : !null} )`)
                         },
+                        linkType: 'task'
                     },
+                    {
+                        linkId: queryString.workstreamId,
+                        linkType: 'workstream'
+                    }
                 ]
             } : {},
         }
 
         sequence.create().then((nextThen) => {
-            if (typeof queryString.workstream !== "undefined") {
-                Tasks
-                    .findAll({ where: { workstreamId: queryString.workstream, projectId: queryString.projectId } })
-                    .map((res) => {
-                        return res.id
-                    })
-                    .then((res) => {
-                        nextThen(res)
-                    })
-            }
-        }).then((nextThen, result) => {
-            Tag.findAll({ where: { linkId: result, linkType: 'task', tagType: 'document' } })
+            Tag
+                .findAll({
+                    where: tagWhereObj
+                })
                 .map((res) => { return res.tagTypeId })
                 .then((res) => {
                     nextThen(res)
@@ -262,7 +257,8 @@ exports.get = {
                         Document
                             .findAndCountAll({
                                 where: { ...documentWhereObj, id: result },
-                                include: associationFindAllStack
+                                include: associationFindAllStack,
+                                ...options
                             })
                             .then((res) => {
                                 const pageData = {
@@ -280,7 +276,8 @@ exports.get = {
                         Document
                             .findAll({
                                 where: { ...documentWhereObj, id: result },
-                                include: associationFindAllStack
+                                include: associationFindAllStack,
+                                ...options
                             })
                             .map((res) => {
                                 let resToReturn = {
@@ -421,8 +418,8 @@ exports.post = {
                     .map((res) => {
                         let resToReturn = {
                             ...res.dataValues.document.toJSON(),
-                            tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                            tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } }))
                         }
                         return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
                     })
@@ -508,7 +505,7 @@ exports.post = {
         let printerName = req.body.printer
         let fs = global.initRequire('fs'),
             AWS = global.initAWS();
-        let fileStream = fs.createWriteStream(`${__dirname}/../public/temp/${originName}`);
+        let fileStream = fs.createWriteStream(`${__dirname} /../ public / temp / ${originName}`);
         let s3 = new AWS.S3();
 
         let promise = new Promise(function (resolve, reject) {
@@ -534,16 +531,16 @@ exports.post = {
                     data: `${data}`
                 })
             } else {
-                var wordBuffer = fs.readFileSync(`${__dirname}/../public/temp/${data}`)
+                var wordBuffer = fs.readFileSync(`${__dirname} /../ public / temp / ${data}`)
                 toPdf(wordBuffer).then(
                     (pdfBuffer) => {
                         let pdfdata = new Promise(function (resolve, reject) {
-                            let convertedData = fs.writeFileSync(`${__dirname}/../public/temp/${data}.pdf`, pdfBuffer)
+                            let convertedData = fs.writeFileSync(`${__dirname} /../ public / temp / ${data}.pdf`, pdfBuffer)
                             resolve(convertedData)
                         })
 
                         pdfdata.then((newpdf) => {
-                            fs.unlink(`${__dirname}/../public/temp/${data}`, (t) => { });
+                            fs.unlink(`${__dirname} /../ public / temp / ${data}`, (t) => { });
                             cb({
                                 status: true,
                                 data: `${data}.pdf`
@@ -559,7 +556,7 @@ exports.post = {
     },
     removeTempFile: (req, cb) => {
         let fs = global.initRequire('fs')
-        fs.unlink(`${__dirname}/../public/temp/${req.body.data}`, (t) => { });
+        fs.unlink(`${__dirname} /../ public / temp / ${req.body.data}`, (t) => { });
     }
 }
 
@@ -583,8 +580,8 @@ exports.put = {
                         .then((findRes) => {
                             let resToReturn = {
                                 ...findRes.dataValues.document.toJSON(),
-                                tags: findRes.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                    .concat(findRes.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                                tags: findRes.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                    .concat(findRes.dataValues.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } }))
                             }
                             cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
                         })
@@ -656,8 +653,8 @@ exports.put = {
                     }).then((res) => {
                         let resToReturn = {
                             ...res.dataValues.document.toJSON(),
-                            tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                            tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } }))
                         }
                         cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
                     })
@@ -711,8 +708,8 @@ exports.put = {
                         .then((findRes) => {
                             let dataToReturn = {
                                 ...findRes.dataValues.document.toJSON(),
-                                tags: findRes.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                    .concat(findRes.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                                tags: findRes.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                    .concat(findRes.dataValues.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } }))
                             }
                             cb({ status: true, data: _.omit(dataToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
                         })
