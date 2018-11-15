@@ -5,6 +5,8 @@ export default function reducer(state = {
     SelectedId: [],
     EditType: "",
     SelectedLibraryFolder: {},
+    SelectedLibraryFolderName: [],
+    SelectedNewFolderName: [],
     SelectedNewFolder: {},
     New: {},
     Library: {}
@@ -36,6 +38,9 @@ export default function reducer(state = {
         }
         case "SET_LIBRARY_FOLDER_SELECTED": {
             return { ...state, SelectedLibraryFolder: action.Selected }
+        }
+        case "SET_SELECTED_FOLDER_NAME": {
+            return { ...state, [action.Type]: action.List }
         }
         // case "SET_DOCUMENT_ID": {
         //     return { ...state, SelectedId: action.SelectedId }

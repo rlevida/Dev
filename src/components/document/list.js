@@ -118,10 +118,7 @@ export default class List extends React.Component {
             </div>
             <div style={{ padding: "20px" }}>
                 <div class="row">
-                    {
-                        (loggedUser.data.userType == "Internal") &&
-                        <DocumentStatus />
-                    }
+                    <DocumentStatus />
                     <DocumentNew />
                     <DocumentLibrary />
                 </div>

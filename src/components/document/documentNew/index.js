@@ -38,6 +38,7 @@ export default class DocumentNew extends React.Component {
     }
 
     componentDidMount() {
+        let { document } = this.props;
         // automatically move to selected folder
         if (folderParams != "" && folderParamsType == "new") {
             let folderSelectedInterval = setInterval(() => {
@@ -50,8 +51,9 @@ export default class DocumentNew extends React.Component {
                 }
             }, 1000)
         }
-
-        this.fetchData(1)
+        if (_.isEmpty(document.NewCount.Count)) {
+            this.fetchData(1)
+        }
     }
 
     addFolder() {
@@ -167,10 +169,8 @@ export default class DocumentNew extends React.Component {
     }
 
     getFolderDocuments(data) {
-        const { dispatch, loggedUser } = this.props;
-        const { selectedFolderName } = this.state;
-        let folderList = selectedFolderName
-        dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "RETRIEVING" })
+        const { dispatch, loggedUser, folder } = this.props;
+        let folderList = folder.SelectedNewFolderName
         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
@@ -188,7 +188,7 @@ export default class DocumentNew extends React.Component {
                         hasFolder = false;
                     }
                 }
-                this.setState({ selectedFolderName: folderList });
+                dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList, Type: 'SelectedNewFolderName' });
                 showToast('success', 'Documents successfully retrieved.');
             } else {
                 showToast('success', 'Something went wrong!')
@@ -198,7 +198,6 @@ export default class DocumentNew extends React.Component {
 
     getNextResult() {
         let { document, dispatch } = this.props;
-        dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "RETRIEVING" })
         this.fetchData(document.NewCount.Count.current_page + 1)
     }
 
@@ -278,18 +277,18 @@ export default class DocumentNew extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch, loggedUser } = this.props;
-        const { selectedFolderName } = this.state;
+        const { dispatch, loggedUser, folder } = this.props;
         if (data.type !== 'folder') {
             dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
         } else {
+            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' })
             getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
                     dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedNewFolder' })
-                    this.setState({ selectedFolderName: selectedFolderName.concat([data]) })
+                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedNewFolderName.concat([data]), Type: 'SelectedNewFolderName' })
                     showToast('success', 'Documents successfully retrieved.')
                 }
             });
@@ -297,7 +296,7 @@ export default class DocumentNew extends React.Component {
     }
 
     render() {
-        let { document, starred, dispatch, loggedUser } = this.props
+        let { document, starred, dispatch, loggedUser, folder } = this.props
         let tagCount = 0;
         const currentPage = (typeof document.NewCount.Count.current_page != "undefined") ? document.NewCount.Count.current_page : 1;
         const lastPage = (typeof document.NewCount.Count.last_page != "undefined") ? document.NewCount.Count.last_page : 1;
@@ -307,7 +306,7 @@ export default class DocumentNew extends React.Component {
             <div class="col-lg-12 col-md-12">
                 <h3>
                     <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>New Documents</a>
-                    {this.state.selectedFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
+                    {folder.SelectedNewFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
                 </h3>
 
                 {(this.state.folderAction == "") &&
@@ -339,9 +338,10 @@ export default class DocumentNew extends React.Component {
                         </div>
                     </form>
                 }
-                <table id="dataTable" class="table responsive-table table-bordered document-table">
+                <table id="dataTable" class="table responsive-table table-bordered document-table" ref={el => (this.componentRef = el)}>
                     <tbody>
                         <tr>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i><a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>Name</a></th>
@@ -350,14 +350,13 @@ export default class DocumentNew extends React.Component {
                             <th>Tags</th>
                             <th></th>
                         </tr>
-                        {
+                        {(document.NewDocumentLoading != "RETRIEVING") &&
                             document.New.map((data, index) => {
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                 return (
                                     <tr key={index}>
                                         <td>
-                                            <input type="checkbox"
-                                            />
+                                            <input type="checkbox" style={{ width: 'auto' }} />
                                         </td>
                                         <td>
                                             {starred.List.filter(s => { return s.linkId == data.id }).length > 0
@@ -365,7 +364,8 @@ export default class DocumentNew extends React.Component {
                                                 : <span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span>
                                             }
                                         </td>
-                                        <td class="new-document"> <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span>{documentName}</a></td>
+                                        <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td>
+                                        <td class="new-document"> <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>{documentName}</a></td>
                                         <td>{displayDate(data.dateAdded)}</td>
                                         <td>{data.user.emailAddress}</td>
                                         <td>
@@ -412,7 +412,6 @@ export default class DocumentNew extends React.Component {
 
                                                     <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data.id)}>Delete</a></li>
                                                     <li><a href="javascript:void(0)" data-tip="View" onClick={() => this.viewDocument(data)}>View</a></li>
-                                                    {/* <li><a href="javascript:void(0);" data-tip="Print" onClick={()=>this.printDocument(data)}>Print</a></li> */}
                                                 </ul>
                                             </div>
                                         </td>

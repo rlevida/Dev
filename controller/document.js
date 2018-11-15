@@ -19,7 +19,6 @@ const {
 } = models;
 
 var {
-    defaultPut,
     defaultDelete
 } = require("./")
 
@@ -87,7 +86,12 @@ exports.get = {
                                 id: {
                                     [Op.in]: Sequelize.literal(`(SELECT DISTINCT shareId FROM share where userTypeLinkId = ${queryString.userId})`)
                                 },
-                            },
+
+                            }, {
+                                id: {
+                                    [Op.in]: Sequelize.literal(`(SELECT DISTINCT document.id FROM document LEFT JOIN share ON document.folderId = share.shareId where share.shareType = 'folder' AND share.userTypeLinkId = ${queryString.userId} )`)
+                                }
+                            }
                         ]
                     } : {},
                     uploadedBy: queryString.userId
@@ -315,7 +319,8 @@ exports.post = {
                 let whereObj = {
                     ...(typeof e.origin != "undefined" && e.origin != "") ? { origin: e.origin } : {},
                     ...(typeof e.folderId != "undefined" && e.folderId != "") ? { folderId: e.folderId } : { folderId: null },
-                    ...(typeof e.status != "undefined" && e.status != "") ? { status: e.status } : {}
+                    ...(typeof e.status != "undefined" && e.status != "") ? { status: e.status } : {},
+                    ...(typeof e.type != "undefined" && e.type != "") ? { type: e.type } : {}
                 }
                 try {
                     Document

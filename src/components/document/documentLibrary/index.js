@@ -48,6 +48,7 @@ export default class DocumentLibrary extends React.Component {
     }
 
     componentDidMount() {
+        const { document } = this.props;
         // automatically move to selected folder
         if (folderParams != "" && folderParamsType == "library") {
             let folderSelectedInterval = setInterval(() => {
@@ -60,7 +61,9 @@ export default class DocumentLibrary extends React.Component {
                 }
             }, 1000)
         }
-        this.fetchData(1)
+        if (_.isEmpty(document.LibraryCount.Count)) {
+            this.fetchData(1)
+        }
     }
 
     addFolder() {
@@ -73,7 +76,7 @@ export default class DocumentLibrary extends React.Component {
                 origin: folderName,
                 createdBy: loggedUser.data.id,
                 type: "folder",
-                folderId: folder.Selected.id,
+                folderId: folder.SelectedLibraryFolder.id,
                 project: project,
                 uploadedBy: loggedUser.data.id,
                 status: 'library'
@@ -184,13 +187,11 @@ export default class DocumentLibrary extends React.Component {
     }
 
     getFolderDocuments(data) {
-        const { dispatch, loggedUser } = this.props;
-        const { selectedFolderName } = this.state;
-        let folderList = selectedFolderName
-        dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'LibraryDocumentLoading' })
+        const { dispatch, loggedUser, folder } = this.props;
+        let folderList = folder.SelectedLibraryFolderName
         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                dispatch({ type: 'SET_DOCUMENT_LIST', List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedLibraryFolder' })
 
@@ -205,7 +206,7 @@ export default class DocumentLibrary extends React.Component {
                         hasFolder = false;
                     }
                 }
-                this.setState({ selectedFolderName: folderList });
+                dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList, Type: 'SelectedLibraryFolderName' });
                 showToast('success', 'Documents successfully retrieved.');
             } else {
                 showToast('success', 'Something went wrong!')
@@ -215,7 +216,6 @@ export default class DocumentLibrary extends React.Component {
 
     getNextResult() {
         let { document, dispatch } = this.props;
-        dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "RETRIEVING" })
         this.fetchData(document.LibraryCount.Count.current_page + 1)
     }
 
@@ -279,18 +279,17 @@ export default class DocumentLibrary extends React.Component {
     }
 
     viewDocument(data) {
-        let { dispatch, loggedUser } = this.props;
-        let { selectedFolderName } = this.state;
+        let { dispatch, loggedUser, folder } = this.props;
         if (data.type !== 'folder') {
-            dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
-            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+            dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: "DocumentViewer" });
+            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
         } else {
             getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                    dispatch({ type: 'SET_DOCUMENT_LIST', List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
                     dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedLibraryFolder' })
-                    this.setState({ selectedFolderName: selectedFolderName.concat([data]) })
+                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedLibraryFolderName.concat([data]), Type: 'SelectedLibraryFolderName' })
                     showToast('success', 'Documents successfully retrieved.')
                 }
             });
@@ -306,7 +305,7 @@ export default class DocumentLibrary extends React.Component {
             <div class="col-lg-12 col-md-12">
                 <h3>
                     <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>Library</a>
-                    {this.state.selectedFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
+                    {folder.SelectedLibraryFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
                 </h3>
 
                 {(this.state.folderAction == "") &&
@@ -342,6 +341,7 @@ export default class DocumentLibrary extends React.Component {
                         <tr>
                             <th></th>
                             <th></th>
+                            <th></th>
                             <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i> <a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>Name</a></th>
                             <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateUpdated')}>Modified</a></th>
                             <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>Members</th>
@@ -349,7 +349,7 @@ export default class DocumentLibrary extends React.Component {
                             <th></th>
                         </tr>
 
-                        {
+                        {(document.LibraryDocumentLoading != "RETRIEVING") &&
                             document.Library.map((data, index) => {
                                 let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
                                 return (
@@ -366,7 +366,8 @@ export default class DocumentLibrary extends React.Component {
                                                     : <span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span>
                                             }
                                         </td>
-                                        <td class="library-document"><a href="javascript:void(0)" onClick={() => this.viewDocument(data)}><span class={data.type != 'folder' ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span>{documentName}</a></td>
+                                        <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td>
+                                        <td class="library-document"><a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>{documentName}</a></td>
                                         <td>{displayDate(data.dateUpdated)}</td>
                                         <td>
                                             <div>
