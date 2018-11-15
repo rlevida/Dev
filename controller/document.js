@@ -150,11 +150,11 @@ exports.get = {
                         })
                         .map((res) => {
                             let resToReturn = {
-                                ...res.dataValues.document.toJSON(),
-                                tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                    .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })),
-                                members: res.dataValues.document.share.map((e) => { return e.user }),
-                                share: JSON.stringify(res.dataValues.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                                ...res.document.toJSON(),
+                                tags: res.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                    .concat(res.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })),
+                                members: res.document.share.map((e) => { return e.user }),
+                                share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
                             }
                             return _.omit(resToReturn, 'tagDocumentWorkstream', 'tagDocumentTask')
                         })
@@ -439,9 +439,11 @@ exports.post = {
                     })
                     .map((res) => {
                         let resToReturn = {
-                            ...res.dataValues.document.toJSON(),
-                            tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } }))
+                            ...res.document.toJSON(),
+                            tags: res.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                .concat(res.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } })),
+                            members: res.document.share.map((e) => { return e.user }),
+                            share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
                         }
                         return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
                     })
@@ -601,9 +603,11 @@ exports.put = {
                         })
                         .then((findRes) => {
                             let resToReturn = {
-                                ...findRes.dataValues.document.toJSON(),
-                                tags: findRes.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                    .concat(findRes.dataValues.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } }))
+                                ...findRes.document.toJSON(),
+                                tags: findRes.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                    .concat(findRes.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } })),
+                                members: findRes.document.share.map((e) => { return e.user }),
+                                share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
                             }
                             cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
                         })
@@ -674,9 +678,11 @@ exports.put = {
                         }]
                     }).then((res) => {
                         let resToReturn = {
-                            ...res.dataValues.document.toJSON(),
-                            tags: res.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                .concat(res.dataValues.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } }))
+                            ...res.document.toJSON(),
+                            tags: res.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                .concat(res.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } })),
+                            members: res.document.share.map((e) => { return e.user }),
+                            share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
                         }
                         cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
                     })
@@ -729,9 +735,11 @@ exports.put = {
                         })
                         .then((findRes) => {
                             let dataToReturn = {
-                                ...findRes.dataValues.document.toJSON(),
-                                tags: findRes.dataValues.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                    .concat(findRes.dataValues.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } }))
+                                ...findRes.document.toJSON(),
+                                tags: findRes.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                    .concat(findRes.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } })),
+                                members: findRes.document.share.map((e) => { return e.user }),
+                                share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
                             }
                             cb({ status: true, data: _.omit(dataToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
                         })
