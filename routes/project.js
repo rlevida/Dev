@@ -89,8 +89,7 @@ router.get('/:project', function (req, res, next) {
     }
 });
 
-router.get('/documents/:project', function (req, res, next) {
-
+router.get('/:project/documents', function (req, res, next) {
     if (typeof req.params != "undefined" && typeof req.params.project != "undefined") {
         const func = global.initFunc();
         const userRole = JSON.parse(req.userDetails.data).userRole;
@@ -98,9 +97,11 @@ router.get('/documents/:project', function (req, res, next) {
             res.render('project', {
                 title: global.site_name,
                 page: 'project',
-                subpage: 'home',
+                subpage: 'documents',
                 body: "./template/index",
                 project: req.params.project,
+                folder: req.query.folder,
+                folderType: req.query.type,
                 user: JSON.stringify(req.userDetails.data)
             });
         } else {
@@ -129,8 +130,7 @@ router.get('/documents/:project', function (req, res, next) {
     }
 });
 
-router.get('/trash/:project', function (req, res, next) {
-
+router.get('/:project/trash', function (req, res, next) {
     if (typeof req.params != "undefined" && typeof req.params.project != "undefined") {
         const func = global.initFunc();
         const userRole = JSON.parse(req.userDetails.data).userRole;
