@@ -24,7 +24,7 @@ exports.get = {
         };
         try {
             TaskDependency.findAll(
-                { ...options, where: whereObj, logging: true }
+                { ...options, where: whereObj }
             ).map((mapObject) => {
                 return mapObject.toJSON();
             }).then((resultArray) => {
@@ -80,8 +80,15 @@ exports.post = {
                     const insertResponse = response;
                     const taskDependencyActivityLog = _(insertResponse)
                         .map((o) => {
-                            const taskDependencyObj = _.omit({ ...o, value: o.task.task }, ["dateAdded", "dateUpdated"]);
-                            return { usersId: body.userId, linkType: "task", linkId: body.taskId, actionType: "created", new: JSON.stringify({ task_dependency: taskDependencyObj }) }
+                            const taskDependencyObj = _.omit(o, ["dateAdded", "dateUpdated"]);
+                            return {
+                                usersId: body.userId,
+                                linkType: "task",
+                                linkId: body.taskId,
+                                actionType: "created",
+                                new: JSON.stringify({ task_dependency: taskDependencyObj }),
+                                title: taskDependencyObj.task.task
+                            }
                         }).value();
 
                     ActivityLogs.bulkCreate(taskDependencyActivityLog).map((response) => {
@@ -135,8 +142,8 @@ exports.delete = {
                 where: whereObj
             }).then((response) => {
                 const taskDependencyObj = response.toJSON();
-                const ActivityLogObj = _.omit({ ...taskDependencyObj, value: taskDependencyObj.task.task }, ["dateAdded", "dateUpdated"]);
-              
+                const ActivityLogObj = _.omit(taskDependencyObj, ["dateAdded", "dateUpdated"]);
+
                 ActivityLogs.create({
                     usersId: queryString.userId,
                     linkType: "task",
@@ -144,7 +151,8 @@ exports.delete = {
                     actionType: "deleted",
                     old: JSON.stringify({
                         task_dependency: ActivityLogObj
-                    })
+                    }),
+                    title: taskDependencyObj.task.task
                 }).then((result) => {
                     const responseObj = result.toJSON();
                     return ActivityLogs.findOne({

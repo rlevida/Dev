@@ -40,7 +40,6 @@ export default class TaskActivities extends React.Component {
 
     fetchData(page) {
         const { task, dispatch } = { ...this.props };
-
         getData(`/api/activityLog?taskId=${task.Selected.id}&page=${page}&includes=user`, {}, (c) => {
             if (c.status == 200) {
                 const { data } = c;
@@ -50,19 +49,20 @@ export default class TaskActivities extends React.Component {
     }
 
     generateCreateorDelete(params) {
-        const { user } = params;
+        const { user, title, linkType } = params;
         const { firstName, lastName, dateAdded } = user;
         const objValue = (params.new != null) ? JSON.parse(params.new) : JSON.parse(params.old);
         const modifiedObject = _.keys(objValue)[0];
         const attributeEdited = (modifiedObject.replace('_', ' '));
         const actionLabel = (params.actionType == "created") ? `Created` : `Deleted`;
+        const linkTypeLabel = linkType.charAt(0).toUpperCase() + linkType.slice(1).toLowerCase();
 
         return (
             <div>
-                <p class="m0">
+                <p style={{ marginTop: 0, marginBottom: 0 }} class="m0">
                     {actionLabel + " " + attributeEdited.replace(/_/g, ' ').replace(/(?: |\b)(\w)/g, function (key) { return key.toUpperCase() })}
                 </p>
-                <p style={{ marginTop: 5, marginBottom: 5, fontSize: 10, marginLeft: 5 }}><strong>{objValue[modifiedObject].value}</strong></p>
+                <p style={{ marginTop: 0, marginBottom: 0, fontSize: 10 }}>{linkTypeLabel + ": "}<strong>{title}</strong></p>
                 <p style={{ marginTop: 5, marginBottom: 0, fontSize: 10, }}>
                     {`${moment(dateAdded).format("MMM DD, YYYY")} - ${firstName} ${lastName}`}
                 </p>
@@ -71,31 +71,36 @@ export default class TaskActivities extends React.Component {
     }
 
     generateModified(params) {
-        const { user } = params;
+        const { user, title, linkType } = params;
         const { firstName, lastName, dateAdded } = user;
         const oldValue = (params.old != "" && params.old != null) ? JSON.parse(params.old) : [];
         const newValue = (params.new != "" && params.new != null) ? JSON.parse(params.new) : [];
-        const modifiedObject = _.keys(oldValue)[0];
-        const attributeEdited = (modifiedObject.replace('_', ' '));
+        const modifiedObject = _.keys(newValue)[0];
+        let attributeEdited = (modifiedObject.replace('_', ' '));
+        attributeEdited = attributeEdited.replace(/_/g, ' ').replace(/(?: |\b)(\w)/g, function (key) { return key.toUpperCase() });
+        const linkTypeLabel = linkType.charAt(0).toUpperCase() + linkType.slice(1).toLowerCase();
 
         return (
             <div>
-                <p class="m0">{`Edited ${attributeEdited.replace(/_/g, ' ').replace(/(?: |\b)(\w)/g, function (key) { return key.toUpperCase() })}`}</p>
+                <p style={{ marginTop: 0, marginBottom: 0 }} class="m0">{`Edited ${attributeEdited}`}</p>
                 {
-                    _.map(oldValue[modifiedObject], (objectValues, key) => {
-                        let fromValue = (objectValues != null) ? objectValues : "";
-                        let toValue = (typeof newValue[modifiedObject][key] != "undefined" && newValue[modifiedObject][key] != null) ? newValue[modifiedObject][key] : "";
+                    (title != null && title != "") && <p style={{ marginTop: 0, marginBottom: 0, fontSize: 10 }}>{linkTypeLabel + ": "}<strong>{title}</strong></p>
+                }
+                {
+                    _.map(newValue[modifiedObject], (objectValues, key) => {
+                        let toValue = (objectValues != null) ? objectValues : "";
+                        let fromValue = (typeof oldValue[modifiedObject][key] != "undefined" && oldValue[modifiedObject][key] != null) ? oldValue[modifiedObject][key] : "";
 
                         if (Array.isArray(fromValue) || Array.isArray(toValue)) {
                             return (
                                 <div key={key} >
                                     {
                                         (toValue.length == 0 && fromValue.length > 0) && <div>
-                                            <p style={{ fontSize: 10, marginTop: 0, marginBottom: 0, marginLeft: 5 }}>Removed:</p>
+                                            <p style={{ fontSize: 10, marginTop: 0, marginBottom: 0 }}>Removed:</p>
                                             {
                                                 (fromValue.length > 0) && _.map(fromValue, (fromValueObj, index) => {
                                                     return (
-                                                        <p key={index} style={{ fontSize: 10, marginTop: 0, marginBottom: 0, marginLeft: 5 }}><strong>{fromValueObj.value}</strong></p>
+                                                        <p key={index} style={{ fontSize: 10, marginTop: 0, marginBottom: 0 }}><strong>{fromValueObj.value}</strong></p>
                                                     )
                                                 })
                                             }
@@ -103,11 +108,11 @@ export default class TaskActivities extends React.Component {
                                     }
                                     {
                                         (toValue.length > 0 && fromValue.length == 0) && <div>
-                                            <p style={{ fontSize: 10, marginTop: 0, marginBottom: 0, marginLeft: 5 }}>Added:</p>
+                                            <p style={{ fontSize: 10, marginTop: 0, marginBottom: 0 }}>Added:</p>
                                             {
                                                 (toValue.length > 0) && _.map(toValue, (toValueObj, index) => {
                                                     return (
-                                                        <p key={index} style={{ fontSize: 10, marginTop: 0, marginBottom: 0, marginLeft: 5 }}><strong>{toValueObj.value}</strong></p>
+                                                        <p key={index} style={{ fontSize: 10, marginTop: 0, marginBottom: 0 }}><strong>{toValueObj.value}</strong></p>
                                                     )
                                                 })
                                             }
@@ -124,7 +129,10 @@ export default class TaskActivities extends React.Component {
                             return (
                                 <div key={key}>
                                     {
-                                        (toValue != "" && fromValue == "") && <p style={{ fontSize: 10, margin: 0 }}><strong>{toValue}</strong></p>
+                                        (toValue != "" && fromValue == "") && <div>
+                                            <p style={{ fontSize: 10, marginTop: 0, marginBottom: 0 }}>Updated: {key.replace(/_/g, ' ').replace(/(?: |\b)(\w)/g, function (key) { return key.toUpperCase() })}</p>
+                                            <p style={{ fontSize: 10, margin: 0 }}><strong>{toValue}</strong></p>
+                                        </div>
                                     }
                                     {
                                         (toValue != "" && fromValue != "") && <p style={{ fontSize: 10, margin: 0 }}>To: <strong>{toValue}</strong> From: <strong>{fromValue}</strong></p>

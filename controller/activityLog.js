@@ -1,7 +1,7 @@
 const async = require("async");
 const _ = require("lodash");
 const models = require('../modelORM');
-const { ActivityLogs, Users } = models;
+const { ActivityLogs, Users, Sequelize } = models;
 
 exports.post = (req, cb) => {
     try {
@@ -25,8 +25,25 @@ exports.get = {
             }
         ];
         let whereObj = {
-            linkType: "task",
-            ...(typeof queryString.taskId != "undefined" && queryString.taskId != "") ? { linkId: queryString.taskId } : {},
+            ...(typeof queryString.taskId != "undefined" && queryString.taskId != "") ? {
+                [Sequelize.Op.or]: [
+                    {
+                        linkId: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task_checklist.id FROM task LEFT JOIN task_checklist on task.id = task_checklist.taskId WHERE task.id = ${queryString.taskId})`)
+                        }
+                    },
+                    {
+                        [Sequelize.Op.and]: [
+                            {
+                                linkId: queryString.taskId
+                            },
+                            {
+                                linkType: "task"
+                            }
+                        ]
+                    }
+                ]
+            } : {},
         };
 
         _.filter(association, (associationObj) => {
@@ -53,7 +70,7 @@ exports.get = {
             },
             result: function (callback) {
                 try {
-                    ActivityLogs.findAll({ ...options, where: whereObj, order: [['dateAdded', 'DESC']] }).map((mapObject) => {
+                    ActivityLogs.findAll({ ...options, where: whereObj, order: [['dateAdded', 'DESC']], logging: true }).map((mapObject) => {
                         return mapObject.toJSON();
                     }).then((resultArray) => {
                         callback(null, resultArray);
