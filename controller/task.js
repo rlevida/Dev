@@ -138,7 +138,7 @@ exports.get = {
                 linkType: "task"
             };
         }
-        
+
         const options = {
             include: associationArray,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
@@ -407,8 +407,15 @@ exports.post = {
                             },
                             activity_logs: (parallelCallback) => {
                                 const activityLogs = _.map(newTasksArgs, (taskObj) => {
-                                    const activityObj = _.omit({ ...taskObj, value: taskObj.task }, ["dateAdded", "dateUpdated"]);
-                                    return { usersId: body.userId, linkType: "task", linkId: taskObj.id, actionType: "created", new: JSON.stringify({ task: activityObj }) }
+                                    const activityObj = _.omit(taskObj, ["dateAdded", "dateUpdated"]);
+                                    return { 
+                                        usersId: body.userId, 
+                                        linkType: "task", 
+                                        linkId: taskObj.id, 
+                                        actionType: "created", 
+                                        new: JSON.stringify({ task: activityObj }), 
+                                        title: taskObj.task 
+                                    }
                                 })
                                 ActivityLogs.bulkCreate(activityLogs).then((response) => {
                                     parallelCallback(null, response)
@@ -437,38 +444,41 @@ exports.put = {
             id: req.params.id
         };
         const options = {
-            include: associationStack
+            include: _.filter(associationStack, (o) => { return o.as == "workstream" })
         };
 
         try {
             async.parallel({
                 task: (parallelCallback) => {
                     try {
-                        Tasks.findOne({ where: whereObj }).then((response) => {
-                            const currentTask = _(response.toJSON())
-                                .omit(["dateUpdated", "dateAdded"])
+                        Tasks.findOne({ ...options, where: whereObj }).then((response) => {
+                            const responseObj = response.toJSON();
+                            const currentTask = _(responseObj)
+                                .omit(["workstreamId", "dateUpdated", "dateAdded"])
                                 .mapValues((objVal, objKey) => {
                                     if (objKey == "dueDate" || objKey == "startDate") {
                                         return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                    } else if (objKey == "workstream") {
+                                        return (responseObj.workstream).workstream;
                                     } else {
                                         return objVal;
                                     }
                                 }).value();
-
                             Tasks.update(updateBody, { where: { id: body.id } }).then((response) => {
-                                return Tasks.findOne({ where: { id: body.id } })
+                                return Tasks.findOne({ ...options, where: { id: body.id } })
                             }).then((response) => {
                                 const updatedResponse = response.toJSON();
                                 const updatedTask = _(updatedResponse)
-                                    .omit(["dateUpdated", "dateAdded"])
+                                    .omit(["workstreamId", "dateUpdated", "dateAdded"])
                                     .mapValues((objVal, objKey) => {
                                         if (objKey == "dueDate" || objKey == "startDate") {
                                             return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                        } else if (objKey == "workstream") {
+                                            return (updatedResponse.workstream).workstream;
                                         } else {
                                             return objVal;
                                         }
                                     }).value();
-
                                 const newObject = func.changedObjAttributes(updatedTask, currentTask);
                                 const objectKeys = _.map(newObject, function (value, key) {
                                     return key;
@@ -493,6 +503,7 @@ exports.put = {
                         const taskId = (body.periodTask == null) ? body.id : body.periodTask;
                         Tasks.findAll(
                             {
+                                ...options,
                                 where: {
                                     periodTask: taskId,
                                     id: {
@@ -506,10 +517,12 @@ exports.put = {
                             if (resultArray.length > 0) {
                                 const periodTaskPromise = _.map(resultArray, (periodTaskObj, index) => {
                                     const currentTask = _(periodTaskObj)
-                                        .omit(["dateUpdated", "dateAdded"])
+                                        .omit(["workstreamId", "dateUpdated", "dateAdded"])
                                         .mapValues((objVal, objKey) => {
                                             if (objKey == "dueDate" || objKey == "startDate") {
                                                 return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                            } else if (objKey == "workstream") {
+                                                return (periodTaskObj.workstream).workstream;
                                             } else {
                                                 return objVal;
                                             }
@@ -520,14 +533,16 @@ exports.put = {
 
                                     return new Promise((resolve) => {
                                         Tasks.update(_.omit(newPeriodTask, ["periodTask", "status"]), { where: { id: periodTaskObj.id } }).then((response) => {
-                                            return Tasks.findOne({ where: { id: periodTaskObj.id } });
+                                            return Tasks.findOne({ ...options, where: { id: periodTaskObj.id } });
                                         }).then((response) => {
                                             const updatedResponse = response.toJSON();
                                             const updatedTask = _(updatedResponse)
-                                                .omit(["dateUpdated", "dateAdded"])
+                                                .omit(["workstreamId", "dateUpdated", "dateAdded"])
                                                 .mapValues((objVal, objKey) => {
                                                     if (objKey == "dueDate" || objKey == "startDate") {
                                                         return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                                    } else if (objKey == "workstream") {
+                                                        return (updatedResponse.workstream).workstream;
                                                     } else {
                                                         return objVal;
                                                     }
@@ -752,7 +767,14 @@ exports.put = {
                                         });
                                     },
                                     activity_logs: (parallelCallback) => {
-                                        ActivityLogs.create({ usersId: body.userId, linkType: "task", linkId: createTaskObj.id, actionType: "created", new: JSON.stringify(createTaskObj) }).then((response) => {
+                                        ActivityLogs.create({
+                                            usersId: body.userId,
+                                            linkType: "task",
+                                            linkId: createTaskObj.id,
+                                            actionType: "created",
+                                            new: JSON.stringify({ task: _.omit(createTaskObj, ["dateAdded", "dateUpdated"]) }),
+                                            title: createTaskObj.task
+                                        }).then((response) => {
                                             parallelCallback(null, response)
                                         });
                                     }
@@ -799,7 +821,7 @@ exports.put = {
 
                             const taskMembers = _.map(updatedResponse.task_members, (member) => { return member.user });
                             const workstreamResponsible = _.map(updatedResponse.workstream.responsible, (responsible) => { return responsible.user })
-                            const membersToRemind = _.uniqBy(_.filter(taskMembers.concat(workstreamResponsible), (member) => { return member.id != body.userId }),'id');
+                            const membersToRemind = _.uniqBy(_.filter(taskMembers.concat(workstreamResponsible), (member) => { return member.id != body.userId }), 'id');
 
                             async.parallel({
                                 approver: (statusParallelCallback) => {
@@ -861,7 +883,8 @@ exports.put = {
                                         linkId: body.id,
                                         actionType: "modified",
                                         old: JSON.stringify({ "task_status": _.pick(currentTask, objectKeys) }),
-                                        new: JSON.stringify({ "task_status": newObject })
+                                        new: JSON.stringify({ "task_status": newObject }),
+                                        title: updatedResponse.task
                                     }).then((response) => {
                                         const responseObj = response.toJSON();
                                         return ActivityLogs.findOne({
@@ -914,12 +937,12 @@ exports.put = {
                         parallelCallback(null)
                     }
                 }
-            }, (err, { status, periodic, }) => {
-                // const statusStack = [status.task];
-                // if (periodic != "") {
-                //     statusStack.push(periodic)
-                // }
-                cb({ status: true, data: { ...status } });
+            }, (err, { status, periodic }) => {
+                const statusStack = [status.task];
+                if (periodic != "") {
+                    statusStack.push(periodic)
+                }
+                cb({ status: true, data: { task: statusStack, activity_log: status.activity_log } });
             })
         } catch (err) {
             cb({ status: false, error: err })

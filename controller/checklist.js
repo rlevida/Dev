@@ -60,7 +60,8 @@ exports.get = {
             }
         ]
         const whereObj = {
-            ...(typeof queryString.taskId != "undefined" && queryString.taskId != "") ? { taskId: queryString.taskId } : {}
+            ...(typeof queryString.taskId != "undefined" && queryString.taskId != "") ? { taskId: queryString.taskId } : {},
+            isDeleted: 0
         }
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
@@ -110,8 +111,8 @@ exports.post = {
                     async.waterfall([
                         function (callback) {
                             const checklistActivityLog = _.map([insertResponse], (o) => {
-                                const checklistObj = _.omit({ ...o, value: o.description }, ["dateAdded", "dateUpdated"]);
-                                return { usersId: body.createdBy, linkType: "task", linkId: body.taskId, actionType: "created", new: JSON.stringify({ task_checklist: checklistObj }) }
+                                const checklistObj = _.omit(o, ["dateAdded", "dateUpdated"]);
+                                return { usersId: body.createdBy, linkType: "checklist", linkId: checklistObj.id, actionType: "created", new: JSON.stringify({ checklist: checklistObj }), title: o.description }
                             });
 
                             if (body.isPeriodicTask == 1) {
@@ -145,13 +146,19 @@ exports.post = {
                                             return response.toJSON();
                                         }).then((resultArray) => {
                                             const checklistIds = _.map(resultArray, (o) => { return o.id });
-
-                                            TaskChecklist.findAll({ ...options, where: { id: checklistIds } }).map((response) => {
+                                            TaskChecklist.findAll({ ...options, where: { id: checklistIds }, logging: true }).map((response) => {
                                                 return response.toJSON();
                                             }).then((result) => {
                                                 const updatedChecklistArray = _.map(result, (o) => {
-                                                    const checklistObj = _.omit({ ...o, value: o.description }, ["dateAdded", "dateUpdated"]);
-                                                    return { usersId: body.createdBy, linkType: "task", linkId: o.taskId, actionType: "created", new: JSON.stringify({ task_checklist: checklistObj }) }
+                                                    const checklistObj = _.omit(o, ["dateAdded", "dateUpdated"]);
+                                                    return {
+                                                        usersId: body.createdBy,
+                                                        linkType: "checklist",
+                                                        linkId: o.id,
+                                                        actionType: "created",
+                                                        new: JSON.stringify({ checklist: checklistObj }),
+                                                        title: o.description
+                                                    }
                                                 });
                                                 callback(null, [...checklistActivityLog, ...updatedChecklistArray])
                                             });
@@ -205,24 +212,54 @@ exports.put = {
                     model: Users,
                     as: 'user',
                     attributes: ['firstName', 'lastName']
+                },
+                {
+                    model: ChecklistDocuments,
+                    as: 'tagDocuments',
+                    include: [{
+                        model: Document,
+                        as: 'document'
+                    }]
                 }
             ]
         }
         try {
             TaskChecklist.findOne({ ...options, where: { id: body.id } }).then((response) => {
-                let oldTaskChecklist = response.toJSON();
-                oldTaskChecklist = _.pick({ ...oldTaskChecklist, value: oldTaskChecklist.description }, ["description"]);
+                const responseObj = response.toJSON();
+                let oldTaskChecklist = responseObj;
+                let isMandatory = (oldTaskChecklist.isMandatory == 1) ? "Mandatory" : "Non Mandatory";
+                let isDocument = (oldTaskChecklist.isDocument == 1) ? "Document" : "Non Document";
+                let status = (oldTaskChecklist.isCompleted == 1) ? "Complete" : "Not Complete";
+
+                checklistType = isMandatory + " and " + isDocument;
+                oldTaskChecklist = _.pick({ ...oldTaskChecklist, type: checklistType, status }, ["description", "type", "status"]);
 
                 TaskChecklist.update(body, { where: { id: body.id } }).then((response) => {
                     return TaskChecklist.findOne({ ...options, where: { id: body.id } });
                 }).then((response) => {
-                    const updateResponse = response.toJSON();
-                    const newObject = func.changedObjAttributes(_.pick(updateResponse, ["description"]), oldTaskChecklist);
+                    const updateResponse = _.omit({
+                        ...response.dataValues,
+                        document: response.dataValues.tagDocuments.map((e) => { return e.document })
+                    }, "tagDocuments");
 
+                    isMandatory = (updateResponse.isMandatory == 1) ? "Mandatory" : "Non Mandatory";
+                    isDocument = (updateResponse.isDocument == 1) ? "Document" : "Non Document";
+                    checklistType = isMandatory + " and " + isDocument;
+                    status = (updateResponse.isCompleted == 1) ? "Complete" : "Not Complete";
+
+                    const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, type: checklistType, status }, ["description", "type", "status"]), oldTaskChecklist);
                     if (_.isEmpty(newObject)) {
-                        cb({ status: true, data: updateResponse });
+                        cb({ status: true, data: { checklist: updateResponse } });
                     } else {
-                        const activityLogStack = [{ usersId: body.createdBy, linkType: "task", linkId: body.taskId, actionType: "modified", old: JSON.stringify({ task_checklist: oldTaskChecklist }), new: JSON.stringify({ task_checklist: newObject }) }];
+                        const activityLogStack = [{
+                            usersId: body.createdBy,
+                            linkType: "checklist",
+                            linkId: updateResponse.id,
+                            actionType: "modified",
+                            old: JSON.stringify({ checklist: oldTaskChecklist }),
+                            new: JSON.stringify({ checklist: newObject }),
+                            title: oldTaskChecklist.description
+                        }];
 
                         async.waterfall([
                             function (callback) {
@@ -249,26 +286,40 @@ exports.put = {
                                                 };
                                                 return new Promise((resolve) => {
                                                     TaskChecklist.findOne({ ...options, where: { taskId: resultObj.id, periodChecklist: checkListPeriodId } }).then((response) => {
-                                                        let oldTaskChecklist = response.toJSON();
-                                                        const oldTaskChecklistIdTaskId = oldTaskChecklist.taskId
-                                                        oldTaskChecklist = _.pick({ ...oldTaskChecklist, value: oldTaskChecklist.description }, ["description"]);
+                                                        let responseObj = response.toJSON();
+                                                        let isMandatory = (responseObj.isMandatory == 1) ? "Mandatory" : "Non Mandatory";
+                                                        let isDocument = (responseObj.isDocument == 1) ? "Document" : "Non Document";
+                                                        checklistType = isMandatory + " and " + isDocument;
+                                                        let oldTaskChecklist = _.pick({ ...responseObj, type: checklistType }, ["description", "type"]);
 
                                                         TaskChecklist.update(updatedChecklistData, { where: { taskId: resultObj.id, periodChecklist: checkListPeriodId } }).then((response) => {
                                                             return TaskChecklist.findOne({ ...options, where: { id: body.id } });
                                                         }).then((response) => {
                                                             const updateResponse = response.toJSON();
-                                                            const newObject = func.changedObjAttributes(_.pick(updateResponse, ["description"]), oldTaskChecklist);
+                                                            isMandatory = (updateResponse.isMandatory == 1) ? "Mandatory" : "Non Mandatory";
+                                                            isDocument = (updateResponse.isDocument == 1) ? "Document" : "Non Document";
+                                                            checklistType = isMandatory + " and " + isDocument;
+                                                            const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, type: checklistType }, ["description", "type"]), oldTaskChecklist);
 
                                                             if (_.isEmpty(newObject)) {
                                                                 resolve("");
                                                             } else {
-                                                                resolve({ usersId: body.createdBy, linkType: "task", linkId: oldTaskChecklistIdTaskId, actionType: "modified", old: JSON.stringify({ task_checklist: oldTaskChecklist }), new: JSON.stringify({ task_checklist: newObject }) });
+                                                                resolve({
+                                                                    usersId: body.createdBy,
+                                                                    linkType: "checklist",
+                                                                    linkId: responseObj.id,
+                                                                    actionType: "modified",
+                                                                    old: JSON.stringify({ checklist: oldTaskChecklist }),
+                                                                    new: JSON.stringify({ checklist: newObject }),
+                                                                    title: oldTaskChecklist.description
+                                                                });
                                                             }
                                                         });
                                                     });
                                                 });
                                             });
                                             Promise.all(updatePeriodicChecklistPromise).then((values) => {
+                                                console.log(values)
                                                 callback(null, [...activityLogStack, ...values]);
                                             }).catch((err) => {
                                                 callback(null, activityLogStack);
@@ -670,8 +721,15 @@ exports.delete = {
                 }).then((resultArray) => {
                     const toBeDeletedArray = resultArray;
                     const deletedActivity = _.map([...toBeDeletedArray, taskChecklistResponse], (o) => {
-                        const checklistObj = _.omit({ ...o, value: o.description }, ["dateAdded", "dateUpdated"]);
-                        return { usersId: queryString.userId, linkType: "task", linkId: o.taskId, actionType: "deleted", old: JSON.stringify({ task_checklist: checklistObj }) }
+                        const checklistObj = _.omit(o, ["dateAdded", "dateUpdated"]);
+                        return {
+                            usersId: queryString.userId,
+                            linkType: "checklist",
+                            linkId: o.id,
+                            actionType: "deleted",
+                            old: JSON.stringify({ checklist: checklistObj }),
+                            title: o.description
+                        }
                     });
 
                     ActivityLogs.bulkCreate(deletedActivity).map((response) => {
@@ -692,7 +750,7 @@ exports.delete = {
                         const responseObj = response.toJSON();
                         const toBeDeletedChecklist = _.map(toBeDeletedArray, (resultObj) => { return resultObj.id });
                         toBeDeletedChecklist.push(id);
-                        TaskChecklist.destroy({ where: { id: toBeDeletedChecklist } }).then(() => {
+                        TaskChecklist.update({ isDeleted: 1 }, { where: { id: toBeDeletedChecklist } }).then((response) => {
                             cb({ status: true, data: { id, activity_log: responseObj } })
                         });
                     });

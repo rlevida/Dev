@@ -1,10 +1,13 @@
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(
-    process.env.CLOUD_CFO_DB,
-    process.env.CLOUD_CFO_DB_USER,
-    process.env.CLOUD_CFO_DB_PASSWORD,
+    'cloud_cfo',
+    'root',
+    '',
+    // process.env.CLOUD_CFO_DB, 
+    // process.env.CLOUD_CFO_DB_USER, 
+    // process.env.CLOUD_CFO_DB_PASSWORD, 
     {
-        host: process.env.CLOUD_CFO_DB_HOST,
+        host: 'localhost',//process.env.CLOUD_CFO_DB_HOST,
         dialectOptions: {
             timezone: 'UTC'
         },

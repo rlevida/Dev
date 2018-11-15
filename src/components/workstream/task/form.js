@@ -112,9 +112,10 @@ export default class FormComponent extends React.Component {
                             id: task.Selected.id,
                             status: "Completed"
                         }, (c) => {
+                            console.log(c)
                             if (c.status == 200) {
-                                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [c.data.task] });
-                                dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task });
+                                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
+                                dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task[0] });
                                 dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                                 showToast("success", "Task successfully updated.");
                             } else {
@@ -182,7 +183,9 @@ export default class FormComponent extends React.Component {
         putData(`/api/checklist/${checklist.Selected.id}`, toBeSubmitted, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_CHECKLIST", data: c.data.checklist });
-                dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
+                if (typeof c.data.activity_log != "undefined") {
+                    dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
+                }
                 dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
                 showToast("success", "Checklist successfully updated.");
             } else {
@@ -202,11 +205,12 @@ export default class FormComponent extends React.Component {
     }
 
     completeChecklist(params) {
-        const { dispatch } = this.props;
+        const { dispatch, loggedUser } = this.props;
 
-        putData(`/api/checklist/${params.id}`, params, (c) => {
+        putData(`/api/checklist/${params.id}`, { ...params, createdBy: loggedUser.data.id }, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "UPDATE_CHECKLIST", data: c.data });
+                dispatch({ type: "UPDATE_CHECKLIST", data: c.data.checklist });
+                dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                 dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
                 showToast("success", "Checklist successfully updated.");
             } else {
@@ -528,7 +532,7 @@ export default class FormComponent extends React.Component {
                                                             </ul>
                                                         </div>
                                                     }
-                                                    <p>
+                                                    <p class="m0">
                                                         {
                                                             (o.isMandatory == 1) && <span style={{ color: "red" }}>*</span>
                                                         }
@@ -553,8 +557,8 @@ export default class FormComponent extends React.Component {
                                                                 }
                                                             </div>
                                                         }
-                                                        <p style={{ marginTop: 5, fontSize: 10 }}>
-                                                            <span>By : {o.user.firstName + ' ' + o.user.lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}</span>
+                                                        <p style={{ marginTop: 0, fontSize: 10 }}>
+                                                            By : {o.user.firstName + ' ' + o.user.lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}
                                                         </p>
                                                     </div>
                                                 </div>
