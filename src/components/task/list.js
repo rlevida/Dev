@@ -126,11 +126,14 @@ export default class List extends React.Component {
         const currentPage = (typeof task.Count.current_page != "undefined") ? task.Count.current_page : 1;
         const lastPage = (typeof task.Count.last_page != "undefined") ? task.Count.last_page : 1;
         const taskList = task.List;
-        
-        return (
-            <div>
 
-                <TaskStatus style={{ float: "right", marginBottom: 20, marginRight: 20 }} />
+        return (
+            <div class="pd0">
+                <div class="row mb10">
+                    <div class="col-lg-6" style={{ float: "right" }}>
+                        <TaskStatus />
+                    </div>
+                </div>
                 <HeaderButtonContainer withMargin={true}>
                     {
                         (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) &&

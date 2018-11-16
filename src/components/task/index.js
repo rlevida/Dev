@@ -31,8 +31,8 @@ export default class Component extends React.Component {
     }
     render() {
         let { task, projectData } = this.props;
-        let Component = <div>
-            <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>
+        let Component = <div class="pd20">
+            <h3 class="mt10 mb10"><a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>
             {
                 (
                     task.FormActive == "Form" &&

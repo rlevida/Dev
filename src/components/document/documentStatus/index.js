@@ -27,22 +27,17 @@ export default class DocumentStatus extends React.Component {
 
     render() {
         let { document } = this.props
-        let documentList = { newUpload: [], library: [] };
 
-        return <div class="pull-right">
-            <table>
-                <tbody>
-                    <tr>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left" }}>New Uploads</span><span >{document.NewUploadCount}</span>
-                        </td>
-                        <td style={{ marginLeft: "20px", padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left" }}>By email</span><span style={{ float: "right" }}>0</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        return (<div class="row">
+            <div class="col-lg-6 col-xs-12 active-count count">
+                <span class="text-white">{document.NewUploadCount}</span>
+                <span class="text-white">New Uploads:</span>
+            </div>
+            <div class="col-lg-6 col-xs-12 on-time count">
+                <span class="text-white">0</span>
+                <span class="text-white">Libraries:</span>
+            </div>
+        </div>)
 
     }
 }

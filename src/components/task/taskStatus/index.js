@@ -32,24 +32,26 @@ export default class TaskStatus extends React.Component {
         const { task } = this.props;
         const { StatusCount } = task;
 
-        return <div style={this.props.style}>
-            <table>
-                <tbody>
-                    {
-                        (_.isEmpty(StatusCount) == false) && <tr>
-                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                                <span style={{ float: "left", color: "white" }}>Active</span><span style={{ float: "right", color: "white" }}>{(StatusCount.assigned_active - StatusCount.assigned_issues) + StatusCount.assigned_issues}</span>
-                            </td>
-                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                                <span style={{ float: "left", color: "white" }}>On Time</span><span style={{ float: "right", color: "white" }}>{StatusCount.assigned_active - StatusCount.assigned_issues}</span>
-                            </td>
-                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#d4a2a2", color: "white" }} onClick={() => this.showModal("Issues")}>
-                                <span style={{ float: "left", color: "white" }}>Issues</span><span style={{ float: "right", color: "white" }}>{StatusCount.assigned_issues > 0 && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}{StatusCount.assigned_issues}</span>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+        return (
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-4 col-xs-12 active-count count">
+                        <span class="text-white">{(StatusCount.assigned_active - StatusCount.assigned_issues) + StatusCount.assigned_issues}</span>
+                        <span class="text-white">Active Tasks:</span>
+                    </div>
+                    <div class="col-lg-4 col-xs-12 on-time count">
+                        <span class="text-white">{StatusCount.assigned_active - StatusCount.assigned_issues}</span>
+                        <span class="text-white">Tasks On Time:</span>
+                    </div>
+                    <div class="col-lg-4 col-xs-12 issues count">
+                        <span class="text-white">
+                            {(StatusCount.assigned_issues > 0) && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}
+                            {StatusCount.assigned_issues}
+                        </span>
+                        <span class="text-white">Tasks With Issues:</span>
+                    </div>
+                </div>
+            </div>
+        );
     }
 }

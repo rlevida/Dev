@@ -20,11 +20,7 @@ export default class DocumentStatus extends React.Component {
     }
 
     componentWillMount() {
-        const { socket, dispatch } = this.props
-
-        getData(`/api/workstream/status?projectId=${project}&date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, (c) => {
-            dispatch({ type: "SET_WORKSTREAM_COUNT_LIST", list: c.data })
-        });
+        const { socket } = this.props
 
         socket.emit("GET_DOCUMENT_LIST", { filter: { isDeleted: 0, linkId: project, linkType: "project" } });
         socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "shareList", filter: { linkType: "project", linkId: project } })

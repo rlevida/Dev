@@ -1,7 +1,8 @@
 import React from "react"
-import { getData } from '../../../globalFunction'
+import _ from "lodash";
+import { connect } from "react-redux";
+import { getData } from '../../../globalFunction';
 
-import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -46,26 +47,30 @@ export default class WorkstreamStatus extends React.Component {
         const { workstream } = this.props;
         const { StatusCount } = workstream;
 
-        return <div style={this.props.style}>
-            <table>
-                <tbody>
-                    {
-                        (_.isEmpty(StatusCount) == false) &&
-                        <tr>
-                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                                <span style={{ float: "left", color: "white" }}>Active</span><span style={{ float: "right", color: "white" }}>{(StatusCount.active - StatusCount.issues) + StatusCount.issues}</span>
-                            </td>
-                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                                <span style={{ float: "left", color: "white" }}>On Time</span><span style={{ float: "right", color: "white" }}>{StatusCount.active - StatusCount.issues}</span>
-                            </td>
-                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#d4a2a2", color: "white", cursor: "pointer" }} onClick={() => this.showModal("Issues")}>
-                                <span style={{ float: "left", color: "white" }}>Issues</span><span style={{ float: "right", color: "white" }}>{StatusCount.issues > 0 && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}{StatusCount.issues}</span>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-
+        return <div class="container-fluid">
+            {
+                (_.isEmpty(StatusCount) == false) &&
+                <div class="row">
+                    <div class="col-lg-4 col-xs-12 active-count count">
+                        <span class="text-white">{(StatusCount.active - StatusCount.issues) + StatusCount.issues}</span>
+                        <span class="text-white">Active Workstreams:</span>
+                    </div>
+                    <div class="col-lg-4 col-xs-12 on-time count">
+                        <span class="text-white">{StatusCount.active - StatusCount.issues}</span>
+                        <span class="text-white">Workstreams On Time:</span>
+                    </div>
+                    <div class="col-lg-4 col-xs-12 issues count"
+                        onClick={() => this.showModal("Issues")}
+                        style={{ cursor: "pointer" }}
+                    >
+                        <span class="text-white">
+                            {(StatusCount.issues > 0) && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}
+                            {StatusCount.issues}
+                        </span>
+                        <span class="text-white">Workstreams With Issues:</span>
+                    </div>
+                </div>
+            }
             <div class="modal fade" id="workstreamStatusModal" tabIndex="-1" role="dialog" aria-labelledby="workstreamStatusModal" aria-hidden="true">
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
