@@ -52,7 +52,7 @@ export default class ProjectStatus extends React.Component {
         return (
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-lg-3 col-xs-12 count">
+                    <div class={`${this.props.offset ? "col-lg-offset-2" : ""} col-lg-1 col-xs-12 count`}>
                         <span>Client:</span>
                     </div>
                     <div class="col-lg-3 col-xs-12 active-count count">
@@ -77,7 +77,7 @@ export default class ProjectStatus extends React.Component {
                     (typeof this.props.loggedUser.data.userRole != "undefined" &&
                         (this.props.loggedUser.data.userRole <= 4)) &&
                     <div class="row">
-                        <div class="col-lg-3 col-xs-12 count">
+                        <div class={`${this.props.offset ? "col-lg-offset-2" : ""} col-lg-1 col-xs-12 count`}>
                             <span>Internal:</span>
                         </div>
                         <div class="col-lg-3 col-xs-12 active-count count">
@@ -103,7 +103,7 @@ export default class ProjectStatus extends React.Component {
                     (typeof this.props.loggedUser.data.userRole != "undefined" &&
                         (this.props.loggedUser.data.userRole <= 4)) &&
                     <div class="row">
-                        <div class="col-lg-3 col-xs-12 count">
+                        <div class={`${this.props.offset ? "col-lg-offset-2" : ""} col-lg-1 col-xs-12 count`}>
                             <span>Private:</span>
                         </div>
                         <div class="col-lg-3 col-xs-12 active-count count">
