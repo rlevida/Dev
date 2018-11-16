@@ -29,7 +29,7 @@ export default class FormComponent extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "teamList" });
+        // this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "teamList" });
     }
 
     componentDidMount() {

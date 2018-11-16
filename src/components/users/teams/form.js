@@ -30,7 +30,7 @@ export default class FormComponent extends React.Component {
     }
 
     componentWillMount() {
-        this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "usersList" });
+        // this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "usersList" });
     }
 
     componentDidMount() {
@@ -113,11 +113,10 @@ export default class FormComponent extends React.Component {
             .orderBy(['name'], ['asc'])
             .value()
             : [];
-
         let teamLeaderList = _(users.List)
             .filter((user) => {
                 let alreadyMember = (typeof teams.Selected.users == "undefined") ? [] : JSON.parse(teams.Selected.users);
-                let canBeTeamLeader = _.findIndex(user.role, (o) => { return o.roleId == 1 || o.roleId == 2 || o.roleId == 3 });
+                let canBeTeamLeader = _.findIndex(user.user_role, (o) => { return o.roleId == 1 || o.roleId == 2 || o.roleId == 3 });
 
                 return user.userType == "Internal" && _.findIndex(alreadyMember, (o) => { return o.value == user.id }) < 0 && canBeTeamLeader >= 0;
             })
