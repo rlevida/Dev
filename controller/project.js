@@ -29,7 +29,7 @@ const associationFindAllStack = [
         model: Type,
         as: 'type',
         required: false,
-        attributes: []
+        attributes: ["type"]
     },
     {
         model: Members,
@@ -116,8 +116,7 @@ exports.get = {
                         })
                         .then((res) => {
                             callback(null, res)
-
-                        })
+                        });
                 } catch (err) {
                     callback(err)
                 }
