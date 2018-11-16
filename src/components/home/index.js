@@ -14,7 +14,7 @@ export default class Component extends React.Component {
         var Component = <div class="pd20">
             <h4>Projects</h4>
             <div class="row mb10">
-                <div class="col-lg-8">
+                <div class="col-lg-10">
                     <ProjectStatus offset={false}/>
                 </div>
             </div>
