@@ -38,7 +38,7 @@ export default class List extends React.Component {
         } else {
             if (_.isEmpty(Count)) {
                 this.fetchData(1);
-            }    
+            }
         }
     }
 
@@ -98,11 +98,17 @@ export default class List extends React.Component {
         const { workstream, dispatch, socket, loggedUser, global, projectData } = this.props;
         const currentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
         const lastPage = (typeof workstream.Count.last_page != "undefined") ? workstream.Count.last_page : 1;
-        
+
         return (
-            <div>
-                <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>
-                <WorkstreamStatus style={{ float: "right", padding: "20px" }} />
+            <div class="pd20">
+                <h3 class="mt10 mb10">
+                    <a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a>
+                </h3>
+                <div class="row mb10">
+                    <div class="col-lg-8" style={{ float: "right" }}>
+                        <WorkstreamStatus />
+                    </div>
+                </div>
                 <HeaderButtonContainer withMargin={true}>
                     {(loggedUser.data.userRole < 4) &&
                         <li class="btn btn-info" onClick={(e) => {
@@ -127,7 +133,6 @@ export default class List extends React.Component {
                             <th class="text-center">New Docs</th>
                             <th class="text-center">Members</th>
                             <th class="text-center">Type</th>
-                            <th class="text-center"></th>
                             {(loggedUser.data.userRole == 1
                                 || loggedUser.data.userRole == 2
                                 || loggedUser.data.userRole == 3) &&

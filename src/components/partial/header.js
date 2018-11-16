@@ -165,7 +165,7 @@ export default class Component extends React.Component {
                         </ul>
                     }
                 </div>
-                <div class="pull-right" style={{ marginTop: "10px" }}>
+                <div class="pull-right" style={{ marginTop: 10, marginRight: 2 }}>
                     <div class="btn-group">
                         <a data-tip="profile" href={"/profile"} class="btn btn-default ">
                             <i class="glyphicon glyphicon-user"></i>
@@ -175,13 +175,11 @@ export default class Component extends React.Component {
 
                 <header class="head">
                     <div class="search-bar">
-                        <h3>Cloud CFO</h3>
+                        <h3 style={{ marginTop: 5, marginBottom: 0 }}>Cloud CFO</h3>
                     </div>
                     <div class="main-bar">
                         <h3 style={{ textTransform: 'capitalize' }}>
-                            <i class="glyphicon glyphicon-dashboard"></i>&nbsp;
-                           {(this.props.page)}{this.props.form ? " > " + this.props.form : ""}{(this.props.form) == "Form" ? (this.props.formId > 0 ? " > Edit " : " > Add ") : ""}
-
+                            {(this.props.page)}{this.props.form ? " > " + this.props.form : ""}{(this.props.form) == "Form" ? (this.props.formId > 0 ? " > Edit " : " > Add ") : ""}
                         </h3>
                     </div>
                 </header>
