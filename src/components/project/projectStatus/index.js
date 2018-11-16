@@ -49,59 +49,83 @@ export default class ProjectStatus extends React.Component {
             }
         })
 
-        return <div style={this.props.style}>
-            <table>
-                <tbody>
-                    <tr>
-                        <td style={{ padding: "10px 5px", width: "120px" }}>Client</td>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{(data.Client.Active - data.Client.Issues) + data.Client.Issues}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                            <span style={{ float: "left" }}>On-track</span><span style={{ float: "right" }}>{data.Client.Active - data.Client.Issues}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
-                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{data.Client.Issues}</span>
-                        </td>
-                    </tr>
-                    {typeof this.props.loggedUser.data.userRole != "undefined" &&
-                        (this.props.loggedUser.data.userRole == "1" ||
-                            this.props.loggedUser.data.userRole == "2" ||
-                            this.props.loggedUser.data.userRole == "3" ||
-                            this.props.loggedUser.data.userRole == "4") &&
-                        <tr>
-                            <td style={{ padding: "10px 5px", width: "120px" }}>Internal</td>
-                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                                <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{(data.Internal.Active - data.Internal.Issues) + data.Internal.Issues}</span>
-                            </td>
-                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                                <span style={{ float: "left" }}>On-track</span><span style={{ float: "right" }}>{data.Internal.Active - data.Internal.Issues}</span>
-                            </td>
-                            <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
-                                <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{data.Internal.Issues}</span>
-                            </td>
-                        </tr>
-                    }
-                    {typeof this.props.loggedUser.data.userRole != "undefined" &&
-                        (this.props.loggedUser.data.userRole == "1" ||
-                            this.props.loggedUser.data.userRole == "2" ||
-                            this.props.loggedUser.data.userRole == "3" ||
-                            this.props.loggedUser.data.userRole == "4") &&
-                        <tr>
-                            <td style={{ padding: "10px 5px", width: "120px" }}>Private</td>
-                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                                <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{(data.Private.Active - data.Private.Issues) + data.Private.Issues}</span>
-                            </td>
-                            <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                                <span style={{ float: "left" }}>On-track</span><span style={{ float: "right" }}>{data.Private.Active - data.Private.Issues}</span>
-                            </td>
-                            <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
-                                <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{data.Private.Issues}</span>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+        return (
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-3 col-xs-12 count">
+                        <span>Client:</span>
+                    </div>
+                    <div class="col-lg-3 col-xs-12 active-count count">
+                        <span class="text-white">{(data.Client.Active - data.Client.Issues) + data.Client.Issues}</span>
+                        <span class="text-white">Active Projects:</span>
+                    </div>
+                    <div class="col-lg-3 col-xs-12 on-time count">
+                        <span class="text-white">
+                            {data.Client.Active - data.Client.Issues}
+                        </span>
+                        <span class="text-white">Projects With Issues:</span>
+                    </div>
+                    <div class="col-lg-3 col-xs-12 issues count">
+                        <span class="text-white">
+                            {(data.Client.Issues > 0) && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}
+                            {data.Client.Issues}
+                        </span>
+                        <span class="text-white">Projects With Issues:</span>
+                    </div>
+                </div>
+                {
+                    (typeof this.props.loggedUser.data.userRole != "undefined" &&
+                        (this.props.loggedUser.data.userRole <= 4)) &&
+                    <div class="row">
+                        <div class="col-lg-3 col-xs-12 count">
+                            <span>Internal:</span>
+                        </div>
+                        <div class="col-lg-3 col-xs-12 active-count count">
+                            <span class="text-white">{(data.Internal.Active - data.Internal.Issues) + data.Internal.Issues}</span>
+                            <span class="text-white">Active Projects:</span>
+                        </div>
+                        <div class="col-lg-3 col-xs-12 on-time count">
+                            <span class="text-white">
+                                {data.Internal.Active - data.Internal.Issues}
+                            </span>
+                            <span class="text-white">Projects With Issues:</span>
+                        </div>
+                        <div class="col-lg-3 col-xs-12 issues count">
+                            <span class="text-white">
+                                {(data.Internal.Issues > 0) && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}
+                                {data.Internal.Issues}
+                            </span>
+                            <span class="text-white">Projects With Issues:</span>
+                        </div>
+                    </div>
+                }
+                {
+                    (typeof this.props.loggedUser.data.userRole != "undefined" &&
+                        (this.props.loggedUser.data.userRole <= 4)) &&
+                    <div class="row">
+                        <div class="col-lg-3 col-xs-12 count">
+                            <span>Private:</span>
+                        </div>
+                        <div class="col-lg-3 col-xs-12 active-count count">
+                            <span class="text-white">{(data.Private.Active - data.Private.Issues) + data.Private.Issues}</span>
+                            <span class="text-white">Active Projects:</span>
+                        </div>
+                        <div class="col-lg-3 col-xs-12 on-time count">
+                            <span class="text-white">
+                                {data.Private.Active - data.Private.Issues}
+                            </span>
+                            <span class="text-white">Projects With Issues:</span>
+                        </div>
+                        <div class="col-lg-3 col-xs-12 issues count">
+                            <span class="text-white">
+                                {(data.Private.Issues > 0) && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}
+                                {data.Private.Issues}
+                            </span>
+                            <span class="text-white">Projects With Issues:</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        )
     }
 }

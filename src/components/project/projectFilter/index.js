@@ -26,7 +26,7 @@ export default class ProjectFilter extends React.Component {
     }
 
     setDropDown(name, e) {
-        const { dispatch, project } = this.props;
+        const { dispatch } = this.props;
         const filter = { ...this.state, [name]: e }
         this.setState({ ...filter })
         let isActive = (filter.projectStatus != '') ? 1 : '';
@@ -39,52 +39,34 @@ export default class ProjectFilter extends React.Component {
     }
 
     render() {
-        let { status, type, loggedUser, dispatch } = this.props
+        let { type } = this.props
         let typeList = [{ id: "", name: "All Project Types" }];
         let statusList = [
             { id: "", name: "All Status" },
-            { id: "Active", name: "Active" },
-            // {id:"On-Track",name:"On-track"},
-            // {id:"Issues",name:"Issues"}
+            { id: "Active", name: "Active" }
         ];
         type.List.map((e, i) => { if (e.linkType == "project") { typeList.push({ id: e.id, name: e.type }) } });
 
 
-        return <div style={{ float: "left", minWidth: "40%", Width: "40%" }}>
-            <div class="col-md-1">
-                <span class="fa fa-filter"></span>
-            </div>
-            <div class="col-md-2">
-                <span>Filters:</span>
-            </div>
-            <div class="col-md-4">
-                <DropDown multiple={false}
-                    required={false}
-                    options={typeList}
-                    selected={this.state.typeId}
-                    onChange={(e) => this.setDropDown("typeId", e.value)} />
-            </div>
-            <div class="col-md-4">
-                <DropDown multiple={false}
-                    required={false}
-                    options={statusList}
-                    selected={this.state.projectStatus}
-                    onChange={(e) => this.setDropDown("projectStatus", e.value)} />
-            </div>
-            {(loggedUser.data.userRole == 1
-                || loggedUser.data.userRole == 2
-                || loggedUser.data.userRole == 3
-                || loggedUser.data.userRole == 4) &&
-                <div class="col-md-1" >
-                    <span class="fa fa-plus-circle" title="New Project" style={{ cursor: "pointer", fontSize: "20px", paddingTop: "8px" }}
-                        onClick={(e) => {
-                            dispatch({ type: "SET_PROJECT_SELECTED", Selected: { isActive: true } }),
-                                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" })
-                        }
-                        }>
-                    </span>
+        return (
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6 mb5">
+                        <DropDown multiple={false}
+                            required={false}
+                            options={typeList}
+                            selected={this.state.typeId}
+                            onChange={(e) => this.setDropDown("typeId", e.value)} />
+                    </div>
+                    <div class="col-md-6 mb5">
+                        <DropDown multiple={false}
+                            required={false}
+                            options={statusList}
+                            selected={this.state.projectStatus}
+                            onChange={(e) => this.setDropDown("projectStatus", e.value)} />
+                    </div>
                 </div>
-            }
-        </div>
+            </div>
+        )
     }
 }

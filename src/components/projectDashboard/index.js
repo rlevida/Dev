@@ -31,13 +31,13 @@ export default class Component extends React.Component {
             <h3 class="mt0 mb20"><a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>
             <h4 class="mb10">Workstreams</h4>
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-8">
                     <WorkstreamStatus />
                 </div>
             </div>
             <h4 class="mb10">Tasks</h4>
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-8">
                     <TaskStatus />
                 </div>
             </div>
