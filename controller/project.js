@@ -162,7 +162,6 @@ exports.get = {
             Members
                 .findAll({
                     where: whereObj,
-                    logging: true,
                     include: [{
                         model: Users,
                         as: 'user',

@@ -226,7 +226,7 @@ export default class FormComponent extends React.Component {
         const projectManagerOptions = _(users.List)
             .filter((userObj) => {
                 const role = (typeof userObj.user_role != "undefined") ? userObj.user_role : userObj.role;
-                const roleChecker = _.filter(role, (roleObj) => { return roleObj.roleId < 3 });
+                const roleChecker = _.filter(role, (roleObj) => { return roleObj.roleId < 4 });
                 return roleChecker.length > 0;
             })
             .map((e) => {
