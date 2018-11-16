@@ -80,7 +80,7 @@ export default class List extends React.Component {
     }
 
     saveDocument() {
-        let { socket, loggedUser, document, workstream } = this.props;
+        let { socket, document, workstream } = this.props;
         socket.emit("SAVE_OR_UPDATE_DOCUMENT", {
             data: document.Selected,
             filter: { tagTypeId: document.Selected.id, tagType: "document" },

@@ -33,6 +33,11 @@ exports.get = {
                         }
                     },
                     {
+                        linkId: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT checklist_documents.documentId FROM checklist_documents LEFT JOIN task ON task.id = checklist_documents.taskId WHERE task.id = ${queryString.taskId})`)
+                        }
+                    },
+                    {
                         [Sequelize.Op.and]: [
                             {
                                 linkId: queryString.taskId

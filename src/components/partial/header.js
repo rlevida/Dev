@@ -208,23 +208,13 @@ export default class Component extends React.Component {
                     </div>
                     <div class="side-menu-navigator">
                         {this.state.miniSideMenu == "false" &&
-                            <a data-tip="Hide Menu" href="javascript:void(0);" onClick={e => this.setSideMenuState("true")} ><span class="glyphicon glyphicon-menu-left"></span><ToolTip /></a>
+                            <a href="javascript:void(0);" onClick={e => this.setSideMenuState("true")} ><span class="glyphicon glyphicon-menu-left"></span></a>
                         }
                         {this.state.miniSideMenu == "true" &&
-                            <a data-tip="Show Menu" href="javascript:void(0);" onClick={e => this.setSideMenuState("false")}><span class="glyphicon glyphicon-menu-right"></span><ToolTip /></a>
-                        }
-                    </div>
-                    <div class="side-menu-navigator">
-                        {this.state.showMore == "bottom" &&
-                            <a data-tip="Show Bottom Menu" href="javascript:void(0);" onClick={e => this.setShowMore("top")} ><span class="glyphicon glyphicon-chevron-up"></span><ToolTip /></a>
+                            <a href="javascript:void(0);" onClick={e => this.setSideMenuState("false")}><span class="glyphicon glyphicon-menu-right"></span></a>
                         }
                     </div>
                     <Menu miniSideMenu={this.state.miniSideMenu} />
-                    <div class="side-menu-navigator">
-                        {this.state.showMore == "top" &&
-                            <a data-tip="Show Top Menu" href="javascript:void(0);" onClick={e => this.setShowMore("bottom")}><span class="glyphicon glyphicon-chevron-down"></span><ToolTip /></a>
-                        }
-                    </div>
                 </div>
                 <div id="content">
                     <div class="outer" style={{ minHeight: "400px" }}>

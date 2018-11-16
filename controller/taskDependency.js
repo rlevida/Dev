@@ -85,7 +85,7 @@ exports.post = {
                                 usersId: body.userId,
                                 linkType: "task",
                                 linkId: body.taskId,
-                                actionType: "created",
+                                actionType: "added",
                                 new: JSON.stringify({ task_dependency: taskDependencyObj }),
                                 title: taskDependencyObj.task.task
                             }
