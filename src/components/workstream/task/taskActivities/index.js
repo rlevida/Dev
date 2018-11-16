@@ -49,12 +49,12 @@ export default class TaskActivities extends React.Component {
     }
 
     generateCreateorDelete(params) {
-        const { user, title, linkType } = params;
+        const { user, title, linkType, actionType } = params;
         const { firstName, lastName, dateAdded } = user;
         const objValue = (params.new != null) ? JSON.parse(params.new) : JSON.parse(params.old);
         const modifiedObject = _.keys(objValue)[0];
         const attributeEdited = (modifiedObject.replace('_', ' '));
-        const actionLabel = (params.actionType == "created") ? `Created` : `Deleted`;
+        const actionLabel = actionType.charAt(0).toUpperCase() + actionType.slice(1).toLowerCase();
         const linkTypeLabel = linkType.charAt(0).toUpperCase() + linkType.slice(1).toLowerCase();
 
         return (
@@ -153,7 +153,6 @@ export default class TaskActivities extends React.Component {
         const { activityLog } = { ...this.props };
         const currentPage = (typeof activityLog.Count.current_page != "undefined") ? activityLog.Count.current_page : 1;
         const lastPage = (typeof activityLog.Count.last_page != "undefined") ? activityLog.Count.last_page : 1;
-
         return (
             <div>
                 {
@@ -161,7 +160,7 @@ export default class TaskActivities extends React.Component {
                         return (
                             <div key={index} style={{ marginLeft: 15, padding: 5, backgroundColor: (index % 2) ? "#ddd" : "fff" }}>
                                 {
-                                    (activityLogObj.actionType == "created" || activityLogObj.actionType == "deleted") && this.generateCreateorDelete(activityLogObj)
+                                    (activityLogObj.actionType == "created" || activityLogObj.actionType == "deleted" || activityLogObj.actionType == "added") && this.generateCreateorDelete(activityLogObj)
                                 }
                                 {
                                     (activityLogObj.actionType == "modified") && this.generateModified(activityLogObj)

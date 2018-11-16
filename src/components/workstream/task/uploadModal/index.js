@@ -11,7 +11,8 @@ import axios from "axios";
         project: store.project,
         loggedUser: store.loggedUser,
         workstream: store.workstream,
-        checklist: store.checklist
+        checklist: store.checklist,
+        activity_log: store.activityLog,
     }
 })
 export default class UploadModal extends React.Component {
@@ -32,7 +33,7 @@ export default class UploadModal extends React.Component {
     }
 
     uploadFile() {
-        let { loggedUser, task, dispatch, checklist, socket } = this.props,
+        let { loggedUser, task, dispatch, checklist, activity_log } = this.props,
             { files } = this.state
         let data = new FormData(), self = this;
         let documentIds = []
@@ -68,11 +69,14 @@ export default class UploadModal extends React.Component {
 
             if (task.ModalType == "checklist") {
                 const dataToSubmit = { completed: 1, documentIds: documentIds, documents: tempData, projectId: project, taskId: checklist.Selected.taskId }
-                putData(`/api/checklist/updateChecklistDocument/${checklist.Selected.id}?projectId=${project}`, dataToSubmit, (c) => {
-                    dispatch({ type: "UPDATE_CHECKLIST", data: c.data.checklist })
+                putData(`/api/checklist/updateChecklistDocument/${checklist.Selected.id}?projectId=${project}&userId=${loggedUser.data.id}`, dataToSubmit, (c) => {
+                    const updatedActivityLog = _.concat(c.data.activity_log, activity_log.List);
+                    dispatch({ type: "UPDATE_CHECKLIST", data: c.data.checklist });
                     dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.document, DocumentType: 'New' });
-                })
-                this.setState({ dataToSubmit: [], loading: false, upload: false })
+                    dispatch({ type: "SET_ACTIVITYLOG_LIST", list: updatedActivityLog });
+                    showToast("success", "Checklist successfully updated.");
+                });
+                this.setState({ dataToSubmit: [], loading: false, upload: false });
                 $(`#uploadFileModal`).modal("hide");
             } else {
                 this.setState({ dataToSubmit: tempData, loading: false, upload: false })

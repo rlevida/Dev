@@ -506,26 +506,26 @@ export default class FormComponent extends React.Component {
                                                         <div class="dropdown task-checklist-actions">
                                                             <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                                             <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
-                                                                {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
+                                                                {((o.createdBy == loggedUser.data.id || loggedUser.data.userRole <= 3) && o.isCompleted == 0) &&
                                                                     <li>
                                                                         <a onClick={() => { this.editChecklist(o) }}>Edit</a>
                                                                     </li>
                                                                 }
-                                                                {(o.createdBy == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
+                                                                {((o.createdBy == loggedUser.data.id || loggedUser.data.userRole <= 3) && o.isCompleted == 0) &&
                                                                     <li>
                                                                         <a onClick={() => { this.deleteChecklist(o.id) }}>Delete</a>
                                                                     </li>
                                                                 }
-                                                                {(task.Selected.assignedTo == loggedUser.data.id || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
+                                                                {(task.Selected.assignedTo == loggedUser.data.id || loggedUser.data.userRole <= 3) &&
                                                                     <li>
                                                                         <a onClick={() => { this.completeChecklist({ id: o.id, isCompleted: (o.isCompleted != 1) ? 1 : 0 }) }}>
-                                                                            {(o.isCompleted) ? "Unchecked" : "Check"}
+                                                                            {(o.isCompleted) ? "Not Complete" : "Complete"}
                                                                         </a>
                                                                     </li>
                                                                 }
                                                                 {(Boolean(o.isDocument)) &&
                                                                     <li>
-                                                                        <a href="javascript:void(0)" onClick={() => this.openCheckListUploadModal(o)} > Upload</a>
+                                                                        <a href="javascript:void(0)" onClick={() => this.openCheckListUploadModal(o)}>Upload Document</a>
                                                                     </li>
 
                                                                 }
@@ -557,7 +557,7 @@ export default class FormComponent extends React.Component {
                                                                 }
                                                             </div>
                                                         }
-                                                        <p style={{ marginTop: 0, fontSize: 10 }}>
+                                                        <p style={{ marginTop: 0, fontSize: 10, marginBottom: 0 }}>
                                                             By : {o.user.firstName + ' ' + o.user.lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}
                                                         </p>
                                                     </div>
@@ -583,29 +583,6 @@ export default class FormComponent extends React.Component {
 
                                                     />
                                                 </div>
-                                                <ul id="checklist-checkbox">
-                                                    <li>
-                                                        <input
-                                                            id="mandatory-checkbox"
-                                                            type="checkbox"
-                                                            checked={checklist.Selected.isMandatory ? true : false}
-                                                            onChange={() => { }}
-                                                            onClick={(f) => { this.handleCheckbox("isMandatory", (checklist.Selected.isMandatory) ? 0 : 1) }}
-                                                        />
-                                                        <label for="mandatory-checkbox">Mandatory Item</label>
-                                                    </li>
-                                                    <li>
-                                                        <input
-                                                            id="document-checkbox"
-                                                            type="checkbox"
-                                                            checked={checklist.Selected.isDocument ? true : false}
-                                                            onChange={() => { }}
-                                                            onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
-                                                        />
-                                                        <label for="document-checkbox">Document Item</label>
-                                                    </li>
-                                                </ul>
-
                                             </div>
                                         }
                                     </div>
@@ -638,6 +615,28 @@ export default class FormComponent extends React.Component {
                             {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
                                 <div class="row" style={{ paddingLeft: 15 }}>
                                     <div class="col-md-12 pdr0">
+                                        <ul id="checklist-checkbox">
+                                            <li>
+                                                <input
+                                                    id="mandatory-checkbox"
+                                                    type="checkbox"
+                                                    checked={checklist.Selected.isMandatory ? true : false}
+                                                    onChange={() => { }}
+                                                    onClick={(f) => { this.handleCheckbox("isMandatory", (checklist.Selected.isMandatory) ? 0 : 1) }}
+                                                />
+                                                <label for="mandatory-checkbox">Mandatory Item</label>
+                                            </li>
+                                            <li>
+                                                <input
+                                                    id="document-checkbox"
+                                                    type="checkbox"
+                                                    checked={checklist.Selected.isDocument ? true : false}
+                                                    onChange={() => { }}
+                                                    onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
+                                                />
+                                                <label for="document-checkbox">Document Item</label>
+                                            </li>
+                                        </ul>
                                         {
                                             (checklist.Action != "Edit") ?
 
@@ -668,7 +667,7 @@ export default class FormComponent extends React.Component {
                                 </div>
                             }
                         </div>
-                        {(task.Selected.isActive > 0) &&
+                        {/* {(task.Selected.isActive > 0) &&
                             <div style={{ position: "relative" }} class="mt20">
                                 <h5 class="mb0">Documents</h5>
                                 {((task.Selected.assignedTo == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
@@ -693,7 +692,7 @@ export default class FormComponent extends React.Component {
                                 })
                             }
 
-                        </div>
+                        </div> */}
                     </TabPanel>
                     <TabPanel>
                         <div style={{ position: "relative" }} class="mt10">
