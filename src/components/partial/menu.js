@@ -78,6 +78,12 @@ export default class Component extends React.Component {
         if ((page == "project" || page == "selectedTask") && subpage != "") {
             Menu = <ul id="menu" class="bg-dark dker">
                 <li class="nav-header">Menu</li>
+                <li class={page == "index" ? "active" : ""}>
+                    <a href="/" class="menu-list">
+                        <i class="fa fa-home" aria-hidden="true"></i>
+                        <span class="link-title">&nbsp; My Dashboard</span>
+                    </a>
+                </li>
                 <li class={page == "project" && subpage == "home" ? "active" : ""}>
                     <a href={`/project/${project}`} class="menu-list">
                         <i class="fa fa-dashboard" aria-hidden="true"></i>
