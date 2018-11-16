@@ -122,7 +122,7 @@ export default class List extends React.Component {
             <div class="pd20">
                 <div class="row mb10">
                     <div class="col-lg-10" style={{ float: "right" }}>
-                        <ProjectStatus />
+                        <ProjectStatus offset={true} />
                     </div>
                 </div>
                 {
