@@ -68,7 +68,9 @@ exports.get = {
                     Users
                         .findAndCountAll({
                             include: associationStack,
-                            ..._.omit(options, ['offset', 'limit']), where: whereObj, distinct: true
+                            ...options,
+                            distinct: true,
+                            where: whereObj
                         })
                         .then((res) => {
                             const pageData = {
@@ -87,7 +89,9 @@ exports.get = {
                         .findAll({
                             include: associationStack,
                             attributes: ['id', 'username', 'firstName', 'lastName', 'emailAddress', 'phoneNumber', 'avatar', 'isActive', 'userType', 'company'],
-                            ..._.omit(options, ['offset', 'limit']), where: whereObj, distinct: true
+                            ...options,
+                            distinct: true,
+                            where: whereObj
                         })
                         .map((res) => {
                             let responseToReturn = {
@@ -99,6 +103,7 @@ exports.get = {
                             return _.omit(responseToReturn, "team_as_teamLeader", "users_team")
                         })
                         .then((res) => {
+                            console.log(res.length)
                             parallelCallback(null, res);
                         })
                 } catch (err) {
