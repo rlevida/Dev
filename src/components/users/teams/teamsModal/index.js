@@ -28,9 +28,11 @@ export default class TeamsModal extends React.Component {
 
     componentDidMount() {
         const { dispatch } = this.props;
-        $(".form-container").validator();
+        $(".teams-modal").validator();
         $('#teamsModal').on('hidden.bs.modal', function (e) {
-            dispatch({ type: 'SET_TEAM_SELECTED', Selected: {} })
+            dispatch({ type: 'SET_TEAM_SELECTED', Selected: {} });
+            $(".teams-modal").validator('destroy');
+            $(".teams-modal").validator();
         })
     }
 
@@ -55,8 +57,8 @@ export default class TeamsModal extends React.Component {
         let myTeamIndex = _.findIndex(myCurrentTeam, (o) => { return o.value == teams.Selected.id });
         let selectedTeamMembers = (typeof teams.Selected.users != 'undefined') ? JSON.parse(teams.Selected.users) : [];
 
-        $('.form-container teams-modal *').validator('validate');
-        $('.form-container teams-modal .form-group').each(function () {
+        $('.teams-modal *').validator('validate');
+        $('.teams-modal .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
                 result = false;
             }
@@ -172,7 +174,7 @@ export default class TeamsModal extends React.Component {
                                     <label class="col-md-3 col-xs-12 control-label">Team Leader</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={false}
-                                            required={false}
+                                            required={true}
                                             options={teamLeaderList}
                                             selected={(typeof teams.Selected.teamLeaderId == "undefined") ? "" : teams.Selected.teamLeaderId}
                                             onChange={(e) => {
@@ -187,7 +189,7 @@ export default class TeamsModal extends React.Component {
                                     <label class="col-md-3 col-xs-12 control-label">Members</label>
                                     <div class="col-md-7 col-xs-12">
                                         <DropDown multiple={true}
-                                            required={false}
+                                            required={true}
                                             options={usersList}
                                             selected={(typeof teams.Selected.users_team == "undefined") ? [] : teams.Selected.users_team}
                                             onChange={(e) => this.setDropDownMultiple("users_team", e)} />

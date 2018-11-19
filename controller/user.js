@@ -53,6 +53,11 @@ exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
         const limit = 10;
+
+        const whereObj = {
+            ...(typeof queryString.isDeleted !== 'undefined' && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : {}
+        }
+
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
         };
@@ -64,7 +69,8 @@ exports.get = {
                         .findAndCountAll({
                             include: associationStack,
                             options: _.omit(options, ["offset", "limit"]),
-                            distinct: true
+                            distinct: true,
+                            where: whereObj
                         })
                         .then((res) => {
                             const pageData = {
@@ -84,7 +90,8 @@ exports.get = {
                             include: associationStack,
                             attributes: ['id', 'username', 'firstName', 'lastName', 'emailAddress', 'phoneNumber', 'avatar', 'isActive', 'userType', 'company'],
                             options: _.omit(options, ["offset", "limit"]),
-                            distinct: true
+                            distinct: true,
+                            where: whereObj
                         })
                         .map((res) => {
                             let responseToReturn = {
@@ -228,10 +235,9 @@ exports.put = {
             if (typeof body.username != 'undefined' && typeof body.emailAddress != 'undefined') {
                 try {
                     Users.findAll({
-                        logging: true,
                         where: {
                             [Op.and]: {
-                                id: { [Op.ne]: 3 },
+                                id: { [Op.ne]: body.id },
                                 [Op.or]: [{ emailAddress: body.emailAddress }, { username: body.username }],
                             }
                         },
@@ -335,62 +341,95 @@ exports.put = {
                     cb({ status: true, data: res })
                 })
         } catch (err) {
-            console.log(err)
+            cb({ status: false, error: err })
         }
-        // users.putData("users", data, { id: id }, (c) => {
-        //     if (c.status) {
-        //         socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Password successfully changed." })
-        //     } else {
-        //         socket.emit("RETURN_ERROR_MESSAGE", { message: "Password change failed. Please Try again later." })
-        //     }
-        // })
+    },
+    deleteUser: (req, cb) => {
+        const body = req.body;
+        const id = req.params.id;
+        try {
+            UsersRole
+                .findAll({ where: { roleId: 1 } })
+                .then((res) => {
+                    if (res.length <= 1 && res[0].usersId == id) {
+                        cb({ status: true, data: { error: true, message: 'Cant Delete, Last Master Admin user.' } })
+                    } else {
+                        try {
+                            Users.update(body, { where: { id: id } })
+                                .then((updateRes) => {
+                                    async.parallel({
+                                        role: (parallelCallback) => {
+                                            UsersRole
+                                                .update(body, { where: { usersId: id } })
+                                                .then((userRoleRes) => {
+                                                    parallelCallback(null, userRoleRes)
+                                                })
+                                        },
+                                        team: (parallelCallback) => {
+                                            UsersTeam
+                                                .update(body, { where: { usersId: id } })
+                                                .then((userTeamRes) => {
+                                                    parallelCallback(null, userTeamRes)
+                                                })
+                                        }
+                                    }, (err, parallelCallbackResult) => {
+                                        if (err) {
+                                            cb({ status: false, error: err })
+                                        } else {
+                                            cb({ status: true, data: { id: id } })
+                                        }
+                                    })
+                                })
+                        } catch (err) {
+                            cb({ status: false, error: err })
+                        }
+                    }
+                })
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
     }
 }
 
 exports.delete = {
     index: (req, cb) => {
         const id = req.params.id
-
-
-        sequence.create().then((nextThen) => {
-
-        })
-        UsersRole
-            .findAll({ where: { roleId: 1 } })
-            .then((res) => {
-                if (res.length <= 1 && res[0].usersId == id) {
-                    cb({ success: true, data: { error: true, message: 'Cant Delete, Last Master Admin user.' } })
-                } else {
-                    try {
-                        Users.destroy({ where: { id: id } })
-                            .then((destroyRes) => {
-                                async.parallel({
-                                    role: (parallelCallback) => {
-                                        UsersRole
-                                            .destroy({ where: { usersId: id } })
-                                            .then((userRoleRes) => {
-                                                parallelCallback(null, userRoleRes)
-                                            })
-                                    },
-                                    team: (parallelCallback) => {
-                                        UsersTeam
-                                            .destroy({ where: { usersId: id } })
-                                            .then((userTeamRes) => {
-                                                parallelCallback(null, userTeamRes)
-                                            })
-                                    }
-                                }, (err, parallelCallbackResult) => {
-                                    if (err) {
-                                        cb({ status: false, error: err })
-                                    } else {
-                                        cb({ status: true, data: { id: id } })
-                                    }
-                                })
-                            })
-                    } catch (err) {
-                        cb({ status: false, error: err })
-                    }
-                }
-            })
+        // UsersRole
+        //     .findAll({ where: { roleId: 1 } })
+        //     .then((res) => {
+        //         if (res.length <= 1 && res[0].usersId == id) {
+        //             cb({ success: true, data: { error: true, message: 'Cant Delete, Last Master Admin user.' } })
+        //         } else {
+        //             try {
+        //                 Users.destroy({ where: { id: id } })
+        //                     .then((destroyRes) => {
+        //                         async.parallel({
+        //                             role: (parallelCallback) => {
+        //                                 UsersRole
+        //                                     .destroy({ where: { usersId: id } })
+        //                                     .then((userRoleRes) => {
+        //                                         parallelCallback(null, userRoleRes)
+        //                                     })
+        //                             },
+        //                             team: (parallelCallback) => {
+        //                                 UsersTeam
+        //                                     .destroy({ where: { usersId: id } })
+        //                                     .then((userTeamRes) => {
+        //                                         parallelCallback(null, userTeamRes)
+        //                                     })
+        //                             }
+        //                         }, (err, parallelCallbackResult) => {
+        //                             if (err) {
+        //                                 cb({ status: false, error: err })
+        //                             } else {
+        //                                 cb({ status: true, data: { id: id } })
+        //                             }
+        //                         })
+        //                     })
+        //             } catch (err) {
+        //                 cb({ status: false, error: err })
+        //             }
+        //         }
+        //     })
     }
 }

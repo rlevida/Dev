@@ -32,11 +32,13 @@ export default class UsersModal extends React.Component {
     }
     componentDidMount() {
         const { dispatch } = this.props;
-        $(".form-container").validator();
+        $(".users-modal").validator();
         setDatePicker(this.handleDate, "birthday");
         $('#usersModal').on('hidden.bs.modal', function (e) {
             dispatch({ type: 'SET_USER_SELECTED', Selected: {} })
             dispatch({ type: 'SET_CURRENT_DATA_SELECTED', Selected: {} })
+            $(".users-modal").validator('destroy');
+            $(".users-modal").validator();
         })
     }
 
@@ -62,8 +64,8 @@ export default class UsersModal extends React.Component {
         let { socket, users, dispatch } = this.props
 
         let result = true;
-        $('.form-container users-modal *').validator('validate');
-        $('.form-container users-modal .form-group').each(function () {
+        $('.users-modal *').validator('validate');
+        $('.users-modal .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
                 result = false;
             }

@@ -19,15 +19,19 @@ const {
 const associationStack = [
     {
         model: Users,
-        as: 'teamLeader'
+        as: 'teamLeader',
+        where: { isDeleted: 0 },
+        required: false
     },
     {
         model: UsersTeam,
         as: 'users_team',
         include: [{
             model: Users,
-            as: 'user'
-        }]
+            as: 'user',
+        }],
+        where: { isDeleted: 0 },
+        required: false
     }
 ]
 const usersAssociationStack = [
@@ -262,7 +266,6 @@ exports.put = {
                     }
                 })
         }).then((nextThen, oldUsers, oldLeader, newUsers) => {
-            console.log(_.uniq(oldUsers.concat(oldLeader).concat(newUsers).concat([body.teamLeaderId])))
             async.parallel({
                 team: (parallelCallback) => {
                     try {
@@ -283,7 +286,7 @@ exports.put = {
                         Users
                             .findAll({
                                 where: {
-                                    id: oldUsers.concat(oldLeader).concat(newUsers).concat([body.teamLeaderId])
+                                    id: _.union(oldUsers, oldLeader, newUsers, [body.teamLeaderId])
                                 },
                                 include: usersAssociationStack,
                                 attributes: ['id', 'username', 'firstName', 'lastName', 'emailAddress', 'phoneNumber', 'avatar', 'isActive', 'userType', 'company']
@@ -371,6 +374,5 @@ exports.put = {
 
 exports.delete = {
     index: (req, cb) => {
-        console.log(`delete`)
     }
 }

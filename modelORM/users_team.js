@@ -18,7 +18,8 @@ module.exports = function (sequelize, DataTypes) {
     },
     dateAdded: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: false,
+      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     },
     dateUpdated: {
       type: DataTypes.DATE,

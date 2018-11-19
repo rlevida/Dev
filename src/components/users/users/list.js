@@ -34,12 +34,12 @@ export default class List extends React.Component {
     deleteData(id) {
         const { dispatch } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            deleteData(`/api/user/${id}`, {}, (c) => {
-                if (c.status == 200) {
-                    dispatch({ type: 'REMOVE_DELETED_USER_LIST', Id: id })
-                    showToast('success', 'Successfully Deleted.')
+            putData(`/api/user/deleteUser/${id}`, { isDeleted: 1 }, (c) => {
+                if (c.data.error) {
+                    showToast('error', c.data.message);
                 } else {
-                    showToast('error', 'Something went wrong. Please try again.')
+                    dispatch({ type: 'REMOVE_DELETED_USER_LIST', Id: id });
+                    showToast('success', 'Successfully Deleted.');
                 }
             })
         }
@@ -52,7 +52,7 @@ export default class List extends React.Component {
 
     fetchData(page) {
         const { dispatch, users } = this.props;
-        getData(`/api/user?page=${page}`, {}, (c) => {
+        getData(`/api/user?page=${page}&isDeleted=0`, {}, (c) => {
             dispatch({ type: 'SET_USER_LIST', List: users.List.concat(c.data.result), Count: c.data.count });
             dispatch({ type: 'SET_USER_LOADING', Loading: '' });
         })
