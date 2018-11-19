@@ -173,7 +173,7 @@ export default class UsersModal extends React.Component {
                             </h5>
                         </div>
                         <div class="modal-body">
-                            <form onSubmit={this.handleSubmit} class="form-horizontal form-container">
+                            <form class="form-horizontal form-container">
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">User Id *</label>
                                     <div class="col-md-7 col-xs-12">

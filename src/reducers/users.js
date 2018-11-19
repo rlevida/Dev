@@ -40,10 +40,9 @@ export default function reducer(state = {
             return { ...state, List: tempList }
         }
         case "REMOVE_DELETED_USER_LIST": {
-            let tempList = [];
-            action.List.map((e, i) => {
-                if (action.id != e.id) {
-                    tempList.push(e)
+            let tempList = state.List.filter((e, i) => {
+                if (action.Id != e.id) {
+                    return e;
                 }
             })
             return { ...state, List: tempList }

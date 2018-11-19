@@ -24,21 +24,29 @@ export default class List extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchData(1)
+        const { users } = this.props;
+
+        if (_.isEmpty(users.Count)) {
+            this.fetchData(1);
+        }
     }
 
     deleteData(id) {
-        let { socket } = this.props;
+        const { dispatch } = this.props;
         if (confirm("Do you really want to delete this record?")) {
             deleteData(`/api/user/${id}`, {}, (c) => {
-                
+                if (c.status == 200) {
+                    dispatch({ type: 'REMOVE_DELETED_USER_LIST', Id: id })
+                    showToast('success', 'Successfully Deleted.')
+                } else {
+                    showToast('error', 'Something went wrong. Please try again.')
+                }
             })
-            // socket.emit("DELETE_USER", { id: id })
         }
     }
 
     getNextResult() {
-        let { users } = this.props;
+        const { users } = this.props;
         this.fetchData(users.Count.current_page + 1)
     }
 
@@ -57,7 +65,7 @@ export default class List extends React.Component {
     }
 
     updateActiveStatus(id, active) {
-        let { socket, dispatch } = this.props;
+        const { dispatch } = this.props;
         putData(`/api/user/${id}`, { id: id, isActive: (active == 1) ? 0 : 1 }, (c) => {
             dispatch({ type: 'UPDATE_DATA_USER_LIST', UpdatedData: c.data })
             showToast('success', 'Successfully Updated.');
@@ -71,8 +79,14 @@ export default class List extends React.Component {
         $(`#usersModal`).modal('show');
     }
 
+    handleChangePassword(id) {
+        const { dispatch } = this.props;
+        dispatch({ type: "SET_USER_ID", SelectedId: id });
+        $(`#changePasswordModal`).modal('show');
+    }
+
     render() {
-        let { users, dispatch, socket, loggedUser } = this.props;
+        const { users, loggedUser } = this.props;
         const currentPage = (typeof users.Count.current_page != "undefined") ? users.Count.current_page : 1;
         const lastPage = (typeof users.Count.last_page != "undefined") ? users.Count.last_page : 1;
 
@@ -129,10 +143,8 @@ export default class List extends React.Component {
                                                         <span class="glyphicon glyphicon-trash"></span></a>
                                                     <a href="javascript:void(0);"
                                                         data-tip='CHANGE PASSWORD'
-                                                        onClick={e => {
-                                                            dispatch({ type: "SET_USER_ID", SelectedId: user.id })
-                                                            dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "ChangePassword" })
-                                                        }} class="btn btn-info btn-sm ml10">
+                                                        onClick={(e) => this.handleChangePassword(user.id)
+                                                        } class="btn btn-info btn-sm ml10">
                                                         <span class="glyphicon glyphicon-lock"></span>
                                                     </a>
                                                     <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />

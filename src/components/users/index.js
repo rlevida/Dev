@@ -6,6 +6,7 @@ import User from "./users"
 import Team from "./teams"
 
 import UsersModal from './users/usersModal'
+import ChangePasswordModal from './users/changePasswordModal'
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -66,6 +67,7 @@ export default class Component extends React.Component {
                         }
                         <User />
                         <UsersModal />
+                        <ChangePasswordModal />
                     </div>
                 </div>
             }

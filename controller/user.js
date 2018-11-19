@@ -3,13 +3,6 @@ const async = require('async');
 const sequence = require('sequence').Sequence
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
-var {
-    defaultGet,
-    defaultGetId,
-    defaultPost,
-    defaultPut,
-    defaultDelete
-} = require("./")
 
 const models = require('../modelORM');
 const {
@@ -317,40 +310,78 @@ exports.put = {
                 cb({ status: false, error: err });
             }
         })
+    },
+    changePassword: (req, cb) => {
+        const body = req.body
+        const id = body.Id;
+        const func = global.initFunc();
+        let data = {}
+
+        data.salt = func.randomString(32);
+        data.password = func.generatePassword(body.password, data.salt);
+
+        try {
+            Users
+                .update(data, { where: { id: id } })
+                .then((res) => {
+                    cb({ status: true, data: res })
+                })
+        } catch (err) {
+            console.log(err)
+        }
+        // users.putData("users", data, { id: id }, (c) => {
+        //     if (c.status) {
+        //         socket.emit("RETURN_SUCCESS_MESSAGE", { message: "Password successfully changed." })
+        //     } else {
+        //         socket.emit("RETURN_ERROR_MESSAGE", { message: "Password change failed. Please Try again later." })
+        //     }
+        // })
     }
 }
 
 exports.delete = {
     index: (req, cb) => {
         const id = req.params.id
+
+
+        sequence.create().then((nextThen) => {
+
+        })
         UsersRole
             .findAll({ where: { roleId: 1 } })
             .then((res) => {
                 if (res.length <= 1 && res[0].usersId == id) {
                     cb({ success: true, data: { error: true, message: 'Cant Delete, Last Master Admin user.' } })
                 } else {
-                    async.parallel({
-                        role: (parallelCallback) => {
-                            UsersRole
-                                .destroy({ where: { usersId: id } })
-                                .then((res) => {
-                                    parallelCallback(null, res)
+                    try {
+                        Users.destroy({ where: { id: id } })
+                            .then((destroyRes) => {
+                                async.parallel({
+                                    role: (parallelCallback) => {
+                                        UsersRole
+                                            .destroy({ where: { usersId: id } })
+                                            .then((userRoleRes) => {
+                                                parallelCallback(null, userRoleRes)
+                                            })
+                                    },
+                                    team: (parallelCallback) => {
+                                        UsersTeam
+                                            .destroy({ where: { usersId: id } })
+                                            .then((userTeamRes) => {
+                                                parallelCallback(null, userTeamRes)
+                                            })
+                                    }
+                                }, (err, parallelCallbackResult) => {
+                                    if (err) {
+                                        cb({ status: false, error: err })
+                                    } else {
+                                        cb({ status: true, data: { id: id } })
+                                    }
                                 })
-                        },
-                        team: (parallelCallback) => {
-                            UsersTeam
-                                .destroy({ where: { usersId: id } })
-                                .then((res) => {
-                                    parallelCallback(null, res)
-                                })
-                        }
-                    }, (err, parallelCallbackResult) => {
-                        if (err) {
-                            cb({ status: false, error: err })
-                        } else {
-                            cb({ status: true, data: { id: id } })
-                        }
-                    })
+                            })
+                    } catch (err) {
+                        cb({ status: false, error: err })
+                    }
                 }
             })
     }
