@@ -63,7 +63,7 @@ export default class ProjectStatus extends React.Component {
                         <span class="text-white">
                             {data.Client.Active - data.Client.Issues}
                         </span>
-                        <span class="text-white">Projects With Issues:</span>
+                        <span class="text-white">Projects On Time:</span>
                     </div>
                     <div class="col-lg-3 col-xs-12 issues count">
                         <span class="text-white">
@@ -88,7 +88,7 @@ export default class ProjectStatus extends React.Component {
                             <span class="text-white">
                                 {data.Internal.Active - data.Internal.Issues}
                             </span>
-                            <span class="text-white">Projects With Issues:</span>
+                            <span class="text-white">Projects On Time:</span>
                         </div>
                         <div class="col-lg-3 col-xs-12 issues count">
                             <span class="text-white">
@@ -114,7 +114,7 @@ export default class ProjectStatus extends React.Component {
                             <span class="text-white">
                                 {data.Private.Active - data.Private.Issues}
                             </span>
-                            <span class="text-white">Projects With Issues:</span>
+                            <span class="text-white">Projects On Time:</span>
                         </div>
                         <div class="col-lg-3 col-xs-12 issues count">
                             <span class="text-white">
