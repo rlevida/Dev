@@ -147,7 +147,7 @@ exports.get = {
         async.parallel({
             count: function (callback) {
                 try {
-                    Tasks.findAndCountAll({ ...options, where: _.omit(whereObj, ["offset", "limit"]), distinct: true }).then((response) => {
+                    Tasks.findAndCountAll({ options: _.omit(options, ["offset", "limit"]), distinct: true }).then((response) => {
                         const pageData = {
                             total_count: response.count,
                             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
@@ -408,13 +408,13 @@ exports.post = {
                             activity_logs: (parallelCallback) => {
                                 const activityLogs = _.map(newTasksArgs, (taskObj) => {
                                     const activityObj = _.omit(taskObj, ["dateAdded", "dateUpdated"]);
-                                    return { 
-                                        usersId: body.userId, 
-                                        linkType: "task", 
-                                        linkId: taskObj.id, 
-                                        actionType: "created", 
-                                        new: JSON.stringify({ task: activityObj }), 
-                                        title: taskObj.task 
+                                    return {
+                                        usersId: body.userId,
+                                        linkType: "task",
+                                        linkId: taskObj.id,
+                                        actionType: "created",
+                                        new: JSON.stringify({ task: activityObj }),
+                                        title: taskObj.task
                                     }
                                 })
                                 ActivityLogs.bulkCreate(activityLogs).then((response) => {

@@ -5,6 +5,7 @@ import Header from "../partial/header"
 import User from "./users"
 import Team from "./teams"
 
+import TeamsModal from './teams/teamsModal'
 import UsersModal from './users/usersModal'
 import ChangePasswordModal from './users/changePasswordModal'
 
@@ -22,13 +23,16 @@ export default class Component extends React.Component {
 
     componentDidMount() {
         const { dispatch } = this.props;
+
         getData(`/api/globalORM/selectList?selectName=usersList`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'usersList' })
         })
 
+
         getData(`/api/globalORM/selectList?selectName=roleList`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'roleList' })
         })
+
 
         getData(`/api/globalORM/selectList?selectName=teamList`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'teamList' })
@@ -36,12 +40,10 @@ export default class Component extends React.Component {
     }
 
     handleAddTeam() {
-        const { dispatch } = this.props;
-        dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "Form" })
+        $(`#teamsModal`).modal('show');
     }
     handleAddUser() {
         $(`#usersModal`).modal('show');
-        // dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })
     }
     render() {
         let { dispatch, teams, users, project, loggedUser } = this.props;
@@ -55,6 +57,7 @@ export default class Component extends React.Component {
                         <h4 class="mt20 mb20">Team</h4>
                         <a class="more" onClick={(e) => this.handleAddTeam()} >Add Team</a>
                         <Team />
+                        <TeamsModal />
                     </div>
                 </div>
             }

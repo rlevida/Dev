@@ -39,6 +39,12 @@ export default function reducer(state = {
             })
             return { ...state, List: tempList }
         }
+        case "UPDATE_USER_TEAM": {
+            let tempList = _.map(state.List, function(obj) {
+                return _.assign(obj, _.find(action.List, {id: obj.id}));
+            });
+            return { ...state , List : tempList}
+        }
         case "REMOVE_DELETED_USER_LIST": {
             let tempList = state.List.filter((e, i) => {
                 if (action.Id != e.id) {

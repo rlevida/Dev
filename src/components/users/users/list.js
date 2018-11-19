@@ -162,7 +162,7 @@ export default class List extends React.Component {
 
                 <div class="text-center">
                     {
-                        ((currentPage != lastPage) && users.List.length > 0 && users.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
+                        ((currentPage != lastPage) && users.List.length > 0 && users.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Users</a>
                     }
                     {
                         (users.List == 0 && users.Loading != "RETRIEVING") && <p>No Records Found</p>

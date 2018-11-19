@@ -62,8 +62,8 @@ export default class UsersModal extends React.Component {
         let { socket, users, dispatch } = this.props
 
         let result = true;
-        $('.form-container *').validator('validate');
-        $('.form-container .form-group').each(function () {
+        $('.form-container users-modal *').validator('validate');
+        $('.form-container users-modal .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
                 result = false;
             }
@@ -161,7 +161,7 @@ export default class UsersModal extends React.Component {
         });
 
         return <div>
-            <div class="modal fade" id="usersModal" tabIndex="-1" role="dialog" aria-labelledby="usersModalLabel" aria-hidden="true">
+            <div class="modal fade" id="usersModal" tabIndex="-1" role="dialog" aria-labelledby="usersModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -173,7 +173,7 @@ export default class UsersModal extends React.Component {
                             </h5>
                         </div>
                         <div class="modal-body">
-                            <form class="form-horizontal form-container">
+                            <form class="form-horizontal form-container users-modal">
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">User Id *</label>
                                     <div class="col-md-7 col-xs-12">
@@ -280,7 +280,6 @@ export default class UsersModal extends React.Component {
                             {!(_.isEqual(users.Selected, users.CurrentData)) &&
                                 <button type="button" class="btn btn-primary" onClick={() => this.handleSubmit()}>Save</button>
                             }
-
                         </div>
                     </div>
                 </div>

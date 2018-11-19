@@ -24,15 +24,21 @@ const associationStack = [
     },
     {
         model: Teams,
-        as: 'team_as_teamLeader'
+        as: 'team_as_teamLeader',
+        where: { isDeleted: 0 },
+        required: false
     },
     {
         model: UsersTeam,
         as: 'users_team',
         include: [{
             model: Teams,
-            as: 'team'
-        }]
+            as: 'team',
+            where: { isDeleted: 0 },
+            required: false
+        }],
+        where: { isDeleted: 0 },
+        required: false
     },
     {
         model: Members,
@@ -57,7 +63,8 @@ exports.get = {
                     Users
                         .findAndCountAll({
                             include: associationStack,
-                            ...options
+                            options: _.omit(options, ["offset", "limit"]),
+                            distinct: true
                         })
                         .then((res) => {
                             const pageData = {
@@ -76,7 +83,8 @@ exports.get = {
                         .findAll({
                             include: associationStack,
                             attributes: ['id', 'username', 'firstName', 'lastName', 'emailAddress', 'phoneNumber', 'avatar', 'isActive', 'userType', 'company'],
-                            ...options
+                            options: _.omit(options, ["offset", "limit"]),
+                            distinct: true
                         })
                         .map((res) => {
                             let responseToReturn = {
