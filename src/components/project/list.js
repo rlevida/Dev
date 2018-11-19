@@ -1,6 +1,7 @@
 import React from "react";
 import Tooltip from "react-tooltip";
 import parallel from 'async/parallel';
+import moment from 'moment';
 
 import { Loading, HeaderButtonContainer } from "../../globalComponents";
 import { showToast, getData } from "../../globalFunction";
@@ -31,7 +32,7 @@ export default class List extends React.Component {
             projects: (parallelCallback) => {
                 getData(`/api/project?page=${1}`, {}, (c) => {
                     dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count })
-                    dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+                    dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
                     showToast("success", "Project successfully retrieved.");
                     parallelCallback(null, c.data)
                 })
@@ -85,9 +86,13 @@ export default class List extends React.Component {
 
     getNextResult() {
         const { project, dispatch } = { ...this.props };
-        const { Count, List } = project;
+        const { Count, List, Filter } = project;
+        const { typeId, projectStatus } = Filter;
+        const dueDateMoment = moment().format("YYYY-MM-DD");
+
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
-        getData(`/api/project?page=${Count.current_page + 1}`, {}, (c) => {
+
+        getData(`/api/project?page=${Count.current_page + 1}&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_LIST", list: List.concat(c.data.result), count: c.data.count })
             showToast("success", "Project successfully retrieved.");
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
@@ -117,7 +122,7 @@ export default class List extends React.Component {
         let { project, loggedUser, dispatch } = this.props;
         const currentPage = (typeof project.Count.current_page != "undefined") ? project.Count.current_page : 1;
         const lastPage = (typeof project.Count.last_page != "undefined") ? project.Count.last_page : 1;
-
+        
         return (
             <div class="pd20">
                 <div class="row mb10">

@@ -1,19 +1,22 @@
 import { filter } from "lodash";
 
 export default function reducer(state = {
-    List: [],
+    Count: {},
     CountList: [],
+    Filter: {
+        projectStatus: "",
+        typeId: ""
+    },
     FormActive: "List",
+    List: [],
+    Loading: "RETRIEVING",
+    ProjectManagerId: "",
     Selected: { isActive: true },
     SelectedId: [],
-    Loading: true,
-    ProjectManagerId: "",
-    Count: {},
-    Loading: "RETRIEVING",
 }, action) {
     switch (action.type) {
         case "SET_PROJECT_LIST": {
-            return { ...state, List: action.list, Count: action.count }
+            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {} }
         }
         case "SET_PROJECT_COUNT_LIST": {
             return { ...state, CountList: action.list }
@@ -30,8 +33,8 @@ export default function reducer(state = {
         case "SET_PROJECT_MANAGER_ID": {
             return { ...state, ProjectManagerId: action.id }
         }
-        case "SET_TASK_LOADING": {
-            return { ...state, Loading: action.loading }
+        case "SET_PROJECT_LOADING": {
+            return { ...state, Loading: action.Loading }
         }
         case "UPDATE_DATA_PROJECT_LIST": {
             let newList = state.List.map((e, i) => {
@@ -64,6 +67,11 @@ export default function reducer(state = {
                 }
             })
             return { ...state, List: List }
+        }
+        case "SET_FILTER": {
+            const { Filter } = { ...state };
+            const updatedFilter = _.merge({}, Filter, action.filter);
+            return { ...state, Filter: updatedFilter }
         }
         default:
             return state;

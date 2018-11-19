@@ -67,9 +67,8 @@ const associationFindAllStack = [
 
 exports.get = {
     index: (req, cb) => {
-        const queryString = req.query
+        const queryString = req.query;
         const limit = 10;
-
         const options = {
             include: associationFindAllStack,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
@@ -83,10 +82,49 @@ exports.get = {
 
         };
 
+        if (typeof queryString.projectStatus != "undefined" && queryString.projectStatus != "") {
+            switch (queryString.projectStatus) {
+                case "On Time":
+                    whereObj["id"] = {
+                        [Op.and]: {
+                            [Op.in]: Sequelize.literal(`(SELECT DISTINCT workstream.projectId
+                                FROM
+                                    workstream
+                                LEFT JOIN
+                                    task
+                                ON task.workstreamId = workstream.id
+                                AND task.dueDate >= "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}")`),
+                            [Op.notIn]: Sequelize.literal(`(SELECT DISTINCT
+                                workstream.projectId
+                            FROM
+                                workstream
+                            LEFT JOIN
+                                task
+                            ON task.workstreamId = workstream.id
+                            AND task.dueDate < "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}")`)
+                        }
+                    }
+                    break;
+                case "Issues":
+                    whereObj["id"] = {
+                        [Op.in]: Sequelize.literal(`(SELECT DISTINCT
+                            workstream.projectId
+                        FROM
+                            workstream
+                        LEFT JOIN
+                            task
+                        ON task.workstreamId = workstream.id
+                        AND task.dueDate < "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}")`)
+                    }
+                    break;
+                default:
+            }
+        }
+
         async.parallel({
             count: function (callback) {
                 try {
-                    Projects.findAndCountAll({ ...options, distinct: true }).then((response) => {
+                    Projects.findAndCountAll({ ..._.omit(options, ['offset', 'limit']), where: whereObj, distinct: true }).then((response) => {
                         const pageData = {
                             total_count: response.count,
                             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
@@ -102,7 +140,7 @@ exports.get = {
                     Projects
                         .findAll({
                             ...options,
-                            where: whereObj,
+                            where: whereObj
                         })
                         .map((res) => {
                             let documentCount = res.dataValues.document_link.filter((e) => { return e.document != null }).length
@@ -128,6 +166,7 @@ exports.get = {
                 cb({ status: true, data: results })
             }
         })
+
     },
     getById: (req, cb) => {
         defaultGetById(dbName, req, (res) => {
