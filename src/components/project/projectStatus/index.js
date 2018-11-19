@@ -1,9 +1,6 @@
-import React from "react"
-import ReactDOM from "react-dom"
+import React from "react";
+import { connect } from "react-redux";
 
-import { showToast } from '../../../globalFunction'
-
-import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -13,13 +10,6 @@ import { connect } from "react-redux"
 })
 
 export default class ProjectStatus extends React.Component {
-    constructor(props) {
-        super(props)
-        this.state = {
-
-        }
-    }
-
     componentWillMount() {
         let countInterval = setInterval(() => {
             let { loggedUser } = this.props
@@ -53,6 +43,7 @@ export default class ProjectStatus extends React.Component {
             <div class="container-fluid">
                 <div class="row">
                     <div class={`${this.props.offset ? "col-lg-offset-2" : ""} col-lg-1 col-xs-12 count`}>
+                        <span></span>
                         <span>Client:</span>
                     </div>
                     <div class="col-lg-3 col-xs-12 active-count count">
@@ -78,6 +69,7 @@ export default class ProjectStatus extends React.Component {
                         (this.props.loggedUser.data.userRole <= 4)) &&
                     <div class="row">
                         <div class={`${this.props.offset ? "col-lg-offset-2" : ""} col-lg-1 col-xs-12 count`}>
+                            <span></span>
                             <span>Internal:</span>
                         </div>
                         <div class="col-lg-3 col-xs-12 active-count count">
@@ -104,6 +96,7 @@ export default class ProjectStatus extends React.Component {
                         (this.props.loggedUser.data.userRole <= 4)) &&
                     <div class="row">
                         <div class={`${this.props.offset ? "col-lg-offset-2" : ""} col-lg-1 col-xs-12 count`}>
+                            <span></span>
                             <span>Private:</span>
                         </div>
                         <div class="col-lg-3 col-xs-12 active-count count">

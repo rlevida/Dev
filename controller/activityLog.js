@@ -61,7 +61,7 @@ exports.get = {
         async.parallel({
             count: function (callback) {
                 try {
-                    ActivityLogs.findAndCountAll({ where: _.omit(whereObj, ['offset', 'limit']) }).then((response) => {
+                    ActivityLogs.findAndCountAll({ ..._.omit(options, ['offset', 'limit']), where: whereObj, distinct: true }).then((response) => {
                         const pageData = {
                             total_count: response.count,
                             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
@@ -75,7 +75,7 @@ exports.get = {
             },
             result: function (callback) {
                 try {
-                    ActivityLogs.findAll({ ...options, where: whereObj, order: [['dateAdded', 'DESC']], logging: true }).map((mapObject) => {
+                    ActivityLogs.findAll({ ...options, where: whereObj, order: [['dateAdded', 'DESC']] }).map((mapObject) => {
                         return mapObject.toJSON();
                     }).then((resultArray) => {
                         callback(null, resultArray);
