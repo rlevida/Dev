@@ -68,9 +68,7 @@ exports.get = {
                     Users
                         .findAndCountAll({
                             include: associationStack,
-                            options: _.omit(options, ["offset", "limit"]),
-                            distinct: true,
-                            where: whereObj
+                            ..._.omit(options, ['offset', 'limit']), where: whereObj, distinct: true
                         })
                         .then((res) => {
                             const pageData = {
@@ -89,9 +87,7 @@ exports.get = {
                         .findAll({
                             include: associationStack,
                             attributes: ['id', 'username', 'firstName', 'lastName', 'emailAddress', 'phoneNumber', 'avatar', 'isActive', 'userType', 'company'],
-                            options: _.omit(options, ["offset", "limit"]),
-                            distinct: true,
-                            where: whereObj
+                            ..._.omit(options, ['offset', 'limit']), where: whereObj, distinct: true
                         })
                         .map((res) => {
                             let responseToReturn = {

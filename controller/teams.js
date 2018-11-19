@@ -84,9 +84,7 @@ exports.get = {
                 Teams
                     .findAndCountAll({
                         include: associationStack,
-                        options: _.omit(options, ["offset", "limit"]),
-                        distinct: true,
-                        where: whereObj
+                        ..._.omit(options, ['offset', 'limit']), where: whereObj, distinct: true
                     })
                     .then((res) => {
                         const pageData = {
@@ -100,8 +98,7 @@ exports.get = {
                 Teams
                     .findAll({
                         include: associationStack,
-                        ...options,
-                        where: whereObj
+                        ..._.omit(options, ['offset', 'limit']), where: whereObj, distinct: true
                     })
                     .then((res) => {
                         parallelCallback(null, res)
