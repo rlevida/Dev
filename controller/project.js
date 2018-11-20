@@ -92,6 +92,9 @@ exports.get = {
 
         if (typeof queryString.projectStatus != "undefined" && queryString.projectStatus != "") {
             switch (queryString.projectStatus) {
+                case "Active":
+                    whereObj["isActive"] = 1;
+                    break;
                 case "On Time":
                     whereObj["id"] = {
                         [Op.and]: {

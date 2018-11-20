@@ -3,7 +3,7 @@ const sequence = require("sequence").Sequence;
 const models = require('../modelORM');
 const moment = require('moment');
 const { defaultDelete } = require("./");
-const { Type, Workstream, Tasks, Tag, Members, Users, Document, Sequelize } = models;
+const { Type, Workstream, Tasks, Tag, Members, Users, Document, Sequelize, sequelize } = models;
 const associationStack = [
     {
         model: Type,
@@ -67,6 +67,7 @@ exports.get = {
         const limit = 10;
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
+            ...(typeof queryString.typeId != "undefined" && queryString.typeId != "") ? { typeId: queryString.typeId } : {},
             ...((typeof queryString.userType != "undefined" && queryString.userType == "External") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
                 [Sequelize.Op.or]: [
                     {
@@ -80,6 +81,15 @@ exports.get = {
                         }
                     }
                 ]
+            } : {},
+            ...(typeof queryString.workstream != "undefined" && queryString.workstream != "") ? {
+                [Sequelize.Op.and]: [
+                    Sequelize.where(Sequelize.fn('lower', Sequelize.col('workstream')),
+                        {
+                            [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.workstream}%`)
+                        }
+                    )
+                ]
             } : {}
         };
         const options = {
@@ -87,6 +97,55 @@ exports.get = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
             order: [['dateAdded', 'DESC']]
         };
+
+        if (typeof queryString.workstreamStatus != "undefined" && queryString.workstreamStatus != "") {
+            switch (queryString.workstreamStatus) {
+                case "Active":
+                    whereObj["isActive"] = 1;
+                    break;
+                case "On Time":
+                    whereObj["id"] = {
+                        [Sequelize.Op.and]: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT workstream.id
+                                FROM
+                                    workstream
+                                LEFT JOIN
+                                    task
+                                ON task.workstreamId = workstream.id
+                                WHERE task.dueDate >= "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}"
+                                OR task.dueDate IS NULL
+                                OR task.status = "Completed"
+                                )`),
+                            [Sequelize.Op.notIn]: Sequelize.literal(`(SELECT DISTINCT
+                                workstream.id
+                            FROM
+                                workstream
+                            LEFT JOIN
+                                task
+                            ON task.workstreamId = workstream.id
+                            WHERE task.dueDate < "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}" 
+                            AND (task.status != "Completed" OR task.status IS NULL)
+                            )`)
+                        }
+                    }
+                    break;
+                case "Issues":
+                    whereObj["id"] = {
+                        [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT
+                            workstream.id
+                        FROM
+                            workstream
+                        LEFT JOIN
+                            task
+                        ON task.workstreamId = workstream.id
+                        WHERE task.dueDate < "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}"
+                        AND (task.status != "Completed" OR task.status IS NULL)
+                    )`)
+                    }
+                    break;
+                default:
+            }
+        }
 
         async.parallel({
             count: function (callback) {
@@ -107,7 +166,7 @@ exports.get = {
                 try {
                     Workstream.findAll({
                         where: whereObj,
-                        ...options,
+                        ...options
                     }).map((mapObject) => {
                         const resultObj = mapObject.toJSON();
                         const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
