@@ -1,12 +1,13 @@
 import React from "react";
 import _ from "lodash";
 import moment from 'moment';
+import { connect } from "react-redux";
 
+import TaskStatus from "./taskStatus";
+import TaskFilter from "./taskFilter";
 import { HeaderButtonContainer, Loading } from "../../globalComponents";
 import { getData, putData, deleteData, showToast } from "../../globalFunction";
-import TaskStatus from "./taskStatus"
 
-import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -43,11 +44,27 @@ export default class List extends React.Component {
     }
 
     fetchData(page) {
-        const { loggedUser, dispatch } = this.props;
+        const { loggedUser, dispatch, task } = this.props;
         const { data } = loggedUser;
         const userRoles = _.map(data.user_role, (roleObj) => { return roleObj.roleId })[0];
+        let requestUrl = `/api/task?projectId=${project}&page=${page}`;
+        const { taskStatus, dueDate, taskAssigned } = task.Filter;
 
-        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${page}&role=${userRoles}`, {}, (c) => {
+        if (taskStatus != "") {
+            requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
+        }
+
+        if (dueDate != "") {
+            requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`
+        }
+
+        if (taskAssigned != "") {
+            requestUrl += `&userId=${taskAssigned}&role=6`
+        } else {
+            requestUrl += `&userId=${loggedUser.data.id}&role=${userRoles}`
+        }
+
+        getData(requestUrl, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
             showToast("success", "Task successfully retrieved.");
@@ -147,6 +164,11 @@ export default class List extends React.Component {
                         </li>
                     }
                 </HeaderButtonContainer>
+                <div class="row mb10">
+                    <div class="col-lg-6">
+                        <TaskFilter />
+                    </div>
+                </div>
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
                         <tr>

@@ -68,7 +68,7 @@ export default function reducer(state = {
             })
             return { ...state, List: List }
         }
-        case "SET_FILTER": {
+        case "SET_PROJECT_FILTER": {
             const { Filter } = { ...state };
             const updatedFilter = _.merge({}, Filter, action.filter);
             return { ...state, Filter: updatedFilter }

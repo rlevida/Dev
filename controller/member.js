@@ -42,6 +42,7 @@ exports.get = {
         const whereObj = {
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {},
             ...(typeof queryString.linkId != "undefined" && queryString.linkId != "") ? { linkId: queryString.linkId } : {},
+            ...(typeof queryString.userTypeLinkId != "undefined" && queryString.userTypeLinkId != "") ? { userTypeLinkId: queryString.userTypeLinkId } : {},
             ...(typeof queryString.memberType != "undefined" && queryString.memberType != "") ? { memberType: queryString.memberType } : {},
             ...(typeof queryString.usersType != "undefined" && queryString.usersType != "") ? { usersType: queryString.usersType } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? {
@@ -68,6 +69,15 @@ exports.get = {
                     ]
                 },
                 memberType: "assignedTo"
+            } : {},
+            ...(typeof queryString.memberName != "undefined" && queryString.memberName != "") ? {
+                [Sequelize.Op.and]: [
+                    {
+                        userTypeLinkId: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT users.id FROM members INNER JOIN users ON members.userTypeLinkId = users.id AND users.firstName like "%${queryString.memberName}%" OR users.lastName like "%${queryString.memberName}%")`)
+                        }
+                    }
+                ]
             } : {}
         }
         const options = {
