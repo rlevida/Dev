@@ -58,7 +58,15 @@ const associationFindAllStack = [
             {
                 model: Tasks,
                 as: 'taskOverDue',
-                where: { dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") } },
+                where: {
+                    dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") },
+                    status: {
+                        [Op.or]: {
+                            [Op.not]: "Completed",
+                            [Op.eq]: null
+                        }
+                    }
+                },
                 required: false,
             },
         ],
@@ -93,7 +101,10 @@ exports.get = {
                                 LEFT JOIN
                                     task
                                 ON task.workstreamId = workstream.id
-                                AND task.dueDate >= "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}")`),
+                                WHERE task.dueDate >= "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}"
+                                OR task.dueDate IS NULL
+                                OR task.status = "Completed"
+                                )`),
                             [Op.notIn]: Sequelize.literal(`(SELECT DISTINCT
                                 workstream.projectId
                             FROM
@@ -101,7 +112,9 @@ exports.get = {
                             LEFT JOIN
                                 task
                             ON task.workstreamId = workstream.id
-                            AND task.dueDate < "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}")`)
+                            WHERE task.dueDate < "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}" 
+                            AND (task.status != "Completed" OR task.status IS NULL)
+                            )`)
                         }
                     }
                     break;
@@ -114,7 +127,9 @@ exports.get = {
                         LEFT JOIN
                             task
                         ON task.workstreamId = workstream.id
-                        AND task.dueDate < "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}")`)
+                        WHERE task.dueDate < "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}"
+                        AND (task.status != "Completed" OR task.status IS NULL)
+                    )`)
                     }
                     break;
                 default:
@@ -409,7 +424,15 @@ exports.post = {
                     {
                         model: Tasks,
                         as: 'taskOverDue',
-                        where: Sequelize.where(Sequelize.fn('date', Sequelize.col('taskOverDue.dueDate')), '<', moment().format('YYYY-MM-DD 00:00:00')),
+                        where: {
+                            dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") },
+                            status: {
+                                [Op.or]: {
+                                    [Op.not]: "Completed",
+                                    [Op.eq]: null
+                                }
+                            }
+                        },
                         required: false,
                         attributes: []
                     },
