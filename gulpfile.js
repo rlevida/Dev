@@ -23,6 +23,7 @@ var fileSources = {
             "node_modules/toastr/build/toastr.css",
             "node_modules/react-select/dist/react-select.css",
             "node_modules/font-awesome/css/font-awesome.min.css",
+            "node_modules/react-big-calendar/lib/css/react-big-calendar.css",
             "public/stylesheets/picker.css",
             "node_modules/rc-editor-mention/assets/index.css"
         ]
