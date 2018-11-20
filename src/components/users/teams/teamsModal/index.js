@@ -141,16 +141,16 @@ export default class TeamsModal extends React.Component {
             .orderBy(['name'], ['asc'])
             .value()
             : [];
-        let teamLeaderList = _(users.List)
+        let teamLeaderList = (typeof global.SelectList.usersList != "undefined") ? _(global.SelectList.usersList)
             .filter((user) => {
-                let alreadyMember = (typeof teams.Selected.users == "undefined") ? [] : JSON.parse(teams.Selected.users);
+                let alreadyMember = (typeof teams.Selected.users_team == "undefined") ? [] : teams.Selected.users_team;
                 let canBeTeamLeader = _.findIndex(user.user_role, (o) => { return o.roleId == 1 || o.roleId == 2 || o.roleId == 3 });
-
                 return user.userType == "Internal" && _.findIndex(alreadyMember, (o) => { return o.value == user.id }) < 0 && canBeTeamLeader >= 0;
             })
             .map((user) => { return { id: user.id, name: user.firstName + " " + user.lastName } })
             .orderBy(['name'], ['asc'])
             .value()
+            : [];
         return <div>
             <div class="modal fade" id="teamsModal" tabIndex="-1" role="dialog" aria-labelledby="teamsModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
                 <div class="modal-dialog modal-lg" role="document">

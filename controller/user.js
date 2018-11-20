@@ -103,7 +103,6 @@ exports.get = {
                             return _.omit(responseToReturn, "team_as_teamLeader", "users_team")
                         })
                         .then((res) => {
-                            console.log(res.length)
                             parallelCallback(null, res);
                         })
                 } catch (err) {
