@@ -2,6 +2,7 @@ import React from "react"
 import Header from "../partial/header"
 import Form from "./form"
 import List from "./list"
+import Calendar from "./calendar"
 import Link from "./link"
 import TaskComponent from "../taskComponent"
 import _ from "lodash";
@@ -43,12 +44,16 @@ export default class Component extends React.Component {
                 </ul>
             }
             {
-                (task.FormActive == "List") &&
+                (task.FormActive == "List" || task.FormActive == "Timeline" || task.FormActive == "Calendar") &&
                 <Link />
             }
             {
                 (task.FormActive == "List") &&
                 <List />
+            }
+            {
+                (task.FormActive == "Calendar") &&
+                <Calendar />
             }
             {
                 (task.FormActive == "Form") &&
