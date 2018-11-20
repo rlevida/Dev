@@ -41,6 +41,7 @@ const Reminder = require('./reminder')(sequelize, Sequelize.DataTypes);
 const Roles = require('./role')(sequelize, Sequelize.DataTypes);
 const Share = require('./share')(sequelize, Sequelize.DataTypes);
 const Status = require('./status')(sequelize, Sequelize.DataTypes);
+const TaskMemberReminder = require('./task_member_reminder')(sequelize, Sequelize.DataTypes);
 const Type = require('./type')(sequelize, Sequelize.DataTypes);
 
 const models = {
@@ -56,6 +57,7 @@ const models = {
     Tasks,
     TaskChecklist,
     TaskDependency,
+    TaskMemberReminder,
     Teams,
     Users,
     Workstream,

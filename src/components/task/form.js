@@ -9,6 +9,7 @@ import { HeaderButtonContainer, Loading, DropDown } from "../../globalComponents
 
 import Checklist from "./checklist";
 import TaskDependency from "./taskDependency";
+import Reminder from "./reminder";
 
 
 @connect((store) => {
@@ -278,7 +279,7 @@ export default class FormComponent extends React.Component {
             .map((taskListObj) => { return { id: taskListObj.id, name: taskListObj.task } })
             .filter((taskListObj) => { return taskListObj.id != task.Selected.id })
             .value();
-        const projectUserList = (typeof global.SelectList.ProjectMemberList != "undefined") ? _.map(global.SelectList.ProjectMemberList, (projectMemberObj) => { return { id: projectMemberObj.id, name: projectMemberObj.firstName + " " + projectMemberObj.lastName } }) : [];
+        const projectUserList = (typeof global.SelectList.projectMemberList != "undefined") ? _.map(global.SelectList.projectMemberList, (projectMemberObj) => { return { id: projectMemberObj.id, name: projectMemberObj.firstName + " " + projectMemberObj.lastName } }) : [];
         const canAssignDependency = (typeof task.Selected.workstream != "undefined") ?
             (
                 (loggedUser.data.userRole < 3) ||
@@ -513,6 +514,14 @@ export default class FormComponent extends React.Component {
                                                     />
                                                 </div>
                                             </div>
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-xs-12 control-label pt0">Reminder</label>
+                                                <div class="col-md-7 col-xs-12">
+                                                    <a href="#" type="button" data-toggle="modal" data-target="#reminderModal">
+                                                        Edit Reminder
+                                                    </a>
+                                                </div>
+                                            </div>
                                             {
                                                 (typeof task.Selected.id != "undefined" && task.Selected.id != "") && <div class="form-group" style={{ marginTop: 25 }}>
                                                     <label class="col-md-3 col-xs-12 control-label pt0">Task Dependencies</label>
@@ -670,6 +679,19 @@ export default class FormComponent extends React.Component {
                             </div>
                             <div class="modal-body">
                                 <TaskDependency />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="reminderModal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
+                    <div class="modal-dialog modal-lg" role="reminderModal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="myModalLabel">Reminder</h4>
+                            </div>
+                            <div class="modal-body">
+                                <Reminder/>
                             </div>
                         </div>
                     </div>

@@ -44,7 +44,7 @@ export default class List extends React.Component {
     fetchData(page) {
         const { dispatch, loggedUser, teams } = this.props;
         getData(`/api/teams?page=${page}&isDeleted=0`, {}, (c) => {
-            dispatch({ type: 'SET_TEAM_LIST', List: teams.List.concat(c.data.result), Count: c.data.count });
+            dispatch({ type: 'SET_TEAM_LIST', list: teams.List.concat(c.data.result), Count: c.data.count });
             dispatch({ type: 'SET_TEAM_LOADING', Loading: '' });
         })
     }

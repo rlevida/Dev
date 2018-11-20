@@ -3,42 +3,46 @@ const { defaultPost, defaultPut, defaultDelete } = require("./");
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const models = require('../modelORM');
-const { Members, Users, UsersRole, Roles, UsersTeam, Teams } = models;
-
+const { Members, Users, UsersRole, Roles, UsersTeam, Teams, TaskMemberReminder } = models;
+const associationArray = [
+    {
+        model: Users,
+        as: 'user',
+        attributes: ["id", "firstName", "lastName", "username", "emailAddress", "userType"],
+        include: [
+            {
+                model: UsersRole,
+                as: 'user_role',
+                include: [
+                    {
+                        model: Roles,
+                        as: 'role'
+                    }
+                ]
+            },
+            {
+                model: UsersTeam,
+                as: 'users_team',
+                include: [
+                    {
+                        model: Teams,
+                        as: 'team'
+                    }
+                ]
+            },
+            {
+                model: TaskMemberReminder,
+                as: 'task_member_reminder'
+            }
+        ]
+    }
+]
 
 exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
         const limit = 5;
-        const associationArray = [
-            {
-                model: Users,
-                as: 'user',
-                attributes: ["firstName", "lastName", "username", "emailAddress", "userType"],
-                include: [
-                    {
-                        model: UsersRole,
-                        as: 'user_role',
-                        include: [
-                            {
-                                model: Roles,
-                                as: 'role'
-                            }
-                        ]
-                    },
-                    {
-                        model: UsersTeam,
-                        as: 'users_team',
-                        include: [
-                            {
-                                model: Teams,
-                                as: 'team'
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
+
         const whereObj = {
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {},
             ...(typeof queryString.linkId != "undefined" && queryString.linkId != "") ? { linkId: queryString.linkId } : {},
@@ -150,13 +154,31 @@ exports.post = {
 
 exports.put = {
     index: (req, cb) => {
-        defaultPut(dbName, req, (res) => {
-            if (res.success) {
-                cb({ status: true, data: res.data })
-            } else {
-                cb({ status: false, error: c.error })
-            }
-        })
+        const body = req.body;
+        const queryString = req.query;
+        const whereObj = {
+            ...(typeof queryString.linkType !== 'undefined' && queryString.linkType !== '') ? { linkType: queryString.linkType } : {},
+            ...(typeof queryString.linkId !== 'undefined' && queryString.linkId !== '') ? { linkId: queryString.linkId } : {},
+            ...(typeof queryString.usersType !== 'undefined' && queryString.usersType !== '') ? { usersType: queryString.usersType } : {},
+            ...(typeof queryString.userTypeLinkId !== 'undefined' && queryString.userTypeLinkId !== '') ? { userTypeLinkId: queryString.userTypeLinkId } : {}
+        }
+
+        try {
+            Members
+                .update(body, { where: whereObj })
+                .then((res) => {
+                    Members
+                        .findOne({
+                            where: whereObj,
+                            include: associationArray
+                        })
+                        .then((findRes) => {
+                            cb({ status: true, data: [findRes] })
+                        })
+                })
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
     }
 }
 

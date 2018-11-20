@@ -60,7 +60,7 @@ export default class List extends React.Component {
             user: (parallelCallback) => {
                 getData(`/api/user`, {}, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "SET_USER_LIST", List: c.data.result })
+                        dispatch({ type: "SET_USER_LIST", list: c.data.result })
                         parallelCallback(null, c.data)
                     } else {
                         parallelCallback(null, "")

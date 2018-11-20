@@ -44,16 +44,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    dateAdded: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
-    },
-    dateUpdated: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
-    },
     isActive: {
       type: DataTypes.INTEGER(1),
       allowNull: true,
@@ -63,6 +53,26 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER(1),
       allowNull: true,
       defaultValue: '0'
+    },
+    remindOnDuedate: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '0'
+    },
+    remindBeforeDuedate: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '0'
+    },
+    dateAdded: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
+    },
+    dateUpdated: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
       tableName: 'project',
@@ -98,20 +108,20 @@ module.exports = (sequelize, DataTypes) => {
       as: 'taskActive',
       foreignKey: 'projectId'
     })
-    
+
     Projects.hasMany(models.Tasks, {
       as: 'taskOverDue',
       foreignKey: 'projectId'
     })
-    
+
     Projects.hasMany(models.Tasks, {
       as: 'taskDueToday',
       foreignKey: 'projectId'
     })
 
     Projects.hasMany(models.DocumentLink, {
-      as:'document_link',
-      foreignKey:'linkId'
+      as: 'document_link',
+      foreignKey: 'linkId'
     })
 
   };

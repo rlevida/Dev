@@ -109,6 +109,10 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'teamLeaderId'
     })
 
+    Users.hasMany(models.TaskMemberReminder, {
+      as: 'task_member_reminder',
+      foreignKey: 'usersId'
+    })
   };
 
   return Users;
