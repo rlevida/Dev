@@ -1,8 +1,8 @@
 import React from "react";
 import _ from "lodash";
 import Tooltip from "react-tooltip";
-import { showToast, displayDate, numberFormat } from '../../../globalFunction';
-import { HeaderButtonContainer, HeaderButton, DropDown, OnOffSwitch } from "../../../globalComponents";
+import { getData, putData, deleteData, showToast } from '../../../globalFunction';
+import { OnOffSwitch, Loading } from "../../../globalComponents";
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -20,24 +20,42 @@ export default class List extends React.Component {
         this.deleteData = this.deleteData.bind(this)
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
         this.renderArrayTd = this.renderArrayTd.bind(this)
+        this.getNextResult = this.getNextResult.bind(this)
     }
 
-    componentWillMount() {
-        this.props.socket.emit("GET_USER_LIST", {});
-        this.props.socket.emit("GET_ROLE_LIST", {});
-    }
+    componentDidMount() {
+        const { users } = this.props;
 
-    updateActiveStatus(id, active) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_USER_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
-        socket.emit("SAVE_OR_UPDATE_USER", { data: { id: id, isActive: (active == 1) ? 0 : 1 } })
+        if (_.isEmpty(users.Count)) {
+            this.fetchData(1);
+        }
     }
 
     deleteData(id) {
-        let { socket } = this.props;
+        const { dispatch } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_USER", { id: id })
+            putData(`/api/user/deleteUser/${id}`, { isDeleted: 1 }, (c) => {
+                if (c.data.error) {
+                    showToast('error', c.data.message);
+                } else {
+                    dispatch({ type: 'REMOVE_DELETED_USER_LIST', Id: id });
+                    showToast('success', 'Successfully Deleted.');
+                }
+            })
         }
+    }
+
+    getNextResult() {
+        const { users } = this.props;
+        this.fetchData(users.Count.current_page + 1)
+    }
+
+    fetchData(page) {
+        const { dispatch, users } = this.props;
+        getData(`/api/user?page=${page}&isDeleted=0`, {}, (c) => {
+            dispatch({ type: 'SET_USER_LIST', List: users.List.concat(c.data.result), Count: c.data.count });
+            dispatch({ type: 'SET_USER_LOADING', Loading: '' });
+        })
     }
 
     renderArrayTd(arr) {
@@ -46,17 +64,43 @@ export default class List extends React.Component {
         );
     }
 
+    updateActiveStatus(id, active) {
+        const { dispatch } = this.props;
+        putData(`/api/user/${id}`, { id: id, isActive: (active == 1) ? 0 : 1 }, (c) => {
+            dispatch({ type: 'UPDATE_DATA_USER_LIST', UpdatedData: c.data })
+            showToast('success', 'Successfully Updated.');
+        })
+    }
+
+    handleEdit(data) {
+        const { dispatch } = this.props;
+        dispatch({ type: 'SET_USER_SELECTED', Selected: { ...data, team: data.team.map((e) => { return { value: e.id, label: e.team } }) } });
+        dispatch({ type: 'SET_CURRENT_DATA_SELECTED', Selected: { ...data, team: data.team.map((e) => { return { value: e.id, label: e.team } }) } })
+        $(`#usersModal`).modal('show');
+    }
+
+    handleChangePassword(id) {
+        const { dispatch } = this.props;
+        dispatch({ type: "SET_USER_ID", SelectedId: id });
+        $(`#changePasswordModal`).modal('show');
+    }
+
     render() {
-        let { users, dispatch, socket, loggedUser } = this.props;
+        const { users, loggedUser } = this.props;
+        const currentPage = (typeof users.Count.current_page != "undefined") ? users.Count.current_page : 1;
+        const lastPage = (typeof users.Count.last_page != "undefined") ? users.Count.last_page : 1;
+
         let userList = _.filter(users.List, (o) => {
             if (loggedUser.data.userRole == 1) {
                 return o.id > 0;
             } else if (loggedUser.data.userRole == 2) {
-                return (_.filter(o.role, (role) => { return role.roleId > 1 })).length > 0
+                return _.filter(o.user_role, (r) => { return r.roleId > 1 }).length > 0;
             } else if (loggedUser.data.userRole == 3) {
-                return (_.filter(o.projects, (project) => { return project.projectManagerId == loggedUser.data.id })).length > 0 && o.userType == "External"
+                _.filter(o.user_role, (r) => { return r.roleId > 2 }).length > 0
+                // return (_.filter(o.projects, (project) => { return project.projectManagerId == loggedUser.data.id })).length > 0 && o.userType == "External"
             }
         });
+
         return (
             <div>
                 <table id="dataTable" class="table responsive-table m0">
@@ -72,11 +116,10 @@ export default class List extends React.Component {
                             <th class="text-left">Team/s</th>
                             <th class="text-center"></th>
                         </tr>
-                        { (userList.length > 0) &&
+                        {(userList.length > 0) &&
                             userList.map((user, index) => {
-                                let toBeEditedByAdmin = user.role.filter(e => e.roleId == 2 || e.roleId == 3 || e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
-                                let toBeEditedByManager = user.role.filter(e => e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
-
+                                let toBeEditedByAdmin = user.user_role.filter(e => e.roleId == 2 || e.roleId == 3 || e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
+                                let toBeEditedByManager = user.user_role.filter(e => e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
                                 return (
                                     <tr key={index}>
                                         <td class="text-center">{user.id}</td>
@@ -85,13 +128,13 @@ export default class List extends React.Component {
                                         <td class="text-left">{user.lastName}</td>
                                         <td class="text-left">{user.emailAddress}</td>
                                         <td class="text-center">{user.userType}</td>
-                                        <td class="text-left">{this.renderArrayTd(_.map(user.role, (el) => { return el.role_role }))}</td>
-                                        <td class="text-left">{this.renderArrayTd(_.map(user.team, (el) => { return el.team_team }))}</td>
+                                        <td class="text-left">{this.renderArrayTd(_.map(user.user_role, (el) => { return el.role.role }))}</td>
+                                        <td class="text-left">{this.renderArrayTd(_.map(user.team, (el) => { return el.team }))}</td>
                                         <td class="text-center">
                                             {
                                                 (loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 && toBeEditedByAdmin.length > 0 || loggedUser.data.userRole == 3 && toBeEditedByManager.length > 0) && <div>
                                                     <a href="javascript:void(0);" data-tip="EDIT"
-                                                        onClick={(e) => socket.emit("GET_USER_DETAIL", { id: user.id })}
+                                                        onClick={(e) => this.handleEdit(user)}
                                                         class="btn btn-info btn-sm">
                                                         <span class="glyphicon glyphicon-pencil"></span></a>
                                                     <a href="javascript:void(0);" data-tip="DELETE"
@@ -100,10 +143,8 @@ export default class List extends React.Component {
                                                         <span class="glyphicon glyphicon-trash"></span></a>
                                                     <a href="javascript:void(0);"
                                                         data-tip='CHANGE PASSWORD'
-                                                        onClick={e => {
-                                                            dispatch({ type: "SET_USER_ID", SelectedId: user.id })
-                                                            dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "ChangePassword" })
-                                                        }} class="btn btn-info btn-sm ml10">
+                                                        onClick={(e) => this.handleChangePassword(user.id)
+                                                        } class="btn btn-info btn-sm ml10">
                                                         <span class="glyphicon glyphicon-lock"></span>
                                                     </a>
                                                     <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />
@@ -118,8 +159,17 @@ export default class List extends React.Component {
 
                     </tbody>
                 </table>
+
+                <div class="text-center">
+                    {
+                        ((currentPage != lastPage) && users.List.length > 0 && users.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Users</a>
+                    }
+                    {
+                        (users.List == 0 && users.Loading != "RETRIEVING") && <p>No Records Found</p>
+                    }
+                </div>
                 {
-                    (userList.length == 0) && <p class="text-center m0">No Record Found!</p>
+                    (users.Loading == "RETRIEVING") && <Loading />
                 }
             </div>
         )

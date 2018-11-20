@@ -17,6 +17,7 @@ const {
     Users,
     UsersTeam,
     UsersRole,
+    Roles,
     Workstream,
 } = models;
 
@@ -46,7 +47,8 @@ exports.get = {
             shareList: "Share",
             workstreamList: "Workstream",
             taskList: "Tasks",
-            type: "Type"
+            type: "Type",
+            usersList: "Users"
         }
 
         modelName = modelList[queryString.selectName];
@@ -139,8 +141,65 @@ exports.get = {
                                 data: memberList
                             })
                         })
-                        break;
                     }
+                    break;
+                case "usersList":
+                    {
+                        Users
+                            .findAll({
+                                include: [
+                                    {
+                                        model: UsersRole,
+                                        as: 'user_role',
+                                        include: [{
+                                            model: Roles,
+                                            as: 'role',
+                                        }]
+                                    },
+                                    {
+                                        model: Teams,
+                                        as: 'team_as_teamLeader',
+                                        where: { isDeleted: 0 },
+                                        required: false
+                                    },
+                                    {
+                                        model: UsersTeam,
+                                        as: 'users_team',
+                                        include: [{
+                                            model: Teams,
+                                            as: 'team',
+                                            where: { isDeleted: 0 },
+                                            required: false
+                                        }],
+                                        where: { isDeleted: 0 },
+                                        required: false
+                                    },
+                                    {
+                                        model: Members,
+                                        as: 'projectId',
+                                        where: { usersType: 'users', linkType: 'project' },
+                                        required: false,
+                                        attributes: ['linkId']
+                                    },
+                                ],
+                                attributes: ['id', 'username', 'firstName', 'lastName', 'emailAddress', 'phoneNumber', 'avatar', 'isActive', 'userType', 'company'],
+                                distinct: true,
+                                where: whereObj
+                            })
+                            .map((res) => {
+                                let responseToReturn = {
+                                    ...res.toJSON(),
+                                    projectId: res.projectId.map((e) => { return e.linkId }),
+                                    userRole: res.user_role[0].roleId,
+                                    team: res.team_as_teamLeader.concat(res.users_team.map((e) => { return e.team }))
+                                }
+                                return _.omit(responseToReturn, "team_as_teamLeader", "users_team")
+                            })
+                            .then((res) => {
+                                cb({ status: true, data: res })
+                            })
+                    }
+                    break;
                 case "teamList":
                     {
                         try {

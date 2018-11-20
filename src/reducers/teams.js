@@ -5,18 +5,21 @@ export default function reducer(state = {
     FormActive: "List",
     Selected: {},
     SelectedId: [],
-    Trainer: []
+    Trainer: [],
+    Count: {},
+    Loading: 'RETRIEVING',
+    CurrentData: {}
 }, action) {
     switch (action.type) {
-        case "ADD_TEAM_TO_LIST":{
+        case "ADD_TEAM_TO_LIST": {
             let List = state.List;
-            action.list.map( e => {
-                List.push( e )
+            action.list.map(e => {
+                List.push(e)
             })
-            return {...state, List : List }
+            return { ...state, List: List }
         }
         case "SET_TEAM_LIST": {
-            return { ...state, List: action.list }
+            return { ...state, List: action.List, Count: action.Count }
         }
         case "SET_TEAM_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
@@ -27,10 +30,16 @@ export default function reducer(state = {
         case "SET_TEAM_ID": {
             return { ...state, SelectedId: action.SelectedId }
         }
+        case "SET_TEAM_LOADING": {
+            return { ...state, Loading: action.Loading }
+        }
+        case "SET_TEAM_CURRENT_DATA_SELECTED": {
+            return { ...state, CurrentData: action.Selected }
+        }
         case "UPDATE_DATA_TEAM_LIST": {
             let { List } = { ...state };
-            let indexToBeUpdated = _.findIndex(List, (o) => {return o.id == action.List.id});
-            List[indexToBeUpdated] = action.List;
+            let indexToBeUpdated = _.findIndex(List, (o) => { return o.id == action.UpdatedData.id });
+            List[indexToBeUpdated] = action.UpdatedData;
             return { ...state, List: List }
         }
         case "REMOVE_DELETED_TEAM_LIST": {

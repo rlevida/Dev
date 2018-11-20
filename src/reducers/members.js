@@ -19,9 +19,6 @@ export default function reducer(state = {
         case "SET_MEMBERS_LIST": {
             return { ...state, List: action.list, Count: action.count }
         }
-        case "SET_TASK_LOADING": {
-            return { ...state, Loading: (typeof action.Loading != "undefined") ? action.Loading : "" }
-        }
         case "SET_MEMBERS_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
         }
