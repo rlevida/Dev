@@ -188,7 +188,7 @@ export default class List extends React.Component {
                                         <tr key={index}>
                                             <td>
                                                 {(data.isActive == 0) && <span class="fa fa-circle" style={{ color: "#bdc3c7" }}></span>}
-                                                {(data.isActive == 1) ? <span className={(lateWorkstream > 0) ? "fa fa-exclamation-circle fa-lg" : "fa fa-circle fa-lg"} style={{ color: (lateWorkstream > 0) ? "#c0392b" : (workstreamTaskDueToday > 0) ? "#f39c12" : "#27ae60" }}></span> : ""}
+                                                {(data.isActive == 1) ? <span className={(lateWorkstream > 0) ? "fa fa-exclamation-circle" : "fa fa-circle"} style={{ color: (lateWorkstream > 0) ? "#c0392b" : (workstreamTaskDueToday > 0) ? "#f39c12" : "#27ae60" }}></span> : ""}
                                             </td>
                                             <td class="text-left"><a href={"/project/" + data.id} target="_blank">{data.project + ((data.projectNameCount > 0) ? " (" + data.projectNameCount + ")" : "")}</a></td>
                                             <td class="text-center">
