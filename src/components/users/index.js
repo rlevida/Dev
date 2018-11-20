@@ -37,6 +37,10 @@ export default class Component extends React.Component {
         getData(`/api/globalORM/selectList?selectName=teamList`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'teamList' })
         })
+
+        getData(`/api/globalORM/selectList?selectName=projectList`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectList' })
+        })
     }
 
     handleAddTeam() {

@@ -99,6 +99,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'userTypeLinkId'
     });
 
+    Users.hasMany(models.Members, {
+      as: 'user_projects',
+      foreignKey: 'userTypeLinkId'
+    });
+
     Users.hasMany(models.Teams, {
       as: 'team_as_teamLeader',
       foreignKey: 'teamLeaderId'

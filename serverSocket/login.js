@@ -69,6 +69,12 @@ var init = exports.init = (socket) => {
                                 attributes: ['linkId']
                             },
                             {
+                                model: Members,
+                                as: 'user_projects',
+                                where: { usersType: 'users', linkType: 'project' },
+                                required: false,
+                            },
+                            {
                                 model: Teams,
                                 as: 'team_as_teamLeader'
                             },

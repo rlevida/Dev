@@ -38,13 +38,12 @@ export default class FormComponent extends React.Component {
     componentDidMount() {
         const { dispatch, project } = this.props;
         $(".form-container").validator();
-
         getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project&usersType=users`, {}, (c) => {
             dispatch({ type: "SET_MEMBERS_LIST", list: c.data });
         });
 
         getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`, {}, (c) => {
-            dispatch({ type: "SET_TEAM_LIST", list: c.data })
+            dispatch({ type: "SET_TEAM_LIST", List: c.data })
         });
 
         getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
@@ -206,7 +205,7 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        const { dispatch, project, loggedUser, members, status, type, users, teams, workstream } = { ...this.props };
+        const { dispatch, project, loggedUser, members, status, type, users, teams, workstream ,global } = { ...this.props };
         let statusList = [], typeList = [];
 
         status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
@@ -223,7 +222,7 @@ export default class FormComponent extends React.Component {
             }
         });
 
-        const projectManagerOptions = _(users.List)
+        const projectManagerOptions = (typeof global.SelectList.usersList !== 'undefined') ? _(global.SelectList.usersList)
             .filter((userObj) => {
                 const role = (typeof userObj.user_role != "undefined") ? userObj.user_role : userObj.role;
                 const roleChecker = _.filter(role, (roleObj) => { return roleObj.roleId < 4 });
@@ -231,7 +230,8 @@ export default class FormComponent extends React.Component {
             })
             .map((e) => {
                 return { id: e.id, name: `${e.firstName} ${e.lastName}` }
-            }).value();
+            }).value()
+            : [];
 
         if (teams.List.length > 0) {
             teams.List.map((e) => {
