@@ -74,7 +74,7 @@ exports.get = {
                 [Sequelize.Op.and]: [
                     {
                         userTypeLinkId: {
-                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT users.id FROM members INNER JOIN users ON members.userTypeLinkId = users.id AND users.firstName like "%${queryString.memberName}%" OR users.lastName like "%${queryString.memberName}%")`)
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT users.id FROM members INNER JOIN users ON members.userTypeLinkId = users.id WHERE LOWER(users.firstName) like "%${(queryString.memberName).toLowerCase()}%" OR LOWER(users.lastName) like "%${(queryString.memberName).toLowerCase()}%")`)
                         }
                     }
                 ]

@@ -1,13 +1,18 @@
 import _ from "lodash";
 export default function reducer(state = {
-    List: [],
-    StatusCount: {},
+    Count: {},
     FormActive: "List",
+    List: [],
+    Loading: "RETRIEVING",
+    Filter: {
+        workstream: "",
+        typeId: "",
+        workstreamStatus: ""
+    },
+    StatusCount: {},
     Selected: {},
     SelectedId: [],
     SelectedLink: "",
-    Count: {},
-    Loading: "RETRIEVING",
 }, action) {
     switch (action.type) {
         case "SET_WORKSTREAM_LIST": {
@@ -70,6 +75,11 @@ export default function reducer(state = {
         }
         case "EMPTY_WORKSTREAM_LIST": {
             return { ...state, List: [] }
+        }
+        case "SET_WORKSTREAM_FILTER": {
+            const { Filter } = { ...state };
+            const updatedFilter = _.merge({}, Filter, action.filter);
+            return { ...state, Filter: updatedFilter }
         }
         default:
             return state;

@@ -1,7 +1,10 @@
 import React from "react";
+import moment from "moment";
+
 import { HeaderButtonContainer, Loading } from "../../globalComponents";
 import { getData, showToast } from "../../globalFunction";
 import WorkstreamStatus from "./workstreamStatus"
+import WorkstreamFilter from "./workstreamFilter"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -24,9 +27,8 @@ export default class List extends React.Component {
     }
 
     componentDidMount() {
-        const { workstream, socket, dispatch } = this.props;
+        const { workstream, dispatch } = this.props;
         const { Count } = workstream;
-
 
         if (workstreamId != "") {
             const dataToGet = { params: { id: workstreamId } }
@@ -34,18 +36,26 @@ export default class List extends React.Component {
                 dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: c.data })
                 dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
                 dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "task" });
-            })
+            });
         } else {
             if (_.isEmpty(Count)) {
                 this.fetchData(1);
             }
         }
+
+        getData(`/api/type`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_TYPE_LIST", list: c.data })
+            }
+        });
     }
 
     fetchData(page) {
-        const { dispatch, loggedUser } = this.props;
+        const { dispatch, loggedUser, workstream } = this.props;
+        const { typeId, workstreamStatus, workstream: workstreamFilter } = workstream.Filter;
+        const dueDateMoment = moment().format("YYYY-MM-DD");
 
-        getData(`/api/workstream?projectId=${project}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}`, {}, (c) => {
+        getData(`/api/workstream?projectId=${project}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
                 showToast("success", "Workstream successfully retrieved.");
@@ -76,11 +86,13 @@ export default class List extends React.Component {
     }
 
     renderStatus(data) {
-        const { issues, dueToday } = { ...data };
+        const { issues, dueToday, isActive } = { ...data };
         let className = "fa fa-circle";
         let statusColor = "#000";
 
-        if (issues.length > 0) {
+        if (isActive == 0) {
+            statusColor = "#bdc3c7"
+        } else if (issues.length > 0) {
             className = "fa fa-exclamation-circle";
             statusColor = "#c0392b"
         } else if (dueToday.length > 0) {
@@ -121,7 +133,11 @@ export default class List extends React.Component {
                         </li>
                     }
                 </HeaderButtonContainer>
-
+                <div class="row mb10">
+                    <div class="col-lg-6">
+                        <WorkstreamFilter />
+                    </div>
+                </div>
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
                         <tr>
