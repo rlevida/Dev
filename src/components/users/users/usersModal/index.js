@@ -266,10 +266,10 @@ export default class UsersModal extends React.Component {
                                         <label class="col-md-3 col-xs-12 control-label">Project</label>
                                         <div class="col-md-7 col-xs-12">
                                             <DropDown multiple={true}
-                                                required={true}
+                                                required={false}
                                                 options={(projectList).map((o) => { return { id: o.id, name: o.project } })}
-                                                selected={(typeof users.Selected.project == "undefined") ? [] : users.Selected.project}
-                                                onChange={(e) => this.setDropDownMultiple("project", e)}
+                                                selected={(typeof users.Selected.user_projects == "undefined") ? [] : users.Selected.user_projects}
+                                                onChange={(e) => this.setDropDownMultiple("user_projects", e)}
                                             />
                                             <div class="help-block with-errors"></div>
                                         </div>

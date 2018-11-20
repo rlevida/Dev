@@ -230,8 +230,8 @@ export default class FormComponent extends React.Component {
                                             <DropDown multiple={true}
                                                 required={true}
                                                 options={(projectList).map((o) => { return { id: o.id, name: o.project } })}
-                                                selected={(typeof users.Selected.project == "undefined") ? [] : users.Selected.project}
-                                                onChange={(e) => this.setDropDownMultiple("project", e)}
+                                                selected={(typeof users.Selected.user_projects == "undefined") ? [] : users.Selected.user_projects}
+                                                onChange={(e) => this.setDropDownMultiple("user_projects", e)}
                                             />
                                             <div class="help-block with-errors"></div>
                                         </div>

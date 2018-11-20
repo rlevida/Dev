@@ -47,6 +47,12 @@ const associationStack = [
         required: false,
         attributes: ['linkId']
     },
+    {
+        model: Members,
+        as: 'user_projects',
+        where: { usersType: 'users', linkType: 'project' },
+        required: false,
+    },
 ]
 
 exports.get = {
@@ -96,6 +102,7 @@ exports.get = {
                         .map((res) => {
                             let responseToReturn = {
                                 ...res.toJSON(),
+                                user_projects: res.user_projects.map((e) => { return { value: e.linkId } }),
                                 projectId: res.projectId.map((e) => { return e.linkId }),
                                 userRole: res.user_role[0].roleId,
                                 team: res.team_as_teamLeader.concat(res.users_team.map((e) => { return e.team }))
@@ -139,8 +146,10 @@ exports.post = {
         const body = req.body;
         const teams = body.team;
         const role = body.userRole;
+        const project = body.project;
         delete body.team;
         delete body.userRole;
+        delete body.project;
 
         sequence.create().then((nextThen) => {
             Users.findAll({
@@ -198,6 +207,29 @@ exports.post = {
                     } else {
                         parallelCallback(null, [])
                     }
+                },
+                project: (parallelCallback) => {
+                    if (typeof project !== 'undefined') {
+                        Members.
+                            destroy({ where: { usersType: "users", userTypeLinkId: result.id, linkType: "project", memberType: "assignedTo" } })
+                            .then((res) => {
+                                async.map(project, (e, mapCallback) => {
+                                    try {
+                                        Members
+                                            .create({ usersType: "users", userTypeLinkId: result.id, linkType: "project", linkId: e.value, memberType: "assignedTo" })
+                                            .then((createRes) => {
+                                                mapCallback(null, createRes);
+                                            })
+                                    } catch (err) {
+                                        mapCallback(err);
+                                    }
+                                }, (err, mapCallbackResult) => {
+                                    parallelCallback(null, mapCallbackResult);
+                                })
+                            })
+                    } else {
+                        parallelCallback(null, [])
+                    }
                 }
             }, (err, parallelCallbackResult) => {
                 nextThen(result)
@@ -213,6 +245,7 @@ exports.post = {
                     .then((res) => {
                         let responseToReturn = {
                             ...res.toJSON(),
+                            user_projects: res.user_projects.map((e) => { return { value: e.linkId } }),
                             projectId: res.projectId.map((e) => { return e.linkId }),
                             userRole: res.user_role[0].roleId,
                             team: res.team_as_teamLeader.concat(res.users_team.map((e) => { return e.team }))
@@ -231,6 +264,7 @@ exports.put = {
         const body = req.body;
         const team = body.team;
         const role = body.userRole;
+        const project = body.user_projects
         sequence.create().then((nextThen) => {
             if (typeof body.username != 'undefined' && typeof body.emailAddress != 'undefined') {
                 try {
@@ -267,7 +301,7 @@ exports.put = {
         }).then((nextThen) => {
             async.parallel({
                 teams: (parallelCallback) => {
-                    if (typeof teams != 'undefined') {
+                    if (typeof teams !== 'undefined') {
                         UsersTeam
                             .destroy({ where: { usersId: body.id } })
                             .then((res) => {
@@ -286,7 +320,7 @@ exports.put = {
                     }
                 },
                 userRole: (parallelCallback) => {
-                    if (typeof role != 'undefined') {
+                    if (typeof role !== 'undefined') {
                         UsersRole
                             .destroy({ where: { usersId: body.id } })
                             .then((res) => {
@@ -298,6 +332,27 @@ exports.put = {
                             })
                     } else {
                         parallelCallback(null, [])
+                    }
+                },
+                project: (parallelCallback) => {
+                    if (typeof project !== 'undefined') {
+                        Members.
+                            destroy({ where: { usersType: "users", userTypeLinkId: body.id, linkType: "project", memberType: "assignedTo" } })
+                            .then((res) => {
+                                async.map(project, (e, mapCallback) => {
+                                    try {
+                                        Members
+                                            .create({ usersType: "users", userTypeLinkId: body.id, linkType: "project", linkId: e.value, memberType: "assignedTo" })
+                                            .then((createRes) => {
+                                                mapCallback(null, createRes);
+                                            })
+                                    } catch (err) {
+                                        mapCallback(err);
+                                    }
+                                }, (err, mapCallbackResult) => {
+                                    parallelCallback(null, mapCallbackResult);
+                                })
+                            })
                     }
                 }
             }, (err, parallelCallbackResult) => {
@@ -314,6 +369,7 @@ exports.put = {
                     .then((res) => {
                         let responseToReturn = {
                             ...res.toJSON(),
+                            user_projects: res.user_projects.map((e) => { return { value: e.linkId } }),
                             projectId: res.projectId.map((e) => { return e.linkId }),
                             userRole: res.user_role[0].roleId,
                             team: res.team_as_teamLeader.concat(res.users_team.map((e) => { return e.team }))
