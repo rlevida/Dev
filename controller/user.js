@@ -353,6 +353,8 @@ exports.put = {
                                     parallelCallback(null, mapCallbackResult);
                                 })
                             })
+                    } else {
+                        parallelCallback(null, [])
                     }
                 }
             }, (err, parallelCallbackResult) => {
