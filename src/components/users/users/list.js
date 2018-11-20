@@ -125,7 +125,7 @@ export default class List extends React.Component {
                                 let toBeEditedByManager = user.user_role.filter(e => e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
                                 let toBeEditedByProjectManager = (projectsAsManager.length) ? _.filter(projectsAsManager, (o) => { return user.projectId.indexOf(o.linkId) == -1 }).length : 1
 
-                                if (user.userType == 'External' && toBeEditedByProjectManager) {
+                                if (user.userType == 'External' && toBeEditedByProjectManager && loggedUser.data.userRole == 3) {
                                     return
                                 }
 
