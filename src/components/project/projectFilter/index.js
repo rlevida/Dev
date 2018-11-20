@@ -40,7 +40,7 @@ export default class ProjectFilter extends React.Component {
 
     setDropDown(name, e) {
         const { dispatch } = this.props;
-        dispatch({ type: "SET_FILTER", filter: { [name]: e } });
+        dispatch({ type: "SET_PROJECT_FILTER", filter: { [name]: e } });
     }
 
     render() {
@@ -59,6 +59,7 @@ export default class ProjectFilter extends React.Component {
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-6 mb5">
+                        <label>Project Type</label>
                         <DropDown multiple={false}
                             required={false}
                             options={typeList}
@@ -66,6 +67,7 @@ export default class ProjectFilter extends React.Component {
                             onChange={(e) => this.setDropDown("typeId", e.value)} />
                     </div>
                     <div class="col-md-6 mb5">
+                        <label>Project Status</label>
                         <DropDown multiple={false}
                             required={false}
                             options={statusList}

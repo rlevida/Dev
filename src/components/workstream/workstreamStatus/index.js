@@ -36,7 +36,7 @@ export default class WorkstreamStatus extends React.Component {
         const { data } = loggedUser;
         const userRoles = _.map(data.user_role, (roleObj) => { return roleObj.roleId })[0];
 
-        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&role=${userRoles}&date=${JSON.stringify({ opt: "lt", value: moment(new Date()).format("YYYY-MM-DD") })}&status=${JSON.stringify({ opt: "not", value: "Completed" })}`, {}, (c) => {
+        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&role=${userRoles}&dueDate=${JSON.stringify({ opt: "lt", value: moment(new Date()).format("YYYY-MM-DD") })}&status=${JSON.stringify({ opt: "not", value: "Completed" })}`, {}, (c) => {
             this.setState({ list: c.data.result }, () => {
                 $('#workstreamStatusModal').modal("show");
             });

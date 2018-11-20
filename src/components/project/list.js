@@ -127,7 +127,7 @@ export default class List extends React.Component {
         let { project, loggedUser, dispatch } = this.props;
         const currentPage = (typeof project.Count.current_page != "undefined") ? project.Count.current_page : 1;
         const lastPage = (typeof project.Count.last_page != "undefined") ? project.Count.last_page : 1;
-        
+
         return (
             <div class="pd20">
                 <div class="row mb10">

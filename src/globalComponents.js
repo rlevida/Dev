@@ -15,9 +15,7 @@ export const DropDown = React.createClass({
     },
     componentWillReceiveProps: function (props) {
         var records = props.options.map((d, index) => { return { value: d.id, label: d.name }; });
-        if (!props.multiple && records.length == 0) {
-            records.unshift({ value: "", label: "(None)" })
-        }
+        
         this.setState({ records: records, noResultsText: "No Results Found" });
 
         if (typeof props.selected != "undefined") {

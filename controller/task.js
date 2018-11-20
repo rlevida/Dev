@@ -80,8 +80,9 @@ exports.get = {
         const associationArray = _.cloneDeep(associationStack);
         const queryString = req.query;
         const limit = 10;
-        const date = (typeof queryString.date != "undefined") ? JSON.parse(queryString.date) : "";
+        const dueDate = (typeof queryString.dueDate != "undefined") ? JSON.parse(queryString.dueDate) : "";
         const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
+
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
@@ -94,22 +95,25 @@ exports.get = {
                     )
                 ]
             } : {},
-            ...(date != "") ? {
+            ...(dueDate != "") ? {
                 dueDate: {
-                    [Sequelize.Op[date.opt]]: date.value
+                    [Sequelize.Op[dueDate.opt]]: dueDate.value
                 }
             } : {},
             ...(status != "") ? {
-                [Sequelize.Op.or]: [
-                    {
-                        status: {
-                            [Sequelize.Op[status.opt]]: status.value
+                status: {
+
+                    ...(status.opt == "not") ? {
+                        [Sequelize.Op.or]: {
+                            [Sequelize.Op[status.opt]]: status.value,
+                            [Sequelize.Op.eq]: null
                         }
-                    },
-                    {
-                        status: null
-                    }
-                ]
+                    } : {
+                            [Sequelize.Op.and]: {
+                                [Sequelize.Op[status.opt]]: status.value
+                            }
+                        }
+                }
             } : {},
             ...((typeof queryString.type != "undefined" && queryString.type == "myTask") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
                 [Sequelize.Op.or]: [
