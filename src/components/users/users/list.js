@@ -96,11 +96,14 @@ export default class List extends React.Component {
             } else if (loggedUser.data.userRole == 2) {
                 return _.filter(o.user_role, (r) => { return r.roleId > 1 }).length > 0;
             } else if (loggedUser.data.userRole == 3) {
-                _.filter(o.user_role, (r) => { return r.roleId > 2 }).length > 0
+                return _.filter(o.user_role, (r) => { return r.roleId > 2 }).length > 0
                 // return (_.filter(o.projects, (project) => { return project.projectManagerId == loggedUser.data.id })).length > 0 && o.userType == "External"
             }
         });
 
+        let projectsAsManager = _.filter(loggedUser.data.user_projects, (o) => {
+            return o.memberType == 'project manager'
+        })
         return (
             <div>
                 <table id="dataTable" class="table responsive-table m0">
@@ -120,6 +123,12 @@ export default class List extends React.Component {
                             userList.map((user, index) => {
                                 let toBeEditedByAdmin = user.user_role.filter(e => e.roleId == 2 || e.roleId == 3 || e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
                                 let toBeEditedByManager = user.user_role.filter(e => e.roleId == 4 || e.roleId == 5 || e.roleId == 6);
+                                let toBeEditedByProjectManager = (projectsAsManager.length) ? _.filter(projectsAsManager, (o) => { return user.projectId.indexOf(o.linkId) == -1 }).length : 1
+
+                                if (user.userType == 'External' && toBeEditedByProjectManager) {
+                                    return
+                                }
+
                                 return (
                                     <tr key={index}>
                                         <td class="text-center">{user.id}</td>

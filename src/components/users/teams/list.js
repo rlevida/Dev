@@ -69,7 +69,7 @@ export default class List extends React.Component {
     handleEdit(data) {
         const { dispatch } = this.props;
         $(`#teamsModal`).modal('show');
-        dispatch({ type: "SET_TEAM_SELECTED", Selected: { ...data, users_team: data.users_team.map((e) => { return { value: e.user.id, label: `${e.user.firstName} ${e.user.lastName}` }  }) } })
+        dispatch({ type: "SET_TEAM_SELECTED", Selected: { ...data, users_team: data.users_team.map((e) => { return { value: e.user.id, label: `${e.user.firstName} ${e.user.lastName}` } }) } })
         dispatch({ type: "SET_TEAM_CURRENT_DATA_SELECTED", Selected: { ...data, users_team: data.users_team.map((e) => { return { value: e.user.id, label: `${e.user.firstName} ${e.user.lastName}` } }) } })
     }
 
@@ -82,8 +82,7 @@ export default class List extends React.Component {
             if (loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2) {
                 return o.id > 0
             } else if (loggedUser.data.userRole == 3) {
-                let loggedTeam = JSON.parse(loggedUser.data.team);
-                return (o.teamLeaderId == loggedUser.data.id || o.usersId == loggedUser.data.id) || (_.filter(loggedTeam, (lt) => { return lt.value == o.id })).length > 0;
+                return (o.teamLeaderId == loggedUser.data.id || o.usersId == loggedUser.data.id) || (_.filter(o.users_team, (lt) => { return lt.usersId == loggedUser.data.id })).length > 0;
             }
         });
         return (

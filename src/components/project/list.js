@@ -59,7 +59,7 @@ export default class List extends React.Component {
             user: (parallelCallback) => {
                 getData(`/api/user`, {}, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "SET_USER_LIST", list: c.data })
+                        dispatch({ type: "SET_USER_LIST", List: c.data.result })
                         parallelCallback(null, c.data)
                     } else {
                         parallelCallback(null, "")
@@ -75,6 +75,11 @@ export default class List extends React.Component {
             roles: (parallelCallback) => {
                 getData(`/api/globalORM/selectList?selectName=roleList`, {}, (c) => {
                     dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'roleList' })
+                    parallelCallback(null, "")
+                })
+            }, usersList: (parallelCallback) => {
+                getData(`/api/globalORM/selectList?selectName=usersList`, {}, (c) => {
+                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'usersList' })
                     parallelCallback(null, "")
                 })
             }

@@ -19,7 +19,7 @@ export default function reducer(state = {
             return { ...state, List: List }
         }
         case "SET_TEAM_LIST": {
-            return { ...state, List: action.List, Count: action.Count }
+            return { ...state, List: action.List, Count: (typeof action.Count !== 'undefined') ? action.Count : {} }
         }
         case "SET_TEAM_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
