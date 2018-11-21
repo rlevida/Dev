@@ -120,7 +120,7 @@ export default class Component extends React.Component {
                     </ul>
                 </li>
                 <li class={page == "project" && subpage == "conversations" ? "active" : ""}>
-                    <a href={"/project/conversations/" + project} class="menu-list">
+                    <a href={`/project/${project}/conversations/`} class="menu-list">
                         <i class="fa fa-comments" aria-hidden="true"></i>
                         <span class="link-title">&nbsp; Conversations</span>
                     </a>

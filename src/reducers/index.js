@@ -9,6 +9,7 @@ import members from "./members"
 import project from "./project"
 import workstream from "./workstream"
 import task from "./task"
+import notes from "./notes"
 import type from "./type"
 import role from "./role"
 import status from "./status"
@@ -42,6 +43,7 @@ export default combineReducers({
     document,
     workstream,
     task,
+    notes,
     global,
     settings,
     conversation,

@@ -47,7 +47,7 @@ switch (page) {
                 require('./container/task');
                 break;
             case "conversations":
-                require('./container/pageNotAvailable');
+                require('./container/conversations');
                 break;
             default:
                 require('./container/project');
