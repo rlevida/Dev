@@ -2,7 +2,6 @@ import { filter } from "lodash";
 
 export default function reducer(state = {
     Count: {},
-    CountList: [],
     Filter: {
         projectStatus: "",
         typeId: ""
@@ -12,14 +11,15 @@ export default function reducer(state = {
     Loading: "RETRIEVING",
     ProjectManagerId: "",
     Selected: { isActive: true },
-    SelectedId: [],
+    StatusCount: [],
+    SelectedId: []
 }, action) {
     switch (action.type) {
         case "SET_PROJECT_LIST": {
             return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {} }
         }
-        case "SET_PROJECT_COUNT_LIST": {
-            return { ...state, CountList: action.list }
+        case "SET_PROJECT_STATUS_COUNT": {
+            return { ...state, StatusCount: action.count }
         }
         case "SET_PROJECT_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }

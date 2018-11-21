@@ -132,7 +132,10 @@ export default class List extends React.Component {
             <div class="pd20">
                 <div class="row mb10">
                     <div class="col-lg-10" style={{ float: "right" }}>
-                        <ProjectStatus offset={true} />
+                        <ProjectStatus  style={{
+                            display: "flex",
+                            justifyContent: "flex-end"
+                        }} />
                     </div>
                 </div>
                 {
@@ -149,7 +152,7 @@ export default class List extends React.Component {
                 }
                 <div class="row mb10">
                     <div class="col-lg-4">
-                        <ProjectFilter />
+                        <ProjectFilter/>
                     </div>
                 </div>
                 <table id="dataTable" class="table responsive-table">

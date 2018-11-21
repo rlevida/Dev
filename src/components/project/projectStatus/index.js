@@ -1,5 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
+import _ from "lodash";
+import { getData } from '../../../globalFunction';
 
 @connect((store) => {
     return {
@@ -10,39 +12,34 @@ import { connect } from "react-redux";
 })
 
 export default class ProjectStatus extends React.Component {
-    componentWillMount() {
-        let countInterval = setInterval(() => {
-            let { loggedUser } = this.props
-            if (typeof loggedUser.data.userRole != "undefined") {
-                let filter = {}
-                if (loggedUser.data.userRole != "1" && loggedUser.data.userRole != "2") {
-                    filter = { filter: { projectIds: loggedUser.data.projectIds } }
-                }
-                this.props.socket.emit("GET_PROJECT_COUNT_LIST", filter)
-                clearInterval(countInterval);
+    componentDidMount() {
+        const { dispatch } = this.props;
+
+        getData(`/api/project/status?date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_PROJECT_STATUS_COUNT", count: c.data });
             }
-        }, 1000)
+        });
     }
 
     render() {
-        let data = {
+        const { project, style } = { ...this.props };
+        const data = {
             Client: { Active: 0, OnTrack: 0, Issues: 0 },
             Internal: { Active: 0, OnTrack: 0, Issues: 0 },
             Private: { Active: 0, OnTrack: 0, Issues: 0 }
         }
-
-        this.props.project.CountList.map((e, i) => {
+        project.StatusCount.map((e, i) => {
             data[e.type] = {
-                Active: (typeof e.Active != "undefined") ? e.Active : 0,
-                OnTrack: (typeof e.OnTrack != "undefined") ? e.OnTrack : 0,
-                Issues: (typeof e.Issues != "undefined") ? e.Issues : 0
+                Active: (typeof e.Active != "undefined") ? _.toNumber(e.Active) : 0,
+                OnTrack: (typeof e.OnTrack != "undefined") ? _.toNumber(e.OnTrack) : 0,
+                Issues: (typeof e.Issues != "undefined") ? _.toNumber(e.Issues) : 0
             }
-        })
-
+        });
         return (
             <div class="container-fluid">
-                <div class="row">
-                    <div class={`${this.props.offset ? "col-lg-offset-2" : ""} col-lg-1 col-xs-12 count`}>
+                <div class="row" style={(style != "undefined") ? style : ""}>
+                    <div class="col-lg-1 col-xs-12 count">
                         <span></span>
                         <span>Client:</span>
                     </div>
@@ -67,8 +64,8 @@ export default class ProjectStatus extends React.Component {
                 {
                     (typeof this.props.loggedUser.data.userRole != "undefined" &&
                         (this.props.loggedUser.data.userRole <= 4)) &&
-                    <div class="row">
-                        <div class={`${this.props.offset ? "col-lg-offset-2" : ""} col-lg-1 col-xs-12 count`}>
+                    <div class="row" style={(style != "undefined") ? style : ""}>
+                         <div class="col-lg-1 col-xs-12 count">
                             <span></span>
                             <span>Internal:</span>
                         </div>
@@ -94,8 +91,8 @@ export default class ProjectStatus extends React.Component {
                 {
                     (typeof this.props.loggedUser.data.userRole != "undefined" &&
                         (this.props.loggedUser.data.userRole <= 4)) &&
-                    <div class="row">
-                        <div class={`${this.props.offset ? "col-lg-offset-2" : ""} col-lg-1 col-xs-12 count`}>
+                    <div class="row" style={(style != "undefined") ? style : ""}>
+                         <div class="col-lg-1 col-xs-12 count">
                             <span></span>
                             <span>Private:</span>
                         </div>

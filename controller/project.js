@@ -8,7 +8,7 @@ const dbName = "project";
 const Op = Sequelize.Op;
 const models = require('../modelORM');
 
-const { Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, ActivityLogs } = models;
+const { Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, ActivityLogs, sequelize } = models;
 const associationFindAllStack = [
     {
         model: DocumentLink,
@@ -318,6 +318,84 @@ exports.get = {
                 error: err
             })
         }
+    },
+    status: (req, cb) => {
+        const queryString = req.query;
+
+        try {
+            sequelize.query(`
+            SELECT
+            tb.typeId,
+            Active,
+            type,
+            linkType,
+            taskStatus.Issues,
+            taskStatus.OnTrack
+            FROM
+                (
+                SELECT
+                    typeId,
+                    SUM(IF(isActive = "1", 1, 0)) AS Active
+                FROM
+                    project
+                GROUP BY
+                    typeId
+            ) AS tb
+            LEFT JOIN type ON tb.typeId = type.id
+            LEFT JOIN(
+                SELECT
+                    typeId,
+                    SUM(Issues) AS Issues,
+                    SUM(OnTrack) AS OnTrack
+                FROM
+                    (
+                    SELECT
+                        typeId,
+                        projectId,
+                        IF(Issues > 0, 1, 0) AS Issues,
+                        IF(Issues > 0, 0, IF(OnTrack > 0, 1, 0)) AS OnTrack
+                    FROM
+                        project
+                    LEFT JOIN(
+                        SELECT
+                            projectId,
+                            SUM(IF(dueDate >= :date, 1, 0)) AS OnTrack,
+                            SUM(
+                                IF(
+                                    dueDate < :date AND duedate > "1970-01-01", 1, 0)
+                                ) AS Issues
+                            FROM
+                                task
+                            WHERE
+                                (
+                                STATUS
+                                    <> "Completed" OR
+                                STATUS IS NULL
+                            ) AND isActive = 1
+                        GROUP BY
+                            projectId
+                            ) AS tbTask
+                        ON
+                            project.id = tbTask.projectId) AS tbpt
+                        GROUP BY
+                            typeId
+                    ) AS taskStatus
+                ON
+                    tb.typeId = taskStatus.typeId
+            `,
+                {
+                    replacements: {
+                        date: moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")
+                    },
+                    type: sequelize.QueryTypes.SELECT
+                }
+            )
+                .then((response) => {
+                    cb({ status: true, data: response});
+                });
+        } catch (err) {
+            callback(err)
+        }
     }
 }
 
@@ -412,7 +490,7 @@ exports.post = {
                                             title: activityObj.task
                                         }
                                     });
-                                    
+
                                     ActivityLogs.bulkCreate(activityLogs).then((response) => {
                                         nextThen(result);
                                     });
