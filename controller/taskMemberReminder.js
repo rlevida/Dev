@@ -31,7 +31,8 @@ const associationArray = [
             },
             {
                 model: TaskMemberReminder,
-                as: 'task_member_reminder'
+                as: 'task_member_reminder',
+                required: false
             }
         ]
     }
@@ -53,6 +54,11 @@ exports.post = {
             ...(typeof queryString.userTypeLinkId !== 'undefined' && queryString.userTypeLinkId !== '') ? { userTypeLinkId: queryString.userTypeLinkId } : {}
         }
 
+        if (typeof queryString.taskId !== 'undefined' && queryString.taskId !== '') {
+            _.find(_.find(associationArray, { as: 'user' }).include, { as: 'task_member_reminder' }).where = {
+                taskId: queryString.taskId
+            };
+        }
         try {
             TaskMemberReminder
                 .create(body)
@@ -84,6 +90,12 @@ exports.put = {
             ...(typeof queryString.userTypeLinkId !== 'undefined' && queryString.userTypeLinkId !== '') ? { userTypeLinkId: queryString.userTypeLinkId } : {}
         }
 
+        if (typeof queryString.taskId !== 'undefined' && queryString.taskId !== '') {
+            _.find(_.find(associationArray, { as: 'user' }).include, { as: 'task_member_reminder' }).where = {
+                taskId: queryString.taskId
+            };
+        }
+        
         try {
             TaskMemberReminder
                 .update(body, { where: { id: id } })

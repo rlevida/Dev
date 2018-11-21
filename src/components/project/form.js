@@ -476,12 +476,12 @@ export default class FormComponent extends React.Component {
                                         }
                                     </div>
                                 }
-                                {/* {
+                                {
                                     (typeof project.Selected.id != 'undefined') && <div class="row">
                                         <h3 class="ml20">Workstreams</h3>
                                         <Workstreams />
                                     </div>
-                                } */}
+                                }
                                 <div class="modal fade" id="projectModal" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
                                     <div class="modal-dialog modal-md" role="document">
                                         <div class="modal-content">

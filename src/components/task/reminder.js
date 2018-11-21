@@ -34,8 +34,8 @@ export default class Reminder extends React.Component {
     }
 
     fetchData(page) {
-        const { dispatch, project, members } = this.props;
-        getData(`/api/member?linkId=${project.Selected.id}&linkType=project&&page=${page}&isDeleted=0`, {}, (c) => {
+        const { dispatch, project, members, task } = this.props;
+        getData(`/api/member?linkId=${project.Selected.id}&linkType=project&&page=${page}&isDeleted=0&taskId=${task.Selected.id}`, {}, (c) => {
             dispatch({ type: 'SET_MEMBERS_LIST', list: members.List.concat(c.data.result), count: c.data.count })
         })
     }
@@ -57,12 +57,12 @@ export default class Reminder extends React.Component {
         }
         if (data.user.task_member_reminder.length > 0) {
             const taskMember = data.user.task_member_reminder[0];
-            putData(`/api/taskMemberReminder/${taskMember.id}?linkId=${project}&linkType=project&usersType=users&userTypeLinkId=${data.user.id}`, dataToSubmit, (c) => {
+            putData(`/api/taskMemberReminder/${taskMember.id}?linkId=${project}&linkType=project&usersType=users&userTypeLinkId=${data.user.id}&taskId=${task.Selected.id}`, dataToSubmit, (c) => {
                 dispatch({ type: 'UPDATE_DATA_MEMBERS_LIST', list: c.data });
                 showToast('success', 'Successfully Updated.');
             })
         } else {
-            postData(`/api/taskMemberReminder?linkId=${project}&linkType=project&usersType=users&userTypeLinkId=${data.user.id}`, dataToSubmit, (c) => {
+            postData(`/api/taskMemberReminder?linkId=${project}&linkType=project&usersType=users&userTypeLinkId=${data.user.id}&taskId=${task.Selected.id}`, dataToSubmit, (c) => {
                 dispatch({ type: 'UPDATE_DATA_MEMBERS_LIST', list: c.data });
                 showToast('success', 'Successfully Updated.');
             })

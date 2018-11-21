@@ -32,7 +32,8 @@ const associationArray = [
             },
             {
                 model: TaskMemberReminder,
-                as: 'task_member_reminder'
+                as: 'task_member_reminder',
+                required: false
             }
         ]
     }
@@ -74,6 +75,13 @@ exports.get = {
                 memberType: "assignedTo"
             } : {}
         }
+
+        if (typeof queryString.taskId !== 'undefined' && queryString.taskId !== '') {
+            _.find(_.find(associationArray, { as: 'user' }).include, { as: 'task_member_reminder' }).where = {
+                taskId: queryString.taskId
+            };
+        }
+
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
             include: associationArray
