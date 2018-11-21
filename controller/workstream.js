@@ -67,6 +67,8 @@ exports.get = {
         const limit = 10;
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : {},
+            ...(typeof queryString.isTemplate != "undefined" && queryString.isTemplate != "") ? { isTemplate: queryString.isTemplate } : {},
             ...(typeof queryString.typeId != "undefined" && queryString.typeId != "") ? { typeId: queryString.typeId } : {},
             ...((typeof queryString.userType != "undefined" && queryString.userType == "External") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
                 [Sequelize.Op.or]: [
@@ -227,13 +229,26 @@ exports.get = {
 
     },
     getById: (req, cb) => {
-        defaultGetById(dbName, req, (res) => {
-            if (res.status) {
-                cb({ status: true, data: res.data })
-            } else {
-                cb({ status: false, error: res.error })
-            }
-        })
+        const whereObj = {
+            id: req.params.id
+        };
+        const options = {
+            include: associationStack
+        };
+
+        try {
+            Workstream.findOne(
+                { ...options, where: whereObj }
+            ).then((response) => {
+                const responseData = response.toJSON();
+                cb({
+                    status: true,
+                    data: responseData
+                });
+            });
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
     },
     getWorkstreamDetail: (req, cb) => {
         let d = req.query

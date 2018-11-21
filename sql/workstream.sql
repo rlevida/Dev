@@ -9,6 +9,7 @@ CREATE TABLE `workstream` (
     `statusId` BIGINT,
     `typeId` BIGINT,
     `isActive` TINYINT(1) DEFAULT '1',
+    `isTemplate` TINYINT(1) DEFAULT '0',
     `isDeleted` TINYINT(1) DEFAULT '0',
     `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

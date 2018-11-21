@@ -15,7 +15,7 @@ export const DropDown = React.createClass({
     },
     componentWillReceiveProps: function (props) {
         var records = props.options.map((d, index) => { return { value: d.id, label: d.name }; });
-        
+
         this.setState({ records: records, noResultsText: "No Results Found" });
 
         if (typeof props.selected != "undefined") {
@@ -263,7 +263,7 @@ export const EditableCellDisplay = React.createClass({
 
 export const Loading = () => {
     return (
-        <p style={{ fontSize: 16, textAlign: 'center' }}><i class="fa fa-circle-o-notch fa-spin fa-fw"></i> Loading...</p>
+        <p style={{ fontSize: 16, textAlign: 'center', margin: 0 }}><i class="fa fa-circle-o-notch fa-spin fa-fw"></i> Loading...</p>
     )
 }
 

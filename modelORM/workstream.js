@@ -45,6 +45,11 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: false,
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     },
+    isTemplate: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '0'
+    },
     isActive: {
       type: DataTypes.INTEGER(1),
       allowNull: true,

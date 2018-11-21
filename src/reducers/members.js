@@ -1,12 +1,13 @@
 import _ from "lodash";
 
 export default function reducer(state = {
-    List: [],
+    Count: {},
     FormActive: "List",
+    List: [],
+    Loading: "RETRIEVING",
     Selected: {},
     SelectedId: [],
-    Loading: "RETRIEVING",
-    Count: {}
+    SelectList: []
 }, action) {
     switch (action.type) {
         case "ADD_MEMBER_TO_LIST": {
@@ -71,6 +72,9 @@ export default function reducer(state = {
                 return o.user.id != action.id
             });
             return { ...state, List: updatedList }
+        }
+        case "SET_MEMBER_SELECT_LIST": {
+            return { ...state, SelectList: action.List }
         }
         default:
             return state;

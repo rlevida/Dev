@@ -1,15 +1,14 @@
 const async = require("async");
 const moment = require('moment');
 const sequence = require("sequence").Sequence;
+const Sequelize = require("sequelize");
+const _ = require("lodash");
 
 const dbName = "project";
-
-const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const models = require('../modelORM');
 
-const { Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream } = models;
-
+const { Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, ActivityLogs } = models;
 const associationFindAllStack = [
     {
         model: DocumentLink,
@@ -323,8 +322,9 @@ exports.get = {
 }
 
 exports.post = {
+
     index: (req, cb) => {
-        let d = req.body
+        let d = req.body;
         sequence.create().then((nextThen) => {
             Projects
                 .findAll({
@@ -348,16 +348,91 @@ exports.post = {
                     nextThen(res)
                 })
         }).then((nextThen, result) => {
-            let workstreamData = {
-                projectId: result.dataValues.id,
-                workstream: "Default Workstream",
-                typeId: 4
-            };
-            Workstream
-                .create(workstreamData)
-                .then((res) => {
-                    nextThen(result)
-                })
+            if (typeof d.workstreamTemplate != "undefined" && d.workstreamTemplate != "") {
+                Workstream.findOne({
+                    where: {
+                        id: d.workstreamTemplate
+                    },
+                    include: [
+                        {
+                            model: Tasks,
+                            required: false,
+                            as: 'task'
+                        }
+                    ]
+                }).then((workstreamResult) => {
+                    const responseObj = workstreamResult.toJSON();
+                    const workstreamTemplate = { ..._.omit(responseObj, ["id", "task", "isTemplate"]), projectId: result.dataValues.id };
+
+                    Workstream
+                        .create(workstreamTemplate)
+                        .then((res) => {
+                            const workstreamResponseObj = res.toJSON();
+                            const workstreamTasks = _(responseObj.task)
+                                .filter((workstreamTasksObj) => {
+                                    return workstreamTasksObj.periodTask == null
+                                })
+                                .map((workstreamTasksObj) => {
+                                    return {
+                                        ..._.omit(workstreamTasksObj, ["id", "dueDate", "startDate", "status"]),
+                                        projectId: result.dataValues.id,
+                                        workstreamId: workstreamResponseObj.id,
+                                        ...(workstreamTasksObj.periodic == 1) ? { dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00") } : {}
+                                    }
+                                })
+                                .value();
+
+                            Tasks.bulkCreate(workstreamTasks).map((taskResponse) => {
+                                return taskResponse.toJSON();
+                            }).then((taskArray) => {
+                                const periodicTask = _(taskArray)
+                                    .filter((taskObj) => {
+                                        return taskObj.periodic == 1;
+                                    })
+                                    .map((taskObj) => {
+                                        return _.times(taskObj.periodInstance - 1, (o) => {
+                                            const nextDueDate = moment(taskObj.dueDate).add(taskObj.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
+                                            return { ..._.omit(taskObj, ["id", "startDate", "status"]), dueDate: nextDueDate, periodTask: taskObj.id, ...(taskObj.startDate != null && taskObj.startDate != "") ? { startDate: moment(taskObj.startDate).add(taskObj.periodType, o + 1).format('YYYY-MM-DD 00:00:00') } : {} }
+                                        })
+                                    })
+                                    .flatten()
+                                    .value();
+
+                                Tasks.bulkCreate(periodicTask).map((taskResponse) => {
+                                    return taskResponse.toJSON();
+                                }).then((periodicTaskArray) => {
+                                    const activityLogs = _.map([...taskArray, ...periodicTaskArray], (taskActObj) => {
+                                        const activityObj = _.omit(taskActObj, ["dateAdded", "dateUpdated"]);
+                                        return {
+                                            usersId: d.createdBy,
+                                            linkType: "task",
+                                            linkId: activityObj.id,
+                                            actionType: "created",
+                                            new: JSON.stringify({ task: activityObj }),
+                                            title: activityObj.task
+                                        }
+                                    });
+                                    
+                                    ActivityLogs.bulkCreate(activityLogs).then((response) => {
+                                        nextThen(result);
+                                    });
+                                });
+                            })
+                        })
+                });
+            } else {
+                const workstreamData = {
+                    projectId: result.dataValues.id,
+                    workstream: "Default Workstream",
+                    typeId: 4
+                };
+
+                Workstream
+                    .create(workstreamData)
+                    .then((res) => {
+                        nextThen(result)
+                    });
+            }
         }).then((nextThen, result) => {
             let membersData = {
                 linkId: result.dataValues.id,
