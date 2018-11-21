@@ -53,8 +53,6 @@ export default class MembersForm extends React.Component {
         }
         members.Selected.memberType = 1;
 
-        dispatch({ type: "SET_FORM_MEMBERS_LOADING", Loading: true })
-
         let dataToSubmit = {
             usersType: members.Selected.type,
             userTypeLinkId: members.Selected.userTypeLinkId,

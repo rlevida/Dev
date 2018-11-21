@@ -53,7 +53,7 @@ export default class List extends React.Component {
     fetchData(page) {
         const { dispatch, users } = this.props;
         getData(`/api/user?page=${page}&isDeleted=0`, {}, (c) => {
-            dispatch({ type: 'SET_USER_LIST', List: users.List.concat(c.data.result), Count: c.data.count });
+            dispatch({ type: 'SET_USER_LIST', list: users.List.concat(c.data.result), Count: c.data.count });
             dispatch({ type: 'SET_USER_LOADING', Loading: '' });
         })
     }

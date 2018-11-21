@@ -26,7 +26,7 @@ export default class List extends React.Component {
     }
 
     componentDidMount() {
-        const { socket, task } = this.props;
+        const { socket, task, dispatch } = this.props;
         const { Count } = task;
 
         if (_.isEmpty(Count)) {
@@ -40,7 +40,10 @@ export default class List extends React.Component {
         socket.emit("GET_TYPE_LIST", {});
         socket.emit("GET_USER_LIST", {});
         socket.emit("GET_TEAM_LIST", {});
-        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } });
+
+        getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project}&linkType=project`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
+        })
     }
 
     fetchData(page) {

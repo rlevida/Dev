@@ -17,7 +17,7 @@ export default function reducer(state = {
             return { ...state, List: List }
         }
         case "SET_MEMBERS_LIST": {
-            return { ...state, List: action.list, Count: action.count }
+            return { ...state, List: action.list, Count: action.count, Loading: '' }
         }
         case "SET_MEMBERS_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
@@ -28,11 +28,14 @@ export default function reducer(state = {
         case "SET_MEMBERS_ID": {
             return { ...state, SelectedId: action.SelectedId }
         }
+        case "SET_MEMBERS_LOADING": {
+            return { ...state, Loading: action.Loading }
+        }
         case "UPDATE_DATA_MEMBERS_LIST": {
             const { List } = { ...state };
             const copyOfList = [...List];
 
-            _.map(action.List, (o) => {
+            _.map(action.list, (o) => {
                 const updateIndex = _.findIndex(copyOfList, { id: o.id });
 
                 if (updateIndex >= 0) {
@@ -61,9 +64,6 @@ export default function reducer(state = {
                 }
             })
             return { ...state, List: List }
-        }
-        case "SET_FORM_MEMBERS_LOADING": {
-            return { ...state, Loading: action.Loading }
         }
         case "DELETE_MEMBER_FROM_LIST": {
             const { List } = { ...state };

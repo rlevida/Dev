@@ -43,7 +43,7 @@ export default class FormComponent extends React.Component {
         });
 
         getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`, {}, (c) => {
-            dispatch({ type: "SET_TEAM_LIST", List: c.data })
+            dispatch({ type: "SET_TEAM_LIST", list: c.data })
         });
 
         getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
@@ -107,7 +107,6 @@ export default class FormComponent extends React.Component {
         }
         if (!project.Selected.id) {
             project.Selected.createdBy = loggedUser.data.id;
-
             postData(`/api/project`, { ...project.Selected }, (c) => {
                 dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project })
                 dispatch({ type: "SET_MEMBERS_LIST", list: c.data.members })
@@ -190,7 +189,7 @@ export default class FormComponent extends React.Component {
 
     renderTeams(value) {
         return (
-            (_.map(value, (valueObj) => { return valueObj.team.team })).join("\r\n")
+            (_.map(value, (valueObj) => { return valueObj.team })).join("\r\n")
         );
     }
 
@@ -198,7 +197,6 @@ export default class FormComponent extends React.Component {
         let teamMembers = value.map((e) => {
             return `${e.user.firstName} ${e.user.lastName}`
         })
-
         return (
             teamMembers.join(", ")
         )
@@ -337,6 +335,28 @@ export default class FormComponent extends React.Component {
                                                         }}
                                                     />
                                                     <div class="help-block with-errors"></div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-xs-12 control-label">Remind on due date?</label>
+                                                <div class="col-md-7 col-xs-12">
+                                                    <input type="checkbox"
+                                                        style={{ width: "15px", marginTop: "10px" }}
+                                                        checked={project.Selected.remindOnDuedate ? true : false}
+                                                        onChange={() => { }}
+                                                        onClick={(f) => { this.handleCheckbox("remindOnDuedate", (project.Selected.remindOnDuedate) ? 0 : 1) }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-md-3 col-xs-12 control-label">Remind before due date?</label>
+                                                <div class="col-md-7 col-xs-12">
+                                                    <input type="checkbox"
+                                                        style={{ width: "15px", marginTop: "10px" }}
+                                                        checked={project.Selected.remindBeforeDuedate ? true : false}
+                                                        onChange={() => { }}
+                                                        onClick={(f) => { this.handleCheckbox("remindBeforeDuedate", (project.Selected.remindBeforeDuedate) ? 0 : 1) }}
+                                                    />
                                                 </div>
                                             </div>
                                             {

@@ -128,6 +128,11 @@ module.exports = (sequelize, DataTypes) => {
       as: 'workstream'
     })
 
+    Tasks.hasMany(models.TaskMemberReminder,{
+      foreignKey:'taskId',
+      as:'task_member_reminder'
+    })
+
   };
 
   return Tasks

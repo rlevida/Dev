@@ -13,7 +13,7 @@ export default function reducer(state = {
             return { ...state, List: state.List.concat(action.List) }
         }
         case "SET_USER_LIST": {
-            return { ...state, List: action.List, Count: action.Count }
+            return { ...state, List: action.list, Count: action.Count }
         }
         case "SET_TRAINER_LIST": {
             return { ...state, Trainer: action.list }
