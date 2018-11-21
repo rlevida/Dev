@@ -119,7 +119,7 @@ export default class Component extends React.Component {
                                         <li key={index} style={{ height: '100%' }}>
                                             {/* <span class="label label-primary" style={{marginLeft:'5px'}}>{label}</span> */}
                                             <a href={`/reminder`} key={index} style={{ textDecoration: "none", fontWeight: "bold" }}>
-                                                <span>{data.reminderDetail}</span>
+                                                <span>{data.detail}</span>
                                                 <br />
                                             </a>
                                         </li>

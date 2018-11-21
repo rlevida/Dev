@@ -67,7 +67,7 @@ export default class ApprovalModal extends React.Component {
                 linkId : task.Selected.id,
                 type: "For Approval",
                 createdBy : loggedUser.data.id,
-                reminderDetail : "Assigned as approver",
+                detail : "Assigned as approver",
             }
 
             let mailOptions = {}

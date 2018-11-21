@@ -146,7 +146,7 @@ export default class FormComponent extends React.Component {
                     linkId: task.Selected.id,
                     type: "Task Completed",
                     createdBy: loggedUser.data.id,
-                    reminderDetail: "Task Completed"
+                    detail: "Task Completed"
                 }
 
                 socket.emit("SAVE_OR_UPDATE_TASK", {
