@@ -138,11 +138,11 @@ export default class DocumentLibrary extends React.Component {
     }
 
     duplicateDocument(data) {
-        const { dispatch, document } = this.props;
-        const dataToSubmit = [{ name: data.name, origin: data.origin, project: project, uploadedBy: data.uploadedBy, status: data.status, tags: JSON.stringify(data.tags) }]
+        const { dispatch, document, loggedUser } = this.props;
+        const dataToSubmit = [{ name: data.name, origin: data.origin, project: project, uploadedBy: loggedUser.data.id, status: data.status, tags: JSON.stringify(data.tags), type: 'document' }]
         postData(`/api/document`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: data.status == 'new' ? 'New' : 'Library' });
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: 'Library' });
                 if (data.status == 'new') {
                     dispatch({ type: "SET_DOCUMENT_NEW_UPLOAD_COUNT", Count: document.NewUploadCount + 1 })
                 }
