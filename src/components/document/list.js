@@ -1,11 +1,12 @@
 import React from "react";
 import parallel from 'async/parallel';
 
-import { getData } from '../../globalFunction';
+import { getData, showToast } from '../../globalFunction';
 
 import DocumentNew from "./documentNew";
 import DocumentStatus from "./documentStatus";
 import DocumentLibrary from "./documentLibrary";
+import DocumentFilter from "./documentFilter";
 
 import PrintModal from "./documentPrinterModal";
 import UploadModal from "./uploadModal";
@@ -13,6 +14,9 @@ import ShareModal from "./shareModal";
 import EditModal from "./editModal";
 
 import { connect } from "react-redux";
+
+let delayTimer;
+
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -27,9 +31,11 @@ import { connect } from "react-redux";
 
     }
 })
+
 export default class List extends React.Component {
     constructor(props) {
         super(props)
+        this.handleOnChange = this.handleOnChange.bind(this)
     }
 
     componentDidMount() {
@@ -77,8 +83,28 @@ export default class List extends React.Component {
         }
     }
 
+    handleOnChange(e) {
+        const { dispatch, loggedUser, document } = this.props;
+        dispatch({ type: 'SET_DOCUMENT_FILTER', filter: { ...document.filter, [e.target.name]: e.target.value } })
+        clearTimeout(delayTimer);
+        const filter = { ...document.Filter, [e.target.name]: e.target.value }
+        dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' })
+        delayTimer = setTimeout(function () {
+            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&search=${filter.search}`, {}, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                    dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
+                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
+                    showToast('success', 'Documents successfully retrieved.')
+                } else {
+                    showToast('success', 'Something went wrong!')
+                }
+            });
+        }, 1000);
+    }
+
     render() {
-        let { workstream, task, dispatch, project, loggedUser } = this.props;
+        let { workstream, task, document, project } = this.props;
         let tagOptions = [];
         workstream.List.map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) })
         task.List.map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) })
@@ -90,7 +116,7 @@ export default class List extends React.Component {
                     <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#uploadFileModal" >
                         Upload Files &nbsp; <i class="fa fa-caret-down"></i>
                     </button>
-                    <input class="form-control pull-right" type="text" placeholder="Search" aria-label="Search" style={{ width: "200px", marginRight: "50px" }} />
+                    <input class="form-control pull-right" type="text" placeholder="Search" name='search' aria-label="Search" value={(typeof document.Filter.search !== 'undefined') ? document.Filter.search : ''} onChange={(e) => this.handleOnChange(e)} style={{ width: "200px", marginRight: "50px" }} />
                 </div>
             </div>
             <div style={{ padding: "20px" }}>

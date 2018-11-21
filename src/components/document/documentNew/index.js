@@ -1,4 +1,6 @@
 import React from "react";
+
+import DocumentFilter from "../documentFilter";
 import { DropDown, Loading } from "../../../globalComponents"
 import { deleteData, displayDate, getData, getFilePathExtension, postData, putData, removeTempFile, showToast } from '../../../globalFunction'
 import moment from 'moment'
@@ -20,6 +22,7 @@ import { connect } from "react-redux"
 
     }
 })
+
 export default class DocumentNew extends React.Component {
     constructor(props) {
         super(props)
@@ -310,13 +313,17 @@ export default class DocumentNew extends React.Component {
                 </h3>
 
                 {(this.state.folderAction == "") &&
-                    <form >
-                        <div class="form-group">
-                            <div class="col-lg-1 col-md-1 col-sm-1">
-                                <a href="javascript:void(0)" title="New Folder" style={{ textDecoration: "none" }} onClick={() => this.setState({ folderAction: "create" })}><span class="fa fa-folder fa-3x"></span></a>
+                    <div class="row mb10">
+                        {/* <div class="col-lg-6">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-4 mb5">
+                                    </div>
+                                </div>
+
                             </div>
-                        </div>
-                        <div class="form-group">
+                        </div> */}
+                        {/* <div class="form-group">
                             <div class="col-lg-2 col-md-2 col-sm-2">
                                 <DropDown
                                     multiple={false}
@@ -325,8 +332,11 @@ export default class DocumentNew extends React.Component {
                                     selected={this.state.selectedFilter}
                                     onChange={(e) => this.newDocumentFilter(e)} />
                             </div>
+                        </div> */}
+                        <div class="col-lg-12">
+                            <DocumentFilter />
                         </div>
-                    </form>
+                    </div>
                 }
 
                 {(this.state.folderAction == "create") &&

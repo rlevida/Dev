@@ -8,6 +8,7 @@ const dbName = "document";
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const models = require('../modelORM');
+const moment = require('moment');
 const {
     Document,
     Tag,
@@ -113,6 +114,14 @@ exports.get = {
                 },
             }
         }
+        if (typeof queryString.search !== 'undefined' && queryString.search !== '') {
+            documentWhereObj = {
+                ...documentWhereObj,
+                [Op.or]: [
+                    { origin: { [Op.like]: `%${queryString.search}%` } },
+                ]
+            }
+        }
 
         async.parallel({
             count: function (parallelCallback) {
@@ -124,7 +133,8 @@ exports.get = {
                             model: Document,
                             as: 'document',
                             where: documentWhereObj,
-                            include: associationFindAllStack
+                            include: associationFindAllStack,
+                            required: true
                         }],
                     })
                     .then((res) => {
@@ -145,7 +155,8 @@ exports.get = {
                                 model: Document,
                                 as: 'document',
                                 where: documentWhereObj,
-                                include: associationFindAllStack
+                                include: associationFindAllStack,
+                                required: true
                             }],
                         })
                         .map((res) => {
