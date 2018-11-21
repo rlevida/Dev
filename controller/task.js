@@ -849,7 +849,7 @@ exports.put = {
                                             seen: 0,
                                             type: `Task ${body.status}`,
                                             usersId: e.id,
-                                            reminderDetail: (typeof body.message !== 'undefined') ? body.message : `Task ${body.status}`
+                                            detail: (typeof body.message !== 'undefined') ? body.message : `Task ${body.status}`
                                         }
                                         Reminder.create(reminderDetails).then((res) => {
                                             mapCallback(null, res)

@@ -47,7 +47,7 @@ export default class ModalComponent extends React.Component {
         let reminderDetails = {
             workstreamId : task.Selected.workstreamId,
             projectId : task.Selected.projectId,
-            reminderDetail : task.Selected.rejectMessage,
+            detail : task.Selected.rejectMessage,
             seen : 0,
             linkType : "task",
             linkId : task.Selected.id,

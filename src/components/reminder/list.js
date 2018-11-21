@@ -53,7 +53,7 @@ export default class FormComponent extends React.Component {
                                     return (
                                         <tr key={index} style={{ fontWeight: data.seen == 0 ? "bold" : "" }}>
                                             <td>{data.taskName}</td>
-                                            <td>{data.reminderDetail}</td>
+                                            <td>{data.detail}</td>
                                             <td>{moment(data.dueDate).format('YYYY MMM DD')}</td>
                                             <td><a href="javascript:void(0);" onClick={() => this.viewReminder(data)} class="btn btn-primary" data-tip="View"><span class="fa fa-eye"></span></a></td>
                                         </tr>
@@ -66,7 +66,7 @@ export default class FormComponent extends React.Component {
                                     return (
                                         <tr key={index} style={{ fontWeight: data.seen == 0 ? "bold" : "" }}>
                                             <td>{data.taskName}</td>
-                                            <td>{data.reminderDetail}</td>
+                                            <td>{data.detail}</td>
                                             <td>{moment(data.dueDate).format('YYYY MMM DD')}</td>
                                             <td><a href="javascript:void(0);" onClick={() => this.viewReminder(data)} class="btn btn-primary" data-tip="View"><span class="fa fa-eye"></span></a></td>
                                         </tr>

@@ -60,7 +60,7 @@ export default class Form extends React.Component {
                 linkType: "task",
                 linkId: task.Selected.id,
                 type: "Tag in Comment",
-                reminderDetail: "tagged in comment",
+                detail: "tagged in comment",
                 projectId: task.Selected.projectId,
                 createdBy :loggedUser.data.id
             },
