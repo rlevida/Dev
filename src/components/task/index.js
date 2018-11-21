@@ -3,6 +3,7 @@ import Header from "../partial/header"
 import Form from "./form"
 import List from "./list"
 import Calendar from "./calendar"
+import Timeline from './timeline'
 import Link from "./link"
 import TaskComponent from "../taskComponent"
 import _ from "lodash";
@@ -50,6 +51,10 @@ export default class Component extends React.Component {
             {
                 (task.FormActive == "List") &&
                 <List />
+            }
+            {
+                (task.FormActive == "Timeline") &&
+                <Timeline />
             }
             {
                 (task.FormActive == "Calendar") &&
