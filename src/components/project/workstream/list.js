@@ -28,7 +28,6 @@ export default class List extends React.Component {
 
     fetchData() {
         const { dispatch, loggedUser, project } = this.props;
-
         getData(`/api/workstream?projectId=${project.Selected.id}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count });
@@ -59,11 +58,13 @@ export default class List extends React.Component {
     }
 
     renderStatus(data) {
-        const { issues, dueToday } = { ...data };
+        const { issues, dueToday, isActive } = { ...data };
         let className = "fa fa-circle";
         let statusColor = "#000";
 
-        if (issues.length > 0) {
+        if (isActive == 0) {
+            statusColor = "#bdc3c7"
+        } else if (issues.length > 0) {
             className = "fa fa-exclamation-circle";
             statusColor = "#c0392b"
         } else if (dueToday.length > 0) {
@@ -78,10 +79,10 @@ export default class List extends React.Component {
     }
 
     render() {
-        const { workstream, dispatch, socket, loggedUser } = this.props;
+        const { workstream, dispatch, loggedUser } = this.props;
         const currentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
         const lastPage = (typeof workstream.Count.last_page != "undefined") ? workstream.Count.last_page : 1;
-        
+
         return (
             <div class="pd20">
                 <table id="dataTable" class="table responsive-table">
@@ -124,7 +125,8 @@ export default class List extends React.Component {
                                                 data-tip="EDIT"
                                                 class="btn btn-info btn-sm"
                                                 onClick={(e) => {
-                                                    socket.emit("GET_WORKSTREAM_DETAIL", { id: workstreamObj.id });
+                                                    dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
+                                                    dispatch({ type: "SET_WORKSTREAM_ID", SelectedId: [workstreamObj.id] })
                                                     dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
                                                 }}
                                             >

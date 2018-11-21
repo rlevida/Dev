@@ -324,7 +324,6 @@ exports.post = {
         const options = {
             include: associationStack
         };
-
         try {
             Tasks.create(_.omit(body, ["task_dependency", "dependency_type", "assignedTo"])).then((response) => {
                 const newTaskResponse = response.toJSON();
@@ -473,7 +472,7 @@ exports.put = {
                             }).then((response) => {
                                 const updatedResponse = response.toJSON();
                                 const updatedTask = _(updatedResponse)
-                                    .omit(["workstreamId", "dateUpdated", "dateAdded"])
+                                    .omit(["workstreamId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
                                     .mapValues((objVal, objKey) => {
                                         if (objKey == "dueDate" || objKey == "startDate") {
                                             return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
@@ -521,7 +520,7 @@ exports.put = {
                             if (resultArray.length > 0) {
                                 const periodTaskPromise = _.map(resultArray, (periodTaskObj, index) => {
                                     const currentTask = _(periodTaskObj)
-                                        .omit(["workstreamId", "dateUpdated", "dateAdded"])
+                                        .omit(["workstreamId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
                                         .mapValues((objVal, objKey) => {
                                             if (objKey == "dueDate" || objKey == "startDate") {
                                                 return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";

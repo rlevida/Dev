@@ -13,6 +13,7 @@ export default function reducer(state = {
     Selected: {},
     SelectedId: [],
     SelectedLink: "",
+    SelectList: []
 }, action) {
     switch (action.type) {
         case "SET_WORKSTREAM_LIST": {
@@ -28,10 +29,10 @@ export default function reducer(state = {
             return { ...state, FormActive: action.FormActive }
         }
         case "SET_WORKSTREAM_SELECTED": {
-            return { ...state, Selected: action.Selected }
+            return { ...state, Selected: action.Selected, Loading: "" }
         }
         case "SET_WORKSTREAM_ID": {
-            return { ...state, SelectedId: action.SelectedId }
+            return { ...state, SelectedId: action.SelectedId, ...((action.SelectedId).length) ? { Loading: "RETRIEVING" } : {} }
         }
         case "UPDATE_DATA_WORKSTREAM_LIST": {
             const { List } = { ...state };
@@ -80,6 +81,9 @@ export default function reducer(state = {
             const { Filter } = { ...state };
             const updatedFilter = _.merge({}, Filter, action.filter);
             return { ...state, Filter: updatedFilter }
+        }
+        case "SET_WORKSTREAM_SELECT_LIST": {
+            return { ...state, SelectList: action.List }
         }
         default:
             return state;

@@ -63,7 +63,7 @@ export default class List extends React.Component {
                 showToast("error", "Something went wrong please try again later.");
             }
             dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
-        })
+        });
     }
 
     getNextResult() {
@@ -107,7 +107,7 @@ export default class List extends React.Component {
     }
 
     render() {
-        const { workstream, dispatch, socket, loggedUser, global, projectData } = this.props;
+        const { workstream, dispatch, loggedUser, projectData } = this.props;
         const currentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
         const lastPage = (typeof workstream.Count.last_page != "undefined") ? workstream.Count.last_page : 1;
 
@@ -171,18 +171,31 @@ export default class List extends React.Component {
                                         <td class="text-center">{(workstreamObj.completed).length}</td>
                                         <td class="text-center">{(workstreamObj.issues).length}</td>
                                         <td class="text-center">{(workstreamObj.new_documents).length}</td>
-                                        <td class="text-center">{(workstreamObj.members.length > 0) && <span title={`${_.map(workstreamObj.members, (o) => { return o.user.firstName + " " + o.user.lastName }).join("\r\n")}`}><i class="fa fa-users fa-lg"></i></span>}</td>
+                                        <td class="text-center">{(workstreamObj.members.length > 0) &&
+                                            <span title={`${
+                                                (_(workstreamObj.members)
+                                                    .uniqBy((o) => {
+                                                        return o.user.id
+                                                    })
+                                                    .map((o) => { return o.user.firstName + " " + o.user.lastName })
+                                                    .value())
+                                                    .join("\r\n")}`}>
+                                                <i class="fa fa-users fa-lg"></i>
+                                            </span>}
+                                        </td>
                                         <td class="text-center"><span title={`${workstreamObj.type.type}`} class={workstreamObj.type.type == "Output based" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
                                         <td class="text-center">
                                             <a href="javascript:void(0);"
                                                 data-tip="EDIT"
                                                 class="btn btn-info btn-sm"
                                                 onClick={(e) => {
-                                                    socket.emit("GET_WORKSTREAM_DETAIL", { id: workstreamObj.id });
+                                                    dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" })
+                                                    dispatch({ type: "SET_WORKSTREAM_ID", SelectedId: [workstreamObj.id] })
                                                     dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "" });
                                                 }}
                                             >
-                                                <span class="glyphicon glyphicon-pencil"></span></a>
+                                                <span class="glyphicon glyphicon-pencil"></span>
+                                            </a>
                                             <a href="javascript:void(0);" data-tip="DELETE"
                                                 onClick={e => this.deleteData(workstreamObj.id)}
                                                 class="btn btn-danger btn-sm ml10">

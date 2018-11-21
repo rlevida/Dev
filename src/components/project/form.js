@@ -4,10 +4,11 @@ import Tooltip from "react-tooltip";
 import { connect } from "react-redux";
 import _ from "lodash";
 import { showToast, getData, putData, deleteData, postData } from '../../globalFunction';
-import { HeaderButtonContainer, DropDown, Loading } from "../../globalComponents";
+import { HeaderButtonContainer, DropDown } from "../../globalComponents";
 import Members from "./members";
-import parallel from 'async/parallel';
 import Workstreams from "./workstream";
+
+let keyTimer = "";
 
 @connect((store) => {
     return {
@@ -28,16 +29,17 @@ export default class FormComponent extends React.Component {
     constructor(props) {
         super(props)
 
-        this.handleChange = this.handleChange.bind(this)
-        this.handleSubmit = this.handleSubmit.bind(this)
-        this.setDropDown = this.setDropDown.bind(this)
-        this.handleCheckbox = this.handleCheckbox.bind(this)
-        this.renderArrayTd = this.renderArrayTd.bind(this)
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.setDropDown = this.setDropDown.bind(this);
+        this.handleCheckbox = this.handleCheckbox.bind(this);
+        this.renderArrayTd = this.renderArrayTd.bind(this);
+        this.getWorkstreamTemplateList = this.getWorkstreamTemplateList.bind(this);
     }
 
     componentDidMount() {
         const { dispatch, project } = this.props;
-        $(".form-container").validator();
+
         getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project&usersType=users`, {}, (c) => {
             dispatch({ type: "SET_MEMBERS_LIST", list: c.data });
         });
@@ -48,6 +50,12 @@ export default class FormComponent extends React.Component {
 
         getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
+        });
+
+        getData(`/api/workstream?page=1&isActive=1&isTemplate=1`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: _.map(c.data.result, (workstreamObj) => { return { ..._.pick(workstreamObj, ["id", "workstream"]), name: workstreamObj.workstream } }) })
+            }
         });
     }
 
@@ -194,16 +202,26 @@ export default class FormComponent extends React.Component {
     }
 
     renderTeamMembers(value) {
-        let teamMembers = value.map((e) => {
-            return `${e.user.firstName} ${e.user.lastName}`
-        })
-        return (
-            teamMembers.join(", ")
-        )
+        const teamMembers = value.map((e) => { return `${e.user.firstName} ${e.user.lastName}` });
+        return teamMembers.join(", ");
+    }
+
+    getWorkstreamTemplateList(options) {
+        const { dispatch } = this.props;
+
+        if (options != "") {
+            keyTimer && clearTimeout(keyTimer);
+            keyTimer = setTimeout(() => {
+                getData(`/api/workstream?page=1&isActive=1&isTemplate=1&workstream=${options}`, {}, (c) => {
+                    const workstreamOptions = (c.status == 200) ? _.map(c.data.result, (workstreamObj) => { return { ..._.pick(workstreamObj, ["id", "workstream"]), name: workstreamObj.workstream } }) : [];
+                    dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
+                });
+            }, 1500)
+        }
     }
 
     render() {
-        const { dispatch, project, loggedUser, members, status, type, users, teams, workstream ,global } = { ...this.props };
+        const { dispatch, project, loggedUser, members, status, type, users, teams, workstream, global } = { ...this.props };
         let statusList = [], typeList = [];
 
         status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
@@ -266,7 +284,7 @@ export default class FormComponent extends React.Component {
                             </div>
                             <div class="panel-body">
                                 {
-                                    (_.isEmpty(workstream.Selected)) && <div>
+                                    ((workstream.SelectedId).length == 0) && <div>
                                         <form class="form-horizontal form-container">
                                             <div class="form-group">
                                                 <label class="col-md-3 col-xs-12 control-label">Active?</label>
@@ -279,12 +297,14 @@ export default class FormComponent extends React.Component {
                                                     />
                                                 </div>
                                             </div>
-                                            <div class="form-group">
-                                                <label class="col-md-3 col-xs-12 control-label">Created Date</label>
-                                                <div class="col-md-7 col-xs-12">
-                                                    <span>{(project.Selected.dateAdded) ? moment(project.Selected.dateAdded).format("MMM D YYYY") : ""}</span>
+                                            {
+                                                (typeof project.Selected.dateAdded != "undefined" && project.Selected.dateAdded != "") && <div class="form-group">
+                                                    <label class="col-md-3 col-xs-12 control-label pd0">Created Date</label>
+                                                    <div class="col-md-7 col-xs-12">
+                                                        <span>{moment(project.Selected.dateAdded).format("YYYY MMM DD")}</span>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            }
                                             <div class="form-group">
                                                 <label class="col-md-3 col-xs-12 control-label">Project *</label>
                                                 <div class="col-md-7 col-xs-12">
@@ -359,6 +379,25 @@ export default class FormComponent extends React.Component {
                                                     />
                                                 </div>
                                             </div>
+                                            {
+                                                (typeof project.Selected.id == 'undefined' || project.Selected.id == "") && <div class="form-group">
+                                                    <label class="col-md-3 col-xs-12 control-label">Workstream Template</label>
+                                                    <div class="col-md-7 col-xs-12">
+                                                        <DropDown
+                                                            required={false}
+                                                            options={workstream.SelectList}
+                                                            onInputChange={this.getWorkstreamTemplateList}
+                                                            selected={(typeof project.Selected.workstreamTemplate == "undefined") ? "" : project.Selected.workstreamTemplate}
+                                                            placeholder={"Type to Workstream"}
+                                                            onChange={(e) => {
+                                                                this.setDropDown("workstreamTemplate", (e == null) ? "" : e.value);
+                                                            }}
+                                                            isClearable={true}
+                                                        />
+                                                        <div class="help-block with-errors"></div>
+                                                    </div>
+                                                </div>
+                                            }
                                             {
                                                 (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") && <div class="form-group">
                                                     <label class="col-md-3 col-xs-12 control-label pt0">Members</label>

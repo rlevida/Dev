@@ -1,15 +1,14 @@
 const async = require("async");
 const moment = require('moment');
 const sequence = require("sequence").Sequence;
+const Sequelize = require("sequelize");
+const _ = require("lodash");
 
 const dbName = "project";
-
-const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const models = require('../modelORM');
 
-const { Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream } = models;
-
+const { Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, ActivityLogs, sequelize } = models;
 const associationFindAllStack = [
     {
         model: DocumentLink,
@@ -319,12 +318,91 @@ exports.get = {
                 error: err
             })
         }
+    },
+    status: (req, cb) => {
+        const queryString = req.query;
+
+        try {
+            sequelize.query(`
+            SELECT
+            tb.typeId,
+            Active,
+            type,
+            linkType,
+            taskStatus.Issues,
+            taskStatus.OnTrack
+            FROM
+                (
+                SELECT
+                    typeId,
+                    SUM(IF(isActive = "1", 1, 0)) AS Active
+                FROM
+                    project
+                GROUP BY
+                    typeId
+            ) AS tb
+            LEFT JOIN type ON tb.typeId = type.id
+            LEFT JOIN(
+                SELECT
+                    typeId,
+                    SUM(Issues) AS Issues,
+                    SUM(OnTrack) AS OnTrack
+                FROM
+                    (
+                    SELECT
+                        typeId,
+                        projectId,
+                        IF(Issues > 0, 1, 0) AS Issues,
+                        IF(Issues > 0, 0, IF(OnTrack > 0, 1, 0)) AS OnTrack
+                    FROM
+                        project
+                    LEFT JOIN(
+                        SELECT
+                            projectId,
+                            SUM(IF(dueDate >= :date, 1, 0)) AS OnTrack,
+                            SUM(
+                                IF(
+                                    dueDate < :date AND duedate > "1970-01-01", 1, 0)
+                                ) AS Issues
+                            FROM
+                                task
+                            WHERE
+                                (
+                                STATUS
+                                    <> "Completed" OR
+                                STATUS IS NULL
+                            ) AND isActive = 1
+                        GROUP BY
+                            projectId
+                            ) AS tbTask
+                        ON
+                            project.id = tbTask.projectId) AS tbpt
+                        GROUP BY
+                            typeId
+                    ) AS taskStatus
+                ON
+                    tb.typeId = taskStatus.typeId
+            `,
+                {
+                    replacements: {
+                        date: moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")
+                    },
+                    type: sequelize.QueryTypes.SELECT
+                }
+            )
+                .then((response) => {
+                    cb({ status: true, data: response});
+                });
+        } catch (err) {
+            callback(err)
+        }
     }
 }
 
 exports.post = {
+
     index: (req, cb) => {
-        let d = req.body
+        let d = req.body;
         sequence.create().then((nextThen) => {
             Projects
                 .findAll({
@@ -348,16 +426,91 @@ exports.post = {
                     nextThen(res)
                 })
         }).then((nextThen, result) => {
-            let workstreamData = {
-                projectId: result.dataValues.id,
-                workstream: "Default Workstream",
-                typeId: 4
-            };
-            Workstream
-                .create(workstreamData)
-                .then((res) => {
-                    nextThen(result)
-                })
+            if (typeof d.workstreamTemplate != "undefined" && d.workstreamTemplate != "") {
+                Workstream.findOne({
+                    where: {
+                        id: d.workstreamTemplate
+                    },
+                    include: [
+                        {
+                            model: Tasks,
+                            required: false,
+                            as: 'task'
+                        }
+                    ]
+                }).then((workstreamResult) => {
+                    const responseObj = workstreamResult.toJSON();
+                    const workstreamTemplate = { ..._.omit(responseObj, ["id", "task", "isTemplate"]), projectId: result.dataValues.id };
+
+                    Workstream
+                        .create(workstreamTemplate)
+                        .then((res) => {
+                            const workstreamResponseObj = res.toJSON();
+                            const workstreamTasks = _(responseObj.task)
+                                .filter((workstreamTasksObj) => {
+                                    return workstreamTasksObj.periodTask == null
+                                })
+                                .map((workstreamTasksObj) => {
+                                    return {
+                                        ..._.omit(workstreamTasksObj, ["id", "dueDate", "startDate", "status"]),
+                                        projectId: result.dataValues.id,
+                                        workstreamId: workstreamResponseObj.id,
+                                        ...(workstreamTasksObj.periodic == 1) ? { dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00") } : {}
+                                    }
+                                })
+                                .value();
+
+                            Tasks.bulkCreate(workstreamTasks).map((taskResponse) => {
+                                return taskResponse.toJSON();
+                            }).then((taskArray) => {
+                                const periodicTask = _(taskArray)
+                                    .filter((taskObj) => {
+                                        return taskObj.periodic == 1;
+                                    })
+                                    .map((taskObj) => {
+                                        return _.times(taskObj.periodInstance - 1, (o) => {
+                                            const nextDueDate = moment(taskObj.dueDate).add(taskObj.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
+                                            return { ..._.omit(taskObj, ["id", "startDate", "status"]), dueDate: nextDueDate, periodTask: taskObj.id, ...(taskObj.startDate != null && taskObj.startDate != "") ? { startDate: moment(taskObj.startDate).add(taskObj.periodType, o + 1).format('YYYY-MM-DD 00:00:00') } : {} }
+                                        })
+                                    })
+                                    .flatten()
+                                    .value();
+
+                                Tasks.bulkCreate(periodicTask).map((taskResponse) => {
+                                    return taskResponse.toJSON();
+                                }).then((periodicTaskArray) => {
+                                    const activityLogs = _.map([...taskArray, ...periodicTaskArray], (taskActObj) => {
+                                        const activityObj = _.omit(taskActObj, ["dateAdded", "dateUpdated"]);
+                                        return {
+                                            usersId: d.createdBy,
+                                            linkType: "task",
+                                            linkId: activityObj.id,
+                                            actionType: "created",
+                                            new: JSON.stringify({ task: activityObj }),
+                                            title: activityObj.task
+                                        }
+                                    });
+
+                                    ActivityLogs.bulkCreate(activityLogs).then((response) => {
+                                        nextThen(result);
+                                    });
+                                });
+                            })
+                        })
+                });
+            } else {
+                const workstreamData = {
+                    projectId: result.dataValues.id,
+                    workstream: "Default Workstream",
+                    typeId: 4
+                };
+
+                Workstream
+                    .create(workstreamData)
+                    .then((res) => {
+                        nextThen(result)
+                    });
+            }
         }).then((nextThen, result) => {
             let membersData = {
                 linkId: result.dataValues.id,
