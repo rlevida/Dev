@@ -284,7 +284,7 @@ exports.get = {
     },
     taskStatus: (req, cb) => {
         const queryString = req.query;
-
+        
         try {
             sequelize.query(`
             SELECT
@@ -294,6 +294,10 @@ exports.get = {
             FROM task 
             WHERE
             task.id > 0 
+            ${(typeof queryString.projectId !="undefined" && queryString.projectId != "") ? `
+            AND
+            task.projectId = ${queryString.projectId} 
+            ` : ``}
             ${(queryString.role > 2) ? `
             AND
             task.id IN (SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = :user_id AND members.memberType = :member_type )
