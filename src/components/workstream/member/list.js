@@ -34,7 +34,7 @@ export default class List extends React.Component {
 
         getData(`/api/member?page=${page}&workstreamId=${workstream.Selected.id}`, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_MEMBERS_LIST", list: c.data.result, Count: c.data.count });
-            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            dispatch({ type: "SET_MEMBERS_LOADING", Loading: "" });
             showToast("success", "Members successfully retrieved.");
         });
     }

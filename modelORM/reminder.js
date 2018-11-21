@@ -8,7 +8,7 @@ module.exports = function (sequelize, DataTypes) {
       primaryKey: true,
       autoIncrement: true
     },
-    reminderDetail: {
+    detail: {
       type: DataTypes.STRING(50),
       allowNull: true
     },

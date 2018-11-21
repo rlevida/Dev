@@ -46,18 +46,18 @@ export default class Reminder extends React.Component {
         this.fetchData(members.Count.current_page + 1)
     }
 
-    handleCheckbox(data) {
+    handleCheckbox(name, data) {
         const { dispatch, task } = this.props;
         const dataToSubmit = {
             taskId: task.Selected.id,
             usersId: data.user.id,
-            receiveNotification: data.user.task_member_reminder.length
-                ? data.user.task_member_reminder[0].receiveNotification ? 0 : 1
+            [name]: data.user.task_member_reminder.length
+                ? data.user.task_member_reminder[0][name] ? 0 : 1
                 : 1
         }
         if (data.user.task_member_reminder.length > 0) {
             const taskMember = data.user.task_member_reminder[0];
-            putData(`/api/taskMemberReminder/${taskMember.id}?linkId=${project}&linkType=project&usersType=users&userTypeLinkId=${data.user.id}`, { receiveNotification: taskMember.receiveNotification ? 0 : 1 }, (c) => {
+            putData(`/api/taskMemberReminder/${taskMember.id}?linkId=${project}&linkType=project&usersType=users&userTypeLinkId=${data.user.id}`, dataToSubmit, (c) => {
                 dispatch({ type: 'UPDATE_DATA_MEMBERS_LIST', list: c.data });
                 showToast('success', 'Successfully Updated.');
             })
@@ -80,7 +80,8 @@ export default class Reminder extends React.Component {
                     <tbody>
                         <tr>
                             <th>Name</th>
-                            <th>Receive Notification</th>
+                            <th>Send default notification</th>
+                            <th>Send email notification</th>
                         </tr>
                         {
                             members.List.map((data, i) => {
@@ -92,11 +93,23 @@ export default class Reminder extends React.Component {
                                                 style={{ width: "15px", marginTop: "10px" }}
                                                 checked={
                                                     (data.user.task_member_reminder.length) ?
-                                                        data.user.task_member_reminder[0].receiveNotification ? 1 : 0
+                                                        data.user.task_member_reminder[0].defaultNotification ? 1 : 0
                                                         : 0
                                                 }
                                                 onChange={() => { }}
-                                                onClick={(f) => { this.handleCheckbox(data) }}
+                                                onClick={(f) => { this.handleCheckbox('defaultNotification', data) }}
+                                            />
+                                        </td>
+                                        <td>
+                                            <input type="checkbox"
+                                                style={{ width: "15px", marginTop: "10px" }}
+                                                checked={
+                                                    (data.user.task_member_reminder.length) ?
+                                                        data.user.task_member_reminder[0].emailNotification ? 1 : 0
+                                                        : 0
+                                                }
+                                                onChange={() => { }}
+                                                onClick={(f) => { this.handleCheckbox('emailNotification', data) }}
                                             />
                                         </td>
                                     </tr>

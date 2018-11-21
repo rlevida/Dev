@@ -15,10 +15,15 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.BIGINT,
             allowNull: false
         },
-        receiveNotification: {
+        defaultNotification: {
             type: DataTypes.INTEGER(1),
-            allowNull: true,
-            defaultValue: '1'
+            allowNull: false,
+            defaultValue: '0'
+        },
+        emailNotification: {
+            type: DataTypes.INTEGER(1),
+            allowNull: false,
+            defaultValue: '0'
         },
         dateAdded: {
             type: DataTypes.DATE,
@@ -33,8 +38,14 @@ module.exports = (sequelize, DataTypes) => {
         {
             tableName: 'task_member_reminder',
             timestamps: false
-        }
-    );
+        });
+
+    TaskMemberReminder.associate = function (models) {
+        TaskMemberReminder.belongsTo(models.Users, {
+            foreignKey: 'usersId',
+            as: 'user'
+        });
+    };
 
     return TaskMemberReminder;
 };

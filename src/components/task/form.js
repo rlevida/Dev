@@ -514,14 +514,17 @@ export default class FormComponent extends React.Component {
                                                     />
                                                 </div>
                                             </div>
-                                            <div class="form-group">
-                                                <label class="col-md-3 col-xs-12 control-label pt0">Reminder</label>
-                                                <div class="col-md-7 col-xs-12">
-                                                    <a href="#" type="button" data-toggle="modal" data-target="#reminderModal">
-                                                        Edit Reminder
+                                            {
+                                                (typeof task.Selected.id != "undefined" && task.Selected.id != "") &&
+                                                <div class="form-group">
+                                                    <label class="col-md-3 col-xs-12 control-label pt0">Reminder</label>
+                                                    <div class="col-md-7 col-xs-12">
+                                                        <a href="#" type="button" data-toggle="modal" data-target="#reminderModal">
+                                                            Edit Reminder
                                                     </a>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            }
                                             {
                                                 (typeof task.Selected.id != "undefined" && task.Selected.id != "") && <div class="form-group" style={{ marginTop: 25 }}>
                                                     <label class="col-md-3 col-xs-12 control-label pt0">Task Dependencies</label>
@@ -691,7 +694,7 @@ export default class FormComponent extends React.Component {
                                 <h4 class="modal-title" id="myModalLabel">Reminder</h4>
                             </div>
                             <div class="modal-body">
-                                <Reminder/>
+                                <Reminder />
                             </div>
                         </div>
                     </div>
