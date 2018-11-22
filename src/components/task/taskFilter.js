@@ -20,15 +20,14 @@ export default class ProjectFilter extends React.Component {
         super(props);
 
         this.setDropDown = this.setDropDown.bind(this);
+        this.setDropDownMultiple = this.setDropDownMultiple.bind(this);
         this.handleDate = this.handleDate.bind(this);
         this.getMemberList = this.getMemberList.bind(this);
     }
 
     componentDidUpdate(prevProps) {
-        const { loggedUser, dispatch } = this.props;
-        const { data } = loggedUser;
-        const userRoles = _.map(data.user_role, (roleObj) => { return roleObj.roleId })[0];
-        
+        const { dispatch } = this.props;
+
         if (_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false) {
             const { taskStatus, dueDate, taskAssigned } = this.props.task.Filter;
             let requestUrl = `/api/task?projectId=${project}&page=1`;
@@ -44,17 +43,20 @@ export default class ProjectFilter extends React.Component {
                 requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`
             }
 
-            if (taskAssigned != "") {
-                requestUrl += `&userId=${taskAssigned}&role=6`
-            } else {
-                requestUrl += `&userId=${loggedUser.data.id}&role=${userRoles}`
+            if (taskAssigned != "" && taskAssigned.length > 0) {
+                taskAssigned.map((assignedObj) => {
+                    requestUrl += `&userId=${assignedObj.value}`
+                });
             }
 
-            getData(requestUrl, {}, (c) => {
-                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
-                dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-                showToast("success", "Task successfully retrieved.");
-            });
+            keyTimer && clearTimeout(keyTimer);
+            keyTimer = setTimeout(() => {
+                getData(requestUrl, {}, (c) => {
+                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
+                    dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+                    showToast("success", "Task successfully retrieved.");
+                });
+            }, 1500);
         }
 
         setDatePicker(this.handleDate, "dueDate", new Date(2019, 3, 20));
@@ -63,6 +65,11 @@ export default class ProjectFilter extends React.Component {
     setDropDown(name, e) {
         const { dispatch } = this.props;
         dispatch({ type: "SET_TASK_FILTER", filter: { [name]: e } });
+    }
+
+    setDropDownMultiple(name, values) {
+        const { dispatch } = this.props;
+        dispatch({ type: "SET_TASK_FILTER", filter: { [name]: values } });
     }
 
     handleDate(e) {
@@ -77,13 +84,13 @@ export default class ProjectFilter extends React.Component {
         if (options != "") {
             keyTimer && clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
-                getData(`/api/member?linkType=project&linkId=${project}&page=1&memberType=assignedTo&memberName=${options}`, {}, (c) => {
+                getData(`/api/member?linkType=project&linkId=${project}&page=1&memberName=${options}`, {}, (c) => {
                     const taskMemberOptions = _(c.data.result)
                         .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
                         .value();
                     dispatch({ type: "SET_TASK_SELECT_LIST", List: taskMemberOptions });
                 });
-            }, 1500)
+            }, 1000)
         }
     }
 
@@ -96,7 +103,6 @@ export default class ProjectFilter extends React.Component {
             { id: "Completed", name: "Completed" },
             { id: "Rejected", name: "Rejected" }
         ];
-
         return (
             <div class="container-fluid">
                 <div class="row">
@@ -126,13 +132,12 @@ export default class ProjectFilter extends React.Component {
                     <div class="col-md-4 mb5">
                         <label>Assigned</label>
                         <DropDown
+                            multiple={true}
                             options={task.SelectList}
                             onInputChange={this.getMemberList}
-                            selected={Filter.taskAssigned}
+                            selected={(typeof Filter.taskAssigned == "undefined" || Filter.taskAssigned == "") ? [] : Filter.taskAssigned}
                             placeholder={"Type to Search Member"}
-                            onChange={(e) => {
-                                this.setDropDown("taskAssigned", (e == null) ? "" : e.value);
-                            }}
+                            onChange={(e) => this.setDropDownMultiple("taskAssigned", e)}
                             isClearable={true}
                         />
                     </div>

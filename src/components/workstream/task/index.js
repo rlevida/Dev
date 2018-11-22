@@ -20,7 +20,7 @@ export default class Component extends React.Component {
         let { task } = this.props
         return (
             <div>   
-                <div className={ task.FormActive == "View" ? "col-lg-6 col-md-6 col-sm-12"  : "col-lg-12 col-md-12 col-sm-12"}>
+                <div className={ task.FormActive == "View" ? "col-lg-6 col-md-6 col-sm-12 pd0"  : "col-lg-12 col-md-12 col-sm-12 pd0"}>
                     <List />
                 </div>
                 { (task.FormActive == "View") &&

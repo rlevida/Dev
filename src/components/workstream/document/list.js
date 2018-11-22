@@ -178,10 +178,9 @@ export default class List extends React.Component {
         const lastPage = (typeof document.Count.last_page != "undefined") ? document.Count.last_page : 1;
         return <div>
             <div class="row">
-                <br />
                 <div class="col-lg-12 col-md-12">
                     <h3 class="m0">Documents</h3>
-                    <table id="dataTable" class="table responsive-table table-bordered document-table">
+                    <table id="dataTable" class="table responsive-table table-bordered document-table mt30">
                         <tbody>
                             <tr>
                                 <th></th>

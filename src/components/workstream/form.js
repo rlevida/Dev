@@ -161,7 +161,7 @@ export default class FormComponent extends React.Component {
         if (options != "") {
             keyTimer && clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
-                getData(`/api/member?linkType=project&linkId=${project}&page=1&memberType=assignedTo&memberName=${options}`, {}, (c) => {
+                getData(`/api/member?linkType=project&linkId=${project}&page=1&memberName=${options}`, {}, (c) => {
                     const taskMemberOptions = _(c.data.result)
                         .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
                         .value();

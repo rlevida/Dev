@@ -82,7 +82,6 @@ exports.get = {
         const limit = 10;
         const dueDate = (typeof queryString.dueDate != "undefined") ? JSON.parse(queryString.dueDate) : "";
         const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
-
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
@@ -115,7 +114,7 @@ exports.get = {
                         }
                 }
             } : {},
-            ...((typeof queryString.type != "undefined" && queryString.type == "myTask") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
+            ...(typeof queryString.userId != "undefined" && queryString.userId != "") ? {
                 [Sequelize.Op.or]: [
                     {
                         id: {
@@ -134,14 +133,14 @@ exports.get = {
             } : {}
         };
 
-        if (typeof queryString.role != "undefined" && queryString.role != "" && queryString.role == 6) {
-            _.find(associationArray, { as: 'task_members' }).required = true;
-            _.find(associationArray, { as: 'task_members' }).where = {
-                userTypeLinkId: queryString.userId,
-                usersType: "users",
-                linkType: "task"
-            };
-        }
+        // if (typeof queryString.role != "undefined" && queryString.role != "" && queryString.role == 6) {
+        //     _.find(associationArray, { as: 'task_members' }).required = true;
+        //     _.find(associationArray, { as: 'task_members' }).where = {
+        //         userTypeLinkId: queryString.userId,
+        //         usersType: "users",
+        //         linkType: "task"
+        //     };
+        // }
 
         const options = {
             include: associationArray,
@@ -284,7 +283,7 @@ exports.get = {
     },
     taskStatus: (req, cb) => {
         const queryString = req.query;
-        
+
         try {
             sequelize.query(`
             SELECT
@@ -294,11 +293,11 @@ exports.get = {
             FROM task 
             WHERE
             task.id > 0 
-            ${(typeof queryString.projectId !="undefined" && queryString.projectId != "") ? `
+            ${(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? `
             AND
             task.projectId = ${queryString.projectId} 
             ` : ``}
-            ${(queryString.role > 2) ? `
+            ${(typeof queryString.userId != "undefined" && queryString.userId != "") ? `
             AND
             task.id IN (SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = :user_id AND members.memberType = :member_type )
             ` : ``}

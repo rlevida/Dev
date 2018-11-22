@@ -43,13 +43,12 @@ export default class List extends React.Component {
 
         getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project}&linkType=project`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
-        })
+        });
     }
 
     fetchData(page) {
-        const { loggedUser, dispatch, task } = this.props;
-        const { data } = loggedUser;
-        const userRoles = _.map(data.user_role, (roleObj) => { return roleObj.roleId })[0];
+        const { dispatch, task, loggedUser } = this.props;
+
         let requestUrl = `/api/task?projectId=${project}&page=${page}`;
         const { taskStatus, dueDate, taskAssigned } = task.Filter;
 
@@ -62,9 +61,9 @@ export default class List extends React.Component {
         }
 
         if (taskAssigned != "") {
-            requestUrl += `&userId=${taskAssigned}&role=6`
+            requestUrl += `&userId=${taskAssigned}`
         } else {
-            requestUrl += `&userId=${loggedUser.data.id}&role=${userRoles}`
+            requestUrl += `&userId=${loggedUser.data.id}`
         }
 
         getData(requestUrl, {}, (c) => {
@@ -168,7 +167,7 @@ export default class List extends React.Component {
                     }
                 </HeaderButtonContainer>
                 <div class="row mb10">
-                    <div class="col-lg-6">
+                    <div class="col-lg-7">
                         <TaskFilter />
                     </div>
                 </div>

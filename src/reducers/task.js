@@ -93,7 +93,7 @@ export default function reducer(state = {
         }
         case "SET_TASK_FILTER": {
             const { Filter } = { ...state };
-            const updatedFilter = _.merge({}, Filter, action.filter);
+            const updatedFilter = _.assign({}, Filter, action.filter);
             return { ...state, Filter: updatedFilter }
         }
         default:

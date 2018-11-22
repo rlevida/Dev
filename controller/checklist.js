@@ -322,7 +322,6 @@ exports.put = {
                                                 });
                                             });
                                             Promise.all(updatePeriodicChecklistPromise).then((values) => {
-                                                console.log(values)
                                                 callback(null, [...activityLogStack, ...values]);
                                             }).catch((err) => {
                                                 callback(null, activityLogStack);

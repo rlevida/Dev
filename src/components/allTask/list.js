@@ -43,8 +43,9 @@ export default class List extends React.Component {
 
     fetchData(page) {
         const { loggedUser, dispatch } = this.props;
-
-        getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=${page}&type=myTask`, {}, (c) => {
+        let fetchUrl = `/api/task?projectId=${project}&page=${page}&userId=${loggedUser.data.id}`;
+       
+        getData(fetchUrl, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
             showToast("success", "Task successfully retrieved.");
