@@ -81,7 +81,7 @@ export default class Component extends React.Component {
 
         </div>
         return (
-            <Header component={Component} page={"Teams"} />
+            <Header component={Component} page={"Teams & Users"} />
         )
     }
 }

@@ -20,7 +20,7 @@ export default class Component extends React.Component {
             </div>
         </div>
         return (
-            <Header component={Component} page={"Dashboard"} />
+            <Header component={Component} page={"My Dashboard"} />
         )
     }
 }
