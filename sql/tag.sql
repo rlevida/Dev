@@ -4,7 +4,7 @@ CREATE TABLE `tag` (
     `indicator` VARCHAR(50),
     `linkType` ENUM("user","workstream","task","conversation","document","others"),
     `linkId` BIGINT,
-    `tagType` ENUM("user","workstream","task","conversation","document","folder"),
+    `tagType` ENUM("user","workstream","task","conversation","document","folder","notes"),
     `isDeleted` TINYINT(1) DEFAULT '0',
     `isCompleted` TINYINT(1) DEFAULT '0',
     `tagTypeId` BIGINT,

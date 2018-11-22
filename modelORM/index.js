@@ -16,17 +16,22 @@ const sequelize = new Sequelize(
             min: 0,
             acquire: 30000,
             idle: 10000
-        }
+        },
+        define: {
+            timestamps: false
+        },
     }
 );
 
 const ActivityLogs = require('./activity_logs')(sequelize, Sequelize.DataTypes);
 const ChecklistDocuments = require('./checklist_documents')(sequelize, Sequelize.DataTypes);
+const Conversation = require('./conversation')(sequelize, Sequelize.DataTypes);
 const Document = require('./document')(sequelize, Sequelize.DataTypes);
 const DocumentLink = require('./document_link')(sequelize, Sequelize.DataTypes);
 const IpBlock = require('./ip_block')(sequelize, Sequelize.DataTypes);
 const Folder = require('./folder')(sequelize, Sequelize.DataTypes);
 const Members = require('./members')(sequelize, Sequelize.DataTypes);
+const Notes = require('./notes')(sequelize, Sequelize.DataTypes);
 const Projects = require('./project')(sequelize, Sequelize.DataTypes);
 const Tag = require('./tag')(sequelize, Sequelize.DataTypes);
 const Tasks = require('./task')(sequelize, Sequelize.DataTypes);
@@ -47,11 +52,13 @@ const Type = require('./type')(sequelize, Sequelize.DataTypes);
 const models = {
     ActivityLogs,
     ChecklistDocuments,
+    Conversation,
     Document,
     DocumentLink,
     IpBlock,
     Folder,
     Members,
+    Notes,
     Projects,
     Tag,
     Tasks,

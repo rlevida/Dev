@@ -1,15 +1,57 @@
-const dbName = "conversation";
+const dbName = "notes";
 var { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./")
+const models = require('../modelORM');
+const {
+    Notes,
+    Tag,
+    Tasks,
+    Conversation,
+    Users
+} = models;
 
 exports.get = {
     index : (req,cb) => {
-        defaultGet(dbName,req,(res)=>{
-            if(res.status){
-                cb({ status:true, data:res.data })
-            }else{
-                cb({ status:false, error:res.error })
-            }
-        })
+        const queryString = req.query;
+        
+        try {
+            Notes
+                .findAll({
+                    include : [{
+                        model: Tag,
+                        where: {
+                            linkType: 'task', tagType: 'notes'
+                        },
+                        as: 'tag',
+                        required: false,
+                        include: [
+                            {
+                                model: Tasks,
+                                as: 'tagTask',
+                            }
+                        ]
+                    },
+                    {
+                        model: Conversation,
+                        where: {
+                            linkType: 'notes'
+                        },
+                        as: 'comments',
+                        required: false,
+                        include: [
+                            {
+                                model: Users,
+                                as: 'users',
+                            }
+                        ]
+                    }
+                ]
+                })
+                .then((res) => {
+                    cb({ status: true, data: res })
+                })
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
     },
     getById : (req,cb) => {
         defaultGetById(dbName,req,(res)=>{

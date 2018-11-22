@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     tagType: {
-      type: DataTypes.ENUM('user', 'workstream', 'task', 'conversation', 'document', 'folder'),
+      type: DataTypes.ENUM('user', 'workstream', 'task', 'conversation', 'document', 'folder','notes'),
       allowNull: true
     },
     isDeleted: {

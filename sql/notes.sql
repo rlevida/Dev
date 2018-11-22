@@ -2,7 +2,6 @@ DROP TABLE IF EXISTS `notes`;
 CREATE TABLE `notes` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `note` VARCHAR(255),
-    `tag` JSON,
     `privacyType` VARCHAR(20),
     `isStarred` TINYINT,
     `createdBy` BIGINT,

@@ -40,7 +40,6 @@ export default class Component extends React.Component {
                 <br />
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <h3 class="m0">Conversations</h3>
                         <div style={{paddingRight:"0px"}} className={ notes.FormActive == "View" ? "col-lg-6 col-md-6 col-sm-12"  : "col-lg-12 col-md-12 col-sm-12"}>
                             <List />
                         </div>
@@ -53,7 +52,7 @@ export default class Component extends React.Component {
                 </div>
             </div>
         return (
-            <Header component={Component} page={"Workstream"} />
+            <Header component={Component} page={"Conversations"} />
         )
     }
 }

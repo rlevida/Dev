@@ -23,7 +23,7 @@ export default function reducer(state = {
 }, action) {
     switch (action.type) {
         case "SET_NOTES_LIST": {
-            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {}, Selected: { isActive: true } }
+            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {} }
         }
         case "SET_NOTES_COUNT_LIST": {
             return { ...state, CountList: action.list }

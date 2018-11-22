@@ -43,15 +43,15 @@ export default class FormComponent extends React.Component {
         } else if ( privacy === "linked" ) {
             icon = "fa-link";
         } else if ( privacy === "private" ) {
-            icon = "fa-locked";
+            icon = "fa-lock";
         }
         return icon
     }
 
     render() {
-        const { notes } = this.props
+        const { notes } = { ...this.props }
         const data = notes.Selected;
-
+        console.log(data);
         return (
             <div style={{ background:"#f5f5f5", padding: "10px", }}>
                 <br />
@@ -61,21 +61,23 @@ export default class FormComponent extends React.Component {
                 <span style={{float:"right",padding:"5px",}} className={`fa ${this.renderPrivacy(data.privacyType)}`} ></span>
                 {
                     (data.tag.map((f)=>{
-                        const color = this.renderStatus(f);
-                        return <span class="label" style={{margin: "5px", background: color }}>{f.task}</span>
+                        const color = this.renderStatus(f.tagTask);
+                        return <span class="label" style={{margin: "5px", background: color }}>{f.tagTask.task}</span>
                     }))
                 }<span class="fa fa-pencil"></span>
                 <hr />
+                { data.comments.length == 0 && 
+                    <div>No Comment</div>
+                }
                 {
                     data.comments.map((e)=>{
                         return <div>
                                     <div>
-                                        <span>{`${e.users[0].firstName} ${e.users[0].lastName}`}</span>{'     '}<span>{moment(e.dateAdded).format("MM/DD/YYYY hh:mm")}</span>
+                                        <span>{`${e.users.firstName} ${e.users.lastName}`}</span>{'     '}<span>{moment(e.dateAdded).format("MM/DD/YYYY hh:mm")}</span>
                                         <span style={{float:"right",padding:"5px",}} class="fa fa-ellipsis-h"></span>
-                                        <span style={{float:"right",padding:"5px",}} className={`fa ${this.renderPrivacy(data.privacyType)}`} ></span>
                                         <br />
                                         <br />
-                                        <span>{e.message}</span>
+                                        <span>{e.comment}</span>
                                     </div>
                                     <hr />
                                 </div>
