@@ -6,6 +6,7 @@ import _ from "lodash";
 
 import { Loading } from "../../../globalComponents";
 import { getData, showToast } from "../../../globalFunction";
+import TaskFilter from "../../task/taskFilter";
 
 @connect((store) => {
     return {
@@ -100,11 +101,9 @@ export default class List extends React.Component {
     }
 
     fetchData(page) {
-        const { loggedUser, dispatch, task, workstream } = this.props;
-        const { data } = loggedUser;
-        const userRoles = _.map(data.user_role, (roleObj) => { return roleObj.roleId })[0];
+        const { dispatch, workstream } = this.props;
 
-        getData(`/api/task?projectId=${project}&workstreamId=${workstream.Selected.id}&userId=${loggedUser.data.id}&page=${page}&role=${userRoles}`, {}, (c) => {
+        getData(`/api/task?projectId=${project}&workstreamId=${workstream.Selected.id}&page=${page}`, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
             showToast("success", "Task successfully retrieved.");
@@ -224,8 +223,13 @@ export default class List extends React.Component {
         const taskList = task.List;
 
         return (
-            <div class="pd10">
+            <div>
                 <h3 class="m0">Tasks</h3>
+                <div class="row mb10">
+                    <div class="col-lg-6">
+                        <TaskFilter />
+                    </div>
+                </div>
                 <table id="dataTable" class="table responsive-table mt30">
                     <tbody>
                         <tr>

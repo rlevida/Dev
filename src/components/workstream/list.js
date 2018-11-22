@@ -1,12 +1,12 @@
 import React from "react";
 import moment from "moment";
+import { connect } from "react-redux"
 
 import { HeaderButtonContainer, Loading } from "../../globalComponents";
 import { getData, showToast } from "../../globalFunction";
 import WorkstreamStatus from "./workstreamStatus"
 import WorkstreamFilter from "./workstreamFilter"
 
-import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,

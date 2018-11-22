@@ -52,7 +52,7 @@ export default class List extends React.Component {
         const memberList = members.List;
 
         return (
-            <div class="row pd20">
+            <div>
                 <h3 class="m0">Members</h3>
                 <table id="dataTable" class="table responsive-table mt30">
                     <tbody>

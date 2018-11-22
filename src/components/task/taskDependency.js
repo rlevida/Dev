@@ -62,14 +62,12 @@ export default class TaskDependency extends React.Component {
     }
 
     getTaskList(options) {
-        const { loggedUser, dispatch, task, taskDependency } = this.props;
-        const { data } = loggedUser;
-        const userRoles = _.map(data.user_role, (roleObj) => { return roleObj.roleId })[0];
+        const { dispatch, task, taskDependency } = this.props;
 
         if (options != "") {
             keyTimer && clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
-                getData(`/api/task?projectId=${project}&userId=${loggedUser.data.id}&page=1&role=${userRoles}&task=${options}`, {}, (c) => {
+                getData(`/api/task?projectId=${project}&page=1&task=${options}`, {}, (c) => {
                     const taskOptions = _(c.data.result)
                         .filter((o) => {
                             const findSelectedTaskIndex = _.findIndex(taskDependency.List, (taskDependencyObj) => { return taskDependencyObj.task.id == o.id });

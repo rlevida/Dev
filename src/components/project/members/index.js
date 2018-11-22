@@ -28,10 +28,6 @@ export default class MembersForm extends React.Component {
         this.setDropDown = this.setDropDown.bind(this)
     }
 
-    componentDidMount() {
-        $(".member-form-container").validator();
-    }
-
     handleSubmit(e) {
         let { socket, members, type, dispatch, project, users , teams , global } = this.props
         let result = true;
@@ -42,6 +38,7 @@ export default class MembersForm extends React.Component {
                 result = false;
             }
         });
+        
         if (!result) {
             showToast("error", "Form did not fullfill the required value.")
             return;
