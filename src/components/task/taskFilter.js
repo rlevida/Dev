@@ -23,6 +23,7 @@ export default class ProjectFilter extends React.Component {
         this.setDropDownMultiple = this.setDropDownMultiple.bind(this);
         this.handleDate = this.handleDate.bind(this);
         this.getMemberList = this.getMemberList.bind(this);
+        this.handleChange = this.handleChange.bind(this);
     }
 
     componentDidMount() {
@@ -40,7 +41,7 @@ export default class ProjectFilter extends React.Component {
         const { dispatch } = this.props;
 
         if (_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false) {
-            const { taskStatus, dueDate, taskAssigned } = this.props.task.Filter;
+            const { taskStatus, dueDate, taskAssigned, task } = this.props.task.Filter;
             let requestUrl = `/api/task?projectId=${project}&page=1`;
 
             dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
@@ -48,6 +49,10 @@ export default class ProjectFilter extends React.Component {
 
             if (taskStatus != "") {
                 requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
+            }
+
+            if (task != "") {
+                requestUrl += `&task=${task}`
             }
 
             if (dueDate != "") {
@@ -107,13 +112,13 @@ export default class ProjectFilter extends React.Component {
     }
 
     handleChange(e) {
-        // const { dispatch } = this.props;
-        // const filterState = { [e.target.name]: e.target.value };
+        const { dispatch } = this.props;
+        const filterState = { [e.target.name]: e.target.value };
 
-        // keyTimer && clearTimeout(keyTimer);
-        // keyTimer = setTimeout(() => {
-        //    // dispatch({ type: "SET_WORKSTREAM_FILTER", filter: filterState });
-        // }, 1500)
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            dispatch({ type: "SET_TASK_FILTER", filter: filterState });
+        }, 1500)
     }
 
     render() {
@@ -164,7 +169,7 @@ export default class ProjectFilter extends React.Component {
                         />
                     </div>
                     <div class="col-md-3 col-sm-12 mb5">
-                        <label>Task</label>
+                        <label>Task Name</label>
                         <input type="text" name="task" class="form-control" onChange={this.handleChange} />
                     </div>
                 </div>
