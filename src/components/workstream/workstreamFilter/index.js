@@ -33,9 +33,6 @@ export default class ProjectFilter extends React.Component {
             const { typeId, workstreamStatus, workstream } = this.props.workstream.Filter;
             const dueDateMoment = moment().format("YYYY-MM-DD");
 
-            dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
-            dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
-
             getData(`/api/workstream?projectId=${project}&page=1&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstream}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
@@ -51,12 +48,18 @@ export default class ProjectFilter extends React.Component {
 
     setDropDown(name, e) {
         const { dispatch } = this.props;
+        
+        dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
         dispatch({ type: "SET_WORKSTREAM_FILTER", filter: { [name]: e } });
     }
 
     handleChange(e) {
         const { dispatch } = this.props;
         const filterState = { [e.target.name]: e.target.value };
+
+        dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
 
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
@@ -68,7 +71,7 @@ export default class ProjectFilter extends React.Component {
         const { workstream, type } = this.props;
         const { Filter } = { ...workstream }
         const typeList = [
-            { id: "", name: "All Worstream Types" },
+            { id: "", name: "All Workstream Types" },
             ..._(type.List)
                 .filter((e, i) => {
                     return e.linkType == "workstream"
@@ -87,7 +90,7 @@ export default class ProjectFilter extends React.Component {
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-4 mb5">
-                        <label>Worstream Type</label>
+                        <label>Workstream Type</label>
                         <DropDown multiple={false}
                             required={false}
                             options={typeList}
@@ -95,7 +98,7 @@ export default class ProjectFilter extends React.Component {
                             onChange={(e) => this.setDropDown("typeId", e.value)} />
                     </div>
                     <div class="col-md-4 mb5">
-                        <label>Worstream Status</label>
+                        <label>Workstream Status</label>
                         <DropDown multiple={false}
                             required={false}
                             options={statusList}
@@ -103,7 +106,7 @@ export default class ProjectFilter extends React.Component {
                             onChange={(e) => this.setDropDown("workstreamStatus", e.value)} />
                     </div>
                     <div class="col-md-4 mb5">
-                        <label>Worstream</label>
+                        <label>Workstream</label>
                         <input type="text" name="workstream" class="form-control" onChange={this.handleChange} />
                     </div>
                 </div>

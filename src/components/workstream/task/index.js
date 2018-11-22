@@ -12,19 +12,16 @@ import Form from "./form"
     }
 })
 export default class Component extends React.Component {
-    constructor(props) {
-        super(props)
-    }
-
     render() {
-        let { task } = this.props
+        let { task, dispatch } = this.props
         return (
-            <div>   
-                <div className={ task.FormActive == "View" ? "col-lg-6 col-md-6 col-sm-12 pd0"  : "col-lg-12 col-md-12 col-sm-12 pd0"}>
+            <div>
+                <div className={ task.FormActive == "View" ? "col-lg-6 col-md-6 col-sm-12"  : "col-lg-12 col-md-12 col-sm-12"}>
                     <List />
                 </div>
-                { (task.FormActive == "View") &&
+                {(task.FormActive == "View") &&
                     <div class="col-lg-6 col-md-6 col-sm-12">
+                        <a style={{ float: "right", color: "#000" }} onClick={() => dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "" })}><i class="fa fa-times fa-lg"></i></a>
                         <Form />
                     </div>
                 }

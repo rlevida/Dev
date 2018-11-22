@@ -62,10 +62,10 @@ export default class List extends React.Component {
 
         if (taskAssigned != "") {
             requestUrl += `&userId=${taskAssigned}`
-        } else {
+        } else if (loggedUser.data.user_role[0].roleId >= 3) { 
             requestUrl += `&userId=${loggedUser.data.id}`
         }
-
+        
         getData(requestUrl, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });

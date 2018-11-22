@@ -75,6 +75,7 @@ export default class FormComponent extends React.Component {
         } else {
             dispatch({ type: "SET_TASK_LOADING" });
         }
+        
         getData(`/api/globalORM/selectList?projectId=${project}&selectName=workstreamList`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamList' });
         });

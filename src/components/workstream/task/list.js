@@ -225,12 +225,12 @@ export default class List extends React.Component {
         return (
             <div>
                 <h3 class="m0">Tasks</h3>
-                <div class="row mb10">
-                    <div class="col-lg-6">
+                <div class="row mb10 mt10">
+                    <div class="col-lg-12">
                         <TaskFilter />
                     </div>
                 </div>
-                <table id="dataTable" class="table responsive-table mt30">
+                <table id="dataTable" class="table responsive-table">
                     <tbody>
                         <tr>
                             <th></th>
