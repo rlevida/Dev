@@ -169,7 +169,7 @@ export default class ProjectFilter extends React.Component {
                         />
                     </div>
                     <div class="col-md-3 col-sm-12 mb5">
-                        <label>Task Name</label>
+                        <label>Task</label>
                         <input type="text" name="task" class="form-control" onChange={this.handleChange} />
                     </div>
                 </div>
