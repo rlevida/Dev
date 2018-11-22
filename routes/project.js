@@ -284,7 +284,7 @@ router.get('/:project/task', function (req, res, next) {
     }
 });
 
-router.get('/conversations/:project', function (req, res, next) {
+router.get('/:project/conversations', function (req, res, next) {
     if (typeof req.params != "undefined" && typeof req.params.project != "undefined") {
         const func = global.initFunc();
         const userRole = JSON.parse(req.userDetails.data).userRole;
