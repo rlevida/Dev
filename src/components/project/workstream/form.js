@@ -52,6 +52,13 @@ export default class FormComponent extends React.Component {
         getData(`/api/globalORM/selectList?selectName=type`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'typeList' });
         });
+
+        getData(`/api/member?linkType=project&linkId=${project}&page=1`, {}, (c) => {
+            const taskMemberOptions = _(c.data.result)
+                .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
+                .value();
+            dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
+        });
     }
 
     handleChange(e) {
@@ -151,7 +158,7 @@ export default class FormComponent extends React.Component {
         if (options != "") {
             keyTimer && clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
-                getData(`/api/member?linkType=project&linkId=${project}&page=1&memberType=assignedTo&memberName=${options}`, {}, (c) => {
+                getData(`/api/member?linkType=project&linkId=${project}&page=1&memberName=${options}`, {}, (c) => {
                     const taskMemberOptions = _(c.data.result)
                         .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
                         .value();

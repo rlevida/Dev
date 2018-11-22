@@ -25,6 +25,17 @@ export default class ProjectFilter extends React.Component {
         this.getMemberList = this.getMemberList.bind(this);
     }
 
+    componentDidMount() {
+        const { dispatch } = this.props;
+
+        getData(`/api/member?linkType=project&linkId=${project}&page=1`, {}, (c) => {
+            let taskMemberOptions = _(c.data.result)
+                .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
+                .value();
+            dispatch({ type: "SET_TASK_SELECT_LIST", List: taskMemberOptions });
+        });
+    }
+
     componentDidUpdate(prevProps) {
         const { dispatch } = this.props;
 
@@ -79,19 +90,30 @@ export default class ProjectFilter extends React.Component {
     }
 
     getMemberList(options) {
-        const { dispatch } = this.props;
+        const { dispatch, task } = this.props;
+        const { Filter } = { ...task }
 
         if (options != "") {
             keyTimer && clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
                 getData(`/api/member?linkType=project&linkId=${project}&page=1&memberName=${options}`, {}, (c) => {
-                    const taskMemberOptions = _(c.data.result)
+                    let taskMemberOptions = _(c.data.result)
                         .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
                         .value();
-                    dispatch({ type: "SET_TASK_SELECT_LIST", List: taskMemberOptions });
+                    dispatch({ type: "SET_TASK_SELECT_LIST", List: Array.isArray(Filter.taskAssigned) ? _.concat(_.map(Filter.taskAssigned, (o) => { return { id: o.value, name: o.label } }), taskMemberOptions) : taskMemberOptions });
                 });
             }, 1000)
         }
+    }
+
+    handleChange(e) {
+        // const { dispatch } = this.props;
+        // const filterState = { [e.target.name]: e.target.value };
+
+        // keyTimer && clearTimeout(keyTimer);
+        // keyTimer = setTimeout(() => {
+        //    // dispatch({ type: "SET_WORKSTREAM_FILTER", filter: filterState });
+        // }, 1500)
     }
 
     render() {
@@ -106,7 +128,7 @@ export default class ProjectFilter extends React.Component {
         return (
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-md-4 mb5">
+                    <div class="col-md-3 col-sm-12 mb5">
                         <label>Task Status</label>
                         <DropDown multiple={false}
                             required={false}
@@ -114,7 +136,7 @@ export default class ProjectFilter extends React.Component {
                             selected={Filter.taskStatus}
                             onChange={(e) => this.setDropDown("taskStatus", e.value)} />
                     </div>
-                    <div class="col-md-4 mb5">
+                    <div class="col-md-3 col-sm-12 mb5">
                         <div class="input-group date">
                             <label>Task Due Date</label>
                             <input type="text"
@@ -129,7 +151,7 @@ export default class ProjectFilter extends React.Component {
                             />
                         </div>
                     </div>
-                    <div class="col-md-4 mb5">
+                    <div class="col-md-3 col-sm-12 mb5">
                         <label>Assigned</label>
                         <DropDown
                             multiple={true}
@@ -140,6 +162,10 @@ export default class ProjectFilter extends React.Component {
                             onChange={(e) => this.setDropDownMultiple("taskAssigned", e)}
                             isClearable={true}
                         />
+                    </div>
+                    <div class="col-md-3 col-sm-12 mb5">
+                        <label>Task</label>
+                        <input type="text" name="task" class="form-control" onChange={this.handleChange} />
                     </div>
                 </div>
             </div>

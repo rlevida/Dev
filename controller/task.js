@@ -114,33 +114,28 @@ exports.get = {
                         }
                 }
             } : {},
-            ...(typeof queryString.userId != "undefined" && queryString.userId != "") ? {
-                [Sequelize.Op.or]: [
-                    {
-                        id: {
-                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = ${queryString.userId})`)
-                        }
-                    },
-                    {
-                        workstreamId: {
-                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT linkId FROM members WHERE memberType="responsible" AND linkType="workstream" AND userTypeLinkId = ${queryString.userId})`)
-                        }
-                    },
-                    {
-                        approverId: queryString.userId
-                    }
-                ]
-            } : {}
         };
 
-        // if (typeof queryString.role != "undefined" && queryString.role != "" && queryString.role == 6) {
-        //     _.find(associationArray, { as: 'task_members' }).required = true;
-        //     _.find(associationArray, { as: 'task_members' }).where = {
-        //         userTypeLinkId: queryString.userId,
-        //         usersType: "users",
-        //         linkType: "task"
-        //     };
-        // }
+        if (typeof queryString.userId != "undefined" && queryString.userId != "") {
+            const compareOpt = (Array.isArray(queryString.userId)) ? "IN" : "=";
+            const ids = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;
+            
+            whereObj[Sequelize.Op.or] = [
+                {
+                    id: {
+                        [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids})`)
+                    }
+                },
+                {
+                    workstreamId: {
+                        [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT linkId FROM members WHERE memberType="responsible" AND linkType="workstream" AND userTypeLinkId ${compareOpt} ${ids})`)
+                    }
+                },
+                {
+                    approverId: queryString.userId
+                }
+            ]
+        }
 
         const options = {
             include: associationArray,
