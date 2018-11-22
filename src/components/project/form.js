@@ -100,7 +100,7 @@ export default class FormComponent extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, project, loggedUser, dispatch } = this.props
+        const { project, loggedUser, dispatch } = this.props
         let result = true;
 
         $('.form-container *').validator('validate');
@@ -343,10 +343,10 @@ export default class FormComponent extends React.Component {
                                                 </div>
                                             }
                                             <div class="form-group">
-                                                <label class="col-md-3 col-xs-12 control-label">Project Manager</label>
+                                                <label class="col-md-3 col-xs-12 control-label">Project Manager *</label>
                                                 <div class="col-md-7 col-xs-12">
                                                     <DropDown multiple={false}
-                                                        required={false}
+                                                        required={true}
                                                         options={projectManagerOptions}
                                                         isClearable={(projectManagerOptions.length > 0)}
                                                         selected={project.Selected.projectManagerId}
