@@ -20,6 +20,7 @@ export default class NewForm extends React.Component {
                 note: "",
                 tag: [],
                 privacyType: "public",
+                projectId: project
             }
         }
 
@@ -50,6 +51,7 @@ export default class NewForm extends React.Component {
                     note: "",
                     tag: [],
                     privacyType: "public",
+                    projectId: project
                 }})
                 data.tag = [];
                 data.comments = [];

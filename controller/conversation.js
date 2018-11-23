@@ -1,5 +1,6 @@
 const dbName = "notes";
 var { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./")
+const sequence = require("sequence").Sequence;
 const models = require('../modelORM');
 const {
     Notes,
@@ -8,6 +9,17 @@ const {
     Conversation,
     Users
 } = models;
+
+let io = require('socket.io-client');
+
+const socketIo = io(((global.environment=="production")?"https:":"http:")+global.site_url,{
+    transports: ['websocket'],
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax : 5000,
+    reconnectionAttempts: 99999
+});
+
 
 exports.get = {
     index : (req,cb) => {
@@ -63,28 +75,85 @@ exports.get = {
         })
     },
     getConversationList : (req,cb) => {
-            let d = req.query
-            let conversation = global.initModel("conversation")
-            let filter = (typeof d.filter != "undefined")?JSON.parse(d.filter):{};
-            conversation.getData("conversation", filter ,{},(c)=>{
-                if(c.status) {
-                    cb({ status: true , data: c.data })
-                    // socket.emit("FRONT_COMMENT_LIST",c.data)
-                }else{
-                    cb({ status: false , error : c.error })
-                    // if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
-                }
-            })
+        let d = req.query
+        let conversation = global.initModel("conversation")
+        let filter = (typeof d.filter != "undefined")?JSON.parse(d.filter):{};
+        conversation.getData("conversation", filter ,{},(c)=>{
+            if(c.status) {
+                cb({ status: true , data: c.data })
+                // socket.emit("FRONT_COMMENT_LIST",c.data)
+            }else{
+                cb({ status: false , error : c.error })
+                // if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
+            }
+        })
     }
 }
 
 exports.post = {
     index : (req,cb) => {
         defaultPost(dbName,req,(res)=>{
-            if(res.success){
+            if(res.success) {
                 cb({ status:true, data:res.data })
-            }else{
+            } else {
                 cb({ status:false, error:res.error })
+            }
+        })
+    },
+    comment: (req, cb) => {
+        let conversation = global.initModel("conversation")
+        let d = req.body;
+        sequence.create().then((nextThen) => {
+            if( typeof d.data.id != "undefined" && d.data.id != "" ){
+                cb({status:false, message: "Data already exist."})
+            }else{
+                conversation.postData("conversation",d.data,(c)=>{
+                    Conversation.findAll({
+                        where: { id: c.id },
+                        include: [
+                            {
+                                model: Users,
+                                as: 'users',
+                            }
+                        ]
+                    }).then((e)=>{
+                        nextThen(e)
+                    })
+                })
+            }
+        }).then((nextThen,result) => {
+            if(JSON.parse(d.reminderList).length){
+                let filter = (typeof d.filter != "undefined") ? d.filter : {};
+                let reminder = global.initModel("reminder");
+                let tempResData = []
+                tempResData.push( new Promise((resolve,reject) => {
+                    JSON.parse(d.reminderList).map( r =>{
+                        let data = { ...d.reminder , usersId : r.userId } 
+                        reminder.postData("reminder", data ,(res)=>{
+                            if(res.status) {
+                                filter.usersId = r.userId
+                                reminder.getReminderList(filter,(e)=>{
+                                    if(e.data.length > 0) {
+                                        resolve(e.data)
+                                    }else{
+                                        reject()
+                                    }
+                                })
+                            }else{
+                                reject()
+                            }
+                        })
+                    })
+                }))
+
+                Promise.all(tempResData).then((values)=>{
+                    socketIo.emit("BROADCAST_SOCKET",{type:"FRONT_REMINDER_LIST", data: values[0]})
+                    cb({status:true, data: result})
+                }).catch((err)=>{
+                    cb({status:false, data: err})
+                })
+            }else{
+                cb({status:true, data: result})
             }
         })
     }
@@ -99,6 +168,64 @@ exports.put = {
                 cb({ status:false, error:c.error })
             }
         })
+    },
+    comment: (req, cb) => {
+        let conversation = global.initModel("conversation")
+        let d = req.body;
+        let id = req.params.id;
+        sequence.create().then((nextThen) => {
+            if( typeof id != "undefined" && id != "" ){
+                conversation.putData("conversation",d.data,{id:id},(c)=>{
+                    Conversation.findAll({
+                        where: { id: id },
+                        include: [
+                            {
+                                model: Users,
+                                as: 'users',
+                            }
+                        ]
+                    }).then((e)=>{
+                        nextThen(e)
+                    })
+                })
+            }else{
+                cb({status:false, message: "Data not found."})
+            }
+        }).then((nextThen,result) => {
+            if(JSON.parse(d.reminderList).length){
+                let filter = (typeof d.filter != "undefined") ? d.filter : {};
+                let reminder = global.initModel("reminder");
+                let tempResData = []
+                tempResData.push( new Promise((resolve,reject) => {
+                    JSON.parse(d.reminderList).map( r =>{
+                        let data = { ...d.reminder , usersId : r.userId } 
+                        reminder.postData("reminder", data ,(res)=>{
+                            if(res.status) {
+                                filter.usersId = r.userId
+                                reminder.getReminderList(filter,(e)=>{
+                                    if(e.data.length > 0) {
+                                        resolve(e.data)
+                                    }else{
+                                        reject()
+                                    }
+                                })
+                            }else{
+                                reject()
+                            }
+                        })
+                    })
+                }))
+
+                Promise.all(tempResData).then((values)=>{
+                    socketIo.emit("BROADCAST_SOCKET",{type:"FRONT_REMINDER_LIST", data: values[0]})
+                    cb({status:true, data: result})
+                }).catch((err)=>{
+                    cb({status:false, data: err})
+                })
+            }else{
+                cb({status:true, data: result})
+            }
+        })
     }
 }
 
@@ -111,5 +238,28 @@ exports.delete =  {
                 cb({ status:false, error:res.error })
             }
         })
-    }
+    },
+    comment: (req,cb) => {
+        const tablename = "conversation";
+        const model = global.initModel(tablename);
+        console.log("pass here");
+        model.getData(tablename, {id:req.params.id}, {}, (b) => {
+            console.log("pass here 1");
+            if(b.data.length > 0){
+                console.log("pass here 2");
+                model.deleteData(tablename, { id: req.params.id }, (c) => {
+                    console.log("pass here 3",c);
+                    if (c.status) {
+                        cb({ status: true, data: { id: req.params.id }, message: "Successfully deleted." })
+                    } else {
+                        if (c.error) { cb({ status: false, data: { id: 0 }, message: c.error.sqlMessage }); return; }
+    
+                        cb({ status: false, data: { id: 0 }, message: "Delete failed. Please try again later." })
+                    }
+                })
+            } else {
+                cb({ status: true, data: { id: req.params.id }, message: "Successfully deleted." })
+            }
+        })
+    }, 
 }
