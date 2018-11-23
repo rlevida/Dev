@@ -136,6 +136,7 @@ export default class List extends React.Component {
         <table id="dataTable" class="table responsive-table mt30">
           <tbody>
             {notesList.map(e => {
+              const lastCommentUser = e.comments[e.comments.length-1];
               return (
                 <tr
                   key={`${e.id}-${new Date().getTime()}`}
@@ -156,9 +157,11 @@ export default class List extends React.Component {
                   <td class="text-left">
                     <div>
                       <h5>{e.note}{(e.isClosed)?<span class="label" style={{margin: "5px", background: "red", color: "white" }}>CLOSED</span>:""}</h5>
-                      <label style={{ fontWeight: "normal" }}>
-                        {moment(e.dateAdded).format("MM/DD/YYYY hh:mm")}
-                      </label>
+                      { lastCommentUser &&
+                        <label style={{ fontWeight: "normal" }}>
+                          {moment(lastCommentUser.dateAdded).format("MM/DD/YYYY hh:mm")}
+                        </label>
+                      }
                       <div style={{ float: "right", marginTop: "-30px" }}>
                         {e.tag.map(f => {
                           const color = this.renderStatus(f.tagTask);
@@ -184,6 +187,9 @@ export default class List extends React.Component {
                         </div>
                       </div>
                       <div style={{ float: "right" }}>
+                        { lastCommentUser &&
+                          <i className={`fa fa-user`} title={`${lastCommentUser.users.firstName} ${lastCommentUser.users.lastName}`} style={{paddingRight:"20px"}} />
+                        }
                         <span
                           className={`fa ${this.renderPrivacy(e.privacyType)}`}
                         />
