@@ -89,23 +89,23 @@ export default class ProjectFilter extends React.Component {
         return (
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-md-4 mb5">
-                        <label>Workstream Type</label>
+                    <div class="col-md-4 col-xs-6 mb5">
+                        <label>Type</label>
                         <DropDown multiple={false}
                             required={false}
                             options={typeList}
                             selected={Filter.typeId}
                             onChange={(e) => this.setDropDown("typeId", e.value)} />
                     </div>
-                    <div class="col-md-4 mb5">
-                        <label>Workstream Status</label>
+                    <div class="col-md-3 col-xs-6 mb5">
+                        <label>Status</label>
                         <DropDown multiple={false}
                             required={false}
                             options={statusList}
                             selected={Filter.workstreamStatus}
                             onChange={(e) => this.setDropDown("workstreamStatus", e.value)} />
                     </div>
-                    <div class="col-md-4 mb5">
+                    <div class="col-md-5 mb5">
                         <label>Workstream</label>
                         <input type="text" name="workstream" class="form-control" onChange={this.handleChange} />
                     </div>
