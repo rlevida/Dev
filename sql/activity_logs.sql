@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS `activity_logs`;
 CREATE TABLE `activity_logs` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `usersId` BIGINT,
-    `linkType` ENUM("project","workstream","task", "checklist", "document"),
+    `linkType` ENUM("project","workstream","task", "checklist", "document", "member"),
     `linkId` BIGINT,
     `actionType` ENUM("created","modified","deleted", "added"),
     `old` TEXT,

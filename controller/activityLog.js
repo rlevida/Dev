@@ -38,6 +38,11 @@ exports.get = {
                         }
                     },
                     {
+                        linkId: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT members.id FROM members LEFT JOIN task ON task.id = members.linkId WHERE task.id = ${queryString.taskId} AND members.memberType = "assignedTo" AND members.linkType = "task")`)
+                        }
+                    },
+                    {
                         [Sequelize.Op.and]: [
                             {
                                 linkId: queryString.taskId
