@@ -11,7 +11,7 @@ const associationStack = [
         model: Members,
         as: 'task_members',
         required: false,
-        where: { linkType: 'task' },
+        where: { linkType: 'task', isDeleted: 0 },
         include: [
             {
                 model: Users,
@@ -445,7 +445,7 @@ exports.put = {
             id: req.params.id
         };
         const options = {
-            include: _.filter(associationStack, (o) => { return o.as == "workstream" })
+            include: _.filter(associationStack, (o) => { return o.as == "workstream" || o.as == "task_members" })
         };
 
         try {
@@ -594,7 +594,7 @@ exports.put = {
                     members: (parallelCallback) => {
                         const memberPromise = _.map(allTask, (relatedTaskObj) => {
                             return new Promise((resolve) => {
-                                Members.findAll(
+                                Members.findOne(
                                     {
                                         where: {
                                             linkType: "task",
@@ -609,74 +609,67 @@ exports.put = {
                                             }
                                         ]
                                     }
-                                ).map((mapObject) => {
-                                    return mapObject.toJSON();
-                                }).then((resultArray) => {
-                                    const oldMembersStack = _(resultArray)
-                                        .map((oldMemberObj) => {
-                                            const omittedObject = _.omit(oldMemberObj, ["id", "dateAdded", "dateUpdated"]);
-                                            return { ...omittedObject, value: oldMemberObj.user.firstName + ' ' + oldMemberObj.user.lastName }
-                                        }).value();
+                                ).then((response) => {
+                                    const oldUserResponse = (response == null) ? "" : response.toJSON();
+                                    Members.update({ isDeleted: 1 },
+                                        {
+                                            where: {
+                                                linkType: "task",
+                                                linkId: relatedTaskObj.data.id,
+                                                usersType: "users",
+                                                memberType: "assignedTo"
+                                            }
+                                        }).then(() => {
+                                            if (body.assignedTo != "") {
+                                                const assignedTo = { linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" };
 
-                                    Members.destroy({
-                                        where: {
-                                            linkType: "task",
-                                            linkId: relatedTaskObj.data.id,
-                                            usersType: "users",
-                                            memberType: "assignedTo"
-                                        }
-                                    }).then(() => {
-                                        if (body.assignedTo != "") {
-                                            const assignedTo = { linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" };
-                                            Members.create(assignedTo).then(() => {
-                                                return Members.findAll(
-                                                    {
-                                                        where: {
-                                                            linkType: "task",
-                                                            memberType: "assignedTo",
-                                                            linkId: relatedTaskObj.data.id
-                                                        },
-                                                        include: [
-                                                            {
-                                                                model: Users,
-                                                                as: 'user',
-                                                                attributes: ['id', 'firstName', 'lastName']
-                                                            }
-                                                        ]
-                                                    });
-                                            }).map((mapObject) => {
-                                                return mapObject.toJSON();
-                                            }).then((resultArray) => {
-                                                const newMembersStack = _(resultArray)
-                                                    .map((newMemberObj) => {
-                                                        const omittedObject = _.omit(newMemberObj, ["id", "dateAdded", "dateUpdated"]);
-                                                        return { ...omittedObject, value: newMemberObj.user.firstName + ' ' + newMemberObj.user.lastName }
-                                                    }).value();
-                                                const isEqualMembers = func.isArrayEqual(oldMembersStack, newMembersStack);
-                                                resolve({
-                                                    data: resultArray,
-                                                    ...(isEqualMembers == false) ? {
+                                                Members.create(assignedTo).then((response) => {
+                                                    return Members.findOne(
+                                                        {
+                                                            where: {
+                                                                linkType: "task",
+                                                                memberType: "assignedTo",
+                                                                linkId: relatedTaskObj.data.id,
+                                                                usersType: "users",
+                                                                userTypeLinkId: body.assignedTo
+                                                            },
+                                                            include: [
+                                                                {
+                                                                    model: Users,
+                                                                    as: 'user',
+                                                                    attributes: ['id', 'firstName', 'lastName']
+                                                                }
+                                                            ]
+                                                        });
+                                                }).then((response) => {
+                                                    resolve({
+                                                        data: oldUserResponse,
                                                         logs: {
-                                                            old: JSON.stringify({ "members": { user: oldMembersStack } }),
-                                                            new: JSON.stringify({ "members": { user: newMembersStack } })
+                                                            old: JSON.stringify({ assigned_member: response }),
+                                                            actionType: "added",
+                                                            usersId: body.userId,
+                                                            linkType: "member",
+                                                            linkId: response.id,
+                                                            title: response.user.firstName + " " + response.user.lastName
+                                                        }
+                                                    });
+                                                });
+                                            } else {
+                                                resolve({
+                                                    data: oldUserResponse,
+                                                    ...(oldUserResponse != "") ? {
+                                                        logs: {
+                                                            old: JSON.stringify({ assigned_member: oldUserResponse }),
+                                                            actionType: "deleted",
+                                                            usersId: body.userId,
+                                                            linkType: "member",
+                                                            linkId: oldUserResponse.id,
+                                                            title: response.user.firstName + " " + response.user.lastName
                                                         }
                                                     } : {}
                                                 });
-                                            });
-                                        } else {
-                                            const isEqualMembers = func.isArrayEqual(oldMembersStack, []);
-
-                                            resolve({
-                                                data: oldMembersStack,
-                                                ...(isEqualMembers == false) ? {
-                                                    logs: {
-                                                        old: JSON.stringify({ "members": { user: oldMembersStack } }),
-                                                        new: JSON.stringify({ "members": { user: [] } }),
-                                                    }
-                                                } : {}
-                                            });
-                                        }
-                                    });
+                                            }
+                                        });
                                 });
                             });
                         });
@@ -687,8 +680,7 @@ exports.put = {
                                     return (typeof memberObj.logs != "undefined")
                                 })
                                 .map((memberObj) => {
-                                    const { logs, data } = memberObj;
-                                    return { usersId: body.userId, linkType: "task", linkId: data[0].linkId, actionType: "modified", old: logs.old, new: logs.new }
+                                    return memberObj.logs;
                                 })
                                 .value();
 

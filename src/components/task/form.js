@@ -398,7 +398,7 @@ export default class FormComponent extends React.Component {
                                             <div class="form-group">
                                                 <label class="col-md-3 col-xs-12 control-label">Description</label>
                                                 <div class="col-md-7 col-xs-12">
-                                                    <textarea name="description" value={(typeof task.Selected.description == "undefined") ? "" : task.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
+                                                    <textarea name="description" value={(typeof task.Selected.description == "undefined" || task.Selected.description == null) ? "" : task.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
                                                 </div>
                                             </div>
                                             <div class="form-group">

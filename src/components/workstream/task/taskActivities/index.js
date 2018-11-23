@@ -49,8 +49,8 @@ export default class TaskActivities extends React.Component {
     }
 
     generateCreateorDelete(params) {
-        const { user, title, linkType, actionType } = params;
-        const { firstName, lastName, dateAdded } = user;
+        const { user, title, linkType, actionType, dateAdded } = params;
+        const { firstName, lastName } = user;
         const objValue = (params.new != null) ? JSON.parse(params.new) : JSON.parse(params.old);
         const modifiedObject = _.keys(objValue)[0];
         const attributeEdited = (modifiedObject.replace('_', ' '));
@@ -64,15 +64,15 @@ export default class TaskActivities extends React.Component {
                 </p>
                 <p style={{ marginTop: 0, marginBottom: 0, fontSize: 10 }}>{linkTypeLabel + ": "}<strong>{title}</strong></p>
                 <p style={{ marginTop: 5, marginBottom: 0, fontSize: 10, }}>
-                    {`${moment(dateAdded).format("MMM DD, YYYY")} - ${firstName} ${lastName}`}
+                    {`${moment(dateAdded).format("MMM DD, YYYY HH:mm:ss")} - ${firstName} ${lastName}`}
                 </p>
             </div>
         );
     }
 
     generateModified(params) {
-        const { user, title, linkType } = params;
-        const { firstName, lastName, dateAdded } = user;
+        const { user, title, linkType, dateAdded } = params;
+        const { firstName, lastName } = user;
         const oldValue = (params.old != "" && params.old != null) ? JSON.parse(params.old) : [];
         const newValue = (params.new != "" && params.new != null) ? JSON.parse(params.new) : [];
         const modifiedObject = _.keys(newValue)[0];
@@ -143,7 +143,7 @@ export default class TaskActivities extends React.Component {
                     })
                 }
                 <p style={{ marginTop: 5, fontSize: 10, marginBottom: 0 }}>
-                    {`${moment(dateAdded).format("MMM DD, YYYY")} - ${firstName} ${lastName}`}
+                    {`${moment(dateAdded).format("MMM DD, YYYY HH:mm:ss")} - ${firstName} ${lastName}`}
                 </p>
             </div>
         );

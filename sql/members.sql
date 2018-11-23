@@ -7,6 +7,7 @@ CREATE TABLE `members` (
     `linkId` BIGINT,
     `memberType` ENUM("assignedTo","Follower","responsible", "project manager","approver"),
     `receiveNotification` TINYINT(1) DEFAULT '1',
+    `isDeleted` TINYINT(1) DEFAULT '0',
     `dateAdded` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)

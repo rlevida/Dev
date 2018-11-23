@@ -11,7 +11,8 @@ let keyTimer = "";
         socket: store.socket.container,
         status: store.status,
         loggedUser: store.loggedUser,
-        task: store.task
+        task: store.task,
+        members: store.members
     }
 })
 
@@ -33,7 +34,7 @@ export default class ProjectFilter extends React.Component {
             let taskMemberOptions = _(c.data.result)
                 .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
                 .value();
-            dispatch({ type: "SET_TASK_SELECT_LIST", List: taskMemberOptions });
+            dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
         });
     }
 
@@ -108,7 +109,7 @@ export default class ProjectFilter extends React.Component {
                     let taskMemberOptions = _(c.data.result)
                         .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
                         .value();
-                    dispatch({ type: "SET_TASK_SELECT_LIST", List: Array.isArray(Filter.taskAssigned) ? _.concat(_.map(Filter.taskAssigned, (o) => { return { id: o.value, name: o.label } }), taskMemberOptions) : taskMemberOptions });
+                    dispatch({ type: "SET_MEMBER_SELECT_LIST", List: Array.isArray(Filter.taskAssigned) ? _.concat(_.map(Filter.taskAssigned, (o) => { return { id: o.value, name: o.label } }), taskMemberOptions) : taskMemberOptions });
                 });
             }, 1000)
         }
@@ -127,7 +128,7 @@ export default class ProjectFilter extends React.Component {
     }
 
     render() {
-        const { task } = this.props;
+        const { task, members } = this.props;
         const { Filter } = { ...task }
         const statusList = [
             { id: "", name: "All Status" },
@@ -165,7 +166,7 @@ export default class ProjectFilter extends React.Component {
                         <label>Assigned</label>
                         <DropDown
                             multiple={true}
-                            options={task.SelectList}
+                            options={members.SelectList}
                             onInputChange={this.getMemberList}
                             selected={(typeof Filter.taskAssigned == "undefined" || Filter.taskAssigned == "") ? [] : Filter.taskAssigned}
                             placeholder={"Type to Search Member"}

@@ -26,6 +26,20 @@ export default class TaskDependency extends React.Component {
         this.setDropDownMultiple = this.setDropDownMultiple.bind(this);
     }
 
+    componentDidMount(){
+        const { task, dispatch, taskDependency } = this.props;
+        getData(`/api/task?projectId=${project}&page=1`, {}, (c) => {
+            const taskOptions = _(c.data.result)
+                .filter((o) => {
+                    const findSelectedTaskIndex = _.findIndex(taskDependency.List, (taskDependencyObj) => { return taskDependencyObj.task.id == o.id });
+                    return findSelectedTaskIndex < 0 && o.id != task.Selected.id;
+                })
+                .map((e) => { return { id: e.id, name: e.task } })
+                .value();
+            dispatch({ type: "SET_TASK_SELECT_LIST", List: _.concat(taskOptions, _.map(task.Selected.task_dependency, (o) => { return { id: o.value, name: o.label } })) });
+        });
+    }
+
     handleSubmit() {
         const { task, loggedUser, dispatch } = this.props;
         const toBeSubmitted = {
