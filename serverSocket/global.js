@@ -155,5 +155,9 @@ var init = exports.init = (socket) => {
 
             
         }
-    })    
+    })  
+    
+    socket.on("BROADCAST_SOCKET", (d) => {
+        socket.broadcast.emit(d.type,d.data);
+    })
 }

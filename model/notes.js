@@ -5,6 +5,10 @@ var field = exports.field = {
      */
     'id' : {type : 'bigint' , access : "public" },
     /**
+     *  projectId (Primary Key)
+     */
+    'projectId' : {type : 'bigint' , access : "public" },
+    /**
      * note (VARCHAR(255))
      */
     'note' : {type : 'string' , access : "public" },
@@ -19,7 +23,11 @@ var field = exports.field = {
     /**
      * createdBy (BIGINT)
      */
-    'isStarred' : {type : 'bigint' , access : "public" },
+    'createdBy' : {type : 'bigint' , access : "public" },
+    /**
+     * isClosed (TINYINT)
+     */
+    'isClosed' : {type : 'tinyint' , access : "public" },
     /**
      * dateAdded (DATETIME)
      */

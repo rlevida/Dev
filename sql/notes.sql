@@ -5,6 +5,8 @@ CREATE TABLE `notes` (
     `privacyType` VARCHAR(20),
     `isStarred` TINYINT,
     `createdBy` BIGINT,
+    `isClosed` TINYINT,
+    `projectId` BIGINT,
     `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)

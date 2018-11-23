@@ -20,6 +20,7 @@ import Modal from "./newForm";
 export default class List extends React.Component {
   constructor(props) {
     super(props);
+    this.fetchProjectMember = this.fetchProjectMember.bind(this);
     this.fetchNotes = this.fetchNotes.bind(this);
     this.openDetail = this.openDetail.bind(this);
     this.updateStarred = this.updateStarred.bind(this);
@@ -27,6 +28,8 @@ export default class List extends React.Component {
 
   componentDidMount() {
     this.fetchNotes();
+    this.fetchProjectMember();
+    
   }
 
   fetchNotes() {
@@ -37,6 +40,13 @@ export default class List extends React.Component {
 
       dispatch({ type: "SET_NOTES_LOADING", Loading: "" });
     });
+  }
+
+  fetchProjectMember() {
+    const { dispatch } = this.props;
+    getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project}&linkType=project`, {}, (c) => {
+        dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
+    })
   }
 
   openDetail(data) {
@@ -87,7 +97,7 @@ export default class List extends React.Component {
     }
     return icon;
   }
-
+  
   updateStarred(event, data) {
     const { notes, dispatch } = this.props;
     event.stopPropagation();
@@ -106,7 +116,7 @@ export default class List extends React.Component {
   }
 
   render() {
-    const { notes, loggedUser } = this.props;
+    const { notes, loggedUser, setIsClosed } = this.props;
     const currentPage =
       typeof notes.Count.current_page != "undefined"
         ? notes.Count.current_page
@@ -131,19 +141,21 @@ export default class List extends React.Component {
                   key={`${e.id}-${new Date().getTime()}`}
                   style={{
                     cursor: "pointer",
-                    background:
-                      notes.Selected.id === e.id ? "#f5f5f5" : "transparent"
+                    /*background:
+                      notes.Selected.id === e.id ? "#f5f5f5" : "transparent"*/
                   }}
                   onClick={() => this.openDetail(e)}
                 >
-                  <td onClick={f => this.updateStarred(f, e)}>
+                  <td style={{
+                    width: "50px"
+                  }} onClick={f => this.updateStarred(f, e)}>
                     <span
                       class={`fa ${e.isStarred ? "fa-star" : "fa-star-o"}`}
                     />
                   </td>
                   <td class="text-left">
                     <div>
-                      <h5>{e.note}</h5>
+                      <h5>{e.note}{(e.isClosed)?<span class="label" style={{margin: "5px", background: "red", color: "white" }}>CLOSED</span>:""}</h5>
                       <label style={{ fontWeight: "normal" }}>
                         {moment(e.dateAdded).format("MM/DD/YYYY hh:mm")}
                       </label>
@@ -159,7 +171,17 @@ export default class List extends React.Component {
                             </span>
                           );
                         })}
-                        <span className="fa fa-ellipsis-h" />
+                        <div class="dropdown" style={{float:"right"}}>
+                            <button style={{padding:"3px",border:"none", paddingRight: "0px"}} class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" onClick={(e)=>{ e.stopPropagation() }} aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                            <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >
+                                { (e.isClosed === 1) &&
+                                  <li><a href="javascript:void(0)" onClick={() => setIsClosed(0,e)}>Open</a></li>
+                                }
+                                { (e.isClosed === 0) &&
+                                  <li><a href="javascript:void(0)" onClick={() => setIsClosed(1,e)}>Close</a></li>
+                                }
+                            </ul>
+                        </div>
                       </div>
                       <div style={{ float: "right" }}>
                         <span

@@ -8,6 +8,10 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true,
       autoIncrement: true
     },
+    projectId: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
     note: {
       type: DataTypes.STRING(255),
       allowNull: true
@@ -23,6 +27,11 @@ module.exports = function(sequelize, DataTypes) {
     createdBy: {
       type: DataTypes.BIGINT,
       allowNull: true
+    },
+    isClosed: {
+      type: DataTypes.INTEGER(4),
+      allowNull: true,
+      defaultValue: 0
     },
     dateAdded: {
       type: DataTypes.DATE,
