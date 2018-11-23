@@ -38,9 +38,8 @@ export default class ProjectStatus extends React.Component {
         });
         return (
             <div class="container-fluid">
-                <div class="row" style={(style != "undefined") ? style : ""}>
-                    <div class="col-lg-1 col-xs-12 count">
-                        <span></span>
+                <div className={(page == "project") ? "row status-multiple" : "row"}>
+                    <div class="col-lg-2 col-xs-12 count">
                         <span>Client:</span>
                     </div>
                     <div class="col-lg-3 col-xs-12 active-count count">
@@ -64,9 +63,8 @@ export default class ProjectStatus extends React.Component {
                 {
                     (typeof this.props.loggedUser.data.userRole != "undefined" &&
                         (this.props.loggedUser.data.userRole <= 4)) &&
-                    <div class="row" style={(style != "undefined") ? style : ""}>
-                         <div class="col-lg-1 col-xs-12 count">
-                            <span></span>
+                    <div class="row" className={(page == "project") ? "row status-multiple" : "row"}>
+                         <div class="col-lg-2 col-xs-12 count">
                             <span>Internal:</span>
                         </div>
                         <div class="col-lg-3 col-xs-12 active-count count">
@@ -91,9 +89,8 @@ export default class ProjectStatus extends React.Component {
                 {
                     (typeof this.props.loggedUser.data.userRole != "undefined" &&
                         (this.props.loggedUser.data.userRole <= 4)) &&
-                    <div class="row" style={(style != "undefined") ? style : ""}>
-                         <div class="col-lg-1 col-xs-12 count">
-                            <span></span>
+                    <div class="row" className={(page == "project") ? "row status-multiple" : "row"}>
+                         <div class="col-lg-2 col-xs-12 count">
                             <span>Private:</span>
                         </div>
                         <div class="col-lg-3 col-xs-12 active-count count">

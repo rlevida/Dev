@@ -20,56 +20,82 @@ export default class TaskStatus extends React.Component {
     componentDidMount() {
         const { loggedUser, dispatch } = this.props;
 
-        getData(`/api/task/myTaskStatus?projectId=${project}&userId=${loggedUser.data.id}&date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, (c) => {
+        getData(`/api/task/myTaskStatus?&userId=${loggedUser.data.id}&date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, (c) => {
             dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: c.data });
         });
     }
 
     render() {
-        const { task, style } = this.props;
+        const { task } = this.props;
         const { StatusCount } = task;
 
-        return <div style={style}>
-            <table>
-                <tbody>
-                    <tr>
-                        <td style={{ padding: "10px 5px", width: "120px" }}>Assigned</td>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{StatusCount.assigned_active}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                            <span style={{ float: "left" }}>Due Today</span><span style={{ float: "right" }}>{StatusCount.assigned_due_today}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
-                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{StatusCount.assigned_issues}</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style={{ padding: "10px 5px", width: "120px" }}>Responsible</td>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{StatusCount.responsible_active}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                            <span style={{ float: "left" }}>Due Today</span><span style={{ float: "right" }}>{StatusCount.responsible_due_today}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
-                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{StatusCount.responsible_issues}</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style={{ padding: "10px 5px", width: "120px" }}>Following</td>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left" }}>Active</span><span style={{ float: "right" }}>{StatusCount.followed_active}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "120px", backgroundColor: "#9eca9f", color: "white" }}>
-                            <span style={{ float: "left" }}>Due Today</span><span style={{ float: "right" }}>{StatusCount.followed_due_today}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "80px", backgroundColor: "#d4a2a2", color: "white" }}>
-                            <span style={{ float: "left" }}>Issues</span><span style={{ float: "right" }}>{StatusCount.followed_issues}</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        return <div class="container-fluid">
+            <div className={(page == "mytask") ? "row status-multiple" : "row"}>
+                <div class="col-lg-2 col-xs-12 count">
+                    <span>Assigned:</span>
+                </div>
+                <div class="col-lg-3 col-xs-12 active-count count">
+                    <span class="text-white">{StatusCount.assigned_active}</span>
+                    <span class="text-white">Active Tasks:</span>
+                </div>
+                <div class="col-lg-3 col-xs-12 on-time count">
+                    <span class="text-white">
+                        {StatusCount.assigned_due_today}
+                    </span>
+                    <span class="text-white">Tasks On Time:</span>
+                </div>
+                <div class="col-lg-3 col-xs-12 issues count">
+                    <span class="text-white">
+                        {(StatusCount.assigned_issues > 0) && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}
+                        {StatusCount.assigned_issues}
+                    </span>
+                    <span class="text-white">Tasks With Issues:</span>
+                </div>
+            </div>
+            <div className={(page == "mytask") ? "row status-multiple" : "row"}>
+                <div class="col-lg-2 col-xs-12 count">
+                    <span>Responsible:</span>
+                </div>
+                <div class="col-lg-3 col-xs-12 active-count count">
+                    <span class="text-white">{StatusCount.responsible_active}</span>
+                    <span class="text-white">Active Tasks:</span>
+                </div>
+                <div class="col-lg-3 col-xs-12 on-time count">
+                    <span class="text-white">
+                        {StatusCount.responsible_due_today}
+                    </span>
+                    <span class="text-white">Tasks On Time:</span>
+                </div>
+                <div class="col-lg-3 col-xs-12 issues count">
+                    <span class="text-white">
+                        {(StatusCount.responsible_due_today > 0) && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}
+                        {StatusCount.responsible_due_today}
+                    </span>
+                    <span class="text-white">Tasks With Issues:</span>
+                </div>
+            </div>
+            <div className={(page == "mytask") ? "row status-multiple" : "row"}>
+                <div class="col-lg-2 col-xs-12 count">
+                    <span>Following:</span>
+                </div>
+                <div class="col-lg-3 col-xs-12 active-count count">
+                    <span class="text-white">{StatusCount.followed_active}</span>
+                    <span class="text-white">Active Tasks:</span>
+                </div>
+                <div class="col-lg-3 col-xs-12 on-time count">
+                    <span class="text-white">
+                        {StatusCount.followed_due_today}
+                    </span>
+                    <span class="text-white">Tasks On Time:</span>
+                </div>
+                <div class="col-lg-3 col-xs-12 issues count">
+                    <span class="text-white">
+                        {(StatusCount.followed_issues > 0) && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}
+                        {StatusCount.followed_issues}
+                    </span>
+                    <span class="text-white">Tasks With Issues:</span>
+                </div>
+            </div>
         </div>
     }
 }

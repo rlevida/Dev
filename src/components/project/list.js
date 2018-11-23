@@ -131,11 +131,8 @@ export default class List extends React.Component {
         return (
             <div class="pd20">
                 <div class="row mb10">
-                    <div class="col-lg-10" style={{ float: "right" }}>
-                        <ProjectStatus  style={{
-                            display: "flex",
-                            justifyContent: "flex-end"
-                        }} />
+                    <div class="col-lg-10 col-md-12 status-div">
+                        <ProjectStatus />
                     </div>
                 </div>
                 {

@@ -119,7 +119,7 @@ exports.get = {
         if (typeof queryString.userId != "undefined" && queryString.userId != "") {
             const compareOpt = (Array.isArray(queryString.userId)) ? "IN" : "=";
             const ids = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;
-            
+
             whereObj[Sequelize.Op.or] = [
                 {
                     id: {
@@ -233,17 +233,17 @@ exports.get = {
             sequelize.query(`
             SELECT
 
-            SUM(CASE WHEN task.dueDate < :date AND (task.status != "Completed" OR task.status IS NULL) AND task_members.memberType="assignedTo" AND task_members.userTypeLinkId = :user_id then 1 else 0 end)  AS assigned_issues,
-            SUM(CASE WHEN task.dueDate = :date AND (task.status != "Completed" OR task.status IS NULL) AND task_members.memberType="assignedTo" AND task_members.userTypeLinkId = :user_id then 1 else 0 end)  AS assigned_due_today,
-            SUM(CASE WHEN task_members.memberType="assignedTo" AND task_members.userTypeLinkId = :user_id then 1 else 0 end)  AS assigned_active,
+            COALESCE(SUM(CASE WHEN task.dueDate < :date AND (task.status != "Completed" OR task.status IS NULL) AND task_members.memberType="assignedTo" AND task_members.userTypeLinkId = :user_id then 1 else 0 end), 0)  AS assigned_issues,
+            COALESCE(SUM(CASE WHEN task.dueDate = :date AND (task.status != "Completed" OR task.status IS NULL) AND task_members.memberType="assignedTo" AND task_members.userTypeLinkId = :user_id then 1 else 0 end), 0)  AS assigned_due_today,
+            COALESCE(SUM(CASE WHEN task_members.memberType="assignedTo" AND task_members.userTypeLinkId = :user_id then 1 else 0 end),0)  AS assigned_active,
             
-            SUM(CASE WHEN task.dueDate < :date AND (task.status != "Completed" OR task.status IS NULL) AND task_members.memberType="Follower" AND task_members.userTypeLinkId = :user_id then 1 else 0 end)  AS followed_issues,
-            SUM(CASE WHEN task.dueDate = :date AND (task.status != "Completed" OR task.status IS NULL) AND task_members.memberType="Follower" AND task_members.userTypeLinkId = :user_id then 1 else 0 end)  AS followed_due_today,
-            SUM(CASE WHEN task_members.memberType="Follower" AND task_members.userTypeLinkId = :user_id then 1 else 0 end)  AS followed_active,
+            COALESCE(SUM(CASE WHEN task.dueDate < :date AND (task.status != "Completed" OR task.status IS NULL) AND task_members.memberType="Follower" AND task_members.userTypeLinkId = :user_id then 1 else 0 end), 0)  AS followed_issues,
+            COALESCE(SUM(CASE WHEN task.dueDate = :date AND (task.status != "Completed" OR task.status IS NULL) AND task_members.memberType="Follower" AND task_members.userTypeLinkId = :user_id then 1 else 0 end), 0)  AS followed_due_today,
+            COALESCE(SUM(CASE WHEN task_members.memberType="Follower" AND task_members.userTypeLinkId = :user_id then 1 else 0 end), 0)  AS followed_active,
 
-            SUM(CASE WHEN task.dueDate < :date AND (task.status != "Completed" OR task.status IS NULL) AND workstream_members.memberType="responsible" AND workstream_members.userTypeLinkId = :user_id then 1 else 0 end)  AS responsible_issues,
-            SUM(CASE WHEN task.dueDate = :date AND (task.status != "Completed" OR task.status IS NULL) AND workstream_members.memberType="responsible" AND workstream_members.userTypeLinkId = :user_id then 1 else 0 end)  AS responsible_due_today,
-            SUM(CASE WHEN workstream_members.memberType="responsible" AND workstream_members.userTypeLinkId = :user_id then 1 else 0 end)  AS responsible_active
+            COALESCE(SUM(CASE WHEN task.dueDate < :date AND (task.status != "Completed" OR task.status IS NULL) AND workstream_members.memberType="responsible" AND workstream_members.userTypeLinkId = :user_id then 1 else 0 end), 0)  AS responsible_issues,
+            COALESCE(SUM(CASE WHEN task.dueDate = :date AND (task.status != "Completed" OR task.status IS NULL) AND workstream_members.memberType="responsible" AND workstream_members.userTypeLinkId = :user_id then 1 else 0 end), 0)  AS responsible_due_today,
+            COALESCE(SUM(CASE WHEN workstream_members.memberType="responsible" AND workstream_members.userTypeLinkId = :user_id then 1 else 0 end), 0)  AS responsible_active
 
             FROM 
             
