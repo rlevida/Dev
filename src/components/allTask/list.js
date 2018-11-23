@@ -1,11 +1,11 @@
 import React from "react";
-import Tooltip from "react-tooltip";
 import _ from "lodash";
 import moment from 'moment';
 
-import { HeaderButtonContainer, Loading } from "../../globalComponents";
+import { Loading } from "../../globalComponents";
 import { getData, showToast } from "../../globalFunction";
 import TaskStatus from "./taskStatus"
+import TaskFilter from "./taskFilter"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -44,7 +44,7 @@ export default class List extends React.Component {
     fetchData(page) {
         const { loggedUser, dispatch } = this.props;
         let fetchUrl = `/api/task?projectId=${project}&page=${page}&userId=${loggedUser.data.id}`;
-       
+
         getData(fetchUrl, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
@@ -97,8 +97,17 @@ export default class List extends React.Component {
         const taskList = task.List;
 
         return (
-            <div>
-                <TaskStatus style={{ float: "right", padding: 20 }} />
+            <div class="pd20">
+                <div class="row mb10">
+                    <div class="col-lg-10 col-md-12 status-div">
+                        <TaskStatus />
+                    </div>
+                </div>
+                <div class="row mb10">
+                    <div class="col-lg-7">
+                        <TaskFilter />
+                    </div>
+                </div>
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
                         <tr>
