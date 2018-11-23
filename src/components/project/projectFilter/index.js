@@ -58,7 +58,7 @@ export default class ProjectFilter extends React.Component {
         return (
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-md-6 mb5">
+                    <div class="col-md-6 col-xs-6 mb5">
                         <label>Project Type</label>
                         <DropDown multiple={false}
                             required={false}
@@ -66,7 +66,7 @@ export default class ProjectFilter extends React.Component {
                             selected={Filter.typeId}
                             onChange={(e) => this.setDropDown("typeId", e.value)} />
                     </div>
-                    <div class="col-md-6 mb5">
+                    <div class="col-md-6 col-xs-6 mb5">
                         <label>Project Status</label>
                         <DropDown multiple={false}
                             required={false}

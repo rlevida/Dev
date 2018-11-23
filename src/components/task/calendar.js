@@ -18,7 +18,7 @@ BigCalendar.momentLocalizer(moment);
     }
 })
 export default class List extends React.Component {
-    
+
     constructor(props) {
         super(props);
 
@@ -163,8 +163,8 @@ export default class List extends React.Component {
 
         return (
             <div class="pd0">
-                <div class="row mb10">
-                    <div class="col-lg-6" style={{ float: "right" }}>
+                <div class="row mb10 mt10">
+                    <div class="col-lg-6 status-div">
                         <TaskStatus />
                     </div>
                 </div>
@@ -182,7 +182,7 @@ export default class List extends React.Component {
                     }
                 </HeaderButtonContainer>
                 <div class="row mb10">
-                    <div class="col-lg-6">
+                    <div class="col-lg-10 pd0">
                         <TaskFilter />
                     </div>
                 </div>
@@ -190,8 +190,8 @@ export default class List extends React.Component {
                     selectable
                     events={taskList.map((e) => {
                         e.title = e.task;
-                        e.start = (typeof e.dueDate != "undefined")?new Date(e.dueDate):new Date()
-                        e.end = (typeof e.dueDate != "undefined")?moment(e.dueDate).add(1, 'days'):new Date()
+                        e.start = (typeof e.dueDate != "undefined") ? new Date(e.dueDate) : new Date()
+                        e.end = (typeof e.dueDate != "undefined") ? moment(e.dueDate).add(1, 'days') : new Date()
                         e.allday = true
                         return e;
                     })}
@@ -200,7 +200,7 @@ export default class List extends React.Component {
                     scrollToTime={new Date(1970, 1, 1, 6)}
                     defaultDate={new Date()}
                     onSelectEvent={event => { location.href = `/project/${event.projectId}/workstream/${event.workstreamId}?task=${event.id}` }}
-                    onSelectSlot={(slotInfo) => {}}
+                    onSelectSlot={(slotInfo) => { }}
                     eventPropGetter={(this.eventStyleGetter)}
                 />
                 {

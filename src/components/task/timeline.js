@@ -192,33 +192,33 @@ export default class List extends React.Component {
     const taskList = task.List;
 
     let yourData = [
-        [
-          { type: "string", label: "Task ID" },
-          { type: "string", label: "Task Name" },
-          { type: "string", label: "Resource" },
-          { type: "date", label: "Start Date" },
-          { type: "date", label: "End Date" },
-          { type: "number", label: "Duration" },
-          { type: "number", label: "Percent Complete" },
-          { type: "string", label: "Dependencies" }
-        ]
+      [
+        { type: "string", label: "Task ID" },
+        { type: "string", label: "Task Name" },
+        { type: "string", label: "Resource" },
+        { type: "date", label: "Start Date" },
+        { type: "date", label: "End Date" },
+        { type: "number", label: "Duration" },
+        { type: "number", label: "Percent Complete" },
+        { type: "string", label: "Dependencies" }
+      ]
     ];
     taskList.map((data, index) => {
-        yourData.push([
-            data.id,
-            data.task,
-            null,
-            new Date(data.startDate),
-            new Date(data.dueDate),
-            100,
-            100,
-            null
-        ]);
+      yourData.push([
+        data.id,
+        data.task,
+        null,
+        new Date(data.startDate),
+        new Date(data.dueDate),
+        100,
+        100,
+        null
+      ]);
     })
     return (
       <div class="pd0">
-        <div class="row mb10">
-          <div class="col-lg-6" style={{ float: "right" }}>
+        <div class="row mb10 mt10">
+          <div class="col-lg-6 status-div">
             <TaskStatus />
           </div>
         </div>
@@ -245,7 +245,7 @@ export default class List extends React.Component {
             )}
         </HeaderButtonContainer>
         <div class="row mb10">
-          <div class="col-lg-6">
+          <div class="col-lg-10 pd0">
             <TaskFilter />
           </div>
         </div>

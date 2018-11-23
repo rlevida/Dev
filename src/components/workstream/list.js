@@ -116,8 +116,8 @@ export default class List extends React.Component {
                 <h3 class="mt10 mb10">
                     <a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a>
                 </h3>
-                <div class="row mb10">
-                    <div class="col-lg-8" style={{ float: "right" }}>
+                <div class="row mb10 mt10">
+                    <div class="col-lg-10 col-md-11 col-sm-12 col-xs-12 status-div">
                         <WorkstreamStatus />
                     </div>
                 </div>
@@ -134,7 +134,7 @@ export default class List extends React.Component {
                     }
                 </HeaderButtonContainer>
                 <div class="row mb10">
-                    <div class="col-lg-6">
+                    <div class="col-lg-6 pd0">
                         <WorkstreamFilter />
                     </div>
                 </div>

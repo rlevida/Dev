@@ -46,7 +46,7 @@ export default class WorkstreamStatus extends React.Component {
         return <div class="container-fluid">
             {
                 (_.isEmpty(StatusCount) == false) &&
-                <div class="row">
+                <div class="row single-status">
                     <div class="col-lg-4 col-xs-12 active-count count">
                         <span class="text-white">{(StatusCount.active - StatusCount.issues) + StatusCount.issues}</span>
                         <span class="text-white">Active Workstreams:</span>

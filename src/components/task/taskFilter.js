@@ -138,7 +138,7 @@ export default class ProjectFilter extends React.Component {
         return (
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-md-3 col-sm-12 mb5">
+                    <div class="col-md-3 col-sm-12 col-xs-6 mb5">
                         <label>Task Status</label>
                         <DropDown multiple={false}
                             required={false}
@@ -146,8 +146,8 @@ export default class ProjectFilter extends React.Component {
                             selected={Filter.taskStatus}
                             onChange={(e) => this.setDropDown("taskStatus", e.value)} />
                     </div>
-                    <div class="col-md-3 col-sm-12 mb5">
-                        <div class="input-group date">
+                    <div class="col-md-2 col-sm-12 col-xs-6 mb5">
+                        <div class="input-group date" style={{width:"100%"}}>
                             <label>Task Due Date</label>
                             <input type="text"
                                 class="form-control datepicker"
@@ -161,7 +161,7 @@ export default class ProjectFilter extends React.Component {
                             />
                         </div>
                     </div>
-                    <div class="col-md-3 col-sm-12 mb5">
+                    <div class="col-md-4 col-sm-12 col-xs-12 mb5">
                         <label>Assigned</label>
                         <DropDown
                             multiple={true}
@@ -173,7 +173,7 @@ export default class ProjectFilter extends React.Component {
                             isClearable={true}
                         />
                     </div>
-                    <div class="col-md-3 col-sm-12 mb5">
+                    <div class="col-md-3 col-sm-12 col-xs-12 mb5">
                         <label>Task</label>
                         <input type="text" name="task" class="form-control" onChange={this.handleChange} />
                     </div>

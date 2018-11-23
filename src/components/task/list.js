@@ -148,8 +148,8 @@ export default class List extends React.Component {
 
         return (
             <div class="pd0">
-                <div class="row mb10">
-                    <div class="col-lg-6" style={{ float: "right" }}>
+                <div class="row mb10 mt10">
+                    <div class="col-lg-6 status-div">
                         <TaskStatus />
                     </div>
                 </div>
@@ -167,7 +167,7 @@ export default class List extends React.Component {
                     }
                 </HeaderButtonContainer>
                 <div class="row mb10">
-                    <div class="col-lg-7">
+                    <div class="col-lg-10 pd0">
                         <TaskFilter />
                     </div>
                 </div>

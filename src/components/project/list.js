@@ -130,7 +130,7 @@ export default class List extends React.Component {
 
         return (
             <div class="pd20">
-                <div class="row mb10">
+                <div class="row mb20">
                     <div class="col-lg-10 col-md-12 status-div">
                         <ProjectStatus />
                     </div>
@@ -148,7 +148,7 @@ export default class List extends React.Component {
                     </HeaderButtonContainer>
                 }
                 <div class="row mb10">
-                    <div class="col-lg-4">
+                    <div class="col-lg-4 col-md-6 pd0">
                         <ProjectFilter/>
                     </div>
                 </div>
