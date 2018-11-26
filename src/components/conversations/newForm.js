@@ -8,6 +8,7 @@ import { postData, showToast } from "../../globalFunction";
     return {
         socket: store.socket.container,
         notes: store.notes,
+        loggedUser: store.loggedUser,
     }
 })
 
@@ -20,7 +21,7 @@ export default class NewForm extends React.Component {
                 note: "",
                 tag: [],
                 privacyType: "public",
-                projectId: project
+                projectId: project,
             }
         }
 
@@ -28,7 +29,7 @@ export default class NewForm extends React.Component {
     }
 
     handleSubmit(e) {
-        const { notes, dispatch } = this.props;
+        const { notes, dispatch, loggedUser } = this.props;
         let result = true;
         $('.form-container *').validator('validate');
         $('.form-container .form-group').each(function () {
@@ -41,7 +42,7 @@ export default class NewForm extends React.Component {
             showToast("error", "Please fill-up required field.");
             return;
         }
-        
+        this.state.data.createdBy = loggedUser.data.id
         postData(`/api/conversation`, this.state.data, (c) => {
             if (c.status == 200) {
                 console.log("your data",c.data);

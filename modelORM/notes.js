@@ -57,6 +57,10 @@ module.exports = function(sequelize, DataTypes) {
       as: 'comments',
       foreignKey: 'linkId',
     })
+    Notes.belongsTo(models.Users, {
+      as: 'creator',
+      foreignKey: 'createdBy',
+    })
   }
 
   return Notes;

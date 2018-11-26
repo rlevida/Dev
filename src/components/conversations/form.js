@@ -117,31 +117,35 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        const { notes, setIsClosed } = { ...this.props }
+        const { notes, setIsClosed, loggedUser } = { ...this.props }
         const data = notes.Selected;
         return (
             <div style={{ /*background:"#f5f5f5",*/ padding: "10px", }}>
                 <div style={{marginBottom: "30px"}}>
                     <h4>{data.note}{(data.isClosed)?<span class="label" style={{margin: "5px", background: "red", color: "white" }}>CLOSED</span>:""}</h4>
-                    <div class="dropdown" style={{float:"right"}}>
-                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                        <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >
-                        { (data.isClosed === 1) &&
-                            <li><a href="javascript:void(0)" onClick={() => setIsClosed(0,data)}>Open</a></li>
-                        }
-                        { (data.isClosed === 0) &&
-                            <li><a href="javascript:void(0)" onClick={() => setIsClosed(1,data)}>Close</a></li>
-                        }
-                        </ul>
-                    </div>
+                    { loggedUser.data.id === data.creator.id &&
+                        <div class="dropdown" style={{float:"right"}}>
+                            <button style={{padding:"3px",border:"none", paddingRight: "0px"}} class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                            <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >
+                            { (data.isClosed === 1) &&
+                                <li><a href="javascript:void(0)" onClick={() => setIsClosed(0,data)}>Open</a></li>
+                            }
+                            { (data.isClosed === 0) &&
+                                <li><a href="javascript:void(0)" onClick={() => setIsClosed(1,data)}>Close</a></li>
+                            }
+                            </ul>
+                        </div>
+                    }
                     <span style={{float:"right",padding:"5px",}} className={`fa ${this.renderPrivacy(data.privacyType)}`} ></span>
                     {
                         (data.tag.map((f)=>{
                             const color = this.renderStatus(f.tagTask);
                             return <span class="label" style={{margin: "5px", background: color }}>{f.tagTask.task}</span>
                         }))
-                    }<span class="fa fa-pencil"></span>
+                    }
+                    <span class="fa fa-pencil"></span>
                 </div>
+                <div>Created by: {`${data.creator.firstName} ${data.creator.lastName} - ${moment(data.dateAdded).format("MM/DD/YYYY hh:mm")}` }</div>
 
                 { data.comments.length == 0 && 
                     <div>
@@ -154,7 +158,7 @@ export default class FormComponent extends React.Component {
                         return <CommentListItem commentData={e} fetchUsers={this.fetchUsers} />
                     })
                 }
-                { !data.isClosed && 
+                { data.isClosed === 0 && 
                     <div class="form-group mention" style={{ marginLeft: 15 }}>
                         <hr />
                         <MentionsInput
@@ -183,7 +187,13 @@ export default class FormComponent extends React.Component {
                                 </a>
                             </div>
                         }
-
+                    </div>
+                }
+                { data.isClosed === 1 && 
+                    <div>
+                        <hr />
+                        <h4>{`${data.creator.firstName} ${data.creator.lastName} - ${moment(data.dateAdded).format("MM/DD/YYYY hh:mm")}` }</h4>
+                        <h5>Closed this note.</h5>
                     </div>
                 }
                 

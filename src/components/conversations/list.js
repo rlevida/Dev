@@ -174,17 +174,19 @@ export default class List extends React.Component {
                             </span>
                           );
                         })}
-                        <div class="dropdown" style={{float:"right"}}>
-                            <button style={{padding:"3px",border:"none", paddingRight: "0px"}} class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" onClick={(e)=>{ e.stopPropagation() }} aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                            <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >
-                                { (e.isClosed === 1) &&
-                                  <li><a href="javascript:void(0)" onClick={() => setIsClosed(0,e)}>Open</a></li>
-                                }
-                                { (e.isClosed === 0) &&
-                                  <li><a href="javascript:void(0)" onClick={() => setIsClosed(1,e)}>Close</a></li>
-                                }
-                            </ul>
-                        </div>
+                        { loggedUser.data.id === e.creator.id &&
+                          <div class="dropdown" style={{float:"right"}}>
+                              <button style={{padding:"3px",border:"none", paddingRight: "0px"}} class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" onClick={(e)=>{ e.stopPropagation() }} aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                              <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >
+                                  { (e.isClosed === 1) &&
+                                    <li><a href="javascript:void(0)" onClick={() => setIsClosed(0,e)}>Open</a></li>
+                                  }
+                                  { (e.isClosed === 0) &&
+                                    <li><a href="javascript:void(0)" onClick={() => setIsClosed(1,e)}>Close</a></li>
+                                  }
+                              </ul>
+                          </div>
+                      }
                       </div>
                       <div style={{ float: "right" }}>
                         { lastCommentUser &&

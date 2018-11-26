@@ -55,6 +55,11 @@ exports.get = {
                                 as: 'users',
                             }
                         ]
+                    },
+                    {
+                        model: Users,
+                        as: 'creator',
+                        required: false,
                     }
                 ]
                 })
@@ -94,7 +99,16 @@ exports.post = {
     index : (req,cb) => {
         defaultPost(dbName,req,(res)=>{
             if(res.success) {
-                cb({ status:true, data:res.data })
+                Notes.findAll({
+                    where: { id: res.data[0].id },
+                    include: {
+                        model: Users,
+                        as: 'creator',
+                        required: false,
+                    }
+                }).then((result)=>{
+                    cb({ status:true, data:result })
+                })
             } else {
                 cb({ status:false, error:res.error })
             }
@@ -242,13 +256,9 @@ exports.delete =  {
     comment: (req,cb) => {
         const tablename = "conversation";
         const model = global.initModel(tablename);
-        console.log("pass here");
         model.getData(tablename, {id:req.params.id}, {}, (b) => {
-            console.log("pass here 1");
             if(b.data.length > 0){
-                console.log("pass here 2");
                 model.deleteData(tablename, { id: req.params.id }, (c) => {
-                    console.log("pass here 3",c);
                     if (c.status) {
                         cb({ status: true, data: { id: req.params.id }, message: "Successfully deleted." })
                     } else {

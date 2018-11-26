@@ -88,7 +88,7 @@ export default class CommentListItem extends React.Component {
     }
 
     render() {
-        const { commentData, fetchUsers } = this.props;
+        const { commentData, fetchUsers, loggedUser } = this.props;
         const { state } = this.state;
         return (
             <div>
@@ -96,13 +96,15 @@ export default class CommentListItem extends React.Component {
                     <span>{`${commentData.users.firstName} ${commentData.users.lastName}`}</span>{'     '}<span>{moment(commentData.dateAdded).format("MM/DD/YYYY hh:mm")}</span>
                     { state === "View" &&
                         <div>
-                            <div class="dropdown" style={{float:"right"}}>
-                                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >
-                                    <li><a href="javascript:void(0)" onClick={() => this.setState({state:"Edit", commentText: commentData.comment})}>Edit</a></li>
-                                    <li><a href="javascript:void(0)" onClick={() => this.deleteData()}>Delete</a></li>
-                                </ul>
-                            </div>
+                            { loggedUser.data.id === commentData.users.id &&
+                                <div class="dropdown" style={{float:"right"}}>
+                                    <button style={{padding:"3px",border:"none", paddingRight: "0px"}} class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                    <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >
+                                        <li><a href="javascript:void(0)" onClick={() => this.setState({state:"Edit", commentText: commentData.comment})}>Edit</a></li>
+                                        <li><a href="javascript:void(0)" onClick={() => this.deleteData()}>Delete</a></li>
+                                    </ul>
+                                </div>
+                            }
                             <br />
                             <br />
                             <MentionConvert string={commentData.comment} />
