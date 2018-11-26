@@ -45,6 +45,10 @@ module.exports = function (sequelize, DataTypes) {
       as: 'members',
       foreignKey: 'linkId'
     })
+    DocumentLink.hasMany(models.Members, {
+      as: 'document_members',
+      foreignKey: 'linkId'
+    })
   }
   return DocumentLink
 };

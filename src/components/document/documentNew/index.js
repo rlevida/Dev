@@ -158,8 +158,8 @@ export default class DocumentNew extends React.Component {
     }
 
     fetchData(page) {
-        const { dispatch, loggedUser, document } = this.props;
-        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new`;
+        const { dispatch, loggedUser, document, folder } = this.props;
+        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new&folderId=${folder.SelectedNewFolder.id}`;
 
         if (typeof document.Filter.isCompleted !== 'undefined' && document.Filter.isCompleted !== '') {
             requestUrl += `&isCompleted=${document.Filter.isCompleted}`
@@ -339,9 +339,6 @@ export default class DocumentNew extends React.Component {
                                 </div>
                             </div>
                         </div>
-                        {/* <div class="col-lg-10">
-                            <DocumentFilter />
-                        </div> */}
                     </div>
                 }
 

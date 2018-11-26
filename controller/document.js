@@ -53,7 +53,7 @@ const associationFindAllStack = [
     {
         model: Users,
         as: 'user',
-        attributes: ['firstName', 'lastName', 'phoneNumber', 'emailAddress']
+        // attributes: ['firstName', 'lastName', 'phoneNumber', 'emailAddress']
     },
     {
         model: Share,
@@ -89,6 +89,9 @@ exports.get = {
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
             ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "") ? { folderId: queryString.folderId } : { folderId: null },
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
+            ...(typeof queryString.uploadFrom != "undefined" && typeof queryString.uploadTo != "undefined" && queryString.uploadFrom != "" && queryString.uploadTo != "" && queryString.uploadFrom != "undefined" && queryString.uploadTo != "undefined")
+                ? { dateAdded: { [Op.between]: [moment(queryString.uploadFrom).add(8, 'hours').toDate(), moment(queryString.uploadTo).add(8, 'hours').toDate()] } } : {}
+
         }
         if (typeof queryString.userType != "undefined" && queryString.userType == "External" && typeof queryString.userId != "undefined" && queryString.userId != "") {
             documentWhereObj = {
@@ -112,6 +115,7 @@ exports.get = {
                 },
             }
         }
+
         if (typeof queryString.search !== 'undefined' && queryString.search !== '') {
             documentWhereObj = {
                 ...documentWhereObj,
@@ -120,6 +124,7 @@ exports.get = {
                 ]
             }
         }
+
         if (typeof queryString.workstream !== 'undefined' && queryString.workstream !== '') {
             _.find(associationFindAllStack, { as: 'tagDocumentWorkstream' }).where = {
                 linkId: queryString.workstream,
@@ -141,19 +146,54 @@ exports.get = {
             _.find(associationFindAllStack, { as: 'tagDocumentTask' }).required = false;
         }
 
+        if (typeof queryString.uploadedBy !== 'undefined' && queryString.uploadedBy !== '') {
+            _.find(associationFindAllStack, { as: 'user' }).where = {
+                [Op.or]: [
+                    { emailAddress: { [Op.like]: `%${queryString.uploadedBy}%` } },
+                ]
+            };
+            _.find(associationFindAllStack, { as: 'user' }).required = true;
+        } else {
+            _.find(associationFindAllStack, { as: 'user' }).required = false;
+        }
+
+        if (typeof queryString.members !== 'undefined' && queryString.members !== '') {
+            _.find(associationFindAllStack, { as: 'share' }).where = {
+                linkType: 'project',
+                usersType: 'users',
+                userTypeLinkId: queryString.members
+            }
+            _.find(associationFindAllStack, { as: 'share' }).required = true;
+        } else {
+            _.find(associationFindAllStack, { as: 'share' }).required = false;
+        }
+
         async.parallel({
             count: function (parallelCallback) {
                 DocumentLink
                     .findAndCountAll({
                         ...options,
                         where: documentLinkWhereObj,
-                        include: [{
-                            model: Document,
-                            as: 'document',
-                            where: documentWhereObj,
-                            include: associationFindAllStack,
-                            required: true
-                        }],
+                        include: [
+                            {
+                                model: Document,
+                                as: 'document',
+                                where: documentWhereObj,
+                                include: associationFindAllStack,
+                                required: true
+                            },
+                            // {
+                            //     model: Members,
+                            //     as: 'document_members',
+                            //     where: { usersType: 'users' },
+                            //     include: [{
+                            //         model: Users,
+                            //         as: 'user',
+                            //         where: documentMemberWhereObject,
+                            //         // required: (typeof queryString.members !== 'undefined') ? true : false
+                            //     }]
+                            // }
+                        ],
                     })
                     .then((res) => {
                         const pageData = {
@@ -169,13 +209,25 @@ exports.get = {
                         .findAll({
                             ...options,
                             where: documentLinkWhereObj,
-                            include: [{
-                                model: Document,
-                                as: 'document',
-                                where: documentWhereObj,
-                                include: associationFindAllStack,
-                                required: true
-                            }],
+                            include: [
+                                {
+                                    model: Document,
+                                    as: 'document',
+                                    where: documentWhereObj,
+                                    include: associationFindAllStack,
+                                    required: true
+                                },
+                                // {
+                                //     model: Members,
+                                //     as: 'document_members',
+                                //     include: [{
+                                //         model: Users,
+                                //         as: 'user',
+                                //         where: documentMemberWhereObject,
+                                //         // required: (typeof queryString.members !== 'undefined') ? true : false
+                                //     }]
+                                // }
+                            ],
                         })
                         .map((res) => {
                             let resToReturn = {
@@ -183,7 +235,8 @@ exports.get = {
                                 tags: res.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
                                     .concat(res.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })),
                                 members: res.document.share.map((e) => { return e.user }),
-                                share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                                share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                document_members: res.document_members
                             }
                             return _.omit(resToReturn, 'tagDocumentWorkstream', 'tagDocumentTask')
                         })

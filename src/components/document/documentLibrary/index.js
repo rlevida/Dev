@@ -172,8 +172,8 @@ export default class DocumentLibrary extends React.Component {
     }
 
     fetchData(page) {
-        const { dispatch, document, loggedUser } = this.props;
-        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=library`;
+        const { dispatch, document, loggedUser, folder } = this.props;
+        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=library&folderId=${folder.SelectedLibraryFolder.id}`;
 
         if (typeof document.Filter.isCompleted !== 'undefined' && document.Filter.isCompleted !== '') {
             requestUrl += `&isCompleted=${document.Filter.isCompleted}`
@@ -323,25 +323,16 @@ export default class DocumentLibrary extends React.Component {
                     <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>Library</a>
                     {folder.SelectedLibraryFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
                 </h3>
-
                 {(this.state.folderAction == "") &&
-                    <form >
-                        <div class="form-group">
-                            <div class="col-lg-1 col-md-1 col-sm-1">
-                                <a href="javascript:void(0)" title="New Folder" style={{ textDecoration: "none" }} onClick={() => this.setState({ folderAction: "create" })}><span class="fa fa-folder fa-3x"></span></a>
+                    <div class="row mb10">
+                        <div class="col-lg-2">
+                            <div class="col-md-4 mb5">
+                                <div class="mt20">
+                                    <a href="javascript:void(0)" title="New Folder" style={{ textDecoration: "none" }} onClick={() => this.setState({ folderAction: "create" })}><span class="fa fa-folder fa-3x"></span></a>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <div class="col-lg-2 col-md-2 col-sm-2">
-                                <DropDown
-                                    multiple={false}
-                                    required={false}
-                                    options={[{ id: 0, name: "All" }, { id: 1, name: "Completed" }, { id: 2, name: "Uncompleted" }]}
-                                    selected={this.state.selectedFilter}
-                                    onChange={(e) => this.libraryDocumentFilter(e)} />
-                            </div>
-                        </div>
-                    </form>
+                    </div>
                 }
                 {(this.state.folderAction == "create") &&
                     <form class="form-inline">
@@ -368,10 +359,10 @@ export default class DocumentLibrary extends React.Component {
                         {(document.LibraryDocumentLoading != "RETRIEVING") &&
                             document.Library.map((data, index) => {
                                 const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`;
-                                let documentMembers = data.members;
-                                if (typeof global.SelectList.projectMemberList != 'undefined') {
-                                    documentMembers = _.uniqBy(documentMembers.concat(global.SelectList.projectMemberList.filter((e) => { return e.userType == 'Internal' })), 'id')
-                                }
+                                // let documentMembers = data.members;
+                                // if (typeof global.SelectList.projectMemberList != 'undefined') {
+                                //     documentMembers = _.uniqBy(documentMembers.concat(global.SelectList.projectMemberList.filter((e) => { return e.userType == 'Internal' })), 'id')
+                                // }
                                 return (
                                     // <LibraryDocument key={index} data={data} handleDrop={(id) => this.moveItem(id ,"document")} documentToMove={(data)=> this.documentToMove(data)} docType="document"/>
                                     <tr key={index}>
@@ -393,7 +384,7 @@ export default class DocumentLibrary extends React.Component {
                                             <div>
                                                 <span class="fa fa-users" data-tip data-for={`follower${index}`}></span>
                                                 <Tooltip id={`follower${index}`}>
-                                                    {documentMembers.map((e, i) => {
+                                                    {data.members.map((e, i) => {
                                                         return <p key={i}>{`${e.firstName} ${e.lastName}`} <br /></p>
                                                     })}
                                                 </Tooltip>
