@@ -14,7 +14,8 @@ let delayTimer = "";
         status: store.status,
         loggedUser: store.loggedUser,
         global: store.global,
-        document: store.document
+        document: store.document,
+        folder: store.folder
     }
 })
 
@@ -35,7 +36,7 @@ export default class DocumentFilter extends React.Component {
         dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'LibraryDocumentLoading' });
 
         delayTimer = setTimeout(() => {
-            const { document } = this.props;
+            const { document, folder } = this.props;
             if (typeof document.Filter.isCompleted !== 'undefined' && document.Filter.isCompleted !== '') {
                 requestUrl += `&isCompleted=${document.Filter.isCompleted}`
             }
@@ -54,7 +55,7 @@ export default class DocumentFilter extends React.Component {
                     }
                 })
             }
-            getData(`${requestUrl}&status=new`, {}, (c) => {
+            getData(`${requestUrl}&status=new&folderId=${folder.SelectedNewFolder.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                     dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
@@ -64,7 +65,7 @@ export default class DocumentFilter extends React.Component {
                     showToast('success', 'Something went wrong!')
                 }
             });
-            getData(`${requestUrl}&status=library`, {}, (c) => {
+            getData(`${requestUrl}&status=library&folderId=${folder.SelectedLibraryFolder.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                     dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
@@ -78,7 +79,7 @@ export default class DocumentFilter extends React.Component {
     }
 
     handleOnChange(e) {
-        const { dispatch, loggedUser, document } = this.props;
+        const { dispatch, loggedUser } = this.props;
         let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`;
 
         clearTimeout(delayTimer);
@@ -87,7 +88,7 @@ export default class DocumentFilter extends React.Component {
         dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'LibraryDocumentLoading' });
 
         delayTimer = setTimeout(() => {
-            const { document } = this.props;
+            const { document, folder } = this.props;
             if (typeof document.Filter.isCompleted !== 'undefined' && document.Filter.isCompleted !== '') {
                 requestUrl += `&isCompleted=${document.Filter.isCompleted}`
             }
@@ -106,7 +107,7 @@ export default class DocumentFilter extends React.Component {
                     }
                 })
             }
-            getData(`${requestUrl}&status=new`, {}, (c) => {
+            getData(`${requestUrl}&status=new&folderId=${folder.SelectedNewFolder.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                     dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
@@ -116,7 +117,7 @@ export default class DocumentFilter extends React.Component {
                     showToast('success', 'Something went wrong!')
                 }
             });
-            getData(`${requestUrl}&status=library`, {}, (c) => {
+            getData(`${requestUrl}&status=library&folderId=${folder.SelectedLibraryFolder.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                     dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })

@@ -172,8 +172,8 @@ export default class DocumentLibrary extends React.Component {
     }
 
     fetchData(page) {
-        const { dispatch, document, loggedUser } = this.props;
-        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=library`;
+        const { dispatch, document, loggedUser ,folder } = this.props;
+        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=library&folderId=${folder.SelectedLibraryFolder.id}`;
 
         if (typeof document.Filter.isCompleted !== 'undefined' && document.Filter.isCompleted !== '') {
             requestUrl += `&isCompleted=${document.Filter.isCompleted}`
