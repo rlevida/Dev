@@ -2,7 +2,6 @@ import React from "react";
 import _ from 'lodash';
 import moment from 'moment';
 import { connect } from "react-redux";
-import parallel from 'async/parallel';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 
@@ -15,6 +14,8 @@ import TaskActivities from "./taskActivities";
 import UploadModal from "./uploadModal";
 import ApprovalModal from "./approvalModal";
 import RejectMessageModal from "./rejectMessageModal";
+import LogtimeModal from "./logtimeModal";
+import TasklogTime from "./tasklogTime";
 
 let keyTimer;
 
@@ -433,7 +434,7 @@ export default class FormComponent extends React.Component {
                                 && task.Selected.description != null) && <p class="mt10 mb10">{task.Selected.description}</p>
                         }
                         <div class="row">
-                            <div className={(task.Selected.periodic == 1) ? "col-md-6" : "col-md-12"}>
+                            <div class="col-md-4">
                                 <div class="details">
                                     <span class="fa fa-calendar"></span>
                                     <p>Start date:
@@ -444,15 +445,7 @@ export default class FormComponent extends React.Component {
                                     </p>
                                 </div>
                             </div>
-                            {
-                                (task.Selected.periodic == 1) && <div class="col-md-6">
-                                    <div class="details">
-                                        <span class="fa fa-undo"></span>
-                                        <p>Repeat: {task.Selected.period + " " + (task.Selected.periodType).charAt(0).toUpperCase() + (task.Selected.periodType).slice(1)}</p>
-                                    </div>
-                                </div>
-                            }
-                            <div class="col-md-12">
+                            <div class="col-md-4">
                                 <div class="details">
                                     <span class="fa fa-calendar"></span>
                                     <p>
@@ -464,6 +457,17 @@ export default class FormComponent extends React.Component {
                                     </p>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <a href="#" type="button" data-toggle="modal" data-target="#time-log"><span class="fa fa-lg fa-clock-o" title="Log Time"></span> Time Spent</a>
+                            </div>
+                            {
+                                (task.Selected.periodic == 1) && <div class="col-md-6">
+                                    <div class="details">
+                                        <span class="fa fa-undo"></span>
+                                        <p>Repeat: {task.Selected.period + " " + (task.Selected.periodType).charAt(0).toUpperCase() + (task.Selected.periodType).slice(1)}</p>
+                                    </div>
+                                </div>
+                            }
                             <div class="col-md-12">
                                 <div class="details">
                                     <span class="fa fa-user"></span>
@@ -824,6 +828,7 @@ export default class FormComponent extends React.Component {
                     <TabList>
                         <Tab>Comments</Tab>
                         <Tab>Activities</Tab>
+                        <Tab>Time Logs</Tab>
                     </TabList>
                     <TabPanel>
                         <TaskComment />
@@ -831,10 +836,14 @@ export default class FormComponent extends React.Component {
                     <TabPanel>
                         <TaskActivities />
                     </TabPanel>
+                    <TabPanel>
+                        <TasklogTime />
+                    </TabPanel>
                 </Tabs>
                 <UploadModal />
                 <ApprovalModal />
                 <RejectMessageModal />
+                <LogtimeModal />
             </div>
         )
     }

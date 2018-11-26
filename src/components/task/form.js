@@ -223,7 +223,7 @@ export default class FormComponent extends React.Component {
                         showToast("error", "Something went wrong please try again later.");
                     }
                     dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-                })
+                });
             }
 
         }
