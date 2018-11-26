@@ -160,21 +160,35 @@ export default class DocumentNew extends React.Component {
     fetchData(page) {
         const { dispatch, loggedUser, document, folder } = this.props;
         let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new&folderId=${folder.SelectedNewFolder.id}`;
-
-        if (typeof document.Filter.isCompleted !== 'undefined' && document.Filter.isCompleted !== '') {
-            requestUrl += `&isCompleted=${document.Filter.isCompleted}`
+        const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo } = document.Filter;
+        if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
+            requestUrl += `&isCompleted=${isCompleted}`
         }
-        if (typeof document.Filter.search !== 'undefined' && document.Filter.search !== '') {
-            requestUrl += `&search=${document.Filter.search}`
+        if (typeof search !== 'undefined' && search !== '') {
+            requestUrl += `&search=${search}`
         }
-        if (typeof document.Filter.tags !== 'undefined') {
-            _.filter(document.Filter.tags, (t) => {
+        if (typeof tags !== 'undefined') {
+            _.filter(tags, (t) => {
                 const tagType = t.value.split('-')[0];
                 const tagId = t.value.split('-')[1];
                 if (tagType === 'workstream') {
                     requestUrl += `&workstream=${tagId}`
                 }
             })
+        }
+        if (typeof uploadedBy !== 'undefined' && uploadedBy !== '') {
+            requestUrl += `&uploadedBy=${uploadedBy}`
+        }
+        if (typeof members !== 'undefined' && members !== '') {
+            _.map(members, (e) => {
+                requestUrl += `&members=${e.value}`
+            })
+        }
+        if (typeof uploadFrom !== 'undefiend' && uploadFrom !== '') {
+            requestUrl += `&uploadFrom=${uploadFrom}`
+        }
+        if (typeof uploadTo !== 'undefiend' && uploadTo !== '') {
+            requestUrl += `&uploadTo=${uploadTo}`
         }
 
         getData(requestUrl, {}, (c) => {
