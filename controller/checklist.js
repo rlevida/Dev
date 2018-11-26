@@ -55,7 +55,11 @@ exports.get = {
                 as: 'tagDocuments',
                 include: [{
                     model: Document,
-                    as: 'document'
+                    as: 'document',
+                    include: [{
+                        model: Users,
+                        as: 'user'
+                    }]
                 }]
             }
         ]
@@ -146,7 +150,7 @@ exports.post = {
                                             return response.toJSON();
                                         }).then((resultArray) => {
                                             const checklistIds = _.map(resultArray, (o) => { return o.id });
-                                            TaskChecklist.findAll({ ...options, where: { id: checklistIds }}).map((response) => {
+                                            TaskChecklist.findAll({ ...options, where: { id: checklistIds } }).map((response) => {
                                                 return response.toJSON();
                                             }).then((result) => {
                                                 const updatedChecklistArray = _.map(result, (o) => {

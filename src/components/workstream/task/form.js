@@ -204,9 +204,12 @@ export default class FormComponent extends React.Component {
         });
     }
 
-    completeChecklist(params) {
+    completeChecklist(params, data) {
         const { dispatch, loggedUser } = this.props;
-
+        if (data.isDocument && data.document.length === 0 && !data.isCompleted) {
+            showToast("error", "Please upload a document.");
+            return;
+        }
         putData(`/api/checklist/${params.id}`, { ...params, createdBy: loggedUser.data.id }, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_CHECKLIST", data: c.data.checklist });
@@ -338,6 +341,13 @@ export default class FormComponent extends React.Component {
             dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
             showToast("success", "Task Dependency successfully deleted.");
         });
+    }
+
+    viewDocument(data) {
+        let { socket, dispatch } = this.props;
+        dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "document" })
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })
     }
 
 
@@ -514,9 +524,9 @@ export default class FormComponent extends React.Component {
                                                                         <a onClick={() => { this.deleteChecklist(o.id) }}>Delete</a>
                                                                     </li>
                                                                 }
-                                                                {(task.Selected.assignedTo == loggedUser.data.id || loggedUser.data.userRole <= 3) &&
+                                                                {((task.Selected.assignedTo == loggedUser.data.id || loggedUser.data.userRole <= 3)) &&
                                                                     <li>
-                                                                        <a onClick={() => { this.completeChecklist({ id: o.id, isCompleted: (o.isCompleted != 1) ? 1 : 0 }) }}>
+                                                                        <a onClick={() => { this.completeChecklist({ id: o.id, isCompleted: (o.isCompleted != 1) ? 1 : 0 }, o) }}>
                                                                             {(o.isCompleted) ? "Not Complete" : "Complete"}
                                                                         </a>
                                                                     </li>
@@ -549,7 +559,7 @@ export default class FormComponent extends React.Component {
                                                                 {
                                                                     _.map(o.document, (o, index) => {
                                                                         return (
-                                                                            <p class="ml15 mt0 m0" key={index}>{o.origin}</p>
+                                                                            <p class="ml15 mt0 m0" key={index}><a href="javascript:void(0)" onClick={() => this.viewDocument(o)}>{o.origin}</a></p>
                                                                         )
                                                                     })
                                                                 }
