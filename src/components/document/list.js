@@ -111,12 +111,9 @@ export default class List extends React.Component {
 
         return <div>
             <h3>&nbsp;&nbsp;&nbsp;&nbsp;<a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{project.Selected.project}</a></h3>
-            <div style={{ paddingBottom: "50px", paddingRight: "20px" }}>
-                <div class="form-group">
-                    <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#uploadFileModal" >
-                        Upload Files &nbsp; <i class="fa fa-caret-down"></i>
-                    </button>
-                    <input class="form-control pull-right" type="text" placeholder="Search" name='search' aria-label="Search" value={(typeof document.Filter.search !== 'undefined') ? document.Filter.search : ''} onChange={(e) => this.handleOnChange(e)} style={{ width: "200px", marginRight: "50px" }} />
+            <div class="row mb10">
+                <div class="col-lg-12">
+                    <DocumentFilter />
                 </div>
             </div>
             <div style={{ padding: "20px" }}>

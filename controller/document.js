@@ -32,7 +32,6 @@ const associationFindAllStack = [
             linkType: 'workstream', tagType: 'document'
         },
         as: 'tagDocumentWorkstream',
-        required: false,
         include: [
             {
                 model: Workstream,
@@ -46,7 +45,6 @@ const associationFindAllStack = [
             linkType: 'task', tagType: 'document'
         },
         as: 'tagDocumentTask',
-        required: false,
         include: [{
             model: Tasks,
             as: 'tagTask',
@@ -121,6 +119,26 @@ exports.get = {
                     { origin: { [Op.like]: `%${queryString.search}%` } },
                 ]
             }
+        }
+        if (typeof queryString.workstream !== 'undefined' && queryString.workstream !== '') {
+            _.find(associationFindAllStack, { as: 'tagDocumentWorkstream' }).where = {
+                linkId: queryString.workstream,
+                linkType: 'workstream',
+                tagType: 'document'
+            };
+            _.find(associationFindAllStack, { as: 'tagDocumentWorkstream' }).required = true;
+        } else {
+            _.find(associationFindAllStack, { as: 'tagDocumentWorkstream' }).required = false;
+        }
+        if (typeof queryString.task !== 'undefined' && queryString.task !== '') {
+            _.find(associationFindAllStack, { as: 'tagDocumentTask' }).where = {
+                linkId: queryString.task,
+                linkType: 'task',
+                tagType: 'document'
+            };
+            _.find(associationFindAllStack, { as: 'tagDocumentTask' }).required = true;
+        } else {
+            _.find(associationFindAllStack, { as: 'tagDocumentTask' }).required = false;
         }
 
         async.parallel({

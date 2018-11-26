@@ -85,7 +85,9 @@ export default function reducer(state = {
             return { ...state, NewUploadCount: action.Count }
         }
         case "SET_DOCUMENT_FILTER": {
-            return { ...state, Filter: action.filter }
+            const { Filter } = { ...state };
+            const updatedFilter = _.merge({}, _.omit(Filter, action.name), action.filter);
+            return { ...state, Filter: updatedFilter }
         }
         case "UPDATE_DATA_DOCUMENT_LIST": {
             if (action.Status == "new") {

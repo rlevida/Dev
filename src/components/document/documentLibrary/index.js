@@ -173,8 +173,24 @@ export default class DocumentLibrary extends React.Component {
 
     fetchData(page) {
         const { dispatch, document, loggedUser } = this.props;
+        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=library`;
 
-        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
+        if (typeof document.Filter.isCompleted !== 'undefined' && document.Filter.isCompleted !== '') {
+            requestUrl += `&isCompleted=${document.Filter.isCompleted}`
+        }
+        if (typeof document.Filter.search !== 'undefined' && document.Filter.search !== '') {
+            requestUrl += `&search=${document.Filter.search}`
+        }
+        if (typeof document.Filter.tags !== 'undefined') {
+            _.filter(document.Filter.tags, (t) => {
+                const tagType = t.value.split('-')[0];
+                const tagId = t.value.split('-')[1];
+                if (tagType === 'workstream') {
+                    requestUrl += `&workstream=${tagId}`
+                }
+            })
+        }
+        getData(requestUrl, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_DOCUMENT_LIST", List: document.Library.concat(c.data.result), DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
