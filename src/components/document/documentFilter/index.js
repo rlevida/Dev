@@ -49,6 +49,9 @@ export default class DocumentFilter extends React.Component {
                     if (tagType === 'workstream') {
                         requestUrl += `&workstream=${tagId}`
                     }
+                    if (tagType === 'task') {
+                        requestUrl += `&task=${tagId}`
+                    }
                 })
             }
             getData(`${requestUrl}&status=new`, {}, (c) => {
@@ -97,6 +100,9 @@ export default class DocumentFilter extends React.Component {
                     const tagId = t.value.split('-')[1];
                     if (tagType === 'workstream') {
                         requestUrl += `&workstream=${tagId}`
+                    }
+                    if (tagType === 'task') {
+                        requestUrl += `&task=${tagId}`
                     }
                 })
             }
