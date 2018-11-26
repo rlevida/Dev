@@ -1,4 +1,6 @@
 import React from "react";
+
+import DocumentFilter from "../documentFilter";
 import { DropDown, Loading } from "../../../globalComponents"
 import { deleteData, displayDate, getData, getFilePathExtension, postData, putData, removeTempFile, showToast } from '../../../globalFunction'
 import moment from 'moment'
@@ -20,6 +22,7 @@ import { connect } from "react-redux"
 
     }
 })
+
 export default class DocumentNew extends React.Component {
     constructor(props) {
         super(props)
@@ -156,7 +159,25 @@ export default class DocumentNew extends React.Component {
 
     fetchData(page) {
         const { dispatch, loggedUser, document } = this.props;
-        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
+        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new`;
+
+        if (typeof document.Filter.isCompleted !== 'undefined' && document.Filter.isCompleted !== '') {
+            requestUrl += `&isCompleted=${document.Filter.isCompleted}`
+        }
+        if (typeof document.Filter.search !== 'undefined' && document.Filter.search !== '') {
+            requestUrl += `&search=${document.Filter.search}`
+        }
+        if (typeof document.Filter.tags !== 'undefined') {
+            _.filter(document.Filter.tags, (t) => {
+                const tagType = t.value.split('-')[0];
+                const tagId = t.value.split('-')[1];
+                if (tagType === 'workstream') {
+                    requestUrl += `&workstream=${tagId}`
+                }
+            })
+        }
+
+        getData(requestUrl, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_DOCUMENT_LIST", List: document.New.concat(c.data.result), DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                 dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
@@ -310,23 +331,18 @@ export default class DocumentNew extends React.Component {
                 </h3>
 
                 {(this.state.folderAction == "") &&
-                    <form >
-                        <div class="form-group">
-                            <div class="col-lg-1 col-md-1 col-sm-1">
-                                <a href="javascript:void(0)" title="New Folder" style={{ textDecoration: "none" }} onClick={() => this.setState({ folderAction: "create" })}><span class="fa fa-folder fa-3x"></span></a>
+                    <div class="row mb10">
+                        <div class="col-lg-2">
+                            <div class="col-md-4 mb5">
+                                <div class="mt20">
+                                    <a href="javascript:void(0)" title="New Folder" style={{ textDecoration: "none" }} onClick={() => this.setState({ folderAction: "create" })}><span class="fa fa-folder fa-3x"></span></a>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <div class="col-lg-2 col-md-2 col-sm-2">
-                                <DropDown
-                                    multiple={false}
-                                    required={false}
-                                    options={[{ id: 0, name: "All" }, { id: 1, name: "Completed" }, { id: 2, name: "Uncompleted" }]}
-                                    selected={this.state.selectedFilter}
-                                    onChange={(e) => this.newDocumentFilter(e)} />
-                            </div>
-                        </div>
-                    </form>
+                        {/* <div class="col-lg-10">
+                            <DocumentFilter />
+                        </div> */}
+                    </div>
                 }
 
                 {(this.state.folderAction == "create") &&

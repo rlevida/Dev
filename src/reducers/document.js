@@ -19,7 +19,8 @@ export default function reducer(state = {
     NewCount: { Count: {} },
     LibraryCount: { Count: {} },
     TrashCount: { Count: {} },
-    NewUploadCount: 0
+    NewUploadCount: 0,
+    Filter: {}
 }, action) {
     switch (action.type) {
         case "ADD_DOCUMENT_LIST": {
@@ -82,6 +83,11 @@ export default function reducer(state = {
         }
         case "SET_DOCUMENT_NEW_UPLOAD_COUNT": {
             return { ...state, NewUploadCount: action.Count }
+        }
+        case "SET_DOCUMENT_FILTER": {
+            const { Filter } = { ...state };
+            const updatedFilter = _.merge({}, _.omit(Filter, action.name), action.filter);
+            return { ...state, Filter: updatedFilter }
         }
         case "UPDATE_DATA_DOCUMENT_LIST": {
             if (action.Status == "new") {

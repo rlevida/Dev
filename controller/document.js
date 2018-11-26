@@ -8,6 +8,7 @@ const dbName = "document";
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const models = require('../modelORM');
+const moment = require('moment');
 const {
     Document,
     Tag,
@@ -31,7 +32,6 @@ const associationFindAllStack = [
             linkType: 'workstream', tagType: 'document'
         },
         as: 'tagDocumentWorkstream',
-        required: false,
         include: [
             {
                 model: Workstream,
@@ -45,7 +45,6 @@ const associationFindAllStack = [
             linkType: 'task', tagType: 'document'
         },
         as: 'tagDocumentTask',
-        required: false,
         include: [{
             model: Tasks,
             as: 'tagTask',
@@ -113,6 +112,34 @@ exports.get = {
                 },
             }
         }
+        if (typeof queryString.search !== 'undefined' && queryString.search !== '') {
+            documentWhereObj = {
+                ...documentWhereObj,
+                [Op.or]: [
+                    { origin: { [Op.like]: `%${queryString.search}%` } },
+                ]
+            }
+        }
+        if (typeof queryString.workstream !== 'undefined' && queryString.workstream !== '') {
+            _.find(associationFindAllStack, { as: 'tagDocumentWorkstream' }).where = {
+                linkId: queryString.workstream,
+                linkType: 'workstream',
+                tagType: 'document'
+            };
+            _.find(associationFindAllStack, { as: 'tagDocumentWorkstream' }).required = true;
+        } else {
+            _.find(associationFindAllStack, { as: 'tagDocumentWorkstream' }).required = false;
+        }
+        if (typeof queryString.task !== 'undefined' && queryString.task !== '') {
+            _.find(associationFindAllStack, { as: 'tagDocumentTask' }).where = {
+                linkId: queryString.task,
+                linkType: 'task',
+                tagType: 'document'
+            };
+            _.find(associationFindAllStack, { as: 'tagDocumentTask' }).required = true;
+        } else {
+            _.find(associationFindAllStack, { as: 'tagDocumentTask' }).required = false;
+        }
 
         async.parallel({
             count: function (parallelCallback) {
@@ -124,7 +151,8 @@ exports.get = {
                             model: Document,
                             as: 'document',
                             where: documentWhereObj,
-                            include: associationFindAllStack
+                            include: associationFindAllStack,
+                            required: true
                         }],
                     })
                     .then((res) => {
@@ -145,7 +173,8 @@ exports.get = {
                                 model: Document,
                                 as: 'document',
                                 where: documentWhereObj,
-                                include: associationFindAllStack
+                                include: associationFindAllStack,
+                                required: true
                             }],
                         })
                         .map((res) => {
