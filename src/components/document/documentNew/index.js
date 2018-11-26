@@ -339,9 +339,6 @@ export default class DocumentNew extends React.Component {
                                 </div>
                             </div>
                         </div>
-                        {/* <div class="col-lg-10">
-                            <DocumentFilter />
-                        </div> */}
                     </div>
                 }
 
