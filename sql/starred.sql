@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS `starred`;
 CREATE TABLE `starred` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `usersId` BIGINT,
-    `linkType` ENUM("project","workstream","task","document","conversation"),
+    `linkType` ENUM("project","workstream","task","document","conversation", "notes"),
     `linkId` BIGINT,
     `isActive` TINYINT(1) DEFAULT '1',
     `isDeleted` TINYINT(1) DEFAULT '0',

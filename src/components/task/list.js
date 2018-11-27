@@ -75,27 +75,26 @@ export default class List extends React.Component {
     }
 
     starredTask({ id, isStarred }) {
-        const { task, loggedUser } = this.props;
-        const isStarredValue = isStarred ? 0 : 1;
-        // console.log({
-        //     linkType: "task",
-        //     linkId: id,
-        //     usersId: loggedUser.data.id
-        // })
+        const { task, loggedUser, dispatch } = this.props;
+        const isStarredValue = (isStarred > 0) ? 0 : 1;
+
         postData(`/api/starred/`, {
             linkType: "task",
             linkId: id,
             usersId: loggedUser.data.id
         }, (c) => {
-             console.log(c)
-            //     // if (c.status == 200) {
-            //     //     dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data });
-            //     //     dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
-            //     //     showToast("success", "Task successfully updated.");
-            //     // } else {
-            //     //     showToast("error", "Something went wrong please try again later.");
-            //     // }
-            //     // dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            if (c.status == 200) {
+                const updatedTaskList = _.map([...task.List], (taskObj, index) => {
+                    if (id == taskObj.id) {
+                        taskObj["isStarred"] = isStarredValue;
+                    }
+                    return taskObj;
+                });
+                dispatch({ type: "SET_TASK_LIST", list: updatedTaskList });
+                showToast("success", `Task successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
         });
     }
 

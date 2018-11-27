@@ -2,7 +2,7 @@ import React from "react";
 import moment from "moment";
 import { connect } from "react-redux";
 import _ from "lodash";
-import { getData, putData, showToast } from "../../globalFunction";
+import { getData, putData, showToast, postData } from "../../globalFunction";
 
 import { Loading, HeaderButtonContainer } from "../../globalComponents";
 import Modal from "./newForm";
@@ -29,15 +29,14 @@ export default class List extends React.Component {
   componentDidMount() {
     this.fetchNotes();
     this.fetchProjectMember();
-    
+
   }
 
   fetchNotes() {
-    const { dispatch } = this.props;
+    const { dispatch, loggedUser } = this.props;
     dispatch({ type: "SET_NOTES_LOADING", Loading: "RETRIEVING" });
-    getData(`/api/conversation`, {}, c => {
+    getData(`/api/conversation?starredUser=${loggedUser.data.id}`, {}, c => {
       dispatch({ type: "SET_NOTES_LIST", list: c.data });
-
       dispatch({ type: "SET_NOTES_LOADING", Loading: "" });
     });
   }
@@ -45,7 +44,7 @@ export default class List extends React.Component {
   fetchProjectMember() {
     const { dispatch } = this.props;
     getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project}&linkType=project`, {}, (c) => {
-        dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
+      dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
     })
   }
 
@@ -97,22 +96,32 @@ export default class List extends React.Component {
     }
     return icon;
   }
-  
+
   updateStarred(event, data) {
-    const { notes, dispatch } = this.props;
-    event.stopPropagation();
-    let isStarred = data.isStarred ? 0 : 1;
-    putData(`/api/conversation/${data.id}`, { isStarred }, c => {
+    const { notes, dispatch, loggedUser } = this.props;
+    const { id, isStarred } = { ...data };
+    const isStarredValue = isStarred ? 0 : 1;
+
+    postData(`/api/starred/`, {
+      linkType: "notes",
+      linkId: id,
+      usersId: loggedUser.data.id
+    }, (c) => {
       if (c.status == 200) {
-        const dataIndex = notes.List.indexOf(data);
-        const newData = data;
-        newData.isStarred = c.data.isStarred;
-        notes.List.splice(dataIndex, 1, newData);
-        dispatch({ type: "SET_NOTES_LIST", list: notes.List });
+        const noteList = _.map([...notes.List], (noteObj, index) => {
+          if (id == noteObj.id) {
+            noteObj["isStarred"] = isStarredValue;
+          }
+          return noteObj;
+        });
+        dispatch({ type: "SET_NOTES_LIST", list: noteList });
+        showToast("success", `Note successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
       } else {
         showToast("error", "Something went wrong please try again later.");
       }
     });
+
+    event.stopPropagation();
   }
 
   render() {
@@ -128,15 +137,15 @@ export default class List extends React.Component {
     return (
       <div class="pd10">
         <HeaderButtonContainer withMargin={true}>
-            <li class="btn btn-info" onClick={() => $("#NewNoteModal").modal("show")}>
-              <span>New Notes</span>
-            </li>
+          <li class="btn btn-info" onClick={() => $("#NewNoteModal").modal("show")}>
+            <span>New Notes</span>
+          </li>
         </HeaderButtonContainer>
         <Modal />
         <table id="dataTable" class="table responsive-table mt30">
           <tbody>
             {notesList.map(e => {
-              const lastCommentUser = e.comments[e.comments.length-1];
+              const lastCommentUser = e.comments[e.comments.length - 1];
               return (
                 <tr
                   key={`${e.id}-${new Date().getTime()}`}
@@ -147,17 +156,15 @@ export default class List extends React.Component {
                   }}
                   onClick={() => this.openDetail(e)}
                 >
-                  <td style={{
-                    width: "50px"
-                  }} onClick={f => this.updateStarred(f, e)}>
-                    <span
-                      class={`fa ${e.isStarred ? "fa-star" : "fa-star-o"}`}
-                    />
+                  <td style={{ width: "50px" }}>
+                    <a onClick={f => this.updateStarred(f, e)}>
+                      <span class={`fa ${e.isStarred ? "fa-star" : "fa-star-o"}`} />
+                    </a>
                   </td>
                   <td class="text-left">
                     <div>
-                      <h5>{e.note}{(e.isClosed)?<span class="label" style={{margin: "5px", background: "red", color: "white" }}>CLOSED</span>:""}</h5>
-                      { lastCommentUser &&
+                      <h5>{e.note}{(e.isClosed) ? <span class="label" style={{ margin: "5px", background: "red", color: "white" }}>CLOSED</span> : ""}</h5>
+                      {lastCommentUser &&
                         <label style={{ fontWeight: "normal" }}>
                           {moment(lastCommentUser.dateAdded).format("MM/DD/YYYY hh:mm")}
                         </label>
@@ -174,23 +181,23 @@ export default class List extends React.Component {
                             </span>
                           );
                         })}
-                        { loggedUser.data.id === e.creator.id &&
-                          <div class="dropdown" style={{float:"right"}}>
-                              <button style={{padding:"3px",border:"none", paddingRight: "0px"}} class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" onClick={(e)=>{ e.stopPropagation() }} aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                              <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >
-                                  { (e.isClosed === 1) &&
-                                    <li><a href="javascript:void(0)" onClick={() => setIsClosed(0,e)}>Open</a></li>
-                                  }
-                                  { (e.isClosed === 0) &&
-                                    <li><a href="javascript:void(0)" onClick={() => setIsClosed(1,e)}>Close</a></li>
-                                  }
-                              </ul>
+                        {loggedUser.data.id === e.creator.id &&
+                          <div class="dropdown" style={{ float: "right" }}>
+                            <button style={{ padding: "3px", border: "none", paddingRight: "0px" }} class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" onClick={(e) => { e.stopPropagation() }} aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                            <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >
+                              {(e.isClosed === 1) &&
+                                <li><a href="javascript:void(0)" onClick={() => setIsClosed(0, e)}>Open</a></li>
+                              }
+                              {(e.isClosed === 0) &&
+                                <li><a href="javascript:void(0)" onClick={() => setIsClosed(1, e)}>Close</a></li>
+                              }
+                            </ul>
                           </div>
-                      }
+                        }
                       </div>
                       <div style={{ float: "right" }}>
-                        { lastCommentUser &&
-                          <i className={`fa fa-user`} title={`${lastCommentUser.users.firstName} ${lastCommentUser.users.lastName}`} style={{paddingRight:"20px"}} />
+                        {lastCommentUser &&
+                          <i className={`fa fa-user`} title={`${lastCommentUser.users.firstName} ${lastCommentUser.users.lastName}`} style={{ paddingRight: "20px" }} />
                         }
                         <span
                           className={`fa ${this.renderPrivacy(e.privacyType)}`}
