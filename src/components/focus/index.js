@@ -5,6 +5,8 @@ import { getData, showToast } from "../../globalFunction";
 import { Loading } from "../../globalComponents";
 import List from "./list"
 
+let keyTimer = "";
+
 @connect(({ loggedUser, starred }) => {
     return {
         loggedUser,
@@ -17,6 +19,7 @@ export default class Component extends React.Component {
 
         this.fetchData = this.fetchData.bind(this);
         this.getNextResult = this.getNextResult.bind(this);
+        this.setType = this.setType.bind(this);
     }
 
     componentDidMount() {
@@ -49,6 +52,17 @@ export default class Component extends React.Component {
         this.fetchData({ page: Count.current_page + 1, type: Type });
     }
 
+    setType(type) {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_STARRED_LIST", list: [] });
+        dispatch({ type: "SET_STARRED_LOADING", Loading: "RETRIEVING" });
+
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            this.fetchData({ page: 1, type });
+        }, 1500);
+    }
+
     render() {
         const { starred } = { ...this.props };
         const {
@@ -56,12 +70,11 @@ export default class Component extends React.Component {
             last_page: lastPage = 1
         } = starred.Count;
 
-
         return (
             <div>
                 <ul class="list-inline">
-                    <li class="list-inline-item"><a>Task</a></li>|
-                    <li class="list-inline-item"><a>Notes</a></li>
+                    <li class="list-inline-item"><a onClick={() => this.setType("task")}>Task</a></li>|
+                    <li class="list-inline-item"><a onClick={() => this.setType("notes")}>Notes</a></li>
                 </ul>
                 <List />
                 {
@@ -69,7 +82,7 @@ export default class Component extends React.Component {
                 }
                 <div class="text-center">
                     {
-                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Focus</a>
+                        (currentPage != lastPage && starred.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Focus</a>
                     }
                     {
                         (starred.List.length == 0 && starred.Loading != "RETRIEVING") && <p>No Records Found</p>

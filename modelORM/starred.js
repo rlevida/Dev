@@ -51,6 +51,10 @@ module.exports = function(sequelize, DataTypes) {
     Starred.belongsTo(models.Tasks, {
       as:'task',
       foreignKey: 'linkId'
+    });
+    Starred.belongsTo(models.Notes, {
+      as:'notes',
+      foreignKey: 'linkId'
     })
   }
 

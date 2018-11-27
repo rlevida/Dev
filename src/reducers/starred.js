@@ -59,6 +59,9 @@ export default function reducer(state = {
             })
             return { ...state, List: List }
         }
+        case "SET_STARRED_LOADING": {
+            return { ...state, Loading: (typeof action.Loading != "undefined") ? action.Loading : "" }
+        }
         default:
             return state;
     }

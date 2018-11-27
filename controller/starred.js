@@ -2,7 +2,7 @@ const _ = require("lodash");
 const dbName = "starred";
 const { defaultGet, defaultPut, defaultDelete } = require("./")
 const models = require('../modelORM');
-const { Starred, Users, Tasks } = models;
+const { Starred, Users, Tasks, Notes } = models;
 
 exports.get = {
     index: (req, cb) => {
@@ -23,11 +23,14 @@ exports.get = {
                     association.push({
                         model: Tasks,
                         as: 'task',
-                        required: false,
                         attributes: ['id', 'task', 'status', 'dueDate']
-                    })
+                    });
                     break;
-                case y:
+                case "notes":
+                    association.push({
+                        model: Notes,
+                        as: 'notes'
+                    })
                     break;
                 default:
             }
@@ -66,6 +69,10 @@ exports.get = {
 
                         if (typeof responseObj.task != "undefined") {
                             responseObj = { ...responseObj, title: responseObj.task.task }
+                        }
+
+                        if (typeof responseObj.notes != "undefined") {
+                            responseObj = { ...responseObj, title: responseObj.notes.note }
                         }
 
                         return responseObj;
