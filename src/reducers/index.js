@@ -26,6 +26,7 @@ import checklist from "./checklist"
 import activityLog from "./activityLog"
 import taskDependency from "./taskDependency"
 import tasktimeLog from "./tasktimeLog"
+import activityLogDocument from "./activityLogDocument"
 
 export default combineReducers({
     socket,
@@ -55,5 +56,5 @@ export default combineReducers({
     checklist,
     activityLog,
     taskDependency,
-    tasktimeLog
+    activityLogDocument
 })

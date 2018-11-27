@@ -36,7 +36,7 @@ export default class EditModal extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, document, dispatch } = this.props
+        let { loggedUser, document, dispatch } = this.props
 
         let result = true;
         $('.form-container *').validator('validate');
@@ -62,10 +62,16 @@ export default class EditModal extends React.Component {
             }
         } else {
             if (document.EditType == "rename") {
-                let dataToSubmit = { origin: document.Selected.origin }
+                let dataToSubmit = {
+                    origin: document.Selected.origin,
+                    oldDocument: document.Selected.oldDocument,
+                    newDocument: document.Selected.origin,
+                    usersId: loggedUser.data.id,
+                    projectId: project
+                }
                 putData(`/api/document/putDocumentName/${document.Selected.id}`, dataToSubmit, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: document.Selected.status })
+                        dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: document.Selected.status, })
                         showToast("success", "Successfully Updated.")
                     } else {
                         showToast("error", "Updating failed. Please try again.")
@@ -74,7 +80,13 @@ export default class EditModal extends React.Component {
                     dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
                 })
             } else if (document.EditType == "tags") {
-                let dataToSubmit = { tags: document.Selected.tags }
+                let dataToSubmit = {
+                    tags: JSON.stringify(document.Selected.tags),
+                    oldDocument: document.Selected.oldDocument,
+                    newDocument: document.Selected.tags.map((e) => { return e.label }).join(','),
+                    usersId: loggedUser.data.id,
+                    projectId: project
+                }
                 putData(`/api/document/documentTag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}`, dataToSubmit, (c) => {
                     if (c.status == 200) {
                         dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: document.Selected.status })
@@ -91,7 +103,7 @@ export default class EditModal extends React.Component {
     selectTag(e, data) {
         let { dispatch, document } = this.props;
         let Selected = Object.assign({}, document.Selected);
-        Selected["tags"] = JSON.stringify(e)
+        Selected["tags"] = e
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: Selected })
     }
 
@@ -133,7 +145,7 @@ export default class EditModal extends React.Component {
                                                 multiple={true}
                                                 required={false}
                                                 options={tagOptions}
-                                                selected={(document.Selected.tags != null) ? JSON.parse(document.Selected.tags) : []}
+                                                selected={(document.Selected.tags != null) ? document.Selected.tags : []}
                                                 onChange={(e) => this.selectTag(e, document.Selected)}
                                             />
                                             <div class="help-block with-errors"></div>

@@ -1,5 +1,6 @@
 import React from "react";
 import parallel from 'async/parallel';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 import { getData, showToast } from '../../globalFunction';
 
@@ -7,6 +8,7 @@ import DocumentNew from "./documentNew";
 import DocumentStatus from "./documentStatus";
 import DocumentLibrary from "./documentLibrary";
 import DocumentFilter from "./documentFilter";
+import DocumentActivityLog from "./documentActivityLog";
 
 import PrintModal from "./documentPrinterModal";
 import UploadModal from "./uploadModal";
@@ -119,8 +121,20 @@ export default class List extends React.Component {
             <div style={{ padding: "20px" }}>
                 <div class="row">
                     <DocumentStatus />
-                    <DocumentNew />
-                    <DocumentLibrary />
+                    <Tabs class="mb40 mt40">
+                        <TabList>
+                            <Tab>Documents</Tab>
+                            <Tab>Activity Logs</Tab>
+                        </TabList>
+                        <TabPanel>
+                            <DocumentNew />
+                            <DocumentLibrary />
+                        </TabPanel>
+                        <TabPanel>
+                            <DocumentActivityLog />
+                        </TabPanel>
+                    </Tabs>
+
                 </div>
             </div>
             <PrintModal />

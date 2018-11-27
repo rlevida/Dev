@@ -1,9 +1,7 @@
 import React from "react";
 
-import DocumentFilter from "../documentFilter";
 import { DropDown, Loading } from "../../../globalComponents"
-import { deleteData, displayDate, getData, getFilePathExtension, postData, putData, removeTempFile, showToast } from '../../../globalFunction'
-import moment from 'moment'
+import { deleteData, displayDate, getData, postData, putData, showToast } from '../../../globalFunction'
 import { connect } from "react-redux"
 
 @connect((store) => {
@@ -87,12 +85,12 @@ export default class DocumentNew extends React.Component {
         })
     }
 
-    deleteDocument(id) {
-        let { dispatch } = this.props;
+    deleteDocument(data) {
+        let { dispatch, loggedUser } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            putData(`/api/document/${id}`, { isDeleted: 1 }, (c) => {
+            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project }, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'New', Id: id })
+                    dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'New', Id: data.id })
                     showToast("success", "Successfully Deleted.");
                 } else {
                     showToast("error", "Delete failed. Please try again later.");
@@ -147,12 +145,10 @@ export default class DocumentNew extends React.Component {
     }
 
     editDocument(data, type) {
-        let { dispatch } = this.props;
-        let newData = { ...data }, tempTags = [];
+        const { dispatch } = this.props;
+        const newData = { ...data, tags: data.tags };
 
-        newData = { ...data, tags: JSON.stringify(data.tags) }
-
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: newData });
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...newData, oldDocument: type === 'tags' ? data.tags.map((e) => { return e.label }).join(',') : newData.origin } });
         dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type });
         $(`#editModal`).modal('show');
     }
@@ -440,7 +436,7 @@ export default class DocumentNew extends React.Component {
                                                         </div>
                                                     </li>
 
-                                                    <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data.id)}>Delete</a></li>
+                                                    <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data)}>Delete</a></li>
                                                     <li><a href="javascript:void(0)" data-tip="View" onClick={() => this.viewDocument(data)}>View</a></li>
                                                 </ul>
                                             </div>
