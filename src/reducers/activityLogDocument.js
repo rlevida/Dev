@@ -5,16 +5,17 @@ export default function reducer(state = {
     FormActive: "List",
     Selected: {},
     SelectedId: [],
-    Count: {}
+    Count: {},
+    Loading: "RETRIEVING"
 }, action) {
     switch (action.type) {
         case "ADD_ACTIVITYLOG_DOCUMENT": {
             const { List } = { ...state };
-            List.unshift(action.activity_log);
+            List.unshift(action.activity_log_document);
             return { ...state, List }
         }
         case "SET_ACTIVITYLOG_DOCUMENT_LIST": {
-            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {} }
+            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {}, Loading: '' }
         }
         case "UPDATE_ACTIVITYLOG_DOCUMENT_LIST": {
             const { List } = { ...state };

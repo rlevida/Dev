@@ -38,7 +38,8 @@ export default class UploadModal extends React.Component {
         postData(`/api/document`, dataToSubmit, (c) => {
             if (c.status == 200) {
                 this.setState({ upload: false, dataToSubmit: [] });
-                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: 'New' });
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New' });
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                 dispatch({ type: "SET_DOCUMENT_NEW_UPLOAD_COUNT", Count: document.NewUploadCount + 1 })
                 showToast("success", "Successfully Added.")
             } else {

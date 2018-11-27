@@ -69,9 +69,10 @@ export default class EditModal extends React.Component {
                     usersId: loggedUser.data.id,
                     projectId: project
                 }
-                putData(`/api/document/putDocumentName/${document.Selected.id}`, dataToSubmit, (c) => {
+                putData(`/api/document/rename/${document.Selected.id}`, dataToSubmit, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: document.Selected.status, })
+                        dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status, })
+                        dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                         showToast("success", "Successfully Updated.")
                     } else {
                         showToast("error", "Updating failed. Please try again.")
@@ -87,10 +88,11 @@ export default class EditModal extends React.Component {
                     usersId: loggedUser.data.id,
                     projectId: project
                 }
-                putData(`/api/document/documentTag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}`, dataToSubmit, (c) => {
+                putData(`/api/document/tag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}`, dataToSubmit, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: document.Selected.status })
-                        showToast("success", "Successfully Updated.")
+                        dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status });
+                        dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
+                        showToast("success", "Successfully Updated.");
                     } else {
                         showToast("error", "Updating failed. Please try again.")
                     }

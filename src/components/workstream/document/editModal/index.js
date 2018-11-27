@@ -63,7 +63,7 @@ export default class EditModal extends React.Component {
         } else {
             if (document.EditType == "rename") {
                 let dataToSubmit = { origin: document.Selected.origin }
-                putData(`/api/document/putDocumentName/${document.Selected.id}`, dataToSubmit, (c) => {
+                putData(`/api/document/rename/${document.Selected.id}`, dataToSubmit, (c) => {
                     if (c.status == 200) {
                         dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: '' })
                         showToast("success", "Successfully Updated.")
@@ -75,7 +75,7 @@ export default class EditModal extends React.Component {
                 })
             } else if (document.EditType == "tags") {
                 let dataToSubmit = { tags: document.Selected.tags }
-                putData(`/api/document/documentTag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}`, dataToSubmit, (c) => {
+                putData(`/api/document/tag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}`, dataToSubmit, (c) => {
                     if (c.status == 200) {
                         dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: '' })
                         showToast("success", "Successfully Updated.")

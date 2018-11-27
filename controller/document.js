@@ -512,24 +512,24 @@ exports.post = {
                                     ActivityLogsDocument
                                         .create(logData)
                                         .then((c) => {
-                                            parallelCallback(null, '')
+                                            parallelCallback(null, c)
                                         })
                                 } catch (err) {
                                     console.log(err)
                                 }
                             }
-                        }, (err, parallelCallbackResult) => {
+                        }, (err, { documentLink, activityLogsDocument }) => {
                             if (err != null) {
                                 mapCallback(err)
                             } else {
-                                mapCallback(null, parallelCallbackResult.documentLink.documentId)
+                                mapCallback(null, { documentIds: documentLink.documentId, activityLogs: activityLogsDocument })
                             }
                         })
                     })
             }, (err, mapCallbackResult) => {
-                nextThen(mapCallbackResult)
+                nextThen(mapCallbackResult.map((e) => { return e.documentIds }), mapCallbackResult.map((e) => { return e.activityLogs }))
             })
-        }).then((nextThen, result) => {
+        }).then((nextThen, result, activityLogs) => {
             try {
                 DocumentLink
                     .findAll({
@@ -551,7 +551,7 @@ exports.post = {
                         return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
                     })
                     .then((res) => {
-                        cb({ status: true, data: res })
+                        cb({ status: true, data: { result: res, activityLogs: activityLogs } })
                     })
 
             } catch (err) {
@@ -758,7 +758,7 @@ exports.put = {
             cb({ status: false, error: err })
         }
     },
-    documentTag: (req, cb) => {
+    tag: (req, cb) => {
         let body = req.body;
         const { projectId, usersId, oldDocument, newDocument } = body;
         const id = req.params.id;
@@ -844,14 +844,14 @@ exports.put = {
                             linkId: id,
                             actionType: 'modified',
                             usersId: usersId,
-                            title: 'Document tags modified',
+                            title: 'Document tags updated',
                             old: oldDocument,
                             new: newDocument,
                         }
                         ActivityLogsDocument
                             .create(logData)
                             .then((c) => {
-                                parallelCallback(null, '')
+                                parallelCallback(null, c)
                             })
                     } catch (err) {
                         parallelCallback(err)
@@ -861,12 +861,12 @@ exports.put = {
                 if (err) {
                     cb({ status: false, error: err })
                 } else {
-                    cb({ status: true, data: results.result.data })
+                    cb({ status: true, data: { result: results.result.data, activityLogs: results.ActivityLogsDocument } })
                 }
             })
         })
     },
-    putDocumentName: (req, cb) => {
+    rename: (req, cb) => {
         let body = req.body;
         const { usersId, oldDocument, newDocument, projectId } = body;
         let id = req.params.id;
@@ -951,7 +951,7 @@ exports.put = {
                         if (err) {
                             cb({ status: false, errror: err })
                         } else {
-                            cb({ status: true, data: result.results.data })
+                            cb({ status: true, data: { result: result.results.data, activityLogs: result.activityLogsDocument } })
                         }
                     })
                 })
