@@ -49,6 +49,7 @@ const Share = require('./share')(sequelize, Sequelize.DataTypes);
 const Status = require('./status')(sequelize, Sequelize.DataTypes);
 const TaskMemberReminder = require('./task_member_reminder')(sequelize, Sequelize.DataTypes);
 const Type = require('./type')(sequelize, Sequelize.DataTypes);
+const Starred = require('./starred')(sequelize, Sequelize.DataTypes);
 
 const models = {
     ActivityLogs,
@@ -76,7 +77,8 @@ const models = {
     Status,
     Type,
     UsersRole,
-    UsersTeam
+    UsersTeam,
+    Starred
 };
 
 Object.keys(models).forEach((modelName) => {
