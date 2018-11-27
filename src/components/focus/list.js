@@ -33,7 +33,7 @@ export default class List extends React.Component {
     generateList({ title, isActive, index, id }) {
         return (
             <tr key={index}>
-                <td>
+                <td style={{ maxWidth: 10 }}>
                     <a onClick={() => this.removeStarred(id)}>
                         <span class={`fa ${(isActive == 1) ? "fa-star" : "fa-star-o"}`} />
                     </a>
@@ -50,6 +50,10 @@ export default class List extends React.Component {
         return (
             <table id="dataTable" class="table responsive-table">
                 <tbody>
+                    <tr>
+                        <th></th>
+                        <th>Item</th>
+                    </tr>
                     {
                         _.map(List, (listObj, index) => this.generateList({ ...listObj, index }))
                     }
