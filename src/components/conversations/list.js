@@ -137,6 +137,25 @@ export default class List extends React.Component {
           <tbody>
             {notesList.map(e => {
               const lastCommentUser = e.comments[e.comments.length-1];
+              // hide notes for client
+              if ( e.accessType === "INTERNAL_ONLY" && loggedUser.data.userType === "External"){
+                 return "";
+              }
+              if (e.accessType === 'SPECIFIC_CLIENT' && loggedUser.data.userType === "External") {
+                let hasAccess = false;
+
+                let specificUser = e.specificUser || '[]';
+                specificUser = (typeof specificUser === 'string')?JSON.parse(specificUser):specificUser;
+                specificUser.map((e)=>{
+                  if(loggedUser.data.id === e.id){
+                    hasAccess = true;
+                  }
+                })
+                if(!hasAccess){
+                  return "";
+                }
+              }
+
               return (
                 <tr
                   key={`${e.id}-${new Date().getTime()}`}
