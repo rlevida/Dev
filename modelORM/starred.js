@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('starred', {
+  const Starred = sequelize.define('starred', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -42,4 +42,13 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     tableName: 'starred'
   });
+
+  Starred.associate = function (models) {
+    Starred.belongsTo(models.Users, {
+      foreignKey: 'usersId',
+      as: 'user'
+    });
+  }
+
+  return Starred;
 };

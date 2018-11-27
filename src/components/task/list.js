@@ -6,7 +6,7 @@ import { connect } from "react-redux";
 import TaskStatus from "./taskStatus";
 import TaskFilter from "./taskFilter";
 import { HeaderButtonContainer, Loading } from "../../globalComponents";
-import { getData, putData, deleteData, showToast } from "../../globalFunction";
+import { getData, putData, postData, deleteData, showToast } from "../../globalFunction";
 
 @connect((store) => {
     return {
@@ -23,6 +23,7 @@ export default class List extends React.Component {
         this.updateStatus = this.updateStatus.bind(this);
         this.renderStatus = this.renderStatus.bind(this);
         this.fetchData = this.fetchData.bind(this);
+        this.starredTask = this.starredTask.bind(this);
     }
 
     componentDidMount() {
@@ -49,7 +50,7 @@ export default class List extends React.Component {
     fetchData(page) {
         const { dispatch, task, loggedUser } = this.props;
 
-        let requestUrl = `/api/task?projectId=${project}&page=${page}`;
+        let requestUrl = `/api/task?projectId=${project}&page=${page}&starredUser=${loggedUser.data.id}`;
         const { taskStatus, dueDate, taskAssigned } = task.Filter;
 
         if (taskStatus != "") {
@@ -62,14 +63,39 @@ export default class List extends React.Component {
 
         if (taskAssigned != "") {
             requestUrl += `&userId=${taskAssigned}`
-        } else if (loggedUser.data.user_role[0].roleId >= 3) { 
+        } else if (loggedUser.data.user_role[0].roleId >= 3) {
             requestUrl += `&userId=${loggedUser.data.id}`
         }
-        
+
         getData(requestUrl, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
             showToast("success", "Task successfully retrieved.");
+        });
+    }
+
+    starredTask({ id, isStarred }) {
+        const { task, loggedUser } = this.props;
+        const isStarredValue = isStarred ? 0 : 1;
+        // console.log({
+        //     linkType: "task",
+        //     linkId: id,
+        //     usersId: loggedUser.data.id
+        // })
+        postData(`/api/starred/`, {
+            linkType: "task",
+            linkId: id,
+            usersId: loggedUser.data.id
+        }, (c) => {
+             console.log(c)
+            //     // if (c.status == 200) {
+            //     //     dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data });
+            //     //     dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+            //     //     showToast("success", "Task successfully updated.");
+            //     // } else {
+            //     //     showToast("error", "Something went wrong please try again later.");
+            //     // }
+            //     // dispatch({ type: "SET_TASK_LOADING", Loading: "" });
         });
     }
 
@@ -175,6 +201,7 @@ export default class List extends React.Component {
                     <tbody>
                         <tr>
                             <th></th>
+                            <th></th>
                             <th class="text-left">Workstream</th>
                             <th class="text-left">Task Name</th>
                             <th class="text-center">Due Date</th>
@@ -187,9 +214,13 @@ export default class List extends React.Component {
                             taskList.map((data, index) => {
                                 const assignedUser = (_.filter(data.task_members, (o) => { return o.memberType == "assignedTo" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "assignedTo" })[0].user : "";
                                 const followers = (_.filter(data.task_members, (o) => { return o.memberType == "Follower" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "Follower" }) : "";
-
                                 return (
                                     <tr key={index}>
+                                        <td>
+                                            <a onClick={() => this.starredTask({ isStarred: data.isStarred, id: data.id })}>
+                                                <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
+                                            </a>
+                                        </td>
                                         <td>
                                             {
                                                 (data.dueDate != '' && data.dueDate != null) && this.renderStatus(data)

@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     status: {
-      type: DataTypes.ENUM('In Progress', 'For Approval', 'Completed','Rejected'),
+      type: DataTypes.ENUM('In Progress', 'For Approval', 'Completed', 'Rejected'),
       allowNull: true
     },
     typeId: {
@@ -122,16 +122,19 @@ module.exports = (sequelize, DataTypes) => {
     Tasks.hasMany(models.Members, {
       foreignKey: "linkId",
       as: 'follower'
-    })
+    });
     Tasks.belongsTo(models.Workstream, {
       foreignKey: 'workstreamId',
       as: 'workstream'
-    })
-
-    Tasks.hasMany(models.TaskMemberReminder,{
-      foreignKey:'taskId',
-      as:'task_member_reminder'
-    })
+    });
+    Tasks.hasMany(models.TaskMemberReminder, {
+      foreignKey: 'taskId',
+      as: 'task_member_reminder'
+    });
+    Tasks.hasMany(models.Starred, {
+      foreignKey: 'linkId',
+      as: 'task_starred'
+    });
 
   };
 
