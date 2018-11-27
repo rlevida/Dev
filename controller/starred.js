@@ -1,58 +1,153 @@
+const _ = require("lodash");
 const dbName = "starred";
-var { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./")
+const { defaultGet, defaultPut, defaultDelete } = require("./")
+const models = require('../modelORM');
+const { Starred, Users, Tasks, Notes } = models;
 
 exports.get = {
-    index : (req,cb) => {
-        defaultGet(dbName,req,(res)=>{
-            if(res.status){
-                cb({ status:true, data:res.data })
-            }else{
-                cb({ status:false, error:res.error })
+    index: (req, cb) => {
+        const queryString = req.query;
+        const limit = 10;
+
+        const association = [
+            {
+                model: Users,
+                as: 'user',
+                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
             }
-        })
-    },
-    getById : (req,cb) => {
-        defaultGetById(dbName,req,(res)=>{
-            if(res.status){
-                cb({ status:true, data:res.data })
+        ];
+
+        if (typeof queryString.type != "undefined") {
+            switch (queryString.type) {
+                case "task":
+                    association.push({
+                        model: Tasks,
+                        as: 'task',
+                        attributes: ['id', 'task', 'status', 'dueDate']
+                    });
+                    break;
+                case "notes":
+                    association.push({
+                        model: Notes,
+                        as: 'notes'
+                    })
+                    break;
+                default:
+            }
+        }
+
+        const options = {
+            include: association,
+            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+            order: [['dateUpdated', 'DESC']]
+        };
+        const whereObj = {
+            ...(typeof queryString.userId !== 'undefined' && queryString.userId !== '') ? { usersId: queryString.userId } : {},
+            ...(typeof queryString.type !== 'undefined' && queryString.type !== '') ? { linkType: queryString.type } : {},
+            ...(typeof queryString.isActive !== 'undefined' && queryString.isActive !== '') ? { isActive: queryString.isActive } : {}
+        }
+
+        async.parallel({
+            count: function (callback) {
+                try {
+                    Starred.findAndCountAll({ ..._.omit(options, ['offset', 'limit']), where: whereObj, distinct: true }).then((response) => {
+                        const pageData = {
+                            total_count: response.count,
+                            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
+                        }
+
+                        callback(null, pageData)
+                    });
+                } catch (err) {
+                    callback(err)
+                }
+            },
+            result: function (callback) {
+                try {
+                    Starred.findAll({ ...options, where: whereObj }).map((response) => {
+                        let responseObj = response.toJSON();
+
+                        if (typeof responseObj.task != "undefined") {
+                            responseObj = { ...responseObj, title: responseObj.task.task }
+                        }
+
+                        if (typeof responseObj.notes != "undefined") {
+                            responseObj = { ...responseObj, title: responseObj.notes.note }
+                        }
+
+                        return responseObj;
+                    }).then((resultArray) => {
+                        callback(null, resultArray);
+                    })
+                } catch (err) {
+                    callback(err)
+                }
+            }
+        }, function (err, results) {
+            if (err != null) {
+                cb({ status: false, error: err });
             } else {
-                cb({ status:false, error:res.error })
+                cb({ status: true, data: results })
+            }
+        });
+    },
+    getById: (req, cb) => {
+        defaultGetById(dbName, req, (res) => {
+            if (res.status) {
+                cb({ status: true, data: res.data })
+            } else {
+                cb({ status: false, error: res.error })
             }
         })
     }
 }
 
 exports.post = {
-    index : (req,cb) => {
-        defaultPost(dbName,req,(res)=>{
-            if(res.success){
-                cb({ status:true, data:res.data })
-            }else{
-                cb({ status:false, error:res.error })
+    index: (req, cb) => {
+        const body = req.body;
+
+        Starred.findOne({
+            where: body
+        }).then((response) => {
+            const responseResult = (response != null) ? response.toJSON() : "";
+
+            if (responseResult == "") {
+                Starred.create({ ...body, isActive: 1 }).then((response) => {
+                    cb({ status: true, data: _.omit(response.toJSON(), ["dateUpdated"]) })
+                });
+            } else {
+                Starred.update(
+                    { ...body, isActive: (responseResult.isActive != 1) ? 1 : 0 },
+                    { where: body }
+                ).then((response) => {
+                    return Starred.findOne({ where: body });
+                }).then((findRes) => {
+                    cb({ status: true, data: findRes.toJSON() })
+                });
             }
-        })
+        });
     }
 }
 
 exports.put = {
-    index : (req,cb) => {
-        defaultPut(dbName,req,(res)=>{
-            if(res.success){
-                cb({ status:true, data:res.data })
+    index: (req, cb) => {
+        defaultPut(dbName, req, (res) => {
+            if (res.success) {
+                cb({ status: true, data: res.data })
             } else {
-                cb({ status:false, error:c.error })
+                cb({ status: false, error: c.error })
             }
         })
     }
 }
 
-exports.delete =  {
-    index : (req,cb) => {
-        defaultDelete(dbName,req,(res)=>{
-            if(res.success){
-                cb({ status:true, data:res.data })
+exports.delete = {
+    index: (req, cb) => {
+        defaultDelete(dbName, req, (res) => {
+            if (res.success) {
+                cb({ status: true, data: res.data })
             } else {
-                cb({ status:false, error:res.error })
+                cb({ status: false, error: res.error })
             }
         })
     }

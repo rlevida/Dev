@@ -2,7 +2,7 @@ const async = require("async");
 const _ = require("lodash");
 const moment = require("moment");
 const models = require('../modelORM');
-const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, sequelize } = models;
+const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, sequelize } = models;
 const dbName = "task";
 const { defaultDelete } = require("./");
 const func = global.initFunc();
@@ -19,6 +19,19 @@ const associationStack = [
                 attributes: ['id', 'firstName', 'lastName', 'emailAddress']
             }
         ],
+    },
+    {
+        model: Starred,
+        as: 'task_starred',
+        where: { linkType: 'task', isActive: 1 },
+        required: false,
+        include: [
+            {
+                model: Users,
+                as: 'user',
+                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+            }
+        ]
     },
     {
         model: TaskChecklist,
@@ -137,6 +150,13 @@ exports.get = {
             ]
         }
 
+        if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
+            _.find(associationArray, { as: 'task_starred' }).where = {
+                linkType: 'task',
+                isActive: 1,
+                usersId: queryString.starredUser
+            };
+        }
         const options = {
             include: associationArray,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
@@ -167,7 +187,8 @@ exports.get = {
                         const assignedTaskMembers = _.filter(responseData.task_members, (member) => { return member.memberType == "assignedTo" });
                         const data = {
                             ...responseData,
-                            assignedTo: ((assignedTaskMembers).length > 0) ? assignedTaskMembers[0].userTypeLinkId : ""
+                            assignedTo: ((assignedTaskMembers).length > 0) ? assignedTaskMembers[0].userTypeLinkId : "",
+                            isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.task_starred).length > 0) ? responseData.task_starred[0].isActive : 0
                         }
                         return data;
                     }).then((resultArray) => {
@@ -500,7 +521,7 @@ exports.put = {
                     }
                 },
                 period: (parallelCallback) => {
-                    if (body.periodic == 1) {
+                    if (typeof body.periodic != "undefined" && body.periodic == 1) {
                         const taskId = (body.periodTask == null) ? body.id : body.periodTask;
                         Tasks.findAll(
                             {
@@ -599,7 +620,8 @@ exports.put = {
                                         where: {
                                             linkType: "task",
                                             memberType: "assignedTo",
-                                            linkId: relatedTaskObj.data.id
+                                            linkId: relatedTaskObj.data.id,
+                                            isDeleted: 0
                                         },
                                         include: [
                                             {
@@ -611,65 +633,70 @@ exports.put = {
                                     }
                                 ).then((response) => {
                                     const oldUserResponse = (response == null) ? "" : response.toJSON();
-                                    Members.update({ isDeleted: 1 },
-                                        {
-                                            where: {
-                                                linkType: "task",
-                                                linkId: relatedTaskObj.data.id,
-                                                usersType: "users",
-                                                memberType: "assignedTo"
-                                            }
-                                        }).then(() => {
-                                            if (body.assignedTo != "") {
-                                                const assignedTo = { linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" };
+                                    if (typeof body.assignedTo != "undefined" && body.assignedTo != oldUserResponse.userTypeLinkId) {
+                                        Members.update({ isDeleted: 1 },
+                                            {
+                                                where: {
+                                                    linkType: "task",
+                                                    linkId: relatedTaskObj.data.id,
+                                                    usersType: "users",
+                                                    memberType: "assignedTo"
+                                                }
+                                            }).then(() => {
+                                                if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
+                                                    const assignedTo = { linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" };
 
-                                                Members.create(assignedTo).then((response) => {
-                                                    return Members.findOne(
-                                                        {
-                                                            where: {
-                                                                linkType: "task",
-                                                                memberType: "assignedTo",
-                                                                linkId: relatedTaskObj.data.id,
-                                                                usersType: "users",
-                                                                userTypeLinkId: body.assignedTo
-                                                            },
-                                                            include: [
-                                                                {
-                                                                    model: Users,
-                                                                    as: 'user',
-                                                                    attributes: ['id', 'firstName', 'lastName']
-                                                                }
-                                                            ]
+                                                    Members.create(assignedTo).then((response) => {
+                                                        return Members.findOne(
+                                                            {
+                                                                where: {
+                                                                    linkType: "task",
+                                                                    memberType: "assignedTo",
+                                                                    linkId: relatedTaskObj.data.id,
+                                                                    usersType: "users",
+                                                                    userTypeLinkId: body.assignedTo
+                                                                },
+                                                                include: [
+                                                                    {
+                                                                        model: Users,
+                                                                        as: 'user',
+                                                                        attributes: ['id', 'firstName', 'lastName']
+                                                                    }
+                                                                ]
+                                                            });
+                                                    }).then((response) => {
+                                                        resolve({
+                                                            data: oldUserResponse,
+                                                            logs: {
+                                                                old: JSON.stringify({ assigned_member: response }),
+                                                                actionType: "added",
+                                                                usersId: body.userId,
+                                                                linkType: "member",
+                                                                linkId: response.id,
+                                                                title: response.user.firstName + " " + response.user.lastName
+                                                            }
                                                         });
-                                                }).then((response) => {
+                                                    });
+                                                } else {
                                                     resolve({
                                                         data: oldUserResponse,
-                                                        logs: {
-                                                            old: JSON.stringify({ assigned_member: response }),
-                                                            actionType: "added",
-                                                            usersId: body.userId,
-                                                            linkType: "member",
-                                                            linkId: response.id,
-                                                            title: response.user.firstName + " " + response.user.lastName
-                                                        }
+                                                        ...(oldUserResponse != "") ? {
+                                                            logs: {
+                                                                old: JSON.stringify({ assigned_member: oldUserResponse }),
+                                                                actionType: "deleted",
+                                                                usersId: body.userId,
+                                                                linkType: "member",
+                                                                linkId: oldUserResponse.id,
+                                                                title: response.user.firstName + " " + response.user.lastName
+                                                            }
+                                                        } : {}
                                                     });
-                                                });
-                                            } else {
-                                                resolve({
-                                                    data: oldUserResponse,
-                                                    ...(oldUserResponse != "") ? {
-                                                        logs: {
-                                                            old: JSON.stringify({ assigned_member: oldUserResponse }),
-                                                            actionType: "deleted",
-                                                            usersId: body.userId,
-                                                            linkType: "member",
-                                                            linkId: oldUserResponse.id,
-                                                            title: response.user.firstName + " " + response.user.lastName
-                                                        }
-                                                    } : {}
-                                                });
-                                            }
-                                        });
+                                                }
+                                            });
+                                    } else {
+                                        resolve("");
+                                    }
+
                                 });
                             });
                         });

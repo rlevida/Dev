@@ -61,15 +61,19 @@ module.exports = function(sequelize, DataTypes) {
     Notes.hasMany(models.Tag, {
       as: 'tag',
       foreignKey: 'tagTypeId',
-    })
+    });
     Notes.hasMany(models.Conversation, {
       as: 'comments',
       foreignKey: 'linkId',
-    })
+    });
     Notes.belongsTo(models.Users, {
       as: 'creator',
       foreignKey: 'createdBy',
-    })
+    });
+    Notes.hasMany(models.Starred, {
+      foreignKey: 'linkId',
+      as: 'notes_starred'
+    });
   }
 
   return Notes;
