@@ -51,54 +51,44 @@ export default class EditModal extends React.Component {
             return;
         }
 
-        if (document.Selected.isFolder) {
-            if (document.EditType == "tags") {
-                let dataToSubmit = { ...document.Selected }
-                putData(`/api/folder/folderTag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=folder`, dataToSubmit, (c) => {
-                    dispatch({ type: "UPDATE_DATA_FOLDER_LIST", UpdatedData: c.data })
-                    dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
+        if (document.EditType == "rename") {
+            let dataToSubmit = {
+                origin: document.Selected.origin,
+                oldDocument: document.Selected.oldDocument,
+                newDocument: document.Selected.origin,
+                usersId: loggedUser.data.id,
+                projectId: project
+            }
+            putData(`/api/document/rename/${document.Selected.id}`, dataToSubmit, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status, })
+                    dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                     showToast("success", "Successfully Updated.")
-                })
-            }
-        } else {
-            if (document.EditType == "rename") {
-                let dataToSubmit = {
-                    origin: document.Selected.origin,
-                    oldDocument: document.Selected.oldDocument,
-                    newDocument: document.Selected.origin,
-                    usersId: loggedUser.data.id,
-                    projectId: project
+                } else {
+                    showToast("error", "Updating failed. Please try again.")
                 }
-                putData(`/api/document/rename/${document.Selected.id}`, dataToSubmit, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status, })
-                        dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
-                        showToast("success", "Successfully Updated.")
-                    } else {
-                        showToast("error", "Updating failed. Please try again.")
-                    }
-                    dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
-                    dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
-                })
-            } else if (document.EditType == "tags") {
-                let dataToSubmit = {
-                    tags: JSON.stringify(document.Selected.tags),
-                    oldDocument: document.Selected.oldDocument,
-                    newDocument: document.Selected.tags.map((e) => { return e.label }).join(','),
-                    usersId: loggedUser.data.id,
-                    projectId: project
-                }
-                putData(`/api/document/tag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}`, dataToSubmit, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status });
-                        dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
-                        showToast("success", "Successfully Updated.");
-                    } else {
-                        showToast("error", "Updating failed. Please try again.")
-                    }
-                    dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
-                })
+                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+                dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
+            })
+        } else if (document.EditType == "tags") {
+            let dataToSubmit = {
+                tags: JSON.stringify(document.Selected.tags),
+                oldDocument: document.Selected.oldDocument,
+                newDocument: document.Selected.tags.map((e) => { return e.label }).join(','),
+                usersId: loggedUser.data.id,
+                projectId: project,
+                origin: document.Selected.origin
             }
+            putData(`/api/document/tag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}`, dataToSubmit, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status });
+                    dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
+                    showToast("success", "Successfully Updated.");
+                } else {
+                    showToast("error", "Updating failed. Please try again.")
+                }
+                dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
+            })
         }
     }
 

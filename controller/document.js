@@ -782,11 +782,11 @@ exports.put = {
     },
     tag: (req, cb) => {
         let body = req.body;
-        const { projectId, usersId, oldDocument, newDocument } = body;
+        const { projectId, usersId, oldDocument, newDocument, origin } = body;
         const id = req.params.id;
         const queryString = req.query;
 
-        body = _.omit(body, 'projectId', 'usersId', 'oldDocument', 'newDocument');
+        body = _.omit(body, 'projectId', 'usersId', 'oldDocument', 'newDocument', 'origin');
 
         const documentWhereObj = {
             ...(typeof queryString.status != "undefined" && queryString.status != "") ? { status: queryString.status } : {},
@@ -866,7 +866,7 @@ exports.put = {
                             linkId: id,
                             actionType: 'modified',
                             usersId: usersId,
-                            title: 'Document tags updated',
+                            title: `Document ${origin} tags updated`,
                             old: oldDocument,
                             new: newDocument,
                         }
