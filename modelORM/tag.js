@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     linkType: {
-      type: DataTypes.ENUM('user', 'workstream', 'task', 'conversation', 'document', 'others'),
+      type: DataTypes.ENUM('user', 'workstream', 'task', 'conversation', 'document', 'others','notes'),
       allowNull: true
     },
     linkId: {
@@ -69,6 +69,11 @@ module.exports = (sequelize, DataTypes) => {
 
     Tags.belongsTo(models.Workstream, {
       as: 'workstream',
+      foreignKey: 'linkId',
+    });
+
+    Tags.belongsTo(models.Notes, {
+      as: 'notes',
       foreignKey: 'linkId',
     });
   };

@@ -7,7 +7,8 @@ const {
     Tag,
     Tasks,
     Conversation,
-    Users
+    Users,
+    Document
 } = models;
 
 const NotesInclude = [
@@ -22,6 +23,20 @@ const NotesInclude = [
             {
                 model: Tasks,
                 as: 'tagTask',
+            }
+        ]
+    },
+    {
+        model: Tag,
+        where: {
+            linkType: 'notes', tagType: 'document'
+        },
+        as: 'documentTags',
+        required: false,
+        include: [
+            {
+                model: Document,
+                as: 'document',
             }
         ]
     },

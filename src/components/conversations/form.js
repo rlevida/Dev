@@ -6,6 +6,7 @@ import defaultStyle from "../global/react-mention-style";
 import { putData, postData, showToast } from "../../globalFunction";
 import CommentListItem from "./comment"
 import { DropDown } from "../../globalComponents";
+import UploadModal from "./uploadModal";
 
 @connect((store) => {
     return {
@@ -349,7 +350,17 @@ export default class FormComponent extends React.Component {
                     }
                 </div>
                 <div>Created by: {`${data.creator.firstName} ${data.creator.lastName} - ${moment(data.dateAdded).format("MM/DD/YYYY hh:mm")}` }</div>
-
+                <div>
+                    <h3>Attachments <a href="javascript:void(0)" data-toggle="modal" data-target="#uploadFileModal" ><span class="fa fa-paperclip"></span></a></h3>
+                    <ul>
+                        { 
+                            data.documentTags.map((e)=>{
+                                return <li>{e.document.origin}</li>
+                            })
+                        }
+                        <li></li>
+                    </ul>
+                </div>
                 { data.comments.length == 0 && 
                     <div>
                         <hr />
@@ -400,7 +411,7 @@ export default class FormComponent extends React.Component {
                     </div>
                 }
                 
-                
+                <UploadModal />
             </div>
         )
     }
