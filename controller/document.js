@@ -410,8 +410,9 @@ exports.get = {
 
 exports.post = {
     index: (req, cb) => {
-        let data = req.body;
-        let projectId = req.body[0].project;
+        const data = req.body;
+        const projectId = req.body[0].project;
+        const isDuplicate = req.query.isDuplicate;
 
         sequence.create().then((nextThen) => {
             async.map(data, (e, mapCallback) => {
@@ -502,12 +503,14 @@ exports.post = {
                                     projectId: projectId,
                                     linkType: `document`,
                                     linkId: res.id,
-                                    actionType: 'created',
+                                    actionType: (typeof isDuplicate !== 'undefined' && isDuplicate) ? 'duplicated' : 'created',
                                     old: '',
                                     new: res.origin,
-                                    title: (e.type === 'document') ? 'Document uploaded' : "Folder created",
+                                    title: (typeof isDuplicate !== 'undefined' && isDuplicate) ? (e.type === 'document') ? "Document duplicated" : "Folder duplicated"
+                                        : (e.type === 'document') ? 'Document uploaded' : "Folder created",
                                     usersId: e.uploadedBy
                                 }
+
                                 try {
                                     ActivityLogsDocument
                                         .create(logData)
@@ -702,10 +705,8 @@ exports.put = {
         let body = req.body;
         const { usersId, oldDocument, newDocument, projectId, actionType, title } = body;
         const id = req.params.id;
-        console.log(usersId, oldDocument, newDocument, projectId, actionType, title)
         body = _.omit(body, 'usersId', 'oldDocument', 'newDocument', 'projectId', 'type', 'title', 'actionType');
-        console.log(body)
-        
+
         try {
             Document
                 .update(body, { where: { id: id } })
@@ -738,7 +739,7 @@ exports.put = {
                         },
                         activityLogsDocument: (parallelCallback) => {
                             try {
-                                let logData = {
+                                const logData = {
                                     projectId: projectId,
                                     linkType: 'document',
                                     linkId: id,
@@ -859,7 +860,7 @@ exports.put = {
                 },
                 ActivityLogsDocument: (parallelCallback) => {
                     try {
-                        let logData = {
+                        const logData = {
                             projectId: projectId,
                             linkType: 'document',
                             linkId: id,

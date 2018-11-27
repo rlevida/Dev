@@ -108,9 +108,10 @@ export default class DocumentNew extends React.Component {
     duplicateDocument(data) {
         const { dispatch, document, loggedUser } = this.props;
         const dataToSubmit = [{ name: data.name, origin: data.origin, project: project, uploadedBy: loggedUser.data.id, status: data.status, tags: JSON.stringify(data.tags), type: 'document' }]
-        postData(`/api/document`, dataToSubmit, (c) => {
+        postData(`/api/document?isDuplicate=true`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: 'New' });
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New' });
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                 if (data.status == 'new') {
                     dispatch({ type: "SET_DOCUMENT_NEW_UPLOAD_COUNT", Count: document.NewUploadCount + 1 })
                 }
@@ -268,7 +269,7 @@ export default class DocumentNew extends React.Component {
             actionType: "moved",
             oldDocument: documentData.origin,
             newDocument: "",
-            title: `Document moved to folder ${folderData.origin}`,
+            title: `${documentData.type === 'document' ? 'Document' : 'Folder'} moved to folder ${folderData.origin}`,
             projectId: project,
             usersId: loggedUser.data.id
         };

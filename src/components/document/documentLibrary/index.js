@@ -85,7 +85,8 @@ export default class DocumentLibrary extends React.Component {
 
         postData(`/api/document`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: 'Library' });
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library' });
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                 showToast("success", "Successfully Added.")
             } else {
                 showToast("error", "Saving failed. Please Try again later.")
@@ -97,9 +98,10 @@ export default class DocumentLibrary extends React.Component {
     deleteDocument(data) {
         let { dispatch, loggedUser } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project }, (c) => {
+            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'Library', Id: data.id })
+                    dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                     showToast("success", "Successfully Deleted.");
                 } else {
                     showToast("error", "Delete failed. Please try again later.");
@@ -123,26 +125,24 @@ export default class DocumentLibrary extends React.Component {
     }
 
     downloadDocument(document) {
-        window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
+        if (document.type === 'document') {
+            window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
+        } else {
+
+        }
     }
 
     downloadFolder(folder) {
-        let { document } = this.props;
-        let fileList = [];
-        document.List.filter(e => {
-            if (e.folderId == folder.id) {
-                fileList.push({ origin: e.origin, name: e.name })
-            }
-        })
         window.open(encodeURI(`/api/downloadFolder?data=${JSON.stringify(fileList)}&folderName=${folder.name}`));
     }
 
     duplicateDocument(data) {
         const { dispatch, document, loggedUser } = this.props;
         const dataToSubmit = [{ name: data.name, origin: data.origin, project: project, uploadedBy: loggedUser.data.id, status: data.status, tags: JSON.stringify(data.tags), type: 'document' }]
-        postData(`/api/document`, dataToSubmit, (c) => {
+        postData(`/api/document?isDuplicate=true`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: 'Library' });
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library' });
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                 if (data.status == 'new') {
                     dispatch({ type: "SET_DOCUMENT_NEW_UPLOAD_COUNT", Count: document.NewUploadCount + 1 })
                 }
@@ -248,11 +248,22 @@ export default class DocumentLibrary extends React.Component {
     }
 
     moveTo(folderData, documentData) {
-        let { dispatch } = this.props;
-        let dataToSubmit = { ...documentData, status: folderData.status, folderId: folderData.id };
+        let { dispatch, loggedUser } = this.props;
+        let dataToSubmit = {
+            status: folderData.status,
+            folderId: folderData.id,
+            actionType: "moved",
+            oldDocument: documentData.origin,
+            newDocument: "",
+            title: `${documentData.type === 'document' ? 'Document' : 'Folder'} moved to folder ${folderData.origin}`,
+            projectId: project,
+            usersId: loggedUser.data.id
+        };
+
         putData(`/api/document/${documentData.id}`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data, Status: documentData.status })
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data.result, Status: documentData.status })
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                 showToast("success", "Successfully Updated.")
             } else {
                 showToast("danger", "Updating failed. Please try again")

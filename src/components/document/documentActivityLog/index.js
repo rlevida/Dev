@@ -55,7 +55,7 @@ export default class DocumentActivityLog extends React.Component {
                 <h4>Activity Logs</h4>
                 {(activityLogDocument.List.length > 0) &&
                     activityLogDocument.List.map((data, index) => {
-                        if (data.actionType === 'created') {
+                        if (data.actionType === 'created' || data.actionType === 'duplicated') {
                             return (
                                 <div key={index} style={{ backgroundColor: '#fff', borderRadius: '5px' }}>
                                     <div class="m10 p10">
