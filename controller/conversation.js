@@ -10,6 +10,43 @@ const {
     Users
 } = models;
 
+const NotesInclude = [
+    {
+        model: Tag,
+        where: {
+            linkType: 'task', tagType: 'notes'
+        },
+        as: 'tag',
+        required: false,
+        include: [
+            {
+                model: Tasks,
+                as: 'tagTask',
+            }
+        ]
+    },
+    {
+        model: Conversation,
+        where: {
+            linkType: 'notes'
+        },
+        as: 'comments',
+        required: false,
+        include: [
+            {
+                model: Users,
+                as: 'users',
+            }
+        ]
+    },
+    {
+        model: Users,
+        as: 'creator',
+        required: false,
+    }
+];
+
+
 let io = require('socket.io-client');
 
 const socketIo = io(((global.environment=="production")?"https:":"http:")+global.site_url,{
@@ -28,40 +65,7 @@ exports.get = {
         try {
             Notes
                 .findAll({
-                    include : [{
-                        model: Tag,
-                        where: {
-                            linkType: 'task', tagType: 'notes'
-                        },
-                        as: 'tag',
-                        required: false,
-                        include: [
-                            {
-                                model: Tasks,
-                                as: 'tagTask',
-                            }
-                        ]
-                    },
-                    {
-                        model: Conversation,
-                        where: {
-                            linkType: 'notes'
-                        },
-                        as: 'comments',
-                        required: false,
-                        include: [
-                            {
-                                model: Users,
-                                as: 'users',
-                            }
-                        ]
-                    },
-                    {
-                        model: Users,
-                        as: 'creator',
-                        required: false,
-                    }
-                ]
+                    include : NotesInclude
                 })
                 .then((res) => {
                     cb({ status: true, data: res })
@@ -101,11 +105,7 @@ exports.post = {
             if(res.success) {
                 Notes.findAll({
                     where: { id: res.data[0].id },
-                    include: {
-                        model: Users,
-                        as: 'creator',
-                        required: false,
-                    }
+                    include: NotesInclude
                 }).then((result)=>{
                     cb({ status:true, data:result })
                 })
@@ -176,10 +176,15 @@ exports.post = {
 exports.put = {
     index : (req,cb) => {
         defaultPut(dbName,req,(res)=>{
-            if(res.success){
-                cb({ status:true, data:res.data })
+            if(res.success) {
+                Notes.findAll({
+                    where: { id: req.params.id },
+                    include: NotesInclude
+                }).then((result)=>{
+                    cb({ status:true, data:result })
+                })
             } else {
-                cb({ status:false, error:c.error })
+                cb({ status:false, error:res.error })
             }
         })
     },
@@ -188,7 +193,7 @@ exports.put = {
         let d = req.body;
         let id = req.params.id;
         sequence.create().then((nextThen) => {
-            if( typeof id != "undefined" && id != "" ){
+            if( typeof id != "undefined" && id != "" ) {
                 conversation.putData("conversation",d.data,{id:id},(c)=>{
                     Conversation.findAll({
                         where: { id: id },
@@ -202,7 +207,7 @@ exports.put = {
                         nextThen(e)
                     })
                 })
-            }else{
+            } else {
                 cb({status:false, message: "Data not found."})
             }
         }).then((nextThen,result) => {

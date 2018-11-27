@@ -7,6 +7,8 @@ CREATE TABLE `notes` (
     `createdBy` BIGINT,
     `isClosed` TINYINT,
     `projectId` BIGINT,
+    `specificClient` TEXT,
+    `accessType` VARCHAR(30),
     `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)

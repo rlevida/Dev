@@ -17,21 +17,31 @@ export default class Component extends React.Component {
     constructor(props) {
         super(props)
         this.setIsClosed = this.setIsClosed.bind(this);
+        this.updateSelectedNotes = this.updateSelectedNotes.bind(this);
     }
 
     setIsClosed(isClosed,data) {
         const { notes, dispatch } = this.props;
-        putData(`/api/conversation/${data.id}`, { isClosed }, c => {
-        if (c.status == 200) {
-            const dataIndex = notes.List.indexOf(data);
-            const newData = data;
-            newData.isClosed = c.data.isClosed;
-            notes.List.splice(dataIndex, 1, newData);
-            dispatch({ type: "SET_NOTES_LIST", list: notes.List });
-        } else {
-            showToast("error", "Something went wrong please try again later.");
-        }
+        putData(`/api/conversation/${data.id}`, { isClosed }, (c) => {
+            if (c.status == 200) {
+                const dataIndex = notes.List.indexOf(data);
+                const newData = data;
+                console.log(c.data);
+                newData.isClosed = c.data[0].isClosed;
+                notes.List.splice(dataIndex, 1, newData);
+                this.updateSelectedNotes(newData);
+                dispatch({ type: "SET_NOTES_LIST", list: notes.List });
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
         });
+    }
+
+    updateSelectedNotes(data){
+        const { notes, dispatch } = { ...this.props };
+        if( data.id === notes.Selected.id ){
+            dispatch({ type: "SET_NOTES_SELECTED", Selected: data });
+        }
     }
 
     render() {
@@ -57,11 +67,11 @@ export default class Component extends React.Component {
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div style={{paddingRight:"0px"}} className={ notes.FormActive == "View" ? "col-lg-6 col-md-6 col-sm-12"  : "col-lg-12 col-md-12 col-sm-12"}>
-                            <List setIsClosed={this.setIsClosed} />
+                            <List setIsClosed={this.setIsClosed} updateSelectedNotes={this.updateSelectedNotes} />
                         </div>
                         { (notes.FormActive == "View") &&
                             <div style={{paddingLeft:"0px"}} class="col-lg-6 col-md-6 col-sm-12">
-                                <Form setIsClosed={this.setIsClosed} />
+                                <Form setIsClosed={this.setIsClosed} updateSelectedNotes={this.updateSelectedNotes} />
                             </div>
                         }
                     </div>
