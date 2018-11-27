@@ -33,6 +33,15 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true,
       defaultValue: 0
     },
+    specificClient: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    accessType: {
+      type: DataTypes.STRING(30),
+      allowNull: true,
+      defaultValue: 'INTERNAL_ONLY'
+    },
     dateAdded: {
       type: DataTypes.DATE,
       allowNull: false,

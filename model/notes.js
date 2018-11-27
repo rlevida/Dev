@@ -29,6 +29,14 @@ var field = exports.field = {
      */
     'isClosed' : {type : 'tinyint' , access : "public" },
     /**
+     * specificClient (TEXT)
+     */
+    'specificClient' : {type : 'string' , access : "public" },
+    /**
+     * accessType (VARCHAR(30))
+     */
+    'accessType' : {type : 'string' , access : "public" },
+    /**
      * dateAdded (DATETIME)
      */
     'dateAdded' : {type : 'date' , access : "public" },

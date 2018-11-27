@@ -234,7 +234,7 @@ var postData = exports.postData = function (url,data,cb) {
         cb(res) 
     })
     .catch((err)=>{
-        cb(err); 
+        console.error(err); 
     });
 }
 
@@ -244,7 +244,7 @@ var getData = exports.getData = function (url,data,cb){
         cb(res) 
     })
     .catch((err)=>{
-        cb(err); 
+        console.error(err); 
     });
 }
 
@@ -254,7 +254,7 @@ var putData = exports.putData = function (url,data,cb){
         cb(res) 
     })
     .catch((err)=>{
-        cb(err); 
+        console.error(err); 
     });
 }
 
@@ -264,7 +264,7 @@ var deleteData = exports.deleteData = function (url,data,cb){
         cb(res) 
     })
     .catch((err)=>{
-        cb(err); 
+        console.error(err); 
     });
 }
 
@@ -274,6 +274,6 @@ var removeTempFile = exports.removeTempFile = function (fileToRemove,cb){
         cb(res) 
     })
     .catch((err)=>{
-        cb(err); 
+        console.error(err); 
     });
 }
