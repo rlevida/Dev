@@ -39,11 +39,11 @@ export default class ProjectFilter extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { dispatch } = this.props;
+        const { dispatch, loggedUser } = this.props;
 
         if (_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false) {
             const { taskStatus, dueDate, taskAssigned, task } = this.props.task.Filter;
-            let requestUrl = `/api/task?projectId=${project}&page=1`;
+            let requestUrl = `/api/task?projectId=${project}&page=1&starredUser=${loggedUser.data.id}`;
 
             if (taskStatus != "") {
                 requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
