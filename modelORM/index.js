@@ -37,6 +37,7 @@ const Tag = require('./tag')(sequelize, Sequelize.DataTypes);
 const Tasks = require('./task')(sequelize, Sequelize.DataTypes);
 const TaskChecklist = require('./task_checklist')(sequelize, Sequelize.DataTypes);
 const TaskDependency = require('./task_dependency')(sequelize, Sequelize.DataTypes);
+const TaskTimeLogs = require('./task_time_logs')(sequelize, Sequelize.DataTypes);
 const Teams = require('./team')(sequelize, Sequelize.DataTypes);
 const Users = require('./users')(sequelize, Sequelize.DataTypes);
 const UsersRole = require('./users_role')(sequelize, Sequelize.DataTypes);
@@ -65,6 +66,7 @@ const models = {
     TaskChecklist,
     TaskDependency,
     TaskMemberReminder,
+    TaskTimeLogs,
     Teams,
     Users,
     Workstream,

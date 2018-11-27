@@ -25,6 +25,7 @@ import usersTeam from "./usersTeam"
 import checklist from "./checklist"
 import activityLog from "./activityLog"
 import taskDependency from "./taskDependency"
+import tasktimeLog from "./tasktimeLog"
 
 export default combineReducers({
     socket,
@@ -53,5 +54,6 @@ export default combineReducers({
     usersTeam,
     checklist,
     activityLog,
-    taskDependency
+    taskDependency,
+    tasktimeLog
 })
