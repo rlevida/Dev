@@ -28,7 +28,7 @@ export default class Component extends React.Component {
             </div>
             <h4>Focus</h4>
             <div class="row mb20">
-                <div class="col-lg-6">
+                <div class="col-lg-6 col-lg-offset-1">
                     <Focus/>
                 </div>
             </div>
