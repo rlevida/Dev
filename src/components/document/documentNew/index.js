@@ -76,7 +76,8 @@ export default class DocumentNew extends React.Component {
 
         postData(`/api/document`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: 'New' });
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New' });
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                 showToast("success", "Successfully Added.")
             } else {
                 showToast("error", "Saving failed. Please Try again later.")
@@ -88,9 +89,10 @@ export default class DocumentNew extends React.Component {
     deleteDocument(data) {
         let { dispatch, loggedUser } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project }, (c) => {
+            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'New', Id: data.id })
+                    dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                     showToast("success", "Successfully Deleted.");
                 } else {
                     showToast("error", "Delete failed. Please try again later.");
@@ -233,14 +235,24 @@ export default class DocumentNew extends React.Component {
     }
 
     moveToLibrary(data) {
-        let { dispatch, document } = this.props;
-        let dataToSubmit = { status: "library", id: data.id }
+        const { dispatch, document, loggedUser } = this.props;
+        const dataToSubmit = {
+            id: data.id,
+            status: "library",
+            actionType: "moved",
+            oldDocument: data.origin,
+            newDocument: "",
+            title: "Document moved to library",
+            projectId: project,
+            usersId: loggedUser.data.id
+        }
         putData(`/api/document/${data.id}`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data, Status: data.status })
-                dispatch({ type: "MOVE_DOCUMENT_TO_LIBRARY", UpdatedData: c.data })
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data.result, Status: data.status })
+                dispatch({ type: "MOVE_DOCUMENT_TO_LIBRARY", UpdatedData: c.data.result })
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
                 dispatch({ type: "SET_DOCUMENT_NEW_UPLOAD_COUNT", Count: document.NewUploadCount - 1 })
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                 showToast("success", "Successfully Updated.")
             } else {
                 showToast("error", "Updating failed. Please try again.")
@@ -249,11 +261,22 @@ export default class DocumentNew extends React.Component {
     }
 
     moveTo(folderData, documentData) {
-        let { dispatch } = this.props;
-        let dataToSubmit = { ...documentData, status: folderData.status, folderId: folderData.id };
+        let { dispatch, loggedUser } = this.props;
+        let dataToSubmit = {
+            status: folderData.status,
+            folderId: folderData.id,
+            actionType: "moved",
+            oldDocument: documentData.origin,
+            newDocument: "",
+            title: `Document moved to folder ${folderData.origin}`,
+            projectId: project,
+            usersId: loggedUser.data.id
+        };
+
         putData(`/api/document/${documentData.id}`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data, Status: documentData.status })
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data.result, Status: documentData.status })
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                 showToast("success", "Successfully Updated.")
             } else {
                 showToast("danger", "Updating failed. Please try again")
@@ -300,7 +323,16 @@ export default class DocumentNew extends React.Component {
                 dispatch({ type: "REMOVE_DELETED_STARRED_LIST", id: data.id })
             })
         } else {
-            let dataToSubmit = { usersId: loggedUser.data.id, linkType: "project", linkId: data.id }
+            let dataToSubmit = {
+                usersId: loggedUser.data.id,
+                linkType: "project",
+                linkId: data.id,
+                projectId: project,
+                actionType: 'starred',
+                title: 'Document starred',
+                oldDocument: data.origin,
+                newDocument: ''
+            }
             postData(`/api/starred/`, dataToSubmit, (c) => {
                 dispatch({ type: "ADD_STARRED_LIST", list: c.data })
             })

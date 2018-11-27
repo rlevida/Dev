@@ -27,11 +27,14 @@ export default class DocumentActivityLog extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchData(1)
+        const { activityLogDocument } = this.props;
+        if (_.isEmpty(activityLogDocument.Count)) {
+            this.fetchData(1)
+        }
     }
 
     fetchData(page) {
-        const { dispatch , activityLogDocument } = this.props;
+        const { dispatch, activityLogDocument } = this.props;
         getData(`/api/activityLogDocument?projectId=${project}&page=${page}`, {}, (c) => {
             dispatch({ type: 'SET_ACTIVITYLOG_DOCUMENT_LIST', list: activityLogDocument.List.concat(c.data.result), count: c.data.count })
         })
@@ -56,9 +59,9 @@ export default class DocumentActivityLog extends React.Component {
                             return (
                                 <div key={index} style={{ backgroundColor: '#fff', borderRadius: '5px' }}>
                                     <div class="m10 p10">
-                                        <p class="pull-right" style={{ fontSize: '10px' }}>{moment(data.dateAdded).format("LLL")}</p>
                                         <label>{data.title}</label>
                                         <p>{data.new}</p>
+                                        <p style={{ fontSize: '10px' }}>{`${moment(data.dateAdded).format("LLL")} - ${data.user.emailAddress}`}</p>
                                     </div>
                                 </div>
 
@@ -68,20 +71,20 @@ export default class DocumentActivityLog extends React.Component {
                             return (
                                 <div key={index} style={{ backgroundColor: '#fff', borderRadius: '5px' }}>
                                     <div class="m10 p10">
-                                        <p class="pull-right" style={{ fontSize: '10px' }}>{moment(data.dateAdded).format("LLL")}</p>
                                         <label>{data.title}</label>
                                         <p>From {(data.old === '') ? "''" : data.old} to {(data.new === '') ? "''" : data.new}</p>
+                                        <p style={{ fontSize: '10px' }}>{`${moment(data.dateAdded).format("LLL")} - ${data.user.emailAddress}`}</p>
                                     </div>
                                 </div>
                             )
                         }
-                        if (data.actionType === 'deleted') {
+                        if (data.actionType === 'deleted' || data.actionType === 'moved' || data.actionType === 'shared') {
                             return (
                                 <div key={index} style={{ backgroundColor: '#fff', borderRadius: '5px' }}>
                                     <div class="m10 p10">
-                                        <p class="pull-right" style={{ fontSize: '10px' }}>{moment(data.dateAdded).format("LLL")}</p>
                                         <label>{data.title}</label>
                                         <p>{data.old}</p>
+                                        <p style={{ fontSize: '10px' }}>{`${moment(data.dateAdded).format("LLL")} - ${data.user.emailAddress}`}</p>
                                     </div>
                                 </div>
                             )

@@ -11,11 +11,10 @@ export default function reducer(state = {
     switch (action.type) {
         case "ADD_ACTIVITYLOG_DOCUMENT": {
             const { List } = { ...state };
-            List.unshift(action.activity_log_document);
-            return { ...state, List }
+            return { ...state, List: _.orderBy(List.concat(action.activity_log_document), ['dateAdded'], ['desc']) }
         }
         case "SET_ACTIVITYLOG_DOCUMENT_LIST": {
-            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {}, Loading: '' }
+            return { ...state, List: _.uniqBy(action.list, 'id'), ...(typeof action.count != "undefined") ? { Count: action.count } : {}, Loading: '' }
         }
         case "UPDATE_ACTIVITYLOG_DOCUMENT_LIST": {
             const { List } = { ...state };

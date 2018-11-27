@@ -505,17 +505,27 @@ exports.post = {
                                     actionType: 'created',
                                     old: '',
                                     new: res.origin,
-                                    title: 'Document uploaded',
+                                    title: (e.type === 'document') ? 'Document uploaded' : "Folder created",
                                     usersId: e.uploadedBy
                                 }
                                 try {
                                     ActivityLogsDocument
                                         .create(logData)
                                         .then((c) => {
-                                            parallelCallback(null, c)
+                                            ActivityLogsDocument
+                                                .findOne({
+                                                    where: { id: c.id },
+                                                    include: [{
+                                                        model: Users,
+                                                        as: 'user'
+                                                    }]
+                                                })
+                                                .then((findRes) => {
+                                                    parallelCallback(null, findRes)
+                                                })
                                         })
                                 } catch (err) {
-                                    console.log(err)
+                                    parallelCallback(err)
                                 }
                             }
                         }, (err, { documentLink, activityLogsDocument }) => {
@@ -690,11 +700,12 @@ exports.post = {
 exports.put = {
     index: (req, cb) => {
         let body = req.body;
-        const { usersId, oldDocument, projectId } = body;
+        const { usersId, oldDocument, newDocument, projectId, actionType, title } = body;
         const id = req.params.id;
-
-        body = _.omit(body, 'usersId', 'oldDocument', 'projectId');
-
+        console.log(usersId, oldDocument, newDocument, projectId, actionType, title)
+        body = _.omit(body, 'usersId', 'oldDocument', 'newDocument', 'projectId', 'type', 'title', 'actionType');
+        console.log(body)
+        
         try {
             Document
                 .update(body, { where: { id: id } })
@@ -731,16 +742,26 @@ exports.put = {
                                     projectId: projectId,
                                     linkType: 'document',
                                     linkId: id,
-                                    actionType: 'deleted',
+                                    actionType: actionType,
                                     usersId: usersId,
-                                    title: "Document deleted",
+                                    title: title,
                                     old: oldDocument,
-                                    new: ''
+                                    new: newDocument
                                 }
                                 ActivityLogsDocument
                                     .create(logData)
                                     .then((c) => {
-                                        parallelCallback(null, '')
+                                        ActivityLogsDocument
+                                            .findOne({
+                                                where: { id: c.id },
+                                                include: [{
+                                                    model: Users,
+                                                    as: 'user'
+                                                }]
+                                            })
+                                            .then((findRes) => {
+                                                parallelCallback(null, [findRes])
+                                            })
                                     })
                             } catch (err) {
                                 parallelCallback(err)
@@ -750,7 +771,7 @@ exports.put = {
                         if (err) {
                             cb({ status: false, error: err })
                         } else {
-                            cb({ status: true, data: results.result.data })
+                            cb({ status: true, data: { result: results.result.data, activityLogs: results.activityLogsDocument } })
                         }
                     })
                 })
@@ -851,7 +872,17 @@ exports.put = {
                         ActivityLogsDocument
                             .create(logData)
                             .then((c) => {
-                                parallelCallback(null, c)
+                                ActivityLogsDocument
+                                    .findOne({
+                                        where: { id: c.id },
+                                        include: [{
+                                            model: Users,
+                                            as: 'user'
+                                        }]
+                                    })
+                                    .then((findRes) => {
+                                        parallelCallback(null, [findRes])
+                                    })
                             })
                     } catch (err) {
                         parallelCallback(err)
@@ -941,7 +972,17 @@ exports.put = {
                                 ActivityLogsDocument
                                     .create(logData)
                                     .then((c) => {
-                                        parallelCallback(null, c)
+                                        ActivityLogsDocument
+                                            .findOne({
+                                                where: { id: c.id },
+                                                include: [{
+                                                    model: Users,
+                                                    as: 'user'
+                                                }]
+                                            })
+                                            .then((findRes) => {
+                                                parallelCallback(null, [findRes])
+                                            })
                                     })
                             } catch (err) {
                                 parallelCallback(err)
