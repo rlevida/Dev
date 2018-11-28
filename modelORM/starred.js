@@ -56,6 +56,10 @@ module.exports = function(sequelize, DataTypes) {
       as:'notes',
       foreignKey: 'linkId'
     })
+    Starred.belongsTo(models.Document, {
+      as:'document',
+      foreignKey: 'linkId'
+    })
   }
 
   return Starred;
