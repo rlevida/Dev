@@ -73,7 +73,7 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Tags.belongsTo(models.Notes, {
-      as: 'notes',
+      as: 'TagNotes',
       foreignKey: 'linkId',
     });
   };

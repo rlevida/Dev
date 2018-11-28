@@ -361,6 +361,8 @@ export default class FormComponent extends React.Component {
                         <li></li>
                     </ul>
                 </div>
+                <hr />
+                <h3>Comments</h3>
                 { data.comments.length == 0 && 
                     <div>
                         <hr />
@@ -411,7 +413,7 @@ export default class FormComponent extends React.Component {
                     </div>
                 }
                 
-                <UploadModal />
+                <UploadModal updateSelectedNotes={this.props.updateSelectedNotes} />
             </div>
         )
     }

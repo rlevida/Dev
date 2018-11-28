@@ -70,15 +70,22 @@ export default class UploadModal extends React.Component {
     }
 
     saveDocument() {
-        let { dispatch } = this.props;
+        let { dispatch, notes } = this.props;
         let { dataToSubmit } = this.state;
 
         postData(`/api/document`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                console.log(c.data);
-                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data, DocumentType: 'New' });
+                let selectedIndex = notes.List.indexOf(notes.Selected);
+                let selectedNotes = notes.Selected;
+                c.data.map((e)=>{
+                    selectedNotes.documentTags.push({id:(new Date()).getTime,document:e})
+                })
+                let list = notes.List;
+                list.splice(selectedIndex, 1, selectedNotes)
+                this.props.updateSelectedNotes(selectedNotes);
+                dispatch({ type: "SET_NOTES_LIST", list: list });
                 showToast("success", "Successfully Added.")
-                this.setState({ upload: false, tempData: [], tags: [] });
+                this.setState({ upload: false, tempData: [], tags: [], dataToSubmit: [] });
             } else {
                 showToast("error", "Saving failed. Please Try again later.")
             }
@@ -115,6 +122,16 @@ export default class UploadModal extends React.Component {
                                         </div>
                                     </div>
                                 </Dropzone>
+                            }
+                            
+                            {(!this.state.loading && this.state.dataToSubmit.length > 0) &&
+                                <ul>
+                                    {
+                                        this.state.dataToSubmit.map((e)=>{
+                                            return <li>{e.origin}</li>
+                                        })
+                                    }
+                                </ul>
                             }
                             <br />
                             {(this.state.upload && !this.state.loading) &&
