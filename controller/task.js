@@ -92,7 +92,7 @@ exports.get = {
     index: (req, cb) => {
         const associationArray = _.cloneDeep(associationStack);
         const queryString = req.query;
-        const limit = 10;
+        const limit = 1;
         const dueDate = (typeof queryString.dueDate != "undefined") ? JSON.parse(queryString.dueDate) : "";
         const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
         const whereObj = {
@@ -127,8 +127,19 @@ exports.get = {
                         }
                 }
             } : {},
-        };
+            ...(typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
+                dueDate: {
+                    [Sequelize.Op.not]: null
+                }
+            } : {},
+            ...(typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
+                startDate: {
+                    [Sequelize.Op.not]: null
+                }
+            } : {}
 
+        };
+        
         if (typeof queryString.userId != "undefined" && queryString.userId != "") {
             const compareOpt = (Array.isArray(queryString.userId)) ? "IN" : "=";
             const ids = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;
@@ -181,7 +192,8 @@ exports.get = {
                 try {
                     Tasks.findAll({
                         where: whereObj,
-                        ...options
+                        ...options,
+                        logging:true
                     }).map((mapObject) => {
                         const responseData = mapObject.toJSON();
                         const assignedTaskMembers = _.filter(responseData.task_members, (member) => { return member.memberType == "assignedTo" });

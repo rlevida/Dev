@@ -39,28 +39,35 @@ export default class ProjectFilter extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { dispatch, loggedUser } = this.props;
+        const { dispatch, loggedUser, task: taskState } = this.props;
 
         if (_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false) {
             const { taskStatus, dueDate, taskAssigned, task } = this.props.task.Filter;
-            let requestUrl = `/api/task?projectId=${project}&page=1&starredUser=${loggedUser.data.id}`;
+            let requestUrl = `/api/task?projectId=${project}&starredUser=${loggedUser.data.id}`;
 
             if (taskStatus != "") {
                 requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
             }
-
             if (task != "") {
                 requestUrl += `&task=${task}`
             }
 
             if (dueDate != "") {
-                requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`
+                //requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`
             }
 
             if (taskAssigned != "" && taskAssigned.length > 0) {
                 taskAssigned.map((assignedObj) => {
                     requestUrl += `&userId=${assignedObj.value}`
                 });
+            }
+
+            if (taskState.FormActive == "Timeline") {
+                requestUrl += `&listType=timeline`
+            }
+
+            if (taskState.FormActive != "Calendar") {
+                requestUrl += `&page=1`
             }
 
             keyTimer && clearTimeout(keyTimer);
@@ -148,7 +155,7 @@ export default class ProjectFilter extends React.Component {
                             onChange={(e) => this.setDropDown("taskStatus", e.value)} />
                     </div>
                     <div class="col-md-2 col-sm-12 col-xs-6 mb5">
-                        <div class="input-group date" style={{width:"100%"}}>
+                        <div class="input-group date" style={{ width: "100%" }}>
                             <label>Task Due Date</label>
                             <input type="text"
                                 class="form-control datepicker"

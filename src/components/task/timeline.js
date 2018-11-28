@@ -22,66 +22,40 @@ export default class List extends React.Component {
 
     this.deleteData = this.deleteData.bind(this);
     this.updateStatus = this.updateStatus.bind(this);
-    this.renderStatus = this.renderStatus.bind(this);
     this.fetchData = this.fetchData.bind(this);
-    this.eventStyleGetter = this.eventStyleGetter.bind(this);
   }
 
   componentDidMount() {
-    const { socket, task } = this.props;
-    const { Count } = task;
+    const { dispatch } = this.props;
 
-    if (_.isEmpty(Count)) {
-      this.fetchData(1);
-    } else if (Count.current_page != Count.last_page) {
-      this.fetchData(Count.current_page + 1);
-    }
-
-    socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-    socket.emit("GET_STATUS_LIST", {});
-    socket.emit("GET_TYPE_LIST", {});
-    socket.emit("GET_USER_LIST", {});
-    socket.emit("GET_TEAM_LIST", {});
-    socket.emit("GET_APPLICATION_SELECT_LIST", {
-      selectName: "ProjectMemberList",
-      filter: { linkId: project, linkType: "project" }
-    });
+    dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+    dispatch({ type: "SET_TASK_LIST", list: [] });
+    this.fetchData(1);
   }
 
   fetchData(page) {
-    const { loggedUser, dispatch, task } = this.props;
-    const { data } = loggedUser;
-    const userRoles = _.map(data.user_role, roleObj => {
-      return roleObj.roleId;
-    })[0];
-    let requestUrl = `/api/task?projectId=${project}&page=${page}`;
+    const { dispatch, task, loggedUser } = this.props;
+
+    let requestUrl = `/api/task?projectId=${project}&page=${page}&starredUser=${loggedUser.data.id}&listType=timeline`;
     const { taskStatus, dueDate, taskAssigned } = task.Filter;
 
     if (taskStatus != "") {
-      requestUrl += `&status=${JSON.stringify({
-        opt: "eq",
-        value: taskStatus
-      })}`;
+      requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
     }
 
     if (dueDate != "") {
-      requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`;
+      requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`
     }
 
     if (taskAssigned != "") {
-      requestUrl += `&userId=${taskAssigned}&role=6`;
-    } else {
-      requestUrl += `&userId=${loggedUser.data.id}&role=${userRoles}`;
+      requestUrl += `&userId=${taskAssigned}`
+    } else if (loggedUser.data.user_role[0].roleId >= 3) {
+      requestUrl += `&userId=${loggedUser.data.id}`
     }
 
     getData(requestUrl, {}, c => {
-      dispatch({
-        type: "UPDATE_DATA_TASK_LIST",
-        List: c.data.result,
-        Count: c.data.count
-      });
+      dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
       dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-      showToast("success", "Task successfully retrieved.");
     });
   }
 
@@ -130,59 +104,8 @@ export default class List extends React.Component {
     }
   }
 
-  renderStatus(data) {
-    const { isActive, dueDate } = { ...data };
-    const dueDateMoment = moment(dueDate);
-    const currentDateMoment = moment(new Date());
-    let taskStatus = 0;
-    let className = "";
-    let statusColor = "#000";
-
-    if (
-      dueDateMoment.isBefore(currentDateMoment, "day") &&
-      data.status != "Completed"
-    ) {
-      taskStatus = 2;
-    } else if (
-      dueDateMoment.isSame(currentDateMoment, "day") &&
-      data.status != "Completed"
-    ) {
-      taskStatus = 1;
-    }
-
-    if (isActive == 0) {
-      className = "fa fa-circle";
-    } else if (taskStatus == 0) {
-      className = "fa fa-circle";
-      statusColor = "#27ae60";
-    } else if (taskStatus == 1) {
-      className = "fa fa-circle";
-      statusColor = "#f39c12";
-    } else if (taskStatus == 2) {
-      className = "fa fa-exclamation-circle";
-      statusColor = "#c0392b";
-    }
-
-    return statusColor;
-  }
-
-  eventStyleGetter(event, start, end, isSelected) {
-    var backgroundColor = this.renderStatus(event);
-    var style = {
-      backgroundColor: backgroundColor,
-      borderRadius: "0px",
-      opacity: 0.8,
-      color: "black",
-      border: "0px",
-      display: "block"
-    };
-    return {
-      style: style
-    };
-  }
-
   render() {
-    const { task, dispatch, loggedUser } = this.props;
+    const { task } = this.props;
     const currentPage =
       typeof task.Count.current_page != "undefined"
         ? task.Count.current_page
@@ -214,7 +137,7 @@ export default class List extends React.Component {
         100,
         null
       ]);
-    })
+    });
     return (
       <div class="pd0">
         <div class="row mb10 mt10">
@@ -222,49 +145,31 @@ export default class List extends React.Component {
             <TaskStatus />
           </div>
         </div>
-        <HeaderButtonContainer withMargin={true}>
-          {typeof loggedUser.data != "undefined" &&
-            loggedUser.data.userType != "External" &&
-            loggedUser.data.userRole < 4 && (
-              <li
-                class="btn btn-info"
-                onClick={e => {
-                  dispatch({
-                    type: "SET_TASK_FORM_ACTIVE",
-                    FormActive: "Form"
-                  });
-                  dispatch({
-                    type: "SET_TASK_SELECTED",
-                    Selected: { isActive: true }
-                  });
-                  dispatch({ type: "SET_TASK_ID", SelectedId: [] });
-                }}
-              >
-                <span>New Task</span>
-              </li>
-            )}
-        </HeaderButtonContainer>
         <div class="row mb10">
           <div class="col-lg-10 pd0">
             <TaskFilter />
           </div>
         </div>
-        <Chart
-          width={"100%"}
-          height={"400px"}
-          chartType="Gantt"
-          loader={<div>Loading Chart</div>}
-          data={yourData}
-          rootProps={{ "data-testid": "3" }}
-        />
-        {task.Loading == "RETRIEVING" && <Loading />}
+        {
+          (task.Loading == "RETRIEVING") && <Loading />
+        }
+        {
+          (task.Loading != "RETRIEVING" && taskList.length > 0) && <Chart
+            width={"100%"}
+            height={"400px"}
+            chartType="Gantt"
+            loader={<Loading />}
+            data={yourData}
+            rootProps={{ "data-testid": "3" }}
+          />
+        }
         <div class="text-center">
-          {currentPage != lastPage && (
-            <a onClick={() => this.getNextResult()}>Load More Task</a>
-          )}
-          {taskList.length == 0 && task.Loading != "RETRIEVING" && (
-            <p>No Records Found</p>
-          )}
+          {
+            (currentPage != lastPage && task.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Task</a>
+          }
+          {
+            (taskList.length == 0 && task.Loading != "RETRIEVING") && <p>No Records Found</p>
+          }
         </div>
       </div>
     );
