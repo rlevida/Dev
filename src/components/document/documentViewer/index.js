@@ -108,15 +108,15 @@ export default class DocumentViewerComponent extends React.Component {
         return (
             <div>
                 {
-                    (workstreamId === '') &&
-                        <HeaderButtonContainer withMargin={true}>
-                            <li class="btn btn-info" style={{ marginRight: "2px" }}
-                                onClick={(e) => {
-                                    dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
-                                }} >
-                                <span>Back</span>
-                            </li>
-                        </HeaderButtonContainer>
+                    (subpage === 'documents') &&
+                    <HeaderButtonContainer withMargin={true}>
+                        <li class="btn btn-info" style={{ marginRight: "2px" }}
+                            onClick={(e) => {
+                                dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
+                            }} >
+                            <span>Back</span>
+                        </li>
+                    </HeaderButtonContainer>
                 }
                 <div class="row mt10">
                     <div class="col-lg-12 col-md-12 col-xs-12">

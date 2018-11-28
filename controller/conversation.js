@@ -40,6 +40,10 @@ const NotesInclude = [
             {
                 model: Document,
                 as: 'document',
+                include: [{
+                    model: Users,
+                    as: 'user',
+                }]
             }
         ]
     },
@@ -138,7 +142,15 @@ exports.get = {
         }
 
         Conversation
-            .findAll({ where: whereObj })
+            .findAll({
+                where: whereObj,
+                include: [
+                    {
+                        model: Users,
+                        as: 'users',
+                    }
+                ]
+            })
             .then((res) => {
                 cb({ status: true, data: res })
             })

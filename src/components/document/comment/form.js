@@ -67,7 +67,6 @@ export default class Form extends React.Component {
             },
             reminderList: JSON.stringify(_.uniqBy(commentIds, `userId`))
         };
-
         postData(`/api/conversation/comment`, dataToBeSubmited, (c) => {
             dispatch({ type: 'ADD_COMMENT_LIST', list: c.data })
             dispatch({ type: 'SET_COMMENT_SELECTED', Selected: {} })

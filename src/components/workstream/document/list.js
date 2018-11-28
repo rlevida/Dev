@@ -95,7 +95,6 @@ export default class List extends React.Component {
     viewDocument(data) {
         let { socket, dispatch } = this.props;
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-        // dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })
         $(`#documentViewerModal`).modal('show')
     }
 
