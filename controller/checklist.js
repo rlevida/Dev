@@ -103,14 +103,26 @@ exports.post = {
                     model: Users,
                     as: 'user',
                     attributes: ['firstName', 'lastName']
+                },
+                {
+                    model: ChecklistDocuments,
+                    as: 'tagDocuments',
+                    include: [{
+                        model: Document,
+                        as: 'document',
+                        include: [{
+                            model: Users,
+                            as: 'user'
+                        }]
+                    }]
                 }
             ]
         }
 
         try {
             TaskChecklist.create(body).then((response) => {
-                TaskChecklist.findOne({ ...options, where: { id: response.dataValues.id } }).then((response) => {
-                    const insertResponse = response.toJSON();
+                TaskChecklist.findOne({ ...options, where: { id: response.dataValues.id } }).then((findRes) => {
+                    const insertResponse = { ...findRes.toJSON(), document: findRes.tagDocuments.length ? findRes.tagDocuments.map((e) => { return e.document }) : [] }
 
                     async.waterfall([
                         function (callback) {
