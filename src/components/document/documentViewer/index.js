@@ -1,7 +1,7 @@
 import React from "react"
 import moment from 'moment'
 import mime from "mime-types";
-import { getFilePathExtension, putData, deleteData, showToast, postData, removeTempFile } from '../../../globalFunction'
+import { getFilePathExtension, putData, deleteData, showToast, postData, removeTempFile, getData } from '../../../globalFunction'
 import { HeaderButtonContainer } from "../../../globalComponents"
 import DocumentComment from "../comment"
 import PrintComponent from "../print"
@@ -34,8 +34,10 @@ export default class DocumentViewerComponent extends React.Component {
     }
 
     componentWillMount() {
-        let { socket, document, users } = this.props
-        socket.emit("GET_COMMENT_LIST", { filter: { linkType: "document", linkId: document.Selected.id } })
+        let { dispatch, document, users } = this.props
+        getData(`/api/conversation/getConversationList?linkType=document&linkId=${document.Selected.id}`, {}, (c) => {
+            dispatch({ type: 'SET_COMMENT_LIST', list: c.data })
+        })
     }
 
     deleteDocument(id) {
@@ -71,15 +73,6 @@ export default class DocumentViewerComponent extends React.Component {
         }
     }
 
-    // printDocument(data){
-    //     let { dispatch } = this.props
-    //     getData(`/api/document/getPrinterList`,{},(c) => {
-    //         dispatch({ type : "SET_PRINTER_LIST" , List: c.data })
-    //         dispatch({ type : "SET_DOCUMENT_SELECTED" , Selected: data })
-    //         $(`#printerModal`).modal("show")
-    //     })
-    // }
-
     printDocument(file) {
         let { dispatch } = this.props;
         let dataToSubmit = { fileName: file.name, fileOrigin: file.origin };
@@ -105,21 +98,26 @@ export default class DocumentViewerComponent extends React.Component {
     render() {
         let { dispatch, document, settings, global, starred } = this.props,
             isDocument = true, ext = "", documentContentType = "";
-        ext = getFilePathExtension(document.Selected.name).toLowerCase();
-        documentContentType = mime.contentType(document.Selected.name)
-        if (ext == "pdf" || ext == "jpeg" || ext == "png") {
-            isDocument = false;
+        if (typeof document.Selected.id !== 'undefined') {
+            ext = getFilePathExtension(document.Selected.name).toLowerCase();
+            documentContentType = mime.contentType(document.Selected.name)
+            if (ext == "pdf" || ext == "jpeg" || ext == "png") {
+                isDocument = false;
+            }
         }
         return (
             <div>
-                <HeaderButtonContainer withMargin={true}>
-                    <li class="btn btn-info" style={{ marginRight: "2px" }}
-                        onClick={(e) => {
-                            dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
-                        }} >
-                        <span>Back</span>
-                    </li>
-                </HeaderButtonContainer>
+                {
+                    (workstreamId === '') &&
+                        <HeaderButtonContainer withMargin={true}>
+                            <li class="btn btn-info" style={{ marginRight: "2px" }}
+                                onClick={(e) => {
+                                    dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
+                                }} >
+                                <span>Back</span>
+                            </li>
+                        </HeaderButtonContainer>
+                }
                 <div class="row mt10">
                     <div class="col-lg-12 col-md-12 col-xs-12">
 
@@ -157,11 +155,11 @@ export default class DocumentViewerComponent extends React.Component {
                                         </div>
                                         <br /><br />
                                         <span class="glyphicon glyphicon-file"></span>
-                                        {document.Selected.origin}
+                                        {typeof document.Selected.id !== 'undefined' && document.Selected.origin}
                                         <br />
-                                        Uploaded by {document.Selected.user.emailAddress}
+                                        Uploaded by {typeof document.Selected.id !== 'undefined' && document.Selected.user.emailAddress}
                                         <br />
-                                        {moment(document.Selected.dateAdded).format('L')}
+                                        {typeof document.Selected.id !== 'undefined' && moment(document.Selected.dateAdded).format('L')}
                                         <br />
                                         <h4>Comments</h4>
                                         <hr />

@@ -2,6 +2,7 @@ import React from "react";
 import { displayDate, getData } from '../../../globalFunction';
 import { DropDown, Loading } from "../../../globalComponents";
 import EditModal from "./editModal"
+import DocumentViewerModal from "./documentViewerModal"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
@@ -38,13 +39,13 @@ export default class List extends React.Component {
     componentWillMount() {
         let { dispatch, document } = this.props
 
-        getData(`/api/globalORM/selectList?selectName=workstreamList&projectId=${project}`, {}, (c) => {
-            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamList' })
-        })
+        // getData(`/api/globalORM/selectList?selectName=workstreamList&projectId=${project}`, {}, (c) => {
+        //     dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamList' })
+        // })
 
-        getData(`/api/globalORM/selectList?selectName=taskList&projectId=${project}`, {}, (c) => {
-            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'taskList' })
-        })
+        // getData(`/api/globalORM/selectList?selectName=taskList&projectId=${project}`, {}, (c) => {
+        //     dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'taskList' })
+        // })
 
         if (_.isEmpty(document.Count)) {
             this.fetchData(1)
@@ -94,7 +95,8 @@ export default class List extends React.Component {
     viewDocument(data) {
         let { socket, dispatch } = this.props;
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })
+        // dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })
+        $(`#documentViewerModal`).modal('show')
     }
 
     handleIsCompleted(data, value) {
@@ -256,6 +258,7 @@ export default class List extends React.Component {
                 </div>
             </div>
             <EditModal />
+            <DocumentViewerModal />
         </div>
     }
 }

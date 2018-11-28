@@ -1,4 +1,5 @@
 const dbName = "notes";
+const async = require('async')
 var { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./")
 const sequence = require("sequence").Sequence;
 const models = require('../modelORM');
@@ -9,7 +10,8 @@ const {
     Conversation,
     Users,
     Starred,
-    Document
+    Document,
+    Reminder
 } = models;
 
 const NotesInclude = [
@@ -129,18 +131,17 @@ exports.get = {
         })
     },
     getConversationList: (req, cb) => {
-        let d = req.query
-        let conversation = global.initModel("conversation")
-        let filter = (typeof d.filter != "undefined") ? JSON.parse(d.filter) : {};
-        conversation.getData("conversation", filter, {}, (c) => {
-            if (c.status) {
-                cb({ status: true, data: c.data })
-                // socket.emit("FRONT_COMMENT_LIST",c.data)
-            } else {
-                cb({ status: false, error: c.error })
-                // if(c.error) { socket.emit("RETURN_ERROR_MESSAGE",{message:c.error.sqlMessage}) }
-            }
-        })
+        const queryString = req.query;
+        const whereObj = {
+            ...(typeof queryString.linkType !== 'undefined' && queryString.linkType !== '') ? { linkType: queryString.linkType } : {},
+            ...(typeof queryString.linkId !== 'undefined' && queryString.linkId !== '') ? { linkId: queryString.linkId } : {}
+        }
+
+        Conversation
+            .findAll({ where: whereObj })
+            .then((res) => {
+                cb({ status: true, data: res })
+            })
     }
 }
 
@@ -151,8 +152,8 @@ exports.post = {
                 Notes.findAll({
                     where: { id: res.data[0].id },
                     include: NotesInclude
-                }).then((result)=>{
-                    cb({ status:true, data:result })
+                }).then((result) => {
+                    cb({ status: true, data: result })
                 })
             } else {
                 cb({ status: false, error: res.error })
@@ -160,48 +161,44 @@ exports.post = {
         })
     },
     comment: (req, cb) => {
-        let conversation = global.initModel("conversation")
         let d = req.body;
         sequence.create().then((nextThen) => {
             if (typeof d.data.id != "undefined" && d.data.id != "") {
                 cb({ status: false, message: "Data already exist." })
             } else {
-                conversation.postData("conversation", d.data, (c) => {
-                    Conversation.findAll({
-                        where: { id: c.id },
-                        include: [
-                            {
-                                model: Users,
-                                as: 'users',
-                            }
-                        ]
-                    }).then((e) => {
-                        nextThen(e)
+                Conversation
+                    .create(d.data)
+                    .then((c) => {
+                        Conversation.findAll({
+                            where: { id: c.id },
+                            include: [
+                                {
+                                    model: Users,
+                                    as: 'users',
+                                }
+                            ]
+                        }).then((e) => {
+                            nextThen(e)
+                        })
                     })
-                })
             }
         }).then((nextThen, result) => {
             if (JSON.parse(d.reminderList).length) {
-                let filter = (typeof d.filter != "undefined") ? d.filter : {};
-                let reminder = global.initModel("reminder");
                 let tempResData = []
                 tempResData.push(new Promise((resolve, reject) => {
                     JSON.parse(d.reminderList).map(r => {
                         let data = { ...d.reminder, usersId: r.userId }
-                        reminder.postData("reminder", data, (res) => {
-                            if (res.status) {
-                                filter.usersId = r.userId
-                                reminder.getReminderList(filter, (e) => {
-                                    if (e.data.length > 0) {
-                                        resolve(e.data)
-                                    } else {
-                                        reject()
-                                    }
-                                })
-                            } else {
-                                reject()
-                            }
-                        })
+                        Reminder
+                            .create(data)
+                            .then((res) => {
+                                Reminder
+                                    .findAll({
+                                        where: { usersId: r.userId, seen: 0 }
+                                    })
+                                    .then((findRes) => {
+                                        resolve(findRes)
+                                    })
+                            })
                     })
                 }))
 
@@ -219,17 +216,17 @@ exports.post = {
 }
 
 exports.put = {
-    index : (req,cb) => {
-        defaultPut(dbName,req,(res)=>{
-            if(res.success) {
+    index: (req, cb) => {
+        defaultPut(dbName, req, (res) => {
+            if (res.success) {
                 Notes.findAll({
                     where: { id: req.params.id },
                     include: NotesInclude
-                }).then((result)=>{
-                    cb({ status:true, data:result })
+                }).then((result) => {
+                    cb({ status: true, data: result })
                 })
             } else {
-                cb({ status:false, error:res.error })
+                cb({ status: false, error: res.error })
             }
         })
     },
