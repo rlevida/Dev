@@ -113,7 +113,6 @@ export default class FormComponent extends React.Component {
                             id: task.Selected.id,
                             status: "Completed"
                         }, (c) => {
-                            console.log(c)
                             if (c.status == 200) {
                                 dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
                                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task[0] });
@@ -246,7 +245,11 @@ export default class FormComponent extends React.Component {
         let { checklist, dispatch } = this.props
         let Selected = Object.assign({}, checklist.Selected)
         Selected[name] = value;
-        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected });
+        if (name === 'isDocument') {
+            dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...Selected, isMandatory: value } })
+        } else {
+            dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: Selected });
+        }
     }
 
     setDropDownMultiple(name, values) {
@@ -632,9 +635,10 @@ export default class FormComponent extends React.Component {
                                                 <input
                                                     id="mandatory-checkbox"
                                                     type="checkbox"
-                                                    checked={checklist.Selected.isMandatory ? true : false}
+                                                    checked={(checklist.Selected.isMandatory || checklist.Selected.isDocument) ? true : false}
                                                     onChange={() => { }}
                                                     onClick={(f) => { this.handleCheckbox("isMandatory", (checklist.Selected.isMandatory) ? 0 : 1) }}
+                                                    disabled={checklist.Selected.isDocument ? true : false}
                                                 />
                                                 <label for="mandatory-checkbox">Mandatory Item</label>
                                             </li>
