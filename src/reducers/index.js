@@ -56,5 +56,6 @@ export default combineReducers({
     checklist,
     activityLog,
     taskDependency,
-    activityLogDocument
+    activityLogDocument,
+    tasktimeLog
 })
