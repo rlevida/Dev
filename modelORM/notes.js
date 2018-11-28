@@ -20,10 +20,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING(20),
       allowNull: true
     },
-    isStarred: {
-      type: DataTypes.INTEGER(4),
-      allowNull: true
-    },
     createdBy: {
       type: DataTypes.BIGINT,
       allowNull: true

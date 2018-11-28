@@ -92,7 +92,7 @@ exports.get = {
     index: (req, cb) => {
         const associationArray = _.cloneDeep(associationStack);
         const queryString = req.query;
-        const limit = 1;
+        const limit = 10;
         const dueDate = (typeof queryString.dueDate != "undefined") ? JSON.parse(queryString.dueDate) : "";
         const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
         const whereObj = {
@@ -192,8 +192,7 @@ exports.get = {
                 try {
                     Tasks.findAll({
                         where: whereObj,
-                        ...options,
-                        logging:true
+                        ...options
                     }).map((mapObject) => {
                         const responseData = mapObject.toJSON();
                         const assignedTaskMembers = _.filter(responseData.task_members, (member) => { return member.memberType == "assignedTo" });

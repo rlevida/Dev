@@ -25,6 +25,7 @@ export default class List extends React.Component {
         this.renderStatus = this.renderStatus.bind(this);
         this.fetchData = this.fetchData.bind(this);
         this.eventStyleGetter = this.eventStyleGetter.bind(this)
+        this.handleNavigate = this.handleNavigate.bind(this)
     }
 
     componentDidMount() {
@@ -37,7 +38,6 @@ export default class List extends React.Component {
 
     fetchData() {
         const { loggedUser, dispatch, task } = this.props;
-        const { data } = loggedUser;
         const { taskStatus, dueDate, taskAssigned } = task.Filter;
         let requestUrl = `/api/task?projectId=${project}`;
 
@@ -46,21 +46,22 @@ export default class List extends React.Component {
         }
 
         if (dueDate != "") {
-            requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: "2018-12-10" })}`
+            requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`
         }
 
-        if (taskAssigned != "") {
-            requestUrl += `&userId=${taskAssigned}`
+        if (taskAssigned != "" && taskAssigned.length > 0) {
+            taskAssigned.map((assignedObj) => {
+                requestUrl += `&userId=${assignedObj.value}`
+            });
         } else if (loggedUser.data.user_role[0].roleId >= 3) {
             requestUrl += `&userId=${loggedUser.data.id}`
         }
 
-        // getData(requestUrl, {}, (c) => {
-        //     console.log(c)
-        //     dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
-         dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-        //     showToast("success", "Task successfully retrieved.");
-        // });
+        getData(requestUrl, {}, (c) => {
+            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            showToast("success", "Task successfully retrieved.");
+        });
     }
 
     renderStatus(data) {
@@ -102,10 +103,17 @@ export default class List extends React.Component {
         };
     }
 
+    handleNavigate(e) {
+        const { dispatch } = this.props;
+        const selectedMonth = moment(e).startOf('month');
+        const fromDate = moment(selectedMonth).subtract(1, 'week').format("YYYY-MM-DD");
+        const toDate = moment(selectedMonth).add(1, 'week').endOf('month').format("YYYY-MM-DD");
+        dispatch({ type: "SET_TASK_FILTER", filter: { selected_month: [fromDate, toDate] } });
+    }
+
     render() {
         const { task, dispatch } = this.props;
         const taskList = task.List;
-        console.log(taskList)
         return (
             <div class="pd0">
                 <div class="row mb10 mt10">
@@ -134,11 +142,7 @@ export default class List extends React.Component {
                         onSelectEvent={event => { location.href = `/project/${event.projectId}/workstream/${event.workstreamId}?task=${event.id}` }}
                         onSelectSlot={(slotInfo) => { }}
                         eventPropGetter={(this.eventStyleGetter)}
-                        onNavigate={(e) => { dispatch({ type: "SET_TASK_FILTER", filter: { 
-                            dueDate: [
-                                moment(e).format("YYYY-MM-DD")
-                            ] 
-                    } }); }}
+                        onNavigate={this.handleNavigate}
                     />
                 }
                 {

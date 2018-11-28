@@ -47,8 +47,10 @@ export default class List extends React.Component {
       requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`
     }
 
-    if (taskAssigned != "") {
-      requestUrl += `&userId=${taskAssigned}`
+    if (taskAssigned != "" && taskAssigned.length > 0) {
+      taskAssigned.map((assignedObj) => {
+        requestUrl += `&userId=${assignedObj.value}`
+      });
     } else if (loggedUser.data.user_role[0].roleId >= 3) {
       requestUrl += `&userId=${loggedUser.data.id}`
     }

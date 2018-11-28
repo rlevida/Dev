@@ -7,7 +7,8 @@ export default function reducer(state = {
         taskStatus: "",
         dueDate: "",
         taskAssigned: "",
-        task: ""
+        task: "",
+        selected_month:""
     },
     FormActive: "List",
     FormAction: "",
