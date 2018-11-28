@@ -15,6 +15,7 @@ const {
     DocumentLink,
     Members,
     Share,
+    Starred,
     Tasks,
     Tag,
     Users,
@@ -68,6 +69,19 @@ const associationFindAllStack = [
             }]
         }],
     },
+    {
+        model: Starred,
+        as: 'document_starred',
+        where: { linkType: 'document', isActive: 1 },
+        required: false,
+        include: [
+            {
+                model: Users,
+                as: 'user',
+                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+            }
+        ]
+    }
 ]
 
 
@@ -169,6 +183,14 @@ exports.get = {
             _.find(associationFindAllStack, { as: 'share' }).required = false;
         }
 
+        if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
+            _.find(associationFindAllStack, { as: 'document_starred' }).where = {
+                linkType: 'document',
+                isActive: 1,
+                usersId: queryString.starredUser
+            };
+        }
+
         async.parallel({
             count: function (parallelCallback) {
                 DocumentLink
@@ -183,17 +205,6 @@ exports.get = {
                                 include: associationFindAllStack,
                                 required: true
                             },
-                            // {
-                            //     model: Members,
-                            //     as: 'document_members',
-                            //     where: { usersType: 'users' },
-                            //     include: [{
-                            //         model: Users,
-                            //         as: 'user',
-                            //         where: documentMemberWhereObject,
-                            //         // required: (typeof queryString.members !== 'undefined') ? true : false
-                            //     }]
-                            // }
                         ],
                     })
                     .then((res) => {
@@ -217,17 +228,7 @@ exports.get = {
                                     where: documentWhereObj,
                                     include: associationFindAllStack,
                                     required: true
-                                },
-                                // {
-                                //     model: Members,
-                                //     as: 'document_members',
-                                //     include: [{
-                                //         model: Users,
-                                //         as: 'user',
-                                //         where: documentMemberWhereObject,
-                                //         // required: (typeof queryString.members !== 'undefined') ? true : false
-                                //     }]
-                                // }
+                                }
                             ],
                         })
                         .map((res) => {
@@ -237,6 +238,7 @@ exports.get = {
                                     .concat(res.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })),
                                 members: res.document.share.map((e) => { return e.user }),
                                 share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (res.document.document_starred).length > 0) ? res.document.document_starred[0].isActive : 0
                             }
                             return _.omit(resToReturn, 'tagDocumentWorkstream', 'tagDocumentTask')
                         })
@@ -499,19 +501,19 @@ exports.post = {
                                 }
                             },
                             activityLogsDocument: (parallelCallback) => {
-                                const logData = {
-                                    projectId: projectId,
-                                    linkType: `document`,
-                                    linkId: res.id,
-                                    actionType: (typeof isDuplicate !== 'undefined' && isDuplicate) ? 'duplicated' : 'created',
-                                    old: '',
-                                    new: res.origin,
-                                    title: (typeof isDuplicate !== 'undefined' && isDuplicate) ? (e.type === 'document') ? "Document duplicated" : "Folder duplicated"
-                                        : (e.type === 'document') ? 'Document uploaded' : "Folder created",
-                                    usersId: e.uploadedBy
-                                }
-
                                 try {
+                                    const logData = {
+                                        projectId: projectId,
+                                        linkType: `document`,
+                                        linkId: res.id,
+                                        actionType: (typeof isDuplicate !== 'undefined' && isDuplicate) ? 'duplicated' : 'created',
+                                        old: '',
+                                        new: res.origin,
+                                        title: (typeof isDuplicate !== 'undefined' && isDuplicate) ? (e.type === 'document') ? "Document duplicated" : "Folder duplicated"
+                                            : (e.type === 'document') ? 'Document uploaded' : "Folder created",
+                                        usersId: e.uploadedBy
+                                    }
+
                                     ActivityLogsDocument
                                         .create(logData)
                                         .then((c) => {
@@ -528,6 +530,7 @@ exports.post = {
                                                 })
                                         })
                                 } catch (err) {
+                                    console.log(err)
                                     parallelCallback(err)
                                 }
                             }

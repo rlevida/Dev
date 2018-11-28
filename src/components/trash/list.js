@@ -37,7 +37,7 @@ export default class List extends React.Component {
         const { dispatch, loggedUser, document } = this.props;
         getData(`/api/document?isDeleted=1&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIST", List: document.Trash.concat(c.data.result), Count: { Count: c.data.count }, DocumentType: 'Trash', CountType: 'TrashCount' })
+                dispatch({ type: "SET_DOCUMENT_LIST", list: document.Trash.concat(c.data.result), Count: { Count: c.data.count }, DocumentType: 'Trash', CountType: 'TrashCount' })
                 dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'TrashDocumentLoading' })
                 showToast('success', 'Documents successfully retrieved.')
             } else {
@@ -92,7 +92,7 @@ export default class List extends React.Component {
                 ...this.state,
                 order: order == 'asc' ? 'desc' : 'asc'
             })
-            dispatch({ type: 'SET_DOCUMENT_LIST', List: sortedDocument, DocumentType: 'Trash', Count: document.TrashCount, CountType: 'TrashCount' })
+            dispatch({ type: 'SET_DOCUMENT_LIST', list: sortedDocument, DocumentType: 'Trash', Count: document.TrashCount, CountType: 'TrashCount' })
         }
     }
 

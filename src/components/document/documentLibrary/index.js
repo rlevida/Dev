@@ -45,6 +45,7 @@ export default class DocumentLibrary extends React.Component {
             selectedFolderName: []
         }
         this.fetchData = this.fetchData.bind(this);
+        this.starredDocument = this.starredDocument.bind(this);
     }
 
     componentDidMount() {
@@ -171,7 +172,7 @@ export default class DocumentLibrary extends React.Component {
 
     fetchData(page) {
         const { dispatch, document, loggedUser, folder } = this.props;
-        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=library&folderId=${folder.SelectedLibraryFolder.id}`;
+        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=library&folderId=${folder.SelectedLibraryFolder.id}&starredUser=${loggedUser.data.id}`;
         const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo } = document.Filter;
         if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
             requestUrl += `&isCompleted=${isCompleted}`
@@ -204,7 +205,7 @@ export default class DocumentLibrary extends React.Component {
         }
         getData(requestUrl, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIST", List: document.Library.concat(c.data.result), DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                dispatch({ type: "SET_DOCUMENT_LIST", list: document.Library.concat(c.data.result), DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
 
                 showToast('success', 'Documents successfully retrieved.');
@@ -217,9 +218,9 @@ export default class DocumentLibrary extends React.Component {
     getFolderDocuments(data) {
         const { dispatch, loggedUser, folder } = this.props;
         let folderList = folder.SelectedLibraryFolderName
-        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
+        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: 'SET_DOCUMENT_LIST', List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                dispatch({ type: 'SET_DOCUMENT_LIST', list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedLibraryFolder' })
 
@@ -273,22 +274,6 @@ export default class DocumentLibrary extends React.Component {
         })
     }
 
-    libraryDocumentFilter(e) {
-        let { dispatch, loggedUser } = this.props;
-        let isCompleted = 0
-        if (e.value != 0) {
-            isCompleted = e.value == 1 ? 1 : 0;
-        }
-        dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "RETRIEVING" })
-        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&isCompleted=${isCompleted}`, {}, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIBRARY_LIST", list: c.data.result, count: { Count: c.data.count } })
-                dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
-                this.setState({ selectedFilter: e.value })
-            }
-        });
-    }
-
     sortDocument(type) {
         const { dispatch, document } = this.props;
         const { order } = this.state;
@@ -298,23 +283,33 @@ export default class DocumentLibrary extends React.Component {
                 ...this.state,
                 order: order == 'asc' ? 'desc' : 'asc'
             })
-            dispatch({ type: "SET_DOCUMENT_LIST", List: sortedDocument, DocumentType: 'Library', Count: document.LibraryCount, CountType: 'LibraryCount' })
+            dispatch({ type: "SET_DOCUMENT_LIST", list: sortedDocument, DocumentType: 'Library', Count: document.LibraryCount, CountType: 'LibraryCount' })
         }
     }
 
-    starDocument(data, isStarred) {
-        let { starred, loggedUser, dispatch } = this.props;
-        if (isStarred) {
-            let id = starred.List.filter(s => { return s.linkId == data.id })[0].id
-            deleteData(`/api/starred/${id}`, {}, (c) => {
-                dispatch({ type: "REMOVE_DELETED_STARRED_LIST", id: data.id })
-            })
-        } else {
-            let dataToSubmit = { usersId: loggedUser.data.id, linkType: "project", linkId: data.id }
-            postData(`/api/starred/`, dataToSubmit, (c) => {
-                dispatch({ type: "ADD_STARRED_LIST", list: c.data })
-            })
-        }
+    starredDocument({ id, isStarred, origin }) {
+        const { document, loggedUser, dispatch } = this.props;
+        const isStarredValue = (isStarred > 0) ? 0 : 1;
+
+        postData(`/api/starred?projectId=${project}&document=${origin}`, {
+            linkType: "document",
+            linkId: id,
+            usersId: loggedUser.data.id
+        }, (c) => {
+            if (c.status == 200) {
+                const updatedDocumentList = _.map([...document.Library], (documentObj, index) => {
+                    if (id == documentObj.id) {
+                        documentObj["isStarred"] = isStarredValue;
+                    }
+                    return documentObj;
+                });
+                dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList, DocumentType: 'Library' });
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.documentActivityLog })
+                showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
     }
 
     viewDocument(data) {
@@ -325,7 +320,7 @@ export default class DocumentLibrary extends React.Component {
         } else {
             getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: 'SET_DOCUMENT_LIST', List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                    dispatch({ type: 'SET_DOCUMENT_LIST', list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
                     dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedLibraryFolder' })
                     dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedLibraryFolderName.concat([data]), Type: 'SelectedLibraryFolderName' })
@@ -336,7 +331,7 @@ export default class DocumentLibrary extends React.Component {
     }
 
     render() {
-        let { document, starred, global, folder, dispatch, loggedUser } = this.props;
+        let { document, starred, folder, dispatch, loggedUser } = this.props;
         let tagCount = 0
         const currentPage = (typeof document.LibraryCount.Count.current_page != "undefined") ? document.LibraryCount.Count.current_page : 1;
         const lastPage = (typeof document.LibraryCount.Count.last_page != "undefined") ? document.LibraryCount.Count.last_page : 1;
@@ -394,11 +389,9 @@ export default class DocumentLibrary extends React.Component {
                                             />
                                         </td>
                                         <td>
-                                            {
-                                                starred.List.filter(s => { return s.linkId == data.id }).length > 0
-                                                    ? <span class="glyphicon glyphicon-star" onClick={() => this.starDocument(data, 1)} style={{ cursor: "pointer" }}></span>
-                                                    : <span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span>
-                                            }
+                                            <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
+                                                <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
+                                            </a>
                                         </td>
                                         <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td>
                                         <td class="library-document"><a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>{documentName}</a></td>

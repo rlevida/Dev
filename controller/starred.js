@@ -2,7 +2,7 @@ const _ = require("lodash");
 const dbName = "starred";
 const { defaultGet, defaultPut, defaultDelete } = require("./")
 const models = require('../modelORM');
-const { Starred, Users, Tasks, Notes } = models;
+const { ActivityLogsDocument, Starred, Users, Tasks, Notes } = models;
 
 exports.get = {
     index: (req, cb) => {
@@ -105,26 +105,63 @@ exports.get = {
 exports.post = {
     index: (req, cb) => {
         const body = req.body;
+        const queryString = req.query;
 
         Starred.findOne({
             where: body
         }).then((response) => {
-            const responseResult = (response != null) ? response.toJSON() : "";
+            async.parallel({
+                result: (parallelCallback) => {
+                    const responseResult = (response != null) ? response.toJSON() : "";
 
-            if (responseResult == "") {
-                Starred.create({ ...body, isActive: 1 }).then((response) => {
-                    cb({ status: true, data: _.omit(response.toJSON(), ["dateUpdated"]) })
-                });
-            } else {
-                Starred.update(
-                    { ...body, isActive: (responseResult.isActive != 1) ? 1 : 0 },
-                    { where: body }
-                ).then((response) => {
-                    return Starred.findOne({ where: body });
-                }).then((findRes) => {
-                    cb({ status: true, data: findRes.toJSON() })
-                });
-            }
+                    if (responseResult == "") {
+                        Starred.create({ ...body, isActive: 1 }).then((response) => {
+                            parallelCallback(null, _.omit(response.toJSON(), ["dateUpdated"]))
+                        });
+                    } else {
+                        Starred.update(
+                            { ...body, isActive: (responseResult.isActive != 1) ? 1 : 0 },
+                            { where: body }
+                        ).then((response) => {
+                            return Starred.findOne({ where: body });
+                        }).then((findRes) => {
+                            parallelCallback(null, findRes.toJSON())
+                        });
+                    }
+                },
+                documentActivityLog: (parallelCallback) => {
+                    if (body.linkType === 'document') {
+                        const dataToSubmit = {
+                            ...body,
+                            actionType: 'starred',
+                            projectId: queryString.projectId,
+                            old: queryString.document,
+                            new: '',
+                            title: `${response.isActive ? 'Unstarred document' : 'Starred document'}`
+                        }
+                        ActivityLogsDocument
+                            .create(dataToSubmit)
+                            .then((resDocument) => {
+                                ActivityLogsDocument
+                                    .findOne({
+                                        where: resDocument.id,
+                                        include: [{
+                                            model: Users,
+                                            as: 'user'
+                                        }]
+                                    })
+                                    .then((findRes) => {
+                                        parallelCallback(null, [findRes])
+                                    })
+                            })
+                    } else {
+                        parallelCallback(null, '')
+                    }
+
+                }
+            }, (err, { result, documentActivityLog }) => {
+                cb({ status: true, data: { result: result, documentActivityLog: documentActivityLog } })
+            })
         });
     }
 }

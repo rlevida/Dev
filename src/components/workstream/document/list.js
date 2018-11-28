@@ -54,7 +54,7 @@ export default class List extends React.Component {
     fetchData(page) {
         const { dispatch, loggedUser, document, workstream, task } = this.props;
         getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=workstream&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream.Selected.id}&tagType=document`, {}, (c) => {
-            dispatch({ type: "SET_DOCUMENT_LIST", List: document.List.concat(c.data.result), DocumentType: 'List', Count: c.data.count, CountType: 'Count' })
+            dispatch({ type: "SET_DOCUMENT_LIST", list: document.List.concat(c.data.result), DocumentType: 'List', Count: c.data.count, CountType: 'Count' })
             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'Loading' })
         });
     }
@@ -167,7 +167,7 @@ export default class List extends React.Component {
                 ...this.state,
                 order: order == 'asc' ? 'desc' : 'asc'
             })
-            dispatch({ type: "SET_DOCUMENT_LIST", List: sortedDocument, DocumentType: 'List', Count: document.Count, CountType: 'Count' })
+            dispatch({ type: "SET_DOCUMENT_LIST", list: sortedDocument, DocumentType: 'List', Count: document.Count, CountType: 'Count' })
         }
     }
 

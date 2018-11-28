@@ -73,7 +73,7 @@ export default class DocumentFilter extends React.Component {
 
                 getData(`${requestUrl}&status=new&folderId=${folder.SelectedNewFolder.id}`, {}, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                        dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                         dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
                         dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
                         showToast('success', 'Documents successfully retrieved.')
@@ -84,7 +84,7 @@ export default class DocumentFilter extends React.Component {
 
                 getData(`${requestUrl}&status=library&folderId=${folder.SelectedLibraryFolder.id}`, {}, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                        dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                         dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
                         dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
                         showToast('success', 'Documents successfully retrieved.')

@@ -36,6 +36,7 @@ export default class DocumentNew extends React.Component {
             selectedFolderName: []
         }
         this.fetchData = this.fetchData.bind(this);
+        this.starredDocument = this.starredDocument.bind(this);
     }
 
     componentDidMount() {
@@ -122,20 +123,6 @@ export default class DocumentNew extends React.Component {
         })
     }
 
-    deleteFolder(id) {
-        let { dispatch } = this.props;
-        if (confirm("Do you really want to delete this folder?")) {
-            deleteData(`/api/folder/${id}`, { projectId: project }, (c) => {
-                if (c.status == 200) {
-                    dispatch({ type: "REMOVE_DELETED_FOLDER_LIST", id: id })
-                    showToast("success", "Successfully Deleted.");
-                } else {
-                    showToast("danger", "Delete failed. Please try again.");
-                }
-            })
-        }
-    }
-
     downloadFolder(folder) {
         let { document } = this.props;
         let fileList = [];
@@ -158,7 +145,7 @@ export default class DocumentNew extends React.Component {
 
     fetchData(page) {
         const { dispatch, loggedUser, document, folder } = this.props;
-        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new&folderId=${folder.SelectedNewFolder.id}`;
+        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new&folderId=${folder.SelectedNewFolder.id}&starredUser=${loggedUser.data.id}`;
         const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo } = document.Filter;
         if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
             requestUrl += `&isCompleted=${isCompleted}`
@@ -192,7 +179,7 @@ export default class DocumentNew extends React.Component {
 
         getData(requestUrl, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIST", List: document.New.concat(c.data.result), DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                dispatch({ type: "SET_DOCUMENT_LIST", list: document.New.concat(c.data.result), DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                 dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
                 showToast('success', 'Documents successfully retrieved.')
@@ -205,9 +192,9 @@ export default class DocumentNew extends React.Component {
     getFolderDocuments(data) {
         const { dispatch, loggedUser, folder } = this.props;
         let folderList = folder.SelectedNewFolderName
-        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
+        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedNewFolder' })
 
@@ -287,22 +274,6 @@ export default class DocumentNew extends React.Component {
         })
     }
 
-    newDocumentFilter(e) {
-        let { dispatch, loggedUser } = this.props;
-        let isCompleted = 0
-        if (e.value != 0) {
-            isCompleted = e.value == 1 ? 1 : 0;
-        }
-        dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "RETRIEVING" })
-        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&isCompleted=${isCompleted}`, {}, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_NEW_LIST", list: c.data.result, count: { Count: c.data.count } })
-                dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
-                this.setState({ selectedFilter: e.value })
-            }
-        });
-    }
-
     sortDocument(type) {
         const { dispatch, document } = this.props;
         const { order } = this.state;
@@ -312,32 +283,33 @@ export default class DocumentNew extends React.Component {
                 ...this.state,
                 order: order == 'asc' ? 'desc' : 'asc'
             })
-            dispatch({ type: "SET_DOCUMENT_LIST", List: sortedDocument, DocumentType: 'New', Count: document.NewCount, CountType: 'NewCount' })
+            dispatch({ type: "SET_DOCUMENT_LIST", list: sortedDocument, DocumentType: 'New', Count: document.NewCount, CountType: 'NewCount' })
         }
     }
 
-    starDocument(data, isStarred) {
-        let { starred, loggedUser, dispatch } = this.props;
-        if (isStarred) {
-            let id = starred.List.filter(s => { return s.linkId == data.id })[0].id
-            deleteData(`/api/starred/${id}`, {}, (c) => {
-                dispatch({ type: "REMOVE_DELETED_STARRED_LIST", id: data.id })
-            })
-        } else {
-            let dataToSubmit = {
-                usersId: loggedUser.data.id,
-                linkType: "project",
-                linkId: data.id,
-                projectId: project,
-                actionType: 'starred',
-                title: 'Document starred',
-                oldDocument: data.origin,
-                newDocument: ''
+    starredDocument({ id, isStarred, origin }) {
+        const { document, loggedUser, dispatch } = this.props;
+        const isStarredValue = (isStarred > 0) ? 0 : 1;
+
+        postData(`/api/starred?projectId=${project}&document=${origin}`, {
+            linkType: "document",
+            linkId: id,
+            usersId: loggedUser.data.id
+        }, (c) => {
+            if (c.status == 200) {
+                const updatedDocumentList = _.map([...document.New], (documentObj, index) => {
+                    if (id == documentObj.id) {
+                        documentObj["isStarred"] = isStarredValue;
+                    }
+                    return documentObj;
+                });
+                dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList, DocumentType: 'New' });
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.documentActivityLog })
+                showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
+            } else {
+                showToast("error", "Something went wrong please try again later.");
             }
-            postData(`/api/starred/`, dataToSubmit, (c) => {
-                dispatch({ type: "ADD_STARRED_LIST", list: c.data })
-            })
-        }
+        });
     }
 
     viewDocument(data) {
@@ -349,7 +321,7 @@ export default class DocumentNew extends React.Component {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' })
             getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
                     dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedNewFolder' })
                     dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedNewFolderName.concat([data]), Type: 'SelectedNewFolderName' })
@@ -415,10 +387,9 @@ export default class DocumentNew extends React.Component {
                                             <input type="checkbox" style={{ width: 'auto' }} />
                                         </td>
                                         <td>
-                                            {starred.List.filter(s => { return s.linkId == data.id }).length > 0
-                                                ? <span class="glyphicon glyphicon-star" onClick={() => this.starDocument(data, 1)} style={{ cursor: "pointer" }}></span>
-                                                : <span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span>
-                                            }
+                                            <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
+                                                <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
+                                            </a>
                                         </td>
                                         <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td>
                                         <td class="new-document"> <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>{documentName}</a></td>

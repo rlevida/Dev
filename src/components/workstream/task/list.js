@@ -83,7 +83,7 @@ export default class List extends React.Component {
                     },
                     taskDocument: (parallelCallback) => {
                         getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=workstream&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream.Selected.id}&tagType=document&taskId=${taskId}`, {}, (c) => {
-                            dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'List', Count: { Count: c.data.count }, CountType: 'Count' })
+                            dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'List', Count: { Count: c.data.count }, CountType: 'Count' })
                             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'Loading' })
                             parallelCallback(null, "")
                         });
@@ -169,7 +169,7 @@ export default class List extends React.Component {
             },
             taskDocument: (parallelCallback) => {
                 getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=workstream&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream.Selected.id}&tagType=document&taskId=${data.id}`, {}, (c) => {
-                    dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'List', Count: { Count: c.data.count }, CountType: 'Count' })
+                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'List', Count: { Count: c.data.count }, CountType: 'Count' })
                     dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'Loading' })
                     parallelCallback(null, "")
                 });

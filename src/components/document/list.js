@@ -37,23 +37,12 @@ let delayTimer;
 export default class List extends React.Component {
     constructor(props) {
         super(props)
-        this.handleOnChange = this.handleOnChange.bind(this)
     }
 
     componentDidMount() {
         let { dispatch, loggedUser, document } = this.props
         if (typeof document.Selected.id == "undefined") {
             parallel({
-                starred: (parallelCallback) => {
-                    getData(`/api/starred/`, { params: { filter: { projectId: project } } }, (c) => {
-                        if (c.status == 200) {
-                            dispatch({ type: "SET_STARRED_LIST", list: c.data })
-                            parallelCallback(null, "")
-                        } else {
-                            parallelCallback(null, "")
-                        }
-                    });
-                },
                 shareList: (parallelCallback) => {
                     getData(`/api/globalORM/selectList?selectName=shareList&linkId=${project}&linkType=project`, {}, (c) => {
                         dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'shareList' })
@@ -79,32 +68,9 @@ export default class List extends React.Component {
                     })
                 }
             }, (error, result) => {
-                // dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
-                // dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
             })
         }
     }
-
-    handleOnChange(e) {
-        const { dispatch, loggedUser, document } = this.props;
-        dispatch({ type: 'SET_DOCUMENT_FILTER', filter: { ...document.filter, [e.target.name]: e.target.value } })
-        clearTimeout(delayTimer);
-        const filter = { ...document.Filter, [e.target.name]: e.target.value }
-        dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' })
-        delayTimer = setTimeout(function () {
-            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&search=${filter.search}`, {}, (c) => {
-                if (c.status == 200) {
-                    dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-                    dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
-                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-                    showToast('success', 'Documents successfully retrieved.')
-                } else {
-                    showToast('success', 'Something went wrong!')
-                }
-            });
-        }, 1000);
-    }
-
     render() {
         let { workstream, task, document, project } = this.props;
         let tagOptions = [];

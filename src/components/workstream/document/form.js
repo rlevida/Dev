@@ -71,33 +71,6 @@ export default class DocumentViewerComponent extends React.Component {
         }
     }
 
-    // printDocument(data){
-    //     let { dispatch } = this.props
-    //     getData(`/api/document/getPrinterList`,{},(c) => {
-    //         dispatch({ type : "SET_PRINTER_LIST" , List: c.data })
-    //         dispatch({ type : "SET_DOCUMENT_SELECTED" , Selected: data })
-    //         $(`#printerModal`).modal("show")
-    //     })
-    // }
-
-    printDocument(file) {
-        let { dispatch } = this.props;
-        let dataToSubmit = { fileName: file.name, fileOrigin: file.origin };
-        postData(`/api/document/printDocument`, dataToSubmit, (c) => {
-            document.getElementById("printDocument").src = `/temp/${c.data}`;
-            setTimeout(() => {
-                document.getElementById('printDocument').contentWindow.print();
-
-                let onFocus = true
-                window.onfocus = function () {
-                    if (onFocus) {
-                        removeTempFile(c.data, (c) => { onFocus = false })
-                    }
-                }
-            }, 2000)
-        })
-    }
-
     downloadDocument(document) {
         window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
     }

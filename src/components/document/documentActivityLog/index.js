@@ -78,7 +78,7 @@ export default class DocumentActivityLog extends React.Component {
                                 </div>
                             )
                         }
-                        if (data.actionType === 'deleted' || data.actionType === 'moved' || data.actionType === 'shared') {
+                        if (data.actionType === 'deleted' || data.actionType === 'moved' || data.actionType === 'shared' || data.actionType === 'starred') {
                             return (
                                 <div key={index} style={{ backgroundColor: '#fff', borderRadius: '5px' }}>
                                     <div class="m10 p10">

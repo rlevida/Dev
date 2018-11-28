@@ -32,7 +32,7 @@ export default function reducer(state = {
             return { ...state, Library: Library }
         }
         case "SET_DOCUMENT_LIST": {
-            return { ...state, [action.DocumentType]: action.List, [action.CountType]: action.Count }
+            return { ...state, [action.DocumentType]: action.list, ...(typeof action.CountType !== 'undefined') ? { [action.CountType]: action.Count } : {} }
         }
         case "SET_DOCUMENT_NEW_LIST": {
             return { ...state, New: action.list, NewCount: (typeof action.count != "undefined") ? action.count : state.NewCount }
