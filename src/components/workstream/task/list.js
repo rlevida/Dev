@@ -69,6 +69,24 @@ export default class List extends React.Component {
                             parallelCallback(null, "")
                         })
                     },
+                    timelogs: (parallelCallback) => {
+                        getData(`/api/taskTimeLogs?taskId=${data.id}&page=1&includes=user`, {}, (c) => {
+                            if (c.status == 200) {
+                                const { data } = c;
+                                const totalCount = _(data.total_hours)
+                                    .map((totalObj) => {
+                                        if (totalObj.period == "hours") {
+                                            totalObj.value = totalObj.value * 60
+                                        }
+                                        return totalObj;
+                                    })
+                                    .value();
+                                    dispatch({ type: "SET_TASKTIMELOG_LIST", list: data.result, count: data.count });
+                                    dispatch({ type: "SET_TOTAL_HOURS", list: data.result, hours: _.round(_.divide(_.sumBy(totalCount, 'value'), 60), 2) });
+                            }
+                            parallelCallback(null, "")
+                        })
+                    },
                     projectMemberListGlobal: (parallelCallback) => {
                         getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project}&linkType=project`, {}, (c) => {
                             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
@@ -155,6 +173,24 @@ export default class List extends React.Component {
                     if (c.status == 200) {
                         const { data } = c;
                         dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+                    }
+                    parallelCallback(null, "")
+                })
+            },
+            timelogs: (parallelCallback) => {
+                getData(`/api/taskTimeLogs?taskId=${data.id}&page=1&includes=user`, {}, (c) => {
+                    if (c.status == 200) {
+                        const { data } = c;
+                        const totalCount = _(data.total_hours)
+                            .map((totalObj) => {
+                                if (totalObj.period == "hours") {
+                                    totalObj.value = totalObj.value * 60
+                                }
+                                return totalObj;
+                            })
+                            .value();
+                            dispatch({ type: "SET_TASKTIMELOG_LIST", list: data.result, count: data.count });
+                            dispatch({ type: "SET_TOTAL_HOURS", list: data.result, hours: _.round(_.divide(_.sumBy(totalCount, 'value'), 60), 2) });
                     }
                     parallelCallback(null, "")
                 })

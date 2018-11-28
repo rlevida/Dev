@@ -24,7 +24,6 @@ export default class TaskTimelog extends React.Component {
     componentDidMount() {
         const { tasktimeLog } = { ...this.props };
         const { Count } = tasktimeLog;
-
         if (_.isEmpty(Count)) {
             this.fetchData(1);
         } else if (Count.current_page != Count.last_page) {
@@ -93,7 +92,6 @@ export default class TaskTimelog extends React.Component {
             current_page: currentPage = 1,
             last_page: lastPage = 1
         } = tasktimeLog.Count;
-
         return (
             <div>
                 <p style={{ marginLeft: 15 }}>Total Logged Time: {tasktimeLog.TotalHours} Hours</p>
