@@ -77,39 +77,7 @@ const socketIo = io(((global.environment == "production") ? "https:" : "http:") 
 exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
-        const association = [{
-            model: Tag,
-            where: {
-                linkType: 'task', tagType: 'notes'
-            },
-            as: 'tag',
-            required: false,
-            include: [
-                {
-                    model: Tasks,
-                    as: 'tagTask',
-                }
-            ]
-        },
-        {
-            model: Conversation,
-            where: {
-                linkType: 'notes'
-            },
-            as: 'comments',
-            required: false,
-            include: [
-                {
-                    model: Users,
-                    as: 'users',
-                }
-            ]
-        },
-        {
-            model: Users,
-            as: 'creator',
-            required: false,
-        }];
+        const association = NotesInclude;
 
         if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
             association.push({
