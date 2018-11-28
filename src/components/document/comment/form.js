@@ -2,9 +2,10 @@ import React from "react";
 import { connect } from "react-redux";
 import { MentionsInput, Mention } from 'react-mentions';
 import _ from "lodash";
+import { postData, getData, showToast } from '../../../globalFunction'
 import defaultStyle from "../../global/react-mention-style";
 
-@connect(({ document, conversation, socket, users, loggedUser , global }) => {
+@connect(({ document, conversation, socket, users, loggedUser, global }) => {
     return {
         document,
         conversation,
@@ -32,18 +33,18 @@ export default class Form extends React.Component {
     }
 
     fetchUsers(query, callback) {
-        const { global , loggedUser } = { ...this.props };
-        
+        const { global, loggedUser } = { ...this.props };
+
         return global.SelectList.projectMemberList.map((o) => {
-            let userName = o.firstName + " " + o.lastName ;
-            if(userName.includes(query) && o.id != loggedUser.data.id){
+            let userName = o.firstName + " " + o.lastName;
+            if (userName.includes(query) && o.id != loggedUser.data.id) {
                 return { display: o.firstName + " " + o.lastName, id: o.id }
             }
         }).filter((o) => { return o != undefined })
     }
 
     handleSubmit() {
-        const { socket, conversation, document, loggedUser } = this.props;
+        const { dispatch, conversation, document, loggedUser } = this.props;
         const commentText = conversation.Selected.comment;
         const commentSplit = (commentText).split(/{([^}]+)}/g).filter(Boolean);
         const commentIds = _(commentSplit).filter((o) => {
@@ -57,16 +58,20 @@ export default class Form extends React.Component {
             filter: { seen: 0 },
             data: { comment: commentText, linkType: "document", linkId: document.Selected.id, usersId: loggedUser.data.id },
             reminder: {
-                linkType : "document" , 
-                linkId : document.Selected.id , 
+                linkType: "document",
+                linkId: document.Selected.id,
                 type: "Tag in Comment",
-                detail : "tagged in comment" ,
-                projectId : project,
-                createdBy : loggedUser.data.id
+                detail: "tagged in comment",
+                projectId: project,
+                createdBy: loggedUser.data.id
             },
-            reminderList: JSON.stringify(commentIds)
+            reminderList: JSON.stringify(_.uniqBy(commentIds, `userId`))
         };
-        socket.emit("SAVE_OR_UPDATE_CONVERSATION", dataToBeSubmited);
+        postData(`/api/conversation/comment`, dataToBeSubmited, (c) => {
+            dispatch({ type: 'ADD_COMMENT_LIST', list: c.data })
+            dispatch({ type: 'SET_COMMENT_SELECTED', Selected: {} })
+            showToast('success', 'Comment successfully added.')
+        })
     }
 
     render() {
