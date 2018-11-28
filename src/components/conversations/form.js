@@ -3,10 +3,11 @@ import _ from 'lodash';
 import { connect } from "react-redux";
 import { MentionsInput, Mention } from 'react-mentions';
 import defaultStyle from "../global/react-mention-style";
-import { putData, postData, showToast } from "../../globalFunction";
+import { putData, postData, getData, showToast } from "../../globalFunction";
 import CommentListItem from "./comment"
 import { DropDown } from "../../globalComponents";
 import UploadModal from "./uploadModal";
+import DocumentViewerModal from "./documenViewerModal"
 
 @connect((store) => {
     return {
@@ -18,7 +19,7 @@ import UploadModal from "./uploadModal";
 })
 
 export default class FormComponent extends React.Component {
-    constructor(props){
+    constructor(props) {
         super(props)
         this.state = {
             commentText: "",
@@ -35,9 +36,10 @@ export default class FormComponent extends React.Component {
         this.setDropDownMultiple = this.setDropDownMultiple.bind(this)
         this.noteHasChange = this.noteHasChange.bind(this)
         this.updateNotesData = this.updateNotesData.bind(this)
+        this.viewDocument = this.viewDocument.bind(this)
     }
 
-    updateNotesData(){
+    updateNotesData() {
         const { notes, dispatch } = { ...this.props }
         const { notesState } = { ...this.state }
         let updateData = notesState;
@@ -51,7 +53,7 @@ export default class FormComponent extends React.Component {
                 this.props.updateSelectedNotes(data);
                 dispatch({ type: "SET_NOTES_LIST", list: list });
                 $("#NewNoteModal").modal("hide")
-                
+
                 showToast("success", "Notes successfully added.");
             } else {
                 showToast("error", "Something went wrong please try again later.");
@@ -59,29 +61,29 @@ export default class FormComponent extends React.Component {
         })
     }
 
-    noteHasChange(){
+    noteHasChange() {
         const { notes } = { ...this.props }
         const { notesState } = { ...this.state }
         let hasChange = false;
         let specificClient = notes.Selected.specificClient || "[]"
         let specificClientState = notesState.specificClient || "[]"
-        if(typeof specificClient !== "string"){
+        if (typeof specificClient !== "string") {
             specificClient = JSON.stringify(specificClient)
         }
-        if(typeof specificClientState !== "string"){
+        if (typeof specificClientState !== "string") {
             specificClientState = JSON.stringify(specificClientState)
         }
-        if( notes.Selected.accessType !== notesState.accessType || 
+        if (notes.Selected.accessType !== notesState.accessType ||
             specificClient !== specificClientState ||
             notes.Selected.note !== notesState.note
-        ){
+        ) {
             hasChange = true;
         }
 
         return hasChange;
     }
 
-    componentDidMount(){
+    componentDidMount() {
         const { notes } = { ...this.props }
         this.setState({
             selectedId: notes.Selected.id,
@@ -93,12 +95,12 @@ export default class FormComponent extends React.Component {
         })
     }
 
-    shouldComponentUpdate(props, state){
+    shouldComponentUpdate(props, state) {
         const { notes } = { ...props }
         const { notesState, selectedId } = { ...state }
         let hasChange = false;
         const specificClient = notes.Selected.specificClient || "[]"
-        if( notes.Selected.accessType !== notesState.accessType || 
+        if (notes.Selected.accessType !== notesState.accessType ||
             specificClient !== notesState.specificClient ||
             notes.Selected.note !== notesState.note ||
             notes.Selected.id !== selectedId ||
@@ -107,13 +109,13 @@ export default class FormComponent extends React.Component {
             notesState.specificClient !== this.state.notesState.specificClient ||
             this.state.updatePropsTemp !== JSON.stringify(notes) ||
             notesState.note !== this.state.notesState.note
-        ){
+        ) {
             hasChange = true;
         }
         return hasChange;
     }
 
-    componentWillReceiveProps(props){
+    componentWillReceiveProps(props) {
         const { notes } = { ...props }
         this.setState({
             selectedId: notes.Selected.id,
@@ -138,20 +140,20 @@ export default class FormComponent extends React.Component {
 
         let memberList = global.SelectList.projectMemberList;
 
-        if( notes.Selected.accessType === "INTERNAL_ONLY" ){
+        if (notes.Selected.accessType === "INTERNAL_ONLY") {
             memberList = memberList.filter(e => e.userType === 'Internal')
         }
-        if( notes.Selected.accessType === "SPECIFIC_CLIENT" ){
+        if (notes.Selected.accessType === "SPECIFIC_CLIENT") {
             memberList = [];
             global.SelectList.projectMemberList.map((e) => {
-                if(e.userType === 'Internal'){
+                if (e.userType === 'Internal') {
                     memberList.push(e);
                 } else {
                     const specificClient = (typeof notes.Selected.specificClient === 'string')
-                            ? JSON.parse(notes.Selected.specificClient)
-                            : notes.Selected.specificClient;
-                    specificClient.map((f)=>{
-                        if( f.value === e.id ) {
+                        ? JSON.parse(notes.Selected.specificClient)
+                        : notes.Selected.specificClient;
+                    specificClient.map((f) => {
+                        if (f.value === e.id) {
                             memberList.push(e);
                         }
                     })
@@ -160,10 +162,10 @@ export default class FormComponent extends React.Component {
         }
 
         return memberList.map((o) => {
-            let userName = o.firstName + " " + o.lastName ;
-                if(userName.includes(query) && o.id != loggedUser.data.id){
-                    return { display: o.firstName + " " + o.lastName, id: o.id }
-                }
+            let userName = o.firstName + " " + o.lastName;
+            if (userName.includes(query) && o.id != loggedUser.data.id) {
+                return { display: o.firstName + " " + o.lastName, id: o.id }
+            }
         }).filter((o) => { return o != undefined })
     }
 
@@ -178,7 +180,7 @@ export default class FormComponent extends React.Component {
         }).map((o) => {
             return { userId: _.toNumber(o.match(/\((.*)\)/).pop()) };
         }).value();
-        this.setState({commentText: ""})
+        this.setState({ commentText: "" })
         let dataToBeSubmited = {
             filter: { seen: 0 },
             data: { comment: commentText, linkType: "notes", linkId: notes.Selected.id, usersId: loggedUser.data.id },
@@ -188,22 +190,22 @@ export default class FormComponent extends React.Component {
                 type: "Tag in Comment",
                 detail: "tagged in comment",
                 projectId: notes.Selected.projectId,
-                createdBy :loggedUser.data.id
+                createdBy: loggedUser.data.id
             },
             reminderList: JSON.stringify(commentIds)
         };
-        
+
         postData(`/api/conversation/comment`, dataToBeSubmited, c => {
             try {
-              const currentData = notes.Selected;
-              currentData.comments.push(c.data[0]);
-              const listIndex = notes.List.indexOf(notes.Selected);
-              const noteList = notes.List;
-              noteList.splice(listIndex, 1, currentData);
-              this.props.updateSelectedNotes(currentData);
-              dispatch({ type: "SET_NOTES_LIST", list: noteList });
-              showToast("success", "Comment successfully added.");
-            } catch(err) {
+                const currentData = notes.Selected;
+                currentData.comments.push(c.data[0]);
+                const listIndex = notes.List.indexOf(notes.Selected);
+                const noteList = notes.List;
+                noteList.splice(listIndex, 1, currentData);
+                this.props.updateSelectedNotes(currentData);
+                dispatch({ type: "SET_NOTES_LIST", list: noteList });
+                showToast("success", "Comment successfully added.");
+            } catch (err) {
                 showToast("error", "Something went wrong please try again later.");
             }
         });
@@ -234,16 +236,25 @@ export default class FormComponent extends React.Component {
         return statusColor;
     }
 
-    renderPrivacy(privacy){
+    renderPrivacy(privacy) {
         let icon = "fa-users"; // public by default
-        if ( privacy === "email" ) {
+        if (privacy === "email") {
             icon = "fa-envelope";
-        } else if ( privacy === "linked" ) {
+        } else if (privacy === "linked") {
             icon = "fa-link";
-        } else if ( privacy === "private" ) {
+        } else if (privacy === "private") {
             icon = "fa-lock";
         }
         return icon
+    }
+
+    viewDocument(data) {
+        let { dispatch } = this.props;
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+        getData(`/api/conversation/getConversationList?linkType=document&linkId=${data.id}`, {}, (c) => {
+            dispatch({ type: 'SET_COMMENT_LIST', list: c.data })
+            $(`#documentViewerModal`).modal('show')
+        })
     }
 
     render() {
@@ -253,45 +264,45 @@ export default class FormComponent extends React.Component {
         const data = notes.Selected;
 
         const clientUser = [];
-        global.SelectList.projectMemberList.map((e)=>{
-            if(e.userType === 'External' ){
-                clientUser.push({ id: e.id, name: `${e.firstName} ${e.lastName}`  })
+        global.SelectList.projectMemberList.map((e) => {
+            if (e.userType === 'External') {
+                clientUser.push({ id: e.id, name: `${e.firstName} ${e.lastName}` })
             }
         })
         return (
             <div style={{ /*background:"#f5f5f5",*/ padding: "10px", }}>
-                <div style={{marginBottom: "30px"}}>
+                <div style={{ marginBottom: "30px" }}>
                     <h3>
                         {data.note}
-                        {(data.isClosed)?<span class="label" style={{margin: "5px", background: "red", color: "white" }}>CLOSED</span>:""}
+                        {(data.isClosed) ? <span class="label" style={{ margin: "5px", background: "red", color: "white" }}>CLOSED</span> : ""}
                     </h3>
-                    { loggedUser.data.id === data.creator.id &&
-                        <div class="dropdown" style={{float:"right"}}>
-                            <button style={{padding:"3px",border:"none", paddingRight: "0px"}} class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                    {loggedUser.data.id === data.creator.id &&
+                        <div class="dropdown" style={{ float: "right" }}>
+                            <button style={{ padding: "3px", border: "none", paddingRight: "0px" }} class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                             <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >
-                            { (data.isClosed === 1) &&
-                                <li><a href="javascript:void(0)" onClick={() => setIsClosed(0,data)}>Open</a></li>
-                            }
-                            { (data.isClosed === 0) &&
-                                <li><a href="javascript:void(0)" onClick={() => setIsClosed(1,data)}>Close</a></li>
-                            }
+                                {(data.isClosed === 1) &&
+                                    <li><a href="javascript:void(0)" onClick={() => setIsClosed(0, data)}>Open</a></li>
+                                }
+                                {(data.isClosed === 0) &&
+                                    <li><a href="javascript:void(0)" onClick={() => setIsClosed(1, data)}>Close</a></li>
+                                }
                             </ul>
                         </div>
                     }
-                    <span style={{float:"right",padding:"5px",}} className={`fa ${this.renderPrivacy(data.privacyType)}`} ></span>
-                    { this.noteHasChange() &&
-                        <a style={{float: 'right'}} 
-                            class="btn btn-primary" 
-                            href="javascript:void(0)" 
-                            onClick={(e)=>{
+                    <span style={{ float: "right", padding: "5px", }} className={`fa ${this.renderPrivacy(data.privacyType)}`} ></span>
+                    {this.noteHasChange() &&
+                        <a style={{ float: 'right' }}
+                            class="btn btn-primary"
+                            href="javascript:void(0)"
+                            onClick={(e) => {
                                 this.updateNotesData();
                             }}
                         >Save</a>
                     }
                     {
-                        (data.tag.map((f)=>{
+                        (data.tag.map((f) => {
                             const color = this.renderStatus(f.tagTask);
-                            return <span class="label" style={{margin: "5px", background: color }}>{f.tagTask.task}</span>
+                            return <span class="label" style={{ margin: "5px", background: color }}>{f.tagTask.task}</span>
                         }))
                     }
                     <span class="fa fa-pencil"></span>
@@ -301,11 +312,11 @@ export default class FormComponent extends React.Component {
                         <label class="col-md-12 col-xs-12 control-label">
                             <input type="checkbox"
                                 style={{ width: "15px", marginTop: "10px" }}
-                                checked={(notesState.accessType === 'INTERNAL_ONLY')?true:false}
-                                onChange={() => { 
-                                    notesState.specificClient = []; 
-                                    notesState.accessType = 'INTERNAL_ONLY'; 
-                                    this.setState({ notesState }) 
+                                checked={(notesState.accessType === 'INTERNAL_ONLY') ? true : false}
+                                onChange={() => {
+                                    notesState.specificClient = [];
+                                    notesState.accessType = 'INTERNAL_ONLY';
+                                    this.setState({ notesState })
                                 }}
                             />&nbsp;&nbsp;&nbsp;&nbsp;
                             Internal Only
@@ -315,11 +326,11 @@ export default class FormComponent extends React.Component {
                         <label class="col-md-12 col-xs-12 control-label">
                             <input type="checkbox"
                                 style={{ width: "15px", marginTop: "10px" }}
-                                checked={(notesState.accessType === 'ALL_CLIENT')?true:false}
-                                onChange={() => { 
-                                    notesState.specificClient = []; 
-                                    notesState.accessType = 'ALL_CLIENT'; 
-                                    this.setState({ notesState }) 
+                                checked={(notesState.accessType === 'ALL_CLIENT') ? true : false}
+                                onChange={() => {
+                                    notesState.specificClient = [];
+                                    notesState.accessType = 'ALL_CLIENT';
+                                    this.setState({ notesState })
                                 }}
                             />&nbsp;&nbsp;&nbsp;&nbsp;
                             Include all client in this project
@@ -329,33 +340,33 @@ export default class FormComponent extends React.Component {
                         <label class="col-md-12 col-xs-12 control-label">
                             <input type="checkbox"
                                 style={{ width: "15px", marginTop: "10px" }}
-                                checked={(notesState.accessType === 'SPECIFIC_CLIENT')?true:false}
+                                checked={(notesState.accessType === 'SPECIFIC_CLIENT') ? true : false}
                                 onChange={() => { notesState.accessType = 'SPECIFIC_CLIENT'; this.setState({ notesState }) }}
                             />&nbsp;&nbsp;&nbsp;&nbsp;
                             Include specific client in this project
                         </label>
                     </div>
-                    { (notesState.accessType === 'SPECIFIC_CLIENT') &&
+                    {(notesState.accessType === 'SPECIFIC_CLIENT') &&
                         <div class="form-group">
                             <label class="col-md-12 col-xs-12 control-label">Please specify. . .</label>
                             <div class="col-md-6 col-xs-12">
                                 <DropDown multiple={true}
                                     required={false}
                                     options={clientUser}
-                                    selected={(typeof specificClient === "string")?JSON.parse(specificClient):specificClient}
+                                    selected={(typeof specificClient === "string") ? JSON.parse(specificClient) : specificClient}
                                     onChange={(e) => { this.setDropDownMultiple('specificClient', e) }} />
                                 <div class="help-block with-errors"></div>
                             </div>
                         </div>
                     }
                 </div>
-                <div>Created by: {`${data.creator.firstName} ${data.creator.lastName} - ${moment(data.dateAdded).format("MM/DD/YYYY hh:mm")}` }</div>
+                <div>Created by: {`${data.creator.firstName} ${data.creator.lastName} - ${moment(data.dateAdded).format("MM/DD/YYYY hh:mm")}`}</div>
                 <div>
                     <h4>Attachments <a href="javascript:void(0)" data-toggle="modal" data-target="#uploadFileModal" ><span class="fa fa-paperclip"></span></a></h4>
                     <ul>
-                        { 
-                            data.documentTags.map((e)=>{
-                                return <li>{e.document.origin}</li>
+                        {
+                            data.documentTags.map((e) => {
+                                return <li> <a href="javascript:void(0)" onClick={() => this.viewDocument(e.document)}>{e.document.origin}</a></li>
                             })
                         }
                         <li></li>
@@ -363,23 +374,23 @@ export default class FormComponent extends React.Component {
                 </div>
                 <hr />
                 <h4>Comments</h4>
-                { data.comments.length == 0 && 
+                {data.comments.length == 0 &&
                     <div>
                         <hr />
                         <div>No Comment</div>
                     </div>
                 }
                 {
-                    data.comments.map((e)=>{
+                    data.comments.map((e) => {
                         return <CommentListItem commentData={e} fetchUsers={this.fetchUsers} />
                     })
                 }
-                { data.isClosed === 0 && 
+                {data.isClosed === 0 &&
                     <div class="form-group mention" style={{ marginLeft: 15 }}>
                         <hr />
                         <MentionsInput
                             value={commentText}
-                            onChange={(e)=>{ this.setState({commentText: e.target.value}) }}
+                            onChange={(e) => { this.setState({ commentText: e.target.value }) }}
                             style={defaultStyle}
                             classNames={{
                                 mentions__input: 'form-control'
@@ -405,15 +416,16 @@ export default class FormComponent extends React.Component {
                         }
                     </div>
                 }
-                { data.isClosed === 1 && 
+                {data.isClosed === 1 &&
                     <div>
                         <hr />
-                        <h4>{`${data.creator.firstName} ${data.creator.lastName} - ${moment(data.dateAdded).format("MM/DD/YYYY hh:mm")}` }</h4>
+                        <h4>{`${data.creator.firstName} ${data.creator.lastName} - ${moment(data.dateAdded).format("MM/DD/YYYY hh:mm")}`}</h4>
                         <h5>Closed this note.</h5>
                     </div>
                 }
-                
+
                 <UploadModal updateSelectedNotes={this.props.updateSelectedNotes} />
+                <DocumentViewerModal />
             </div>
         )
     }

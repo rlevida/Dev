@@ -2,6 +2,7 @@ import React from "react";
 import { displayDate, getData } from '../../../globalFunction';
 import { DropDown, Loading } from "../../../globalComponents";
 import EditModal from "./editModal"
+import DocumentViewerModal from "./documentViewerModal"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
@@ -35,7 +36,7 @@ export default class List extends React.Component {
         this.getNextResult = this.getNextResult.bind(this)
     }
 
-    componentWillMount() {
+    componentDidMount() {
         let { dispatch, document } = this.props
 
         getData(`/api/globalORM/selectList?selectName=workstreamList&projectId=${project}`, {}, (c) => {
@@ -52,7 +53,7 @@ export default class List extends React.Component {
     }
 
     fetchData(page) {
-        const { dispatch, loggedUser, document, workstream, task } = this.props;
+        const { dispatch, loggedUser, document, workstream } = this.props;
         getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=workstream&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream.Selected.id}&tagType=document`, {}, (c) => {
             dispatch({ type: "SET_DOCUMENT_LIST", list: document.List.concat(c.data.result), DocumentType: 'List', Count: c.data.count, CountType: 'Count' })
             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'Loading' })
@@ -94,7 +95,7 @@ export default class List extends React.Component {
     viewDocument(data) {
         let { socket, dispatch } = this.props;
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })
+        $(`#documentViewerModal`).modal('show')
     }
 
     handleIsCompleted(data, value) {
@@ -256,6 +257,7 @@ export default class List extends React.Component {
                 </div>
             </div>
             <EditModal />
+            <DocumentViewerModal />
         </div>
     }
 }
