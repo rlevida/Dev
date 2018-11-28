@@ -279,6 +279,8 @@ export const MentionConvert = ({ string }) => {
                     if (regEx.test(o)) {
                         let mentionString = o.replace(/[\[\]']+/g, '');
                         return <span key={index} style={{ color: "#00B7FF" }}>{mentionString.replace(/[(^0-9)]/g, '')}</span>
+                    } else if (o.match(/^http\:\//) || o.match(/^https\:\//)) {
+                        return <a key={index} href={o}>{o}</a>
                     } else {
                         return o
                     }
