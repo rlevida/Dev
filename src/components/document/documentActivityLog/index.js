@@ -34,8 +34,8 @@ export default class DocumentActivityLog extends React.Component {
     }
 
     fetchData(page) {
-        const { dispatch, activityLogDocument } = this.props;
-        getData(`/api/activityLogDocument?projectId=${project}&page=${page}`, {}, (c) => {
+        const { dispatch, activityLogDocument, loggedUser } = this.props;
+        getData(`/api/activityLogDocument?projectId=${project}&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
             dispatch({ type: 'SET_ACTIVITYLOG_DOCUMENT_LIST', list: activityLogDocument.List.concat(c.data.result), count: c.data.count })
         })
     }
