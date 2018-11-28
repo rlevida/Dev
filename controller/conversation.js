@@ -77,7 +77,7 @@ const socketIo = io(((global.environment == "production") ? "https:" : "http:") 
 exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
-        const association = NotesInclude;
+        const association = _.cloneDeep(NotesInclude);
 
         if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
             association.push({
