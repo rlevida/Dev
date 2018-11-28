@@ -2,7 +2,7 @@ const _ = require("lodash");
 const dbName = "starred";
 const { defaultGet, defaultPut, defaultDelete } = require("./")
 const models = require('../modelORM');
-const { ActivityLogsDocument, Starred, Users, Tasks, Notes } = models;
+const { ActivityLogsDocument, Starred, Users, Tasks, Notes, Document } = models;
 
 exports.get = {
     index: (req, cb) => {
@@ -32,6 +32,11 @@ exports.get = {
                         as: 'notes'
                     })
                     break;
+                case "document":
+                    association.push({
+                        model: Document,
+                        as: 'document'
+                    })
                 default:
             }
         }
@@ -73,6 +78,10 @@ exports.get = {
 
                         if (typeof responseObj.notes != "undefined") {
                             responseObj = { ...responseObj, title: responseObj.notes.note }
+                        }
+
+                        if (typeof responseObj.document != "undefined") {
+                            responseObj = { ...responseObj, title: responseObj.document.origin }
                         }
 
                         return responseObj;

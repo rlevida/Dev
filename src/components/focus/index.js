@@ -74,7 +74,9 @@ export default class Component extends React.Component {
             <div>
                 <ul class="list-inline">
                     <li class="list-inline-item"><a onClick={() => this.setType("task")}>Task</a></li>|
-                    <li class="list-inline-item"><a onClick={() => this.setType("notes")}>Notes</a></li>
+                    <li class="list-inline-item"><a onClick={() => this.setType("notes")}>Notes</a></li>|
+                    <li class="list-inline-item"><a onClick={() => this.setType("document")}>Documents</a></li>
+                    <li></li>
                 </ul>
                 <List />
                 {
