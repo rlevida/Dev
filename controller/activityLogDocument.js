@@ -1,5 +1,7 @@
 const async = require("async");
 const _ = require("lodash");
+const Sequelize = require("sequelize")
+const Op = Sequelize.Op;
 const models = require('../modelORM');
 const { ActivityLogsDocument, Users } = models;
 
@@ -16,17 +18,34 @@ exports.post = (req, cb) => {
 exports.get = {
     index: (req, cb) => {
         const limit = 10;
-        const { projectId = '', page } = req.query
-        const whereObj = {
-            ...(projectId !== '') ? { projectId: projectId } : {}
+        const queryString = req.query
+        let whereObj = {
+            ...(typeof queryString.projectId !== 'undefined' && queryString.projectId !== '') ? { projectId: queryString.projectId } : {},
+            ...(typeof queryString.userType != "undefined" && queryString.userType == "External" && typeof queryString.userId != "undefined" && queryString.userId != "") ? {
+                [Op.or]: [
+                    {
+                        linkId: {
+                            [Op.in]: Sequelize.literal(`(SELECT DISTINCT shareId FROM share where userTypeLinkId = ${queryString.userId})`)
+                        },
+
+                    }, {
+                        linkId: {
+                            [Op.in]: Sequelize.literal(`(SELECT DISTINCT document.id FROM document LEFT JOIN share ON document.folderId = share.shareId where share.shareType = 'folder' AND share.userTypeLinkId = ${queryString.userId} )`)
+                        }
+                    }
+                    , {
+                        linkId: {
+                            [Op.in]: Sequelize.literal(`(SELECT DISTINCT document.id FROM document WHERE uploadedBy = ${queryString.userId})`)
+                        }
+                    }
+                ]
+            } : {}
         }
 
         const options = {
-            ...(page != "") ? { offset: (limit * _.toNumber(page)) - limit, limit } : {},
+            ...(typeof queryString !== 'undefined' && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
             order: [['dateAdded', 'DESC']]
         };
-
-
 
         async.parallel({
             result: (parallelCallback) => {
@@ -61,7 +80,7 @@ exports.get = {
                     .then((res) => {
                         const pageData = {
                             total_count: res.count,
-                            ...(page != "") ? { current_page: (res.count > 0) ? _.toNumber(page) : 0, last_page: _.ceil(res.count / limit) } : {}
+                            ...(typeof queryString.page !== 'undefined' && queryString.page !== '') ? { current_page: (res.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(res.count / limit) } : {}
                         }
                         parallelCallback(null, pageData)
                     })
