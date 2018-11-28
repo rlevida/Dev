@@ -1,5 +1,6 @@
 import React from "react";
 import parallel from 'async/parallel';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 import { getData, showToast } from '../../globalFunction';
 
@@ -7,6 +8,7 @@ import DocumentNew from "./documentNew";
 import DocumentStatus from "./documentStatus";
 import DocumentLibrary from "./documentLibrary";
 import DocumentFilter from "./documentFilter";
+import DocumentActivityLog from "./documentActivityLog";
 
 import PrintModal from "./documentPrinterModal";
 import UploadModal from "./uploadModal";
@@ -35,23 +37,12 @@ let delayTimer;
 export default class List extends React.Component {
     constructor(props) {
         super(props)
-        this.handleOnChange = this.handleOnChange.bind(this)
     }
 
     componentDidMount() {
         let { dispatch, loggedUser, document } = this.props
         if (typeof document.Selected.id == "undefined") {
             parallel({
-                starred: (parallelCallback) => {
-                    getData(`/api/starred/`, { params: { filter: { projectId: project } } }, (c) => {
-                        if (c.status == 200) {
-                            dispatch({ type: "SET_STARRED_LIST", list: c.data })
-                            parallelCallback(null, "")
-                        } else {
-                            parallelCallback(null, "")
-                        }
-                    });
-                },
                 shareList: (parallelCallback) => {
                     getData(`/api/globalORM/selectList?selectName=shareList&linkId=${project}&linkType=project`, {}, (c) => {
                         dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'shareList' })
@@ -77,32 +68,9 @@ export default class List extends React.Component {
                     })
                 }
             }, (error, result) => {
-                // dispatch({ type: "SET_LIBRARY_DOCUMENT_LOADING", Loading: "" })
-                // dispatch({ type: "SET_NEW_DOCUMENT_LOADING", Loading: "" })
             })
         }
     }
-
-    handleOnChange(e) {
-        const { dispatch, loggedUser, document } = this.props;
-        dispatch({ type: 'SET_DOCUMENT_FILTER', filter: { ...document.filter, [e.target.name]: e.target.value } })
-        clearTimeout(delayTimer);
-        const filter = { ...document.Filter, [e.target.name]: e.target.value }
-        dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' })
-        delayTimer = setTimeout(function () {
-            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&search=${filter.search}`, {}, (c) => {
-                if (c.status == 200) {
-                    dispatch({ type: "SET_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-                    dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
-                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-                    showToast('success', 'Documents successfully retrieved.')
-                } else {
-                    showToast('success', 'Something went wrong!')
-                }
-            });
-        }, 1000);
-    }
-
     render() {
         let { workstream, task, document, project } = this.props;
         let tagOptions = [];
@@ -119,8 +87,20 @@ export default class List extends React.Component {
             <div style={{ padding: "20px" }}>
                 <div class="row">
                     <DocumentStatus />
-                    <DocumentNew />
-                    <DocumentLibrary />
+                    <Tabs class="mb40 mt40">
+                        <TabList>
+                            <Tab>Documents</Tab>
+                            <Tab>Activity Logs</Tab>
+                        </TabList>
+                        <TabPanel>
+                            <DocumentNew />
+                            <DocumentLibrary />
+                        </TabPanel>
+                        <TabPanel>
+                            <DocumentActivityLog />
+                        </TabPanel>
+                    </Tabs>
+
                 </div>
             </div>
             <PrintModal />

@@ -10,15 +10,17 @@ const Op = Sequelize.Op;
 const models = require('../modelORM');
 const moment = require('moment');
 const {
+    ActivityLogsDocument,
     Document,
-    Tag,
     DocumentLink,
     Members,
-    Workstream,
+    Share,
+    Starred,
     Tasks,
+    Tag,
     Users,
     UsersRole,
-    Share
+    Workstream
 } = models;
 
 var {
@@ -67,6 +69,19 @@ const associationFindAllStack = [
             }]
         }],
     },
+    {
+        model: Starred,
+        as: 'document_starred',
+        where: { linkType: 'document', isActive: 1 },
+        required: false,
+        include: [
+            {
+                model: Users,
+                as: 'user',
+                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+            }
+        ]
+    }
 ]
 
 
@@ -168,6 +183,14 @@ exports.get = {
             _.find(associationFindAllStack, { as: 'share' }).required = false;
         }
 
+        if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
+            _.find(associationFindAllStack, { as: 'document_starred' }).where = {
+                linkType: 'document',
+                isActive: 1,
+                usersId: queryString.starredUser
+            };
+        }
+
         async.parallel({
             count: function (parallelCallback) {
                 DocumentLink
@@ -182,17 +205,6 @@ exports.get = {
                                 include: associationFindAllStack,
                                 required: true
                             },
-                            // {
-                            //     model: Members,
-                            //     as: 'document_members',
-                            //     where: { usersType: 'users' },
-                            //     include: [{
-                            //         model: Users,
-                            //         as: 'user',
-                            //         where: documentMemberWhereObject,
-                            //         // required: (typeof queryString.members !== 'undefined') ? true : false
-                            //     }]
-                            // }
                         ],
                     })
                     .then((res) => {
@@ -216,17 +228,7 @@ exports.get = {
                                     where: documentWhereObj,
                                     include: associationFindAllStack,
                                     required: true
-                                },
-                                // {
-                                //     model: Members,
-                                //     as: 'document_members',
-                                //     include: [{
-                                //         model: Users,
-                                //         as: 'user',
-                                //         where: documentMemberWhereObject,
-                                //         // required: (typeof queryString.members !== 'undefined') ? true : false
-                                //     }]
-                                // }
+                                }
                             ],
                         })
                         .map((res) => {
@@ -236,7 +238,7 @@ exports.get = {
                                     .concat(res.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })),
                                 members: res.document.share.map((e) => { return e.user }),
                                 share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
-                                document_members: res.document_members
+                                isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (res.document.document_starred).length > 0) ? res.document.document_starred[0].isActive : 0
                             }
                             return _.omit(resToReturn, 'tagDocumentWorkstream', 'tagDocumentTask')
                         })
@@ -410,8 +412,9 @@ exports.get = {
 
 exports.post = {
     index: (req, cb) => {
-        let data = req.body;
-        let projectId = req.body[0].project;
+        const data = req.body;
+        const projectId = req.body[0].project;
+        const isDuplicate = req.query.isDuplicate;
 
         sequence.create().then((nextThen) => {
             async.map(data, (e, mapCallback) => {
@@ -496,19 +499,53 @@ exports.post = {
                                 } else {
                                     parallelCallback(null, "")
                                 }
+                            },
+                            activityLogsDocument: (parallelCallback) => {
+                                try {
+                                    const logData = {
+                                        projectId: projectId,
+                                        linkType: `document`,
+                                        linkId: res.id,
+                                        actionType: (typeof isDuplicate !== 'undefined' && isDuplicate) ? 'duplicated' : 'created',
+                                        old: '',
+                                        new: res.origin,
+                                        title: (typeof isDuplicate !== 'undefined' && isDuplicate) ? (e.type === 'document') ? "Document duplicated" : "Folder duplicated"
+                                            : (e.type === 'document') ? 'Document uploaded' : "Folder created",
+                                        usersId: e.uploadedBy
+                                    }
+
+                                    ActivityLogsDocument
+                                        .create(logData)
+                                        .then((c) => {
+                                            ActivityLogsDocument
+                                                .findOne({
+                                                    where: { id: c.id },
+                                                    include: [{
+                                                        model: Users,
+                                                        as: 'user'
+                                                    }]
+                                                })
+                                                .then((findRes) => {
+                                                    parallelCallback(null, findRes)
+                                                })
+                                        })
+                                } catch (err) {
+                                    console.log(err)
+                                    parallelCallback(err)
+                                }
                             }
-                        }, (err, parallelCallbackResult) => {
+                        }, (err, { documentLink, activityLogsDocument }) => {
                             if (err != null) {
                                 mapCallback(err)
                             } else {
-                                mapCallback(null, parallelCallbackResult.documentLink.documentId)
+                                mapCallback(null, { documentIds: documentLink.documentId, activityLogs: activityLogsDocument })
                             }
                         })
                     })
             }, (err, mapCallbackResult) => {
-                nextThen(mapCallbackResult)
+                nextThen(mapCallbackResult.map((e) => { return e.documentIds }), mapCallbackResult.map((e) => { return e.activityLogs }))
             })
-        }).then((nextThen, result) => {
+        }).then((nextThen, result, activityLogs) => {
             try {
                 DocumentLink
                     .findAll({
@@ -530,7 +567,7 @@ exports.post = {
                         return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
                     })
                     .then((res) => {
-                        cb({ status: true, data: res })
+                        cb({ status: true, data: { result: res, activityLogs: activityLogs } })
                     })
 
             } catch (err) {
@@ -668,40 +705,91 @@ exports.post = {
 
 exports.put = {
     index: (req, cb) => {
-        const dataToSubmit = req.body
-        const id = req.params.id
+        let body = req.body;
+        const { usersId, oldDocument, newDocument, projectId, actionType, title } = body;
+        const id = req.params.id;
+        body = _.omit(body, 'usersId', 'oldDocument', 'newDocument', 'projectId', 'type', 'title', 'actionType');
+
         try {
             Document
-                .update(dataToSubmit, { where: { id: id } })
+                .update(body, { where: { id: id } })
                 .then((res) => {
-                    DocumentLink
-                        .findOne({
-                            where: { documentId: id },
-                            include: [{
-                                model: Document,
-                                as: 'document',
-                                include: associationFindAllStack
-                            }]
-                        })
-                        .then((findRes) => {
-                            let resToReturn = {
-                                ...findRes.document.toJSON(),
-                                tags: findRes.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                    .concat(findRes.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } })),
-                                members: findRes.document.share.map((e) => { return e.user }),
-                                share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                    async.parallel({
+                        result: (parallelCallback) => {
+                            try {
+                                DocumentLink
+                                    .findOne({
+                                        where: { documentId: id },
+                                        include: [{
+                                            model: Document,
+                                            as: 'document',
+                                            include: associationFindAllStack
+                                        }]
+                                    })
+                                    .then((findRes) => {
+                                        let resToReturn = {
+                                            ...findRes.document.toJSON(),
+                                            tags: findRes.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                                .concat(findRes.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })),
+                                            members: findRes.document.share.map((e) => { return e.user }),
+                                            share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                                        }
+                                        parallelCallback(null, { data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
+                                    })
+                            } catch (err) {
+                                parallelCallback(err)
                             }
-                            cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
-                        })
+                        },
+                        activityLogsDocument: (parallelCallback) => {
+                            try {
+                                const logData = {
+                                    projectId: projectId,
+                                    linkType: 'document',
+                                    linkId: id,
+                                    actionType: actionType,
+                                    usersId: usersId,
+                                    title: title,
+                                    old: oldDocument,
+                                    new: newDocument
+                                }
+                                ActivityLogsDocument
+                                    .create(logData)
+                                    .then((c) => {
+                                        ActivityLogsDocument
+                                            .findOne({
+                                                where: { id: c.id },
+                                                include: [{
+                                                    model: Users,
+                                                    as: 'user'
+                                                }]
+                                            })
+                                            .then((findRes) => {
+                                                parallelCallback(null, [findRes])
+                                            })
+                                    })
+                            } catch (err) {
+                                parallelCallback(err)
+                            }
+                        }
+                    }, (err, results) => {
+                        if (err) {
+                            cb({ status: false, error: err })
+                        } else {
+                            cb({ status: true, data: { result: results.result.data, activityLogs: results.activityLogsDocument } })
+                        }
+                    })
                 })
         } catch (err) {
             cb({ status: false, error: err })
         }
     },
-    documentTag: (req, cb) => {
-        const dataToSubmit = req.body
-        const id = req.params.id
-        const queryString = req.query
+    tag: (req, cb) => {
+        let body = req.body;
+        const { projectId, usersId, oldDocument, newDocument, origin } = body;
+        const id = req.params.id;
+        const queryString = req.query;
+
+        body = _.omit(body, 'projectId', 'usersId', 'oldDocument', 'newDocument', 'origin');
 
         const documentWhereObj = {
             ...(typeof queryString.status != "undefined" && queryString.status != "") ? { status: queryString.status } : {},
@@ -718,7 +806,7 @@ exports.put = {
                 Tag.destroy({
                     where: tagWhereObj
                 }).then(res => {
-                    nextThen(dataToSubmit.tags)
+                    nextThen(body.tags)
                 })
             } catch (err) {
                 cb({ status: false, error: err })
@@ -731,7 +819,6 @@ exports.put = {
                         linkType: e.value.split("-")[0],
                         linkId: e.value.split("-")[1],
                     }
-
                     Tag.create(tagData)
                         .then(res => {
                             mapCallback(null, res)
@@ -748,86 +835,170 @@ exports.put = {
                 nextThen()
             }
         }).then((nextThen, result) => {
-            try {
-                DocumentLink
-                    .findOne({
-                        where: { documentId: queryString.tagTypeId },
-                        include: [{
-                            model: Document,
-                            as: 'document',
-                            where: documentWhereObj,
-                            include: associationFindAllStack
-                        }]
-                    }).then((res) => {
-                        let resToReturn = {
-                            ...res.document.toJSON(),
-                            tags: res.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                .concat(res.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } })),
-                            members: res.document.share.map((e) => { return e.user }),
-                            share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+            async.parallel({
+                result: (parallelCallback) => {
+                    try {
+                        DocumentLink
+                            .findOne({
+                                where: { documentId: queryString.tagTypeId },
+                                include: [{
+                                    model: Document,
+                                    as: 'document',
+                                    where: documentWhereObj,
+                                    include: associationFindAllStack
+                                }]
+                            }).then((res) => {
+                                let resToReturn = {
+                                    ...res.document.toJSON(),
+                                    tags: res.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                        .concat(res.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })),
+                                    members: res.document.share.map((e) => { return e.user }),
+                                    share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                                }
+                                parallelCallback(null, { data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
+                            })
+                    } catch (err) {
+                        parallelCallback(err)
+                    }
+                },
+                ActivityLogsDocument: (parallelCallback) => {
+                    try {
+                        const logData = {
+                            projectId: projectId,
+                            linkType: 'document',
+                            linkId: id,
+                            actionType: 'modified',
+                            usersId: usersId,
+                            title: `Document ${origin} tags updated`,
+                            old: oldDocument,
+                            new: newDocument,
                         }
-                        cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
-                    })
-            } catch (err) {
-                console.log(err)
-                cb({ status: false, error: err })
-            }
+                        ActivityLogsDocument
+                            .create(logData)
+                            .then((c) => {
+                                ActivityLogsDocument
+                                    .findOne({
+                                        where: { id: c.id },
+                                        include: [{
+                                            model: Users,
+                                            as: 'user'
+                                        }]
+                                    })
+                                    .then((findRes) => {
+                                        parallelCallback(null, [findRes])
+                                    })
+                            })
+                    } catch (err) {
+                        parallelCallback(err)
+                    }
+                }
+            }, (err, results) => {
+                if (err) {
+                    cb({ status: false, error: err })
+                } else {
+                    cb({ status: true, data: { result: results.result.data, activityLogs: results.ActivityLogsDocument } })
+                }
+            })
         })
     },
-    putDocumentName: (req, cb) => {
-        let d = req.body
-        let id = req.params.id
+    rename: (req, cb) => {
+        let body = req.body;
+        const { usersId, oldDocument, newDocument, projectId } = body;
+        let id = req.params.id;
+        body = _.omit(body, 'usersId', 'oldDocument', 'newDocument', 'projectId');
 
         sequence.create().then((nextThen) => {
-            Document
-                .findAll({
-                    where: {
-                        origin: d.origin
-                    },
-                    order: Sequelize.literal('documentNameCount DESC'),
-                    raw: true,
-                })
-                .then(res => {
-                    if (res.length > 0) {
-                        d.documentNameCount = res[0].documentNameCount + 1
-                        nextThen(d)
-                    } else {
-                        d.documentNameCount = 0;
-                        nextThen(d)
-                    }
-                })
-                .catch(err => {
-                    console.error(err)
-                    cb({ status: false, error: err })
-                })
+            try {
+                Document
+                    .findAll({
+                        where: {
+                            origin: body.origin
+                        },
+                        order: Sequelize.literal('documentNameCount DESC'),
+                        raw: true,
+                    })
+                    .then(res => {
+                        if (res.length > 0) {
+                            body.documentNameCount = res[0].documentNameCount + 1
+                            nextThen(body)
+                        } else {
+                            body.documentNameCount = 0;
+                            nextThen(body)
+                        }
+                    })
+            } catch (err) {
+                cb({ status: false, error: err })
+            }
         }).then((nextThen, result) => {
             Document
                 .update({
                     ...result,
                 }, { where: { id: id } })
                 .then(res => {
-                    DocumentLink
-                        .findOne({
-                            where: { documentId: id },
-                            include: [{
-                                model: Document,
-                                as: 'document',
-                                include: associationFindAllStack
-                            }]
-                        })
-                        .then((findRes) => {
-                            let dataToReturn = {
-                                ...findRes.document.toJSON(),
-                                tags: findRes.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                    .concat(findRes.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } })),
-                                members: findRes.document.share.map((e) => { return e.user }),
-                                share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                    async.parallel({
+                        results: (parallelCallback) => {
+                            try {
+                                DocumentLink
+                                    .findOne({
+                                        where: { documentId: id },
+                                        include: [{
+                                            model: Document,
+                                            as: 'document',
+                                            include: associationFindAllStack
+                                        }]
+                                    })
+                                    .then((findRes) => {
+                                        let dataToReturn = {
+                                            ...findRes.document.toJSON(),
+                                            tags: findRes.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                                .concat(findRes.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })),
+                                            members: findRes.document.share.map((e) => { return e.user }),
+                                            share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                                        }
+                                        parallelCallback(null, { data: _.omit(dataToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
+                                    })
+                            } catch (err) {
+                                parallelCallback(err)
                             }
-                            cb({ status: true, data: _.omit(dataToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
-                        })
-                }).catch(err => {
-                    console.error(err)
-                    cb({ status: false, error: err })
+                        },
+                        activityLogsDocument: (parallelCallback) => {
+                            try {
+                                let logData = {
+                                    projectId: projectId,
+                                    linkType: 'document',
+                                    linkId: id,
+                                    actionType: 'modified',
+                                    usersId: usersId,
+                                    title: 'Document renamed',
+                                    old: oldDocument,
+                                    new: newDocument,
+                                }
+                                ActivityLogsDocument
+                                    .create(logData)
+                                    .then((c) => {
+                                        ActivityLogsDocument
+                                            .findOne({
+                                                where: { id: c.id },
+                                                include: [{
+                                                    model: Users,
+                                                    as: 'user'
+                                                }]
+                                            })
+                                            .then((findRes) => {
+                                                parallelCallback(null, [findRes])
+                                            })
+                                    })
+                            } catch (err) {
+                                parallelCallback(err)
+                            }
+                        }
+                    }, (err, result) => {
+                        if (err) {
+                            cb({ status: false, errror: err })
+                        } else {
+                            cb({ status: true, data: { result: result.results.data, activityLogs: result.activityLogsDocument } })
+                        }
+                    })
                 })
         })
     }

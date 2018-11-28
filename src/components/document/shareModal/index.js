@@ -42,12 +42,18 @@ export default class ShareModal extends React.Component {
             linkId: project,
             shareType: document.Selected.type,
             shareId: document.Selected.id,
-            sharedBy: loggedUser.data.id
+            sharedBy: loggedUser.data.id,
+            projectId: project,
+            usersId: loggedUser.data.id,
+            oldDocument: document.Selected.origin,
+            newDocument: '',
+            actionType: 'shared',
+            title: `Document shared to ${JSON.parse(document.Selected.share).map((e) => { return e.label }).join(',')}`
         }
-
         postData(`/api/share`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: document.Selected.status })
+                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status })
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                 showToast("success", "Successfully Shared.");
             } else {
                 showToast("danger", "Sharing failed. Please try again.");

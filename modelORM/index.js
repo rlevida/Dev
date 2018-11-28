@@ -24,6 +24,7 @@ const sequelize = new Sequelize(
 );
 
 const ActivityLogs = require('./activity_logs')(sequelize, Sequelize.DataTypes);
+const ActivityLogsDocument = require('./activity_logs_document')(sequelize, Sequelize.DataTypes);
 const ChecklistDocuments = require('./checklist_documents')(sequelize, Sequelize.DataTypes);
 const Conversation = require('./conversation')(sequelize, Sequelize.DataTypes);
 const Document = require('./document')(sequelize, Sequelize.DataTypes);
@@ -53,6 +54,7 @@ const Starred = require('./starred')(sequelize, Sequelize.DataTypes);
 
 const models = {
     ActivityLogs,
+    ActivityLogsDocument,
     ChecklistDocuments,
     Conversation,
     Document,

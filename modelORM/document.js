@@ -83,9 +83,13 @@ module.exports = (sequelize, DataTypes) => {
       as: 'share',
       foreignKey: 'shareId'
     })
-    Document.hasMany(models.DocumentLink,{
-      as:'project_member',
-      foreignKey:'documentId'
+    Document.hasMany(models.DocumentLink, {
+      as: 'project_member',
+      foreignKey: 'documentId'
+    })
+    Document.hasMany(models.Starred, {
+      as: 'document_starred',
+      foreignKey: 'linkId'
     })
   };
 
