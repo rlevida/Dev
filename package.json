@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "dev": "gulp & webpack --watch & nodemon server.js"
+    "dev": "gulp & webpack --watch & nodemon server.js",
+    "manageORM": "sequelize-auto -o \"./temp\" -d cloud_cfo -h 192.168.10.187 -u root -p 3306 -x password -e mysql"
   },
   "dependencies": {
     "assert": "^1.4.1",
