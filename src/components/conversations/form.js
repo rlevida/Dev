@@ -2,8 +2,6 @@ import React from "react";
 import _ from 'lodash';
 import { connect } from "react-redux";
 import { MentionsInput, Mention } from 'react-mentions';
-import TinyMceMention from 'react-tinymce-mention';
-import TinyMCE from 'react-tinymce';
 import defaultStyle from "../global/react-mention-style";
 import { putData, postData, getData, showToast } from "../../globalFunction";
 import CommentListItem from "./comment"
@@ -390,23 +388,6 @@ export default class FormComponent extends React.Component {
                 {data.isClosed === 0 &&
                     <div class="form-group mention" style={{ marginLeft: 15 }}>
                         <hr />
-                        <TinyMCE
-                            content={commentText}
-                            config={{
-                            plugins: 'link mention',
-                            toolbar: 'undo redo | bold italic | alignleft aligncenter alignright',
-                            }}
-                            onChange={(e)=>{ this.setState({commentText: e.target.getContent()}) }}
-                            
-                        />
-                        <TinyMceMention dataSource={[
-                            'hello',
-                            'how',
-                            'are',
-                            'you'
-                          ]}
-                        />
-
                         <MentionsInput
                             value={commentText}
                             onChange={(e) => { this.setState({ commentText: e.target.value }) }}
