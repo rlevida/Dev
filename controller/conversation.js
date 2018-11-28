@@ -8,7 +8,8 @@ const {
     Tasks,
     Conversation,
     Users,
-    Starred
+    Starred,
+    Document
 } = models;
 
 const NotesInclude = [
@@ -23,6 +24,20 @@ const NotesInclude = [
             {
                 model: Tasks,
                 as: 'tagTask',
+            }
+        ]
+    },
+    {
+        model: Tag,
+        where: {
+            linkType: 'notes', tagType: 'document'
+        },
+        as: 'documentTags',
+        required: false,
+        include: [
+            {
+                model: Document,
+                as: 'document',
             }
         ]
     },

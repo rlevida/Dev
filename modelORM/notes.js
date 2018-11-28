@@ -74,6 +74,10 @@ module.exports = function(sequelize, DataTypes) {
       foreignKey: 'linkId',
       as: 'notes_starred'
     });
+    Notes.hasMany(models.Tag, {
+      as: 'documentTags',
+      foreignKey: 'linkId',
+    })
   }
 
   return Notes;

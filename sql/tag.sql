@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS `tag`;
 CREATE TABLE `tag` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `indicator` VARCHAR(50),
-    `linkType` ENUM("user","workstream","task","conversation","document","others"),
+    `linkType` ENUM("user","workstream","task","conversation","document","others","notes"),
     `linkId` BIGINT,
     `tagType` ENUM("user","workstream","task","conversation","document","folder","notes"),
     `isDeleted` TINYINT(1) DEFAULT '0',

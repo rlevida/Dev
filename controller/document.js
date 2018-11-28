@@ -34,6 +34,7 @@ const associationFindAllStack = [
             linkType: 'workstream', tagType: 'document'
         },
         as: 'tagDocumentWorkstream',
+        required: false,
         include: [
             {
                 model: Workstream,
@@ -46,11 +47,20 @@ const associationFindAllStack = [
         where: {
             linkType: 'task', tagType: 'document'
         },
+        required: false,
         as: 'tagDocumentTask',
         include: [{
             model: Tasks,
             as: 'tagTask',
         }],
+    },
+    {
+        model: Tag,
+        where: {
+            linkType: 'notes', tagType: 'document'
+        },
+        required: false,
+        as: 'tagDocumentNotes',
     },
     {
         model: Users,
@@ -547,8 +557,8 @@ exports.post = {
                     .map((res) => {
                         let resToReturn = {
                             ...res.document.toJSON(),
-                            tags: res.document.tagDocumentWorkstream.map((e) => { return { value: `workstream - ${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                .concat(res.document.tagDocumentTask.map((e) => { return { value: `task - ${e.tagTask.id}`, label: e.tagTask.task } })),
+                            tags: res.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                .concat(res.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })),
                             members: res.document.share.map((e) => { return e.user }),
                             share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
                         }
