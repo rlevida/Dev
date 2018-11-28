@@ -261,10 +261,10 @@ export default class FormComponent extends React.Component {
         return (
             <div style={{ /*background:"#f5f5f5",*/ padding: "10px", }}>
                 <div style={{marginBottom: "30px"}}>
-                    <h4>
+                    <h3>
                         {data.note}
                         {(data.isClosed)?<span class="label" style={{margin: "5px", background: "red", color: "white" }}>CLOSED</span>:""}
-                    </h4>
+                    </h3>
                     { loggedUser.data.id === data.creator.id &&
                         <div class="dropdown" style={{float:"right"}}>
                             <button style={{padding:"3px",border:"none", paddingRight: "0px"}} class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
@@ -351,7 +351,7 @@ export default class FormComponent extends React.Component {
                 </div>
                 <div>Created by: {`${data.creator.firstName} ${data.creator.lastName} - ${moment(data.dateAdded).format("MM/DD/YYYY hh:mm")}` }</div>
                 <div>
-                    <h3>Attachments <a href="javascript:void(0)" data-toggle="modal" data-target="#uploadFileModal" ><span class="fa fa-paperclip"></span></a></h3>
+                    <h4>Attachments <a href="javascript:void(0)" data-toggle="modal" data-target="#uploadFileModal" ><span class="fa fa-paperclip"></span></a></h4>
                     <ul>
                         { 
                             data.documentTags.map((e)=>{
@@ -362,7 +362,7 @@ export default class FormComponent extends React.Component {
                     </ul>
                 </div>
                 <hr />
-                <h3>Comments</h3>
+                <h4>Comments</h4>
                 { data.comments.length == 0 && 
                     <div>
                         <hr />
