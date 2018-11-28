@@ -274,7 +274,7 @@ export default class FormComponent extends React.Component {
                 <div style={{ marginBottom: "30px" }}>
                     <h3>
                         {data.note}
-                        {(data.isClosed) ? <span class="label" style={{ margin: "5px", background: "red", color: "white" }}>CLOSED</span> : ""}
+                        {(data.isClosed) ? <span class="label" style={{ margin: "5px", background: "red", color: "white", fontSize: "10px", position: "absolute" }}>CLOSED</span> : ""}
                     </h3>
                     {loggedUser.data.id === data.creator.id &&
                         <div class="dropdown" style={{ float: "right" }}>
@@ -419,7 +419,7 @@ export default class FormComponent extends React.Component {
                 {data.isClosed === 1 &&
                     <div>
                         <hr />
-                        <h4>{`${data.creator.firstName} ${data.creator.lastName} - ${moment(data.dateAdded).format("MM/DD/YYYY hh:mm")}`}</h4>
+                        <h4>{`${data.creator.firstName} ${data.creator.lastName} - ${moment(data.dateUpdated).format("MM/DD/YYYY hh:mm")}`}</h4>
                         <h5>Closed this note.</h5>
                     </div>
                 }
