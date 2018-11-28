@@ -48,7 +48,7 @@ export default class Component extends React.Component {
         let { notes, projectData } = this.props;
         const Component = <div class="pd20">   
                 <h3 class="mt10 mb10"><a href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{projectData.Selected.project}</a></h3>
-                <div>
+                {/* <div>
                     <ul class="list-inline mb0">
                         <li class="list-inline-item"><a href="javascript:void(0)"
                             onClick={() => {
@@ -63,7 +63,7 @@ export default class Component extends React.Component {
                             }}>Filter</a>&nbsp;&nbsp;</li>
                     </ul>
                 </div>
-                <br />
+                <br /> */}
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div style={{paddingRight:"0px"}} className={ notes.FormActive == "View" ? "col-lg-6 col-md-6 col-sm-12"  : "col-lg-12 col-md-12 col-sm-12"}>
