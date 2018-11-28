@@ -127,8 +127,19 @@ exports.get = {
                         }
                 }
             } : {},
-        };
+            ...(typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
+                dueDate: {
+                    [Sequelize.Op.not]: null
+                }
+            } : {},
+            ...(typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
+                startDate: {
+                    [Sequelize.Op.not]: null
+                }
+            } : {}
 
+        };
+        
         if (typeof queryString.userId != "undefined" && queryString.userId != "") {
             const compareOpt = (Array.isArray(queryString.userId)) ? "IN" : "=";
             const ids = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;

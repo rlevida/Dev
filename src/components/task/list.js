@@ -30,11 +30,9 @@ export default class List extends React.Component {
         const { socket, task, dispatch } = this.props;
         const { Count } = task;
 
-        if (_.isEmpty(Count)) {
-            this.fetchData(1);
-        } else if (Count.current_page != Count.last_page) {
-            this.fetchData(Count.current_page + 1);
-        }
+        dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "SET_TASK_LIST", list: [] });
+        this.fetchData(1);
 
         socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
         socket.emit("GET_STATUS_LIST", {});
@@ -61,8 +59,10 @@ export default class List extends React.Component {
             requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`
         }
 
-        if (taskAssigned != "") {
-            requestUrl += `&userId=${taskAssigned}`
+        if (taskAssigned != "" && taskAssigned.length > 0) {
+            taskAssigned.map((assignedObj) => {
+                requestUrl += `&userId=${assignedObj.value}`
+            });
         } else if (loggedUser.data.user_role[0].roleId >= 3) {
             requestUrl += `&userId=${loggedUser.data.id}`
         }
@@ -281,7 +281,7 @@ export default class List extends React.Component {
                 }
                 <div class="text-center">
                     {
-                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Task</a>
+                        (currentPage != lastPage && task.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Task</a>
                     }
                     {
                         (taskList.length == 0 && task.Loading != "RETRIEVING") && <p>No Records Found</p>

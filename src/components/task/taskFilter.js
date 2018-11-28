@@ -29,7 +29,6 @@ export default class ProjectFilter extends React.Component {
 
     componentDidMount() {
         const { dispatch } = this.props;
-
         getData(`/api/member?linkType=project&linkId=${project}&page=1`, {}, (c) => {
             let taskMemberOptions = _(c.data.result)
                 .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
@@ -39,16 +38,15 @@ export default class ProjectFilter extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { dispatch, loggedUser } = this.props;
-
-        if (_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false) {
-            const { taskStatus, dueDate, taskAssigned, task } = this.props.task.Filter;
-            let requestUrl = `/api/task?projectId=${project}&page=1&starredUser=${loggedUser.data.id}`;
+        const { dispatch, loggedUser, task: taskState } = this.props;
+        
+        if (_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false && prevProps.task.FormActive ==  this.props.task.FormActive) {
+            const { taskStatus, dueDate, taskAssigned, task, selected_month } = this.props.task.Filter;
+            let requestUrl = `/api/task?projectId=${project}&starredUser=${loggedUser.data.id}`;
 
             if (taskStatus != "") {
                 requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
             }
-
             if (task != "") {
                 requestUrl += `&task=${task}`
             }
@@ -57,10 +55,22 @@ export default class ProjectFilter extends React.Component {
                 requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`
             }
 
+            if (selected_month != "" && taskState.FormActive == "Calendar") {
+                requestUrl += `&dueDate=${JSON.stringify({ opt: "between", value: selected_month })}`
+            }
+
             if (taskAssigned != "" && taskAssigned.length > 0) {
                 taskAssigned.map((assignedObj) => {
                     requestUrl += `&userId=${assignedObj.value}`
                 });
+            }
+
+            if (taskState.FormActive == "Timeline") {
+                requestUrl += `&listType=timeline`
+            }
+
+            if (taskState.FormActive != "Calendar") {
+                requestUrl += `&page=1`
             }
 
             keyTimer && clearTimeout(keyTimer);
@@ -70,7 +80,7 @@ export default class ProjectFilter extends React.Component {
                     dispatch({ type: "SET_TASK_LOADING", Loading: "" });
                     showToast("success", "Task successfully retrieved.");
                 });
-            }, 1500);
+            }, 500);
         }
 
         setDatePicker(this.handleDate, "dueDate", new Date(2019, 3, 20));
@@ -121,10 +131,7 @@ export default class ProjectFilter extends React.Component {
 
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
         dispatch({ type: "SET_TASK_LIST", list: [] });
-        keyTimer && clearTimeout(keyTimer);
-        keyTimer = setTimeout(() => {
-            dispatch({ type: "SET_TASK_FILTER", filter: filterState });
-        }, 1500)
+        dispatch({ type: "SET_TASK_FILTER", filter: filterState });
     }
 
     render() {
@@ -148,7 +155,7 @@ export default class ProjectFilter extends React.Component {
                             onChange={(e) => this.setDropDown("taskStatus", e.value)} />
                     </div>
                     <div class="col-md-2 col-sm-12 col-xs-6 mb5">
-                        <div class="input-group date" style={{width:"100%"}}>
+                        <div class="input-group date" style={{ width: "100%" }}>
                             <label>Task Due Date</label>
                             <input type="text"
                                 class="form-control datepicker"
@@ -158,7 +165,7 @@ export default class ProjectFilter extends React.Component {
                                 }}
                                 id="dueDate"
                                 name="dueDate"
-                                value={((typeof Filter.dueDate != "undefined" && Filter.dueDate != null) && Filter.dueDate != '') ? displayDate(Filter.dueDate) : ""}
+                                value={((typeof Filter.dueDate != "undefined" && Filter.dueDate != null && Array.isArray(Filter.dueDate) == false) && Filter.dueDate != '') ? displayDate(Filter.dueDate) : ""}
                             />
                         </div>
                     </div>
