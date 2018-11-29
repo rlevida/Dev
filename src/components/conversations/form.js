@@ -29,7 +29,9 @@ export default class FormComponent extends React.Component {
                 specificClient: "[]",
                 note: "",
             },
-            updatePropsTemp: ""
+            updatePropsTemp: "",
+            selectedTag: [],
+            editTag: false,
         }
         this.fetchUsers = this.fetchUsers.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
@@ -37,6 +39,28 @@ export default class FormComponent extends React.Component {
         this.noteHasChange = this.noteHasChange.bind(this)
         this.updateNotesData = this.updateNotesData.bind(this)
         this.viewDocument = this.viewDocument.bind(this)
+        this.selectTag = this.selectTag.bind(this)
+        this.saveTag = this.saveTag.bind(this)
+    }
+
+    saveTag() {
+        const { notes, dispatch } = { ...this.props }
+        putData(`/api/conversation/tag/${notes.Selected.id}`, this.state.selectedTag, (c) => {
+            if (c.status == 200) {
+                let data = c.data;
+                let list = notes.List;
+                let SelectedData = notes.Selected;
+                const selectedIndex = list.indexOf(notes.Selected);
+                SelectedData.tag = data;
+                list.splice(selectedIndex, 1, SelectedData);
+                this.props.updateSelectedNotes(SelectedData);
+                dispatch({ type: "SET_NOTES_LIST", list: list });
+                this.setState({editTag: false})
+                showToast("success", "Tags successfully updated.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        })
     }
 
     updateNotesData() {
@@ -91,13 +115,14 @@ export default class FormComponent extends React.Component {
                 accessType: notes.Selected.accessType,
                 specificClient: notes.Selected.specificClient || "[]",
                 note: notes.Selected.note
-            }
+            },
+            selectedTag: notes.Selected.tag
         })
     }
 
     shouldComponentUpdate(props, state) {
         const { notes } = { ...props }
-        const { notesState, selectedId } = { ...state }
+        const { notesState, selectedId, selectedTag, editTag } = { ...state }
         let hasChange = false;
         const specificClient = notes.Selected.specificClient || "[]"
         if (notes.Selected.accessType !== notesState.accessType ||
@@ -108,7 +133,9 @@ export default class FormComponent extends React.Component {
             notesState.accessType !== this.state.notesState.accessType ||
             notesState.specificClient !== this.state.notesState.specificClient ||
             this.state.updatePropsTemp !== JSON.stringify(notes) ||
-            notesState.note !== this.state.notesState.note
+            notesState.note !== this.state.notesState.note ||
+            selectedTag !== this.state.selectedTag ||
+            editTag !== this.state.editTag
         ) {
             hasChange = true;
         }
@@ -124,7 +151,8 @@ export default class FormComponent extends React.Component {
                 specificClient: notes.Selected.specificClient || [],
                 note: notes.Selected.note
             },
-            updatePropsTemp: JSON.stringify(notes)
+            updatePropsTemp: JSON.stringify(notes),
+            selectedTag: notes.Selected.tag
         })
     }
 
@@ -257,6 +285,10 @@ export default class FormComponent extends React.Component {
         })
     }
 
+    selectTag(e) {
+        this.setState({ selectedTag: e });
+    }
+
     render() {
         const { notes, setIsClosed, loggedUser, global } = { ...this.props }
         const { notesState, commentText } = { ...this.state }
@@ -269,12 +301,22 @@ export default class FormComponent extends React.Component {
                 clientUser.push({ id: e.id, name: `${e.firstName} ${e.lastName}` })
             }
         })
+
+        let tagOptions = [];
+        if (typeof global.SelectList.workstreamList != "undefined" && typeof global.SelectList.taskList != "undefined") {
+            global.SelectList.workstreamList
+                .map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) })
+            global.SelectList.taskList
+                .filter(e => { return e.status != "Completed" })
+                .map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) })
+        }
+
         return (
             <div style={{ /*background:"#f5f5f5",*/ padding: "10px", }}>
                 <div style={{ marginBottom: "30px" }}>
-                    <h3>
+                    <h3 style={{display: "inline-flex"}}>
                         {data.note}
-                        {(data.isClosed) ? <span class="label" style={{ margin: "5px", background: "red", color: "white", fontSize: "10px", position: "absolute" }}>CLOSED</span> : ""}
+                        {(data.isClosed) ? <span class="label" style={{ margin: "5px", background: "red", color: "white", fontSize: "10px" }}>CLOSED</span> : ""}
                     </h3>
                     {loggedUser.data.id === data.creator.id &&
                         <div class="dropdown" style={{ float: "right" }}>
@@ -299,13 +341,45 @@ export default class FormComponent extends React.Component {
                             }}
                         >Save</a>
                     }
-                    {
-                        (data.tag.map((f) => {
-                            const color = this.renderStatus(f.tagTask);
-                            return <span class="label" style={{ margin: "5px", background: color }}>{f.tagTask.task}</span>
-                        }))
-                    }
-                    <span class="fa fa-pencil"></span>
+                    
+                    <div className="row">
+                        <div className="col-md-1 col-xs-1">
+                            <span class="fa fa-tags" style={{paddingLeft:"20px"}}></span>
+                        </div>
+                        { this.state.editTag
+                            && <div className="col-md-6 col-xs-11">
+                                <DropDown multiple={false}
+                                    multiple={true}
+                                    required={false}
+                                    options={tagOptions}
+                                    selected={this.state.selectedTag || []}
+                                    onChange={this.selectTag}
+                                />
+                            </div>
+                        }
+                        { this.state.editTag &&
+                            <span class="fa fa-floppy-o" onClick={()=>{ this.saveTag() }} style={{paddingLeft:"20px",cursor:"pointer"}}></span>
+                        }
+                        { this.state.editTag &&
+                            <span class="fa fa-ban" onClick={()=>{this.setState({editTag: false, selectedTag: notes.Selected.tag})}} style={{paddingLeft:"20px",cursor:"pointer"}}></span>
+                        }
+                        { !this.state.editTag &&
+                            (data.tag.map((f) => {
+                                const color = (f.value.indexOf("task")>-1)?"blue":"green";
+                                return (
+                                <span
+                                    class="label"
+                                    style={{ margin: "5px", background: color }}
+                                >
+                                    {f.label}
+                                </span>
+                                );
+                            }))
+                        }
+                        { !this.state.editTag &&
+                            <span class="fa fa-pencil" onClick={()=>{this.setState({editTag: true})}} style={{paddingLeft:"20px",cursor:"pointer"}}></span>
+                        }
+                    </div>
                 </div>
                 <div class="row">
                     <div class="form-group">

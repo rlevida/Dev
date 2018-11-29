@@ -9,6 +9,7 @@ const {
     Notes,
     Tag,
     Tasks,
+    Workstream,
     Conversation,
     Users,
     Starred,
@@ -22,12 +23,26 @@ const NotesInclude = [
         where: {
             linkType: 'task', tagType: 'notes'
         },
-        as: 'tag',
+        as: 'notesTagTask',
         required: false,
         include: [
             {
                 model: Tasks,
                 as: 'tagTask',
+            }
+        ]
+    },
+    {
+        model: Tag,
+        where: {
+            linkType: 'workstream', tagType: 'notes'
+        },
+        as: 'notesTagWorkstream',
+        required: false,
+        include: [
+            {
+                model: Workstream,
+                as: 'tagWorkstream',
             }
         ]
     },
@@ -116,7 +131,9 @@ exports.get = {
                     const responseData = res.toJSON();
                     const data = {
                         ...responseData,
-                        isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0
+                        isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
+                        tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
+                            .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
                     }
                     return data;
                 })
@@ -173,6 +190,17 @@ exports.post = {
                 Notes.findAll({
                     where: { id: res.data[0].id },
                     include: NotesInclude
+                    
+                })
+                .map((res) => {
+                    const responseData = res.toJSON();
+                    const data = {
+                        ...responseData,
+                        isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
+                        tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
+                            .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
+                    }
+                    return data;
                 }).then((result) => {
                     cb({ status: true, data: result })
                 })
@@ -233,6 +261,9 @@ exports.post = {
                 cb({ status: true, data: result })
             }
         })
+    },
+    notesTag: {
+
     }
 }
 
@@ -243,6 +274,16 @@ exports.put = {
                 Notes.findAll({
                     where: { id: req.params.id },
                     include: NotesInclude
+                })
+                .map((res) => {
+                    const responseData = res.toJSON();
+                    const data = {
+                        ...responseData,
+                        isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
+                        tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
+                            .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
+                    }
+                    return data;
                 }).then((result) => {
                     cb({ status: true, data: result })
                 })
@@ -308,7 +349,60 @@ exports.put = {
                 cb({ status: true, data: result })
             }
         })
-    }
+    },
+    tag: (req, cb) => {
+        sequence.create().then((nextThen) => {
+            try {
+                Tag.destroy({
+                    where: {
+                        tagType: 'notes',
+                        tagTypeId : req.params.id
+                    }
+                }).then(res => {
+                    nextThen()
+                })
+            } catch(err) {
+                console.error(err)
+                cb({ status: false, data: [] })
+            }
+        }).then((nextThen)=>{
+            let promiseList = [];
+            req.body.map((e)=>{
+                promiseList.push(
+                    new Promise((resolve, reject)=>{
+                        Tag.create({ 
+                            linkType: e.value.split("-")[0],
+                            linkId: e.value.split("-")[1],
+                            tagType: 'notes',
+                            tagTypeId: req.params.id
+                        })
+                        resolve()
+                    })
+                )
+            })
+            Promise.all(promiseList).then((values)=>{
+                Notes.findAll({
+                    where: { id: req.params.id },
+                    include: NotesInclude
+                    
+                })
+                .map((res) => {
+                    const responseData = res.toJSON();
+                    const data = {
+                        ...responseData,
+                        tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
+                            .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
+                    }
+                    return data;
+                }).then((result) => {
+                    cb({ status: true, data: result[0].tag })
+                })
+            }).catch((err)=>{
+                console.error(err)
+                cb({ status: false, data: [] })
+            })
+        })
+    },
 }
 
 exports.delete = {

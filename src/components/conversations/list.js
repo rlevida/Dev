@@ -22,6 +22,7 @@ export default class List extends React.Component {
     super(props);
     this.fetchProjectMember = this.fetchProjectMember.bind(this);
     this.fetchNotes = this.fetchNotes.bind(this);
+    this.fetchTags = this.fetchTags.bind(this)
     this.openDetail = this.openDetail.bind(this);
     this.updateStarred = this.updateStarred.bind(this);
   }
@@ -29,7 +30,18 @@ export default class List extends React.Component {
   componentDidMount() {
     this.fetchNotes();
     this.fetchProjectMember();
+    this.fetchTags();
+  }
 
+  fetchTags() {
+    const { dispatch, loggedUser } = this.props;
+    dispatch({ type: "SET_NOTES_LOADING", Loading: "RETRIEVING" });
+    getData(`/api/globalORM/selectList?selectName=workstreamList&projectId=${project}`, {}, (c) => {
+      dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamList' })
+    })
+    getData(`/api/globalORM/selectList?selectName=taskList&projectId=${project}`, {}, (c) => {
+      dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'taskList' })
+    })
   }
 
   fetchNotes() {
@@ -189,13 +201,13 @@ export default class List extends React.Component {
                       }
                       <div style={{ float: "right", marginTop: "-30px" }}>
                         {e.tag.map(f => {
-                          const color = this.renderStatus(f.tagTask);
+                          const color = (f.value.indexOf("task")>-1)?"blue":"green";
                           return (
                             <span
                               class="label"
                               style={{ margin: "5px", background: color }}
                             >
-                              {f.tagTask.task}
+                              {f.label}
                             </span>
                           );
                         })}
