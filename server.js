@@ -13,8 +13,10 @@ var http = require('http')
 
 // global configuration
 if (process.env.NODE_ENV !== "production") {
-    require('dotenv').config()
+  require('dotenv').config()
 }
+process.env.TZ = 'Asia/Manila'; // force node to use utc timezone on staging
+
 var config = require('./config');
 var serverAuth = require('./auth');
 require('./backup')
@@ -47,10 +49,10 @@ app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // manage token
-app.use(function(req, res, next){
-  if(typeof req.cookies["app.sid"] == "undefined"){
+app.use(function (req, res, next) {
+  if (typeof req.cookies["app.sid"] == "undefined") {
     const TokenGenerator = require('uuid-token-generator');
-    res.cookie('app.sid',new TokenGenerator(256).generate(), { httpOnly: true});
+    res.cookie('app.sid', new TokenGenerator(256).generate(), { httpOnly: true });
   }
   return next()
 });
@@ -85,11 +87,11 @@ app.use(function (err, req, res, next) {
   });
 });
 
-if(process.env.NODE_ENV == "production"){
+if (process.env.NODE_ENV == "production") {
   var port = '8080';
   var server_ip_address = '127.0.0.1';
   app.set('port', port);
-}else{
+} else {
   var port = '9003';
   var server_ip_address = '127.0.0.1';
   app.set('port', port);
