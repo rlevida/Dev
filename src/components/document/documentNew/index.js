@@ -40,20 +40,21 @@ export default class DocumentNew extends React.Component {
     }
 
     componentDidMount() {
-        let { document } = this.props;
+        let { dispatch, document, loggedUser } = this.props;
         // automatically move to selected folder
-        if (folderParams != "" && folderParamsType == "new") {
-            let folderSelectedInterval = setInterval(() => {
-                if (this.props.folder.List.length > 0) {
-                    clearInterval(folderSelectedInterval)
-                    let folderData = this.props.folder.List.filter(e => e.id == folderParams)
-                    if (folderData.length > 0) {
-                        this.props.dispatch({ type: "SET_NEW_FOLDER_SELECTED", Selected: folderData[0] })
-                    }
+        if (folderParams !== "" && folderParamsStatus === "new" && folderParamsOrigin !== "") {
+            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderParams}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
+                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [{ id: folderParams, name: folderParamsOrigin }], Type: 'SelectedNewFolderName' });
+
+                    showToast('success', 'Documents successfully retrieved.');
+                } else {
+                    showToast('success', 'Something went wrong!')
                 }
-            }, 1000)
-        }
-        if (_.isEmpty(document.NewCount.Count)) {
+            });
+        } else if (_.isEmpty(document.NewCount.Count)) {
             this.fetchData(1)
         }
     }
@@ -209,6 +210,9 @@ export default class DocumentNew extends React.Component {
                         hasFolder = false;
                     }
                 }
+                if (data === '') {
+                    window.history.replaceState({}, document.title, "/project/" + `${project}/documents`);
+                }
                 dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList, Type: 'SelectedNewFolderName' });
                 showToast('success', 'Documents successfully retrieved.');
             } else {
@@ -319,7 +323,7 @@ export default class DocumentNew extends React.Component {
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
         } else {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' })
-            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
+            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })

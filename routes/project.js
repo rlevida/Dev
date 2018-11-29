@@ -102,6 +102,8 @@ router.get('/:project/documents', function (req, res, next) {
                 project: req.params.project,
                 folder: req.query.folder,
                 folderType: req.query.type,
+                folderStatus: req.query.status,
+                folderOrigin: req.query.origin,
                 user: JSON.stringify(req.userDetails.data)
             });
         } else {

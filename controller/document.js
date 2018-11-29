@@ -89,6 +89,11 @@ const associationFindAllStack = [
                 attributes: ['id', 'firstName', 'lastName', 'emailAddress']
             }
         ]
+    }, {
+        model: Document,
+        as: 'document_folder',
+        where: { type: 'folder'},
+        required: false
     }
 ]
 
