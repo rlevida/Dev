@@ -55,7 +55,11 @@ module.exports = function(sequelize, DataTypes) {
 
   Notes.associate = function (models) {
     Notes.hasMany(models.Tag, {
-      as: 'tag',
+      as: 'notesTagTask',
+      foreignKey: 'tagTypeId',
+    });
+    Notes.hasMany(models.Tag, {
+      as: 'notesTagWorkstream',
       foreignKey: 'tagTypeId',
     });
     Notes.hasMany(models.Conversation, {
