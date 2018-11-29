@@ -26,7 +26,6 @@ export default class Component extends React.Component {
             if (c.status == 200) {
                 const dataIndex = notes.List.indexOf(data);
                 const newData = data;
-                console.log(c.data);
                 newData.isClosed = c.data[0].isClosed;
                 notes.List.splice(dataIndex, 1, newData);
                 this.updateSelectedNotes(newData);

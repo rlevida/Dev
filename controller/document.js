@@ -1,8 +1,7 @@
 const sequence = require("sequence").Sequence,
     toPdf = require("office-to-pdf"),
     mime = require('mime-types'),
-    path = require('path'),
-    Printer = require('node-printer');
+    path = require('path');
 const _ = require("lodash");
 const dbName = "document";
 const Sequelize = require("sequelize")
@@ -65,7 +64,6 @@ const associationFindAllStack = [
     {
         model: Users,
         as: 'user',
-        // attributes: ['firstName', 'lastName', 'phoneNumber', 'emailAddress']
     },
     {
         model: Share,
@@ -255,12 +253,6 @@ exports.get = {
             }
         })
     },
-    getPrinterList: (req, cb) => {
-        cb({
-            status: 200,
-            data: Printer.list()
-        })
-    },
     getDocumentCount: (req, cb) => {
         const queryString = req.query
         const documentLinkWhereObj = {
@@ -385,8 +377,11 @@ exports.get = {
                             .map((res) => {
                                 let resToReturn = {
                                     ...res.toJSON(),
-                                    tags: res.dataValues.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                        .concat(res.dataValues.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                                    tags: res.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                        .concat(res.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })),
+                                    members: res.share.map((e) => { return e.user }),
+                                    share: JSON.stringify(res.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                    isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (res.document_starred).length > 0) ? res.document_starred[0].isActive : 0
                                 }
                                 return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
                             })

@@ -1,5 +1,5 @@
 import React from "react";
-import { displayDate, getData } from '../../../globalFunction';
+import { displayDate, getData, postData, showToast } from '../../../globalFunction';
 import { DropDown, Loading } from "../../../globalComponents";
 import EditModal from "./editModal"
 import DocumentViewerModal from "./documentViewerModal"
@@ -54,7 +54,7 @@ export default class List extends React.Component {
 
     fetchData(page) {
         const { dispatch, loggedUser, document, workstream } = this.props;
-        getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=workstream&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream.Selected.id}&tagType=document`, {}, (c) => {
+        getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=workstream&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream.Selected.id}&tagType=document&starredUser=${loggedUser.data.id}`, {}, (c) => {
             dispatch({ type: "SET_DOCUMENT_LIST", list: document.List.concat(c.data.result), DocumentType: 'List', Count: c.data.count, CountType: 'Count' })
             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'Loading' })
         });
@@ -103,13 +103,28 @@ export default class List extends React.Component {
         socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data: { id: data.id, isCompleted: !value } });
     }
 
-    starDocument(data, isStarred) {
-        let { socket, loggedUser } = this.props;
-        if (isStarred) {
-            socket.emit("DELETE_STARRED", { id: data.id });
-        } else {
-            socket.emit("SAVE_STARRED", { data: { usersId: loggedUser.data.id, linkType: "project", linkId: data.id } });
-        }
+    starredDocument({ id, isStarred, origin }) {
+        const { document, loggedUser, dispatch } = this.props;
+        const isStarredValue = (isStarred > 0) ? 0 : 1;
+        postData(`/api/starred?projectId=${project}&document=${origin}`, {
+            linkType: "document",
+            linkId: id,
+            usersId: loggedUser.data.id
+        }, (c) => {
+            if (c.status == 200) {
+                const updatedDocumentList = _.map([...document.List], (documentObj, index) => {
+                    if (id == documentObj.id) {
+                        documentObj["isStarred"] = isStarredValue;
+                    }
+                    return documentObj;
+                });
+                dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList, DocumentType: 'List' });
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.documentActivityLog })
+                showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
     }
 
     handleChange(e) {
@@ -202,10 +217,9 @@ export default class List extends React.Component {
                                                 />
                                             </td>
                                             <td>
-                                                {starred.List.filter(s => { return s.linkId == data.id }).length > 0
-                                                    ? <span class="glyphicon glyphicon-star" onClick={() => this.starDocument(data, 1)} style={{ cursor: "pointer" }}></span>
-                                                    : <span class="glyphicon glyphicon-star-empty" onClick={() => this.starDocument(data, 0)} style={{ cursor: "pointer" }}></span>
-                                                }
+                                                <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
+                                                    <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
+                                                </a>
                                             </td>
                                             <td class="new-document"> <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span>{documentName}</a></td>
                                             <td>{displayDate(data.dateAdded)}</td>
@@ -228,11 +242,6 @@ export default class List extends React.Component {
                                                         <li><a href="javascript:void(0)" data-tip="Rename" onClick={() => this.editDocument(data, "rename")}>Rename</a></li>
                                                         <li><a href="javascript:void(0)" data-tip="Edit tags" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>
                                                         <li><a href="javascript:void(0)" data-tip="Goto folder" onClick={() => this.goToFolder(data)}>Go to folder</a></li>
-                                                        <li>{starred.List.filter(s => { return s.linkId == data.id }).length > 0
-                                                            ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={() => this.starDocument(data, 1)}>Unstarred</a>
-                                                            : <a href="javascript:void(0)" data-tip="Star" onClick={() => this.starDocument(data, 0)}>Star</a>
-                                                        }
-                                                        </li>
                                                     </ul>
                                                 </div>
                                             </td>

@@ -66,6 +66,12 @@ export default class List extends React.Component {
                         dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'taskList' })
                         parallelCallback(null, "")
                     })
+                },
+                members: (parallelCallback) => {
+                    getData(`/api/member?linktype=project&linkId=${project}`, {}, (c) => {
+                        dispatch({ type: "SET_MEMBERS_LIST", list: c.data.result, count: {} })
+                        parallelCallback(null, "")
+                    })
                 }
             }, (error, result) => {
             })

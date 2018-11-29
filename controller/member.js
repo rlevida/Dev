@@ -43,7 +43,7 @@ exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
         const limit = 5;
-
+        
         const whereObj = {
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {},
             ...(typeof queryString.linkId != "undefined" && queryString.linkId != "") ? { linkId: queryString.linkId } : {},
