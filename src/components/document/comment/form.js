@@ -5,14 +5,15 @@ import _ from "lodash";
 import { postData, getData, showToast } from '../../../globalFunction'
 import defaultStyle from "../../global/react-mention-style";
 
-@connect(({ document, conversation, socket, users, loggedUser, global }) => {
+@connect(({ document, conversation, socket, users, loggedUser, global, members }) => {
     return {
         document,
         conversation,
         socket: socket.container,
         users,
         loggedUser,
-        global
+        global,
+        members
     }
 })
 
@@ -33,12 +34,11 @@ export default class Form extends React.Component {
     }
 
     fetchUsers(query, callback) {
-        const { global, loggedUser } = { ...this.props };
-
-        return global.SelectList.projectMemberList.map((o) => {
-            let userName = o.firstName + " " + o.lastName;
-            if (userName.includes(query) && o.id != loggedUser.data.id) {
-                return { display: o.firstName + " " + o.lastName, id: o.id }
+        const { global, loggedUser, members } = { ...this.props };
+        return members.List.map((o) => {
+            let userName = o.user.firstName + " " + o.user.lastName;
+            if (userName.includes(query) && o.user.id != loggedUser.data.id) {
+                return { display: o.user.firstName + " " + o.user.lastName, id: o.user.id }
             }
         }).filter((o) => { return o != undefined })
     }
