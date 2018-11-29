@@ -2,6 +2,8 @@ const dbName = "notes";
 const async = require('async')
 var { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./")
 const sequence = require("sequence").Sequence;
+const Sequelize = require("sequelize")
+const Op = Sequelize.Op;
 const models = require('../modelORM');
 const {
     Notes,
@@ -136,11 +138,18 @@ exports.get = {
     },
     getConversationList: (req, cb) => {
         const queryString = req.query;
-        const whereObj = {
+        let whereObj = {
             ...(typeof queryString.linkType !== 'undefined' && queryString.linkType !== '') ? { linkType: queryString.linkType } : {},
             ...(typeof queryString.linkId !== 'undefined' && queryString.linkId !== '') ? { linkId: queryString.linkId } : {}
         }
 
+        if (typeof queryString.search !== 'undefined' && queryString.search !== '') {
+            whereObj = {
+                ...whereObj,
+                comment: { [Op.like]: `%${queryString.search}%` }
+            }
+        }
+        
         Conversation
             .findAll({
                 where: whereObj,
