@@ -3,10 +3,8 @@ import _ from "lodash";
 import moment from 'moment';
 import { connect } from "react-redux";
 
-import TaskStatus from "./taskStatus";
-import TaskFilter from "./taskFilter";
-import { HeaderButtonContainer, Loading } from "../../globalComponents";
-import { getData, putData, showToast } from "../../globalFunction";
+import { Loading } from "../../globalComponents";
+import { getData, showToast } from "../../globalFunction";
 
 import BigCalendar from 'react-big-calendar'
 BigCalendar.momentLocalizer(moment);
@@ -39,7 +37,10 @@ export default class List extends React.Component {
     fetchData() {
         const { loggedUser, dispatch, task } = this.props;
         const { taskStatus, dueDate, taskAssigned } = task.Filter;
-        let requestUrl = `/api/task?projectId=${project}`;
+        const selectedMonth = moment().startOf('month');
+        const fromDate = moment(selectedMonth).subtract(1, 'week').format("YYYY-MM-DD");
+        const toDate = moment(selectedMonth).add(1, 'week').endOf('month').format("YYYY-MM-DD");
+        let requestUrl = `/api/task?projectId=${project}&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
 
         if (taskStatus != "") {
             requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
@@ -112,20 +113,10 @@ export default class List extends React.Component {
     }
 
     render() {
-        const { task, dispatch } = this.props;
+        const { task } = this.props;
         const taskList = task.List;
         return (
             <div class="pd0">
-                <div class="row mb10 mt10">
-                    <div class="col-lg-6 status-div">
-                        <TaskStatus />
-                    </div>
-                </div>
-                <div class="row mb10">
-                    <div class="col-lg-10 pd0">
-                        <TaskFilter />
-                    </div>
-                </div>
                 {
                     (task.Loading != "RETRIEVING") && <BigCalendar
                         events={taskList.map((e) => {

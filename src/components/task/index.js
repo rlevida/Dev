@@ -5,7 +5,8 @@ import List from "./list"
 import Calendar from "./calendar"
 import Timeline from './timeline'
 import Link from "./link"
-import TaskComponent from "../taskComponent"
+import TaskStatus from "./taskStatus";
+import TaskFilter from "./taskFilter";
 import _ from "lodash";
 
 import { connect } from "react-redux"
@@ -45,8 +46,20 @@ export default class Component extends React.Component {
                 </ul>
             }
             {
-                (task.FormActive == "List" || task.FormActive == "Timeline" || task.FormActive == "Calendar") &&
-                <Link />
+                (task.FormActive != "Form") &&
+                <div>
+                    <Link />
+                    <div class="row mb10 mt10">
+                        <div class="col-lg-6 status-div">
+                            <TaskStatus />
+                        </div>
+                    </div>
+                    <div class="row mb10">
+                        <div class="col-lg-10 pd0">
+                            <TaskFilter />
+                        </div>
+                    </div>
+                </div>
             }
             {
                 (task.FormActive == "List") &&

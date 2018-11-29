@@ -6,7 +6,6 @@ import _ from "lodash";
 
 import { Loading } from "../../../globalComponents";
 import { getData, showToast } from "../../../globalFunction";
-import TaskFilter from "../../task/taskFilter";
 
 @connect((store) => {
     return {
@@ -81,8 +80,8 @@ export default class List extends React.Component {
                                         return totalObj;
                                     })
                                     .value();
-                                    dispatch({ type: "SET_TASKTIMELOG_LIST", list: data.result, count: data.count });
-                                    dispatch({ type: "SET_TOTAL_HOURS", list: data.result, hours: _.round(_.divide(_.sumBy(totalCount, 'value'), 60), 2) });
+                                dispatch({ type: "SET_TASKTIMELOG_LIST", list: data.result, count: data.count });
+                                dispatch({ type: "SET_TOTAL_HOURS", list: data.result, hours: _.round(_.divide(_.sumBy(totalCount, 'value'), 60), 2) });
                             }
                             parallelCallback(null, "")
                         })
@@ -189,8 +188,8 @@ export default class List extends React.Component {
                                 return totalObj;
                             })
                             .value();
-                            dispatch({ type: "SET_TASKTIMELOG_LIST", list: data.result, count: data.count });
-                            dispatch({ type: "SET_TOTAL_HOURS", list: data.result, hours: _.round(_.divide(_.sumBy(totalCount, 'value'), 60), 2) });
+                        dispatch({ type: "SET_TASKTIMELOG_LIST", list: data.result, count: data.count });
+                        dispatch({ type: "SET_TOTAL_HOURS", list: data.result, hours: _.round(_.divide(_.sumBy(totalCount, 'value'), 60), 2) });
                     }
                     parallelCallback(null, "")
                 })
@@ -260,12 +259,6 @@ export default class List extends React.Component {
 
         return (
             <div>
-                <h3 class="m0">Tasks</h3>
-                <div class="row mb10 mt10">
-                    <div class="col-lg-12">
-                        <TaskFilter />
-                    </div>
-                </div>
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
                         <tr>

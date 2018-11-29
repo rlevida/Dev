@@ -3,8 +3,6 @@ import _ from "lodash";
 import moment from "moment";
 import { connect } from "react-redux";
 
-import TaskStatus from "./taskStatus";
-import TaskFilter from "./taskFilter";
 import { Loading } from "../../globalComponents";
 import { getData, putData, deleteData, showToast } from "../../globalFunction";
 import { Chart } from "react-google-charts";
@@ -13,7 +11,8 @@ import { Chart } from "react-google-charts";
   return {
     socket: store.socket.container,
     task: store.task,
-    loggedUser: store.loggedUser
+    loggedUser: store.loggedUser,
+    workstream: store.workstream
   };
 })
 export default class List extends React.Component {
@@ -34,7 +33,7 @@ export default class List extends React.Component {
   }
 
   fetchData(page) {
-    const { dispatch, task, loggedUser } = this.props;
+    const { dispatch, task, loggedUser, workstream } = this.props;
 
     let requestUrl = `/api/task?projectId=${project}&page=${page}&starredUser=${loggedUser.data.id}&listType=timeline`;
     const { taskStatus, dueDate, taskAssigned } = task.Filter;
@@ -53,6 +52,10 @@ export default class List extends React.Component {
       });
     } else if (loggedUser.data.user_role[0].roleId >= 3) {
       requestUrl += `&userId=${loggedUser.data.id}`
+    }
+
+    if (workstream.SelectedLink == "timeline") {
+      requestUrl += `&workstreamId=${workstream.Selected.id}`
     }
 
     getData(requestUrl, {}, c => {
@@ -140,16 +143,6 @@ export default class List extends React.Component {
     ];
     return (
       <div class="pd0">
-        <div class="row mb10 mt10">
-          <div class="col-lg-6 status-div">
-            <TaskStatus />
-          </div>
-        </div>
-        <div class="row mb10">
-          <div class="col-lg-10 pd0">
-            <TaskFilter />
-          </div>
-        </div>
         {
           (task.Loading == "RETRIEVING") && <Loading />
         }

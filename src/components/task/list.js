@@ -3,8 +3,6 @@ import _ from "lodash";
 import moment from 'moment';
 import { connect } from "react-redux";
 
-import TaskStatus from "./taskStatus";
-import TaskFilter from "./taskFilter";
 import { HeaderButtonContainer, Loading } from "../../globalComponents";
 import { getData, putData, postData, deleteData, showToast } from "../../globalFunction";
 
@@ -173,11 +171,6 @@ export default class List extends React.Component {
 
         return (
             <div class="pd0">
-                <div class="row mb10 mt10">
-                    <div class="col-lg-6 status-div">
-                        <TaskStatus />
-                    </div>
-                </div>
                 <HeaderButtonContainer withMargin={true}>
                     {
                         (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) &&
@@ -191,11 +184,6 @@ export default class List extends React.Component {
                         </li>
                     }
                 </HeaderButtonContainer>
-                <div class="row mb10">
-                    <div class="col-lg-10 pd0">
-                        <TaskFilter />
-                    </div>
-                </div>
                 <table id="dataTable" class="table responsive-table">
                     <tbody>
                         <tr>

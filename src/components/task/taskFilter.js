@@ -12,7 +12,8 @@ let keyTimer = "";
         status: store.status,
         loggedUser: store.loggedUser,
         task: store.task,
-        members: store.members
+        members: store.members,
+        workstream: store.workstream
     }
 })
 
@@ -29,21 +30,19 @@ export default class ProjectFilter extends React.Component {
 
     componentDidMount() {
         const { dispatch } = this.props;
+
         getData(`/api/member?linkType=project&linkId=${project}&page=1`, {}, (c) => {
-            let taskMemberOptions = _(c.data.result)
+            const taskMemberOptions = _(c.data.result)
                 .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
                 .value();
             dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
         });
-    }
 
-    componentDidMount() {
         setDatePicker(this.handleDate, "dueDate", new Date(2019, 3, 20));
     }
 
     componentDidUpdate(prevProps) {
-        console.log(_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false && prevProps.task.FormActive == this.props.task.FormActive)
-        const { dispatch, loggedUser, task: taskState } = this.props;
+        const { dispatch, loggedUser, task: taskState, workstream } = this.props;
 
         if (_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false && prevProps.task.FormActive == this.props.task.FormActive) {
             const { taskStatus, dueDate, taskAssigned, task, selected_month } = this.props.task.Filter;
@@ -59,8 +58,8 @@ export default class ProjectFilter extends React.Component {
             if (dueDate != "") {
                 requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`
             }
-
-            if (selected_month != "" && taskState.FormActive == "Calendar") {
+            
+            if (selected_month != "" && (taskState.FormActive == "Calendar" || workstream.SelectedLink == "calendar")) {
                 requestUrl += `&dueDate=${JSON.stringify({ opt: "between", value: selected_month })}`
             }
 
@@ -74,7 +73,11 @@ export default class ProjectFilter extends React.Component {
                 requestUrl += `&listType=timeline`
             }
 
-            if (taskState.FormActive != "Calendar") {
+            if (workstream.SelectedLink == "timeline") {
+                requestUrl += `&workstreamId=${workstream.Selected.id}`
+            }
+
+            if (taskState.FormActive != "Calendar" && workstream.SelectedLink != "calendar") {
                 requestUrl += `&page=1`
             }
 
@@ -91,10 +94,14 @@ export default class ProjectFilter extends React.Component {
     }
 
     setDropDown(name, e) {
-        const { dispatch } = this.props;
-        dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
-        dispatch({ type: "SET_TASK_LIST", list: [] });
-        dispatch({ type: "SET_TASK_FILTER", filter: { [name]: e } });
+        const { dispatch, task } = this.props;
+        const { Filter } = task;
+
+        if (Filter.taskStatus != e) {
+            dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+            dispatch({ type: "SET_TASK_LIST", list: [] });
+            dispatch({ type: "SET_TASK_FILTER", filter: { [name]: e } });
+        }
     }
 
     setDropDownMultiple(name, values) {

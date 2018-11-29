@@ -19,17 +19,17 @@ export default class Link extends React.Component {
                             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" })
                             dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
                         }}>
-                        List</a>&nbsp;&nbsp;</li>|
+                        List</a></li>|
                 <li class="list-inline-item" style={{ color: "gray" }}><a href="javascript:void(0)"
                         onClick={() => {
                             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Timeline" })
                             dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
-                        }}>Timeline</a>&nbsp;&nbsp;</li>|
+                        }}>Timeline</a></li>|
                 <li class="list-inline-item" style={{ color: "gray" }}><a href="javascript:void(0)"
                         onClick={() => {
                             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Calendar" })
                             dispatch({ type: "SET_TASK_SELECTED", Selected: {} })
-                        }}>Calendar</a>&nbsp;&nbsp;</li>
+                        }}>Calendar</a></li>
                 </ul>
             </div>
         );
