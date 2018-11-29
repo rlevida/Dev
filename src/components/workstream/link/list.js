@@ -1,13 +1,7 @@
 import React from "react";
-import Tooltip from "react-tooltip";
-import { HeaderButtonContainer } from "../../../globalComponents";
 import moment from 'moment';
-import {
-    map,
-    filter
-} from "lodash";
+import { connect } from "react-redux";
 
-import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -21,14 +15,7 @@ export default class List extends React.Component {
     constructor(props) {
         super(props)
     }
-    componentWillMount() {
-        // let taskListInterval = setInterval(() => {
-        //     if (this.props.workstream.Selected.id) {
-        //         this.props.socket.emit("GET_TASK_LIST", { filter: { projectId: project, workstreamId: this.props.workstream.Selected.id } });
-        //         clearInterval(taskListInterval)
-        //     }
-        // }, 1000)
-    }
+
     selectedLink(link) {
         let { dispatch } = this.props;
         if (link == "task") {
@@ -63,44 +50,62 @@ export default class List extends React.Component {
             <div>
                 <div>
                     <ul class="list-inline" style={{ margin: "20px" }}>
+                        <li class="list-inline-item">
+                            <a href="javascript:void(0)"
+                                onClick={() => {
+                                    this.selectedLink("task")
+                                    window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
+                                    dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
+                                    dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "" });
+                                    taskId = ""
+                                }}>
+                                List
+                        </a>
+                        </li>|
+                    <li class="list-inline-item" style={{ color: "gray" }}>
+                            <a href="javascript:void(0)"
+                                onClick={() => {
+                                    dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "timeline" });
+                                    window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
+                                    dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
+                                    dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "" });
+                                    taskId = ""
+                                }}>Timeline</a>
+                        </li>|
+                        <li class="list-inline-item" style={{ color: "gray" }}>
+                            <a href="javascript:void(0)"
+                                onClick={() => {
+                                    dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "calendar" });
+                                    window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
+                                    dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
+                                    dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "" });
+                                    taskId = ""
+                                }}>Calendar</a>
+                        </li>|
                     <li class="list-inline-item">
-                        <a href="javascript:void(0)" 
-                            onClick={() => { 
-                                this.selectedLink("task")
-                                window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
-                                dispatch({type:"SET_TASK_SELECTED", Selected: {}});
-                                dispatch({type:"SET_TASK_FORM_ACTIVE", FormActive: ""});
-                                taskId = ""
-                            }}>
-                        List
-                        </a>&nbsp;&nbsp;
-                    </li>|
-                    <li class="list-inline-item" style={{ color: "gray" }}>Calendar&nbsp;&nbsp;</li>|
-                    <li class="list-inline-item" style={{ color: "gray" }}>Timeline&nbsp;&nbsp;</li>|
+                            <a href="javascript:void(0)"
+                                onClick={() => {
+                                    dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "member" });
+                                    window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
+                                    dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
+                                    dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "" });
+                                    taskId = ""
+                                }}>
+                                Members
+                        </a>
+                        </li>|
                     <li class="list-inline-item">
-                        <a href="javascript:void(0)"
-                            onClick={() => {
-                                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "member" });
-                                window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
-                                dispatch({type:"SET_TASK_SELECTED", Selected: {}});
-                                dispatch({type:"SET_TASK_FORM_ACTIVE", FormActive: ""});
-                                taskId = ""
-                            }}>
-                        Members
-                        </a>&nbsp;&nbsp;
-                    </li>|
-                    <li class="list-inline-item">
-                        <a href="javascript:void(0)" 
-                            onClick={() => {
-                                dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "document" })
-                                window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
-                                dispatch({type:"SET_TASK_SELECTED", Selected: {}});
-                                dispatch({type:"SET_TASK_FORM_ACTIVE", FormActive: ""});
-                                dispatch({type:"SET_DOCUMENT_FORM_ACTIVE" , FormActive: "List"})
-                                taskId = ""
-                            }}>
-                        Documents</a>&nbsp;&nbsp;
-                    </li>|
+                            <a href="javascript:void(0)"
+                                onClick={() => {
+                                    dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "document" })
+                                    window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}`);
+                                    dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
+                                    dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "" });
+                                    dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
+                                    taskId = ""
+                                }}>
+                                Documents</a>
+                        </li>|
                     <li class="list-inline-item" style={{ color: "gray" }}>Conversation</li>
                     </ul>
                     <ul class="list-inline" style={{ margin: "20px" }}>

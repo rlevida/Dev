@@ -1,12 +1,17 @@
-import React from "react"
-import { showToast, putData, postData, getData } from '../../globalFunction'
+import React from "react";
+import { showToast, putData, postData, getData } from '../../globalFunction';
 import { DropDown, HeaderButtonContainer, Loading } from "../../globalComponents";
 import { connect } from "react-redux";
 import _ from "lodash";
 
-import Document from "./document"
-import Task from "./task"
-import Member from "./member"
+
+import TaskFilter from "../task/taskFilter";
+import Document from "./document";
+import Task from "./task";
+import Member from "./member";
+import Timeline from "../task/timeline";
+import Calendar from "../task/calendar";
+
 let keyTimer = "";
 
 @connect((store) => {
@@ -292,14 +297,31 @@ export default class FormComponent extends React.Component {
                                 }
                             </div>
                             }
-                            {(workstream.SelectedLink) == "task" &&
-                                <Task />
+                            {
+                                (workstream.SelectedLink != "" && (workstream.SelectedLink == "task" || workstream.SelectedLink == "timeline" || workstream.SelectedLink == "calendar")) &&
+                                <div class="row mb10 mt10">
+                                    <div class="col-lg-12">
+                                        <TaskFilter />
+                                    </div>
+                                </div>
                             }
-                            {(workstream.SelectedLink == "document") &&
-                                <Document />
+                            {
+                                (workstream.SelectedLink == "task") && <div>
+                                    <h3 class="m0">Tasks</h3>
+                                    <Task />
+                                </div>
                             }
-                            {(workstream.SelectedLink == "member") &&
-                                <Member />
+                            {
+                                (workstream.SelectedLink == "timeline") && <Timeline />
+                            }
+                            {
+                                (workstream.SelectedLink == "calendar") && <Calendar />
+                            }
+                            {
+                                (workstream.SelectedLink == "document") && <Document />
+                            }
+                            {
+                                (workstream.SelectedLink == "member") && <Member />
                             }
                         </div>
                     </div>

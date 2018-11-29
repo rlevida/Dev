@@ -93,8 +93,25 @@ exports.get = {
         const associationArray = _.cloneDeep(associationStack);
         const queryString = req.query;
         const limit = 10;
-        const dueDate = (typeof queryString.dueDate != "undefined") ? JSON.parse(queryString.dueDate) : "";
         const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
+        let dueDate = "";
+        
+        if (typeof queryString.dueDate != "undefined" && queryString != "") {
+            if (Array.isArray(queryString.dueDate)) {
+                dueDate = _.reduce(queryString.dueDate, function (obj, values) {
+                    const arrValues = JSON.parse(values);
+                    obj[Sequelize.Op[arrValues.opt]] = arrValues.value;
+
+                    return obj;
+                }, {});
+            } else {
+                dueDate = JSON.parse(queryString.dueDate);
+            }
+        }
+
+
+        (typeof queryString.dueDate != "undefined") ? (Array.isArray(queryString.dueDate)) ? _.map(queryString.dueDate, (o) => { return JSON.parse(o) }) : JSON.parse(queryString.dueDate) : "";
+
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
@@ -106,11 +123,6 @@ exports.get = {
                         }
                     )
                 ]
-            } : {},
-            ...(dueDate != "") ? {
-                dueDate: {
-                    [Sequelize.Op[dueDate.opt]]: dueDate.value
-                }
             } : {},
             ...(status != "") ? {
                 status: {
@@ -127,8 +139,13 @@ exports.get = {
                         }
                 }
             } : {},
-            ...(typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
+            ...(dueDate != "" || typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
                 dueDate: {
+                    ...(dueDate != "" && Array.isArray(queryString.dueDate)) ? {
+                        [Sequelize.Op.or]: dueDate
+                    } : (dueDate != "") ? {
+                        [Sequelize.Op[dueDate.opt]]: dueDate.value
+                    } : {},
                     [Sequelize.Op.not]: null
                 }
             } : {},
@@ -137,9 +154,7 @@ exports.get = {
                     [Sequelize.Op.not]: null
                 }
             } : {}
-
         };
-        
         if (typeof queryString.userId != "undefined" && queryString.userId != "") {
             const compareOpt = (Array.isArray(queryString.userId)) ? "IN" : "=";
             const ids = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;

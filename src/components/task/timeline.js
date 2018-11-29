@@ -3,9 +3,7 @@ import _ from "lodash";
 import moment from "moment";
 import { connect } from "react-redux";
 
-import TaskStatus from "./taskStatus";
-import TaskFilter from "./taskFilter";
-import { HeaderButtonContainer, Loading } from "../../globalComponents";
+import { Loading } from "../../globalComponents";
 import { getData, putData, deleteData, showToast } from "../../globalFunction";
 import { Chart } from "react-google-charts";
 
@@ -13,7 +11,8 @@ import { Chart } from "react-google-charts";
   return {
     socket: store.socket.container,
     task: store.task,
-    loggedUser: store.loggedUser
+    loggedUser: store.loggedUser,
+    workstream: store.workstream
   };
 })
 export default class List extends React.Component {
@@ -34,7 +33,7 @@ export default class List extends React.Component {
   }
 
   fetchData(page) {
-    const { dispatch, task, loggedUser } = this.props;
+    const { dispatch, task, loggedUser, workstream } = this.props;
 
     let requestUrl = `/api/task?projectId=${project}&page=${page}&starredUser=${loggedUser.data.id}&listType=timeline`;
     const { taskStatus, dueDate, taskAssigned } = task.Filter;
@@ -53,6 +52,10 @@ export default class List extends React.Component {
       });
     } else if (loggedUser.data.user_role[0].roleId >= 3) {
       requestUrl += `&userId=${loggedUser.data.id}`
+    }
+
+    if (workstream.SelectedLink == "timeline") {
+      requestUrl += `&workstreamId=${workstream.Selected.id}`
     }
 
     getData(requestUrl, {}, c => {
@@ -112,11 +115,9 @@ export default class List extends React.Component {
       typeof task.Count.current_page != "undefined"
         ? task.Count.current_page
         : 1;
-    const lastPage =
-      typeof task.Count.last_page != "undefined" ? task.Count.last_page : 1;
+    const lastPage = typeof task.Count.last_page != "undefined" ? task.Count.last_page : 1;
     const taskList = task.List;
-
-    let yourData = [
+    const chartData = [
       [
         { type: "string", label: "Task ID" },
         { type: "string", label: "Task Name" },
@@ -126,44 +127,35 @@ export default class List extends React.Component {
         { type: "number", label: "Duration" },
         { type: "number", label: "Percent Complete" },
         { type: "string", label: "Dependencies" }
-      ]
+      ],
+      ..._.map(taskList, (data) => {
+        return [
+          data.id,
+          data.task,
+          null,
+          new Date(data.startDate),
+          moment(data.dueDate).endOf('day').toDate(),
+          100,
+          100,
+          null
+        ];
+      })
     ];
-    taskList.map((data, index) => {
-      yourData.push([
-        data.id,
-        data.task,
-        null,
-        new Date(data.startDate),
-        new Date(data.dueDate),
-        100,
-        100,
-        null
-      ]);
-    });
     return (
       <div class="pd0">
-        <div class="row mb10 mt10">
-          <div class="col-lg-6 status-div">
-            <TaskStatus />
-          </div>
-        </div>
-        <div class="row mb10">
-          <div class="col-lg-10 pd0">
-            <TaskFilter />
-          </div>
-        </div>
         {
           (task.Loading == "RETRIEVING") && <Loading />
         }
         {
-          (task.Loading != "RETRIEVING" && taskList.length > 0) && <Chart
-            width={"100%"}
-            height={"400px"}
-            chartType="Gantt"
-            loader={<Loading />}
-            data={yourData}
-            rootProps={{ "data-testid": "3" }}
-          />
+          (task.Loading != "RETRIEVING" && taskList.length > 0) && <div>
+            <Chart
+              width={"100%"}
+              height={42 * chartData.length}
+              chartType="Gantt"
+              loader={<Loading />}
+              data={chartData}
+            />
+          </div>
         }
         <div class="text-center">
           {
