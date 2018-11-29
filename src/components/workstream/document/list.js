@@ -142,17 +142,10 @@ export default class List extends React.Component {
     }
 
     goToFolder(data) {
-        let { dispatch, folder } = this.props;
-        if (data.id != null) {
-            let documentFolder = folder.List.filter(e => {
-                return e.id == data.folderId
-            })
-            let folderParams = ""
-            if (data.folderId) {
-                folderParams = `?folder=${data.folderId}&type=${data.status}`
-            }
-            window.location.replace(`/project/documents/${project}` + folderParams);
+        if (data.document_folder ) {
+            folderParams = `?folder=${data.document_folder.id}&status=${data.document_folder.status}&origin=${data.document_folder.origin}`
         }
+        window.location.replace(`/project/${project}/documents` + folderParams);
     }
 
     downloadDocument(document) {

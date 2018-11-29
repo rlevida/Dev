@@ -49,20 +49,21 @@ export default class DocumentLibrary extends React.Component {
     }
 
     componentDidMount() {
-        const { document } = this.props;
+        const { dispatch, document, loggedUser } = this.props;
         // automatically move to selected folder
-        if (folderParams != "" && folderParamsType == "library") {
-            let folderSelectedInterval = setInterval(() => {
-                if (this.props.folder.List.length > 0) {
-                    clearInterval(folderSelectedInterval)
-                    let folderData = this.props.folder.List.filter(e => e.id == folderParams)
-                    if (folderData.length > 0) {
-                        this.props.dispatch({ type: "SET_LIBRARY_FOLDER_SELECTED", Selected: folderData[0] })
-                    }
+        if (folderParams !== "" && folderParamsStatus === "library" && folderParamsOrigin !== "") {
+            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderParams}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
+                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [{ id: folderParams, name: folderParamsOrigin }], Type: 'SelectedLibraryFolderName' });
+
+                    showToast('success', 'Documents successfully retrieved.');
+                } else {
+                    showToast('success', 'Something went wrong!')
                 }
-            }, 1000)
-        }
-        if (_.isEmpty(document.LibraryCount.Count)) {
+            });
+        } else if (_.isEmpty(document.LibraryCount.Count)) {
             this.fetchData(1)
         }
     }
@@ -234,6 +235,9 @@ export default class DocumentLibrary extends React.Component {
                     } else {
                         hasFolder = false;
                     }
+                }
+                if (data === '') {
+                    window.history.replaceState({}, document.title, "/project/" + `${project}/documents`);
                 }
                 dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList, Type: 'SelectedLibraryFolderName' });
                 showToast('success', 'Documents successfully retrieved.');

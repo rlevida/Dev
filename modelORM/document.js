@@ -95,6 +95,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'document_starred',
       foreignKey: 'linkId'
     })
+    Document.belongsTo(models.Document, {
+      as: 'document_folder',
+      foreignKey: 'folderId'
+    })
   };
 
   return Document;
