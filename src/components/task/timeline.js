@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 
 import TaskStatus from "./taskStatus";
 import TaskFilter from "./taskFilter";
-import { HeaderButtonContainer, Loading } from "../../globalComponents";
+import { Loading } from "../../globalComponents";
 import { getData, putData, deleteData, showToast } from "../../globalFunction";
 import { Chart } from "react-google-charts";
 
@@ -112,11 +112,9 @@ export default class List extends React.Component {
       typeof task.Count.current_page != "undefined"
         ? task.Count.current_page
         : 1;
-    const lastPage =
-      typeof task.Count.last_page != "undefined" ? task.Count.last_page : 1;
+    const lastPage = typeof task.Count.last_page != "undefined" ? task.Count.last_page : 1;
     const taskList = task.List;
-
-    let yourData = [
+    const chartData = [
       [
         { type: "string", label: "Task ID" },
         { type: "string", label: "Task Name" },
@@ -126,20 +124,20 @@ export default class List extends React.Component {
         { type: "number", label: "Duration" },
         { type: "number", label: "Percent Complete" },
         { type: "string", label: "Dependencies" }
-      ]
+      ],
+      ..._.map(taskList, (data) => {
+        return [
+          data.id,
+          data.task,
+          null,
+          new Date(data.startDate),
+          moment(data.dueDate).endOf('day').toDate(),
+          100,
+          100,
+          null
+        ];
+      })
     ];
-    taskList.map((data, index) => {
-      yourData.push([
-        data.id,
-        data.task,
-        null,
-        new Date(data.startDate),
-        new Date(data.dueDate),
-        100,
-        100,
-        null
-      ]);
-    });
     return (
       <div class="pd0">
         <div class="row mb10 mt10">
@@ -156,14 +154,15 @@ export default class List extends React.Component {
           (task.Loading == "RETRIEVING") && <Loading />
         }
         {
-          (task.Loading != "RETRIEVING" && taskList.length > 0) && <Chart
-            width={"100%"}
-            height={"400px"}
-            chartType="Gantt"
-            loader={<Loading />}
-            data={yourData}
-            rootProps={{ "data-testid": "3" }}
-          />
+          (task.Loading != "RETRIEVING" && taskList.length > 0) && <div>
+            <Chart
+              width={"100%"}
+              height={42 * chartData.length}
+              chartType="Gantt"
+              loader={<Loading />}
+              data={chartData}
+            />
+          </div>
         }
         <div class="text-center">
           {

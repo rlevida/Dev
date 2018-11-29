@@ -37,10 +37,15 @@ export default class ProjectFilter extends React.Component {
         });
     }
 
+    componentDidMount() {
+        setDatePicker(this.handleDate, "dueDate", new Date(2019, 3, 20));
+    }
+
     componentDidUpdate(prevProps) {
+        console.log(_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false && prevProps.task.FormActive == this.props.task.FormActive)
         const { dispatch, loggedUser, task: taskState } = this.props;
-        
-        if (_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false && prevProps.task.FormActive ==  this.props.task.FormActive) {
+
+        if (_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false && prevProps.task.FormActive == this.props.task.FormActive) {
             const { taskStatus, dueDate, taskAssigned, task, selected_month } = this.props.task.Filter;
             let requestUrl = `/api/task?projectId=${project}&starredUser=${loggedUser.data.id}`;
 
@@ -80,10 +85,9 @@ export default class ProjectFilter extends React.Component {
                     dispatch({ type: "SET_TASK_LOADING", Loading: "" });
                     showToast("success", "Task successfully retrieved.");
                 });
-            }, 500);
+            }, 1500);
+            setDatePicker(this.handleDate, "dueDate", new Date(2019, 3, 20));
         }
-
-        setDatePicker(this.handleDate, "dueDate", new Date(2019, 3, 20));
     }
 
     setDropDown(name, e) {
