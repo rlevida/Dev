@@ -1,18 +1,19 @@
-export default function reducer(state={
-    List : [],
-    FormActive : "List",
-    Selected : {},
+export default function reducer(state = {
+    List: [],
+    FormActive: "List",
+    Selected: {},
     SelectedId: [],
-},action){
+    Filter: {}
+}, action) {
     switch (action.type) {
 
         //ADD
-        case "ADD_COMMENT_LIST":{
+        case "ADD_COMMENT_LIST": {
             let List = state.List;
-            action.list.map( e => {
-                List.push( e )
+            action.list.map(e => {
+                List.push(e)
             })
-            return {...state, List : List }
+            return { ...state, List: List }
         }
 
         //SET
@@ -29,39 +30,44 @@ export default function reducer(state={
             return { ...state, SelectedId: action.SelectedId }
         }
         case "SET_COMMENT_STATUS": {
-            let List = state.List.map((e,i)=>{
-                    if(e.id == action.record.id){
-                        e.Active = action.record.status
-                        return e
-                    }else{
-                        return e
-                    }
-                })
-            return {...state, List: List }
+            let List = state.List.map((e, i) => {
+                if (e.id == action.record.id) {
+                    e.Active = action.record.status
+                    return e
+                } else {
+                    return e
+                }
+            })
+            return { ...state, List: List }
+        }
+        case "SET_CONVERSATION_FILTER" : {
+            const { Filter } = { ...state };
+            const updatedFilter = _.merge({}, _.omit(Filter, action.name), action.filter);
+            return { ...state, Filter: updatedFilter }
         }
 
         //UPDATE
-        case "UPDATE_DATA_COMMENT_LIST" : {
-            let tempList = action.list.map((e,i)=>{
-                if(e.id == action.UpdatedData.id){
+        case "UPDATE_DATA_COMMENT_LIST": {
+            let tempList = action.list.map((e, i) => {
+                if (e.id == action.UpdatedData.id) {
                     return action.UpdatedData
                 }
                 return e
             })
             return { ...state, List: tempList }
         }
-        
+
         //REMOVE
-        case "REMOVE_DELETED_COMMENT_LIST" : {
+        case "REMOVE_DELETED_COMMENT_LIST": {
             let tempList = [];
-            action.list.map((e,i)=>{
-                if(action.id != e.id){
+            action.list.map((e, i) => {
+                if (action.id != e.id) {
                     tempList.push(e)
                 }
             })
             return { ...state, List: tempList }
         }
-      
+
         default:
             return state;
     }

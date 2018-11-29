@@ -1,12 +1,16 @@
 import React from "react"
 import moment from 'moment'
 import mime from "mime-types";
+import { connect } from "react-redux"
+
 import { getFilePathExtension, putData, deleteData, showToast, postData, removeTempFile, getData } from '../../../globalFunction'
 import { HeaderButtonContainer } from "../../../globalComponents"
+
 import DocumentComment from "../comment"
 import PrintComponent from "../print"
 
-import { connect } from "react-redux"
+
+var delayTimer = ''
 
 @connect((store) => {
     return {
@@ -31,11 +35,36 @@ export default class DocumentViewerComponent extends React.Component {
             mentions: [],
             reminderList: []
         }
+        this.handleOnChange = this.handleOnChange.bind(this)
     }
 
-    componentWillMount() {
-        let { dispatch, document, users } = this.props
-        getData(`/api/conversation/getConversationList?linkType=document&linkId=${document.Selected.id}`, {}, (c) => {
+    componentDidMount() {
+        this.fetchData(1)
+    }
+
+    componentDidUpdate(prevProps) {
+        const { dispatch, document } = this.props;
+
+        if (_.isEqual(prevProps.conversation.Filter, this.props.conversation.Filter) == false) {
+            clearTimeout(delayTimer);
+            const { search } = this.props.conversation.Filter;
+            let requestUrl = `/api/conversation/getConversationList?linkType=document&linkId=${document.Selected.id}`;
+
+            delayTimer = setTimeout(() => {
+                if (typeof search !== 'undefined' && search !== '') {
+                    requestUrl += `&search=${search}`
+                }
+                getData(requestUrl, {}, (c) => {
+                    dispatch({ type: 'SET_COMMENT_LIST', list: c.data })
+                })
+            }, 1000);
+        }
+
+    }
+
+    fetchData(page) {
+        const { dispatch, document } = this.props;
+        getData(`/api/conversation/getConversationList?linkType=document&linkId=${document.Selected.id}&page=${page}`, {}, (c) => {
             dispatch({ type: 'SET_COMMENT_LIST', list: c.data })
         })
     }
@@ -95,8 +124,13 @@ export default class DocumentViewerComponent extends React.Component {
         window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
     }
 
+    handleOnChange(e) {
+        const { dispatch } = this.props;
+        dispatch({ type: 'SET_CONVERSATION_FILTER', filter: { [e.target.name]: e.target.value } });
+    }
+
     render() {
-        let { dispatch, document, settings, global, starred } = this.props,
+        let { dispatch, document, settings, conversation, starred } = this.props,
             isDocument = true, ext = "", documentContentType = "";
         if (typeof document.Selected.id !== 'undefined') {
             ext = getFilePathExtension(document.Selected.name).toLowerCase();
@@ -120,14 +154,13 @@ export default class DocumentViewerComponent extends React.Component {
                 }
                 <div class="row mt10">
                     <div class="col-lg-12 col-md-12 col-xs-12">
-
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h3 class="panel-title">DOCUMENT VIEWER</h3>
                             </div>
                             <div class="panel-body">
                                 <div class="row" style={{ height: "800px" }}>
-                                    <div class="col-lg-9 col-md-9 col-xs-12" style={{ height: "100%" }}>
+                                    <div class="col-lg-8 col-md-8 col-xs-12" style={{ height: "100%" }}>
                                         <div id="documentImage" style={{ textAlign: "center", height: "100%" }}>
                                             {isDocument ?
                                                 <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${settings.imageUrl}/upload/${document.Selected.name}`}
@@ -138,32 +171,41 @@ export default class DocumentViewerComponent extends React.Component {
                                             }
                                         </div>
                                     </div>
-                                    <div class="col-lg-3 col-md-3 col-xs-12">
-                                        <div class="dropdown">
-                                            <button class="btn btn-default dropdown-toggle pull-right" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                            <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
-                                                <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(document.Selected)}>Download</a></li>
-                                                <li>
-                                                    {starred.List.filter(s => { return s.linkId == document.Selected.id }).length > 0
-                                                        ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={() => this.starDocument(document.Selected, 1)}>Unstarred</a>
-                                                        : <a href="javascript:void(0)" data-tip="Star" onClick={() => this.starDocument(document.Selected, 0)}>Star</a>
-                                                    }
-                                                </li>
-                                                <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(document.Selected.id)}>Delete</a></li>
-                                                {/* <li><a href="javascript:void(0);" data-tip="Print" onClick={()=>this.printDocument(document.Selected)}>Print</a></li> */}
-                                            </ul>
+                                    <div class="col-lg-4 col-md-4 col-xs-12">
+                                        <div class="row  m10 mb40">
+                                            <div class="col-lg-10 col-md-10 col-xs-10">
+                                                <input class="form-control" type="text" placeholder="Search" name='search' aria-label="Search" value={(typeof conversation.Filter.search !== 'undefined') ? conversation.Filter.search : ''} onChange={(e) => this.handleOnChange(e)} />
+                                            </div>
+                                            <div class="col-lg-2 col-md-2 col-xs-2">
+                                                <div class="dropdown">
+                                                    <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                                    <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
+                                                        <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(document.Selected)}>Download</a></li>
+                                                        <li>
+                                                            {starred.List.filter(s => { return s.linkId == document.Selected.id }).length > 0
+                                                                ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={() => this.starDocument(document.Selected, 1)}>Unstarred</a>
+                                                                : <a href="javascript:void(0)" data-tip="Star" onClick={() => this.starDocument(document.Selected, 0)}>Star</a>
+                                                            }
+                                                        </li>
+                                                        <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(document.Selected.id)}>Delete</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <br /><br />
-                                        <span class="glyphicon glyphicon-file"></span>
-                                        {typeof document.Selected.id !== 'undefined' && document.Selected.origin}
-                                        <br />
-                                        Uploaded by {typeof document.Selected.id !== 'undefined' && document.Selected.user.emailAddress}
-                                        <br />
-                                        {typeof document.Selected.id !== 'undefined' && moment(document.Selected.dateAdded).format('L')}
-                                        <br />
-                                        <h4>Comments</h4>
-                                        <hr />
-                                        <DocumentComment />
+                                        <div class="row  m10">
+                                            <div class="col-lg-12 col-md-12 col-xs-12">
+                                                <span class="glyphicon glyphicon-file"></span>
+                                                {typeof document.Selected.id !== 'undefined' && document.Selected.origin}
+                                                <br />
+                                                Uploaded by {typeof document.Selected.id !== 'undefined' && document.Selected.user.emailAddress}
+                                                <br />
+                                                {typeof document.Selected.id !== 'undefined' && moment(document.Selected.dateAdded).format('L')}
+                                                <br />
+                                                <h4>Comments</h4>
+                                                <hr />
+                                                <DocumentComment />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -171,7 +213,7 @@ export default class DocumentViewerComponent extends React.Component {
                     </div>
                 </div>
                 <PrintComponent />
-            </div>
+            </div >
         )
     }
 }
