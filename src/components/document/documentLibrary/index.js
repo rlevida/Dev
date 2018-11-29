@@ -126,16 +126,12 @@ export default class DocumentLibrary extends React.Component {
         }
     }
 
-    downloadDocument(document) {
-        if (document.type === 'document') {
-            window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
+    downloadDocument(data) {
+        if (data.type === 'document') {
+            window.open(encodeURI(`/api/downloadDocument?fileName=${data.name}&origin=${data.origin}`));
         } else {
-
+            window.open(encodeURI(`/api/downloadFolder?folder=${data.id}&folderName=${`${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`}`));
         }
-    }
-
-    downloadFolder(folder) {
-        window.open(encodeURI(`/api/downloadFolder?data=${JSON.stringify(fileList)}&folderName=${folder.name}`));
     }
 
     duplicateDocument(data) {

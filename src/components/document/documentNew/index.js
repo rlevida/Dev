@@ -103,8 +103,12 @@ export default class DocumentNew extends React.Component {
         }
     }
 
-    downloadDocument(document) {
-        window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
+    downloadDocument(data) {
+        if (data.type === 'document') {
+            window.open(encodeURI(`/api/downloadDocument?fileName=${data.name}&origin=${data.origin}`));
+        } else {
+            window.open(encodeURI(`/api/downloadFolder?folder=${data.id}&folderName=${`${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`}`));
+        }
     }
 
     duplicateDocument(data) {
@@ -125,14 +129,7 @@ export default class DocumentNew extends React.Component {
     }
 
     downloadFolder(folder) {
-        let { document } = this.props;
-        let fileList = [];
-        document.List.filter(e => {
-            if (e.folderId == folder.id) {
-                fileList.push({ origin: e.origin, name: e.name })
-            }
-        })
-        window.open(encodeURI(`/api/downloadFolder?data=${JSON.stringify(fileList)}&folderName=${folder.name}`));
+
     }
 
     editDocument(data, type) {
