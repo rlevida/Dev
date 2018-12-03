@@ -14,7 +14,8 @@ import Modal from "./newForm";
     workstream: store.workstream,
     loggedUser: store.loggedUser,
     global: store.global,
-    document: store.document
+    document: store.document, 
+    task: store.task,
   };
 })
 export default class List extends React.Component {
@@ -137,7 +138,7 @@ export default class List extends React.Component {
   }
 
   render() {
-    const { notes, loggedUser, setIsClosed } = this.props;
+    const { notes, loggedUser, setIsClosed, workstreamId, task } = this.props;
     const currentPage =
       typeof notes.Count.current_page != "undefined"
         ? notes.Count.current_page
@@ -157,6 +158,26 @@ export default class List extends React.Component {
         <table id="dataTable" class="table responsive-table mt30">
           <tbody>
             {notesList.map(e => {
+              let allowView = true;
+              if( workstreamId ){
+                allowView = false;
+                if( e.notesTagWorkstream.filter(f => f.tagTypeId == workstreamId).length > 0 ){
+                  allowView = true;
+                }
+                if( !allowView ) {
+                  e.notesTagTask.map((f)=>{
+                    if( task.List.filter(g=>g.id === f.tagTask.id) ){
+                      allowView = true
+                    }
+                  })
+                }
+
+              }
+
+              if( !allowView ){
+                return "";
+              }
+              
               const lastCommentUser = e.comments[e.comments.length-1];
               // hide notes for client
               if ( e.accessType === "INTERNAL_ONLY" && loggedUser.data.userType === "External"){

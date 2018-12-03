@@ -106,7 +106,13 @@ export default class List extends React.Component {
                                 }}>
                                 Documents</a>
                         </li>|
-                    <li class="list-inline-item" style={{ color: "gray" }}>Conversation</li>
+                    <li class="list-inline-item" style={{ color: "gray" }}>
+                        <a href="javascript:void(0)"
+                                onClick={() => {
+                                    dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "conversation" })
+                                }}>
+                        Conversation</a>
+                    </li>
                     </ul>
                     <ul class="list-inline" style={{ margin: "20px" }}>
                         <li style={{ width: "40px" }}>

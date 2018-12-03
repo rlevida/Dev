@@ -11,6 +11,7 @@ import Task from "./task";
 import Member from "./member";
 import Timeline from "../task/timeline";
 import Calendar from "../task/calendar";
+import Conversation from "./conversations"
 
 let keyTimer = "";
 
@@ -322,6 +323,9 @@ export default class FormComponent extends React.Component {
                             }
                             {
                                 (workstream.SelectedLink == "member") && <Member />
+                            }
+                            {
+                                (workstream.SelectedLink == "conversation") && <Conversation />
                             }
                         </div>
                     </div>
