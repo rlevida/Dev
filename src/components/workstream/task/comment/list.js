@@ -28,7 +28,7 @@ export default class List extends React.Component {
                                 <div class="ml15">
                                     <MentionConvert string={o.comment} />
                                     <p style={{ marginTop: 5, fontSize: 10 }}>
-                                        By: {o.users_firstName + ' ' + o.users_lastName + " - " + moment(o.dateAdded).format("MMM DD, YYYY")}
+                                        By: {o.users.firstName + ' ' + o.users.lastName + " - " + moment(o.dateAdded).format("MMM DD, YYYY")}
                                     </p>
                                 </div>
                             </div>

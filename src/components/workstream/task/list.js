@@ -52,7 +52,7 @@ export default class List extends React.Component {
                         })
                     },
                     taskCommentList: (parallelCallback) => {
-                        getData(`/api/conversation/getConversationList`, { params: { filter: { linkType: "task", linkId: data.id } } }, (c) => {
+                        getData(`/api/conversation/getConversationList?linkType=task&linkId=${data.id}`, {}, (c) => {
                             if (c.status == 200) {
                                 dispatch({ type: "SET_COMMENT_LIST", list: c.data })
                             }
@@ -160,7 +160,7 @@ export default class List extends React.Component {
                 })
             },
             taskCommentList: (parallelCallback) => {
-                getData(`/api/conversation/getConversationList`, { params: { filter: { linkType: "task", linkId: data.id } } }, (c) => {
+                getData(`/api/conversation/getConversationList?linkType=task&linkId=${data.id}`, {}, (c) => {
                     if (c.status == 200) {
                         dispatch({ type: "SET_COMMENT_LIST", list: c.data })
                     }

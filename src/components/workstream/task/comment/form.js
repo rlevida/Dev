@@ -1,9 +1,10 @@
 import React from "react";
 import { connect } from "react-redux";
 import { MentionsInput, Mention } from 'react-mentions';
+import { postData, showToast } from "../../../../globalFunction";
 import _ from "lodash";
 import defaultStyle from "../../../global/react-mention-style";
-@connect(({ task, conversation, socket, users, loggedUser , global }) => {
+@connect(({ task, conversation, socket, users, loggedUser, global, notes }) => {
     return {
         task,
         conversation,
@@ -31,18 +32,18 @@ export default class Form extends React.Component {
     }
 
     fetchUsers(query, callback) {
-        const { loggedUser , global } = { ...this.props };
+        const { loggedUser, global } = { ...this.props };
 
         return global.SelectList.projectMemberList.map((o) => {
-            let userName = o.firstName + " " + o.lastName ;
-                if(userName.includes(query) && o.id != loggedUser.data.id){
-                    return { display: o.firstName + " " + o.lastName, id: o.id }
-                }
+            let userName = o.firstName + " " + o.lastName;
+            if (userName.includes(query) && o.id != loggedUser.data.id) {
+                return { display: o.firstName + " " + o.lastName, id: o.id }
+            }
         }).filter((o) => { return o != undefined })
     }
 
     handleSubmit() {
-        const { socket, conversation, task, loggedUser } = this.props;
+        const { conversation, task, loggedUser, dispatch } = this.props;
         const commentText = conversation.Selected.comment;
         const commentSplit = (commentText).split(/{([^}]+)}/g).filter(Boolean);
         const commentIds = _(commentSplit).filter((o) => {
@@ -61,11 +62,14 @@ export default class Form extends React.Component {
                 type: "Tag in Comment",
                 detail: "tagged in comment",
                 projectId: task.Selected.projectId,
-                createdBy :loggedUser.data.id
+                createdBy: loggedUser.data.id
             },
             reminderList: JSON.stringify(commentIds)
         };
-        socket.emit("SAVE_OR_UPDATE_CONVERSATION", dataToBeSubmited);
+        postData(`/api/conversation/comment`, dataToBeSubmited, c => {
+            dispatch({ type: "ADD_COMMENT_LIST", list: c.data });
+            dispatch({ type: "SET_COMMENT_SELECTED", Selected: {} })
+        });
     }
 
     render() {
