@@ -147,6 +147,8 @@ exports.post = {
         const teams = body.team;
         const role = body.userRole;
         const project = body.project;
+        const copyId = body.copy_id;
+
         delete body.team;
         delete body.userRole;
         delete body.project;
@@ -229,6 +231,44 @@ exports.post = {
                             })
                     } else {
                         parallelCallback(null, [])
+                    }
+                },
+                copy: (parallelCallback) => {
+                    if (typeof copyId != "undefined" && copyId != "") {
+                        async.parallel({
+                            members: (copyCallback) => {
+                                Members.findAll({
+                                    where: {
+                                        usersType: "users",
+                                        userTypeLinkId: copyId,
+                                        linkType: "project"
+                                    }
+                                }).map((mapObject) => {
+                                    return _.omit({ ...mapObject.toJSON(), userTypeLinkId: result.id }, ["id"]);
+                                }).then((resultArray) => {
+                                    Members.bulkCreate(resultArray).then((response) => {
+                                        copyCallback(null, response)
+                                    });
+                                });
+                            },
+                            team: (copyCallback) => {
+                                UsersTeam.findAll({
+                                    where: {
+                                        usersId: copyId
+                                    }
+                                }).map((mapObject) => {
+                                    return _.omit({ ...mapObject.toJSON(), usersId: result.id }, ["id"]);
+                                }).then((resultArray) => {
+                                    UsersTeam.bulkCreate(resultArray).then((response) => {
+                                        copyCallback(null, response)
+                                    });
+                                });
+                            }
+                        }, (err, response) => {
+                            parallelCallback(null)
+                        });
+                    } else {
+                        parallelCallback(null)
                     }
                 }
             }, (err, parallelCallbackResult) => {

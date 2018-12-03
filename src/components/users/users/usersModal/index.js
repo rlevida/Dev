@@ -80,7 +80,6 @@ export default class UsersModal extends React.Component {
         }
         users.Selected.firstName = users.Selected.firstName.trim()
         users.Selected.lastName = (typeof users.Selected.lastName != 'undefined') ? users.Selected.lastName.trim() : '';
-
         if (typeof users.Selected.id == 'undefined') {
             postData(`/api/user`, users.Selected, (c) => {
                 if (c.data.error) {
