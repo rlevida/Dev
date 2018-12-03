@@ -14,7 +14,7 @@ const Op = Sequelize.Op;
  *   s    i    H    DM    M   DW 
  * 
  **/
-var j = schedule.scheduleJob('0 0 * * *', () => {
+var j = schedule.scheduleJob('0 0 0 * * *', () => {
     const models = require('../modelORM');
     const {
         Tasks,
