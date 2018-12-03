@@ -1,9 +1,7 @@
 const _ = require("lodash");
-const { defaultPost, defaultPut, defaultDelete } = require("./");
-const Sequelize = require("sequelize")
-const Op = Sequelize.Op;
+const async = require("async");
 const models = require('../modelORM');
-const { Members, Users, UsersRole, Roles, UsersTeam, Teams, TaskMemberReminder } = models;
+const { Members, Users, UsersRole, Roles, UsersTeam, Teams, TaskMemberReminder, Sequelize, sequelize } = models;
 const associationArray = [
     {
         model: Users,
@@ -43,7 +41,6 @@ exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
         const limit = 5;
-        
         const whereObj = {
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {},
             ...(typeof queryString.linkId != "undefined" && queryString.linkId != "") ? { linkId: queryString.linkId } : {},
@@ -72,8 +69,7 @@ exports.get = {
                             [Sequelize.Op.eq]: "task"
                         }
                     ]
-                },
-                memberType: "assignedTo"
+                }
             } : {},
             ...(typeof queryString.memberName != "undefined" && queryString.memberName != "") ? {
                 [Sequelize.Op.and]: [
@@ -143,6 +139,82 @@ exports.get = {
         } catch (err) {
             cb({ status: false, error: err })
         }
+    },
+    selectList: (req, cb) => {
+        const queryString = req.query;
+        const limit = 5;
+        let query = `SELECT * FROM members WHERE id <> 0 `;
+
+        if (typeof queryString.linkType != "undefined" && queryString.linkType != "") {
+            query += `AND linkType = "${queryString.linkType}" `
+        }
+
+        if (typeof queryString.linkId != "undefined" && queryString.linkId != "") {
+            query += `AND linkId = "${queryString.linkId}" `
+        }
+
+        const constructQuery = (column) => {
+            return `
+                SELECT ${column} FROM (
+                    SELECT users.* , role.role , role.id as roleId FROM (
+                            SELECT * FROM (` + query + `) as prjMembersUsers WHERE usersType = "users") as tb1
+                    LEFT JOIN users ON tb1.userTypeLinkId = users.id
+                    LEFT JOIN users_role ON users.id = users_role.usersId
+                    LEFT JOIN role ON users_role.roleId = role.id
+                    WHERE users.id IS NOT NULL
+                    UNION ALL
+                    SELECT users.* , role.role , role.id as roleId FROM  ( SELECT * FROM (` + query + `) as prjMembersTeam WHERE usersType = "team") as tb2
+                    LEFT JOIN users_team ON tb2.userTypeLinkId = users_team.teamId
+                    LEFT JOIN users ON users_team.usersId = users.id 
+                    LEFT JOIN users_role ON users.id = users_role.usersId
+                    LEFT JOIN role ON users_role.roleId = role.id
+                    WHERE users.id IS NOT NULL
+                    ${(typeof queryString.memberName != "undefined" && queryString.memberName != "") ? `
+                    AND
+                    (LOWER(users.firstName) like "%${(queryString.memberName).toLowerCase()}%" OR LOWER(users.lastName) like "%${(queryString.memberName).toLowerCase()}%")
+                    ` : ``}
+                ) as mainTable `
+        };
+
+        async.parallel({
+            count: function (callback) {
+                try {
+                    sequelize
+                        .query(constructQuery("COUNT(*) as count"), { type: sequelize.QueryTypes.SELECT })
+                        .then((response) => {
+                            const pageData = {
+                                total_count: response[0].count,
+                                ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response[0].count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response[0].count / limit) } : {}
+                            }
+                            callback(null, pageData)
+                        });
+
+                } catch (err) {
+                    callback(err)
+                }
+            },
+            result: function (callback) {
+                try {
+                    if (typeof queryString.page != "undefined" && queryString.page != "") {
+                        query += `limit ${limit} offset ${(limit * _.toNumber(queryString.page)) - limit}`
+                    }
+                    sequelize
+                        .query(`${constructQuery("*")} GROUP BY id`, { type: sequelize.QueryTypes.SELECT })
+                        .then((response) => {
+                            callback(null, _.map(response, (responseObj) => { return _.omit(responseObj, ["password", "salt"]) }))
+                        });
+
+                } catch (err) {
+                    callback(err)
+                }
+            }
+        }, function (err, results) {
+            if (err != null) {
+                cb({ status: false, error: err });
+            } else {
+                cb({ status: true, data: results })
+            }
+        });
     }
 }
 

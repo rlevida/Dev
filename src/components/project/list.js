@@ -233,7 +233,7 @@ export default class List extends React.Component {
 
                 <div class="text-center">
                     {
-                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Projects</a>
+                        (currentPage != lastPage && project.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Projects</a>
                     }
                     {
                         (project.List.length == 0 && project.Loading != "RETRIEVING") && <p>No Records Found</p>

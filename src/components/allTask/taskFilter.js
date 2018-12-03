@@ -29,9 +29,9 @@ export default class ProjectFilter extends React.Component {
     componentDidMount() {
         const { dispatch } = this.props;
 
-        getData(`/api/member?linkType=project&linkId=${project}&page=1`, {}, (c) => {
-            let taskMemberOptions = _(c.data.result)
-                .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
+        getData(`/api/member/selectList?linkType=project&linkId=${project}&page=1`, {}, (c) => {
+            const taskMemberOptions = _(c.data.result)
+                .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
                 .value();
             dispatch({ type: "SET_TASK_SELECT_LIST", List: taskMemberOptions });
         });
@@ -98,9 +98,9 @@ export default class ProjectFilter extends React.Component {
         if (options != "") {
             keyTimer && clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
-                getData(`/api/member?linkType=project&linkId=${project}&page=1&memberName=${options}`, {}, (c) => {
+                getData(`/api/member/selectList?linkType=project&linkId=${project}&page=1&memberName=${options}`, {}, (c) => {
                     let taskMemberOptions = _(c.data.result)
-                        .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
+                        .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
                         .value();
                     dispatch({ type: "SET_TASK_SELECT_LIST", List: Array.isArray(Filter.taskAssigned) ? _.concat(_.map(Filter.taskAssigned, (o) => { return { id: o.value, name: o.label } }), taskMemberOptions) : taskMemberOptions });
                 });
