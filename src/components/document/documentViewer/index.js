@@ -38,7 +38,7 @@ export default class DocumentViewerComponent extends React.Component {
         this.handleOnChange = this.handleOnChange.bind(this)
     }
 
-    componentDidMount() {
+    componentWillMount() {
         this.fetchData(1)
     }
 
@@ -64,7 +64,7 @@ export default class DocumentViewerComponent extends React.Component {
 
     fetchData(page) {
         const { dispatch, document } = this.props;
-        getData(`/api/conversation/getConversationList?linkType=document&linkId=${document.Selected.id}&page=${page}`, {}, (c) => {
+        getData(`/api/conversation/getConversationList?linkType=document&linkId=${document.Selected.id}`, {}, (c) => {
             dispatch({ type: 'SET_COMMENT_LIST', list: c.data })
         })
     }
