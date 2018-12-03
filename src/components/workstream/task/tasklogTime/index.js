@@ -21,16 +21,6 @@ export default class TaskTimelog extends React.Component {
         this.generateList = this.generateList.bind(this);
     }
 
-    componentDidMount() {
-        const { tasktimeLog } = { ...this.props };
-        const { Count } = tasktimeLog;
-        if (_.isEmpty(Count)) {
-            this.fetchData(1);
-        } else if (Count.current_page != Count.last_page) {
-            this.fetchData(Count.current_page + 1);
-        }
-    }
-
     getNextResult() {
         const { tasktimeLog } = { ...this.props };
         this.fetchData(tasktimeLog.Count.current_page + 1);
