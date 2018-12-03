@@ -93,9 +93,12 @@ export default class List extends React.Component {
     }
 
     viewDocument(data) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-        $(`#documentViewerModal`).modal('show')
+        let { dispatch } = this.props;
+        getData(`/api/conversation/getConversationList?linkType=document&linkId=${data.id}`, {}, (c) => {
+            dispatch({ type: 'SET_COMMENT_LIST', list: c.data })
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+            $(`#documentViewerModal`).modal('show')
+        })
     }
 
     handleIsCompleted(data, value) {
@@ -142,7 +145,7 @@ export default class List extends React.Component {
     }
 
     goToFolder(data) {
-        if (data.document_folder ) {
+        if (data.document_folder) {
             folderParams = `?folder=${data.document_folder.id}&status=${data.document_folder.status}&origin=${data.document_folder.origin}`
         }
         window.location.replace(`/project/${project}/documents` + folderParams);
