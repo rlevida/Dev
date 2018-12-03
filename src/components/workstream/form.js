@@ -62,10 +62,10 @@ export default class FormComponent extends React.Component {
         });
 
 
-        getData(`/api/member?linkType=project&linkId=${project}&page=1&workstreamId=${workstream.Selected.id}&memberType=users`, {}, (c) => {
+        getData(`/api/member/selectList?linkType=project&linkId=${project}&page=1`, {}, (c) => {
             const taskMemberOptions = _(c.data.result)
-                .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
-                .value();
+            .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
+            .value();
             dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
         });
     }
