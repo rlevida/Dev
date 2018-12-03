@@ -464,7 +464,7 @@ exports.post = {
                                         new: JSON.stringify({ task: activityObj }),
                                         title: taskObj.task
                                     }
-                                })
+                                });
                                 ActivityLogs.bulkCreate(activityLogs).then((response) => {
                                     parallelCallback(null, response)
                                 });

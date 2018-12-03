@@ -21,6 +21,7 @@ export default class List extends React.Component {
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
         this.renderArrayTd = this.renderArrayTd.bind(this)
         this.getNextResult = this.getNextResult.bind(this)
+        this.handleCopyUser = this.handleCopyUser.bind(this)
     }
 
     componentDidMount() {
@@ -85,6 +86,12 @@ export default class List extends React.Component {
         $(`#changePasswordModal`).modal('show');
     }
 
+    handleCopyUser(id) {
+        const { dispatch } = this.props;
+        $(`#usersModal`).modal('show');
+        dispatch({ type: 'SET_USER_SELECTED', Selected: { copy_id: id } });
+    }
+
     render() {
         const { users, loggedUser } = this.props;
         const currentPage = (typeof users.Count.current_page != "undefined") ? users.Count.current_page : 1;
@@ -97,7 +104,6 @@ export default class List extends React.Component {
                 return _.filter(o.user_role, (r) => { return r.roleId > 1 }).length > 0;
             } else if (loggedUser.data.userRole == 3) {
                 return _.filter(o.user_role, (r) => { return r.roleId > 2 }).length > 0
-                // return (_.filter(o.projects, (project) => { return project.projectManagerId == loggedUser.data.id })).length > 0 && o.userType == "External"
             }
         });
 
@@ -155,6 +161,12 @@ export default class List extends React.Component {
                                                         onClick={(e) => this.handleChangePassword(user.id)
                                                         } class="btn btn-info btn-sm ml10">
                                                         <span class="glyphicon glyphicon-lock"></span>
+                                                    </a>
+                                                    <a href="javascript:void(0);"
+                                                        data-tip='COPY USER'
+                                                        onClick={(e) => this.handleCopyUser(user.id)}
+                                                        class="btn btn-info btn-sm ml10">
+                                                        <span class="glyphicon glyphicon-copy"></span>
                                                     </a>
                                                     <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />
                                                 </div>
