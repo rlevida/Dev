@@ -8,6 +8,7 @@ CREATE TABLE `activity_logs` (
     `old` TEXT,
     `new` TEXT,
     `title` TEXT,
+    `notes` TEXT,
     `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)

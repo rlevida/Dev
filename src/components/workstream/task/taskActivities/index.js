@@ -71,7 +71,7 @@ export default class TaskActivities extends React.Component {
     }
 
     generateModified(params) {
-        const { user, title, linkType, dateAdded } = params;
+        const { user, title, linkType, dateAdded, notes } = params;
         const { firstName, lastName } = user;
         const oldValue = (params.old != "" && params.old != null) ? JSON.parse(params.old) : [];
         const newValue = (params.new != "" && params.new != null) ? JSON.parse(params.new) : [];
@@ -136,6 +136,12 @@ export default class TaskActivities extends React.Component {
                                     }
                                     {
                                         (toValue != "" && fromValue != "") && <p style={{ fontSize: 10, margin: 0 }}>To: <strong>{toValue}</strong> From: <strong>{fromValue}</strong></p>
+                                    }
+                                    {
+                                        (notes != null && notes != "") && <div style={{ marginTop: 5 }}>
+                                            <p style={{ fontSize: 10, margin: 0 }}>Notes:</p>
+                                            <p style={{ fontSize: 10, margin: 0 }}>{notes}</p>
+                                        </div>
                                     }
                                 </div>
                             );

@@ -930,7 +930,8 @@ exports.put = {
                                         actionType: "modified",
                                         old: JSON.stringify({ "task_status": _.pick(currentTask, objectKeys) }),
                                         new: JSON.stringify({ "task_status": newObject }),
-                                        title: updatedResponse.task
+                                        title: updatedResponse.task,
+                                        notes: body.message
                                     }).then((response) => {
                                         const responseObj = response.toJSON();
                                         return ActivityLogs.findOne({
