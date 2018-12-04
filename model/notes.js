@@ -17,10 +17,6 @@ var field = exports.field = {
      */
     'privacyType' : {type : 'string' , access : "public" },
     /**
-     * isStarred (TINYINT)
-     */
-    'isStarred' : {type : 'tinyint' , access : "public" },
-    /**
      * createdBy (BIGINT)
      */
     'createdBy' : {type : 'bigint' , access : "public" },

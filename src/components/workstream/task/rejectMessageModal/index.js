@@ -30,6 +30,7 @@ export default class ModalComponent extends React.Component {
         putData(`/api/task/status/${task.Selected.id}`,
             {
                 userId: loggedUser.data.id,
+                username: loggedUser.data.username,
                 periodTask: task.Selected.periodTask,
                 periodic: task.Selected.periodic,
                 id: task.Selected.id,
@@ -38,8 +39,8 @@ export default class ModalComponent extends React.Component {
                 approvalDueDate: null
             }, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [c.data.task] });
-                    dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task });
+                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
+                    dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task[0] });
                     dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                     showToast("success", "Task successfully updated.");
                 } else {
@@ -47,8 +48,6 @@ export default class ModalComponent extends React.Component {
                 }
                 dispatch({ type: "SET_TASK_LOADING", Loading: "" });
             });
-
-        $(`#rejectMessageModal`).modal("hide");
 
         $(`#rejectMessageModal`).modal("hide");
     }

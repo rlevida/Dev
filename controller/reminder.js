@@ -1,5 +1,3 @@
-const dbName = "reminder";
-// var { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./")
 const Sequelize = require("sequelize")
 const models = require('../modelORM');
 const {
@@ -25,7 +23,7 @@ exports.get = {
                             as: 'user'
                         },
                         {
-                            model:Tasks,
+                            model: Tasks,
                             as: 'task'
                         },
 
@@ -94,19 +92,13 @@ exports.put = {
                 .then((res) => {
                     Reminder
                         .findOne({ where: { id: id } })
-
-                    cb({})
+                        .then((findRes) => {
+                            cb({ status: true, data: findRes })
+                        })
                 })
         } catch (err) {
-            console.log(err)
+            cb({ status: false, error: err })
         }
-        // defaultPut(dbName,req,(res)=>{
-        //     if(res.success){
-        //         cb({ status:true, data:res.data })
-        //     } else {
-        //         cb({ status:false, error:c.error })
-        //     }
-        // })
     }
 }
 
