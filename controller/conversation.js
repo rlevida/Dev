@@ -141,7 +141,10 @@ exports.get = {
         }).then((nextThen,isPerWorkstream,noteIds) => {
             let whereCon = {};
             if(isPerWorkstream){
-                whereCon = { id: { [Op.in]: noteIds } }
+                whereCon.id = { [Op.in]: noteIds };
+            }
+            if (typeof queryString.projectId !== 'undefined' && queryString.projectId !== '') {
+                whereCon.projectId = queryString.projectId;
             }
 
             if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {

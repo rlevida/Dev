@@ -48,7 +48,7 @@ export default class List extends React.Component {
   fetchNotes() {
     const { dispatch, loggedUser, workstreamId } = this.props;
     dispatch({ type: "SET_NOTES_LOADING", Loading: "RETRIEVING" });
-    let url = `/api/conversation?starredUser=${loggedUser.data.id}`
+    let url = `/api/conversation?starredUser=${loggedUser.data.id}&projectId=${project}`
     if( workstreamId ){
       url = `${url}&workstreamId=${workstreamId}`
     }
