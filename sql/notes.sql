@@ -4,7 +4,7 @@ CREATE TABLE `notes` (
     `note` VARCHAR(255),
     `privacyType` VARCHAR(20),
     `createdBy` BIGINT,
-    `isClosed` TINYINT,
+    `isClosed` TINYINT DEFAULT '0',
     `projectId` BIGINT,
     `specificClient` TEXT,
     `accessType` VARCHAR(30),

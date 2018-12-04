@@ -56,14 +56,15 @@ export default class ApprovalModal extends React.Component {
                     approverId: task.Selected.approverId,
                     approvalDueDate: task.Selected.approvalDueDate,
                     userId: loggedUser.data.id,
+                    username: loggedUser.data.username,
                     periodTask: task.Selected.periodTask,
                     periodic: task.Selected.periodic,
                     id: task.Selected.id,
-                    status: "For Approval"
+                    status: "For Approval",
                 }, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [c.data.task] });
-                        dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task });
+                        dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
+                        dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task[0] });
                         dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                         showToast("success", "Task successfully updated.");
                     } else {

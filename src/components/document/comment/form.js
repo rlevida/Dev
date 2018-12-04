@@ -61,7 +61,7 @@ export default class Form extends React.Component {
                 linkType: "document",
                 linkId: document.Selected.id,
                 type: "Tag in Comment",
-                detail: "tagged in comment",
+                detail: "mentioned you on the document",
                 projectId: project,
                 createdBy: loggedUser.data.id
             },

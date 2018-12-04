@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `reminder`;
 CREATE TABLE `reminder` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
-    `detail` VARCHAR(50),
+    `detail` VARCHAR(100),
     `usersId` BIGINT,
     `seen` TINYINT(1) DEFAULT '0',
     `projectId` BIGINT,

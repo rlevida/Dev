@@ -4,14 +4,15 @@ import { MentionsInput, Mention } from 'react-mentions';
 import { postData, showToast } from "../../../../globalFunction";
 import _ from "lodash";
 import defaultStyle from "../../../global/react-mention-style";
-@connect(({ task, conversation, socket, users, loggedUser, global, notes }) => {
+@connect(({ task, conversation, socket, users, loggedUser, global, notes, workstream }) => {
     return {
         task,
         conversation,
         socket: socket.container,
         users,
         loggedUser,
-        global
+        global,
+        workstream
     }
 })
 
@@ -32,9 +33,9 @@ export default class Form extends React.Component {
     }
 
     fetchUsers(query, callback) {
-        const { loggedUser, global } = { ...this.props };
+        const { loggedUser, global, workstream } = { ...this.props };
 
-        return global.SelectList.projectMemberList.map((o) => {
+        return workstream.Selected.taskMemberList.map((o) => {
             let userName = o.firstName + " " + o.lastName;
             if (userName.includes(query) && o.id != loggedUser.data.id) {
                 return { display: o.firstName + " " + o.lastName, id: o.id }
@@ -43,7 +44,7 @@ export default class Form extends React.Component {
     }
 
     handleSubmit() {
-        const { conversation, task, loggedUser, dispatch } = this.props;
+        const { conversation, task, loggedUser, dispatch, workstream } = this.props;
         const commentText = conversation.Selected.comment;
         const commentSplit = (commentText).split(/{([^}]+)}/g).filter(Boolean);
         const commentIds = _(commentSplit).filter((o) => {
@@ -52,19 +53,20 @@ export default class Form extends React.Component {
         }).map((o) => {
             return { userId: _.toNumber(o.match(/\((.*)\)/).pop()) };
         }).value();
+        const taskMemberList = workstream.Selected.taskMemberList.map((e) => { return { id: e.id, emailAddress: e.emailAddress } })
 
         let dataToBeSubmited = {
             filter: { seen: 0 },
             data: { comment: commentText, linkType: "task", linkId: task.Selected.id, usersId: loggedUser.data.id },
-            reminder: {
-                linkType: "task",
-                linkId: task.Selected.id,
-                type: "Tag in Comment",
-                detail: "tagged in comment",
-                projectId: task.Selected.projectId,
-                createdBy: loggedUser.data.id
-            },
-            reminderList: JSON.stringify(commentIds)
+            reminderList: JSON.stringify(commentIds),
+            workstreamId: workstream.Selected.id,
+            taskId: task.Selected.id,
+            projectId: project,
+            username: loggedUser.data.username,
+            task: task.Selected.task,
+            workstream: workstream.Selected.workstream,
+            userId: loggedUser.data.id,
+            taskMembers: taskMemberList
         };
         postData(`/api/conversation/comment`, dataToBeSubmited, c => {
             dispatch({ type: "ADD_COMMENT_LIST", list: c.data });

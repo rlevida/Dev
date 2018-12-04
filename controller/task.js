@@ -95,7 +95,7 @@ exports.get = {
         const limit = 10;
         const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
         let dueDate = "";
-        
+
         if (typeof queryString.dueDate != "undefined" && queryString != "") {
             if (Array.isArray(queryString.dueDate)) {
                 dueDate = _.reduce(queryString.dueDate, function (obj, values) {
@@ -895,7 +895,7 @@ exports.put = {
                                             seen: 0,
                                             type: `Task ${body.status}`,
                                             usersId: e.id,
-                                            detail: (typeof body.message !== 'undefined') ? body.message : `Task ${body.status}`
+                                            detail: `${body.username} updated the task ${updatedResponse.task} on ${updatedResponse.workstream.workstream} to ${body.status}`
                                         }
                                         Reminder.create(reminderDetails).then((res) => {
                                             mapCallback(null, res)
@@ -906,15 +906,15 @@ exports.put = {
                                 },
                                 email: (statusParallelCallback) => {
                                     async.map(membersToRemind, (e, mapCallback) => {
-                                        const message = (typeof body.message != "undefined") ? body.message : ''
                                         const mailOptions = {
                                             from: '"no-reply" <no-reply@c_cfo.com>',
                                             to: `${e.emailAddress}`,
                                             subject: '[CLOUD-CFO]',
                                             text: `Task ${body.status}`,
-                                            html: `<p> ${message}</p>
-                                                        <p>${updatedResponse.task} ${body.status}</p>
-                                                        <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${updatedResponse.projectId}/workstream/${updatedResponse.workstreamId}?task=${updatedResponse.id}">Click here</a>`
+                                            html: `<p>${body.username} updated the task 
+                                                    <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${updatedResponse.projectId}/workstream/${updatedResponse.workstreamId}?task=${updatedResponse.id}" style="color:red">${updatedResponse.task}</a>
+                                                    on ${updatedResponse.workstream.workstream} to ${body.status}
+                                                </p>`
                                         }
                                         global.emailtransport(mailOptions)
                                         mapCallback()

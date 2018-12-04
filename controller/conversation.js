@@ -166,7 +166,7 @@ exports.get = {
                 comment: { [Op.like]: `%${queryString.search}%` }
             }
         }
-        
+
         Conversation
             .findAll({
                 where: whereObj,
@@ -191,20 +191,20 @@ exports.post = {
                 Notes.findAll({
                     where: { id: res.data[0].id },
                     include: NotesInclude
-                    
+
                 })
-                .map((res) => {
-                    const responseData = res.toJSON();
-                    const data = {
-                        ...responseData,
-                        isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
-                        tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
-                            .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
-                    }
-                    return data;
-                }).then((result) => {
-                    cb({ status: true, data: result })
-                })
+                    .map((res) => {
+                        const responseData = res.toJSON();
+                        const data = {
+                            ...responseData,
+                            isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
+                            tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
+                                .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
+                        }
+                        return data;
+                    }).then((result) => {
+                        cb({ status: true, data: result })
+                    })
             } else {
                 cb({ status: false, error: res.error })
             }
@@ -234,29 +234,52 @@ exports.post = {
             }
         }).then((nextThen, result) => {
             if (JSON.parse(d.reminderList).length) {
-                let tempResData = []
-                tempResData.push(new Promise((resolve, reject) => {
-                    JSON.parse(d.reminderList).map(r => {
-                        let data = { ...d.reminder, usersId: r.userId }
-                        Reminder
-                            .create(data)
-                            .then((res) => {
-                                Reminder
-                                    .findAll({
-                                        where: { usersId: r.userId, seen: 0 }
-                                    })
-                                    .then((findRes) => {
-                                        resolve(findRes)
-                                    })
-                            })
-                    })
-                }))
+                async.map(JSON.parse(d.reminderList), (r, mapCallback) => {
+                    async.parallel({
+                        reminder: (parallelCallback) => {
+                            let data = {
+                                usersId: r.userId,
+                                linkType: "task",
+                                linkId: d.taskId,
+                                type: 'Tag in Comment',
+                                detail: `${d.username} metioned you on the task ${d.task} on ${d.workstream}`,
+                                projectId: d.projectId,
+                                createdBy: d.userId
+                            }
 
-                Promise.all(tempResData).then((values) => {
-                    socketIo.emit("BROADCAST_SOCKET", { type: "FRONT_REMINDER_LIST", data: values[0] })
+                            Reminder
+                                .create(data)
+                                .then((res) => {
+                                    Reminder
+                                        .findAll({
+                                            where: { usersId: r.userId, seen: 0 }
+                                        })
+                                        .then((findRes) => {
+                                            parallelCallback(null, findRes)
+                                        })
+                                })
+                        },
+                        email: (parallelCallback) => {
+                            const emailAddress = d.taskMembers.filter((e) => { return e.id == r.userId })[0].emailAddress
+                            const mailOptions = {
+                                from: '"no-reply" <no-reply@c_cfo.com>',
+                                to: `${emailAddress}`,
+                                subject: '[CLOUD-CFO]',
+                                html: `<p>${d.username} metioned you on the task
+                                            <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${d.projectId}/workstream/${d.workstreamId}?task=${d.taskId}" style="color:red">${d.task}</a>
+                                            on ${d.workstream} 
+                                        </p>`
+                            }
+                            global.emailtransport(mailOptions)
+                            parallelCallback(null, '')
+                        }
+                    }, (err, { reminder }) => {
+                        mapCallback(null, reminder)
+                    })
+
+                }, (err, mapCallbackResult) => {
+                    socketIo.emit("BROADCAST_SOCKET", { type: "FRONT_REMINDER_LIST", data: mapCallbackResult[0] })
                     cb({ status: true, data: result })
-                }).catch((err) => {
-                    cb({ status: false, data: err })
                 })
             } else {
                 cb({ status: true, data: result })
@@ -277,18 +300,18 @@ exports.put = {
                     where: { id: req.params.id },
                     include: NotesInclude
                 })
-                .map((res) => {
-                    const responseData = res.toJSON();
-                    const data = {
-                        ...responseData,
-                        isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
-                        tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
-                            .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
-                    }
-                    return data;
-                }).then((result) => {
-                    cb({ status: true, data: result })
-                })
+                    .map((res) => {
+                        const responseData = res.toJSON();
+                        const data = {
+                            ...responseData,
+                            isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
+                            tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
+                                .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
+                        }
+                        return data;
+                    }).then((result) => {
+                        cb({ status: true, data: result })
+                    })
             } else {
                 cb({ status: false, error: res.error })
             }
@@ -358,21 +381,21 @@ exports.put = {
                 Tag.destroy({
                     where: {
                         tagType: 'notes',
-                        tagTypeId : req.params.id
+                        tagTypeId: req.params.id
                     }
                 }).then(res => {
                     nextThen()
                 })
-            } catch(err) {
+            } catch (err) {
                 console.error(err)
                 cb({ status: false, data: [] })
             }
-        }).then((nextThen)=>{
+        }).then((nextThen) => {
             let promiseList = [];
-            req.body.map((e)=>{
+            req.body.map((e) => {
                 promiseList.push(
-                    new Promise((resolve, reject)=>{
-                        Tag.create({ 
+                    new Promise((resolve, reject) => {
+                        Tag.create({
                             linkType: e.value.split("-")[0],
                             linkId: e.value.split("-")[1],
                             tagType: 'notes',
@@ -382,24 +405,24 @@ exports.put = {
                     })
                 )
             })
-            Promise.all(promiseList).then((values)=>{
+            Promise.all(promiseList).then((values) => {
                 Notes.findAll({
                     where: { id: req.params.id },
                     include: NotesInclude
-                    
+
                 })
-                .map((res) => {
-                    const responseData = res.toJSON();
-                    const data = {
-                        ...responseData,
-                        tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
-                            .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
-                    }
-                    return data;
-                }).then((result) => {
-                    cb({ status: true, data: result[0].tag })
-                })
-            }).catch((err)=>{
+                    .map((res) => {
+                        const responseData = res.toJSON();
+                        const data = {
+                            ...responseData,
+                            tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
+                                .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
+                        }
+                        return data;
+                    }).then((result) => {
+                        cb({ status: true, data: result[0].tag })
+                    })
+            }).catch((err) => {
                 console.error(err)
                 cb({ status: false, data: [] })
             })

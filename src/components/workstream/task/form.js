@@ -108,6 +108,7 @@ export default class FormComponent extends React.Component {
                     putData(`/api/task/status/${task.Selected.id}`,
                         {
                             userId: loggedUser.data.id,
+                            username: loggedUser.data.username,
                             periodTask: task.Selected.periodTask,
                             periodic: task.Selected.periodic,
                             id: task.Selected.id,
