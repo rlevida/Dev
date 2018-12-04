@@ -17,6 +17,7 @@ var socketIo = exports.socketIo = function (server) {
                 || packet.find((c) => { return "COMPLETE_FORGOT_PASSWORD" == c }) != undefined
                 || packet.find((c) => { return "USER_LOGGED_IN" == c }) != undefined
                 || packet.find((c) => { return "IS_USER_LOGGED_IN" == c }) != undefined
+                || packet.find((c) => { return "BROADCAST_SOCKET" == c }) != undefined
 
             ) {
                 return next();
