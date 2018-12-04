@@ -53,7 +53,7 @@ export default class Component extends React.Component {
                         </div>
                         { (notes.FormActive == "View") &&
                             <div style={{paddingLeft:"0px"}} class="col-lg-6 col-md-6 col-sm-12">
-                                <Form setIsClosed={this.setIsClosed} updateSelectedNotes={this.updateSelectedNotes} />
+                                <Form setIsClosed={this.setIsClosed} updateSelectedNotes={this.updateSelectedNotes} workstreamId={workstream.Selected.id} />
                             </div>
                         }
                     </div>

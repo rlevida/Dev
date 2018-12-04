@@ -104,48 +104,90 @@ exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
         const association = _.cloneDeep(NotesInclude);
-
-        if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
-            association.push({
-                model: Starred,
-                as: 'notes_starred',
-                where: {
-                    linkType: 'notes',
-                    isActive: 1,
-                    usersId: queryString.starredUser
-                },
-                required: false,
-                include: [
-                    {
-                        model: Users,
-                        as: 'user',
-                        attributes: ['id', 'firstName', 'lastName', 'emailAddress']
-                    }
-                ]
-            });
-        }
-
-        try {
-            Notes
-                .findAll({
-                    include: association
+        sequence.create().then((nextThen) => {
+            if( queryString.workstreamId ){
+                sequence.create().then((nextThen2) =>{
+                    // get workstream task ids
+                    Tasks.findAll({
+                        where: { workstreamId : queryString.workstreamId }
+                    }).map((e)=>{
+                        return e.id
+                    }).then((res)=>{
+                        nextThen2(res)
+                    })
+                }).then((nextThen2,taskIds)=>{
+                    // get all notes ids to be shown base on task and workstream
+                    Tag.findAll({
+                        where : {
+                            [Op.or] : [
+                                { linkType: 'workstream', linkId : queryString.workstreamId },
+                                { linkType: 'task', linkId: { [Op.in]: taskIds }}
+                            ],
+                            tagType: 'notes'
+                        }
+                    }).map((e)=>{
+                        return e.tagTypeId
+                    }).then((res)=>{
+                        if(res.length > 0){
+                            nextThen(true,res);
+                        }else{
+                            cb({ status: true, data: [] })
+                        }
+                    })
                 })
-                .map((res) => {
-                    const responseData = res.toJSON();
-                    const data = {
-                        ...responseData,
-                        isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
-                        tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
-                            .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
-                    }
-                    return data;
-                })
-                .then((res) => {
-                    cb({ status: true, data: res })
+            } else {
+                nextThen(false,[]);
+            }
+        }).then((nextThen,isPerWorkstream,noteIds) => {
+            let whereCon = {};
+            if(isPerWorkstream){
+                whereCon = { id: { [Op.in]: noteIds } }
+            }
+
+            if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
+                association.push({
+                    model: Starred,
+                    as: 'notes_starred',
+                    where: {
+                        linkType: 'notes',
+                        isActive: 1,
+                        usersId: queryString.starredUser
+                    },
+                    required: false,
+                    include: [
+                        {
+                            model: Users,
+                            as: 'user',
+                            attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+                        }
+                    ]
                 });
-        } catch (err) {
-            cb({ status: false, error: err })
-        }
+            }
+
+            try {
+                Notes
+                    .findAll({
+                        where : whereCon,
+                        include: association
+                    })
+                    .map((res) => {
+                        const responseData = res.toJSON();
+                        const data = {
+                            ...responseData,
+                            isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
+                            tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
+                                .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
+                        }
+                        return data;
+                    })
+                    .then((res) => {
+                        cb({ status: true, data: res })
+                    });
+            } catch (err) {
+                cb({ status: false, error: err })
+            }
+        })
+
     },
     getById: (req, cb) => {
         defaultGetById(dbName, req, (res) => {
