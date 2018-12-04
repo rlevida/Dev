@@ -30,13 +30,14 @@ exports.get = {
                     association.push({
                         model: Notes,
                         as: 'notes'
-                    })
+                    });
                     break;
                 case "document":
                     association.push({
                         model: Document,
                         as: 'document'
-                    })
+                    });
+                    break;
                 default:
             }
         }
@@ -86,7 +87,43 @@ exports.get = {
 
                         return responseObj;
                     }).then((resultArray) => {
-                        callback(null, resultArray);
+                        if (typeof queryString.type == "undefined") {
+                            const promiseArray = _.map(resultArray, (resultObj) => {
+                                const { linkType, linkId } = resultObj;
+
+                                return (new Promise((resolve, reject) => {
+                                    switch (linkType) {
+                                        case "task":
+                                            Tasks.findOne({ where: { id: linkId } }).then((response) => {
+                                                const responseObj = response.toJSON();
+                                                resolve({ ...resultObj, task: _.pick(responseObj, ['id', 'task', 'status', 'dueDate']), title: responseObj.task });
+                                            });
+                                            break;
+                                        case "notes":
+                                            Notes.findOne({ where: { id: linkId } }).then((response) => {
+                                                const responseObj = response.toJSON();
+                                                resolve({ ...resultObj, notes: responseObj, title: responseObj.note });
+                                            });
+                                            break;
+                                        case "document":
+                                            Document.findOne({ where: { id: linkId } }).then((response) => {
+                                                const responseObj = response.toJSON();
+                                                resolve({ ...resultObj, document: responseObj, title: responseObj.origin });
+                                            });
+                                        default:
+                                    }
+                                }));
+
+                            });
+
+                            Promise.all(promiseArray).then((values) => {
+                                callback(null, values);
+                            }).catch((err) => {
+                                callback(err)
+                            });
+                        } else {
+                            callback(null, resultArray);
+                        }
                     })
                 } catch (err) {
                     callback(err)

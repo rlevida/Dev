@@ -23,23 +23,28 @@ export default class Component extends React.Component {
     }
 
     componentDidMount() {
-        const { starred } = { ...this.props }
+        const { starred, dispatch } = { ...this.props }
         const { Count } = starred;
 
         if (_.isEmpty(Count)) {
-            this.fetchData({ page: 1, type: "task" })
+            dispatch({ type: "SET_STARRED_TYPE", starred_type: "task" });
+            this.fetchData({ page: 1, type: "task" });
         }
     }
 
     fetchData({ page, type }) {
         const { loggedUser, dispatch, starred } = { ...this.props };
         const { List } = starred;
+        let reqUrl = `/api/starred?page=${page}&userId=${loggedUser.data.id}&isActive=1`
 
-        getData(`/api/starred?page=${page}&type=${type}&userId=${loggedUser.data.id}&isActive=1`, {}, (c) => {
+        if (type != "all") {
+            reqUrl += `&type=${type}`
+        }
+
+        getData(reqUrl, {}, (c) => {
             if (c.status == 200) {
                 const { result, count } = c.data;
                 dispatch({ type: "SET_STARRED_LIST", list: [...List, ...result], count: count });
-                dispatch({ type: "SET_STARRED_TYPE", starred_type: type });
             } else {
                 showToast("error", "Something went wrong please try again later.");
             }
@@ -56,6 +61,7 @@ export default class Component extends React.Component {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_STARRED_LIST", list: [] });
         dispatch({ type: "SET_STARRED_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "SET_STARRED_TYPE", starred_type: type });
 
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
@@ -73,9 +79,10 @@ export default class Component extends React.Component {
         return (
             <div>
                 <ul class="list-inline">
-                    <li class="list-inline-item"><a onClick={() => this.setType("task")}>Task</a></li>|
-                    <li class="list-inline-item"><a onClick={() => this.setType("notes")}>Notes</a></li>|
-                    <li class="list-inline-item"><a onClick={() => this.setType("document")}>Documents</a></li>
+                    <li class="list-inline-item"><a onClick={() => this.setType("all")}><i class="fa fa-list" aria-hidden="true"></i> All</a></li>|
+                    <li class="list-inline-item"><a onClick={() => this.setType("task")}><i class="fa fa-tasks" aria-hidden="true"></i> Task</a></li>|
+                    <li class="list-inline-item"><a onClick={() => this.setType("notes")}><i class="fa fa-comments" aria-hidden="true"></i> Notes</a></li>|
+                    <li class="list-inline-item"><a onClick={() => this.setType("document")}><i class="fa fa-calendar" aria-hidden="true"></i> Documents</a></li>
                     <li></li>
                 </ul>
                 <List />
