@@ -146,7 +146,7 @@ exports.post = {
                             projectId: queryString.projectId,
                             old: queryString.document,
                             new: '',
-                            title: `${response.isActive ? 'Unstarred document' : 'Starred document'}`
+                            title: `${(response !== null && response.isActive) ? 'Unstarred document' : 'Starred document'}`
                         }
                         ActivityLogsDocument
                             .create(dataToSubmit)
