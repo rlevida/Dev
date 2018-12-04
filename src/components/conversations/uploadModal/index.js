@@ -77,7 +77,7 @@ export default class UploadModal extends React.Component {
             if (c.status == 200) {
                 let selectedIndex = notes.List.indexOf(notes.Selected);
                 let selectedNotes = notes.Selected;
-                c.data.map((e)=>{
+                c.data.result.map((e)=>{
                     selectedNotes.documentTags.push({id:(new Date()).getTime,document:e})
                 })
                 let list = notes.List;

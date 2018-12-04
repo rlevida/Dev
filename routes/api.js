@@ -344,7 +344,7 @@ router.delete('/:controller/:action/:id', (req, res, next) => {
         let controller = global.initController(req.params.controller);
         controller.delete[req.params.action](req, (c) => {
             if (c.status) {
-                res.send(c.data)
+                res.status(200).send(c.data)
             } else {
                 res.status(400).send({ message: c.error });
             }
