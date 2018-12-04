@@ -1,8 +1,9 @@
-var schedule = require('node-schedule'),
+const schedule = require('node-schedule'),
     sequence = require("sequence").Sequence,
     async = require("async"),
-    moment = require("moment")
-_ = require("lodash");
+    moment = require("moment"),
+    _ = require("lodash"),
+    CronJob = require('cron').CronJob;;
 
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
@@ -14,7 +15,9 @@ const Op = Sequelize.Op;
  *   s    i    H    DM    M   DW 
  * 
  **/
-var j = schedule.scheduleJob('0 0 0 * * *', () => {
+
+
+var job = new CronJob('00 00 00 * * *', function () {
     const models = require('../modelORM');
     const {
         Tasks,
@@ -228,4 +231,8 @@ var j = schedule.scheduleJob('0 0 0 * * *', () => {
             }
         })
     })
-})
+}, null, true, 'Asia/Manila');
+
+// var j = schedule.scheduleJob('0 0 0 * * *', () => {
+
+// })
