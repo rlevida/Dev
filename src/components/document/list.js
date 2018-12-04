@@ -1,8 +1,10 @@
 import React from "react";
 import parallel from 'async/parallel';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-
 import { getData, showToast } from '../../globalFunction';
+
+import { DragDropContext } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
 
 import DocumentNew from "./documentNew";
 import DocumentStatus from "./documentStatus";
@@ -16,8 +18,6 @@ import ShareModal from "./shareModal";
 import EditModal from "./editModal";
 
 import { connect } from "react-redux";
-
-let delayTimer;
 
 @connect((store) => {
     return {
@@ -34,7 +34,7 @@ let delayTimer;
     }
 })
 
-export default class List extends React.Component {
+class List extends React.Component {
     constructor(props) {
         super(props)
     }
@@ -116,3 +116,5 @@ export default class List extends React.Component {
         </div>
     }
 }
+
+export default DragDropContext(HTML5Backend)(List)
