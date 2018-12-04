@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { connect } from "react-redux";
 import { MentionsInput, Mention } from 'react-mentions';
 import defaultStyle from "../global/react-mention-style";
-import { putData, postData, getData, showToast } from "../../globalFunction";
+import { putData, postData, getData, showToast, deleteData } from "../../globalFunction";
 import CommentListItem from "./comment"
 import { DropDown } from "../../globalComponents";
 import UploadModal from "./uploadModal";
@@ -41,6 +41,7 @@ export default class FormComponent extends React.Component {
         this.viewDocument = this.viewDocument.bind(this)
         this.selectTag = this.selectTag.bind(this)
         this.saveTag = this.saveTag.bind(this)
+        this.removeAttachment = this.removeAttachment.bind(this)
     }
 
     saveTag() {
@@ -79,6 +80,26 @@ export default class FormComponent extends React.Component {
                 $("#NewNoteModal").modal("hide")
 
                 showToast("success", "Notes successfully added.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        })
+    }
+
+    removeAttachment(docs) {
+        const { notes, dispatch } = { ...this.props }
+        deleteData(`/api/conversation/documentTag/${docs.id}`, {}, (c) => {
+            if (c.status == 200) {
+                let list = notes.List;
+                const selectedIndex = list.indexOf(notes.Selected);
+                let dataSelected = { ...notes.Selected };
+                const tagIndex = notes.Selected.documentTags.indexOf(docs)
+                dataSelected.documentTags.splice(tagIndex, 1);
+                list.splice(selectedIndex, 1, dataSelected);
+                this.props.updateSelectedNotes(dataSelected);
+                dispatch({ type: "SET_NOTES_LIST", list: list });
+
+                showToast("success", "Document successfully remove.");
             } else {
                 showToast("error", "Something went wrong please try again later.");
             }
@@ -440,7 +461,7 @@ export default class FormComponent extends React.Component {
                     <ul>
                         {
                             data.documentTags.map((e) => {
-                                return <li> <a href="javascript:void(0)" onClick={() => this.viewDocument(e.document)}>{e.document.origin}</a></li>
+                                return <li> <a href="javascript:void(0)" onClick={() => this.viewDocument(e.document)}>{e.document.origin}</a>&nbsp;&nbsp;<span onClick={() => { this.removeAttachment(e) }} style={{cursor:"pointer"}} className="fa fa-remove"></span></li>
                             })
                         }
                         <li></li>

@@ -436,4 +436,17 @@ exports.delete = {
             }
         })
     },
+    documentTag: (req, cb) => {
+        Tag.destroy({
+            where: {
+                id: req.params.id
+            }
+        }).then(res => {
+            cb({ status: true, data: { id: req.params.id } })
+        }).catch(error => {
+            console.error(error)
+            cb({ status: false, data: { id: req.params.id } })
+        })
+    },
+
 }
