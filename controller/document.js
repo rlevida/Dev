@@ -97,7 +97,7 @@ const associationFindAllStack = [
     }, {
         model: Document,
         as: 'document_folder',
-        where: { type: 'folder'},
+        where: { type: 'folder' },
         required: false
     }
 ]
@@ -391,7 +391,7 @@ exports.get = {
                                     ...res.toJSON(),
                                     tags: res.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
                                         .concat(res.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
-                                        .concat(res.document.tagDocumentNotes.map((e) => { return { value: `notes-${e.TagNotes.id}`, label: e.TagNotes.note } })),
+                                        .concat(res.tagDocumentNotes.map((e) => { return { value: `notes-${e.TagNotes.id}`, label: e.TagNotes.note } })),
                                     members: res.share.map((e) => { return e.user }),
                                     share: JSON.stringify(res.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
                                     isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (res.document_starred).length > 0) ? res.document_starred[0].isActive : 0
@@ -536,7 +536,7 @@ exports.post = {
                                                 })
                                         })
                                 } catch (err) {
-                                    
+
                                     parallelCallback(err)
                                 }
                             }
@@ -633,7 +633,7 @@ exports.post = {
         })
         // log any errors that occur
         form.on('error', function (err) {
-            
+
         });
         // once all the files have been uploaded, send a response to the client
         // form.on('end', function () {
@@ -664,7 +664,7 @@ exports.post = {
                 Key: global.environment + "/upload/" + fileName,
             }, (err, data) => {
                 if (err) {
-                    
+
                 } else {
                     fileStream.write(data.Body)
                     resolve(originName)
@@ -698,7 +698,7 @@ exports.post = {
                         })
 
                     }, (err) => {
-                        
+
                     }
                 )
             }
