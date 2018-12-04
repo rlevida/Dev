@@ -2,6 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import { postData, showToast } from "../../globalFunction";
 import _ from "lodash";
+import moment from "moment";
 
 @connect(({ starred }) => {
     return {
@@ -30,7 +31,10 @@ export default class List extends React.Component {
         });
     }
 
-    generateList({ title, isActive, index, id }) {
+    generateList({ title, isActive, index, id, linkType, task = "" }) {
+        const { starred } = { ...this.props };
+        const { Type } = starred;
+
         return (
             <tr key={index}>
                 <td style={{ maxWidth: 10 }}>
@@ -38,14 +42,28 @@ export default class List extends React.Component {
                         <span class={`fa ${(isActive == 1) ? "fa-star" : "fa-star-o"}`} />
                     </a>
                 </td>
-                <td class="text-left">{title}</td>
+                <td class="text-left">
+                    <p style={{ margin: 0 }}>{title}</p>
+                </td>
+                {
+                    (linkType == "task" && Type != "all") && <td class="text-left">
+                        {
+                            (task.dueDate != null && task.dueDate != "") && <p style={{ margin: 0 }}>{moment(task.dueDate).format("MMM DD, YYYY")}</p>
+                        }
+                    </td>
+                }
+                {
+                    (Type == "all") && <td class="text-left">
+                        <p style={{ textTransform: "capitalize", margin: 0 }}>{linkType}</p>
+                    </td>
+                }
             </tr>
         );
     }
 
     render() {
         const { starred } = { ...this.props };
-        const { List } = starred;
+        const { List, Type } = starred;
 
         return (
             <table id="dataTable" class="table responsive-table">
@@ -53,6 +71,12 @@ export default class List extends React.Component {
                     <tr>
                         <th></th>
                         <th>Item</th>
+                        {
+                            (Type == "task") && <th>Due Date</th>
+                        }
+                        {
+                            (Type == "all") && <th>Type</th>
+                        }
                     </tr>
                     {
                         _.map(List, (listObj, index) => this.generateList({ ...listObj, index }))
