@@ -60,6 +60,7 @@ const NotesInclude = [
                 include: [{
                     model: Users,
                     as: 'user',
+                    attributes: ['id', 'firstName', 'lastName', 'emailAddress']
                 }]
             }
         ]
@@ -75,6 +76,7 @@ const NotesInclude = [
             {
                 model: Users,
                 as: 'users',
+                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
             }
         ]
     },
@@ -82,6 +84,7 @@ const NotesInclude = [
         model: Users,
         as: 'creator',
         required: false,
+        attributes: ['id', 'firstName', 'lastName', 'emailAddress']
     }
 ];
 
