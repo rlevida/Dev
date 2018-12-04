@@ -186,6 +186,7 @@ exports.get = {
 exports.post = {
     index: (req, cb) => {
         defaultPost(dbName, req, (res) => {
+            const queryString = req.query;
             if (res.success) {
                 Notes.findAll({
                     where: { id: res.data[0].id },
@@ -270,6 +271,7 @@ exports.post = {
 exports.put = {
     index: (req, cb) => {
         defaultPut(dbName, req, (res) => {
+            const queryString = req.query;
             if (res.success) {
                 Notes.findAll({
                     where: { id: req.params.id },
