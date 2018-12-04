@@ -4,14 +4,15 @@ import { MentionsInput, Mention } from 'react-mentions';
 import _ from "lodash";
 import defaultStyle from "../../global/react-mention-style";
 
-@connect(({ task, conversation, socket, users, loggedUser , global }) => {
+@connect(({ task, conversation, socket, users, loggedUser, global, workstream }) => {
     return {
         task,
         conversation,
         socket: socket.container,
         users,
         loggedUser,
-        global
+        global,
+        workstream
     }
 })
 
@@ -32,13 +33,13 @@ export default class Form extends React.Component {
     }
 
     fetchUsers(query, callback) {
-        const { loggedUser , global } = { ...this.props };
+        const { loggedUser, global, workstream } = { ...this.props };
 
-        return global.SelectList.projectMemberList.map((o) => {
-            let userName = o.firstName + " " + o.lastName ;
-                if(userName.includes(query) && o.id != loggedUser.data.id){
-                    return { display: o.firstName + " " + o.lastName, id: o.id }
-                }
+        return workstream.Selected.taskMemberList.map((o) => {
+            let userName = o.firstName + " " + o.lastName;
+            if (userName.includes(query) && o.id != loggedUser.data.id) {
+                return { display: o.firstName + " " + o.lastName, id: o.id }
+            }
         }).filter((o) => { return o != undefined })
     }
 
@@ -62,7 +63,7 @@ export default class Form extends React.Component {
                 type: "Tag in Comment",
                 detail: "tagged in comment",
                 projectId: task.Selected.projectId,
-                createdBy :loggedUser.data.id
+                createdBy: loggedUser.data.id
             },
             reminderList: JSON.stringify(commentIds)
         };
