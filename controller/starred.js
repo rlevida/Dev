@@ -2,7 +2,7 @@ const _ = require("lodash");
 const dbName = "starred";
 const { defaultGet, defaultPut, defaultDelete } = require("./")
 const models = require('../modelORM');
-const { ActivityLogsDocument, Starred, Users, Tasks, Notes, Document } = models;
+const { ActivityLogsDocument, Starred, Users, Tasks, Notes, Document, Sequelize } = models;
 
 exports.get = {
     index: (req, cb) => {
@@ -50,7 +50,8 @@ exports.get = {
         const whereObj = {
             ...(typeof queryString.userId !== 'undefined' && queryString.userId !== '') ? { usersId: queryString.userId } : {},
             ...(typeof queryString.type !== 'undefined' && queryString.type !== '') ? { linkType: queryString.type } : {},
-            ...(typeof queryString.isActive !== 'undefined' && queryString.isActive !== '') ? { isActive: queryString.isActive } : {}
+            ...(typeof queryString.isActive !== 'undefined' && queryString.isActive !== '') ? { isActive: queryString.isActive } : {},
+            ...(typeof queryString.type == "undefined" || queryString.type == '') ? { linkType: { [Sequelize.Op.not]: "project" } } : {}
         }
 
         async.parallel({
@@ -72,7 +73,7 @@ exports.get = {
                 try {
                     Starred.findAll({ ...options, where: whereObj }).map((response) => {
                         let responseObj = response.toJSON();
-
+                        
                         if (typeof responseObj.task != "undefined") {
                             responseObj = { ...responseObj, title: responseObj.task.task }
                         }
@@ -90,7 +91,6 @@ exports.get = {
                         if (typeof queryString.type == "undefined") {
                             const promiseArray = _.map(resultArray, (resultObj) => {
                                 const { linkType, linkId } = resultObj;
-
                                 return (new Promise((resolve, reject) => {
                                     switch (linkType) {
                                         case "task":
