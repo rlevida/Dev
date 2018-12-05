@@ -226,7 +226,7 @@ export default class DocumentLibrary extends React.Component {
             <div class="col-lg-12 col-md-12">
                 <h3>
                     <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>Library</a>
-                    {folder.SelectedLibraryFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
+                    {folder.SelectedLibraryFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.origin}</a> </span> })}
                 </h3>
                 {(this.state.folderAction == "") &&
                     <div class="row mb10">

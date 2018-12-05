@@ -311,7 +311,7 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        const { notes, setIsClosed, loggedUser, global } = { ...this.props }
+        const { notes, setIsClosed, loggedUser, global, workstreamId } = { ...this.props }
         const { notesState, commentText } = { ...this.state }
         const { specificClient } = { ...notesState }
         const data = notes.Selected;
@@ -397,7 +397,9 @@ export default class FormComponent extends React.Component {
                                 );
                             }))
                         }
-                        { !this.state.editTag &&
+                        { /**  hide editing of tag to avoid issue removing the notes inside this workstream. 
+                                I must be done inside Coversation */}
+                        { !this.state.editTag && !workstreamId &&
                             <span class="fa fa-pencil" onClick={()=>{this.setState({editTag: true})}} style={{paddingLeft:"20px",cursor:"pointer"}}></span>
                         }
                     </div>

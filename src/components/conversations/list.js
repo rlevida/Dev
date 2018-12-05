@@ -46,9 +46,13 @@ export default class List extends React.Component {
   }
 
   fetchNotes() {
-    const { dispatch, loggedUser } = this.props;
+    const { dispatch, loggedUser, workstreamId } = this.props;
     dispatch({ type: "SET_NOTES_LOADING", Loading: "RETRIEVING" });
-    getData(`/api/conversation?starredUser=${loggedUser.data.id}`, {}, c => {
+    let url = `/api/conversation?starredUser=${loggedUser.data.id}&projectId=${project}`
+    if( workstreamId ){
+      url = `${url}&workstreamId=${workstreamId}`
+    }
+    getData(url, {}, c => {
       dispatch({ type: "SET_NOTES_LIST", list: c.data });
       dispatch({ type: "SET_NOTES_LOADING", Loading: "" });
     });
@@ -158,26 +162,6 @@ export default class List extends React.Component {
         <table id="dataTable" class="table responsive-table mt30">
           <tbody>
             {notesList.map(e => {
-              let allowView = true;
-              if( workstreamId ){
-                allowView = false;
-                if( e.notesTagWorkstream.filter(f => f.tagTypeId == workstreamId).length > 0 ){
-                  allowView = true;
-                }
-                if( !allowView ) {
-                  e.notesTagTask.map((f)=>{
-                    if( task.List.filter(g=>g.id === f.tagTask.id) ){
-                      allowView = true
-                    }
-                  })
-                }
-
-              }
-
-              if( !allowView ){
-                return "";
-              }
-              
               const lastCommentUser = e.comments[e.comments.length-1];
               // hide notes for client
               if ( e.accessType === "INTERNAL_ONLY" && loggedUser.data.userType === "External"){

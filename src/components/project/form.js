@@ -168,25 +168,6 @@ export default class FormComponent extends React.Component {
         );
     }
 
-    handleReceiveNotifacation(value) {
-        let { dispatch, members } = this.props;
-        let dataToSubmit = {
-            filter: { userTypeLinkId: value.user.id, usersType: 'users' },
-            data: { receiveNotification: value.receiveNotification ? 0 : 1 }
-        }
-
-        putData(`/api/project/projectMember/${value.id}`, dataToSubmit, (c) => {
-            if (c.status == 200) {
-                let dataToUpdate = members.List.filter((e) => { return e.user.id == value.user.id })[0]
-                dataToUpdate = { ...dataToUpdate, receiveNotification: value.receiveNotification ? 0 : 1 }
-                dispatch({ type: "UPDATE_DATA_MEMBERS_LIST", UpdatedData: dataToUpdate })
-                showToast('success', "Successfully Updated.")
-            } else {
-                showToast('error', "Update failed. Please try again.")
-            }
-        })
-    }
-
     renderRoles(value) {
         return (
             (_.map(value, (valueObj) => {
@@ -462,7 +443,6 @@ export default class FormComponent extends React.Component {
                                                             <th class="text-center">Type</th>
                                                             <th class="text-left">Role/s</th>
                                                             <th class="text-left">Team/s</th>
-                                                            <th class="text-center">Send E-mail reminders</th>
                                                             <th class="text-center"></th>
                                                         </tr>
                                                         {
@@ -482,12 +462,6 @@ export default class FormComponent extends React.Component {
                                                                         <td class="text-center">{data.user.userType}</td>
                                                                         <td class="text-left">{this.renderRoles(data.user.user_role)}</td>
                                                                         <td class="text-left">{this.renderTeams(data.user.users_team)}</td>
-                                                                        <td>
-                                                                            {(data.usersType != "team")
-                                                                                ? <input type="checkbox" checked={data.receiveNotification} onChange={() => this.handleReceiveNotifacation(data)} />
-                                                                                : "team member"
-                                                                            }
-                                                                        </td>
                                                                         <td class="text-center">
                                                                             {
                                                                                 (data.user.id != project.Selected.projectManagerId && data.usersType != "team")
