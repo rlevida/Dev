@@ -197,15 +197,10 @@ export default class FormComponent extends React.Component {
 
     renderTeams(value) {
         return (
-            (_.map(value, (valueObj) => { return valueObj.team })).join("\r\n")
+            (_.map(value, (valueObj) => { return valueObj.team.team })).join(", ")
         );
     }
-
-    renderTeamMembers(value) {
-        const teamMembers = value.map((e) => { return `${e.user.firstName} ${e.user.lastName}` });
-        return teamMembers.join(", ");
-    }
-
+    
     getWorkstreamTemplateList(options) {
         const { dispatch } = this.props;
 
