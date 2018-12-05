@@ -257,7 +257,6 @@ exports.get = {
                 }
             }
         }, (err, results) => {
-            console.log("pass here");
             if (err != null) {
                 cb({ status: false, error: err });
             } else {

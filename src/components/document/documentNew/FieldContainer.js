@@ -18,7 +18,7 @@ const itemTarget = {
     },
     drop(props, monitor) {
         const draggedItem = monitor.getItem()
-        if (props.data.type === 'folder' && props.data.status == 'new' && props.data.id !== draggedItem.id && draggedItem.status === 'newu') {
+        if (props.data.type === 'folder' && props.data.status == 'new' && props.data.id !== draggedItem.id && draggedItem.status === 'new') {
             props.moveTo(props.data, monitor.getItem())
         }
     }
