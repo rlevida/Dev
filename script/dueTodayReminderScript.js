@@ -17,7 +17,7 @@ const Op = Sequelize.Op;
  **/
 
 
-var job = new CronJob('00 00 00 * * *', function () {
+var job = new CronJob('0 0 0 * * *', function () {
     const models = require('../modelORM');
     const {
         Tasks,
