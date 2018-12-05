@@ -47,12 +47,6 @@ exports.post = {
     index: (req, cb) => {
         const body = req.body;
         const queryString = req.query;
-        const whereObj = {
-            ...(typeof queryString.linkType !== 'undefined' && queryString.linkType !== '') ? { linkType: queryString.linkType } : {},
-            ...(typeof queryString.linkId !== 'undefined' && queryString.linkId !== '') ? { linkId: queryString.linkId } : {},
-            ...(typeof queryString.usersType !== 'undefined' && queryString.usersType !== '') ? { usersType: queryString.usersType } : {},
-            ...(typeof queryString.userTypeLinkId !== 'undefined' && queryString.userTypeLinkId !== '') ? { userTypeLinkId: queryString.userTypeLinkId } : {}
-        }
 
         if (typeof queryString.taskId !== 'undefined' && queryString.taskId !== '') {
             _.find(_.find(associationArray, { as: 'user' }).include, { as: 'task_member_reminder' }).where = {
@@ -65,7 +59,7 @@ exports.post = {
                 .then((res) => {
                     Members
                         .findOne({
-                            where: whereObj,
+                            where: { id: queryString.memberId },
                             include: associationArray
                         })
                         .then((findRes) => {
@@ -83,26 +77,20 @@ exports.put = {
         const body = req.body;
         const queryString = req.query;
         const id = req.params.id;
-        const whereObj = {
-            ...(typeof queryString.linkType !== 'undefined' && queryString.linkType !== '') ? { linkType: queryString.linkType } : {},
-            ...(typeof queryString.linkId !== 'undefined' && queryString.linkId !== '') ? { linkId: queryString.linkId } : {},
-            ...(typeof queryString.usersType !== 'undefined' && queryString.usersType !== '') ? { usersType: queryString.usersType } : {},
-            ...(typeof queryString.userTypeLinkId !== 'undefined' && queryString.userTypeLinkId !== '') ? { userTypeLinkId: queryString.userTypeLinkId } : {}
-        }
 
         if (typeof queryString.taskId !== 'undefined' && queryString.taskId !== '') {
             _.find(_.find(associationArray, { as: 'user' }).include, { as: 'task_member_reminder' }).where = {
                 taskId: queryString.taskId
             };
         }
-        
+
         try {
             TaskMemberReminder
                 .update(body, { where: { id: id } })
                 .then((res) => {
                     Members
                         .findOne({
-                            where: whereObj,
+                            where: { id: queryString.memberId },
                             include: associationArray
                         })
                         .then((findRes) => {
