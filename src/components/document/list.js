@@ -29,7 +29,8 @@ import { connect } from "react-redux";
         starred: store.starred,
         global: store.global,
         task: store.task,
-        project: store.project
+        project: store.project,
+        folder: store.folder
 
     }
 })
@@ -40,8 +41,9 @@ class List extends React.Component {
     }
 
     componentDidMount() {
-        let { dispatch, loggedUser, document } = this.props
-        if (typeof document.Selected.id == "undefined") {
+        let { dispatch, loggedUser, document, folder } = this.props
+        if (typeof document.Selected.id === "undefined" && documentId === '') {
+            console.log(`here`)
             parallel({
                 shareList: (parallelCallback) => {
                     getData(`/api/globalORM/selectList?selectName=shareList&linkId=${project}&linkType=project`, {}, (c) => {
@@ -75,6 +77,9 @@ class List extends React.Component {
                 }
             }, (error, result) => {
             })
+        } else {
+            let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new&folderId=${folder.SelectedNewFolder.id}&starredUser=${loggedUser.data.id}&documentId=${documentId}`;
+            console.log(requestUrl)
         }
     }
     render() {

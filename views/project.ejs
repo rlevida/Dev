@@ -33,13 +33,14 @@
       var page = '<%= page %>'
       var subpage = '<%= subpage %>'
       var project = '<%= project %>'
-      var workstreamId = '<%= (typeof workstream != "undefined")?workstream:"" %>'
-      var taskId = '<%= (typeof task != "undefined")?task:"" %>'
-      var folderParams = '<%= (typeof folder != "undefined")?folder:"" %>'
-      var folderParamsType = '<%= (typeof folderType != "undefined")?folderType:"" %>'
-      var folderParamsStatus = '<%= (typeof folderStatus != "undefined")?folderStatus:"" %>'
-      var folderParamsOrigin = '<%= (typeof folderOrigin != "undefined")?folderOrigin:"" %>'
-      var user = '<%- (typeof user != "undefined")?JSON.parse(user):"" %>'
+      var workstreamId = '<%= (typeof workstream != "undefined") ? workstream : "" %>'
+      var taskId = '<%= (typeof task != "undefined") ? task : "" %>' 
+      var folderParams = '<%= (typeof folder != "undefined") ? folde : "" %>'
+      var folderParamsType = '<%= (typeof folderType != "undefined") ? folderType : "" %>'
+      var folderParamsStatus = '<%= (typeof folderStatus != "undefined") ? folderStatus : "" %>'
+      var folderParamsOrigin = '<%= (typeof folderOrigin != "undefined") ? folderOrigin : "" %>'
+      var documentId = '<%= (typeof documentId != "undefined") ? documentId : "" %>'
+      var user = '<%- (typeof user != "undefined") ? JSON.parse(user) : "" %>'
       var loggedUser = user != "" ? JSON.parse(user) : ""
     </script>
     <script src="/javascripts/vendor.js"></script>

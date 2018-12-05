@@ -115,7 +115,8 @@ exports.get = {
         };
         const documentLinkWhereObj = {
             ...(typeof queryString.linkId != "undefined" && queryString.linkId != "") ? { linkId: queryString.linkId } : {},
-            ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {}
+            ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {},
+            ...(typeof queryString.documentId != "undefined" && queryString.documentId != "") ? { documentId: queryString.documentId } : {}
         };
         let documentWhereObj = {
             ...(typeof queryString.status != "undefined" && queryString.status != "") ? { status: queryString.status } : {},
@@ -136,6 +137,7 @@ exports.get = {
                 }
             } : {}
         }
+        console.log(documentLinkWhereObj)
 
         if (typeof queryString.search !== 'undefined' && queryString.search !== '') {
             documentWhereObj = {
