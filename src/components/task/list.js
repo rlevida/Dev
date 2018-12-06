@@ -41,6 +41,10 @@ export default class List extends React.Component {
         getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project}&linkType=project`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
         });
+
+        getData(`/api/globalORM/selectList?projectId=${project}&selectName=workstreamList`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamList' });
+        });
     }
 
     fetchData(page) {
