@@ -105,42 +105,42 @@ exports.get = {
         const queryString = req.query;
         const association = _.cloneDeep(NotesInclude);
         sequence.create().then((nextThen) => {
-            if( queryString.workstreamId ){
-                sequence.create().then((nextThen2) =>{
+            if (queryString.workstreamId) {
+                sequence.create().then((nextThen2) => {
                     // get workstream task ids
                     Tasks.findAll({
-                        where: { workstreamId : queryString.workstreamId }
-                    }).map((e)=>{
+                        where: { workstreamId: queryString.workstreamId }
+                    }).map((e) => {
                         return e.id
-                    }).then((res)=>{
+                    }).then((res) => {
                         nextThen2(res)
                     })
-                }).then((nextThen2,taskIds)=>{
+                }).then((nextThen2, taskIds) => {
                     // get all notes ids to be shown base on task and workstream
                     Tag.findAll({
-                        where : {
-                            [Op.or] : [
-                                { linkType: 'workstream', linkId : queryString.workstreamId },
-                                { linkType: 'task', linkId: { [Op.in]: taskIds }}
+                        where: {
+                            [Op.or]: [
+                                { linkType: 'workstream', linkId: queryString.workstreamId },
+                                { linkType: 'task', linkId: { [Op.in]: taskIds } }
                             ],
                             tagType: 'notes'
                         }
-                    }).map((e)=>{
+                    }).map((e) => {
                         return e.tagTypeId
-                    }).then((res)=>{
-                        if(res.length > 0){
-                            nextThen(true,res);
-                        }else{
+                    }).then((res) => {
+                        if (res.length > 0) {
+                            nextThen(true, res);
+                        } else {
                             cb({ status: true, data: [] })
                         }
                     })
                 })
             } else {
-                nextThen(false,[]);
+                nextThen(false, []);
             }
-        }).then((nextThen,isPerWorkstream,noteIds) => {
+        }).then((nextThen, isPerWorkstream, noteIds) => {
             let whereCon = {};
-            if(isPerWorkstream){
+            if (isPerWorkstream) {
                 whereCon.id = { [Op.in]: noteIds };
             }
             if (typeof queryString.projectId !== 'undefined' && queryString.projectId !== '') {
@@ -170,7 +170,7 @@ exports.get = {
             try {
                 Notes
                     .findAll({
-                        where : whereCon,
+                        where: whereCon,
                         include: association
                     })
                     .map((res) => {
@@ -285,16 +285,38 @@ exports.post = {
                 async.map(JSON.parse(d.reminderList), (r, mapCallback) => {
                     async.parallel({
                         reminder: (parallelCallback) => {
-                            let data = {
-                                usersId: r.userId,
-                                linkType: "task",
-                                linkId: d.taskId,
-                                type: 'Tag in Comment',
-                                detail: `${d.username} metioned you on the task ${d.task} on ${d.workstream}`,
-                                projectId: d.projectId,
-                                createdBy: d.userId
+                            let data = {}
+                            if (d.data.linkType == "task") {
+                                data = {
+                                    usersId: r.userId,
+                                    linkType: "task",
+                                    linkId: d.taskId,
+                                    type: 'Tag in Comment',
+                                    detail: `${d.username} metioned you on the task ${d.task} on ${d.workstream}`,
+                                    projectId: d.projectId,
+                                    createdBy: d.userId
+                                }
+                            } else if (d.data.linkType == "notes") {
+                                data = {
+                                    usersId: r.userId,
+                                    linkType: d.data.linkType,
+                                    linkId: d.data.linkId,
+                                    type: 'Tag in Comment',
+                                    detail: `${d.username} metioned you on the ${d.note} on conversation `,
+                                    projectId: d.projectId,
+                                    createdBy: d.userId
+                                }
+                            } else if (d.data.linkType == "document") {
+                                data = {
+                                    usersId: r.userId,
+                                    linkType: d.data.linkType,
+                                    linkId: d.data.linkId,
+                                    type: 'Tag in Comment',
+                                    detail: `${d.username} metioned you on the ${d.data.linkType} ${d.document}`,
+                                    projectId: d.projectId,
+                                    createdBy: d.userId
+                                }
                             }
-
                             Reminder
                                 .create(data)
                                 .then((res) => {
@@ -308,15 +330,26 @@ exports.post = {
                                 })
                         },
                         email: (parallelCallback) => {
-                            const emailAddress = d.taskMembers.filter((e) => { return e.id == r.userId })[0].emailAddress
-                            const mailOptions = {
-                                from: '"no-reply" <no-reply@c_cfo.com>',
-                                to: `${emailAddress}`,
-                                subject: '[CLOUD-CFO]',
-                                html: `<p>${d.username} metioned you on the task
+                            let html = "";
+                            if (d.data.linkType == "task") {
+                                html = `<p>${d.username} metioned you on the task
                                             <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${d.projectId}/workstream/${d.workstreamId}?task=${d.taskId}" style="color:red">${d.task}</a>
                                             on ${d.workstream} 
                                         </p>`
+                            } else if (d.data.linkType == "notes") {
+                                html = `<p>${d.username} metioned you on the conversation
+                                            <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${d.projectId}/conversation/${d.data.linkId}" style="color:red">${d.note}</a>
+                                        </p>`
+                            } else if (d.data.linkType == "document") {
+                                html = `<p>${d.username} metioned you on the document
+                                            <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${d.projectId}/conversation/${d.data.linkId}" style="color:red">${d.document}</a>
+                                        </p>`
+                            }
+                            const mailOptions = {
+                                from: '"no-reply" <no-reply@c_cfo.com>',
+                                to: `${r.emailAddress}`,
+                                subject: '[CLOUD-CFO]',
+                                html: html
                             }
                             global.emailtransport(mailOptions)
                             parallelCallback(null, '')

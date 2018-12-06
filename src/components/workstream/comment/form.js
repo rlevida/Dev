@@ -54,7 +54,7 @@ export default class Form extends React.Component {
             return { userId: _.toNumber(o.match(/\((.*)\)/).pop()) };
         }).value();
 
-        let dataToBeSubmited = {
+        const dataToBeSubmited = {
             filter: { seen: 0 },
             data: { comment: commentText, linkType: "task", linkId: task.Selected.id, usersId: loggedUser.data.id },
             reminder: {

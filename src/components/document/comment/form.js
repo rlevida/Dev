@@ -44,29 +44,27 @@ export default class Form extends React.Component {
     }
 
     handleSubmit() {
-        const { dispatch, conversation, document, loggedUser } = this.props;
+        const { dispatch, conversation, document, loggedUser, members } = this.props;
         const commentText = conversation.Selected.comment;
         const commentSplit = (commentText).split(/{([^}]+)}/g).filter(Boolean);
         const commentIds = _(commentSplit).filter((o) => {
             const regEx = /\[([^\]]+)]/;
             return regEx.test(o)
         }).map((o) => {
-            return { userId: _.toNumber(o.match(/\((.*)\)/).pop()) };
+            const emailAddress = members.List.filter((e) => { return e.user.id == _.toNumber(o.match(/\((.*)\)/).pop()) })[0].user.emailAddress
+            return { userId: _.toNumber(o.match(/\((.*)\)/).pop()), emailAddress: emailAddress };
         }).value();
 
-        let dataToBeSubmited = {
+        const dataToBeSubmited = {
             filter: { seen: 0 },
             data: { comment: commentText, linkType: "document", linkId: document.Selected.id, usersId: loggedUser.data.id },
-            reminder: {
-                linkType: "document",
-                linkId: document.Selected.id,
-                type: "Tag in Comment",
-                detail: "mentioned you on the document",
-                projectId: project,
-                createdBy: loggedUser.data.id
-            },
-            reminderList: JSON.stringify(_.uniqBy(commentIds, `userId`))
+            document: document.Selected.origin,
+            projectId: project,
+            userId: loggedUser.data.id,
+            username: loggedUser.data.username,
+            reminderList: JSON.stringify(_.uniqBy(commentIds, `userId`)),
         };
+
         postData(`/api/conversation/comment`, dataToBeSubmited, (c) => {
             dispatch({ type: 'ADD_COMMENT_LIST', list: c.data })
             dispatch({ type: 'SET_COMMENT_SELECTED', Selected: {} })

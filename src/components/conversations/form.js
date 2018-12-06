@@ -56,7 +56,7 @@ export default class FormComponent extends React.Component {
                 list.splice(selectedIndex, 1, SelectedData);
                 this.props.updateSelectedNotes(SelectedData);
                 dispatch({ type: "SET_NOTES_LIST", list: list });
-                this.setState({editTag: false})
+                this.setState({ editTag: false })
                 showToast("success", "Tags successfully updated.");
             } else {
                 showToast("error", "Something went wrong please try again later.");
@@ -219,7 +219,7 @@ export default class FormComponent extends React.Component {
     }
 
     handleSubmit() {
-        const { loggedUser, notes, dispatch } = this.props;
+        const { loggedUser, notes, dispatch, global } = this.props;
         const { commentText } = this.state;
         const data = notes.Selected;
         const commentSplit = (commentText).split(/{([^}]+)}/g).filter(Boolean);
@@ -227,24 +227,22 @@ export default class FormComponent extends React.Component {
             const regEx = /\[([^\]]+)]/;
             return regEx.test(o)
         }).map((o) => {
-            return { userId: _.toNumber(o.match(/\((.*)\)/).pop()) };
+            const emailAddress = global.SelectList.projectMemberList.filter((e) => { return e.id == _.toNumber(o.match(/\((.*)\)/).pop()) })[0].emailAddress
+            return { userId: _.toNumber(o.match(/\((.*)\)/).pop()), emailAddress: emailAddress };
         }).value();
         this.setState({ commentText: "" })
-        let dataToBeSubmited = {
+
+        const dataToBeSubmited = {
             filter: { seen: 0 },
             data: { comment: commentText, linkType: "notes", linkId: notes.Selected.id, usersId: loggedUser.data.id },
-            reminder: {
-                linkType: "notes",
-                linkId: notes.Selected.id,
-                type: "Tag in Comment",
-                detail: "tagged in comment",
-                projectId: notes.Selected.projectId,
-                createdBy: loggedUser.data.id
-            },
-            reminderList: JSON.stringify(commentIds)
+            note: notes.Selected.note,
+            projectId: project,
+            userId: loggedUser.data.id,
+            username: loggedUser.data.username,
+            reminderList: JSON.stringify(_.uniqBy(commentIds, `userId`)),
         };
 
-        postData(`/api/conversation/comment`, dataToBeSubmited, c => {
+        postData(`/api/conversation/comment`, dataToBeSubmited, (c) => {
             try {
                 const currentData = notes.Selected;
                 currentData.comments.push(c.data[0]);
@@ -335,7 +333,7 @@ export default class FormComponent extends React.Component {
         return (
             <div style={{ /*background:"#f5f5f5",*/ padding: "10px", }}>
                 <div style={{ marginBottom: "30px" }}>
-                    <h3 style={{display: "inline-flex"}}>
+                    <h3 style={{ display: "inline-flex" }}>
                         {data.note}
                         {(data.isClosed) ? <span class="label" style={{ margin: "5px", background: "red", color: "white", fontSize: "10px" }}>CLOSED</span> : ""}
                     </h3>
@@ -362,12 +360,12 @@ export default class FormComponent extends React.Component {
                             }}
                         >Save</a>
                     }
-                    
+
                     <div className="row">
                         <div className="col-md-1 col-xs-1">
-                            <span class="fa fa-tags" style={{paddingLeft:"20px"}}></span>
+                            <span class="fa fa-tags" style={{ paddingLeft: "20px" }}></span>
                         </div>
-                        { this.state.editTag
+                        {this.state.editTag
                             && <div className="col-md-6 col-xs-11">
                                 <DropDown multiple={false}
                                     multiple={true}
@@ -378,29 +376,29 @@ export default class FormComponent extends React.Component {
                                 />
                             </div>
                         }
-                        { this.state.editTag &&
-                            <span class="fa fa-floppy-o" onClick={()=>{ this.saveTag() }} style={{paddingLeft:"20px",cursor:"pointer"}}></span>
+                        {this.state.editTag &&
+                            <span class="fa fa-floppy-o" onClick={() => { this.saveTag() }} style={{ paddingLeft: "20px", cursor: "pointer" }}></span>
                         }
-                        { this.state.editTag &&
-                            <span class="fa fa-ban" onClick={()=>{this.setState({editTag: false, selectedTag: notes.Selected.tag})}} style={{paddingLeft:"20px",cursor:"pointer"}}></span>
+                        {this.state.editTag &&
+                            <span class="fa fa-ban" onClick={() => { this.setState({ editTag: false, selectedTag: notes.Selected.tag }) }} style={{ paddingLeft: "20px", cursor: "pointer" }}></span>
                         }
-                        { !this.state.editTag &&
+                        {!this.state.editTag &&
                             (data.tag.map((f) => {
-                                const color = (f.value.indexOf("task")>-1)?"blue":"green";
+                                const color = (f.value.indexOf("task") > -1) ? "blue" : "green";
                                 return (
-                                <span
-                                    class="label"
-                                    style={{ margin: "5px", background: color }}
-                                >
-                                    {f.label}
-                                </span>
+                                    <span
+                                        class="label"
+                                        style={{ margin: "5px", background: color }}
+                                    >
+                                        {f.label}
+                                    </span>
                                 );
                             }))
                         }
                         { /**  hide editing of tag to avoid issue removing the notes inside this workstream. 
                                 I must be done inside Coversation */}
-                        { !this.state.editTag && !workstreamId &&
-                            <span class="fa fa-pencil" onClick={()=>{this.setState({editTag: true})}} style={{paddingLeft:"20px",cursor:"pointer"}}></span>
+                        {!this.state.editTag && !workstreamId &&
+                            <span class="fa fa-pencil" onClick={() => { this.setState({ editTag: true }) }} style={{ paddingLeft: "20px", cursor: "pointer" }}></span>
                         }
                     </div>
                 </div>
@@ -463,13 +461,13 @@ export default class FormComponent extends React.Component {
                     <ul>
                         {
                             data.documentTags.map((e) => {
-                                return <li> 
+                                return <li>
                                     <a href="javascript:void(0)" onClick={() => this.viewDocument(e.document)}>{e.document.origin}</a>
-                                        &nbsp;&nbsp;
+                                    &nbsp;&nbsp;
                                         {loggedUser.data.id === e.document.user.id &&
-                                            <span onClick={() => { this.removeAttachment(e) }} style={{cursor:"pointer"}} className="fa fa-remove"></span>
-                                        }
-                                    </li>
+                                        <span onClick={() => { this.removeAttachment(e) }} style={{ cursor: "pointer" }} className="fa fa-remove"></span>
+                                    }
+                                </li>
                             })
                         }
                         <li></li>
