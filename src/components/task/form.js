@@ -44,7 +44,7 @@ export default class FormComponent extends React.Component {
     }
 
     componentDidMount() {
-        let { task, dispatch } = { ...this.props };
+        let { task, dispatch, project } = { ...this.props };
 
         if ((task.SelectedId).length > 0) {
             parallel({
@@ -53,10 +53,13 @@ export default class FormComponent extends React.Component {
                         if (c.status == 200) {
                             dispatch({ type: "SET_CHECKLIST", list: c.data.checklist });
                             dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
-                            parallelCallback(null);
+                            getData(`/api/member?linkId=${project}&linkType=project&&page=1&isDeleted=0&taskId=${c.data.id}&workstreamId=${c.data.workstream.id}&isDeleted=0`, {}, (d) => {
+                                dispatch({ type: 'SET_MEMBERS_LIST', list: d.data.result, count: d.data.count })
+                            })
                         } else {
                             parallelCallback("Error retrieving task. Please try again later.");
                         }
+                        parallelCallback(null);
                     });
                 },
                 taskDependency: (parallelCallback) => {
@@ -75,11 +78,6 @@ export default class FormComponent extends React.Component {
         } else {
             dispatch({ type: "SET_TASK_LOADING" });
         }
-        
-        getData(`/api/globalORM/selectList?projectId=${project}&selectName=workstreamList`, {}, (c) => {
-            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamList' });
-        });
-
     }
 
     componentDidUpdate() {

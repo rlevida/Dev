@@ -26,13 +26,6 @@ export default class Reminder extends React.Component {
         this.getNextResult = this.getNextResult.bind(this);
     }
 
-    componentDidMount() {
-        const { members } = this.props;
-        if (_.isEmpty(members.Count)) {
-            this.fetchData(1)
-        }
-    }
-
     fetchData(page) {
         const { dispatch, project, members, task } = this.props;
         getData(`/api/member?linkId=${project.Selected.id}&linkType=project&&page=${page}&isDeleted=0&taskId=${task.Selected.id}&workstreamId=${task.Selected.workstreamId}`, {}, (c) => {
@@ -47,7 +40,6 @@ export default class Reminder extends React.Component {
     }
 
     handleCheckbox(name, data) {
-       console.log(`member`,data)
         const { dispatch, task } = this.props;
         const dataToSubmit = {
             taskId: task.Selected.id,
@@ -59,7 +51,6 @@ export default class Reminder extends React.Component {
         if (data.user.task_member_reminder.length > 0) {
             const taskMember = data.user.task_member_reminder[0];
             putData(`/api/taskMemberReminder/${taskMember.id}?linkId=${project}&linkType=project&usersType=users&userTypeLinkId=${data.user.id}&taskId=${task.Selected.id}&workstreamId=${task.Selected.workstreamId}&memberId=${data.id}`, dataToSubmit, (c) => {
-                console.log(`receive`,c.data)
                 dispatch({ type: 'UPDATE_DATA_MEMBERS_LIST', list: c.data });
                 showToast('success', 'Successfully Updated.');
             })

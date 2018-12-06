@@ -32,7 +32,7 @@ export default class List extends React.Component {
     fetchData(page) {
         const { workstream, dispatch } = this.props;
 
-        getData(`/api/member?page=${page}&workstreamId=${workstream.Selected.id}`, {}, (c) => {
+        getData(`/api/member?page=${page}&workstreamId=${workstream.Selected.id}&isDeleted=0`, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_MEMBERS_LIST", list: c.data.result, Count: c.data.count });
             dispatch({ type: "SET_MEMBERS_LOADING", Loading: "" });
             showToast("success", "Members successfully retrieved.");
