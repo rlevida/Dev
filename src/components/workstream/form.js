@@ -41,6 +41,7 @@ export default class FormComponent extends React.Component {
         this.handleCheckbox = this.handleCheckbox.bind(this);
         this.resetData = this.resetData.bind(this);
         this.getMemberList = this.getMemberList.bind(this);
+        this.getWorkstreamTemplateList = this.getWorkstreamTemplateList.bind(this);
     }
 
     componentDidMount() {
@@ -65,9 +66,23 @@ export default class FormComponent extends React.Component {
 
         getData(`/api/member/selectList?linkType=project&linkId=${project}&page=1`, {}, (c) => {
             const taskMemberOptions = _(c.data.result)
-            .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
-            .value();
+                .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
+                .value();
             dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
+        });
+
+        getData(`/api/workstream?page=1&isActive=1&isTemplate=1`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({
+                    type: "SET_WORKSTREAM_SELECT_LIST", List: _.map(c.data.result, (workstreamObj) => {
+                        return {
+                            ..._.pick(workstreamObj, ["id", "workstream", "type", "description"]),
+                            name: workstreamObj.workstream + " - " + workstreamObj.project.project,
+                            typeId: workstreamObj.type.id
+                        }
+                    })
+                });
+            }
         });
     }
 
@@ -86,14 +101,16 @@ export default class FormComponent extends React.Component {
     }
 
     handleSubmit() {
-        const { workstream, dispatch } = this.props;
+        const { workstream, dispatch, loggedUser } = this.props;
         const dataToBeSubmitted = {
             ..._.pick(workstream.Selected, ["workstream", "description", "typeId"]),
             projectId: project,
             numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0,
             isActive: (typeof workstream.Selected.isActive == 'undefined') ? 1 : workstream.Selected.isActive,
             isTemplate: (typeof workstream.Selected.isTemplate == 'undefined') ? 0 : workstream.Selected.isTemplate,
-            responsible: workstream.Selected.responsible
+            responsible: workstream.Selected.responsible,
+            workstreamTemplate: workstream.Selected.workstreamTemplate,
+            userId: loggedUser.data.id
         }
 
         let result = true;
@@ -146,7 +163,13 @@ export default class FormComponent extends React.Component {
         const { dispatch, workstream } = this.props
         let Selected = Object.assign({}, workstream.Selected)
         Selected[name] = value;
-        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: Selected })
+
+        if (name == "workstreamTemplate") {
+            const selectedWorkstreamTemplate = _.find(workstream.SelectList, (o) => { return o.id == value; });
+            dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: { ..._.omit(selectedWorkstreamTemplate, ["id"]), [name]: value } });
+        } else {
+            dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: Selected })
+        }
     }
 
     setDropDownMultiple(name, values) {
@@ -180,6 +203,20 @@ export default class FormComponent extends React.Component {
                         .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
                         .value();
                     dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
+                });
+            }, 1500)
+        }
+    }
+
+    getWorkstreamTemplateList(options) {
+        const { dispatch } = this.props;
+
+        if (options != "") {
+            keyTimer && clearTimeout(keyTimer);
+            keyTimer = setTimeout(() => {
+                getData(`/api/workstream?page=1&isActive=1&isTemplate=1&workstream=${options}`, {}, (c) => {
+                    const workstreamOptions = (c.status == 200) ? _.map(c.data.result, (workstreamObj) => { return { ..._.pick(workstreamObj, ["id", "workstream", "type", "description"]), name: workstreamObj.workstream, typeId: workstreamObj.type.id } }) : [];
+                    dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
                 });
             }, 1500)
         }
@@ -231,16 +268,34 @@ export default class FormComponent extends React.Component {
                                             </div>
                                         </div>
                                         <div class="form-group">
-                                            <label class="col-md-3 col-xs-12 control-label">Template Workstream</label>
+                                            <label class="col-md-3 col-xs-12 control-label">Workstream Template</label>
                                             <div class="col-md-7 col-xs-12">
                                                 <input type="checkbox"
                                                     style={{ width: "15px", marginTop: "10px" }}
                                                     checked={(workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == 'undefined') ? false : true}
-                                                    onChange={() => { }}
                                                     onClick={(f) => { this.handleCheckbox("isTemplate", (workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == 'undefined') ? 1 : 0) }}
                                                 />
                                             </div>
                                         </div>
+                                        {
+                                            (typeof workstream.Selected.id == 'undefined' || workstream.Selected.id == "") && <div class="form-group">
+                                                <label class="col-md-3 col-xs-12 control-label">Copy Template</label>
+                                                <div class="col-md-7 col-xs-12">
+                                                    <DropDown
+                                                        required={false}
+                                                        options={workstream.SelectList}
+                                                        onInputChange={this.getWorkstreamTemplateList}
+                                                        selected={(typeof workstream.Selected.workstreamTemplate == "undefined") ? "" : workstream.Selected.workstreamTemplate}
+                                                        placeholder={"Type to search Workstream"}
+                                                        onChange={(e) => {
+                                                            this.setDropDown("workstreamTemplate", (e == null) ? "" : e.value);
+                                                        }}
+                                                        isClearable={true}
+                                                    />
+                                                    <div class="help-block with-errors"></div>
+                                                </div>
+                                            </div>
+                                        }
                                         <div class="form-group">
                                             <label class="col-md-3 col-xs-12 control-label">Workstream *</label>
                                             <div class="col-md-7 col-xs-12">

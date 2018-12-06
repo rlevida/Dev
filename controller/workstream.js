@@ -1,9 +1,10 @@
+const async = require("async");
 const dbName = "workstream";
 const sequence = require("sequence").Sequence;
 const models = require('../modelORM');
 const moment = require('moment');
 const { defaultDelete } = require("./");
-const { Type, Workstream, Tasks, Tag, Members, Users, Document, Sequelize, sequelize } = models;
+const { Type, Workstream, Tasks, Tag, Members, Users, Document, Sequelize, sequelize, Projects, ActivityLogs } = models;
 const associationStack = [
     {
         model: Type,
@@ -11,6 +12,10 @@ const associationStack = [
         required: false,
         where: { linkType: 'workstream' },
         attributes: ['id', 'type', 'linkType']
+    },
+    {
+        model: Projects,
+        as: 'project'
     },
     {
         model: Tasks,
@@ -347,8 +352,84 @@ exports.post = {
                 const resultObj = response.toJSON();
                 const responsible = { linkType: "workstream", linkId: resultObj.id, usersType: "users", userTypeLinkId: body.responsible, memberType: "responsible" };
 
-                Members.create(responsible).then((response) => {
-                    return Workstream.findOne({ where: { id: resultObj.id }, ...options }).then((response) => {
+                async.parallel({
+                    template: function (callback) {
+                        if (typeof body.workstreamTemplate != "undefined" && body.workstreamTemplate != "") {
+                            Workstream.findOne({
+                                where: {
+                                    id: body.workstreamTemplate
+                                },
+                                include: [
+                                    {
+                                        model: Tasks,
+                                        required: false,
+                                        as: 'task'
+                                    }
+                                ]
+                            }).then((workstreamResult) => {
+                                const responseObj = workstreamResult.toJSON();
+                                const workstreamTasks = _(responseObj.task)
+                                    .filter((workstreamTasksObj) => {
+                                        return workstreamTasksObj.periodTask == null
+                                    })
+                                    .map((workstreamTasksObj) => {
+                                        return {
+                                            ..._.omit(workstreamTasksObj, ["id", "dueDate", "startDate", "status"]),
+                                            projectId: body.projectId,
+                                            workstreamId: resultObj.id,
+                                            ...(workstreamTasksObj.periodic == 1) ? { dueDate: moment(new Date()).format("YYYY-MM-DD 00:00:00") } : {}
+                                        }
+                                    })
+                                    .value();
+
+                                Tasks.bulkCreate(workstreamTasks).map((taskResponse) => {
+                                    return taskResponse.toJSON();
+                                }).then((taskArray) => {
+                                    const periodicTask = _(taskArray)
+                                        .filter((taskObj) => {
+                                            return taskObj.periodic == 1;
+                                        })
+                                        .map((taskObj) => {
+                                            return _.times(taskObj.periodInstance - 1, (o) => {
+                                                const nextDueDate = moment(taskObj.dueDate).add(taskObj.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
+                                                return { ..._.omit(taskObj, ["id", "startDate", "status"]), dueDate: nextDueDate, periodTask: taskObj.id, ...(taskObj.startDate != null && taskObj.startDate != "") ? { startDate: moment(taskObj.startDate).add(taskObj.periodType, o + 1).format('YYYY-MM-DD 00:00:00') } : {} }
+                                            })
+                                        })
+                                        .flatten()
+                                        .value();
+
+                                    Tasks.bulkCreate(periodicTask).map((taskResponse) => {
+                                        return taskResponse.toJSON();
+                                    }).then((periodicTaskArray) => {
+                                        const activityLogs = _.map([...taskArray, ...periodicTaskArray], (taskActObj) => {
+                                            const activityObj = _.omit(taskActObj, ["dateAdded", "dateUpdated"]);
+                                            return {
+                                                usersId: body.userId,
+                                                linkType: "task",
+                                                linkId: activityObj.id,
+                                                actionType: "created",
+                                                new: JSON.stringify({ task: activityObj }),
+                                                title: activityObj.task
+                                            }
+                                        });
+
+                                        ActivityLogs.bulkCreate(activityLogs).then((response) => {
+                                            callback(null, "");
+                                        });
+                                    });
+                                });
+                            });
+                        } else {
+                            callback(null, "");
+                        }
+                    },
+                    members: function (callback) {
+                        Members.create(responsible).then((response) => {
+                            callback(null, response);
+                        });
+                    }
+                }, function (err, results) {
+                    Workstream.findOne({ where: { id: resultObj.id }, ...options }).then((response) => {
                         const resultObj = response.toJSON();
                         const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
                         const issuesTasks = _.filter(resultObj.task, (taskObj) => {
@@ -380,10 +461,9 @@ exports.post = {
                         ];
 
                         cb({ status: true, data: { ...resultObj, pending: pendingTasks, completed: completedTasks, issues: issuesTasks, dueToday: dueTodayTask, new_documents: newDoc, members } });
-                    })
+                    });
                 });
-
-            })
+            });
         } catch (err) {
             cb({ status: false, error: "Something went wrong. Please try again later." })
         }
