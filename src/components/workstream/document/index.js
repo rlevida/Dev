@@ -1,6 +1,5 @@
 import React from "react";
 import List from "./list"
-import Form from "./form"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
@@ -18,9 +17,6 @@ export default class WorkstreamDocumentViewer extends React.Component {
             <div>
                 { (document.FormActive == "List") && 
                     <List/>
-                }
-                { (document.FormActive == "Form") && 
-                    <Form/>
                 }
             </div>
         )
