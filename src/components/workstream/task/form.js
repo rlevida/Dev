@@ -357,7 +357,7 @@ export default class FormComponent extends React.Component {
 
 
     render() {
-        const { dispatch, task, status, global, loggedUser, document, checklist, project, taskDependency } = { ...this.props };
+        const { dispatch, task, status, global, loggedUser, checklist, project, taskDependency } = { ...this.props };
         let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false;
 
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
@@ -408,6 +408,7 @@ export default class FormComponent extends React.Component {
                 return { ...o, task: (depencyTask.length > 0) ? depencyTask[0] : '' }
             })
             .value();
+
         return (
             <div>
                 <Tabs class="mb40">
@@ -416,300 +417,278 @@ export default class FormComponent extends React.Component {
                         <Tab>Dependents</Tab>
                     </TabList>
                     <TabPanel>
-                        <h4 class="mt20">
-                            {(taskStatus == 0 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60" }}></span>}
-                            {(taskStatus == 1 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
-                            {(taskStatus == 2 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
-                            &nbsp; &nbsp;{task.Selected.task} &nbsp;&nbsp;
-                                {(task.Selected.status == "Completed") && "( Completed )"}
-                            {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
-                            {(task.Selected.status == "For Approval") && "( For Approval )"}
-                            {(task.Selected.status == "Rejected") && "( Rejected )"}
-                        </h4>
-
-                        <div class="form-group text-center m0">
-                            {(isVisible && task.Selected.status != "For Approval") &&
-                                <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
-                            }
-                            {(task.Selected.status == "For Approval" && task.Selected.assignedTo !== loggedUser.data.id) &&
-                                <span>
-                                    <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Approve</a>
-                                    <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Reject Task" onClick={() => this.rejectTask()}>Reject</a>
-                                </span>
-                            }
-                            {(task.Selected.followersName != null && task.Selected.followersIds.split(",").filter(e => { return e == loggedUser.data.id }).length > 0)
-                                ? <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Unfollow task" onClick={() => this.unFollowTask()}>Unfollow Task</a>
-                                : <a href="javascript:void(0);" class="btn btn-primary" style={{ margin: "5px" }} title="Follow task" onClick={() => this.followTask()}>Follow Task</a>
-                            }
-                        </div>
-                        {
-                            (typeof task.Selected.description != "undefined"
-                                && task.Selected.description != ""
-                                && task.Selected.description != null) && <p class="mt10 mb10">{task.Selected.description}</p>
-                        }
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="details">
-                                    <span class="fa fa-calendar"></span>
-                                    <p>Start date:
-                                            {
-                                            (task.Selected.startDate != "" && task.Selected.startDate != null) ?
-                                                moment(task.Selected.startDate).format('ll') : "N/A"
-                                        }
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="details">
-                                    <span class="fa fa-calendar"></span>
-                                    <p>
-                                        Due date:
-                                                {
-                                            (task.Selected.dueDate != "" && task.Selected.dueDate != null) ?
-                                                moment(task.Selected.dueDate).format('ll') : "N/A"
-                                        }
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <a href="#" type="button" data-toggle="modal" data-target="#time-log"><span class="fa fa-lg fa-clock-o" title="Log Time"></span> Time Spent</a>
-                            </div>
-                            {
-                                (task.Selected.periodic == 1) && <div class="col-md-6">
-                                    <div class="details">
-                                        <span class="fa fa-undo"></span>
-                                        <p>Repeat: {task.Selected.period + " " + (task.Selected.periodType).charAt(0).toUpperCase() + (task.Selected.periodType).slice(1)}</p>
-                                    </div>
-                                </div>
-                            }
-                            <div class="col-md-12">
-                                <div class="details">
-                                    <span class="fa fa-user"></span>
-                                    <p class="m0">Followers: {(task.Selected.followersName == null) ? "N/A" : ""} </p>
-                                </div>
-                                <ul>
-                                    {(task.Selected.followersName != null) &&
-                                        task.Selected.followersName.split(",").map((user, index) => {
-                                            return <li key={index}>{user}</li>
-                                        })
-                                    }
-                                </ul>
-                            </div>
-                        </div>
                         <div>
-                            <div>
-                                <h5 class="mb0">Checklist</h5>
-                            </div>
-                            {(checklist.Action != "Edit") &&
-                                <div id="checklist">
+                            {
+                                (task.Loading != "FETCHING_DETAILS") && <div>
+                                    <h4 class="mt20 mb0">
+                                        {(taskStatus == 0 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60" }}></span>}
+                                        {(taskStatus == 1 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
+                                        {(taskStatus == 2 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
+                                        &nbsp; &nbsp;{task.Selected.task} &nbsp;&nbsp;
+                                {(task.Selected.status == "Completed") && "( Completed )"}
+                                        {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
+                                        {(task.Selected.status == "For Approval") && "( For Approval )"}
+                                        {(task.Selected.status == "Rejected") && "( Rejected )"}
+                                    </h4>
+
                                     {
-                                        _.map(checklist.List, (o, index) => {
-                                            let isEditable = (loggedUser.data.id == o.createdBy
-                                                || loggedUser.data.userRole == 1
-                                                || loggedUser.data.userRole == 2
-                                                || loggedUser.data.userRole == 3
-                                                || project.Selected.projectManagerId == loggedUser.data.id)
-                                                ? true : false
-                                            return (
-                                                <div className={
-                                                    ((isEditable || task.Selected.assignedTo == loggedUser.data.id) && task.Selected.status != "Completed")
-                                                        ? (o.isCompleted == 1)
-                                                            ? "wrapper completed"
-                                                            : "wrapper"
-                                                        : "wrapper-disabled"} key={index}>
-                                                    {
-                                                        ((isEditable || task.Selected.assignedTo == loggedUser.data.id) && task.Selected.status !== "Completed") &&
-                                                        <div class="dropdown task-checklist-actions">
-                                                            <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                                            <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
-                                                                {((o.createdBy == loggedUser.data.id || loggedUser.data.userRole <= 3) && o.isCompleted == 0) &&
-                                                                    <li>
-                                                                        <a onClick={() => { this.editChecklist(o) }}>Edit</a>
-                                                                    </li>
-                                                                }
-                                                                {((o.createdBy == loggedUser.data.id || loggedUser.data.userRole <= 3) && o.isCompleted == 0) &&
-                                                                    <li>
-                                                                        <a onClick={() => { this.deleteChecklist(o.id) }}>Delete</a>
-                                                                    </li>
-                                                                }
-                                                                {((task.Selected.assignedTo == loggedUser.data.id || loggedUser.data.userRole <= 3)) &&
-                                                                    <li>
-                                                                        <a onClick={() => { this.completeChecklist({ id: o.id, isCompleted: (o.isCompleted != 1) ? 1 : 0 }, o) }}>
-                                                                            {(o.isCompleted) ? "Not Complete" : "Complete"}
-                                                                        </a>
-                                                                    </li>
-                                                                }
-                                                                {(Boolean(o.isDocument)) &&
-                                                                    <li>
-                                                                        <a href="javascript:void(0)" onClick={() => this.openCheckListUploadModal(o)}>Upload Document</a>
-                                                                    </li>
-
-                                                                }
-                                                            </ul>
-                                                        </div>
-                                                    }
-                                                    <p class="m0">
-                                                        {
-                                                            (o.isMandatory == 1) && <span style={{ color: "red" }}>*</span>
-                                                        }
-                                                        {o.description}
-                                                    </p>
-                                                    <div id="checklist-action-wrapper">
-                                                        {
-                                                            (o.isMandatory == 1) && <span class="label label-info mr5">Mandatory</span>
-                                                        }
-                                                        {
-                                                            (o.isDocument == 1) && <span class="label label-success">Document</span>
-                                                        }
-                                                        {
-                                                            (typeof o.document != "undefined" && o.document.length > 0) && <div class="mt5">
-                                                                <p class="mb0">Documents:</p>
-                                                                {
-                                                                    _.map(o.document, (o, index) => {
-                                                                        return (
-                                                                            <p class="ml15 mt0 m0" key={index}><a href="javascript:void(0)" onClick={() => this.viewDocument(o)}>{o.origin}</a></p>
-                                                                        )
-                                                                    })
-                                                                }
-                                                            </div>
-                                                        }
-                                                        <p style={{ marginTop: 0, fontSize: 10, marginBottom: 0 }}>
-                                                            By : {o.user.firstName + ' ' + o.user.lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })
+                                        (typeof task.Selected.description != "undefined"
+                                            && task.Selected.description != ""
+                                            && task.Selected.description != null) && <p class="mt10 mb10">{task.Selected.description}</p>
                                     }
-                                </div>
-                            }
-                            {(task.Selected.isActive > 0 && task.Selected.status != "Completed") &&
-                                <div class="row" style={{ paddingLeft: 15 }}>
-                                    <div class="col-md-12 pdr0">
-                                        {
-                                            ((task.Selected.assignedTo == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id || loggedUser.data.userRole == 3) &&
-                                            <div>
-                                                <div class="form-group m0">
-                                                    <label>Item</label>
-                                                    <input type="text" name="checklist"
-                                                        class="form-control"
-                                                        placeholder="Add Item"
-                                                        onChange={this.handleChange}
-                                                        value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
 
-                                                    />
+                                    <div class="form-group mt10 mb10 text-center">
+                                        {(isVisible && task.Selected.status != "For Approval") &&
+                                            <a href="javascript:void(0);" class="btn btn-primary" style={{ marginRight: 5 }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
+                                        }
+                                        {(task.Selected.status == "For Approval" && task.Selected.assignedTo !== loggedUser.data.id) &&
+                                            <span>
+                                                <a href="javascript:void(0);" class="btn btn-primary" style={{ marginRight: 5 }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Approve</a>
+                                                <a href="javascript:void(0);" class="btn btn-primary" title="Reject Task" onClick={() => this.rejectTask()}>Reject</a>
+                                            </span>
+                                        }
+                                        {(task.Selected.followersName != null && task.Selected.followersIds.split(",").filter(e => { return e == loggedUser.data.id }).length > 0)
+                                            ? <a href="javascript:void(0);" class="btn btn-primary" style={{ marginRight: 5 }} title="Unfollow task" onClick={() => this.unFollowTask()}>Unfollow Task</a>
+                                            : <a href="javascript:void(0);" class="btn btn-primary" title="Follow task" onClick={() => this.followTask()}>Follow Task</a>
+                                        }
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="details">
+                                                <span class="fa fa-calendar"></span>
+                                                <p>
+                                                    {
+                                                        `Start Date: ${(task.Selected.startDate != "" && task.Selected.startDate != null) ? moment(task.Selected.startDate).format('ll') : "N/A"}`
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="details">
+                                                <span class="fa fa-calendar"></span>
+                                                <p>
+                                                    {
+                                                        `Due Date: ${(task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('ll') : "N/A"}`
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <a href="#" type="button" data-toggle="modal" data-target="#time-log"><span class="fa fa-lg fa-clock-o" title="Log Time"></span> Time Spent</a>
+                                        </div>
+                                        {
+                                            (task.Selected.periodic == 1) && <div class="col-md-6">
+                                                <div class="details">
+                                                    <span class="fa fa-undo"></span>
+                                                    <p>Repeat: {task.Selected.period + " " + (task.Selected.periodType).charAt(0).toUpperCase() + (task.Selected.periodType).slice(1)}</p>
                                                 </div>
                                             </div>
                                         }
+                                        <div class="col-md-12">
+                                            <div class="details">
+                                                <span class="fa fa-user"></span>
+                                                <p class="m0">Followers: {(task.Selected.followersName == null) ? "N/A" : ""} </p>
+                                            </div>
+                                            <ul>
+                                                {(task.Selected.followersName != null) &&
+                                                    task.Selected.followersName.split(",").map((user, index) => {
+                                                        return <li key={index}>{user}</li>
+                                                    })
+                                                }
+                                            </ul>
+                                        </div>
                                     </div>
-                                </div>
-                            }
-
-                            {(typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents != "" && checklist.Selected.documents != null) &&
-                                <div class="row" style={{ marginLeft: 7, marginTop: 5 }}>
-                                    <div class="col-md-12 pdr0">
-                                        <div class="form-group">
-                                            <div style={{ position: "relative" }}>
-                                                <label>Attached Documents</label>
+                                    <div>
+                                        <div>
+                                            <h5 class="mb0">Checklist</h5>
+                                        </div>
+                                        {(checklist.Action != "Edit") &&
+                                            <div id="checklist">
                                                 {
-                                                    (typeof checklist.Selected.id != "undefined" && _.filter(checklist.Selected.types, (o) => { return o.value == "Document" }).length > 0) &&
-                                                    <a class="task-action" onClick={this.openCheckListUploadModal}>Add</a>
+                                                    _.map(checklist.List, (o, index) => {
+                                                        let isEditable = (loggedUser.data.id == o.createdBy
+                                                            || loggedUser.data.userRole == 1
+                                                            || loggedUser.data.userRole == 2
+                                                            || loggedUser.data.userRole == 3
+                                                            || project.Selected.projectManagerId == loggedUser.data.id)
+                                                            ? true : false
+                                                        return (
+                                                            <div className={
+                                                                ((isEditable || task.Selected.assignedTo == loggedUser.data.id) && task.Selected.status != "Completed")
+                                                                    ? (o.isCompleted == 1)
+                                                                        ? "wrapper completed"
+                                                                        : "wrapper"
+                                                                    : "wrapper-disabled"} key={index}>
+                                                                {
+                                                                    ((isEditable || task.Selected.assignedTo == loggedUser.data.id) && task.Selected.status !== "Completed") &&
+                                                                    <div class="dropdown task-checklist-actions">
+                                                                        <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                                                                        <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
+                                                                            {((o.createdBy == loggedUser.data.id || loggedUser.data.userRole <= 3) && o.isCompleted == 0) &&
+                                                                                <li>
+                                                                                    <a onClick={() => { this.editChecklist(o) }}>Edit</a>
+                                                                                </li>
+                                                                            }
+                                                                            {((o.createdBy == loggedUser.data.id || loggedUser.data.userRole <= 3) && o.isCompleted == 0) &&
+                                                                                <li>
+                                                                                    <a onClick={() => { this.deleteChecklist(o.id) }}>Delete</a>
+                                                                                </li>
+                                                                            }
+                                                                            {((task.Selected.assignedTo == loggedUser.data.id || loggedUser.data.userRole <= 3)) &&
+                                                                                <li>
+                                                                                    <a onClick={() => { this.completeChecklist({ id: o.id, isCompleted: (o.isCompleted != 1) ? 1 : 0 }, o) }}>
+                                                                                        {(o.isCompleted) ? "Not Complete" : "Complete"}
+                                                                                    </a>
+                                                                                </li>
+                                                                            }
+                                                                            {(Boolean(o.isDocument)) &&
+                                                                                <li>
+                                                                                    <a href="javascript:void(0)" onClick={() => this.openCheckListUploadModal(o)}>Upload Document</a>
+                                                                                </li>
+
+                                                                            }
+                                                                        </ul>
+                                                                    </div>
+                                                                }
+                                                                <p class="m0">
+                                                                    {
+                                                                        (o.isMandatory == 1) && <span style={{ color: "red" }}>*</span>
+                                                                    }
+                                                                    {o.description}
+                                                                </p>
+                                                                <div id="checklist-action-wrapper">
+                                                                    {
+                                                                        (o.isMandatory == 1) && <span class="label label-info mr5">Mandatory</span>
+                                                                    }
+                                                                    {
+                                                                        (o.isDocument == 1) && <span class="label label-success">Document</span>
+                                                                    }
+                                                                    {
+                                                                        (typeof o.document != "undefined" && o.document.length > 0) && <div class="mt5">
+                                                                            <p class="mb0">Documents:</p>
+                                                                            {
+                                                                                _.map(o.document, (o, index) => {
+                                                                                    return (
+                                                                                        <p class="ml15 mt0 m0" key={index}><a href="javascript:void(0)" onClick={() => this.viewDocument(o)}>{o.origin}</a></p>
+                                                                                    )
+                                                                                })
+                                                                            }
+                                                                        </div>
+                                                                    }
+                                                                    <p style={{ marginTop: 0, fontSize: 10, marginBottom: 0 }}>
+                                                                        By : {o.user.firstName + ' ' + o.user.lastName + ' - ' + moment(o.dateAdded).format("MMM DD, YYYY")}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    })
                                                 }
                                             </div>
-                                            {
-                                                checklist.Selected.documents.map((data, index) => {
-                                                    return (
-                                                        <p key={index} style={{ marginLeft: 7, marginTop: 0, marginBottom: 0 }}>{data.origin}</p>
-                                                    )
-                                                })
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            }
+                                        }
+                                        {(task.Selected.isActive > 0 && task.Selected.status != "Completed") &&
+                                            <div class="row" style={{ paddingLeft: 15 }}>
+                                                <div class="col-md-12 pdr0">
+                                                    {
+                                                        ((task.Selected.assignedTo == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || project.Selected.projectManagerId == loggedUser.data.id || loggedUser.data.userRole == 3) &&
+                                                        <div>
+                                                            <div class="form-group m0">
+                                                                <label>Item</label>
+                                                                <input type="text" name="checklist"
+                                                                    class="form-control"
+                                                                    placeholder="Add Item"
+                                                                    onChange={this.handleChange}
+                                                                    value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
 
-                            {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
-                                <div class="row" style={{ paddingLeft: 15 }}>
-                                    <div class="col-md-12 pdr0">
-                                        <ul id="checklist-checkbox">
-                                            <li>
-                                                <input
-                                                    id="mandatory-checkbox"
-                                                    type="checkbox"
-                                                    checked={(checklist.Selected.isMandatory || checklist.Selected.isDocument) ? true : false}
-                                                    onChange={() => { }}
-                                                    onClick={(f) => { this.handleCheckbox("isMandatory", (checklist.Selected.isMandatory) ? 0 : 1) }}
-                                                    disabled={checklist.Selected.isDocument ? true : false}
-                                                />
-                                                <label for="mandatory-checkbox">Mandatory Item</label>
-                                            </li>
-                                            <li>
-                                                <input
-                                                    id="document-checkbox"
-                                                    type="checkbox"
-                                                    checked={checklist.Selected.isDocument ? true : false}
-                                                    onChange={() => { }}
-                                                    onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
-                                                />
-                                                <label for="document-checkbox">Document Item</label>
-                                            </li>
-                                        </ul>
-                                        {
-                                            (checklist.Action != "Edit") ?
-
-                                                <a href="javascript:void(0);" class="btn btn-primary" title="Add"
-                                                    onClick={this.addChecklist}
-                                                >
-                                                    Add
-                                                </a>
-                                                :
-                                                <div>
-                                                    <a href="javascript:void(0);" class="btn btn-primary mt5 mr5" title="Save"
-                                                        onClick={this.updateChecklist}
-                                                    >
-                                                        Save
-                                                    </a>
-                                                    <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
-                                                        onClick={() => {
-                                                            dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
-                                                            dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: {} })
-                                                        }}
-                                                    >
-                                                        Cancel
-                                                    </a>
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    }
                                                 </div>
+                                            </div>
                                         }
 
+                                        {(typeof checklist.Selected.documents != "undefined" && checklist.Selected.documents != "" && checklist.Selected.documents != null) &&
+                                            <div class="row" style={{ marginLeft: 7, marginTop: 5 }}>
+                                                <div class="col-md-12 pdr0">
+                                                    <div class="form-group">
+                                                        <div style={{ position: "relative" }}>
+                                                            <label>Attached Documents</label>
+                                                            {
+                                                                (typeof checklist.Selected.id != "undefined" && _.filter(checklist.Selected.types, (o) => { return o.value == "Document" }).length > 0) &&
+                                                                <a class="task-action" onClick={this.openCheckListUploadModal}>Add</a>
+                                                            }
+                                                        </div>
+                                                        {
+                                                            checklist.Selected.documents.map((data, index) => {
+                                                                return (
+                                                                    <p key={index} style={{ marginLeft: 7, marginTop: 0, marginBottom: 0 }}>{data.origin}</p>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        {(typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
+                                            <div class="row" style={{ paddingLeft: 15 }}>
+                                                <div class="col-md-12 pdr0">
+                                                    <ul id="checklist-checkbox">
+                                                        <li>
+                                                            <input
+                                                                id="mandatory-checkbox"
+                                                                type="checkbox"
+                                                                checked={(checklist.Selected.isMandatory || checklist.Selected.isDocument) ? true : false}
+                                                                onChange={() => { }}
+                                                                onClick={(f) => { this.handleCheckbox("isMandatory", (checklist.Selected.isMandatory) ? 0 : 1) }}
+                                                                disabled={checklist.Selected.isDocument ? true : false}
+                                                            />
+                                                            <label for="mandatory-checkbox">Mandatory Item</label>
+                                                        </li>
+                                                        <li>
+                                                            <input
+                                                                id="document-checkbox"
+                                                                type="checkbox"
+                                                                checked={checklist.Selected.isDocument ? true : false}
+                                                                onChange={() => { }}
+                                                                onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
+                                                            />
+                                                            <label for="document-checkbox">Document Item</label>
+                                                        </li>
+                                                    </ul>
+                                                    {
+                                                        (checklist.Action != "Edit") ?
+
+                                                            <a href="javascript:void(0);" class="btn btn-primary" title="Add"
+                                                                onClick={this.addChecklist}
+                                                            >
+                                                                Add
+                                                </a>
+                                                            :
+                                                            <div>
+                                                                <a href="javascript:void(0);" class="btn btn-primary mt5 mr5" title="Save"
+                                                                    onClick={this.updateChecklist}
+                                                                >
+                                                                    Save
+                                                    </a>
+                                                                <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
+                                                                    onClick={() => {
+                                                                        dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
+                                                                        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: {} })
+                                                                    }}
+                                                                >
+                                                                    Cancel
+                                                    </a>
+                                                            </div>
+                                                    }
+
+                                                </div>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             }
                         </div>
-                        {/* {(task.Selected.isActive > 0) &&
-                            <div style={{ position: "relative" }} class="mt20">
-                                <h5 class="mb0">Documents</h5>
-                                {((task.Selected.assignedTo == loggedUser.data.id) || loggedUser.data.userRole == 1 || loggedUser.data.userRole == 2 || loggedUser.data.userRole == 3) &&
-                                    <a href="javascript:void(0);" class="task-action" data-toggle="modal" data-target="#uploadFileModal" onClick={() => dispatch({ type: "SET_TASK_MODAL_TYPE", ModalType: "task" })}>Add</a>
-                                }
-                            </div>
-                        }
-
-                        <div id="documentList">
-                            {
-                                (document.Loading == "RETRIEVING") && <Loading />
-                            }
-                            {(document.List.length > 0 && document.Loading != "RETRIEVING") &&
-                                (document.List).map((data, index) => {
-                                    return (
-                                        <div class="details pt10" key={index}>
-                                            <span class="fa fa-paperclip"></span>
-                                            <span class="fa fa-file"></span>
-                                            <p class="m0">{data.origin}</p>
-                                        </div>
-                                    )
-                                })
-                            }
-
-                        </div> */}
                     </TabPanel>
                     <TabPanel>
                         <div style={{ position: "relative" }} class="mt10">
@@ -839,22 +818,27 @@ export default class FormComponent extends React.Component {
                         }
                     </TabPanel>
                 </Tabs>
-                <Tabs>
-                    <TabList>
-                        <Tab>Comments</Tab>
-                        <Tab>Activities</Tab>
-                        <Tab>Time Logs</Tab>
-                    </TabList>
-                    <TabPanel>
-                        <TaskComment />
-                    </TabPanel>
-                    <TabPanel>
-                        <TaskActivities />
-                    </TabPanel>
-                    <TabPanel>
-                        <TasklogTime />
-                    </TabPanel>
-                </Tabs>
+                {
+                    (task.Loading != "FETCHING_DETAILS") && <Tabs>
+                        <TabList>
+                            <Tab>Comments</Tab>
+                            <Tab>Activities</Tab>
+                            <Tab>Time Logs</Tab>
+                        </TabList>
+                        <TabPanel>
+                            <TaskComment />
+                        </TabPanel>
+                        <TabPanel>
+                            <TaskActivities />
+                        </TabPanel>
+                        <TabPanel>
+                            <TasklogTime />
+                        </TabPanel>
+                    </Tabs>
+                }
+                {
+                    (task.Loading == "FETCHING_DETAILS") && <Loading />
+                }
                 <UploadModal />
                 <ApprovalModal />
                 <RejectMessageModal />
