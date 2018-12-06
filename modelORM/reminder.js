@@ -30,7 +30,7 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: true
     },
     linkType: {
-      type: DataTypes.ENUM('task', 'document'),
+      type: DataTypes.ENUM('task', 'document','notes'),
       allowNull: true
     },
     type: {

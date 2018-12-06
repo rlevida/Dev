@@ -51,14 +51,14 @@ export default class Form extends React.Component {
             const regEx = /\[([^\]]+)]/;
             return regEx.test(o)
         }).map((o) => {
-            return { userId: _.toNumber(o.match(/\((.*)\)/).pop()) };
+            const emailAddress = workstream.Selected.taskMemberList.filter((e) => { return e.id == _.toNumber(o.match(/\((.*)\)/).pop()) })[0].emailAddress
+            return { userId: _.toNumber(o.match(/\((.*)\)/).pop()), emailAddress: emailAddress };
         }).value();
-        const taskMemberList = workstream.Selected.taskMemberList.map((e) => { return { id: e.id, emailAddress: e.emailAddress } })
 
-        let dataToBeSubmited = {
+        const dataToBeSubmited = {
             filter: { seen: 0 },
             data: { comment: commentText, linkType: "task", linkId: task.Selected.id, usersId: loggedUser.data.id },
-            reminderList: JSON.stringify(commentIds),
+            reminderList: JSON.stringify(_.uniqBy(commentIds, `userId`)),
             workstreamId: workstream.Selected.id,
             taskId: task.Selected.id,
             projectId: project,
@@ -66,7 +66,6 @@ export default class Form extends React.Component {
             task: task.Selected.task,
             workstream: workstream.Selected.workstream,
             userId: loggedUser.data.id,
-            taskMembers: taskMemberList
         };
         postData(`/api/conversation/comment`, dataToBeSubmited, c => {
             dispatch({ type: "ADD_COMMENT_LIST", list: c.data });

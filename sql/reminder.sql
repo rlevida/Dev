@@ -6,7 +6,7 @@ CREATE TABLE `reminder` (
     `seen` TINYINT(1) DEFAULT '0',
     `projectId` BIGINT,
     `linkId` BIGINT,
-    `linkType` ENUM("task","document","workstream"),
+    `linkType` ENUM("task","document","workstream","notes"),
     `type` ENUM("Task For Approval","Task Rejected","Task Overdue","Task Due Today","Tag in Comment","Task Completed"),
     `createdBy` BIGINT,
     `dateAdded` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,

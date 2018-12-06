@@ -52,7 +52,7 @@ export default class Form extends React.Component {
             return { userId: _.toNumber(o.match(/\((.*)\)/).pop()) };
         }).value();
 
-        let dataToBeSubmited = {
+        const dataToBeSubmited = {
             filter: { seen: 0 },
             data: { comment: commentText, linkType: "task", linkId: task.Selected.id, usersId: loggedUser.data.id },
             reminder: {
@@ -65,7 +65,8 @@ export default class Form extends React.Component {
             },
             reminderList: JSON.stringify(commentIds)
         };
-        socket.emit("SAVE_OR_UPDATE_CONVERSATION", dataToBeSubmited);
+        console.log(dataToBeSubmited)
+        // socket.emit("SAVE_OR_UPDATE_CONVERSATION", dataToBeSubmited);
     }
 
     render() {
