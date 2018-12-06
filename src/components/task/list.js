@@ -61,7 +61,7 @@ export default class List extends React.Component {
             taskAssigned.map((assignedObj) => {
                 requestUrl += `&userId=${assignedObj.value}`
             });
-        } else if (loggedUser.data.user_role[0].roleId >= 3) {
+        } else if (loggedUser.data.user_role[0].roleId > 3) {
             requestUrl += `&userId=${loggedUser.data.id}`
         }
 
