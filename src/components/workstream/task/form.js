@@ -421,11 +421,11 @@ export default class FormComponent extends React.Component {
                             {
                                 (task.Loading != "FETCHING_DETAILS") && <div>
                                     <h4 class="mt20 mb0">
-                                        {(taskStatus == 0 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60" }}></span>}
-                                        {(taskStatus == 1 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12" }}></span>}
-                                        {(taskStatus == 2 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b" }}></span>}
-                                        &nbsp; &nbsp;{task.Selected.task} &nbsp;&nbsp;
-                                {(task.Selected.status == "Completed") && "( Completed )"}
+                                        {(taskStatus == 0 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-circle fa-lg" style={{ color: "#27ae60", marginRight: 5 }}></span>}
+                                        {(taskStatus == 1 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-circle fa-lg" style={{ color: "#f39c12", marginRight: 5 }}></span>}
+                                        {(taskStatus == 2 && (task.Selected.dueDate != "" && task.Selected.dueDate != null)) && <span class="fa fa-exclamation-circle fa-lg" style={{ color: "#c0392b", marginRight: 5 }}></span>}
+                                        {task.Selected.task}
+                                        {(task.Selected.status == "Completed") && "( Completed )"}
                                         {(!task.Selected.status || task.Selected.status == "In Progress") && "( In Progress )"}
                                         {(task.Selected.status == "For Approval") && "( For Approval )"}
                                         {(task.Selected.status == "Rejected") && "( Rejected )"}
