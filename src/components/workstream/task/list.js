@@ -7,6 +7,8 @@ import _ from "lodash";
 import { Loading } from "../../../globalComponents";
 import { getData, showToast } from "../../../globalFunction";
 
+let keyTimer = "";
+
 @connect((store) => {
     return {
         socket: store.socket.container,
@@ -147,76 +149,82 @@ export default class List extends React.Component {
     }
 
     selectedTask(data) {
-        const { dispatch, socket, loggedUser, workstream } = this.props;
-        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "RETRIEVING", LoadingType: 'Loading' })
-        parallel({
-            taskCheckList: (parallelCallback) => {
-                getData(`/api/checklist/getCheckList?taskId=${data.id}&includes=user`, {}, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_CHECKLIST", list: c.data })
-                        dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined })
-                    }
-                    parallelCallback(null, "")
-                })
-            },
-            taskCommentList: (parallelCallback) => {
-                getData(`/api/conversation/getConversationList?linkType=task&linkId=${data.id}`, {}, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_COMMENT_LIST", list: c.data })
-                    }
-                    parallelCallback(null, "")
-                })
-            },
-            activities: (parallelCallback) => {
-                getData(`/api/activityLog?taskId=${data.id}&page=1&includes=user`, {}, (c) => {
-                    if (c.status == 200) {
-                        const { data } = c;
-                        dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
-                    }
-                    parallelCallback(null, "")
-                })
-            },
-            timelogs: (parallelCallback) => {
-                getData(`/api/taskTimeLogs?taskId=${data.id}&page=1&includes=user`, {}, (c) => {
-                    if (c.status == 200) {
-                        const { data } = c;
-                        const totalCount = _(data.total_hours)
-                            .map((totalObj) => {
-                                if (totalObj.period == "hours") {
-                                    totalObj.value = totalObj.value * 60
-                                }
-                                return totalObj;
-                            })
-                            .value();
-                        dispatch({ type: "SET_TASKTIMELOG_LIST", list: data.result, count: data.count });
-                        dispatch({ type: "SET_TOTAL_HOURS", list: data.result, hours: _.round(_.divide(_.sumBy(totalCount, 'value'), 60), 2) });
-                    }
-                    parallelCallback(null, "")
-                })
-            },
-            taskDependency: (parallelCallback) => {
-                getData(`/api/taskDependency?includes=task&taskId=${data.id}`, {}, (c) => {
-                    dispatch({ type: "SET_TASK_DEPENDENCY_LIST", List: c.data });
-                    dispatch({ type: "SET_TASK_SELECT_LIST", List: [] });
+        const { dispatch, loggedUser, workstream } = this.props;
 
-                    parallelCallback(null, "")
-                })
-            },
-            taskDocument: (parallelCallback) => {
-                getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=workstream&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream.Selected.id}&tagType=document&taskId=${data.id}`, {}, (c) => {
-                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'List', Count: { Count: c.data.count }, CountType: 'Count' })
-                    dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'Loading' })
-                    parallelCallback(null, "")
-                });
-            }
-        }, (error, result) => {
-            window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}?task=${data.id}`);
-            dispatch({ type: "SET_TASK_SELECTED", Selected: data })
-            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" })
-        })
+        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "RETRIEVING", LoadingType: 'Loading' });
+        dispatch({ type: "SET_TASK_COMPONENT_CURRENT_PAGE", Page: "Workstream Task" });
+        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "View" });
+        dispatch({ type: "SET_TASK_LOADING", Loading: "FETCHING_DETAILS" });
 
-        dispatch({ type: "SET_TASK_COMPONENT_CURRENT_PAGE", Page: "Workstream Task" })
-        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "workstreamMemberList", filter: { id: data.workstreamId } })
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            parallel({
+                taskCheckList: (parallelCallback) => {
+                    getData(`/api/checklist/getCheckList?taskId=${data.id}&includes=user`, {}, (c) => {
+                        if (c.status == 200) {
+                            dispatch({ type: "SET_CHECKLIST", list: c.data });
+                            dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
+                        }
+                        parallelCallback(null, "");
+                    })
+                },
+                taskCommentList: (parallelCallback) => {
+                    getData(`/api/conversation/getConversationList?linkType=task&linkId=${data.id}`, {}, (c) => {
+                        if (c.status == 200) {
+                            dispatch({ type: "SET_COMMENT_LIST", list: c.data });
+                        }
+                        parallelCallback(null, "");
+                    })
+                },
+                activities: (parallelCallback) => {
+                    getData(`/api/activityLog?taskId=${data.id}&page=1&includes=user`, {}, (c) => {
+                        if (c.status == 200) {
+                            const { data } = c;
+                            dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+                        }
+                        parallelCallback(null, "");
+                    })
+                },
+                timelogs: (parallelCallback) => {
+                    getData(`/api/taskTimeLogs?taskId=${data.id}&page=1&includes=user`, {}, (c) => {
+                        if (c.status == 200) {
+                            const { data } = c;
+                            const totalCount = _(data.total_hours)
+                                .map((totalObj) => {
+                                    if (totalObj.period == "hours") {
+                                        totalObj.value = totalObj.value * 60
+                                    }
+                                    return totalObj;
+                                })
+                                .value();
+                            dispatch({ type: "SET_TASKTIMELOG_LIST", list: data.result, count: data.count });
+                            dispatch({ type: "SET_TOTAL_HOURS", list: data.result, hours: _.round(_.divide(_.sumBy(totalCount, 'value'), 60), 2) });
+                        }
+                        parallelCallback(null, "")
+                    })
+                },
+                taskDependency: (parallelCallback) => {
+                    getData(`/api/taskDependency?includes=task&taskId=${data.id}`, {}, (c) => {
+                        dispatch({ type: "SET_TASK_DEPENDENCY_LIST", List: c.data });
+                        dispatch({ type: "SET_TASK_SELECT_LIST", List: [] });
+
+                        parallelCallback(null, "")
+                    })
+                },
+                taskDocument: (parallelCallback) => {
+                    getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=workstream&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream.Selected.id}&tagType=document&taskId=${data.id}`, {}, (c) => {
+                        dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'List', Count: { Count: c.data.count }, CountType: 'Count' })
+                        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'Loading' })
+                        parallelCallback(null, "")
+                    });
+                }
+            }, (error, result) => {
+                window.history.replaceState({}, document.title, "/project/" + `${project}/workstream/${workstreamId}?task=${data.id}`);
+                dispatch({ type: "SET_TASK_SELECTED", Selected: data });
+                dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            })
+        }, 1500)
+
     }
 
     renderStatus(data) {
@@ -273,7 +281,7 @@ export default class List extends React.Component {
                             _.orderBy(task.List, ['dueDate', 'asc']).map((data, index) => {
                                 const assignedUser = (_.filter(data.task_members, (o) => { return o.memberType == "assignedTo" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "assignedTo" })[0].user : "";
                                 const followers = (_.filter(data.task_members, (o) => { return o.memberType == "Follower" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "Follower" }) : "";
-
+                                
                                 return (
                                     <tr key={index}>
                                         <td>

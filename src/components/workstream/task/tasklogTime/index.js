@@ -66,8 +66,7 @@ export default class TaskTimelog extends React.Component {
         } = user;
         return (
             <div>
-                <p style={{ marginTop: 0, marginBottom: 0, fontSize: 10 }}>Log Time: <strong>{time}</strong></p>
-                <p style={{ marginTop: 0, marginBottom: 0, fontSize: 10 }}>Period: <strong>{period}</strong></p>
+                <p style={{ marginTop: 0, marginBottom: 0, fontSize: 10 }}>Log Time: <strong>{time} {period}</strong></p>
                 <p style={{ marginTop: 0, marginBottom: 0, fontSize: 10 }}>Description: {description}</p>
                 <p style={{ marginTop: 5, marginBottom: 0, fontSize: 10, }}>
                     {`${moment(dateAdded).format("MMM DD, YYYY HH:mm:ss")} - ${firstName} ${lastName}`}
@@ -84,7 +83,7 @@ export default class TaskTimelog extends React.Component {
         } = tasktimeLog.Count;
         return (
             <div>
-                <p style={{ marginLeft: 15 }}>Total Logged Time: {tasktimeLog.TotalHours} Hours</p>
+                <p style={{ marginLeft: 15 }}>Total Logged Time: <strong>{tasktimeLog.TotalHours} Hours</strong></p>
                 {
                     _.map(tasktimeLog.List, (tasktimeLogObj, index) => {
                         return (
