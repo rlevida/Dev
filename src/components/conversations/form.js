@@ -463,7 +463,13 @@ export default class FormComponent extends React.Component {
                     <ul>
                         {
                             data.documentTags.map((e) => {
-                                return <li> <a href="javascript:void(0)" onClick={() => this.viewDocument(e.document)}>{e.document.origin}</a>&nbsp;&nbsp;<span onClick={() => { this.removeAttachment(e) }} style={{cursor:"pointer"}} className="fa fa-remove"></span></li>
+                                return <li> 
+                                    <a href="javascript:void(0)" onClick={() => this.viewDocument(e.document)}>{e.document.origin}</a>
+                                        &nbsp;&nbsp;
+                                        {loggedUser.data.id === e.document.user.id &&
+                                            <span onClick={() => { this.removeAttachment(e) }} style={{cursor:"pointer"}} className="fa fa-remove"></span>
+                                        }
+                                    </li>
                             })
                         }
                         <li></li>
