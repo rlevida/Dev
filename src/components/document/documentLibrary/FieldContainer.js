@@ -113,7 +113,7 @@ export default class DocumentLibrary extends React.Component {
                 dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library' });
                 dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                 if (data.status == 'new') {
-                    dispatch({ type: "SET_DOCUMENT_NEW_UPLOAD_COUNT", Count: document.NewUploadCount + 1 })
+                    dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'library', count: document.NewUploadCount + 1 })
                 }
                 showToast("success", "Successfully Added.")
             } else {

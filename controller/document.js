@@ -294,7 +294,7 @@ exports.get = {
             }
         }
 
-
+        
         try {
             DocumentLink
                 .findAndCountAll({
@@ -307,7 +307,7 @@ exports.get = {
                     }],
                 })
                 .then((res) => {
-                    cb({ status: true, data: { newUploadCount: res.count } })
+                    cb({ status: true, data: { count: res.count } })
                 })
         } catch (err) {
             cb({ status: false, error: err })
