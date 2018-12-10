@@ -93,7 +93,15 @@ export default class FormComponent extends React.Component {
     markTaskAsCompleted() {
         let { socket, task, checklist, loggedUser, dispatch } = this.props;
         if (task.Selected.approvalRequired && loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3) {
-            $(`#approvalModal`).modal("show");
+            const checklistToComplete = checklist.List
+                .filter((e, index) => {
+                    return e.isMandatory && !e.isCompleted;
+                })
+            if (checklistToComplete == 0) {
+                $(`#approvalModal`).modal("show");
+            } else {
+                showToast("error", "There are items to be completed in the checklist before completing the task.")
+            }
         } else {
             const checklistToComplete = checklist.List
                 .filter((e, index) => {
@@ -357,7 +365,7 @@ export default class FormComponent extends React.Component {
 
 
     render() {
-        const { dispatch, task, status, global, loggedUser, checklist, project, taskDependency } = { ...this.props };
+        const { dispatch, task, status, global, loggedUser, checklist, project, taskDependency, workstream } = { ...this.props };
         let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false;
 
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
@@ -382,7 +390,7 @@ export default class FormComponent extends React.Component {
             taskStatus = 1
         }
 
-        if ((task.Selected.status != "Completed" && task.Selected.assignedUserType != "Internal" && task.Selected.isActive == 1)) {
+        if ((task.Selected.status != "Completed" && task.Selected.assignedTo == loggedUser.data.id && task.Selected.isActive == 1) || loggedUser.data.id == workstream.Selected.responsible || loggedUser.data.userRole < 3) {
             isVisible = true
         } else if ((task.Selected.status != "Completed" && task.Selected.assignedUserType == "Internal" && task.Selected.isActive == 1)) {
             let userData = loggedUser.data
@@ -534,7 +542,7 @@ export default class FormComponent extends React.Component {
                                                                                     <a onClick={() => { this.deleteChecklist(o.id) }}>Delete</a>
                                                                                 </li>
                                                                             }
-                                                                            {((task.Selected.assignedTo == loggedUser.data.id || loggedUser.data.userRole <= 3)) &&
+                                                                            {((task.Selected.assignedTo == loggedUser.data.id || loggedUser.data.userRole <= 3) && (!o.isDocument || o.isDocument && o.isCompleted > 0)) &&
                                                                                 <li>
                                                                                     <a onClick={() => { this.completeChecklist({ id: o.id, isCompleted: (o.isCompleted != 1) ? 1 : 0 }, o) }}>
                                                                                         {(o.isCompleted) ? "Not Complete" : "Complete"}
