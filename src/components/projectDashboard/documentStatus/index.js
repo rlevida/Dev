@@ -1,90 +1,47 @@
 import React from "react"
-import { getData } from '../../../globalFunction'
+import ReactDOM from "react-dom"
+
+import { showToast, getData } from '../../../globalFunction'
 
 import { connect } from "react-redux"
 @connect((store) => {
     return {
         socket: store.socket.container,
         document: store.document,
-        loggedUser: store.loggedUser,
-        global: store.global
+        global: store.global,
+        loggedUser: store.loggedUser
     }
 })
 
 export default class DocumentStatus extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {
-
-        }
     }
 
-    componentWillMount() {
-        const { socket } = this.props
+    componentDidMount() {
+        let { dispatch, loggedUser } = this.props;
+        getData(`/api/document/getDocumentCount?isDeleted=0&linkId=${project}&linkType=project&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&type=document`, {}, (c) => {
+            dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'new', count: c.data.count })
+        })
 
-        socket.emit("GET_DOCUMENT_LIST", { filter: { isDeleted: 0, linkId: project, linkType: "project" } });
-        socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "shareList", filter: { linkType: "project", linkId: project } })
+        getData(`/api/document/getDocumentCount?isDeleted=0&linkId=${project}&linkType=project&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&type=document`, {}, (c) => {
+            dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'library', count: c.data.count })
+        })
     }
 
     render() {
-        let { document, loggedUser, global } = this.props
-        let documentList = { newUpload: [], library: [] };
-        if (document.List.length > 0) {
-            document.List.filter(e => {
-                if (e.status == "new") {
-                    if (loggedUser.data.userType == "Internal") {
-                        documentList.newUpload.push(e)
-                    } else {
-                        if (e.folderId != null) {
-                            let isShared = global.SelectList.shareList.filter(s => {
-                                return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.folderId && s.shareType == "folder" && e.status == "new"
-                            }).length ? 1 : 0
-                            if (isShared || loggedUser.data.id == e.uploadedBy) {
-                                documentList.newUpload.push(e)
-                            }
-                        } else {
-                            let isShared = global.SelectList.shareList.filter(s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id && s.shareType == "document" && e.status == "new" }).length ? 1 : 0
-                            if (isShared || loggedUser.data.id == e.uploadedBy) {
-                                documentList.newUpload.push(e)
-                            }
-                        }
-                    }
-                }
-                if (e.status == "library") {
-                    if (loggedUser.data.userType == "Internal") {
-                        documentList.library.push(e)
-                    } else {
-                        if (e.folderId != null) {
-                            let isShared = global.SelectList.shareList.filter(s => {
-                                return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.folderId && s.shareType == "folder" && e.status == "library"
-                            }).length ? 1 : 0
-                            if (isShared || loggedUser.data.id == e.uploadedBy) {
-                                documentList.library.push(e)
-                            }
-                        } else {
-                            let isShared = global.SelectList.shareList.filter(s => { return s.userTypeLinkId == loggedUser.data.id && s.shareId == e.id && s.shareType == "document" && e.status == "library" }).length ? 1 : 0
-                            if (isShared || loggedUser.data.id == e.uploadedBy) {
-                                documentList.library.push(e)
-                            }
-                        }
-                    }
-                }
-            })
-        }
+        let { document } = this.props
 
-        return (
-            <table class="table responsive-table m0">
-                <tbody>
-                    <tr>
-                        <td style={{ padding: "10px 5px", width: "275px", backgroundColor: "#4e9cde", color: "white" }}>
-                            <span style={{ float: "left" }}>New Uploads</span><span style={{ float: "right" }}>{documentList.newUpload.length}</span>
-                        </td>
-                        <td style={{ padding: "10px 5px", width: "275px", backgroundColor: "#9eca9f", color: "white" }}>
-                            <span style={{ float: "left" }}>Library</span><span style={{ float: "right" }}>{documentList.library.length}</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        )
+        return (<div class="row mb20">
+            <div class="col-lg-6 col-xs-12 active-count count">
+                <span class="text-white">{document.Status.new}</span>
+                <span class="text-white">New Uploads:</span>
+            </div>
+            <div class="col-lg-6 col-xs-12 on-time count">
+                <span class="text-white">{document.Status.library}</span>
+                <span class="text-white">Libraries:</span>
+            </div>
+        </div>)
+
     }
 }

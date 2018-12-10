@@ -2,6 +2,8 @@ import React from "react";
 import Header from "../partial/header";
 import WorkstreamStatus from "../workstream/workstreamStatus";
 import TaskStatus from "../task/taskStatus";
+import DocumentStatus from "../document/documentStatus";
+import NotesStatus from "./noteStatus";
 import Task from "./task";
 
 import { connect } from "react-redux"
@@ -43,6 +45,18 @@ export default class Component extends React.Component {
             </div>
             <h4 class="mt20 mb20">My Tasks</h4>
             <Task />
+            <h4 class="mt20 mb20">Documents</h4>
+            <div class="row">
+                <div class="col-md-8">
+                    <DocumentStatus />
+                </div>
+            </div>
+            <h4 class="mt20 mb20">Conversation</h4>
+            <div class="row">
+                <div class="col-md-8">
+                    <NotesStatus />
+                </div>
+            </div>
         </div>;
 
         return (

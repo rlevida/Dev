@@ -10,6 +10,7 @@ import Status from "./status"
 import Role from "./role"
 import Team from "./teams"
 import Member from "./member"
+import Notes from "./notes"
 import Document from "./document"
 import Workstream from "./workstream"
 import Task from "./task"
@@ -31,6 +32,7 @@ export default class Socket extends React.Component {
             <Team />
             <Workstream />
             <Member />
+            <Notes/>
             <Document />
             <Task />
             <Reminder />

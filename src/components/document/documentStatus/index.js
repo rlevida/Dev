@@ -32,16 +32,19 @@ export default class DocumentStatus extends React.Component {
     render() {
         let { document } = this.props
 
-        return (<div class="row">
-            <div class="col-lg-6 col-xs-12 active-count count">
-                <span class="text-white">{document.Status.new}</span>
-                <span class="text-white">New Uploads:</span>
+        return (
+            <div class="container-fluid">
+                <div class="row single-status">
+                    <div class="col-lg-6 col-xs-12 active-count count">
+                        <span class="text-white">{document.Status.new}</span>
+                        <span class="text-white">New Uploads:</span>
+                    </div>
+                    <div class="col-lg-6 col-xs-12 on-time count">
+                        <span class="text-white">{document.Status.library}</span>
+                        <span class="text-white">Libraries:</span>
+                    </div>
+                </div>
             </div>
-            <div class="col-lg-6 col-xs-12 on-time count">
-                <span class="text-white">{document.Status.library}</span>
-                <span class="text-white">Libraries:</span>
-            </div>
-        </div>)
-
+        )
     }
 }
