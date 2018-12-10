@@ -285,9 +285,13 @@ exports.get = {
             
             COUNT(DISTINCT CASE WHEN workstream_responsible_id = :user_id THEN myTask.id END) AS responsible_active,
             COUNT(DISTINCT CASE WHEN myTask.dueDate < :date AND (myTask.status != "Completed" OR myTask.status IS NULL) AND workstream_responsible_id = :user_id THEN myTask.id END) AS responsible_issues,
+
             
             COALESCE(SUM(CASE WHEN member_task.memberType="Follower" AND member_task.userTypeLinkId = :user_id then 1 else 0 end),0)  AS followed_active,  
-            COALESCE(SUM(CASE WHEN myTask.dueDate < :date AND (myTask.status != "Completed" OR myTask.status IS NULL) AND member_task.memberType="Follower" AND member_task.userTypeLinkId = :user_id then 1 else 0 end), 0)  AS followed_issues
+            COALESCE(SUM(CASE WHEN myTask.dueDate < :date AND (myTask.status != "Completed" OR myTask.status IS NULL) AND member_task.memberType="Follower" AND member_task.userTypeLinkId = :user_id then 1 else 0 end), 0)  AS followed_issues,
+            
+            COUNT(DISTINCT CASE WHEN workstream_responsible_id = :user_id OR member_task.memberType="assignedTo" THEN myTask.id END) AS all_assigned_active,
+            COUNT(DISTINCT CASE WHEN myTask.dueDate < :date AND (myTask.status != "Completed" OR myTask.status IS NULL) AND (workstream_responsible_id = :user_id OR member_task.memberType="assignedTo") THEN myTask.id END) AS all_assigned_issues
         FROM 
         (
             SELECT
@@ -314,56 +318,22 @@ exports.get = {
                 linkType = "task"
             AND members.isDeleted = 0
         ) AS member_task on member_task.linkId = myTask.id
+        ${(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? `
+        WHERE
+        myTask.projectId = ${queryString.projectId} 
+        ` : ``}
             
             `, {
                     replacements: {
                         user_id: queryString.userId,
                         date: moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")
                     },
-                    type: sequelize.QueryTypes.SELECT
+                    type: sequelize.QueryTypes.SELECT,
+                    logging: true
                 }
             )
                 .then((response) => {
-                    console.log(response[0])
-                    cb({ status: true, data: response[0] });
-                })
-        } catch (err) {
-            callback(err)
-        }
-
-    },
-    taskStatus: (req, cb) => {
-        const queryString = req.query;
-
-        try {
-            sequelize.query(`
-            SELECT
-            SUM(CASE WHEN task.dueDate < :date AND (task.status != "Completed" OR task.status IS NULL) then 1 else 0 end)  AS assigned_issues,
-            SUM(CASE WHEN task.dueDate = :date AND (task.status != "Completed" OR task.status IS NULL) then 1 else 0 end)  AS assigned_due_today,
-            COUNT(*)  AS assigned_active
-            FROM task 
-            WHERE
-            task.id > 0 
-            ${(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? `
-            AND
-            task.projectId = ${queryString.projectId} 
-            ` : ``}
-            ${(typeof queryString.userId != "undefined" && queryString.userId != "") ? `
-            AND
-            task.id IN (SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = :user_id AND members.memberType = :member_type )
-            ` : ``}
-            `,
-                {
-                    replacements: {
-                        user_id: queryString.userId,
-                        date: moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm"),
-                        member_type: "assignedTo"
-                    },
-                    type: sequelize.QueryTypes.SELECT
-                }
-            )
-                .then((response) => {
-                    cb({ status: true, data: _.mapValues(response[0], function (v) { return _.toNumber(v); }) });
+                    cb({ status: true, data: _.mapValues(response[0], function (v) { return _.toNumber(v) }) });
                 })
         } catch (err) {
             callback(err)
