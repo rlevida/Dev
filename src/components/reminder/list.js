@@ -36,14 +36,14 @@ export default class FormComponent extends React.Component {
         return <div>
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Reminder</h3>
+                    <h3 class="panel-title">Notification</h3>
                 </div>
                 <div class="panel-body">
                     <table class="table responsive-table table-bordered">
                         <tbody>
                             <tr>
                                 <th class="text-center"></th>
-                                <th class="text-center">Reminder Detail</th>
+                                <th class="text-center">Notification Detail</th>
                                 <th class="text-center">Date</th>
                                 <th></th>
 
@@ -76,7 +76,7 @@ export default class FormComponent extends React.Component {
                             {
                                 (reminderUnseen.length == 0 && reminderSeen.length == 0) &&
                                 <tr>
-                                    <td colSpan={8}>No Reminder Found!</td>
+                                    <td colSpan={8}>No Notification Found!</td>
                                 </tr>
                             }
                         </tbody>
