@@ -16,7 +16,7 @@ import ApprovalModal from "./approvalModal";
 import RejectMessageModal from "./rejectMessageModal";
 import LogtimeModal from "./logtimeModal";
 import TasklogTime from "./tasklogTime";
-
+import DocumentViewerModal from "../document/documentViewerModal"
 let keyTimer;
 
 @connect((store) => {
@@ -358,9 +358,11 @@ export default class FormComponent extends React.Component {
 
     viewDocument(data) {
         let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_WORKSTREAM_SELECTED_LINK", SelectedLink: "document" })
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" })
+        getData(`/api/conversation/getConversationList?linkType=document&linkId=${data.id}`, {}, (c) => {
+            dispatch({ type: 'SET_COMMENT_LIST', list: c.data })
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+            $(`#documentViewerModal`).modal('show')
+        })
     }
 
 
@@ -851,6 +853,7 @@ export default class FormComponent extends React.Component {
                 <ApprovalModal />
                 <RejectMessageModal />
                 <LogtimeModal />
+                <DocumentViewerModal/>
             </div>
         )
     }
