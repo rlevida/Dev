@@ -168,17 +168,17 @@ exports.get = {
                     ]
                 });
             }
-            // if (typeof queryString.userId !== 'undefined' && queryString.userId !== '') {
-            //     _.find(association, { as: 'comments' }).include.push({
-            //         model: NotesLastSeen,
-            //         as: 'seenComments',
-            //         where: {
-            //             linkType: 'conversation',
-            //             userId: queryString.userId
-            //         },
-            //         required: false
-            //     })
-            // }
+            if (typeof queryString.userId !== 'undefined' && queryString.userId !== '') {
+                _.find(association, { as: 'comments' }).include.push({
+                    model: NotesLastSeen,
+                    as: 'seenComments',
+                    where: {
+                        linkType: 'conversation',
+                        userId: queryString.userId
+                    },
+                    required: false
+                })
+            }
             try {
                 Notes
                     .findAll({
@@ -192,7 +192,7 @@ exports.get = {
                             isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
                             tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
                                 .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
-                            // isSeen: responseData.comments.filter((e) => { return e.seenComments.length == 0 }).length ? 0 : 1
+                            isSeen: responseData.comments.filter((e) => { return e.seenComments.length == 0 }).length ? 0 : 1
                         }
                         return data;
                     })
@@ -241,6 +241,41 @@ exports.get = {
             .then((res) => {
                 cb({ status: true, data: res })
             })
+    },
+    status: (req, cb) => {
+        const queryString = req.query;
+        const association = _.cloneDeep(NotesInclude);
+        const whereObj = {
+            ...(typeof queryString.projectId !== 'undefined' && queryString.projectId !== '') ? { projectId: queryString.projectId } : {},
+        }
+
+        _.find(association, { as: 'comments' }).include.push({
+            model: NotesLastSeen,
+            as: 'seenComments',
+            where: {
+                linkType: 'conversation',
+                userId: queryString.userId
+            },
+            required: false
+
+        })
+
+        Notes
+            .findAll({
+                where: whereObj,
+                include: association
+            })
+            .map((res) => {
+                const responseData = res.toJSON();
+                const data = {
+                    ...responseData,
+                    isSeen: responseData.comments.filter((e) => { return e.seenComments.length == 0 }).length ? 0 : 1
+                }
+                return data;
+            })
+            .then((res) => {
+                cb({ status: true, data: res })
+            });
     }
 }
 
@@ -300,6 +335,16 @@ exports.post = {
                             nextThen(e)
                         })
                     })
+            }
+        }).then((nextThen, result) => {
+            try {
+                NotesLastSeen
+                    .create({ projectId: d.projectId, userId: result[0].usersId, linkType: 'conversation', linkId: result[0].id })
+                    .then((res) => {
+                        nextThen(result)
+                    })
+            } catch (err) {
+                cb({ status: false, error: err })
             }
         }).then((nextThen, result) => {
             if (JSON.parse(d.reminderList).length) {
@@ -384,38 +429,6 @@ exports.post = {
                     cb({ status: true, data: result })
                 })
             } else {
-                const association = _.cloneDeep(NotesInclude);
-                _.find(association, { as: 'comments' }).include.push({
-                    model: NotesLastSeen,
-                    as: 'seenComments',
-                    where: {
-                        linkType: 'conversation',
-                        linkId: result[0].id
-                    },
-                    required: false
-                })
-
-                Notes
-                    .findAll({
-                        where: { id: result[0].linkId },
-                        include: association
-                    })
-                    .map((res) => {
-                        const responseData = res.toJSON();
-                        const data = {
-                            ...responseData,
-                            // isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
-                            tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
-                                .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
-                            isSeen: responseData.comments.filter((e) => { return e.seenComments.length == 0 }).length ? 0 : 1
-                        }
-                        return data;
-                    })
-                    .then((res) => {
-                        socketIo.emit("BROADCAST_SOCKET", { type: "FRONT_NOTES_LIST", data: res })
-                    });
-
-              
                 cb({ status: true, data: result })
             }
         })
