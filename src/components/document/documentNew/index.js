@@ -171,7 +171,8 @@ export default class DocumentNew extends React.Component {
             newDocument: "",
             title: `${documentData.type === 'document' ? 'Document' : 'Folder'} moved to folder ${folderData.origin}`,
             projectId: project,
-            usersId: loggedUser.data.id
+            usersId: loggedUser.data.id,
+            status: 'library'
         };
 
         putData(`/api/document/${documentData.id}`, dataToSubmit, (c) => {

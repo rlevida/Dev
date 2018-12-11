@@ -20,6 +20,16 @@ const itemTarget = {
         if (props.data.type === 'folder' && props.data.status === 'library' && props.data.id !== draggedItem.id && draggedItem.status === 'library') {
             props.moveTo(props.data, monitor.getItem())
         }
+
+        if (draggedItem.status === 'new' && props.data.type === 'document' && props.data.id !== draggedItem.id) {
+            draggedItem.folderId = null
+            props.moveToLibrary(draggedItem)
+        }
+
+        if (draggedItem.status === 'new' && props.data.type === 'folder' && props.data.id !== draggedItem.id) {
+            draggedItem.folderId = props.data.id
+            props.moveToLibrary(draggedItem)
+        }
     }
 }
 
@@ -195,7 +205,7 @@ export default class DocumentLibrary extends React.Component {
             dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: "DocumentViewer" });
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
         } else {
-            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
+            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: 'SET_DOCUMENT_LIST', list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
@@ -214,7 +224,6 @@ export default class DocumentLibrary extends React.Component {
         const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
         const opacity = isDragging ? 0 : 1;
         const backgroundColor = hovered ? 'lightblue' : '';
-
         return connectDragSource(
             connectDropTarget(
                 <tr class="item" key={index} style={{ opacity, background: backgroundColor }}>
