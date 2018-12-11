@@ -45,20 +45,45 @@ export default class Component extends React.Component {
             </div>
             <h4 class="mt20 mb20">My Tasks</h4>
             <Task />
-            <h4 class="mt20 mb20">Documents</h4>
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-lg-6 col-xs-6">
+                                <h4 style={{ marginLeft: '-15px' }}>Documents</h4>
+                            </div>
+                            <div class="col-lg-6 col-xs-6 mt10" style={{ textAlign: 'right' }}>
+                                <a style={{ left: '0' }} href={`/project/${project}/documents`}>+ More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-md-8">
                     <DocumentStatus />
                 </div>
             </div>
-            <h4 class="mt20 mb20">Conversation</h4>
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-lg-6 col-xs-6">
+                                <h4 style={{ marginLeft: '-15px' }}>Conversations</h4>
+                            </div>
+                            <div class="col-lg-6 col-xs-6 mt10" style={{ textAlign: 'right' }}>
+                                <a style={{ left: '0' }} href={`/project/${project}/conversations`}>+ More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-md-8">
                     <NotesStatus />
                 </div>
             </div>
         </div>;
-
         return (
             <Header component={Component} page={"Project Dashboard"} />
         );
