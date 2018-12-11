@@ -1,8 +1,8 @@
 import React from "react";
-
+import LibraryContainer from "./libraryContainer";
 import FieldContainer from "./FieldContainer";
 import { Loading } from "../../../globalComponents"
-import {  getData, postData, putData, showToast } from '../../../globalFunction'
+import { getData, postData, putData, showToast } from '../../../globalFunction'
 
 import { connect } from "react-redux"
 
@@ -39,6 +39,7 @@ export default class DocumentLibrary extends React.Component {
             selectedFolderName: []
         }
         this.fetchData = this.fetchData.bind(this);
+        this.moveToLibrary = this.moveToLibrary.bind(this);
     }
 
     componentDidMount() {
@@ -204,6 +205,38 @@ export default class DocumentLibrary extends React.Component {
         })
     }
 
+    moveToLibrary(data) {
+        const { dispatch, document, loggedUser } = this.props;
+        const dataToSubmit = {
+            id: data.id,
+            status: "library",
+            actionType: "moved",
+            oldDocument: data.origin,
+            newDocument: "",
+            title: "Document moved to library",
+            projectId: project,
+            usersId: loggedUser.data.id,
+            origin: data.origin,
+            type: data.type,
+            ...(data.folder !== null) ? { folderId: data.folderId } : {}
+        }
+        putData(`/api/document/${data.id}`, dataToSubmit, (c) => {
+            if (c.status == 200) {
+                if (c.data.result.folderId == null) {
+                    dispatch({ type: "MOVE_DOCUMENT_TO_LIBRARY", UpdatedData: c.data.result })
+                }
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data.result, Status: data.status })
+                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+                dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'new', count: document.Status.new - 1 })
+                dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'library', count: document.Status.library + 1 })
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
+                showToast("success", "Successfully Updated.")
+            } else {
+                showToast("error", "Updating failed. Please try again.")
+            }
+        })
+    }
+
     sortDocument(type) {
         const { dispatch, document } = this.props;
         const { order } = this.state;
@@ -269,18 +302,19 @@ export default class DocumentLibrary extends React.Component {
                                         index={index}
                                         key={index}
                                         moveTo={(folderData, documentData) => this.moveTo(folderData, documentData)}
+                                        moveToLibrary={(dataToMove) => this.moveToLibrary(dataToMove)}
                                     />
                                 )
                             })
                         }
+                            <LibraryContainer
+                                moveToLibrary={(data) => this.moveToLibrary(data)}
+                            />
                     </tbody>
                 </table>
                 <div class="text-center">
                     {
                         ((currentPage != lastPage) && document.Library.length > 0 && document.LibraryDocumentLoading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
-                    }
-                    {
-                        (document.Library.length == 0 && document.LibraryDocumentLoading != "RETRIEVING") && <p>No Records Found</p>
                     }
                 </div>
                 {
