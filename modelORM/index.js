@@ -33,6 +33,7 @@ const IpBlock = require('./ip_block')(sequelize, Sequelize.DataTypes);
 const Folder = require('./folder')(sequelize, Sequelize.DataTypes);
 const Members = require('./members')(sequelize, Sequelize.DataTypes);
 const Notes = require('./notes')(sequelize, Sequelize.DataTypes);
+const NotesLastSeen = require('./notes_last_seen')(sequelize, Sequelize.DataTypes);
 const Projects = require('./project')(sequelize, Sequelize.DataTypes);
 const Tag = require('./tag')(sequelize, Sequelize.DataTypes);
 const Tasks = require('./task')(sequelize, Sequelize.DataTypes);
@@ -63,6 +64,7 @@ const models = {
     Folder,
     Members,
     Notes,
+    NotesLastSeen,
     Projects,
     Tag,
     Tasks,

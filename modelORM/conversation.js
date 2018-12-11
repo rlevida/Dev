@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
   const Conversation = sequelize.define('conversation', { // note this is a comment
     id: {
       type: DataTypes.BIGINT,
@@ -17,7 +17,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     linkType: {
-      type: DataTypes.ENUM('project','workstream','task','notes'),
+      type: DataTypes.ENUM('project', 'workstream', 'task', 'notes'),
       allowNull: true
     },
     linkId: {
@@ -43,14 +43,18 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-    tableName: 'conversation'
-  });
+      tableName: 'conversation'
+    });
 
   Conversation.associate = function (models) {
     Conversation.belongsTo(models.Users, {
       as: 'users',
       foreignKey: 'usersId',
     });
+    Conversation.hasMany(models.NotesLastSeen, {
+      as: 'seenComments',
+      foreignKey: 'linkId'
+    })
   }
 
   return Conversation;

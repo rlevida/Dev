@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
   const Notes = sequelize.define('notes', {
     id: {
       type: DataTypes.BIGINT,
@@ -49,9 +49,9 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'notes',
-    timestamps: false
-  });
+      tableName: 'notes',
+      timestamps: false
+    });
 
   Notes.associate = function (models) {
     Notes.hasMany(models.Tag, {

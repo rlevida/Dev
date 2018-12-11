@@ -5,8 +5,10 @@ const sequence = require("sequence").Sequence;
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const models = require('../modelORM');
+const moment = require('moment');
 const {
     Notes,
+    NotesLastSeen,
     Tag,
     Tasks,
     Workstream,
@@ -166,7 +168,17 @@ exports.get = {
                     ]
                 });
             }
-
+            if (typeof queryString.userId !== 'undefined' && queryString.userId !== '') {
+                _.find(association, { as: 'comments' }).include.push({
+                    model: NotesLastSeen,
+                    as: 'seenComments',
+                    where: {
+                        linkType: 'conversation',
+                        userId: queryString.userId
+                    },
+                    required: false
+                })
+            }
             try {
                 Notes
                     .findAll({
@@ -180,6 +192,7 @@ exports.get = {
                             isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
                             tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
                                 .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
+                            isSeen: responseData.comments.filter((e) => { return e.seenComments.length == 0 }).length ? 0 : 1
                         }
                         return data;
                     })
@@ -228,6 +241,41 @@ exports.get = {
             .then((res) => {
                 cb({ status: true, data: res })
             })
+    },
+    status: (req, cb) => {
+        const queryString = req.query;
+        const association = _.cloneDeep(NotesInclude);
+        const whereObj = {
+            ...(typeof queryString.projectId !== 'undefined' && queryString.projectId !== '') ? { projectId: queryString.projectId } : {},
+        }
+
+        _.find(association, { as: 'comments' }).include.push({
+            model: NotesLastSeen,
+            as: 'seenComments',
+            where: {
+                linkType: 'conversation',
+                userId: queryString.userId
+            },
+            required: false
+
+        })
+
+        Notes
+            .findAll({
+                where: whereObj,
+                include: association
+            })
+            .map((res) => {
+                const responseData = res.toJSON();
+                const data = {
+                    ...responseData,
+                    isSeen: responseData.comments.filter((e) => { return e.seenComments.length == 0 }).length ? 0 : 1
+                }
+                return data;
+            })
+            .then((res) => {
+                cb({ status: true, data: res })
+            });
     }
 }
 
@@ -273,12 +321,30 @@ exports.post = {
                                 {
                                     model: Users,
                                     as: 'users',
+                                }, {
+                                    model: NotesLastSeen,
+                                    as: 'seenComments',
+                                    where: {
+                                        linkType: 'conversation',
+                                        userId: d.userId
+                                    },
+                                    required: false
                                 }
                             ]
                         }).then((e) => {
                             nextThen(e)
                         })
                     })
+            }
+        }).then((nextThen, result) => {
+            try {
+                NotesLastSeen
+                    .create({ projectId: d.projectId, userId: result[0].usersId, linkType: 'conversation', linkId: result[0].id })
+                    .then((res) => {
+                        nextThen(result)
+                    })
+            } catch (err) {
+                cb({ status: false, error: err })
             }
         }).then((nextThen, result) => {
             if (JSON.parse(d.reminderList).length) {
@@ -367,8 +433,44 @@ exports.post = {
             }
         })
     },
-    notesTag: {
-
+    lastSeen: (req, cb) => {
+        const body = req.body;
+        const queryString = req.query
+        if (queryString.type == 'notes') {
+            NotesLastSeen
+                .findOne({
+                    where: body
+                })
+                .then((res) => {
+                    if (res !== null) {
+                        cb({ status: true, data: res })
+                    } else {
+                        NotesLastSeen
+                            .create(body)
+                            .then((res) => {
+                                cb({ status: true, data: res })
+                            })
+                    }
+                })
+        } else if (queryString.type == 'conversation') {
+            async.map(body.commentIds, (e, mapCallback) => {
+                try {
+                    NotesLastSeen
+                        .create({ projectId: body.projectId, linkType: 'conversation', linkId: e, userId: body.userId })
+                        .then((res) => {
+                            mapCallback(null, res)
+                        })
+                } catch (err) {
+                    mapCallback(err)
+                }
+            }, (err, mapCallback) => {
+                if (err) {
+                    cb({ status: false, error: err })
+                } else {
+                    cb({ status: true, data: mapCallback })
+                }
+            })
+        }
     }
 }
 

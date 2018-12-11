@@ -245,6 +245,7 @@ export default class FormComponent extends React.Component {
         postData(`/api/conversation/comment`, dataToBeSubmited, (c) => {
             try {
                 const currentData = notes.Selected;
+                c.data[0].seenComments = [{ projectId: project, linkId: currentData.Id, linkType: 'conversation', userId: loggedUser.data.id }]
                 currentData.comments.push(c.data[0]);
                 const listIndex = notes.List.indexOf(notes.Selected);
                 const noteList = notes.List;

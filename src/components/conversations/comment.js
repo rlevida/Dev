@@ -91,7 +91,12 @@ export default class CommentListItem extends React.Component {
         return (
             <div>
                 <hr />
-                <span>{`${commentData.users.firstName} ${commentData.users.lastName}`}</span>{'     '}<span>{moment(commentData.dateAdded).format("MM/DD/YYYY hh:mm")}</span>
+                <div>
+                    {(commentData.seenComments.length == 0) &&
+                        <span class="mb10" style={{ position: 'relative', display: 'block' }}><label class="label label-primary ">new</label></span>
+                    }
+                    <span>{`${commentData.users.firstName} ${commentData.users.lastName}`}</span>{'     '}<span>{moment(commentData.dateAdded).format("MM/DD/YYYY hh:mm")}</span>
+                </div>
                 {state === "View" &&
                     <div>
                         {loggedUser.data.id === commentData.users.id &&
