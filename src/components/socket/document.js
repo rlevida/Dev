@@ -49,10 +49,6 @@ export default class Socket extends React.Component {
             dispatch({ type: "SET_DOCUMENT_STATUS", record: data })
         })
 
-        socket.on("FRONT_COMMENT_LIST", (data) => {
-            dispatch({ type: "SET_COMMENT_LIST", list: data })
-        })
-
         socket.on("FRONT_COMMENT_ADD", (data) => {
             dispatch({ type: "SET_COMMENT_SELECTED", Selected: {} })
             dispatch({ type: "ADD_COMMENT_LIST", list: data })
