@@ -328,8 +328,7 @@ exports.get = {
                         user_id: queryString.userId,
                         date: moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")
                     },
-                    type: sequelize.QueryTypes.SELECT,
-                    logging: true
+                    type: sequelize.QueryTypes.SELECT
                 }
             )
                 .then((response) => {
