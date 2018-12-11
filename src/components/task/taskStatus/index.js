@@ -22,9 +22,9 @@ export default class TaskStatus extends React.Component {
         const { loggedUser, dispatch } = this.props;
         let fetchUrl = `/api/task/myTaskStatus?projectId=${project}&date=${moment(new Date()).format("YYYY-MM-DD")}`;
 
-        if (loggedUser.data.user_role[0].roleId >= 3) {
+        // if (loggedUser.data.user_role[0].roleId >= 3) {
             fetchUrl += `&userId=${loggedUser.data.id}`
-        }
+        // }
 
         getData(fetchUrl, {}, (c) => {
             dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: c.data });
