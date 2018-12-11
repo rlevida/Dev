@@ -64,30 +64,43 @@ export default class FormComponent extends React.Component {
     }
 
     followTask() {
-        let { dispatch, socket, loggedUser, task, workstream } = this.props;
-        let { followersIds, followersName } = { ...task.Selected };
-        let followerIdStack = (followersIds != null && followersIds != "") ? followersIds.split(",") : [];
-        let followersNameStack = (followersName != null && followersIds != "") ? followersName.split(",") : [];
+        const { loggedUser, task, dispatch } = this.props;
+        const { task_members } = task.Selected;
 
-        followerIdStack.push(loggedUser.data.id);
-        followersNameStack.push(loggedUser.data.firstName + " " + loggedUser.data.lastName);
+        const memberData = {
+            usersType: "users",
+            userTypeLinkId: loggedUser.data.id,
+            linkType: "task",
+            linkId: task.Selected.id,
+            memberType: "Follower"
+        };
 
-        dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, followersIds: followerIdStack.join(","), followersName: followersNameStack.join(",") } });
-        socket.emit("SAVE_OR_UPDATE_MEMBERS", { data: { usersType: "users", userTypeLinkId: loggedUser.data.id, linkType: "task", linkId: task.Selected.id, memberType: "Follower" }, type: "workstream" })
-
+        postData(`/api/member`, { data: memberData, includes: 'user' }, (c) => {
+            if (c.status == 200) {
+                task_members.push(c.data);
+                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, task_members } });
+                showToast("success", "Task successfully updated.");
+            } else {
+                showToast("success", "Something went wrong. Please try again later.");
+            }
+        });
     }
 
-    unFollowTask(id) {
-        let { dispatch, socket, loggedUser, task } = this.props;
-        let { followersIds, followersName } = { ...task.Selected };
-        let followerIdStack = followersIds.split(",");
-        let followersNameStack = followersName.split(",");
+    unFollowTask({ id }) {
+        const { dispatch, task } = this.props;
+        const { task_members } = task.Selected;
+        const remainingMembers = _.remove(task_members, function (o) {
+            return o.id != id;
+        });
 
-        socket.emit("DELETE_MEMBERS", { filter: { userTypeLinkId: loggedUser.data.id, linkId: task.Selected.id, memberType: "Follower" }, type: "workstream" })
-        followerIdStack = _.filter(followerIdStack, (o) => { return o != loggedUser.data.id }).join(",");
-        followersNameStack = _.filter(followersNameStack, (o) => { return o != loggedUser.data.firstName + " " + loggedUser.data.lastName }).join(",");
-
-        dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, followersIds: followerIdStack, followersName: followersNameStack } });
+        putData(`/api/member/${id}`, { isDeleted: 1 }, (c) => {
+            if (c.status == 200) {
+                showToast("success", "Task successfully updated.");
+                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, task_members: remainingMembers } });
+            } else {
+                showToast("success", "Something went wrong. Please try again later.");
+            }
+        });
     }
 
     markTaskAsCompleted() {
@@ -370,6 +383,8 @@ export default class FormComponent extends React.Component {
         const { dispatch, task, status, global, loggedUser, checklist, project, taskDependency, workstream } = { ...this.props };
         let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false;
 
+        console.log(task.Selected)
+
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
         if (typeof this.props.global.SelectList.taskList != "undefined") {
@@ -418,7 +433,6 @@ export default class FormComponent extends React.Component {
                 return { ...o, task: (depencyTask.length > 0) ? depencyTask[0] : '' }
             })
             .value();
-
         return (
             <div>
                 <Tabs class="mb40">
@@ -457,8 +471,15 @@ export default class FormComponent extends React.Component {
                                                 <a href="javascript:void(0);" class="btn btn-primary" title="Reject Task" onClick={() => this.rejectTask()}>Reject</a>
                                             </span>
                                         }
-                                        {(task.Selected.followersName != null && task.Selected.followersIds.split(",").filter(e => { return e == loggedUser.data.id }).length > 0)
-                                            ? <a href="javascript:void(0);" class="btn btn-primary" style={{ marginRight: 5 }} title="Unfollow task" onClick={() => this.unFollowTask()}>Unfollow Task</a>
+                                        {(
+                                            (task.Selected.task_members).length > 0 &&
+                                            _.filter(task.Selected.task_members, (o) => { return o.isDeleted == 0 && o.userTypeLinkId == loggedUser.data.id && o.memberType == "Follower" }).length > 0
+                                        )
+                                            ? <a href="javascript:void(0);" class="btn btn-primary"
+                                                style={{ marginRight: 5 }}
+                                                title="Unfollow task"
+                                                onClick={() => this.unFollowTask(_.find(task.Selected.task_members, (o) => { return o.isDeleted == 0 && o.userTypeLinkId == loggedUser.data.id && o.memberType == "Follower" }))}
+                                            >Unfollow Task</a>
                                             : <a href="javascript:void(0);" class="btn btn-primary" title="Follow task" onClick={() => this.followTask()}>Follow Task</a>
                                         }
                                     </div>
@@ -497,12 +518,12 @@ export default class FormComponent extends React.Component {
                                         <div class="col-md-12">
                                             <div class="details">
                                                 <span class="fa fa-user"></span>
-                                                <p class="m0">Followers: {(task.Selected.followersName == null) ? "N/A" : ""} </p>
+                                                <p class="m0">Followers: {((task.Selected.task_members).length > 0) ? "N/A" : ""} </p>
                                             </div>
                                             <ul>
-                                                {(task.Selected.followersName != null) &&
-                                                    task.Selected.followersName.split(",").map((user, index) => {
-                                                        return <li key={index}>{user}</li>
+                                                {((task.Selected.task_members).length > 0) &&
+                                                    _.map(task.Selected.task_members, (o, index) => {
+                                                        return <li key={index}>{o.user.firstName + " " + o.user.lastName}</li>
                                                     })
                                                 }
                                             </ul>

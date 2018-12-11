@@ -271,8 +271,9 @@ exports.put = {
             ...(typeof queryString.linkType !== 'undefined' && queryString.linkType !== '') ? { linkType: queryString.linkType } : {},
             ...(typeof queryString.linkId !== 'undefined' && queryString.linkId !== '') ? { linkId: queryString.linkId } : {},
             ...(typeof queryString.usersType !== 'undefined' && queryString.usersType !== '') ? { usersType: queryString.usersType } : {},
-            ...(typeof queryString.userTypeLinkId !== 'undefined' && queryString.userTypeLinkId !== '') ? { userTypeLinkId: queryString.userTypeLinkId } : {}
-        }
+            ...(typeof queryString.userTypeLinkId !== 'undefined' && queryString.userTypeLinkId !== '') ? { userTypeLinkId: queryString.userTypeLinkId } : {},
+            id: req.params.id
+        };
 
         try {
             Members
