@@ -409,11 +409,11 @@ exports.post = {
                                         </p>`
                             } else if (d.data.linkType == "notes") {
                                 html = `<p>${d.username} metioned you on the conversation
-                                            <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${d.projectId}/conversation/${d.data.linkId}" style="color:red">${d.note}</a>
+                                            <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${d.projectId}/conversations/${d.data.linkId}" style="color:red">${d.note}</a>
                                         </p>`
                             } else if (d.data.linkType == "document") {
                                 html = `<p>${d.username} metioned you on the document
-                                            <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${d.projectId}/conversation/${d.data.linkId}" style="color:red">${d.document}</a>
+                                            <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${d.projectId}/conversations/${d.data.linkId}" style="color:red">${d.document}</a>
                                         </p>`
                             }
                             const mailOptions = {
