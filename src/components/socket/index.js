@@ -17,6 +17,7 @@ import Task from "./task"
 import Reminder from "./reminder"
 import UsersTeam from "./usersTeam"
 import Checklist from "./checklist"
+import Comment from "./comment"
 
 export default class Socket extends React.Component {
     render() {
@@ -38,6 +39,7 @@ export default class Socket extends React.Component {
             <Reminder />
             <UsersTeam />
             <Checklist />
+            <Comment/>
         </div>
     }
 }

@@ -347,6 +347,11 @@ exports.post = {
                 cb({ status: false, error: err })
             }
         }).then((nextThen, result) => {
+            if (d.data.linkType === 'notes') {
+                socketIo.emit("BROADCAST_SOCKET", { type: "FRONT_COMMENT_LIST", data: result })
+            }
+            nextThen(result)
+        }).then((nextThen, result) => {
             if (JSON.parse(d.reminderList).length) {
                 async.map(JSON.parse(d.reminderList), (r, mapCallback) => {
                     async.parallel({

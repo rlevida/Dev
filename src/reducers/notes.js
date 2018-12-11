@@ -52,7 +52,6 @@ export default function reducer(state = {
 
             _.map(action.List, (o) => {
                 const updateIndex = _.findIndex(copyOfList, { id: o.id });
-                console.log(updateIndex)
                 if (updateIndex >= 0) {
                     copyOfList.splice(updateIndex, 1, o);
                 } else {
