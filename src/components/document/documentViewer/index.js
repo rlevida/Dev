@@ -64,7 +64,7 @@ export default class DocumentViewerComponent extends React.Component {
 
     fetchData(page) {
         const { dispatch, document } = this.props;
-        getData(`/api/conversation/getConversationList?linkType=document&linkId=${document.Selected.id}`, {}, (c) => {
+        getData(`/api/conversation/getConversationList?linkType=document&linkId=${(typeof documentId !== 'undefined') ? documentId : document.Selected.id}`, {}, (c) => {
             dispatch({ type: 'SET_COMMENT_LIST', list: c.data })
         })
     }
