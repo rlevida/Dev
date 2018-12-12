@@ -73,7 +73,13 @@ exports.get = {
         const queryString = req.query;
         const limit = 10;
         const whereObj = {
-            ...(typeof queryString.isDeleted !== 'undefined' && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : {}
+            ...(typeof queryString.isDeleted !== 'undefined' && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : {},
+            ...(typeof queryString.userId !== 'undefined' && queryString.userId !== '') ? {
+                [Op.or]: [
+                    { id: { [Op.in]: Sequelize.literal(`(SELECT DISTINCT id FROM team where teamLeaderId = ${queryString.userId})`) } },
+                    { id: { [Op.in]: Sequelize.literal(`(SELECT DISTINCT teamId FROM users_team where usersId = ${queryString.userId})`) } }
+                ]
+            } : {}
         }
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
