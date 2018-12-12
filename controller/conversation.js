@@ -148,7 +148,6 @@ exports.get = {
             if (typeof queryString.projectId !== 'undefined' && queryString.projectId !== '') {
                 whereCon.projectId = queryString.projectId;
             }
-
             if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
                 association.push({
                     model: Starred,

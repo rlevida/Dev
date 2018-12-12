@@ -54,6 +54,12 @@ export default class List extends React.Component {
         }
         getData(url, {}, c => {
             dispatch({ type: "SET_NOTES_LIST", list: c.data });
+            if (conversationId !== '') {
+                const selectedNote = c.data.filter((e) => { return e.id == conversationId })
+                if (selectedNote.length > 0) {
+                    this.openDetail(selectedNote[0])
+                }
+            }
             dispatch({ type: "SET_NOTES_LOADING", Loading: "" });
         });
     }
@@ -84,6 +90,7 @@ export default class List extends React.Component {
                 }
             }
         }, (err, result) => {
+            window.history.replaceState({}, document.title, "/project/" + `${project}/conversations/${data.id}`);
             dispatch({ type: "SET_NOTES_SELECTED", Selected: data });
             dispatch({ type: "SET_NOTES_FORM_ACTIVE", FormActive: "View" });
         })
