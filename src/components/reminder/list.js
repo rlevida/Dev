@@ -24,6 +24,9 @@ export default class FormComponent extends React.Component {
             if (data.linkType == 'document') {
                 window.location.href = `/project/${data.projectId}/documents/${data.linkId}`;
             }
+            if( data.linkType == "notes"){
+                window.location.href = `/project/${data.projectId}/conversations/${data.linkId}`;
+            }
         } else {
             putData(`/api/reminder/${data.id}`, {}, (c) => {
                 if (data.linkType == "task") {
