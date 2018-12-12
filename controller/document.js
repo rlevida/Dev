@@ -119,7 +119,7 @@ exports.get = {
         let documentWhereObj = {
             ...(typeof queryString.status != "undefined" && queryString.status != "") ? { status: queryString.status } : {},
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
-            ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "") ? { folderId: queryString.folderId } : {},
+            ...((typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "")) ? { folderId: (queryString.folderId == 'null') ? null : queryString.folderId } : {},
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
             ...(typeof queryString.uploadFrom != "undefined" && typeof queryString.uploadTo != "undefined" && queryString.uploadFrom != "" && queryString.uploadTo != "" && queryString.uploadFrom != "undefined" && queryString.uploadTo != "undefined")
                 ? { dateAdded: { [Op.between]: [moment(queryString.uploadFrom).add(8, 'hours').toDate(), moment(queryString.uploadTo).add(8, 'hours').toDate()] } } : {},
@@ -195,7 +195,7 @@ exports.get = {
                 usersId: queryString.starredUser
             };
         }
-
+        
         async.parallel({
             count: function (parallelCallback) {
                 DocumentLink

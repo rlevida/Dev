@@ -81,7 +81,7 @@ export default class DocumentNew extends React.Component {
 
     fetchData(page) {
         const { dispatch, loggedUser, document, folder } = this.props;
-        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new&folderId=${folder.SelectedNewFolder.id}&starredUser=${loggedUser.data.id}`;
+        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new&folderId=${(typeof folder.SelectedNewFolder.id !== 'undefined') ? folder.SelectedNewFolder.id : null}&starredUser=${loggedUser.data.id}`;
         const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo } = document.Filter;
         if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
             requestUrl += `&isCompleted=${isCompleted}`
@@ -172,7 +172,6 @@ export default class DocumentNew extends React.Component {
             title: `${documentData.type === 'document' ? 'Document' : 'Folder'} moved to folder ${folderData.origin}`,
             projectId: project,
             usersId: loggedUser.data.id,
-            status: 'library'
         };
 
         putData(`/api/document/${documentData.id}`, dataToSubmit, (c) => {
@@ -210,7 +209,7 @@ export default class DocumentNew extends React.Component {
             <div class="col-lg-12 col-md-12">
                 <h3>
                     <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>New Documents</a>
-                    {folder.SelectedNewFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.origin}</a> </span> })}
+                    {folder.SelectedNewFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
                 </h3>
 
                 {(this.state.folderAction == "") &&

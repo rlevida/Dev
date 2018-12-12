@@ -1,12 +1,11 @@
 import React from "react";
 import { displayDate, getData, postData, showToast } from '../../../globalFunction';
-import { DropDown, Loading } from "../../../globalComponents";
+import { Loading } from "../../../globalComponents";
 import EditModal from "./editModal"
 import DocumentViewerModal from "./documentViewerModal"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
         workstream: store.workstream,
@@ -30,7 +29,6 @@ export default class List extends React.Component {
             files: [],
             sort: 'asc'
         }
-        this.updateActiveStatus = this.updateActiveStatus.bind(this)
         this.handleChange = this.handleChange.bind(this)
         this.fetchData = this.fetchData.bind(this)
         this.getNextResult = this.getNextResult.bind(this)
@@ -60,38 +58,6 @@ export default class List extends React.Component {
         });
     }
 
-    updateActiveStatus(id, active) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_DOCUMENT_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } });
-        socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data: { id: id, active: (active == 1) ? 0 : 1 } });
-    }
-
-    deleteDocument(id) {
-        let { socket } = this.props;
-        if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_DOCUMENT", { id: id });
-        }
-    }
-
-    archiveData(id) {
-        let { socket } = this.props;
-        if (confirm("Do you really want to archive this record?")) {
-            socket.emit("ARCHIVE_DOCUMENT", { id: id });
-        }
-    }
-
-    saveDocument() {
-        let { socket, document, workstream } = this.props;
-        socket.emit("SAVE_OR_UPDATE_DOCUMENT", {
-            data: document.Selected,
-            filter: { tagTypeId: document.Selected.id, tagType: "document" },
-            type: "workstream",
-            linkId: workstream.Selected.id,
-            linkType: "workstream",
-            tagType: "document"
-        })
-    }
-
     viewDocument(data) {
         let { dispatch } = this.props;
         getData(`/api/conversation/getConversationList?linkType=document&linkId=${data.id}`, {}, (c) => {
@@ -99,11 +65,6 @@ export default class List extends React.Component {
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
             $(`#documentViewerModal`).modal('show')
         })
-    }
-
-    handleIsCompleted(data, value) {
-        let { socket, document } = this.props;
-        socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data: { id: data.id, isCompleted: !value } });
     }
 
     starredDocument({ id, isStarred, origin }) {
@@ -131,7 +92,7 @@ export default class List extends React.Component {
     }
 
     handleChange(e) {
-        let { socket, dispatch, document } = this.props
+        let { dispatch, document } = this.props
         let Selected = Object.assign({}, document.Selected)
         Selected[e.target.name] = e.target.value;
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: Selected })

@@ -100,7 +100,7 @@ export default class DocumentLibrary extends React.Component {
 
     fetchData(page) {
         const { dispatch, document, loggedUser, folder } = this.props;
-        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=library&folderId=${folder.SelectedLibraryFolder.id}&starredUser=${loggedUser.data.id}`;
+        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=library&folderId=${(typeof folder.SelectedNewFolder.id !== 'undefined') ? folder.SelectedNewFolder.id : null}&starredUser=${loggedUser.data.id}`;
         const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo } = document.Filter;
         if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
             requestUrl += `&isCompleted=${isCompleted}`
@@ -251,7 +251,7 @@ export default class DocumentLibrary extends React.Component {
     }
 
     render() {
-        let { document, starred, folder, dispatch, loggedUser } = this.props;
+        let { document, folder } = this.props;
         let tagCount = 0
         const currentPage = (typeof document.LibraryCount.Count.current_page != "undefined") ? document.LibraryCount.Count.current_page : 1;
         const lastPage = (typeof document.LibraryCount.Count.last_page != "undefined") ? document.LibraryCount.Count.last_page : 1;
@@ -259,7 +259,7 @@ export default class DocumentLibrary extends React.Component {
             <div class="col-lg-12 col-md-12">
                 <h3>
                     <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>Library</a>
-                    {folder.SelectedLibraryFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.origin}</a> </span> })}
+                    {folder.SelectedLibraryFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
                 </h3>
                 {(this.state.folderAction == "") &&
                     <div class="row mb10">
@@ -307,9 +307,9 @@ export default class DocumentLibrary extends React.Component {
                                 )
                             })
                         }
-                            <LibraryContainer
-                                moveToLibrary={(data) => this.moveToLibrary(data)}
-                            />
+                        <LibraryContainer
+                            moveToLibrary={(data) => this.moveToLibrary(data)}
+                        />
                     </tbody>
                 </table>
                 <div class="text-center">
