@@ -82,19 +82,14 @@ export default class Component extends React.Component {
         this.setState({ showMore: type })
     }
 
-    seenReminder() {
-        let { reminder } = this.props;
-    }
     render() {
-        let { user, reminder, loggedUser } = this.props
+        let { user, reminder } = this.props
         let userView = "";
         if (user.username != "") {
             userView = <div class="headAccess"> Welcome : {user.username}</div>;
         }
 
         let reminderUnseen = _.orderBy(reminder.List.filter(e => { return !e.seen && e.usersId == user.id }), ['dateAdded'], ['desc'])
-        // let reminderSeen = _.orderBy(reminder.List.filter( e => { return e.seen}),['dateAdded'],['desc'])
-
         return <div>
             <div class={((this.state.miniSideMenu == "true") ? "sidebar-left-mini" : "") + " bg-dark dk "} id="wrap">
                 <div class="dropdown pull-right" style={{ marginTop: "10px", marginRight: "10px" }}>
@@ -113,8 +108,6 @@ export default class Component extends React.Component {
                         <ul class="dropdown-menu" >
                             {
                                 reminderUnseen.map((data, index) => {
-                                    let label = ""
-                                    let description = ""
                                     return (
                                         <li key={index} style={{ height: '100%' }}>
                                             <a href={`/reminder`} key={index} style={{ textDecoration: "none", fontWeight: "bold" }}>

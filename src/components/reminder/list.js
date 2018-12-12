@@ -17,17 +17,25 @@ export default class FormComponent extends React.Component {
     }
 
     viewReminder(data) {
-        let { dispatch, socket } = this.props;
-        if (data.linkType == "task") {
-            if (Boolean(data.seen)) {
+        if (Boolean(data.seen)) {
+            if (data.linkType == "task") {
                 window.location.href = `/project/${data.projectId}/workstream/${data.workstreamId}?task=${data.linkId}`;
-            } else {
-                putData(`/api/reminder/${data.id}`, {}, (c) => {
-                    window.location.href = `/project/${data.projectId}/workstream/${data.workstreamId}?task=${data.linkId}`;
-                })
             }
+            if (data.linkType == 'document') {
+                window.location.href = `/project/${data.projectId}/documents/${data.linkId}`;
+            }
+        } else {
+            putData(`/api/reminder/${data.id}`, {}, (c) => {
+                if (data.linkType == "task") {
+                    window.location.href = `/project/${data.projectId}/workstream/${data.workstreamId}?task=${data.linkId}`;
+                }
+                if (data.linkType == 'document') {
+                    window.location.href = `/project/${data.projectId}/documents/${data.linkId}`;
+                }
+            })
         }
     }
+
     render() {
         let { reminder, loggedUser } = this.props;
         let reminderUnseen = _.orderBy(reminder.List.filter(e => { return !e.seen }), ['dateAdded'], ['desc'])
