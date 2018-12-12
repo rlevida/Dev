@@ -1,5 +1,6 @@
 import React from "react";
-import { showToast } from '../../globalFunction';
+import parallel from 'async/parallel';
+import { showToast, getData } from '../../globalFunction';
 import { HeaderButtonContainer, DropDown } from "../../globalComponents";
 import { connect } from "react-redux";
 import _ from 'lodash';
@@ -28,14 +29,38 @@ export default class FormComponent extends React.Component {
     }
 
     componentDidMount() {
-        let { socket } = this.props;
+        let { dispatch, loggedUser } = this.props;
         $(".form-container").validator();
-        socket.emit("GET_USER_LIST", {});
-        socket.emit("GET_ROLE_LIST", {});
-        // socket.emit("GET_TEAM_LIST", {});
-        socket.emit("GET_PROJECT_LIST", {});
-        socket.emit("GET_WORKSTREAM_LIST", {});
-        socket.emit("GET_USERS_TEAM", {});
+        parallel({
+            projects: (parallelCallback) => {
+                getData(`/api/project`, {}, (c) => {
+                    dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count })
+                    dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
+                    showToast("success", "Project successfully retrieved.");
+                    parallelCallback(null)
+                })
+            },
+            workstreams: (parallelCallback) => {
+                getData(`/api/workstream?userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}`, {}, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
+                        showToast("success", "Workstream successfully retrieved.");
+                    } else {
+                        showToast("error", "Something went wrong please try again later.");
+                    }
+                    dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
+                    parallelCallback(null)
+                });
+            },
+            teams: (parallelCallback) => {
+                getData(`/api/teams?isDeleted=0&userId=${loggedUser.data.id}`, {}, (c) => {
+                    dispatch({ type: 'SET_TEAM_LIST', list: c.data.result, Count: c.data.count });
+                    dispatch({ type: 'SET_TEAM_LOADING', Loading: '' });
+                })
+                parallelCallback(null)
+            }
+        }, (err, result) => {
+        })
     }
 
     handleChange(e) {
@@ -66,32 +91,6 @@ export default class FormComponent extends React.Component {
     render() {
         let { project, loggedUser, teams, role, workstream, usersTeam } = this.props;
         let user = loggedUser.data, userRole = "", userTeam = [], userProjects = [], userWorkstream = [];
-
-        if (typeof user.id != "undefined" && role.List.length > 0) {
-            userRole = role.List.filter(e => { return e.id == user.userRole })[0].role
-        }
-
-        if (typeof user.id != "undefined" && teams.List.length > 0) {
-            userTeam = JSON.parse(user.team);
-        }
-
-        if (typeof user.id != "undefined" && project.List.length > 0) {
-            userProjects = _(project.List)
-                .filter((e) => {
-                    return _.findIndex(user.projectIds, (o) => { return o == e.id }) > -1;
-                })
-                .value();
-
-            userWorkstream = _(workstream.List)
-                .filter((e) => {
-                    if (user.userType == "External") {
-                        return _.findIndex(user.worksteamIds, (o) => { return o == e.id }) > -1 && e.projectStatus > 0 && e.isDeleted == 0;
-                    } else {
-                        return _.findIndex(user.projectIds, (o) => { return o == e.projectId }) > -1 && e.projectStatus > 0 && e.isDeleted == 0;
-                    }
-                })
-                .value();
-        }
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -154,11 +153,11 @@ export default class FormComponent extends React.Component {
                                                     <th class="text-center">Type</th>
                                                 </tr>
                                                 {
-                                                    _.map(userProjects, (data, index) => {
+                                                    project.List.map((data, index) => {
                                                         return (
                                                             <tr key={index}>
-                                                                <td class="text-left"><a href={"/project/" + data.id}>{data.project}</a></td>
-                                                                <td class="text-center"><span class={(data.type_type == "Client") ? "fa fa-users" : (data.type_type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></span></td>
+                                                                <td class="text-left">{data.project}</td>
+                                                                <td>{data.type.type}</td>
                                                             </tr>
                                                         )
                                                     })
@@ -166,7 +165,7 @@ export default class FormComponent extends React.Component {
                                             </tbody>
                                         </table>
                                         {
-                                            (userProjects.length == 0) && <p class="text-center m0">No Record Found!</p>
+                                            (project.List.length == 0) && <p class="text-center m0">No Record Found!</p>
                                         }
                                     </div>
                                 </div>
@@ -181,11 +180,11 @@ export default class FormComponent extends React.Component {
                                                 <th class="text-center">Type</th>
                                             </tr>
                                             {
-                                                _.map(userWorkstream, (data, index) => {
+                                                workstream.List.map((data, index) => {
                                                     return (
                                                         <tr key={index}>
                                                             <td class="text-left">{data.workstream}</td>
-                                                            <td><span class={data.type_type == "Output based" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
+                                                            <td><span class={data.type.type == "Output based" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
                                                         </tr>
                                                     )
                                                 })
@@ -193,13 +192,13 @@ export default class FormComponent extends React.Component {
                                         </tbody>
                                     </table>
                                     {
-                                        (userWorkstream.length == 0) && <p class="text-center m0">No Record Found!</p>
+                                        (workstream.List.length == 0) && <p class="text-center m0">No Record Found!</p>
                                     }
                                 </div>
                             </div>
                             {
                                 (user.userType == 'Internal') && <div class="row pdl20 pdr20 mb20">
-                                    <div class="col-md-8">
+                                    <div class="col-md-6">
                                         <h4 class="mt20 mb20">Teams</h4>
                                         <table id="dataTable" class="table responsive-table mt30">
                                             <tbody>
@@ -208,20 +207,11 @@ export default class FormComponent extends React.Component {
                                                     <th class="text-left">Members</th>
                                                 </tr>
                                                 {
-                                                    _.map(userTeam, (team) => {
-                                                        let teamMembers = _(usersTeam.List)
-                                                            .filter(e => { return e.teamId == team.value })
-                                                            .map(e => { return e.users_firstName + ' ' + e.users_lastName })
-                                                            .value();
-
+                                                    teams.List.map((data, index) => {
                                                         return (
-                                                            <tr>
-                                                                <td class="text-left">{team.label}</td>
-                                                                <td class="text-left">
-                                                                    {
-                                                                        (teamMembers).join(", ")
-                                                                    }
-                                                                </td>
+                                                            <tr key={index}>
+                                                                <td class="text-left">{data.team}</td>
+                                                                <td class="text-left"><span title={data.users_team.map((e) => { return `${e.user.firstName} ${e.user.lastName}` }).join("\r\n")}><i class="fa fa-users fa-lg"></i></span></td>
                                                             </tr>
                                                         )
                                                     })
