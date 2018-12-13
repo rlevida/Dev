@@ -1,8 +1,6 @@
 import React from "react";
-import Tooltip from "react-tooltip";
 import { connect } from "react-redux";
 import { DragSource, DropTarget } from 'react-dnd';
-import { displayDate, getData, postData, putData, showToast } from '../../../globalFunction';
 
 const itemSource = {
     beginDrag(props) {
@@ -50,7 +48,7 @@ export default class DocumentLibrary extends React.Component {
     }
 
     render() {
-        let { document, } = this.props
+        const { document } = this.props
         const { connectDropTarget, hovered } = this.props
         const backgroundColor = hovered ? 'lightblue' : '';
         return (

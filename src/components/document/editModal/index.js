@@ -8,10 +8,6 @@ import { connect } from "react-redux"
         socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
-        status: store.status,
-        type: store.type,
-        workstream: store.workstream,
-        task: store.task,
         global: store.global
     }
 })
@@ -29,16 +25,17 @@ export default class EditModal extends React.Component {
     }
 
     handleChange(e) {
-        let { dispatch, document } = this.props
-        let Selected = Object.assign({}, document.Selected)
+        const { dispatch, document } = this.props;
+        const Selected = Object.assign({}, document.Selected);
+
         Selected[e.target.name] = e.target.value;
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: Selected })
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: Selected });
     }
 
     handleSubmit(e) {
-        let { loggedUser, document, dispatch } = this.props
-
+        const { loggedUser, document, dispatch } = this.props;
         let result = true;
+
         $('.form-container *').validator('validate');
         $('.form-container .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
@@ -52,7 +49,7 @@ export default class EditModal extends React.Component {
         }
 
         if (document.EditType == "rename") {
-            let dataToSubmit = {
+            const dataToSubmit = {
                 origin: document.Selected.origin,
                 oldDocument: document.Selected.oldDocument,
                 newDocument: document.Selected.origin,
@@ -71,7 +68,7 @@ export default class EditModal extends React.Component {
                 dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
             })
         } else if (document.EditType == "tags") {
-            let dataToSubmit = {
+            const dataToSubmit = {
                 tags: JSON.stringify(document.Selected.tags),
                 oldDocument: document.Selected.oldDocument,
                 newDocument: document.Selected.tags.map((e) => { return e.label }).join(','),
@@ -92,22 +89,24 @@ export default class EditModal extends React.Component {
         }
     }
 
-    selectTag(e, data) {
-        let { dispatch, document } = this.props;
-        let Selected = Object.assign({}, document.Selected);
-        Selected["tags"] = e
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: Selected })
+    selectTag(e) {
+        const { dispatch, document } = this.props;
+        const Selected = Object.assign({}, document.Selected);
+
+        Selected["tags"] = e;
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: Selected });
     }
 
     render() {
-        let { document, global } = this.props;
+        const { document, global } = this.props;
         let tagOptions = [];
+
         if (typeof global.SelectList.workstreamList !== 'undefined' && typeof global.SelectList.taskList !== 'undefined') {
             global.SelectList.workstreamList.map((e) => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) });
-            global.SelectList.taskList.filter((e) => { return e.status != "Completed" }).map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) });
+            global.SelectList.taskList.filter((e) => { return e.status != "Completed" }).map((e) => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) });
         }
-        return (
 
+        return (
             <div class="modal fade" id="editModal" tabIndex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">

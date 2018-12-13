@@ -17,21 +17,15 @@ export default class DocumentNew extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            tempData: [],
-            upload: false,
-            loading: false,
-            tags: [],
-            files: [],
             folderAction: "",
             selectedFilter: 0,
             order: 'asc',
-            selectedFolderName: []
         }
         this.fetchData = this.fetchData.bind(this);
     }
 
     componentDidMount() {
-        let { dispatch, document, loggedUser } = this.props;
+        const { dispatch, document, loggedUser } = this.props;
         // automatically move to selected folder
         if (folderParams !== "" && folderParamsStatus === "new" && folderParamsOrigin !== "") {
             getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderParams}&starredUser=${loggedUser.data.id}`, {}, (c) => {
@@ -51,9 +45,9 @@ export default class DocumentNew extends React.Component {
     }
 
     addFolder() {
-        let { loggedUser, folder, dispatch } = this.props;
-        let { folderName } = this.state;
-        let dataToSubmit = [
+        const { loggedUser, folder, dispatch } = this.props;
+        const { folderName } = this.state;
+        const dataToSubmit = [
             {
                 name: folderName,
                 projectId: project,
@@ -157,13 +151,13 @@ export default class DocumentNew extends React.Component {
     }
 
     getNextResult() {
-        let { document, dispatch } = this.props;
+        const { document } = this.props;
         this.fetchData(document.NewCount.Count.current_page + 1)
     }
 
     moveTo(folderData, documentData) {
-        let { dispatch, loggedUser } = this.props;
-        let dataToSubmit = {
+        const { dispatch, loggedUser } = this.props;
+        const dataToSubmit = {
             status: folderData.status,
             folderId: folderData.id,
             actionType: "moved",
@@ -201,76 +195,77 @@ export default class DocumentNew extends React.Component {
     }
 
     render() {
-        let { document, folder } = this.props
+        const { document, folder } = this.props
         const currentPage = (typeof document.NewCount.Count.current_page != "undefined") ? document.NewCount.Count.current_page : 1;
         const lastPage = (typeof document.NewCount.Count.last_page != "undefined") ? document.NewCount.Count.last_page : 1;
 
-        return <div class="mb20">
-            <div class="col-lg-12 col-md-12">
-                <h3>
-                    <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>New Documents</a>
-                    {folder.SelectedNewFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
-                </h3>
-
-                {(this.state.folderAction == "") &&
-                    <div class="row mb10">
-                        <div class="col-lg-2">
-                            <div class="col-md-4 mb5">
-                                <div class="mt20">
-                                    <a href="javascript:void(0)" title="New Folder" style={{ textDecoration: "none" }} onClick={() => this.setState({ folderAction: "create" })}><span class="fa fa-folder fa-3x"></span></a>
+        return (
+            <div class="mb20">
+                <div class="col-lg-12 col-md-12">
+                    <h3>
+                        <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>New Documents</a>
+                        {folder.SelectedNewFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
+                    </h3>
+                    {(this.state.folderAction == "") &&
+                        <div class="row mb10">
+                            <div class="col-lg-2">
+                                <div class="col-md-4 mb5">
+                                    <div class="mt20">
+                                        <a href="javascript:void(0)" title="New Folder" style={{ textDecoration: "none" }} onClick={() => this.setState({ folderAction: "create" })}><span class="fa fa-folder fa-3x"></span></a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                }
-
-                {(this.state.folderAction == "create") &&
-                    <form class="form-inline">
-                        <div class="form-group">
-                            <input class="form-control" type="text" name="folderName" placeholder="Enter folder name" onChange={(e) => this.setState({ [e.target.name]: e.target.value })} value={this.state.folderName} />
-                            <a href="javascript:void(0)" class="btn btn-primary" style={{ margin: "5px" }} onClick={() => this.addFolder()}>Add</a>
-                            <a href="javascript:void(0)" class="btn btn-primary" style={{ margin: "5px" }} onClick={() => this.setState({ folderAction: "" })}>Cancel</a>
-                        </div>
-                    </form>
-                }
-                <table id="dataTable" class="table responsive-table table-bordered document-table" ref={el => (this.componentRef = el)}>
-                    <tbody>
-                        <tr>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i><a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>Name</a></th>
-                            <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateAdded')}>Uploaded</a></th>
-                            <th><i class="fa fa-caret-down">&nbsp;&nbsp;</i>By</th>
-                            <th>Tags</th>
-                            <th></th>
-                        </tr>
-                        {(document.NewDocumentLoading != "RETRIEVING") &&
-                            document.New.map((data, index) => {
-                                return (
-                                    <FieldContainer
-                                        data={data}
-                                        index={index}
-                                        key={index}
-                                        moveTo={(folderData, documentData) => this.moveTo(folderData, documentData)}
-                                    />
-                                )
-                            })
-                        }
-                    </tbody>
-                </table>
-                <div class="text-center">
-                    {
-                        ((currentPage != lastPage) && document.New.length > 0 && document.NewDocumentLoading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
                     }
+
+                    {(this.state.folderAction == "create") &&
+                        <form class="form-inline">
+                            <div class="form-group">
+                                <input class="form-control m10" type="text" name="folderName" placeholder="Enter folder name" onChange={(e) => this.setState({ [e.target.name]: e.target.value })} value={this.state.folderName} />
+                                <a href="javascript:void(0)" class="btn btn-primary m10" onClick={() => this.addFolder()}>Add</a>
+                                <a href="javascript:void(0)" class="btn btn-primary m10" onClick={() => this.setState({ folderAction: "" })}>Cancel</a>
+                            </div>
+                        </form>
+                    }
+                    <table id="dataTable" class="table responsive-table table-bordered document-table">
+                        <tbody>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>Name</a></th>
+                                <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateAdded')}>Uploaded</a></th>
+                                <th><i class="fa fa-caret-down m10"></i>By</th>
+                                <th>Tags</th>
+                                <th></th>
+                            </tr>
+                            {(document.NewDocumentLoading != "RETRIEVING") &&
+                                document.New.map((data, index) => {
+                                    return (
+                                        <FieldContainer
+                                            data={data}
+                                            index={index}
+                                            key={index}
+                                            moveTo={(folderData, documentData) => this.moveTo(folderData, documentData)}
+                                        />
+                                    )
+                                })
+                            }
+                        </tbody>
+                    </table>
+                    <div class="text-center">
+                        {
+                            ((currentPage != lastPage) && document.New.length > 0 && document.NewDocumentLoading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
+                        }
+                        {
+                            (document.New.length == 0 && document.NewDocumentLoading != "RETRIEVING") && <p>No Records Found</p>
+                        }
+                    </div>
                     {
-                        (document.New.length == 0 && document.NewDocumentLoading != "RETRIEVING") && <p>No Records Found</p>
+                        (document.NewDocumentLoading == "RETRIEVING") && <Loading />
                     }
                 </div>
-                {
-                    (document.NewDocumentLoading == "RETRIEVING") && <Loading />
-                }
             </div>
-        </div>
+        )
     }
 }

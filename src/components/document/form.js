@@ -1,17 +1,12 @@
 import React from "react"
-import { showToast, postData, putData } from '../../globalFunction'
+import { showToast, putData } from '../../globalFunction'
 import { HeaderButtonContainer, DropDown } from "../../globalComponents"
 
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
-        status: store.status,
-        type: store.type,
-        workstream: store.workstream,
-        task: store.task,
         global: store.global
     }
 })
@@ -29,14 +24,14 @@ export default class FormComponent extends React.Component {
     }
 
     handleChange(e) {
-        let { dispatch, document } = this.props
-        let Selected = Object.assign({}, document.Selected)
+        const { dispatch, document } = this.props
+        const Selected = Object.assign({}, document.Selected)
         Selected[e.target.name] = e.target.value;
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: Selected })
     }
 
     handleSubmit(e) {
-        let { socket, document, dispatch } = this.props
+        const { document, dispatch } = this.props
 
         let result = true;
         $('.form-container *').validator('validate');
@@ -53,7 +48,7 @@ export default class FormComponent extends React.Component {
 
         if (document.Selected.isFolder) {
             if (document.EditType == "tags") {
-                let dataToSubmit = { ...document.Selected }
+                const dataToSubmit = { ...document.Selected }
                 putData(`/api/folder/folderTag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=folder`, dataToSubmit, (c) => {
                     dispatch({ type: "UPDATE_DATA_FOLDER_LIST", UpdatedData: c.data })
                     dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
@@ -62,7 +57,7 @@ export default class FormComponent extends React.Component {
             }
         } else {
             if (document.EditType == "rename") {
-                let dataToSubmit = { origin: document.Selected.origin }
+                const dataToSubmit = { origin: document.Selected.origin }
                 putData(`/api/document/rename/${document.Selected.id}`, dataToSubmit, (c) => {
                     if (c.status == 200) {
                         dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data })
@@ -74,7 +69,7 @@ export default class FormComponent extends React.Component {
                     dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
                 })
             } else if (document.EditType == "tags") {
-                let dataToSubmit = { tags: document.Selected.tags }
+                const dataToSubmit = { tags: document.Selected.tags }
                 putData(`/api/document/tag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}`, dataToSubmit, (c) => {
                     if (c.status == 200) {
                         dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: document.Selected.status })
@@ -88,23 +83,23 @@ export default class FormComponent extends React.Component {
         }
     }
 
-    selectTag(e, data) {
-        let { dispatch, document } = this.props;
-        let Selected = Object.assign({}, document.Selected);
+    selectTag(e) {
+        const { dispatch, document } = this.props;
+        const Selected = Object.assign({}, document.Selected);
         Selected["tags"] = JSON.stringify(e)
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: Selected })
     }
 
     render() {
-        let { dispatch, document, workstream, task, global } = this.props;
-        let tagOptions = [];
+        const { dispatch, document, global } = this.props;
+        const tagOptions = [];
         global.SelectList.workstreamList.map((e) => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) });
         global.SelectList.taskList.filter((e) => { return e.status != "Completed" }).map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) });
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
                 <li class="btn btn-info" style={{ marginRight: "2px" }}
-                    onClick={(e) => {
+                    onClick={() => {
                         dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
                         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
                     }} >
