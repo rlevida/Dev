@@ -79,6 +79,7 @@ export default class FormComponent extends React.Component {
             if (c.status == 200) {
                 task_members.push(c.data);
                 dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, task_members } });
+                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [{ ...task.Selected, task_members }] });
                 showToast("success", "Task successfully updated.");
             } else {
                 showToast("success", "Something went wrong. Please try again later.");
@@ -97,6 +98,7 @@ export default class FormComponent extends React.Component {
             if (c.status == 200) {
                 showToast("success", "Task successfully updated.");
                 dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, task_members: remainingMembers } });
+                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [{ ...task.Selected, task_members: remainingMembers }] });
             } else {
                 showToast("success", "Something went wrong. Please try again later.");
             }
@@ -383,8 +385,6 @@ export default class FormComponent extends React.Component {
         const { dispatch, task, status, global, loggedUser, checklist, project, taskDependency, workstream } = { ...this.props };
         let statusList = [], taskList = [{ id: "", name: "Select..." }], projectUserList = [], isVisible = false;
 
-        console.log(task.Selected)
-
         status.List.map((e, i) => { if (e.linkType == "task") { statusList.push({ id: e.id, name: e.status }) } });
 
         if (typeof this.props.global.SelectList.taskList != "undefined") {
@@ -518,13 +518,14 @@ export default class FormComponent extends React.Component {
                                         <div class="col-md-12">
                                             <div class="details">
                                                 <span class="fa fa-user"></span>
-                                                <p class="m0">Followers: {((task.Selected.task_members).length > 0) ? "N/A" : ""} </p>
+                                                <p class="m0">Followers: {((task.Selected.task_members).length > 0) ? "" : "N/A"} </p>
                                             </div>
                                             <ul>
                                                 {((task.Selected.task_members).length > 0) &&
-                                                    _.map(task.Selected.task_members, (o, index) => {
-                                                        return <li key={index}>{o.user.firstName + " " + o.user.lastName}</li>
-                                                    })
+                                                    _.filter(task.Selected.task_members, (o) => { return o.memberType == 'Follower' })
+                                                        .map((o, index) => {
+                                                            return <li key={index}>{o.user.firstName + " " + o.user.lastName}</li>
+                                                        })
                                                 }
                                             </ul>
                                         </div>
@@ -874,7 +875,7 @@ export default class FormComponent extends React.Component {
                 <ApprovalModal />
                 <RejectMessageModal />
                 <LogtimeModal />
-                <DocumentViewerModal/>
+                <DocumentViewerModal />
             </div>
         )
     }

@@ -281,7 +281,7 @@ export default class List extends React.Component {
                             _.orderBy(task.List, ['dueDate', 'asc']).map((data, index) => {
                                 const assignedUser = (_.filter(data.task_members, (o) => { return o.memberType == "assignedTo" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "assignedTo" })[0].user : "";
                                 const followers = (_.filter(data.task_members, (o) => { return o.memberType == "Follower" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "Follower" }) : "";
-                                
+
                                 return (
                                     <tr key={index}>
                                         <td>
@@ -301,10 +301,13 @@ export default class List extends React.Component {
                                             }
                                         </td>
                                         <td>
-                                            {(followers != "") &&
-                                                <div>
-                                                    <span title={`${_.map(followers, (o) => { return o.user.firstName + " " + o.user.lastName }).join("\r\n")}`}><i class="fa fa-users fa-lg"></i></span>
-                                                </div>
+                                            {((data.task_members).length > 0) &&
+                                                <span title={`${_.filter(data.task_members, (o) => { return o.memberType == 'Follower' })
+                                                    .map((o, index) => {
+                                                        return o.user.firstName + " " + o.user.lastName
+                                                    }).join("\r\n")}`}>
+                                                    <i class="fa fa-users fa-lg"></i>
+                                                </span>
                                             }
                                         </td>
                                     </tr>
