@@ -179,7 +179,7 @@ exports.get = {
                 SELECT ${column} FROM (
                     SELECT users.* , role.role , role.id as roleId FROM (
                             SELECT * FROM (` + query + `) as prjMembersUsers WHERE usersType = "users") as tb1
-                    LEFT JOIN users ON tb1.userTypeLinkId = users.id
+                    LEFT JOIN ( SELECT * from users where userType != 'External' ) as users ON tb1.userTypeLinkId = users.id
                     LEFT JOIN users_role ON users.id = users_role.usersId
                     LEFT JOIN role ON users_role.roleId = role.id
                     WHERE users.id IS NOT NULL
