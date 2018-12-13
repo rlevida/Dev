@@ -165,6 +165,7 @@ exports.get = {
         const queryString = req.query;
         const limit = 5;
         let query = `SELECT * FROM members WHERE id <> 0 `;
+        let userTypeQuery = `SELECT * FROM users `
 
         if (typeof queryString.linkType != "undefined" && queryString.linkType != "") {
             query += `AND linkType = "${queryString.linkType}" `
@@ -174,12 +175,16 @@ exports.get = {
             query += `AND linkId = "${queryString.linkId}" `
         }
 
+        if (typeof queryString.userType != "undefined" && queryString.userType != "") {
+            userTypeQuery += `WHERE userType = '${queryString.userType}'`
+        }
+
         const constructQuery = (column) => {
             return `
                 SELECT ${column} FROM (
                     SELECT users.* , role.role , role.id as roleId FROM (
                             SELECT * FROM (` + query + `) as prjMembersUsers WHERE usersType = "users") as tb1
-                    LEFT JOIN ( SELECT * from users where userType != 'External' ) as users ON tb1.userTypeLinkId = users.id
+                    LEFT JOIN ( ${userTypeQuery} ) as users ON tb1.userTypeLinkId = users.id
                     LEFT JOIN users_role ON users.id = users_role.usersId
                     LEFT JOIN role ON users_role.roleId = role.id
                     WHERE users.id IS NOT NULL
