@@ -19,7 +19,6 @@ import { connect } from "react-redux";
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         project: store.project,
     }
 })
@@ -30,7 +29,7 @@ class List extends React.Component {
     }
 
     render() {
-        let { project } = this.props;
+        const { project } = this.props;
 
         return (
             <div class="m10">

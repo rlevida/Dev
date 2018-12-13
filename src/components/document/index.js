@@ -22,7 +22,7 @@ export default class Component extends React.Component {
     }
 
     componentDidMount() {
-        let { dispatch, loggedUser } = this.props
+        const { dispatch, loggedUser } = this.props
 
         if (documentId) {
             let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&documentId=${documentId}`;
@@ -70,13 +70,13 @@ export default class Component extends React.Component {
                 })
             }
         }, (error, result) => {
-
+            // Loading false
         })
     }
 
     render() {
-        let { document } = this.props
-        let Component = <div>
+        const { document } = this.props
+        const Component = <div>
             {(document.FormActive === "List" && documentId === '') &&
                 <List />
             }

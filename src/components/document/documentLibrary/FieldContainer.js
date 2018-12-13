@@ -1,5 +1,4 @@
 import React from "react";
-import Tooltip from "react-tooltip";
 import { connect } from "react-redux";
 import { DragSource, DropTarget } from 'react-dnd';
 import { displayDate, getData, postData, putData, showToast } from '../../../globalFunction';
@@ -38,15 +37,7 @@ const itemTarget = {
         socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
-        workstream: store.workstream,
-        users: store.users,
-        settings: store.settings,
-        starred: store.starred,
-        global: store.global,
-        task: store.task,
-        projectData: store.project,
         folder: store.folder
-
     }
 })
 
@@ -93,7 +84,7 @@ export default class DocumentLibrary extends React.Component {
     }
 
     deleteDocument(data) {
-        let { dispatch, loggedUser } = this.props;
+        const { dispatch, loggedUser } = this.props;
         if (confirm("Do you really want to delete this record?")) {
             putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
                 if (c.status == 200) {
@@ -118,6 +109,7 @@ export default class DocumentLibrary extends React.Component {
     duplicateDocument(data) {
         const { dispatch, document, loggedUser } = this.props;
         const dataToSubmit = [{ name: data.name, origin: data.origin, project: project, uploadedBy: loggedUser.data.id, status: data.status, tags: JSON.stringify(data.tags), type: 'document' }]
+        
         postData(`/api/document?isDuplicate=true`, dataToSubmit, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library' });
@@ -142,37 +134,12 @@ export default class DocumentLibrary extends React.Component {
     }
 
     editFolder(data, type) {
-        let { dispatch } = this.props;
+        const { dispatch } = this.props;
+
         dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "Form" });
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data })
         dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type })
     }
-
-    // moveTo(folderData, documentData) {
-    //     let { dispatch, loggedUser } = this.props;
-    //     let dataToSubmit = {
-    //         status: folderData.status,
-    //         folderId: folderData.id,
-    //         actionType: "moved",
-    //         oldDocument: documentData.origin,
-    //         newDocument: "",
-    //         title: `${documentData.type === 'document' ? 'Document' : 'Folder'} moved to folder ${folderData.origin}`,
-    //         projectId: project,
-    //         usersId: loggedUser.data.id
-    //     };
-
-    //     putData(`/api/document/${documentData.id}`, dataToSubmit, (c) => {
-    //         if (c.status == 200) {
-    //             dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data.result, Status: documentData.status })
-    //             dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
-    //             showToast("success", "Successfully Updated.")
-    //         } else {
-    //             showToast("danger", "Updating failed. Please try again")
-    //         }
-    //         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
-    //         dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
-    //     })
-    // }
 
     starredDocument({ id, isStarred, origin }) {
         const { document, loggedUser, dispatch } = this.props;
@@ -200,7 +167,8 @@ export default class DocumentLibrary extends React.Component {
     }
 
     viewDocument(data) {
-        let { dispatch, loggedUser, folder } = this.props;
+        const { dispatch, loggedUser, folder } = this.props;
+        
         if (data.type !== 'folder') {
             dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: "DocumentViewer" });
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
@@ -218,12 +186,13 @@ export default class DocumentLibrary extends React.Component {
     }
 
     render() {
-        let { document, starred, dispatch, loggedUser, data, index, folder, moveTo } = this.props
+        const { document, dispatch, loggedUser, data, index, folder, moveTo } = this.props
         let tagCount = 0;
-        let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
+        const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
         const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
         const opacity = isDragging ? 0 : 1;
         const backgroundColor = hovered ? 'lightblue' : '';
+
         return connectDragSource(
             connectDropTarget(
                 <tr class="item" key={index} style={{ opacity, background: backgroundColor }}>
@@ -249,7 +218,7 @@ export default class DocumentLibrary extends React.Component {
                             {(data.tags.length > 0) &&
                                 data.tags.map((t, tIndex) => {
                                     tagCount += t.label.length
-                                    let tempCount = tagCount;
+                                    const tempCount = tagCount;
                                     if (tagCount > 16) { tagCount = 0 }
                                     return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
                                 })
@@ -272,7 +241,7 @@ export default class DocumentLibrary extends React.Component {
                                         }
                                         {
                                             _.filter(document.Library, (d) => { return d.type == 'folder' && d.id != data.id }).map((f, fIndex) => {
-                                                let folderName = `${f.origin}${f.documentNameCount > 0 ? `(${f.documentNameCount})` : ``}`
+                                                const folderName = `${f.origin}${f.documentNameCount > 0 ? `(${f.documentNameCount})` : ``}`
                                                 return (
                                                     <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => moveTo(f, data)}>{folderName}</a>
                                                 )
@@ -286,10 +255,9 @@ export default class DocumentLibrary extends React.Component {
                                     <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.duplicateDocument(data)}>Duplicate</a></li>
                                 }
                                 <li>
-                                    {starred.List.filter(s => { return s.linkId == data.id }).length > 0
-                                        ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={() => this.starDocument(data, 1)}>Unstarred</a>
-                                        : <a href="javascript:void(0)" data-tip="Star" onClick={() => this.starDocument(data, 0)}>Star</a>
-                                    }
+                                    <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
+                                        {data.isStarred ? 'Unstarred' : 'Star'}
+                                    </a>
                                 </li>
                                 <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data)}>Delete</a></li>
                             </ul>

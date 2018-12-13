@@ -14,10 +14,8 @@ var delayTimer = ''
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
-        users: store.users,
         settings: store.settings,
         conversation: store.conversation,
         global: store.global,
@@ -70,7 +68,7 @@ export default class DocumentViewerComponent extends React.Component {
     }
 
     deleteDocument(id) {
-        let { dispatch } = this.props;
+        const { dispatch } = this.props;
         if (confirm("Do you really want to delete this record?")) {
             putData(`/api/document/${id}`, { isDeleted: 1 }, (c) => {
                 if (c.status == 200) {
@@ -85,26 +83,8 @@ export default class DocumentViewerComponent extends React.Component {
         }
     }
 
-    starDocument(data, isStarred) {
-        let { starred, loggedUser, dispatch } = this.props;
-        if (isStarred) {
-            let id = starred.List.filter(s => { return s.linkId == data.id })[0].id
-            deleteData(`/api/starred/${id}`, {}, (c) => {
-                dispatch({ type: "REMOVE_DELETED_STARRED_LIST", id: data.id })
-                showToast("success", "Successfully Updated.")
-            })
-        } else {
-            let dataToSubmit = { usersId: loggedUser.data.id, linkType: "project", linkId: data.id }
-            postData(`/api/starred/`, dataToSubmit, (c) => {
-                dispatch({ type: "ADD_STARRED_LIST", list: c.data })
-                showToast("success", "Successfully Updated.")
-            })
-        }
-    }
-
     printDocument(file) {
-        let { dispatch } = this.props;
-        let dataToSubmit = { fileName: file.name, fileOrigin: file.origin };
+        const dataToSubmit = { fileName: file.name, fileOrigin: file.origin };
         postData(`/api/document/printDocument`, dataToSubmit, (c) => {
             document.getElementById("printDocument").src = `/temp/${c.data}`;
             setTimeout(() => {
@@ -129,9 +109,35 @@ export default class DocumentViewerComponent extends React.Component {
         dispatch({ type: 'SET_CONVERSATION_FILTER', filter: { [e.target.name]: e.target.value } });
     }
 
+    starredDocument({ id, isStarred, origin }) {
+        const { document, loggedUser, dispatch } = this.props;
+        const isStarredValue = (isStarred > 0) ? 0 : 1;
+
+        postData(`/api/starred?projectId=${project}&document=${origin}`, {
+            linkType: "document",
+            linkId: id,
+            usersId: loggedUser.data.id
+        }, (c) => {
+            if (c.status == 200) {
+                const updatedDocumentList = _.map(document.Selected.status === 'new' ? [...document.New] : [...document.Library], (documentObj, index) => {
+                    if (id == documentObj.id) {
+                        documentObj["isStarred"] = isStarredValue;
+                    }
+                    return documentObj;
+                });
+                dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList, DocumentType: document.Selected.status === 'new' ? 'New' : 'Library' });
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.documentActivityLog })
+                showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
+    }
+
     render() {
-        let { dispatch, document, settings, conversation, starred } = this.props,
-            isDocument = true, ext = "", documentContentType = "";
+        const { dispatch, document, settings, conversation } = this.props;
+        let isDocument = true, ext = "", documentContentType = "";
+
         if (typeof document.Selected.id !== 'undefined') {
             ext = getFilePathExtension(document.Selected.name).toLowerCase();
             documentContentType = mime.contentType(document.Selected.name)
@@ -139,6 +145,7 @@ export default class DocumentViewerComponent extends React.Component {
                 isDocument = false;
             }
         }
+
         return (
             <div>
                 {
@@ -185,10 +192,9 @@ export default class DocumentViewerComponent extends React.Component {
                                                     <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
                                                         <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(document.Selected)}>Download</a></li>
                                                         <li>
-                                                            {starred.List.filter(s => { return s.linkId == document.Selected.id }).length > 0
-                                                                ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={() => this.starDocument(document.Selected, 1)}>Unstarred</a>
-                                                                : <a href="javascript:void(0)" data-tip="Star" onClick={() => this.starDocument(document.Selected, 0)}>Star</a>
-                                                            }
+                                                            <a onClick={() => this.starredDocument({ isStarred: document.Selected.isStarred, id: document.Selected.id, origin: document.Selected.origin })}>
+                                                                {document.Selected.isStarred ? 'Unstarred' : 'Star'}
+                                                            </a>
                                                         </li>
                                                         <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(document.Selected.id)}>Delete</a></li>
                                                     </ul>

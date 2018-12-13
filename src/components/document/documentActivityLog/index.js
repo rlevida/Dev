@@ -1,22 +1,15 @@
 import React from "react";
 import { connect } from "react-redux";
 import moment from "moment";
-import { deleteData, displayDate, getData, postData, putData, showToast } from '../../../globalFunction';
+
+import { getData, } from '../../../globalFunction';
 import { Loading } from '../../../globalComponents';
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
-        document: store.document,
         loggedUser: store.loggedUser,
-        workstream: store.workstream,
-        settings: store.settings,
-        starred: store.starred,
         global: store.global,
-        task: store.task,
-        project: store.project,
         activityLogDocument: store.activityLogDocument
-
     }
 })
 
@@ -28,6 +21,7 @@ export default class DocumentActivityLog extends React.Component {
 
     componentDidMount() {
         const { activityLogDocument } = this.props;
+
         if (_.isEmpty(activityLogDocument.Count)) {
             this.fetchData(1)
         }
@@ -35,21 +29,23 @@ export default class DocumentActivityLog extends React.Component {
 
     fetchData(page) {
         const { dispatch, activityLogDocument, loggedUser } = this.props;
+
         getData(`/api/activityLogDocument?projectId=${project}&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
             dispatch({ type: 'SET_ACTIVITYLOG_DOCUMENT_LIST', list: activityLogDocument.List.concat(c.data.result), count: c.data.count })
         })
     }
 
     getNextResult() {
-        let { activityLogDocument, } = this.props;
+        const { activityLogDocument } = this.props;
+
         this.fetchData(activityLogDocument.Count.current_page + 1)
     }
-
 
     render() {
         const { activityLogDocument } = this.props;
         const currentPage = (typeof activityLogDocument.Count.current_page != "undefined") ? activityLogDocument.Count.current_page : 1;
         const lastPage = (typeof activityLogDocument.Count.last_page != "undefined") ? activityLogDocument.Count.last_page : 1;
+        
         return (
             <div class="m20">
                 <h4>Activity Logs</h4>

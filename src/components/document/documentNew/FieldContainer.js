@@ -29,15 +29,7 @@ const itemTarget = {
         socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
-        workstream: store.workstream,
-        users: store.users,
-        settings: store.settings,
-        starred: store.starred,
-        global: store.global,
-        task: store.task,
-        projectData: store.project,
         folder: store.folder
-
     }
 })
 
@@ -63,7 +55,7 @@ export default class FieldContainer extends React.Component {
     }
 
     deleteDocument(data) {
-        let { dispatch, loggedUser } = this.props;
+        const { dispatch, loggedUser } = this.props;
         if (confirm("Do you really want to delete this record?")) {
             putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
                 if (c.status == 200) {
@@ -123,6 +115,7 @@ export default class FieldContainer extends React.Component {
             projectId: project,
             usersId: loggedUser.data.id
         }
+
         putData(`/api/document/${data.id}`, dataToSubmit, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data.result, Status: data.status })
@@ -165,6 +158,7 @@ export default class FieldContainer extends React.Component {
 
     viewDocument(data) {
         const { dispatch, loggedUser, folder } = this.props;
+
         if (data.type !== 'folder') {
             dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
@@ -183,9 +177,9 @@ export default class FieldContainer extends React.Component {
     }
 
     render() {
-        let { document, starred, dispatch, loggedUser, data, index, moveTo } = this.props
+        const { document, dispatch, loggedUser, data, index, moveTo } = this.props
         let tagCount = 0;
-        let documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
+        const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
         const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
         const opacity = isDragging ? 0 : 1;
         const backgroundColor = hovered ? 'lightblue' : '';
@@ -228,10 +222,10 @@ export default class FieldContainer extends React.Component {
                                 }
                                 <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "rename")}>Rename</a></li>
                                 <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>
-                                <li>{starred.List.filter(s => { return s.linkId == data.id }).length > 0
-                                    ? <a href="javascript:void(0)" data-tip="Unstarred" onClick={() => this.starDocument(data, 1)}>Unstarred</a>
-                                    : <a href="javascript:void(0)" data-tip="Star" onClick={() => this.starDocument(data, 0)}>Star</a>
-                                }
+                                <li>
+                                    <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
+                                        {data.isStarred ? 'Unstarred' : 'Star'}
+                                    </a>
                                 </li>
                                 <li class="dropdown dropdown-library">
                                     <span class="test" style={{ marginLeft: "20px", color: "#333", lineHeight: "1.42857143", cursor: "pointer" }}>Move to</span>
@@ -249,7 +243,6 @@ export default class FieldContainer extends React.Component {
                                         }
                                     </div>
                                 </li>
-
                                 <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data)}>Delete</a></li>
                                 <li><a href="javascript:void(0)" data-tip="View" onClick={() => this.viewDocument(data)}>View</a></li>
                             </ul>
