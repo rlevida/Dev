@@ -64,7 +64,7 @@ export default class FormComponent extends React.Component {
         });
 
 
-        getData(`/api/member/selectList?linkType=project&linkId=${project}&page=1`, {}, (c) => {
+        getData(`/api/member/selectList?linkType=project&linkId=${project}&page=1&userType=Internal`, {}, (c) => {
             const taskMemberOptions = _(c.data.result)
                 .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
                 .value();
@@ -198,7 +198,7 @@ export default class FormComponent extends React.Component {
         if (options != "") {
             keyTimer && clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
-                getData(`/api/member?linkType=project&linkId=${project}&page=1&memberName=${options}`, {}, (c) => {
+                getData(`/api/member?linkType=project&linkId=${project}&page=1&memberName=${options}&userType=Internal`, {}, (c) => {
                     const taskMemberOptions = _(c.data.result)
                         .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
                         .value();
@@ -208,7 +208,7 @@ export default class FormComponent extends React.Component {
         } else {
             keyTimer && clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
-                getData(`/api/member/selectList?linkType=project&linkId=${project}&page=1`, {}, (c) => {
+                getData(`/api/member/selectList?linkType=project&linkId=${project}&page=1&userType=Internal`, {}, (c) => {
                     const taskMemberOptions = _(c.data.result)
                         .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
                         .value();
