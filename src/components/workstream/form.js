@@ -204,7 +204,17 @@ export default class FormComponent extends React.Component {
                         .value();
                     dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
                 });
-            }, 1500)
+            }, 500)
+        } else {
+            keyTimer && clearTimeout(keyTimer);
+            keyTimer = setTimeout(() => {
+                getData(`/api/member/selectList?linkType=project&linkId=${project}&page=1`, {}, (c) => {
+                    const taskMemberOptions = _(c.data.result)
+                        .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
+                        .value();
+                    dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
+                });
+            }, 500)
         }
     }
 

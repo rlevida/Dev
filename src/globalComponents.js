@@ -42,7 +42,7 @@ export const DropDown = React.createClass({
         }
     },
     onInputChange: function (option) {
-        if (typeof this.props.onInputChange != "undefined" && option != "") {
+        if (typeof this.props.onInputChange != "undefined") {
             this.props.onInputChange(option);
             this.setState({ noResultsText: "Loading ..." })
         }
