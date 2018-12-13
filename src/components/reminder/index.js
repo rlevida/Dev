@@ -1,9 +1,7 @@
 import React from "react"
-import ReactDOM from "react-dom"
 import Header from "../partial/header"
 import List from "./list"
 import Form from "./form"
-import TaskComponent from "../taskComponent"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -20,13 +18,10 @@ export default class Component extends React.Component {
     }
 
     render() {
-        let { socket, reminder, dispatch } = this.props
+        let { reminder } = this.props
         let Component = <div>
                 {reminder.FormActive == "List" &&
                     <List />
-                }
-                {reminder.FormActive == "Task" && 
-                    <TaskComponent/>
                 }
                 {reminder.FormActive == "Form" &&
                     <Form />

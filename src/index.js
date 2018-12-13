@@ -85,11 +85,4 @@ switch (page) {
     case "reminder":
         require('./container/reminder');
         break;
-    case "selectedTask":
-        switch (subpage) {
-            default:
-            require('./container/selectedTask')
-            break;
-        }
-        break;
 }
