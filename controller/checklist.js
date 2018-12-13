@@ -532,7 +532,11 @@ exports.put = {
                                         as: 'tagDocuments',
                                         include: [{
                                             model: Document,
-                                            as: 'document'
+                                            as: 'document',
+                                            include: [{
+                                                model: Users,
+                                                as: 'user'
+                                            }]
                                         }]
                                     }
                                 ]
