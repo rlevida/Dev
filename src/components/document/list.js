@@ -10,7 +10,6 @@ import DocumentLibrary from "./documentLibrary";
 import DocumentFilter from "./documentFilter";
 import DocumentActivityLog from "./documentActivityLog";
 
-import PrintModal from "./documentPrinterModal";
 import UploadModal from "./uploadModal";
 import ShareModal from "./shareModal";
 import EditModal from "./editModal";
@@ -58,7 +57,6 @@ class List extends React.Component {
 
                     </div>
                 </div>
-                <PrintModal />
                 <UploadModal />
                 <ShareModal />
                 <EditModal />
