@@ -28,7 +28,7 @@ export default class List extends React.Component {
     componentDidMount() {
         const { workstream, dispatch } = this.props;
         const { Count } = workstream;
-
+        
         if (workstreamId != "") {
             const dataToGet = { params: { id: workstreamId } }
             getData(`/api/workstream/getWorkstreamDetail`, dataToGet, (c) => {
