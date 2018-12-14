@@ -10,7 +10,6 @@ import TaskFilter from "./taskFilter"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
         loggedUser: store.loggedUser
     }
@@ -24,7 +23,7 @@ export default class List extends React.Component {
     }
 
     componentDidMount() {
-        const { socket, task } = this.props;
+        const {  task } = this.props;
         const { Count } = task;
 
         if (_.isEmpty(Count)) {
@@ -32,13 +31,6 @@ export default class List extends React.Component {
         } else if (Count.current_page != Count.last_page) {
             this.fetchData(Count.current_page + 1);
         }
-
-        // socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        // socket.emit("GET_STATUS_LIST", {});
-        // socket.emit("GET_TYPE_LIST", {});
-        // socket.emit("GET_USER_LIST", {});
-        // socket.emit("GET_TEAM_LIST", {});
-        // socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "ProjectMemberList", filter: { linkId: project, linkType: "project" } });
     }
 
     fetchData(page) {
