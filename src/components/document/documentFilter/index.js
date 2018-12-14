@@ -10,8 +10,6 @@ let delayTimer = "";
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
-        status: store.status,
         loggedUser: store.loggedUser,
         global: store.global,
         document: store.document,

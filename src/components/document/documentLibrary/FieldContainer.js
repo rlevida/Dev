@@ -34,7 +34,6 @@ const itemTarget = {
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
         folder: store.folder

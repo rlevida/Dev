@@ -3,12 +3,10 @@ import moment from 'moment'
 import mime from "mime-types";
 import { connect } from "react-redux"
 
-import { getFilePathExtension, putData, deleteData, showToast, postData, removeTempFile, getData } from '../../../globalFunction'
+import { getFilePathExtension, putData, showToast, postData, removeTempFile, getData } from '../../../globalFunction'
 import { HeaderButtonContainer } from "../../../globalComponents"
 
 import DocumentComment from "../comment"
-import PrintComponent from "../print"
-
 
 var delayTimer = ''
 
@@ -224,7 +222,6 @@ export default class DocumentViewerComponent extends React.Component {
                         </div>
                     </div>
                 </div>
-                <PrintComponent />
             </div >
         )
     }

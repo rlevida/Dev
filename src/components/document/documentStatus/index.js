@@ -1,12 +1,10 @@
 import React from "react"
-import ReactDOM from "react-dom"
 
-import { showToast, getData } from '../../../globalFunction'
+import { getData } from '../../../globalFunction'
 
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         document: store.document,
         global: store.global,
         loggedUser: store.loggedUser
