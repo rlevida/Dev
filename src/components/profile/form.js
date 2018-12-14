@@ -1,22 +1,17 @@
 import React from "react";
 import parallel from 'async/parallel';
 import { showToast, getData } from '../../globalFunction';
-import { HeaderButtonContainer, DropDown } from "../../globalComponents";
+import { HeaderButtonContainer } from "../../globalComponents";
 import { connect } from "react-redux";
 import _ from 'lodash';
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         project: store.project,
         loggedUser: store.loggedUser,
-        status: store.status,
-        type: store.type,
         users: store.users,
         teams: store.teams,
-        role: store.role,
         workstream: store.workstream,
-        usersTeam: store.usersTeam
     }
 })
 
@@ -64,13 +59,13 @@ export default class FormComponent extends React.Component {
     }
 
     handleChange(e) {
-        let { socket, dispatch, loggedUser } = this.props
+        let { dispatch, loggedUser } = this.props
         let tempData = Object.assign({}, loggedUser.data)
         tempData[e.target.name] = e.target.value;
     }
 
     handleSubmit(e) {
-        let { socket, project, loggedUser } = this.props
+        let { loggedUser } = this.props
 
         let result = true;
         $('.form-container *').validator('validate');
@@ -85,12 +80,11 @@ export default class FormComponent extends React.Component {
             return;
         }
 
-        socket.emit("SAVE_OR_UPDATE_USER", { data: loggedUser.data });
     }
 
     render() {
-        let { project, loggedUser, teams, role, workstream, usersTeam } = this.props;
-        let user = loggedUser.data, userRole = "", userTeam = [], userProjects = [], userWorkstream = [];
+        let { project, loggedUser, teams, workstream } = this.props;
+        let user = loggedUser.data;
 
         return <div>
             <HeaderButtonContainer withMargin={true}>
@@ -143,7 +137,7 @@ export default class FormComponent extends React.Component {
                                 </div>
                             </div>
                             {
-                                (user.userType == 'Internal' || (user.userType == 'External' && userProjects.length > 1)) && <div class="row pdl20 pdr20 mb20">
+                                (user.userType == 'Internal' || (user.userType == 'External' && project.List.length > 1)) && <div class="row pdl20 pdr20 mb20">
                                     <div class="col-md-6">
                                         <h4 class="mt20 mb20">Projects</h4>
                                         <table id="dataTable" class="table responsive-table mt30">
@@ -219,7 +213,7 @@ export default class FormComponent extends React.Component {
                                             </tbody>
                                         </table>
                                         {
-                                            (userTeam.length == 0) && <p class="text-center m0">No Record Found!</p>
+                                            (teams.List.length == 0) && <p class="text-center m0">No Record Found!</p>
                                         }
                                     </div>
                                 </div>
