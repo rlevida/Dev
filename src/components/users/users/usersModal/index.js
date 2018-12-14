@@ -5,7 +5,6 @@ import _ from 'lodash'
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
         workstream: store.workstream,
@@ -47,21 +46,21 @@ export default class UsersModal extends React.Component {
     }
 
     handleDate(e) {
-        let { socket, dispatch, users } = this.props
+        let { dispatch, users } = this.props
         let Selected = Object.assign({}, users.Selected)
         Selected[e.target.name] = e.target.value + " UTC";
         dispatch({ type: "SET_USER_SELECTED", Selected: Selected })
     }
 
     handleChange(e) {
-        let { socket, dispatch, users } = this.props
+        let { dispatch, users } = this.props
         let Selected = Object.assign({}, users.Selected)
         Selected[e.target.name] = e.target.value;
         dispatch({ type: "SET_USER_SELECTED", Selected: Selected })
     }
 
     handleSubmit(e) {
-        let { socket, users, dispatch } = this.props
+        let { users, dispatch } = this.props
 
         let result = true;
         $('.users-modal *').validator('validate');
@@ -111,7 +110,7 @@ export default class UsersModal extends React.Component {
     }
 
     setDropDown(name, value) {
-        let { socket, dispatch, users } = this.props
+        let { dispatch, users } = this.props
         let Selected = Object.assign({}, users.Selected)
         Selected[name] = value;
 
@@ -124,7 +123,7 @@ export default class UsersModal extends React.Component {
     }
 
     setDropDownMultiple(name, values) {
-        let { socket, dispatch, users } = this.props
+        let { dispatch, users } = this.props
         let Selected = Object.assign({}, users.Selected)
         Selected[name] = values;
         dispatch({ type: "SET_USER_SELECTED", Selected: Selected })

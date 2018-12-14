@@ -1,5 +1,4 @@
 import React from "react"
-import ReactDOM from "react-dom"
 import { getData } from "../../globalFunction"
 import Header from "../partial/header"
 import User from "./users"
@@ -12,7 +11,6 @@ import ChangePasswordModal from './users/changePasswordModal'
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         loggedUser: store.loggedUser,
         teams: store.teams,
         users: store.users,
@@ -50,7 +48,7 @@ export default class Component extends React.Component {
         $(`#usersModal`).modal('show');
     }
     render() {
-        let { dispatch, teams, users, project, loggedUser } = this.props;
+        let { teams, users, project, loggedUser } = this.props;
         let projectList = _.filter(project.List, (o) => {
             return o.projectManagerId == loggedUser.data.id
         });

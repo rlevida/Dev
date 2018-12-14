@@ -2,12 +2,11 @@ import React from "react";
 import Tooltip from "react-tooltip";
 import { connect } from "react-redux";
 
-import { DropDown, Loading } from "../../../globalComponents";
-import { showToast, getData, deleteData, putData } from '../../../globalFunction';
+import { Loading } from "../../../globalComponents";
+import { showToast, getData, putData } from '../../../globalFunction';
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         teams: store.teams,
         loggedUser: store.loggedUser,
         users: store.users,
@@ -19,7 +18,6 @@ export default class List extends React.Component {
         super(props)
 
         this.deleteData = this.deleteData.bind(this)
-        this.updateActiveStatus = this.updateActiveStatus.bind(this)
         this.renderArrayTd = this.renderArrayTd.bind(this)
         this.fetchData = this.fetchData.bind(this)
         this.handleEdit = this.handleEdit.bind(this)
@@ -42,7 +40,7 @@ export default class List extends React.Component {
     }
 
     fetchData(page) {
-        const { dispatch, loggedUser, teams } = this.props;
+        const { dispatch, teams } = this.props;
         getData(`/api/teams?page=${page}&isDeleted=0`, {}, (c) => {
             dispatch({ type: 'SET_TEAM_LIST', list: teams.List.concat(c.data.result), Count: c.data.count });
             dispatch({ type: 'SET_TEAM_LOADING', Loading: '' });
@@ -52,12 +50,6 @@ export default class List extends React.Component {
     getNextResult() {
         const { teams } = this.props;
         this.fetchData(teams.Count.current_page + 1)
-    }
-
-    updateActiveStatus(id, active) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_TEAM_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
-        socket.emit("SAVE_OR_UPDATE_TEAM", { data: { id: id, isActive: (active == 1) ? 0 : 1 } })
     }
 
     renderArrayTd(arr) {
