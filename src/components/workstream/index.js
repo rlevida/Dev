@@ -8,7 +8,6 @@ import Link from "./link"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         workstream: store.workstream,
     }
 })

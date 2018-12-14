@@ -4,11 +4,10 @@ import _ from "lodash";
 import { MentionConvert } from "../../../../globalComponents";
 import moment from 'moment';
 
-@connect(({ task, conversation, socket }) => {
+@connect(({ task, conversation }) => {
     return {
         task,
         conversation,
-        socket: socket.container,
     }
 })
 

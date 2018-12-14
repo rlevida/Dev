@@ -17,7 +17,6 @@ let keyTimer = "";
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         workstream: store.workstream,
         loggedUser: store.loggedUser,
         users: store.users,
@@ -37,7 +36,6 @@ export default class FormComponent extends React.Component {
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.setDropDown = this.setDropDown.bind(this);
-        this.deleteData = this.deleteData.bind(this);
         this.handleCheckbox = this.handleCheckbox.bind(this);
         this.resetData = this.resetData.bind(this);
         this.getMemberList = this.getMemberList.bind(this);
@@ -150,13 +148,6 @@ export default class FormComponent extends React.Component {
             });
         }
 
-    }
-
-    deleteData(params) {
-        let { socket } = this.props;
-        if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_MEMBERS", params)
-        }
     }
 
     setDropDown(name, value) {

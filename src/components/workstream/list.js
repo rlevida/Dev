@@ -21,7 +21,6 @@ export default class List extends React.Component {
         super(props)
 
         this.deleteData = this.deleteData.bind(this);
-        this.updateActiveStatus = this.updateActiveStatus.bind(this);
         this.fetchData = this.fetchData.bind(this);
         this.getNextResult = this.getNextResult.bind(this);
     }
@@ -74,12 +73,6 @@ export default class List extends React.Component {
         const { workstream } = { ...this.props };
         const { Count } = workstream
         this.fetchData(Count.current_page + 1);
-    }
-
-    updateActiveStatus(id, active) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_WORKSTREAM_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
-        socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { id: id, active: (active == 1) ? 0 : 1 } })
     }
 
     deleteData(id) {

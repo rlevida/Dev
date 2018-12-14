@@ -21,7 +21,6 @@ let keyTimer;
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
         activity_log: store.activityLog,
         taskDependency: store.taskDependency,

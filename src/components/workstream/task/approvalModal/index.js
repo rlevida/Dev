@@ -1,11 +1,9 @@
 import React from "react"
-import Dropzone from 'react-dropzone';
 import { DropDown } from "../../../../globalComponents";
 import { showToast, setDatePicker, displayDate, putData } from '../../../../globalFunction'
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
         project: store.project,
         loggedUser: store.loggedUser,
@@ -82,7 +80,7 @@ export default class ApprovalModal extends React.Component {
     }
 
     render() {
-        let { socket, task, project, dispatch, workstream, global } = this.props
+        let { task, global } = this.props
         let approverOptions = []
         if (typeof global.SelectList.projectMemberList != "undefined") {
             global.SelectList.projectMemberList.map(e => {

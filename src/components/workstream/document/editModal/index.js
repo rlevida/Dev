@@ -5,7 +5,6 @@ import { DropDown } from "../../../../globalComponents"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
         status: store.status,
@@ -29,14 +28,14 @@ export default class EditModal extends React.Component {
     }
 
     handleChange(e) {
-        let { dispatch, document } = this.props
+        const { dispatch, document } = this.props
         let Selected = Object.assign({}, document.Selected)
         Selected[e.target.name] = e.target.value;
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: Selected })
     }
 
     handleSubmit(e) {
-        let { socket, document, dispatch } = this.props
+        const { document, dispatch } = this.props
 
         let result = true;
         $('.form-container *').validator('validate');
@@ -89,14 +88,14 @@ export default class EditModal extends React.Component {
     }
 
     selectTag(e, data) {
-        let { dispatch, document } = this.props;
+        const { dispatch, document } = this.props;
         let Selected = Object.assign({}, document.Selected);
         Selected["tags"] = JSON.stringify(e)
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: Selected })
     }
 
     render() {
-        let { document, global } = this.props;
+        const { document, global } = this.props;
         let tagOptions = [];
         if (typeof global.SelectList.workstreamList !== 'undefined' && typeof global.SelectList.taskList !== 'undefined') {
             global.SelectList.workstreamList.map((e) => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) });

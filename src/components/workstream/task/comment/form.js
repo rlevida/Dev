@@ -1,14 +1,13 @@
 import React from "react";
 import { connect } from "react-redux";
 import { MentionsInput, Mention } from 'react-mentions';
-import { postData, showToast } from "../../../../globalFunction";
+import { postData } from "../../../../globalFunction";
 import _ from "lodash";
 import defaultStyle from "../../../global/react-mention-style";
-@connect(({ task, conversation, socket, users, loggedUser, global, notes, workstream }) => {
+@connect(({ task, conversation, users, loggedUser, global, notes, workstream }) => {
     return {
         task,
         conversation,
-        socket: socket.container,
         users,
         loggedUser,
         global,
