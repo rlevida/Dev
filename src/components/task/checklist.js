@@ -8,7 +8,6 @@ import { showToast, postData } from '../../globalFunction';
     return {
         checklist: store.checklist,
         task: store.task,
-        socket: store.socket.container,
         loggedUser: store.loggedUser,
     }
 })

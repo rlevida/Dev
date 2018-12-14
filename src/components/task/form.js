@@ -14,7 +14,6 @@ import Reminder from "./reminder";
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
         taskDependency: store.taskDependency,
         status: store.status,
@@ -35,7 +34,6 @@ export default class FormComponent extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
         this.handleDate = this.handleDate.bind(this)
-        this.deleteData = this.deleteData.bind(this)
         this.handleCheckbox = this.handleCheckbox.bind(this)
         this.updateActiveStatus = this.updateActiveStatus.bind(this)
         this.generateDueDate = this.generateDueDate.bind(this)
@@ -150,13 +148,6 @@ export default class FormComponent extends React.Component {
 
     }
 
-    deleteData(params) {
-        let { socket } = this.props;
-        if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_MEMBERS", params)
-        }
-    }
-
     updateActiveStatus() {
         const { task, loggedUser, dispatch } = this.props;
         const status = "For Approval";
@@ -228,7 +219,7 @@ export default class FormComponent extends React.Component {
     }
 
     setDropDown(name, value) {
-        let { socket, dispatch, task } = this.props
+        let { dispatch, task } = this.props
         let Selected = Object.assign({}, task.Selected)
         Selected[name] = value;
 
@@ -237,10 +228,6 @@ export default class FormComponent extends React.Component {
         }
 
         dispatch({ type: "SET_TASK_SELECTED", Selected: Selected })
-
-        if (name == "workstreamId") {
-            this.props.socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "taskList", filter: { "|||and|||": [{ name: "workstreamId", value: value }, { name: "id", value: task.Selected.id, condition: " != " }] } })
-        }
 
     }
 

@@ -9,7 +9,6 @@ import { Chart } from "react-google-charts";
 
 @connect(store => {
   return {
-    socket: store.socket.container,
     task: store.task,
     loggedUser: store.loggedUser,
     workstream: store.workstream

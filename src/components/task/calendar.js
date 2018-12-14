@@ -10,7 +10,6 @@ import BigCalendar from 'react-big-calendar'
 BigCalendar.momentLocalizer(moment);
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
         loggedUser: store.loggedUser
     }

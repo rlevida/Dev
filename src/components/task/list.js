@@ -8,7 +8,6 @@ import { getData, putData, postData, deleteData, showToast } from "../../globalF
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
         loggedUser: store.loggedUser
     }
@@ -25,18 +24,11 @@ export default class List extends React.Component {
     }
 
     componentDidMount() {
-        const { socket, task, dispatch } = this.props;
-        const { Count } = task;
+        const { dispatch } = this.props;
 
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
         dispatch({ type: "SET_TASK_LIST", list: [] });
         this.fetchData(1);
-
-        socket.emit("GET_WORKSTREAM_LIST", { filter: { projectId: project } });
-        socket.emit("GET_STATUS_LIST", {});
-        socket.emit("GET_TYPE_LIST", {});
-        socket.emit("GET_USER_LIST", {});
-        socket.emit("GET_TEAM_LIST", {});
 
         getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project}&linkType=project`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })

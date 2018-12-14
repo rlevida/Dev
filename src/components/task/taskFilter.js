@@ -8,7 +8,6 @@ let keyTimer = "";
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         status: store.status,
         loggedUser: store.loggedUser,
         task: store.task,

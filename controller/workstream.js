@@ -100,7 +100,6 @@ exports.get = {
                 ]
             } : {}
         };
-        console.log(whereObj)
         const options = {
             include: associationStack,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
