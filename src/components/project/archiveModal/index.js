@@ -4,7 +4,6 @@ import { showToast, putData , deleteData } from "../../../globalFunction";
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         project: store.project,
         loggedUser: store.loggedUser
     }
@@ -39,8 +38,6 @@ export default class Component extends React.Component {
     }
 
     render() {
-        let { socket, project, dispatch } = this.props
-       
         return (
             <div class="modal fade" id="archiveModal" tabIndex="-1" role="dialog" aria-labelledby="archiveModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-lg" role="document">

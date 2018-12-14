@@ -1,7 +1,5 @@
 import React from "react"
-import ReactDOM from "react-dom"
 
-import { showToast } from '../../globalFunction'
 import Header from "../partial/header"
 import Form from "./form"
 import List from "./list"
@@ -9,9 +7,7 @@ import List from "./list"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         project: store.project,
-        loggedUser: store.loggedUser
     }
 })
 export default class Component extends React.Component {

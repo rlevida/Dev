@@ -12,7 +12,6 @@ import ArchiveModal from "./archiveModal"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         project: store.project,
         loggedUser: store.loggedUser
     }
@@ -21,13 +20,11 @@ export default class List extends React.Component {
     constructor(props) {
         super(props)
 
-        this.deleteData = this.deleteData.bind(this)
-        this.updateActiveStatus = this.updateActiveStatus.bind(this)
         this.getNextResult = this.getNextResult.bind(this)
     }
 
     componentDidMount() {
-        let { dispatch, project } = this.props;
+        let { dispatch } = this.props;
         parallel({
             projects: (parallelCallback) => {
                 getData(`/api/project?page=${1}`, {}, (c) => {
@@ -104,19 +101,6 @@ export default class List extends React.Component {
         })
     }
 
-    updateActiveStatus(id, active) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_PROJECT_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
-        socket.emit("SAVE_OR_UPDATE_PROJECT", { data: { id: id, isActive: (active == 1) ? 0 : 1 } })
-    }
-
-    deleteData(id) {
-        let { socket } = this.props;
-        if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_PROJECT", { id: id })
-        }
-    }
-
     archive(data) {
         let { dispatch } = this.props;
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: data })
@@ -149,7 +133,7 @@ export default class List extends React.Component {
                 }
                 <div class="row mb10">
                     <div class="col-lg-4 col-md-6 pd0">
-                        <ProjectFilter/>
+                        <ProjectFilter />
                     </div>
                 </div>
                 <table id="dataTable" class="table responsive-table">
