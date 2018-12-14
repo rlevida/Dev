@@ -195,7 +195,7 @@ exports.get = {
                 usersId: queryString.starredUser
             };
         }
-        
+
         async.parallel({
             count: function (parallelCallback) {
                 DocumentLink
@@ -1039,18 +1039,15 @@ exports.put = {
 
 exports.delete = {
     index: (req, cb) => {
-        defaultDelete(dbName, req, (res) => {
-            if (res.success) {
-                cb({
-                    status: true,
-                    data: res.data
+        const id = req.params.id;
+        try {
+            Document
+                .update({ isDeleted: 1 }, { where: { id: id } })
+                .then((res) => {
+                    cb({ status: true, data: res });
                 })
-            } else {
-                cb({
-                    status: false,
-                    error: res.error
-                })
-            }
-        })
+        } catch (err) {
+            cb({ status: false, error: err });
+        }
     }
 }

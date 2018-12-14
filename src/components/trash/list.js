@@ -1,13 +1,11 @@
 import React from "react";
-import parallel from 'async/parallel';
-import { getData, showToast } from '../../globalFunction';
+import { getData, showToast, deleteData } from '../../globalFunction';
 import { HeaderButtonContainer, Loading } from "../../globalComponents";
 import moment from 'moment'
 
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
         users: store.users,
@@ -23,19 +21,16 @@ export default class List extends React.Component {
             tempData: [],
             order: 'asc'
         }
-        this.deleteData = this.deleteData.bind(this)
-        this.updateActiveStatus = this.updateActiveStatus.bind(this)
         this.fetchData = this.fetchData.bind(this)
     }
 
     componentWillMount() {
-        const { dispatch, loggedUser } = this.props;
         this.fetchData(1)
     }
 
     fetchData(page) {
         const { dispatch, loggedUser, document } = this.props;
-        getData(`/api/document?isDeleted=1&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
+        getData(`/api/document?linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=archived&isDeleted=0&starredUser=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_DOCUMENT_LIST", list: document.Trash.concat(c.data.result), Count: { Count: c.data.count }, DocumentType: 'Trash', CountType: 'TrashCount' })
                 dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'TrashDocumentLoading' })
@@ -47,34 +42,13 @@ export default class List extends React.Component {
         });
     }
 
-    updateActiveStatus(id, active) {
-        const { socket, dispatch } = this.props;
-        dispatch({ type: "SET_DOCUMENT_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
-        socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data: { id: id, active: (active == 1) ? 0 : 1 } })
-    }
-
-    deleteData(id) {
-        const { socket } = this.props;
+    deleteDocument(data) {
+        const { dispatch } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_DOCUMENT", { id: id })
-        }
-    }
-
-    saveData() {
-        const { socket } = this.props
-        const { tempData } = this.state
-        socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data: tempData, loggedUser: "" })
-    }
-
-    handleIsCompleted(data, value) {
-        const { socket, document } = this.props;
-        socket.emit("SAVE_OR_UPDATE_DOCUMENT", { data: { id: data.id, isCompleted: value ? 0 : 1 } })
-    }
-
-    deleteDocument(id) {
-        const { socket } = this.props;
-        if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_TRASH_DOCUMENT", { id: id })
+            deleteData(`/api/document/${data.id}`, {}, (c) => {
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: data, Status: 'trash' })
+                showToast('success', 'Documents successfully deleted.')
+            })
         }
     }
 
@@ -124,11 +98,8 @@ export default class List extends React.Component {
                         document.Trash.map((data, index) => {
                             return <tr key={index}>
                                 <td> <input type="checkbox" /></td>
-                                <td>{
-                                    starred.List.filter(s => { return s.linkId == data.id }).length > 0
-                                        ? <span class="glyphicon glyphicon-star"></span>
-                                        : <span class="glyphicon glyphicon-star-empty"></span>
-                                }
+                                <td>
+                                    <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
                                 </td>
                                 <td>{data.origin}</td>
                                 <td>
@@ -149,7 +120,7 @@ export default class List extends React.Component {
                                     <div class="dropdown">
                                         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                                         <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
-                                            <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data.id)}>Delete</a></li>
+                                            <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data)}>Delete</a></li>
                                         </ul>
                                     </div>
                                 </td>

@@ -85,7 +85,7 @@ export default class DocumentLibrary extends React.Component {
     deleteDocument(data) {
         const { dispatch, loggedUser } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
+            putData(`/api/document/${data.id}`, { status: 'archived', usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'Library', Id: data.id })
                     dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
@@ -108,7 +108,7 @@ export default class DocumentLibrary extends React.Component {
     duplicateDocument(data) {
         const { dispatch, document, loggedUser } = this.props;
         const dataToSubmit = [{ name: data.name, origin: data.origin, project: project, uploadedBy: loggedUser.data.id, status: data.status, tags: JSON.stringify(data.tags), type: 'document' }]
-        
+
         postData(`/api/document?isDuplicate=true`, dataToSubmit, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'Library' });
@@ -167,7 +167,7 @@ export default class DocumentLibrary extends React.Component {
 
     viewDocument(data) {
         const { dispatch, loggedUser, folder } = this.props;
-        
+
         if (data.type !== 'folder') {
             dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: "DocumentViewer" });
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
