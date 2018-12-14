@@ -75,6 +75,7 @@ exports.get = {
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : {},
             ...(typeof queryString.isTemplate != "undefined" && queryString.isTemplate != "") ? { isTemplate: queryString.isTemplate } : {},
             ...(typeof queryString.typeId != "undefined" && queryString.typeId != "") ? { typeId: queryString.typeId } : {},
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
             ...((typeof queryString.userType != "undefined" && queryString.userType == "External") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
                 [Sequelize.Op.or]: [
                     {
@@ -99,6 +100,7 @@ exports.get = {
                 ]
             } : {}
         };
+        console.log(whereObj)
         const options = {
             include: associationStack,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
@@ -533,12 +535,15 @@ exports.put = {
 
 exports.delete = {
     index: (req, cb) => {
-        defaultDelete(dbName, req, (res) => {
-            if (res.success) {
-                cb({ status: true, data: res.data })
-            } else {
-                cb({ status: false, error: res.error })
-            }
-        })
+        const id = req.params.id;
+        try {
+            Workstream
+                .update({ isDeleted: 1 }, { where: { id: id } })
+                .then((res) => {
+                    cb({ status: true, data: res })
+                })
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
     }
 }

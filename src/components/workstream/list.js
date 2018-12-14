@@ -59,7 +59,7 @@ export default class List extends React.Component {
         const { typeId, workstreamStatus, workstream: workstreamFilter } = workstream.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
 
-        getData(`/api/workstream?projectId=${project}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}`, {}, (c) => {
+        getData(`/api/workstream?projectId=${project}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
                 showToast("success", "Workstream successfully retrieved.");

@@ -16,30 +16,20 @@ import { connect } from "react-redux"
 })
 export default class Component extends React.Component {
     constructor(props) {
-        super(props) 
-        this.editData = this.editData.bind(this)
-    }
-
-    editData(id) {
-        let { socket, dispatch } = this.props
-        if(id == ""){
-            dispatch({type:"SET_PROJECT_FORM_ACTIVE", FormActive: "Form" })
-        }else{
-            socket.emit("SET_PROJECT_FORM_ACTIVE",id)
-        }
+        super(props)
     }
 
     render() {
-        let { socket, project, dispatch } = this.props;
+        let { project } = this.props;
         let Component = <div>
-                {project.FormActive == "List" &&
-                    <List />
-                }
+            {(project.FormActive == "List") &&
+                <List />
+            }
 
-                {project.FormActive == "Form" &&
-                    <Form />
-                }
-            </div>
+            {(project.FormActive == "Form") &&
+                <Form />
+            }
+        </div>
         return (
             <Header component={Component} page={"Projects"} />
         )

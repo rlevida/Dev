@@ -1,11 +1,10 @@
 import React from "react";
-import { HeaderButtonContainer, Loading } from "../../../globalComponents";
-import { getData, showToast } from "../../../globalFunction";
+import { Loading } from "../../../globalComponents";
+import { getData, showToast, deleteData } from "../../../globalFunction";
 
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         workstream: store.workstream,
         loggedUser: store.loggedUser,
         global: store.global,
@@ -17,7 +16,6 @@ export default class List extends React.Component {
         super(props)
 
         this.deleteData = this.deleteData.bind(this);
-        this.updateActiveStatus = this.updateActiveStatus.bind(this);
         this.fetchData = this.fetchData.bind(this);
         this.getNextResult = this.getNextResult.bind(this);
     }
@@ -28,7 +26,7 @@ export default class List extends React.Component {
 
     fetchData() {
         const { dispatch, loggedUser, project } = this.props;
-        getData(`/api/workstream?projectId=${project.Selected.id}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}`, {}, (c) => {
+        getData(`/api/workstream?projectId=${project.Selected.id}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&isDeleted=0`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count });
             } else {
@@ -44,16 +42,13 @@ export default class List extends React.Component {
         this.fetchData(Count.current_page + 1);
     }
 
-    updateActiveStatus(id, active) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_WORKSTREAM_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
-        socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { id: id, active: (active == 1) ? 0 : 1 } })
-    }
 
     deleteData(id) {
-        let { socket } = this.props;
+        let { dispatch } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_WORKSTREAM", { id: id, projectId: project })
+            deleteData(`/api/workstream/${id}`, { isDeleted: 0 }, (c) => {
+                dispatch({ type: 'REMOVE_DELETED_WORKSTREAM_LIST', id: id })
+            })
         }
     }
 
