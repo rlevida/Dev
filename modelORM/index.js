@@ -44,6 +44,7 @@ const Teams = require('./team')(sequelize, Sequelize.DataTypes);
 const Users = require('./users')(sequelize, Sequelize.DataTypes);
 const UsersRole = require('./users_role')(sequelize, Sequelize.DataTypes);
 const UsersTeam = require('./users_team')(sequelize, Sequelize.DataTypes);
+const UserForgotPassword = require('./users_forgot_password')(sequelize, Sequelize.DataTypes);
 const Workstream = require('./workstream')(sequelize, Sequelize.DataTypes);
 const Reminder = require('./reminder')(sequelize, Sequelize.DataTypes);
 const Roles = require('./role')(sequelize, Sequelize.DataTypes);
@@ -82,6 +83,7 @@ const models = {
     Type,
     UsersRole,
     UsersTeam,
+    UserForgotPassword,
     Starred
 };
 

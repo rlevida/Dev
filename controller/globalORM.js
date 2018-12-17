@@ -135,7 +135,7 @@ exports.get = {
                                 }
                             }
                         }, (err, result) => {
-                            let memberList = [ ...result.members, ...result.teamMembers ];
+                            let memberList = [...result.members, ...result.teamMembers];
                             cb({
                                 status: true,
                                 data: memberList
