@@ -11,8 +11,15 @@ const itemTarget = {
     drop(props, monitor) {
         const draggedItem = monitor.getItem();
         if (draggedItem.status !== 'library') {
-            props.moveToLibrary(draggedItem);
-        } else if (draggedItem.folderId != null) {
+            if (draggedItem.folderId !== null) {
+                draggedItem.folderId = null;
+                props.moveToLibrary(draggedItem);
+            } else {
+                props.moveToLibrary(draggedItem);
+            }
+        }
+
+        if (draggedItem.folderId !== null) {
             draggedItem.folderId = null;
             props.moveToLibrary(draggedItem);
         }
