@@ -186,13 +186,6 @@ exports.get = {
     }
 }
 
-exports.post = {
-    index: (req, cb) => {
-        console.log(`here`)
-    }
-
-}
-
 exports.delete = {
     index: (req, cb) => {
         try {

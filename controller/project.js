@@ -186,7 +186,6 @@ exports.get = {
 
     },
     getById: (req, cb) => {
-        console.log(`here`)
         const id = req.params.id;
         try {
             Projects
