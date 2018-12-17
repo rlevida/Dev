@@ -186,19 +186,16 @@ exports.get = {
 
     },
     getById: (req, cb) => {
-        defaultGetById(dbName, req, (res) => {
-            if (res.status) {
-                cb({
-                    status: true,
-                    data: res.data
+        const id = req.params.id;
+        try {
+            Projects
+                .findOne({ where: { id: id } })
+                .then((res) => {
+                    cb({ status: true, data: res })
                 })
-            } else {
-                cb({
-                    status: false,
-                    error: res.error
-                })
-            }
-        })
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
     },
     getProjectMembers: (req, cb) => {
         const queryString = req.query;

@@ -4,8 +4,7 @@ import { displayDate, getCookie } from '../../globalFunction';
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
-        user: store.loggedUser.data,
+        loggedUser: store.loggedUser.data,
     }
 })
 export default class Component extends React.Component {
@@ -18,15 +17,27 @@ export default class Component extends React.Component {
     }
 
     handleLogout() {
-        let { socket } = this.props
-        socket.emit("LOGOUT", {})
+        let { loggedUser } = this.props
+        deleteData(`/api/login/${loggedUser.data.id}`, {}, (c) => {
+            setTimeout(function () {
+                window.location.replace('/');
+            }, 1000);
+            dispatch({
+                type: "SET_LOGGED_USER_DATA", data: {
+                    username: "",
+                    emailAddress: "",
+                    userType: ""
+                }
+            })
+            showToast("success", 'Successfully logout.');
+        })
     }
 
     render() {
-        let { user } = this.props
+        let { loggedUser } = this.props
         let userView = "";
-        if (user.username != "") {
-            userView = <div class="headAccess"> Welcome : {user.username}</div>;
+        if (loggedUser.data.username != "") {
+            userView = <div class="headAccess"> Welcome : {loggedUser.data.username}</div>;
         }
         return (
             <div>
@@ -62,11 +73,11 @@ export default class Component extends React.Component {
                                 </a>
 
                                 <div class="media-body">
-                                    <h5 class="media-heading"><p style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "120px" }} title={user.username}>{user.username}</p></h5>
+                                    <h5 class="media-heading"><p style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "120px" }} title={loggedUser.data.username}>{loggedUser.data.username}</p></h5>
                                     <ul class="list-unstyled user-info">
-                                        <li>{user.userType}</li>
+                                        <li>{loggedUser.user.userType}</li>
                                         <li>Last Updated: <br />
-                                            <small><i class="glyphicon glyphicon-calendar"></i>&nbsp;{displayDate(user.date_updated)}</small>
+                                            <small><i class="glyphicon glyphicon-calendar"></i>&nbsp;{displayDate(loggedUser.user.date_updated)}</small>
                                         </li>
                                     </ul>
                                 </div>
