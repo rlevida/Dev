@@ -33,15 +33,11 @@ export default class Socket extends React.Component {
         })
 
         socket.on("FRONT_PROJECT_ADD",(data) => {
-            if (typeof data.projectId != 'undefined') {
-                this.props.socket.emit("GET_MEMBERS_LIST", { filter: { linkId: data.projectId, linkType: 'project' } });
-            }
             dispatch({type:"SET_PROJECT_SELECTED",Selected : data})
             dispatch({type:"SET_PROJECT_FORM_ACTIVE",FormActive : "Form"})
         })
 
         socket.on("FRONT_PROJECT_EDIT",(data) => {
-            socket.emit("GET_MEMBERS_LIST", { filter: { linkId: data.id, linkType: 'project' } });
             dispatch({type:"SET_PROJECT_SELECTED",Selected : data })
             dispatch({type:"SET_PROJECT_FORM_ACTIVE",FormActive : "List"})
         })
