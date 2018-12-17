@@ -1,14 +1,11 @@
 import React from "react"
-import ReactDOM from "react-dom"
-import ToolTip from "react-tooltip"
 
-import { showToast, displayDate, setCookie, getCookie, getData } from '../../globalFunction'
+import { displayDate, setCookie, getCookie, getData } from '../../globalFunction'
 import Menu from "./menu"
 
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         user: store.loggedUser.data,
         reminder: store.reminder
     }
@@ -37,11 +34,10 @@ export default class Component extends React.Component {
     }
 
     componentWillMount() {
-        let { dispatch, socket, user } = this.props;
+        let { dispatch, user } = this.props;
         getData(`/api/reminder?usersId=${user.id}`, {}, (c) => {
             dispatch({ type: "SET_REMINDER_LIST", list: c.data })
         })
-        socket.emit("GET_SETTINGS", {});
 
         if (window.innerHeight <= 550) {
             this.setState({ showMore: "" })

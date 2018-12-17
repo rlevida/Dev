@@ -1,11 +1,9 @@
 import React from "react";
-import ReactDOM from "react-dom";
-import { showToast, getCookie } from '../../globalFunction';
+import { showToast, deleteData, getData } from '../../globalFunction';
 
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         loggedUser: store.loggedUser,
         project: store.project
     }
@@ -21,13 +19,28 @@ export default class Component extends React.Component {
     }
 
     handleLogout() {
-        let { socket } = this.props
-        socket.emit("LOGOUT", {})
+        const { loggedUser, dispatch } = this.props;
+        deleteData(`/api/login/${loggedUser.data.id}`, {}, (c) => {
+            setTimeout(function () {
+                window.location.replace('/');
+            }, 1000);
+            dispatch({
+                type: "SET_LOGGED_USER_DATA", data: {
+                    username: "",
+                    emailAddress: "",
+                    userType: ""
+                }
+            })
+            showToast("success", 'Successfully logout.');
+        })
     }
 
     componentDidMount() {
+        const { dispatch } = this.props;
         if (typeof project != "undefined" && project) {
-            this.props.socket.emit("GET_PROJECT_DETAIL", { id: project })
+            getData(`/api/project/detail/${project}`, {}, (c) => {
+                dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data })
+            })
         }
         this.setState({ miniSideMenu: this.props.miniSideMenu })
 

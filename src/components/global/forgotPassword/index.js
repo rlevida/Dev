@@ -29,20 +29,20 @@ export default class ForgotPassword extends React.Component {
 
     handleSubmit(e) {
         e.preventDefault()
-        // let result = true;
-        // $('.form-container *').validator('validate');
-        // $('.form-container .form-group').each(function () {
-        //     if ($(this).hasClass('has-error')) {
-        //         result = false;
-        //     }
-        // });
-        // if (!result) {
-        //     showToast("error", "Form did not fullfill the required value.")
-        //     return;
-        // }
-        // showToast("success", "Checking email account ...", 360000);
+        let result = true;
+        $('.form-container *').validator('validate');
+        $('.form-container .form-group').each(function () {
+            if ($(this).hasClass('has-error')) {
+                result = false;
+            }
+        });
+        if (!result) {
+            showToast("error", "Form did not fullfill the required value.")
+            return;
+        }
+        showToast("success", "Checking email account ...", 360000);
 
-        getData(`/api/forgotPassword?email=${this.state.email}&type=${this.props.type}`, {}, (c) => {
+        getData(`/auth/forgotPassword?email=${this.state.email}&type=${this.props.type}`, {}, (c) => {
             if (c.data) {
                 showToast('success', 'Forgot password successfully send.');
             } else {
