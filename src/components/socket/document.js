@@ -21,7 +21,6 @@ export default class Socket extends React.Component {
 
         socket.on("FRONT_DOCUMENT_LIST", (data) => {
             dispatch({ type: "SET_DOCUMENT_LIST", list: data })
-            socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList" })
         })
 
         socket.on("FRONT_DOCUMENT_SELECTED", (data) => {
@@ -31,7 +30,6 @@ export default class Socket extends React.Component {
 
         socket.on("FRONT_DOCUMENT_ADD", (data) => {
             dispatch({ type: "ADD_DOCUMENT_LIST", list: data })
-            socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList", filter: { tagType: "document" } })
         })
 
         socket.on("FRONT_DOCUMENT_EDIT", (data) => {
@@ -86,7 +84,6 @@ export default class Socket extends React.Component {
 
         socket.on("FRONT_SAVE_OR_UPDATE_FOLDER_TAG", (data) => {
             dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
-            socket.emit("GET_APPLICATION_SELECT_LIST", { selectName: "tagList" })
         })
     }
 
