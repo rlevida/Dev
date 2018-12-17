@@ -6,7 +6,6 @@ import { putData, showToast } from "../../../globalFunction";
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         notes: store.notes,
         workstream: store.workstream,
         loggedUser: store.loggedUser

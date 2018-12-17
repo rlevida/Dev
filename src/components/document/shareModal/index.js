@@ -6,7 +6,6 @@ import { postData, showToast } from '../../../globalFunction'
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
         global: store.global,

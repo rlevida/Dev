@@ -11,7 +11,6 @@ let keyTimer = "";
         checklist: store.checklist,
         task: store.task,
         taskDependency: store.taskDependency,
-        socket: store.socket.container,
         loggedUser: store.loggedUser,
         global: store.global,
         project: store.project,

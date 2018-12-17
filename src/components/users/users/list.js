@@ -1,13 +1,12 @@
 import React from "react";
 import _ from "lodash";
 import Tooltip from "react-tooltip";
-import { getData, putData, deleteData, showToast } from '../../../globalFunction';
+import { getData, putData, showToast } from '../../../globalFunction';
 import { OnOffSwitch, Loading } from "../../../globalComponents";
 
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         users: store.users,
         teams: store.teams,
         loggedUser: store.loggedUser

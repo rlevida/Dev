@@ -5,7 +5,6 @@ import { DropDown } from "../../../globalComponents"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
         global: store.global

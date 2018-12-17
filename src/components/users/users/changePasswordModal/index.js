@@ -1,22 +1,11 @@
 import React from "react";
-import { showToast, postData, putData, setDatePicker } from '../../../../globalFunction';
-import ChangePassword from '../../../global/changePassword'
+import { showToast, putData, setDatePicker } from '../../../../globalFunction';
 
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
-        document: store.document,
         loggedUser: store.loggedUser,
-        workstream: store.workstream,
-        settings: store.settings,
-        starred: store.starred,
-        global: store.global,
-        task: store.task,
-        project: store.project,
-        folder: store.folder,
         users: store.users
-
     }
 })
 export default class ChangePasswordModal extends React.Component {
@@ -31,7 +20,6 @@ export default class ChangePasswordModal extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch } = this.props;
         const self = this;
         $(".form-container").validator();
         setDatePicker(this.handleDate, "birthday");

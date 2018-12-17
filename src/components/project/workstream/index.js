@@ -5,7 +5,6 @@ import Form from "./form"
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         workstream: store.workstream,
         projectData: store.project,
         loggedUser: store.loggedUser,
@@ -18,7 +17,7 @@ export default class Component extends React.Component {
     }
 
     render() {
-        let { workstream, projectData, dispatch, task } = this.props
+        let { workstream } = this.props
         let Component = <div>
             {workstream.FormActive == "List" &&
                 <List />

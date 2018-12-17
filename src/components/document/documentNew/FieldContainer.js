@@ -26,7 +26,6 @@ const itemTarget = {
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         document: store.document,
         loggedUser: store.loggedUser,
         folder: store.folder
@@ -57,7 +56,7 @@ export default class FieldContainer extends React.Component {
     deleteDocument(data) {
         const { dispatch, loggedUser } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
+            putData(`/api/document/${data.id}`, { status: 'archived', usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'New', Id: data.id })
                     dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })

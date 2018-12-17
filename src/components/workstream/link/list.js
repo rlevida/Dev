@@ -4,9 +4,7 @@ import { connect } from "react-redux";
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         workstream: store.workstream,
-        projectData: store.project,
         loggedUser: store.loggedUser,
         task: store.task
     }
@@ -24,7 +22,7 @@ export default class List extends React.Component {
         }
     }
     render() {
-        let { workstream, projectData, dispatch, task } = this.props;
+        let { workstream, dispatch, task } = this.props;
 
         let completeChecker = _.filter(task.List, (o) => {
             let dueDate = moment(o.dueDate);

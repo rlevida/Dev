@@ -7,7 +7,6 @@ import { getData } from '../../../globalFunction';
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
         loggedUser: store.loggedUser
     }

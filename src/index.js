@@ -26,9 +26,6 @@ switch (page) {
     case "users":
         require('./container/users');
         break;
-    case "company":
-        require('./container/company');
-        break;
     case "project":
         switch (subpage) {
             case "home":

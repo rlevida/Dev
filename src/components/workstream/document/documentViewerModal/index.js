@@ -1,18 +1,10 @@
 import React from "react"
-import DocumentViewerComponent from "../../../document/documentViewer";
-import { showToast, putData } from '../../../../globalFunction'
-import { DropDown } from "../../../../globalComponents"
 import { connect } from "react-redux"
+
+import DocumentViewerComponent from "../../../document/documentViewer";
+
 @connect((store) => {
     return {
-        socket: store.socket.container,
-        document: store.document,
-        loggedUser: store.loggedUser,
-        status: store.status,
-        type: store.type,
-        workstream: store.workstream,
-        task: store.task,
-        global: store.global
     }
 })
 

@@ -9,7 +9,6 @@ import Task from "./task";
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         projectData: store.project,
         loggedUser: store.loggedUser
     }
@@ -17,14 +16,6 @@ import { connect } from "react-redux"
 export default class Component extends React.Component {
     constructor(props) {
         super(props)
-    }
-
-    componentWillMount(props) {
-        const { socket } = { ...this.props };
-        const url = window.location.pathname;
-        const urlsplit = url.split("/");
-        const projectId = urlsplit[urlsplit.length - 1];
-        socket.emit("GET_PROJECT_DETAIL", { id: projectId });
     }
 
     render() {

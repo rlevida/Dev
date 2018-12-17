@@ -11,7 +11,6 @@ let keyTimer = "";
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
         workstream: store.workstream,
         loggedUser: store.loggedUser,
@@ -23,14 +22,12 @@ export default class List extends React.Component {
     constructor(props) {
         super(props)
 
-        this.deleteData = this.deleteData.bind(this);
-        this.updateActiveStatus = this.updateActiveStatus.bind(this);
         this.fetchData = this.fetchData.bind(this);
         this.getNextResult = this.getNextResult.bind(this);
     }
 
     componentDidMount() {
-        const { task, dispatch, document, loggedUser, workstream } = this.props;
+        const { task, dispatch, loggedUser, workstream } = this.props;
         const { Count } = task;
 
         if (_.isEmpty(Count)) {
@@ -133,19 +130,6 @@ export default class List extends React.Component {
         const { task } = { ...this.props };
         const { Count } = task
         this.fetchData(Count.current_page + 1);
-    }
-
-    updateActiveStatus(id, active) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_TASK_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
-        socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: id, active: (active == 1) ? 0 : 1 } })
-    }
-
-    deleteData(id) {
-        let { socket } = this.props;
-        if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_TASK", { id: id })
-        }
     }
 
     selectedTask(data) {

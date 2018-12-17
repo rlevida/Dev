@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('users_forgot_password', {
+module.exports = function (sequelize, DataTypes) {
+  const UserForgotPassword = sequelize.define('users_forgot_password', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -26,6 +26,8 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
-    tableName: 'users_forgot_password'
-  });
+      tableName: 'users_forgot_password'
+    });
+
+  return UserForgotPassword;
 };

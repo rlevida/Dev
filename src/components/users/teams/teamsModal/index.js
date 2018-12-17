@@ -5,13 +5,10 @@ import { showToast, postData, putData } from '../../../../globalFunction';
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         loggedUser: store.loggedUser,
         settings: store.settings,
         global: store.global,
-        users: store.users,
         teams: store.teams
-
     }
 })
 export default class TeamsModal extends React.Component {
@@ -37,21 +34,21 @@ export default class TeamsModal extends React.Component {
     }
 
     handleDate(e) {
-        let { socket, dispatch, teams } = this.props
+        const { dispatch, teams } = this.props
         let Selected = Object.assign({}, teams.Selected)
         Selected[e.target.name] = e.target.value + " UTC";
         dispatch({ type: "SET_TEAM_SELECTED", Selected: Selected })
     }
 
     handleChange(e) {
-        let { socket, dispatch, teams } = this.props
+        const { dispatch, teams } = this.props
         let Selected = Object.assign({}, teams.Selected)
         Selected[e.target.name] = e.target.value;
         dispatch({ type: "SET_TEAM_SELECTED", Selected: Selected })
     }
 
     handleSubmit(e) {
-        let { socket, teams, loggedUser, dispatch } = this.props
+        const { teams, loggedUser, dispatch } = this.props
         let result = true;
         let myCurrentTeam = loggedUser.data.team;
         let myTeamIndex = _.findIndex(myCurrentTeam, (o) => { return o.value == teams.Selected.id });
@@ -125,14 +122,14 @@ export default class TeamsModal extends React.Component {
     }
 
     setDropDownMultiple(name, values) {
-        let { dispatch, teams } = this.props
+        const { dispatch, teams } = this.props
         let Selected = Object.assign({}, teams.Selected)
         Selected[name] = values ? values : []
         dispatch({ type: "SET_TEAM_SELECTED", Selected: Selected })
     }
 
     render() {
-        let { teams, global, users } = this.props;
+        const { teams, global } = this.props;
         let usersList = (typeof global.SelectList.usersList != "undefined") ? _(global.SelectList.usersList)
             .filter((user) => {
                 return user.userType == "Internal" && user.id != teams.Selected.teamLeaderId;

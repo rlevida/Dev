@@ -5,7 +5,6 @@ import Form from "./form"
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
         project: store.project,
         loggedUser: store.loggedUser

@@ -99,7 +99,7 @@ export default function reducer(state = {
         }
         case "UPDATE_DATA_DOCUMENT_LIST": {
             if (action.Status == "new") {
-                let tempList = state.New.map((e, i) => {
+                const tempList = state.New.map((e, i) => {
                     if (e.id == action.UpdatedData.id) {
                         return action.UpdatedData
                     }
@@ -107,7 +107,7 @@ export default function reducer(state = {
                 })
                 return { ...state, New: tempList }
             } else if (action.Status == "library") {
-                let tempList = state.Library.map((e, i) => {
+                const tempList = state.Library.map((e, i) => {
                     if (e.id == action.UpdatedData.id) {
                         return action.UpdatedData
                     }
@@ -115,7 +115,7 @@ export default function reducer(state = {
                 })
                 return { ...state, Library: tempList }
             } else {
-                let tempList = state.List.map((e, i) => {
+                const tempList = state.List.map((e, i) => {
                     if (e.id == action.UpdatedData.id) {
                         return action.UpdatedData
                     }
@@ -132,6 +132,13 @@ export default function reducer(state = {
                     }
                 })
                 return { ...state, New: tempList }
+            } else if (action.Status == "trash") {
+                const tempList = state.Trash.filter((e, i) => {
+                    if (e.id != action.UpdatedData.id) {
+                        return action.UpdatedData
+                    }
+                })
+                return { ...state, Trash: tempList }
             } else {
                 let tempList = state.Library.filter((e, i) => {
                     if (e.id != action.UpdatedData.id) {

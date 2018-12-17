@@ -3,7 +3,6 @@ import { connect } from "react-redux";
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
     }
 })

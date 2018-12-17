@@ -12,7 +12,6 @@ let keyTimer = "";
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         project: store.project,
         loggedUser: store.loggedUser,
         status: store.status,
@@ -86,7 +85,7 @@ export default class FormComponent extends React.Component {
     }
 
     handleCheckbox(name, value) {
-        let { socket, dispatch, project } = this.props
+        let { dispatch, project } = this.props
         let Selected = Object.assign({}, project.Selected)
         Selected[name] = value;
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: Selected })

@@ -6,7 +6,6 @@ import { connect } from "react-redux";
 import axios from "axios";
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
         project: store.project,
         loggedUser: store.loggedUser,

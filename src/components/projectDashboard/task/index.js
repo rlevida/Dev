@@ -8,7 +8,6 @@ import { getData, showToast } from "../../../globalFunction";
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
         loggedUser: store.loggedUser
     }

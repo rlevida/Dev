@@ -21,7 +21,6 @@ const itemTarget = {
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         document: store.document,
     }
 })

@@ -1,17 +1,10 @@
 import React from "react"
-import Dropzone from 'react-dropzone';
-import { DropDown } from "../../../../globalComponents";
 import { showToast, putData } from '../../../../globalFunction'
 import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
-        project: store.project,
         loggedUser: store.loggedUser,
-        workstream: store.workstream,
-        checklist: store.checklist,
-        global: store.global
     }
 })
 export default class ModalComponent extends React.Component {

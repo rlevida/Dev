@@ -8,7 +8,6 @@ import _ from "lodash";
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         users: store.users,
         members: store.members,
         teams: store.teams,
@@ -22,14 +21,14 @@ export default class MembersForm extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            showAllUsers : false
+            showAllUsers: false
         }
         this.handleSubmit = this.handleSubmit.bind(this)
         this.setDropDown = this.setDropDown.bind(this)
     }
 
     handleSubmit(e) {
-        let { socket, members, type, dispatch, project, users , teams , global } = this.props
+        let { members, dispatch, project } = this.props
         let result = true;
 
         $('.member-form-container *').validator('validate');
@@ -38,7 +37,7 @@ export default class MembersForm extends React.Component {
                 result = false;
             }
         });
-        
+
         if (!result) {
             showToast("error", "Form did not fullfill the required value.")
             return;
@@ -59,14 +58,14 @@ export default class MembersForm extends React.Component {
         }
 
         postData(`/api/project/projectMember`, { data: dataToSubmit }, (c) => {
-           if(members.Selected.type == "users"){
-                dispatch({type:"ADD_MEMBER_TO_LIST", list : c.data })
-           }else{
-                dispatch({type:"ADD_TEAM_TO_LIST", list : c.data })
-           }
-           showToast("success","Successfully Added.")
-           dispatch({type:"SET_MEMBERS_SELECTED", Selected: {}})
-           this.setState({ showAllUsers: false })
+            if (members.Selected.type == "users") {
+                dispatch({ type: "ADD_MEMBER_TO_LIST", list: c.data })
+            } else {
+                dispatch({ type: "ADD_TEAM_TO_LIST", list: c.data })
+            }
+            showToast("success", "Successfully Added.")
+            dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} })
+            this.setState({ showAllUsers: false })
         })
     }
 
@@ -96,44 +95,44 @@ export default class MembersForm extends React.Component {
             [name]: JSON.stringify(values ? values : [])
         });
     }
-    
+
     render() {
-        let { users, members, teams, project, loggedUser, global } = this.props;
+        let { users, members, teams, loggedUser, global } = this.props;
         let { showAllUsers } = this.state
         let memberList = []
 
-        if(typeof members.Selected.type != "undefined"){
-            if(members.Selected.type == 'users'){
-                if(!showAllUsers){
+        if (typeof members.Selected.type != "undefined") {
+            if (members.Selected.type == 'users') {
+                if (!showAllUsers) {
                     global.SelectList.teamList.map((e) => {
-                        if(e.teamLeaderId == loggedUser.data.id && e.users_team.length > 0){
+                        if (e.teamLeaderId == loggedUser.data.id && e.users_team.length > 0) {
                             e.users_team.map((t) => {
-                                let index = _.findIndex(members.List,{ userTypeLinkId : t.user.id })
-                                if(index < 0){
-                                    memberList.push({ id: t.user.id , name:`${t.user.firstName} ${t.user.lastName}`})
+                                let index = _.findIndex(members.List, { userTypeLinkId: t.user.id })
+                                if (index < 0) {
+                                    memberList.push({ id: t.user.id, name: `${t.user.firstName} ${t.user.lastName}` })
                                 }
                             })
                         }
                     })
-                }else{
+                } else {
                     users.List.map((e) => {
-                        let index = _.findIndex(members.List,{ userTypeLinkId : e.id })
-                        if(index < 0){
-                            memberList.push({ id: e.id , name: `${e.firstName} ${e.lastName}`})
+                        let index = _.findIndex(members.List, { userTypeLinkId: e.id })
+                        if (index < 0) {
+                            memberList.push({ id: e.id, name: `${e.firstName} ${e.lastName}` })
                         }
                     })
                 }
-            }else if(members.Selected.type == 'team'){
+            } else if (members.Selected.type == 'team') {
                 global.SelectList.teamList.map((e) => {
-                    let index = _.findIndex(teams.List,{ userTypeLinkId : e.id })
-                    if(index < 0){
+                    let index = _.findIndex(teams.List, { userTypeLinkId: e.id })
+                    if (index < 0) {
                         memberList.push({ id: e.id, name: e.team })
                     }
                 })
             }
         }
 
-        
+
         return (
             <div>
                 <HeaderButtonContainer withMargin={true}>
@@ -161,7 +160,7 @@ export default class MembersForm extends React.Component {
                                     <div class="help-block with-errors"></div>
                                 </div>
                             </div>
-                            { members.Selected.type == 'users' && 
+                            {members.Selected.type == 'users' &&
                                 <div class="form-group">
                                     <label class="col-md-3 col-xs-12 control-label">Show all users</label>
                                     <div class="col-md-7 col-xs-12">
@@ -169,7 +168,7 @@ export default class MembersForm extends React.Component {
                                             style={{ width: "15px", marginTop: "10px" }}
                                             checked={showAllUsers}
                                             onChange={() => { }}
-                                            onClick={(f) => this.setState({ showAllUsers : !showAllUsers })}
+                                            onClick={(f) => this.setState({ showAllUsers: !showAllUsers })}
                                         />
                                     </div>
                                 </div>

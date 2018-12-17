@@ -21,7 +21,6 @@ export default class List extends React.Component {
         super(props)
 
         this.deleteData = this.deleteData.bind(this);
-        this.updateActiveStatus = this.updateActiveStatus.bind(this);
         this.fetchData = this.fetchData.bind(this);
         this.getNextResult = this.getNextResult.bind(this);
     }
@@ -29,7 +28,7 @@ export default class List extends React.Component {
     componentDidMount() {
         const { workstream, dispatch } = this.props;
         const { Count } = workstream;
-
+        
         if (workstreamId != "") {
             const dataToGet = { params: { id: workstreamId } }
             getData(`/api/workstream/getWorkstreamDetail`, dataToGet, (c) => {
@@ -59,7 +58,7 @@ export default class List extends React.Component {
         const { typeId, workstreamStatus, workstream: workstreamFilter } = workstream.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
 
-        getData(`/api/workstream?projectId=${project}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}`, {}, (c) => {
+        getData(`/api/workstream?projectId=${project}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
                 showToast("success", "Workstream successfully retrieved.");
@@ -76,16 +75,12 @@ export default class List extends React.Component {
         this.fetchData(Count.current_page + 1);
     }
 
-    updateActiveStatus(id, active) {
-        let { socket, dispatch } = this.props;
-        dispatch({ type: "SET_WORKSTREAM_STATUS", record: { id: id, status: (active == 1) ? 0 : 1 } })
-        socket.emit("SAVE_OR_UPDATE_WORKSTREAM", { data: { id: id, active: (active == 1) ? 0 : 1 } })
-    }
-
     deleteData(id) {
-        let { socket } = this.props;
+        let { dispatch } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_WORKSTREAM", { id: id, projectId: project })
+            deleteData(`/api/workstream/${id}`, { isDeleted: 0 }, (c) => {
+                dispatch({ type: 'REMOVE_DELETED_WORKSTREAM_LIST', id: id })
+            })
         }
     }
 

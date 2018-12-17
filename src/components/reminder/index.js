@@ -1,14 +1,10 @@
 import React from "react"
+import { connect } from "react-redux"
 import Header from "../partial/header"
 import List from "./list"
-import Form from "./form"
 
-import { connect } from "react-redux"
 @connect((store) => {
     return {
-        socket: store.socket.container,
-        document: store.document,
-        loggedUser: store.loggedUser,
         reminder: store.reminder
     }
 })
@@ -22,9 +18,6 @@ export default class Component extends React.Component {
         let Component = <div>
                 {reminder.FormActive == "List" &&
                     <List />
-                }
-                {reminder.FormActive == "Form" &&
-                    <Form />
                 }
             </div>
         return (

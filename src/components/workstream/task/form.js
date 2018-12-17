@@ -21,7 +21,6 @@ let keyTimer;
 
 @connect((store) => {
     return {
-        socket: store.socket.container,
         task: store.task,
         activity_log: store.activityLog,
         taskDependency: store.taskDependency,
@@ -106,7 +105,7 @@ export default class FormComponent extends React.Component {
     }
 
     markTaskAsCompleted() {
-        let { socket, task, checklist, loggedUser, dispatch } = this.props;
+        let { task, checklist, loggedUser, dispatch } = this.props;
         if (task.Selected.approvalRequired && loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3) {
             const checklistToComplete = checklist.List
                 .filter((e, index) => {
@@ -123,31 +122,25 @@ export default class FormComponent extends React.Component {
                     return e.isMandatory && !e.isCompleted;
                 })
             if (checklistToComplete.length == 0) {
-                let status = "Completed"
-                if (task.Selected.task_id && task.Selected.task_status != "Completed") {
-                    status = "For Approval"
-                    socket.emit("SAVE_OR_UPDATE_TASK", { data: { id: task.Selected.id, status: status } })
-                } else {
-                    putData(`/api/task/status/${task.Selected.id}`,
-                        {
-                            userId: loggedUser.data.id,
-                            username: loggedUser.data.username,
-                            periodTask: task.Selected.periodTask,
-                            periodic: task.Selected.periodic,
-                            id: task.Selected.id,
-                            status: "Completed"
-                        }, (c) => {
-                            if (c.status == 200) {
-                                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
-                                dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task[0] });
-                                dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
-                                showToast("success", "Task successfully updated.");
-                            } else {
-                                showToast("error", "Something went wrong please try again later.");
-                            }
-                            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
-                        });
-                }
+                putData(`/api/task/status/${task.Selected.id}`,
+                    {
+                        userId: loggedUser.data.id,
+                        username: loggedUser.data.username,
+                        periodTask: task.Selected.periodTask,
+                        periodic: task.Selected.periodic,
+                        id: task.Selected.id,
+                        status: (task.Selected.task_id && task.Selected.task_status != "Completed") ? "For Approval" : "Completed"
+                    }, (c) => {
+                        if (c.status == 200) {
+                            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
+                            dispatch({ type: "SET_TASK_SELECTED", Selected: c.data.task[0] });
+                            dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
+                            showToast("success", "Task successfully updated.");
+                        } else {
+                            showToast("error", "Something went wrong please try again later.");
+                        }
+                        dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+                    });
             } else {
                 showToast("error", "There are items to be completed in the checklist before completing the task.")
             }
@@ -372,7 +365,7 @@ export default class FormComponent extends React.Component {
     }
 
     viewDocument(data) {
-        let { socket, dispatch } = this.props;
+        let { dispatch } = this.props;
         getData(`/api/conversation/getConversationList?linkType=document&linkId=${data.id}`, {}, (c) => {
             dispatch({ type: 'SET_COMMENT_LIST', list: c.data })
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
@@ -462,7 +455,7 @@ export default class FormComponent extends React.Component {
                                     }
 
                                     <div class="form-group mt10 mb10 text-center">
-                                        {(isVisible && task.Selected.status != "For Approval") &&
+                                        {(isVisible && task.Selected.status != "For Approval" && task.Selected.status !== "Completed") &&
                                             <a href="javascript:void(0);" class="btn btn-primary" style={{ marginRight: 5 }} title="Mark Task as Completed" onClick={() => this.markTaskAsCompleted()}>Complete Task</a>
                                         }
                                         {(task.Selected.status == "For Approval" && task.Selected.assignedTo !== loggedUser.data.id) &&

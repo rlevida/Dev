@@ -49,13 +49,8 @@ export default function reducer(state = {
             return { ...state, List: copyOfList, FormActive: "List", Selected: {} }
         }
         case "REMOVE_DELETED_WORKSTREAM_LIST": {
-            let tempList = [];
-            action.List.map((e, i) => {
-                if (action.id != e.id) {
-                    tempList.push(e)
-                }
-            })
-            return { ...state, List: tempList }
+            const updatedList = _.filter(state.List, (e) => { return e.id != action.id });
+            return { ...state, List: updatedList }
         }
         case "SET_WORKSTREAM_STATUS": {
             let List = state.List.map((e, i) => {
