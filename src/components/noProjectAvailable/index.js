@@ -1,7 +1,6 @@
-import React from "react"
-import { connect } from "react-redux"
-import Menu from "../partial/menu"
-import { showToast, displayDate, setCookie, getCookie, NationalityList, CountryList } from '../../globalFunction'
+import React from "react";
+import { connect } from "react-redux";
+import { displayDate, getCookie } from '../../globalFunction';
 
 @connect((store) => {
     return {
@@ -18,19 +17,13 @@ export default class Component extends React.Component {
         this.handleLogout = this.handleLogout.bind(this)
     }
 
-    componentDidMount(){
-        let { dispatch, socket, user } = this.props;
-        socket.emit("LOGGED_USER", {});
-        socket.emit("GET_SETTINGS", {});
-    }
-
     handleLogout() {
         let { socket } = this.props
-        socket.emit("LOGOUT",{})
+        socket.emit("LOGOUT", {})
     }
-    
+
     render() {
-        let { user, reminder, dispatch } = this.props
+        let { user } = this.props
         let userView = "";
         if (user.username != "") {
             userView = <div class="headAccess"> Welcome : {user.username}</div>;

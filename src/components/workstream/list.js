@@ -76,9 +76,11 @@ export default class List extends React.Component {
     }
 
     deleteData(id) {
-        let { socket } = this.props;
+        let { dispatch } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            socket.emit("DELETE_WORKSTREAM", { id: id, projectId: project })
+            deleteData(`/api/workstream/${id}`, { isDeleted: 0 }, (c) => {
+                dispatch({ type: 'REMOVE_DELETED_WORKSTREAM_LIST', id: id })
+            })
         }
     }
 
