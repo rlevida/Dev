@@ -1,7 +1,5 @@
 import React from "react"
-import ReactDOM from "react-dom"
-import axios from "axios"
-import { showToast, getData } from '../../globalFunction'
+import { showToast, getData, postData } from '../../globalFunction'
 import ForgotPassword from "../global/forgotPassword"
 import Captcha from 'react-captcha';
 
@@ -58,7 +56,7 @@ export default class Component extends React.Component {
         localStorage.setItem('username', Login.username)
         localStorage.setItem('rememberMe', Login.rememberMe)
 
-        getData(`/auth/login?username=${Login.username}&password=${Login.password}&ipAddress=${this.state.yourIp}`, {}, (c) => {
+        postData(`/auth/login`, { username: Login.username, password: Login.password, ipAddress: this.state.yourIp }, (c) => {
             if (c.data.status) {
                 showToast('success', c.data.message)
                 if (c.data.type == "Internal") {

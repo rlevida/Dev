@@ -1,16 +1,20 @@
-var express = require('express');
-var jwt = require('jsonwebtoken');
-var router = express();
+const express = require('express');
+const router = express();
+const models = require('../modelORM');
+const {
+    Session
+} = models;
 
 router.use(function (req, res, next) {
-    let session = global.initModel("session");
-    session.getData("session", { session: req.cookies["app.sid"] }, {}, (ret) => {
-        if (ret.status && ret.data.length > 0) {
-            res.redirect('/');
-        } else {
-            next();
-        }
-    })
+    Session
+        .findOne({ where: { session: req.cookies["app.sid"] } })
+        .then((ret) => {
+            if (ret) {
+                res.redirect('/');
+            } else {
+                next();
+            }
+        })
 });
 
 router.get('/', function (req, res, next) {
@@ -52,10 +56,10 @@ router.put('/forgotPassword', (req, res, next) => {
     }
 })
 
-router.get('/login', (req, res, next) => {
+router.post('/login', (req, res, next) => {
     try {
         let controller = global.initController('login');
-        controller.get.index(req, (c) => {
+        controller.post.index(req, (c) => {
             res.send(c)
         })
     } catch (err) {

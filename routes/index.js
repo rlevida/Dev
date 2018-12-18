@@ -1,31 +1,41 @@
-var express = require('express');
-var sess = require('express-session');
-var jwt = require('jsonwebtoken');
-var router = express();
+const express = require('express');
+const sess = require('express-session');
+const jwt = require('jsonwebtoken');
+const router = express();
+const models = require('../modelORM');
+const {
+    Session,
+    Members
+} = models;
 
 router.use(function (req, res, next) {
-    let session = global.initModel("session");
-    session.getData("session",{session:req.cookies["app.sid"]},{},(ret)=>{
-        if(ret.status && ret.data.length > 0){
-            session.putData("session",{dateUpdated:new Date()},{id:ret.data[0].id},()=>{
-                req.userDetails = ret.data[0];
-                next();
-            })
-        } else {
-            res.redirect('/auth');
-        }
-    })
+    Session
+        .findOne({ where: { session: req.cookies["app.sid"] } })
+        .then((ret) => {
+            if (ret) {
+                Session
+                    .update({ dateUpdated: new Date() }, { where: { id: ret.toJSON().id } })
+                    .then((updateRes) => {
+                        req.userDetails = ret.toJSON();
+                        req.userDetails.userType = JSON.parse(ret.toJSON().data).userType;
+                        next();
+                    })
+            } else {
+                res.redirect('/auth');
+            }
+        })
 });
 
-router.use(function (req,res,next){
-    if(req.userDetails.users_userType == "External"){
-        let members = global.initModel("members")
-            members.getData("members", { userTypeLinkId : req.userDetails.usersId , linkType : "project" }, {}, (c) => {
-                if (c.status) {
-                    if(c.data.length){
-                        req.memberDetails = c.data
+router.use(function (req, res, next) {
+    if (req.userDetails.userType === "External") {
+        try {
+            Members
+                .findAll({ where: { userTypeLinkId: req.userDetails.usersId, linkType: "project" } })
+                .then((ret) => {
+                    if (ret.length > 0) {
+                        req.memberDetails = ret
                         next()
-                    }else{
+                    } else {
                         res.render('index', {
                             title: global.site_name,
                             page: 'noProjectAvailable',
@@ -33,27 +43,27 @@ router.use(function (req,res,next){
                             user: JSON.stringify(req.userDetails.data)
                         });
                     }
-                } else {
-                    if (c.error) { socket.emit("RETURN_ERROR_MESSAGE", { message: c.error.sqlMessage }) }
-                }
-            })
-    }else{
+                })
+        } catch (err) {
+            console.error(err)
+        }
+    } else {
         next()
     }
 })
 
 router.get('/', function (req, res, next) {
-    if(req.userDetails.users_userType != "External"){
+    if (req.userDetails.userType != "External") {
         res.render('index', {
             title: global.site_name,
             page: 'index',
             body: "./template/index",
             user: JSON.stringify(req.userDetails.data)
         });
-    }else{
-        if(req.memberDetails.length > 1){
+    } else {
+        if (req.memberDetails.length > 1) {
             res.redirect(`/project/`)
-        }else{
+        } else {
             res.redirect(`/project/${req.memberDetails[0].linkId}`)
         }
     }
@@ -62,16 +72,16 @@ router.get('/', function (req, res, next) {
 
 router.get('/users', function (req, res, next) {
     let func = global.initFunc();
-    
-    func.getUserRoles({ id:req.userDetails.usersId }, resp =>{
-        if(resp.userRole != "4" && resp.userRole != "5" && resp.userRole != "6" ){
+
+    func.getUserRoles({ id: req.userDetails.usersId }, resp => {
+        if (resp.userRole != "4" && resp.userRole != "5" && resp.userRole != "6") {
             res.render('index', {
                 title: global.site_name + " - Users",
                 body: './template/index',
                 page: 'users',
                 user: JSON.stringify(req.userDetails.data)
             });
-        }else{
+        } else {
             res.render('index', {
                 title: global.site_name + " - error",
                 body: './template/index',
@@ -117,7 +127,7 @@ router.get('/reports', function (req, res, next) {
     });
 });
 
-router.get('/profile',function (req,res,next){
+router.get('/profile', function (req, res, next) {
     res.render('index', {
         title: global.site_name + " - Profile",
         body: './template/index',
@@ -126,8 +136,8 @@ router.get('/profile',function (req,res,next){
     });
 })
 
-router.get('/reminder',function(req,res,next){
-    res.render('index',{
+router.get('/reminder', function (req, res, next) {
+    res.render('index', {
         title: global.site_name + ' - Reminder',
         body: './template/index',
         page: 'reminder',
@@ -135,10 +145,10 @@ router.get('/reminder',function(req,res,next){
     })
 })
 
-router.get('/task/:id',function(req,res,next){
+router.get('/task/:id', function (req, res, next) {
     let func = global.initFunc();
-    func.getTaskProjectId({id : req.params.id},(c)=>{
-        res.render('index',{
+    func.getTaskProjectId({ id: req.params.id }, (c) => {
+        res.render('index', {
             title: global.site_name + '- Task',
             body: './template/index',
             page: 'selectedTask',
@@ -150,10 +160,10 @@ router.get('/task/:id',function(req,res,next){
     })
 })
 
-router.get('/project/task/:id',function(req,res,next){
+router.get('/project/task/:id', function (req, res, next) {
     let func = global.initFunc();
-    func.getTaskProjectId({id : req.params.id},(c)=>{
-        res.render('index',{
+    func.getTaskProjectId({ id: req.params.id }, (c) => {
+        res.render('index', {
             title: global.site_name + '- Task',
             body: './template/index',
             page: 'selectedTask',
