@@ -6,20 +6,24 @@ const {
 } = models;
 
 router.use(function (req, res, next) {
-    Session
-        .findOne({ where: { session: req.cookies["app.sid"] } })
-        .then((ret) => {
-            if (ret) {
-                Session
-                    .update({ dateUpdated: new Date() }, { where: { id: ret.toJSON().id } })
-                    .then((updateRes) => {
-                        req.userDetails = ret.toJSON();
-                        next();
-                    })
-            } else {
-                res.redirect('/auth');
-            }
-        })
+    try {
+        Session
+            .findOne({ where: { session: req.cookies["app.sid"] } })
+            .then((ret) => {
+                if (ret) {
+                    Session
+                        .update({ dateUpdated: new Date() }, { where: { id: ret.toJSON().id } })
+                        .then((updateRes) => {
+                            req.userDetails = ret.toJSON();
+                            next();
+                        })
+                } else {
+                    res.redirect('/auth');
+                }
+            })
+    } catch (err) {
+        console.error(err)
+    }
 });
 
 router.get('/', function (req, res, next) {

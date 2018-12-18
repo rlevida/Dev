@@ -24,23 +24,27 @@ router.use(function (req, res, next) {
                 : (req.cookies["app.sid"])
                     ? req.cookies["app.sid"]
                     : "";
-    Session
-        .findOne({ where: { session: token } })
-        .then((ret) => {
-            if (ret) {
-                req.query.auth = {};
-                req.query.auth.yourToken = token;
-                req.query.auth.userId = ret.toJSON().userId;
-                req.query.auth.LastLoggedIn = ret.toJSON().date_updated;
-                Session
-                    .update({ dateUpdated: new Date() }, { where: { id: ret.toJSON().id } })
-                    .then((updateRes) => {
-                        next()
-                    })
-            } else {
-                res.status(401).send({ error: "Unauthorized", error_description: "Unauthorized Access" })
-            }
-        })
+    try {
+        Session
+            .findOne({ where: { session: token } })
+            .then((ret) => {
+                if (ret) {
+                    req.query.auth = {};
+                    req.query.auth.yourToken = token;
+                    req.query.auth.userId = ret.toJSON().userId;
+                    req.query.auth.LastLoggedIn = ret.toJSON().date_updated;
+                    Session
+                        .update({ dateUpdated: new Date() }, { where: { id: ret.toJSON().id } })
+                        .then((updateRes) => {
+                            next()
+                        })
+                } else {
+                    res.status(401).send({ error: "Unauthorized", error_description: "Unauthorized Access" })
+                }
+            })
+    } catch (err) {
+        console.error(err)
+    }
 });
 
 /**
