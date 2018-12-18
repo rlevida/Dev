@@ -1,20 +1,25 @@
 var express = require('express');
-var sess = require('express-session');
-var jwt = require('jsonwebtoken');
 var router = express();
+const models = require('../modelORM');
+const {
+    Session
+} = models;
 
 router.use(function (req, res, next) {
-    let session = global.initModel("session");
-    session.getData("session", { session: req.cookies["app.sid"] }, {}, (ret) => {
-        if (ret.status && ret.data.length > 0) {
-            session.putData("session", { dateUpdated: new Date() }, { id: ret.data[0].id }, () => {
-                req.userDetails = ret.data[0];
-                next();
-            })
-        } else {
-            res.redirect('/auth');
-        }
-    })
+    Session
+        .findOne({ where: { session: req.cookies["app.sid"] } })
+        .then((ret) => {
+            if (ret) {
+                Session
+                    .update({ dateUpdated: new Date() }, { where: { id: ret.toJSON().id } })
+                    .then((updateRes) => {
+                        req.userDetails = ret.toJSON();
+                        next();
+                    })
+            } else {
+                res.redirect('/auth');
+            }
+        })
 });
 
 router.get('/', function (req, res, next) {
