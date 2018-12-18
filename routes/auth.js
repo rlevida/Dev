@@ -6,15 +6,19 @@ const {
 } = models;
 
 router.use(function (req, res, next) {
-    Session
-        .findOne({ where: { session: req.cookies["app.sid"] } })
-        .then((ret) => {
-            if (ret) {
-                res.redirect('/');
-            } else {
-                next();
-            }
-        })
+    try {
+        Session
+            .findOne({ where: { session: req.cookies["app.sid"] } })
+            .then((ret) => {
+                if (ret) {
+                    res.redirect('/');
+                } else {
+                    next();
+                }
+            })
+    } catch (err) {
+        console.error(err)
+    }
 });
 
 router.get('/', function (req, res, next) {
