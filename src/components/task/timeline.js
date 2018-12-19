@@ -24,14 +24,10 @@ export default class List extends React.Component {
   }
 
   componentDidMount() {
-    const { dispatch } = this.props;
-
-    dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
-    dispatch({ type: "SET_TASK_LIST", list: [] });
-    this.fetchData(1);
+    this.fetchData(1, false);
   }
 
-  fetchData(page) {
+  fetchData(page, nextResult) {
     const { dispatch, task, loggedUser, workstream } = this.props;
 
     let requestUrl = `/api/task?projectId=${project}&page=${page}&starredUser=${loggedUser.data.id}&listType=timeline`;
@@ -58,15 +54,14 @@ export default class List extends React.Component {
     }
 
     getData(requestUrl, {}, c => {
-      dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
-      dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+      dispatch({ type: "SET_TASK_LIST", list: nextResult ? task.List.concat(c.data.result) : c.data.result, Count: c.data.count });
     });
   }
 
   getNextResult() {
     const { task } = { ...this.props };
     const { Count } = task;
-    this.fetchData(Count.current_page + 1);
+    this.fetchData(Count.current_page + 1, true);
   }
 
   updateStatus({ id, periodTask, periodic }) {

@@ -11,7 +11,8 @@ BigCalendar.momentLocalizer(moment);
 @connect((store) => {
     return {
         task: store.task,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        workstream: store.workstream
     }
 })
 export default class List extends React.Component {
@@ -34,7 +35,7 @@ export default class List extends React.Component {
     }
 
     fetchData() {
-        const { loggedUser, dispatch, task } = this.props;
+        const { loggedUser, dispatch, task, workstream } = this.props;
         const { taskStatus, dueDate, taskAssigned } = task.Filter;
         const selectedMonth = moment().startOf('month');
         const fromDate = moment(selectedMonth).subtract(1, 'week').format("YYYY-MM-DD");
@@ -55,6 +56,10 @@ export default class List extends React.Component {
             });
         } else if (loggedUser.data.user_role[0].roleId >= 3) {
             requestUrl += `&userId=${loggedUser.data.id}`
+        }
+
+        if (workstream.SelectedLink == "calendar") {
+            requestUrl += `&workstreamId=${workstream.Selected.id}`
         }
 
         getData(requestUrl, {}, (c) => {
