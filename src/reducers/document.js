@@ -24,7 +24,9 @@ export default function reducer(state = {
     Status: {
         new: 0,
         library: 0
-    }
+    },
+    ActiveTab: 'document'
+
 }, action) {
     switch (action.type) {
         case "ADD_DOCUMENT_LIST": {
@@ -93,9 +95,15 @@ export default function reducer(state = {
             const updatedFilter = _.merge({}, _.omit(Filter, action.name), action.filter);
             return { ...state, Filter: updatedFilter }
         }
+        case 'RESET_DOCUMENT_FILTER': {
+            return { ...state, Filter: {} }
+        }
         case "SET_DOCUMENT_STATUS_COUNT": {
             const { Status } = { ...state };
             return { ...state, Status: { ...Status, [action.status]: action.count } }
+        }
+        case "SET_DOCUMENT_ACTIVE_TAB": {
+            return { ...state, ActiveTab: action.active }
         }
         case "UPDATE_DATA_DOCUMENT_LIST": {
             if (action.Status == "new") {

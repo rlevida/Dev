@@ -23,10 +23,6 @@ const {
     Notes
 } = models;
 
-var {
-    defaultDelete
-} = require("./")
-
 const associationFindAllStack = [
     {
         model: Tag,
@@ -172,9 +168,11 @@ exports.get = {
                     { emailAddress: { [Op.like]: `%${queryString.uploadedBy}%` } },
                 ]
             };
+            console.log(`true`)
             _.find(associationFindAllStack, { as: 'user' }).required = true;
         } else {
-            _.find(associationFindAllStack, { as: 'user' }).required = false;
+            delete _.find(associationFindAllStack, { as: 'user' }).required;
+            delete _.find(associationFindAllStack, { as: 'user' }).where;
         }
 
         if (typeof queryString.members !== 'undefined' && queryString.members !== '') {

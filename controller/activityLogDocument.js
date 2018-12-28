@@ -5,6 +5,13 @@ const Op = Sequelize.Op;
 const models = require('../modelORM');
 const { ActivityLogsDocument, Users } = models;
 
+const associationStack = [
+    {
+        model: Users,
+        as: 'user'
+    }
+]
+
 exports.post = (req, cb) => {
     try {
         ActivityLogs.create(req.body).then((response) => {
@@ -39,8 +46,27 @@ exports.get = {
                         }
                     }
                 ]
+            } : {},
+            ...(typeof queryString.search !== 'undefined' && queryString.search !== '') ? {
+                [Op.or]: [
+                    { new: { [Op.like]: `%${queryString.search}%` } },
+                    { old: { [Op.like]: `%${queryString.search}%` } },
+                ]
             } : {}
         }
+
+        if (typeof queryString.uploadedBy !== 'undefined' && queryString.uploadedBy !== '') {
+            _.find(associationStack, { as: 'user' }).where = {
+                [Op.or]: [
+                    { emailAddress: { [Op.like]: `%${queryString.uploadedBy}%` } }
+                ]
+            };
+            _.find(associationStack, { as: 'user' }).required = true;
+        } else {
+            delete _.find(associationStack, { as: 'user' }).required;
+            delete _.find(associationStack, { as: 'user' }).where;
+        }
+
 
         const options = {
             ...(typeof queryString !== 'undefined' && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
@@ -54,14 +80,10 @@ exports.get = {
                         .findAll({
                             ...options,
                             where: whereObj,
-                            include: [{
-                                model: Users,
-                                as: 'user'
-                            }]
+                            include: associationStack
                         })
                         .then((res) => {
                             parallelCallback(null, res)
-                            // cb({ status: true, data: res })
                         })
                 } catch (err) {
                     cb({ status: false, error: err })
