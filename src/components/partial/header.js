@@ -39,6 +39,10 @@ export default class Component extends React.Component {
             dispatch({ type: "SET_REMINDER_LIST", list: c.data })
         })
 
+        getData(`/api/globalORM/settings`, {}, (c) => {
+            dispatch({ type: 'UPDATE_SETTINGS', value: c.data.value, name: 'imageUrl' })
+        })
+
         if (window.innerHeight <= 550) {
             this.setState({ showMore: "" })
             $("body").css("overflow-y", "auto").css("min-height", "550px")

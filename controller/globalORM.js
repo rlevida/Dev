@@ -256,5 +256,11 @@ exports.get = {
                     }
             }
         }
+    },
+    settings: (req, cb) => {
+        cb({
+            status: true,
+            data: { name: "imageUrl", value: global.AWSLink + global.environment }
+        })
     }
 }
