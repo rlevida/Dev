@@ -65,7 +65,7 @@ export default class DocumentLibrary extends React.Component {
                             (document.Library.length == 0 && document.LibraryDocumentLoading != "RETRIEVING") && <p>No Records Found</p>
                         }
                         {
-                            (document.Library.length > 0 && document.LibraryDocumentLoading != "RETRIEVING") && <p>move to library</p>
+                            (document.Library.length > 0 && document.LibraryDocumentLoading != "RETRIEVING") && <p>Drop files here</p>
                         }
                     </td>
                 </tr>
