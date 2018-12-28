@@ -26,23 +26,30 @@ export default class DocumentFilter extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { dispatch, loggedUser, folder } = this.props;
+        const { dispatch, loggedUser, folder, document } = this.props;
+
         if (_.isEqual(prevProps.document.Filter, this.props.document.Filter) == false) {
             clearTimeout(delayTimer);
-            const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo } = this.props.document.Filter;
-            let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`;
 
+            const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo } = this.props.document.Filter;
+
+            let requestUrl = ''
+            if (document.ActiveTab === 'document') {
+                requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`;
+            } else {
+                requestUrl = `/api/activityLogDocument?projectId=${project}&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`
+            }
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' });
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'LibraryDocumentLoading' });
 
             delayTimer = setTimeout(() => {
-                if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
+                if (isCompleted) {
                     requestUrl += `&isCompleted=${isCompleted}`
                 }
-                if (typeof search !== 'undefined' && search !== '') {
+                if (search) {
                     requestUrl += `&search=${search}`
                 }
-                if (typeof tags !== 'undefined') {
+                if (tags) {
                     _.map(tags, (t) => {
                         const tagType = t.value.split('-')[0];
                         const tagId = t.value.split('-')[1];
@@ -54,42 +61,50 @@ export default class DocumentFilter extends React.Component {
                         }
                     })
                 }
-                if (typeof uploadedBy !== 'undefined' && uploadedBy !== '') {
+                if (uploadedBy) {
                     requestUrl += `&uploadedBy=${uploadedBy}`
                 }
-                if (typeof members !== 'undefined' && members !== '') {
+                if (members) {
                     _.map(members, (e) => {
                         requestUrl += `&members=${e.value}`
                     })
                 }
-                if (typeof uploadFrom !== 'undefiend' && uploadFrom !== '') {
+                if (uploadFrom) {
                     requestUrl += `&uploadFrom=${uploadFrom}`
                 }
-                if (typeof uploadTo !== 'undefiend' && uploadTo !== '') {
+                if (uploadTo) {
                     requestUrl += `&uploadTo=${uploadTo}`
                 }
 
-                getData(`${requestUrl}&status=new&folderId=${folder.SelectedNewFolder.id}`, {}, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-                        dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
-                        dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-                        showToast('success', 'Documents successfully retrieved.')
-                    } else {
-                        showToast('success', 'Something went wrong!')
-                    }
-                });
+                if (document.ActiveTab === 'document') {
+                    getData(`${requestUrl}&status=new&folderId=${folder.SelectedNewFolder.id}`, {}, (c) => {
+                        if (c.status == 200) {
+                            dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                            dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
+                            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
+                            showToast('success', 'Documents successfully retrieved.')
+                        } else {
+                            showToast('success', 'Something went wrong!')
+                        }
+                    });
 
-                getData(`${requestUrl}&status=library&folderId=${folder.SelectedLibraryFolder.id}`, {}, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
-                        dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
-                        dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
-                        showToast('success', 'Documents successfully retrieved.')
-                    } else {
-                        showToast('success', 'Something went wrong!')
-                    }
-                });
+                    getData(`${requestUrl}&status=library&folderId=${folder.SelectedLibraryFolder.id}`, {}, (c) => {
+                        if (c.status == 200) {
+                            dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                            dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
+                            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
+                            showToast('success', 'Documents successfully retrieved.')
+                        } else {
+                            showToast('success', 'Something went wrong!')
+                        }
+                    });
+
+                } else if (document.ActiveTab === 'activity') {
+                    console.log(requestUrl)
+                    getData(`${requestUrl}`, {}, (c) => {
+                        dispatch({ type: 'SET_ACTIVITYLOG_DOCUMENT_LIST', list: c.data.result, count: c.data.count })
+                    })
+                }
             }, 1000);
         }
 
@@ -141,7 +156,10 @@ export default class DocumentFilter extends React.Component {
                             required={false}
                             options={statusList}
                             selected={(typeof document.Filter.isCompleted !== 'undefined') ? document.Filter.isCompleted : ''}
-                            onChange={(e) => this.setDropDown("isCompleted", e.value)} />
+                            onChange={(e) => this.setDropDown("isCompleted", e.value)}
+                            disabled={!(document.ActiveTab === 'document')}
+                            style={{ backgroundColor: (document.ActiveTab === 'document') ? '' : '#ddd' }}
+                        />
                     </div>
                     <div class="col-md-3 mb5">
                         <label>Document Tags</label>
@@ -150,6 +168,8 @@ export default class DocumentFilter extends React.Component {
                             options={tagOptions}
                             selected={(typeof document.Filter.tags !== 'undefined' && document.Filter.tags.length > 0) ? document.Filter.tags : []}
                             onChange={(e) => this.setDropDown("tags", e)}
+                            disabled={!(document.ActiveTab === 'document')}
+                            style={{ backgroundColor: (document.ActiveTab === 'document') ? '' : '#ddd' }}
                         />
                     </div>
                     <div class="col-md-3 mb5">
@@ -178,6 +198,8 @@ export default class DocumentFilter extends React.Component {
                                 id="uploadFrom"
                                 name="uploadFrom"
                                 value={((typeof Filter.uploadFrom != "undefined" && Filter.uploadFrom != null) && Filter.uploadFrom != '') ? displayDate(Filter.uploadFrom) : ""}
+                                disabled={!(document.ActiveTab === 'document')}
+                                style={{ backgroundColor: (document.ActiveTab === 'document') ? '' : '#ddd' }}
                             />
                         </div>
                     </div>
@@ -193,6 +215,8 @@ export default class DocumentFilter extends React.Component {
                                 id="uploadTo"
                                 name="uploadTo"
                                 value={((typeof Filter.uploadTo != "undefined" && Filter.uploadTo != null) && Filter.uploadTo != '') ? displayDate(Filter.uploadTo) : ""}
+                                disabled={!(document.ActiveTab === 'document')}
+                                style={{ backgroundColor: (document.ActiveTab === 'document') ? '' : '#ddd' }}
                             />
                         </div>
                     </div>
@@ -209,6 +233,8 @@ export default class DocumentFilter extends React.Component {
                             options={memberList}
                             selected={(typeof document.Filter.members !== 'undefined') ? document.Filter.members : []}
                             onChange={(e) => this.setDropDown("members", e)}
+                            disabled={!(document.ActiveTab === 'document')}
+                            style={{ backgroundColor: (document.ActiveTab === 'document') ? '' : '#ddd' }}
                         />
                     </div>
                 </div>

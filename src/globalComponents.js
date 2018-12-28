@@ -16,7 +16,7 @@ export const DropDown = React.createClass({
     componentWillReceiveProps: function (props) {
         var records = props.options.map((d, index) => { return { value: d.id, label: d.name }; });
 
-        this.setState({ records: records, noResultsText: "No Results Found" });
+        this.setState({ records: records, noResultsText: "No Results Found", disabled: props.disabled });
 
         if (typeof props.selected != "undefined") {
             if (props.multiple) {
@@ -53,7 +53,7 @@ export const DropDown = React.createClass({
             self.props.onChange(option);
             self.setState({ selected: (self.props.multiple) ? option : option ? option.value : "", });
         };
-
+        
         return (
             <Select multi={this.props.multiple}
                 disabled={this.state.disabled}
