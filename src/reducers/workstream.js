@@ -7,7 +7,7 @@ export default function reducer(state = {
     Filter: {
         workstream: "",
         typeId: "",
-        workstreamStatus: ""
+        workstreamStatus: 'Active'
     },
     StatusCount: {},
     Selected: {},
