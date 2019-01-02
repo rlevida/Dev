@@ -185,6 +185,7 @@ export default class List extends React.Component {
                         <tr>
                             <th></th>
                             <th></th>
+                            <th class="text-left">Project</th>
                             <th class="text-left">Workstream</th>
                             <th class="text-left">Task Name</th>
                             <th class="text-center">Due Date</th>
@@ -209,6 +210,7 @@ export default class List extends React.Component {
                                                 (data.dueDate != '' && data.dueDate != null) && this.renderStatus(data)
                                             }
                                         </td>
+                                        <td class="text-left"> {data.workstream.project.project}</td>
                                         <td class="text-left">{data.workstream.workstream}</td>
                                         <td class="text-left"><a href={`/project/${data.projectId}/workstream/${data.workstreamId}?task=${data.id}`}>{data.task}</a></td>
                                         <td class="text-center">

@@ -38,6 +38,9 @@ exports.get = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? {
                 projectId: queryString.projectId
             } : {},
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? {
+                isActive: queryString.isActive
+            } : {},
         }
 
         const modelList = {
@@ -48,11 +51,11 @@ exports.get = {
             workstreamList: "Workstream",
             taskList: "Tasks",
             type: "Type",
-            usersList: "Users"
+            usersList: "Users",
+            projectList: "Projects"
         }
 
         modelName = modelList[queryString.selectName];
-
         if (modelName != "") {
             const model = models[modelName];
             switch (queryString.selectName) {
@@ -236,6 +239,7 @@ exports.get = {
                 default:
                     {
                         try {
+                            console.log(modelName, queryString.selectName, whereObj)
                             model
                                 .findAll({
                                     where: whereObj

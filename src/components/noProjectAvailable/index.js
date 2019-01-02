@@ -1,6 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
-import { displayDate, getCookie } from '../../globalFunction';
+import { displayDate, getCookie, deleteData } from '../../globalFunction';
 
 @connect((store) => {
     return {
@@ -17,8 +17,8 @@ export default class Component extends React.Component {
     }
 
     handleLogout() {
-        let { loggedUser } = this.props
-        deleteData(`/api/login/${loggedUser.data.id}`, {}, (c) => {
+        let { loggedUser, dispatch } = this.props
+        deleteData(`/api/login/${loggedUser.id}`, {}, (c) => {
             setTimeout(function () {
                 window.location.replace('/');
             }, 1000);
@@ -36,8 +36,8 @@ export default class Component extends React.Component {
     render() {
         let { loggedUser } = this.props
         let userView = "";
-        if (loggedUser.data.username != "") {
-            userView = <div class="headAccess"> Welcome : {loggedUser.data.username}</div>;
+        if (loggedUser.username != "") {
+            userView = <div class="headAccess"> Welcome : {loggedUser.username}</div>;
         }
         return (
             <div>
@@ -55,10 +55,7 @@ export default class Component extends React.Component {
                             <h3>Cloud CFO</h3>
                         </div>
                         <div class="main-bar">
-                            <h3 style={{ 'text-transform': 'capitalize' }}>
-                                <i class="glyphicon glyphicon-dashboard"></i>&nbsp;
-                            {(this.props.page)}{this.props.form ? " > " + this.props.form : ""}{(this.props.form) == "Form" ? (this.props.formId > 0 ? " > Edit " : " > Add ") : ""}
-
+                            <h3 >
                             </h3>
                         </div>
                     </header>
@@ -73,11 +70,11 @@ export default class Component extends React.Component {
                                 </a>
 
                                 <div class="media-body">
-                                    <h5 class="media-heading"><p style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "120px" }} title={loggedUser.data.username}>{loggedUser.data.username}</p></h5>
+                                    <h5 class="media-heading"><p style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "120px" }} title={loggedUser.username}>{loggedUser.username}</p></h5>
                                     <ul class="list-unstyled user-info">
-                                        <li>{loggedUser.user.userType}</li>
+                                        <li>{loggedUser.userType}</li>
                                         <li>Last Updated: <br />
-                                            <small><i class="glyphicon glyphicon-calendar"></i>&nbsp;{displayDate(loggedUser.user.date_updated)}</small>
+                                            <small><i class="glyphicon glyphicon-calendar"></i>&nbsp;{displayDate(loggedUser.date_updated)}</small>
                                         </li>
                                     </ul>
                                 </div>

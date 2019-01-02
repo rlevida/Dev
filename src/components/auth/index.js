@@ -65,14 +65,13 @@ export default class Component extends React.Component {
                     }, 1000);
                 } else {
                     if (typeof c.data.data !== "undefined") {
-                        console.log(c.data)
                         if (c.data.data.length > 1) {
                             setTimeout(() => {
                                 window.location.replace(`/project/`);
                             }, 1000);
                         } else {
                             setTimeout(() => {
-                                window.location.replace(`/project/${c.data.data[0].linkId}`);
+                                window.location.replace(`/`);
                             }, 1000);
                         }
                     } else {

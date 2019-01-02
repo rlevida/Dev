@@ -28,7 +28,7 @@ export default class List extends React.Component {
     componentDidMount() {
         const { workstream, dispatch } = this.props;
         const { Count } = workstream;
-        
+
         if (workstreamId != "") {
             const dataToGet = { params: { id: workstreamId } }
             getData(`/api/workstream/getWorkstreamDetail`, dataToGet, (c) => {
@@ -142,6 +142,7 @@ export default class List extends React.Component {
                         <tr>
                             <th></th>
                             <th class="text-left">Workstream</th>
+                            <th class="text-center">Project</th>
                             <th class="text-center">Pending</th>
                             <th class="text-center">Completed</th>
                             <th class="text-center">Issues</th>
@@ -165,6 +166,9 @@ export default class List extends React.Component {
                                             <a href={`/project/${workstreamObj.projectId}/workstream/${workstreamObj.id}`} >
                                                 {workstreamObj.workstream}
                                             </a>
+                                        </td>
+                                        <td>
+                                            {workstreamObj.project.project}
                                         </td>
                                         <td class="text-center">{(workstreamObj.pending).length}</td>
                                         <td class="text-center">{(workstreamObj.completed).length}</td>
