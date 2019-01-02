@@ -58,7 +58,7 @@ export default class List extends React.Component {
 		}
 
 		getData(requestUrl, {}, c => {
-			dispatch({ type: "SET_TASK_LIST", list: nextResult ? task.List.concat(c.data.result) : c.data.result, Count: c.data.count });
+			dispatch({ type: "SET_TASK_LIST", list: nextResult ? task.List.concat(c.data.result) : c.data.result, count: c.data.count });
 		});
 	}
 
