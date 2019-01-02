@@ -8,7 +8,8 @@ export default function reducer(state = {
         dueDate: "",
         taskAssigned: "",
         task: "",
-        selected_month:""
+        selected_month: "",
+        projectId: ""
     },
     FormActive: "List",
     FormAction: "",

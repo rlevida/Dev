@@ -23,7 +23,7 @@ export default class List extends React.Component {
     }
 
     componentDidMount() {
-        const {  task } = this.props;
+        const { task } = this.props;
         const { Count } = task;
 
         if (_.isEmpty(Count)) {
@@ -104,6 +104,7 @@ export default class List extends React.Component {
                     <tbody>
                         <tr>
                             <th></th>
+                            <th class="text-left">Project</th>
                             <th class="text-left">Workstream</th>
                             <th class="text-left">Task Name</th>
                             <th class="text-center">Due Date</th>
@@ -115,7 +116,6 @@ export default class List extends React.Component {
                             taskList.map((data, index) => {
                                 const assignedUser = (_.filter(data.task_members, (o) => { return o.memberType == "assignedTo" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "assignedTo" })[0].user : "";
                                 const followers = (_.filter(data.task_members, (o) => { return o.memberType == "Follower" }).length > 0) ? _.filter(data.task_members, (o) => { return o.memberType == "Follower" }) : "";
-
                                 return (
                                     <tr key={index}>
                                         <td>
@@ -123,6 +123,7 @@ export default class List extends React.Component {
                                                 (data.dueDate != '' && data.dueDate != null) && this.renderStatus(data)
                                             }
                                         </td>
+                                        <td class="text-left">{data.workstream.project.project}</td>
                                         <td class="text-left">{data.workstream.workstream}</td>
                                         <td class="text-left"><a href={`/project/${data.projectId}/workstream/${data.workstreamId}?task=${data.id}`}>{data.task}</a></td>
                                         <td class="text-center">

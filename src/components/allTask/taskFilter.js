@@ -11,7 +11,8 @@ let keyTimer = "";
         socket: store.socket.container,
         status: store.status,
         loggedUser: store.loggedUser,
-        task: store.task
+        task: store.task,
+        global: store.global
     }
 })
 
@@ -35,14 +36,19 @@ export default class ProjectFilter extends React.Component {
                 .value();
             dispatch({ type: "SET_TASK_SELECT_LIST", List: taskMemberOptions });
         });
+
+        getData(`/api/globalORM/selectList?selectName=projectList&isActive=1`, {}, (c) => {
+            console.log(c)
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectList' })
+        })
     }
 
     componentDidUpdate(prevProps) {
         const { dispatch, loggedUser } = this.props;
 
         if (_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false) {
-            const { taskStatus, dueDate, taskAssigned, task } = this.props.task.Filter;
-            let requestUrl = `/api/task?projectId=${project}&page=1&userId=${loggedUser.data.id}`;
+            const { taskStatus, dueDate, task, projectId } = this.props.task.Filter;
+            let requestUrl = `/api/task?projectId=${projectId}&page=1&userId=${loggedUser.data.id}`;
 
             if (taskStatus != "") {
                 requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
@@ -121,7 +127,7 @@ export default class ProjectFilter extends React.Component {
     }
 
     render() {
-        const { task } = this.props;
+        const { task, global } = this.props;
         const { Filter } = { ...task }
         const statusList = [
             { id: "", name: "All Status" },
@@ -132,7 +138,15 @@ export default class ProjectFilter extends React.Component {
         return (
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-lg-3 col-md-4 col-sm-6 col-xs-6 mb5">
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6 mb5">
+                        <label>Filter by Project</label>
+                        <DropDown multiple={false}
+                            required={false}
+                            options={_.map(global.SelectList.projectList, (e) => { return { id: e.id, name: e.project } })}
+                            selected={Filter.projectId}
+                            onChange={(e) => this.setDropDown("projectId", e.value)} />
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6 mb5">
                         <label>Task Status</label>
                         <DropDown multiple={false}
                             required={false}
@@ -140,7 +154,7 @@ export default class ProjectFilter extends React.Component {
                             selected={Filter.taskStatus}
                             onChange={(e) => this.setDropDown("taskStatus", e.value)} />
                     </div>
-                    <div class="col-lg-3 col-md-4 col-sm-6 col-xs-6 mb5">
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6 mb5">
                         <div class="input-group date" style={{ width: "100%" }}>
                             <label>Task Due Date</label>
                             <input type="text"
@@ -155,7 +169,7 @@ export default class ProjectFilter extends React.Component {
                             />
                         </div>
                     </div>
-                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 mb5">
+                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 mb5">
                         <label>Task</label>
                         <input type="text" name="task" class="form-control" onChange={this.handleChange} />
                     </div>
