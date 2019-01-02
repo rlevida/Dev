@@ -38,7 +38,6 @@ export default class ProjectFilter extends React.Component {
         });
 
         getData(`/api/globalORM/selectList?selectName=projectList&isActive=1`, {}, (c) => {
-            console.log(c)
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectList' })
         })
     }
@@ -51,7 +50,11 @@ export default class ProjectFilter extends React.Component {
             let requestUrl = `/api/task?projectId=${projectId}&page=1&userId=${loggedUser.data.id}`;
 
             if (taskStatus != "") {
-                requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
+                if (taskStatus == 'Active') {
+                    requestUrl += `&status=${JSON.stringify({ opt: "not", value: 'Completed' })}`
+                } else {
+                    requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
+                }
             }
 
             if (task != "") {
@@ -130,11 +133,15 @@ export default class ProjectFilter extends React.Component {
         const { task, global } = this.props;
         const { Filter } = { ...task }
         const statusList = [
+            { id: "Active", name: 'Active' },
             { id: "", name: "All Status" },
             { id: "For Approval", name: "For Approval" },
             { id: "Completed", name: "Completed" },
             { id: "Rejected", name: "Rejected" }
         ];
+
+        const projectListOptions = _.concat([{ id: '', name: 'None' }], _.map(global.SelectList.projectList, (e) => { return { id: e.id, name: e.project } }))
+
         return (
             <div class="container-fluid">
                 <div class="row">
@@ -142,7 +149,7 @@ export default class ProjectFilter extends React.Component {
                         <label>Filter by Project</label>
                         <DropDown multiple={false}
                             required={false}
-                            options={_.map(global.SelectList.projectList, (e) => { return { id: e.id, name: e.project } })}
+                            options={projectListOptions}
                             selected={Filter.projectId}
                             onChange={(e) => this.setDropDown("projectId", e.value)} />
                     </div>

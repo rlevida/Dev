@@ -48,7 +48,12 @@ export default class ProjectFilter extends React.Component {
             let requestUrl = `/api/task?projectId=${project}&starredUser=${loggedUser.data.id}`;
 
             if (taskStatus != "") {
-                requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
+                if (taskStatus === 'Active') {
+                    requestUrl += `&status=${JSON.stringify({ opt: "not", value: 'Completed' })}`
+
+                } else {
+                    requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
+                }
             }
             if (task != "") {
                 requestUrl += `&task=${task}`
@@ -148,6 +153,7 @@ export default class ProjectFilter extends React.Component {
         const { task, members } = this.props;
         const { Filter } = { ...task }
         const statusList = [
+            { id: "Active", name: "Active" },
             { id: "", name: "All Status" },
             { id: "For Approval", name: "For Approval" },
             { id: "Completed", name: "Completed" },

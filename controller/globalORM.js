@@ -239,7 +239,6 @@ exports.get = {
                 default:
                     {
                         try {
-                            console.log(modelName, queryString.selectName, whereObj)
                             model
                                 .findAll({
                                     where: whereObj

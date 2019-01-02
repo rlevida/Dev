@@ -35,7 +35,7 @@ export default class List extends React.Component {
 
     fetchData(page) {
         const { loggedUser, dispatch } = this.props;
-        let fetchUrl = `/api/task?projectId=${project}&page=${page}&userId=${loggedUser.data.id}`;
+        let fetchUrl = `/api/task?projectId=${project}&page=${page}&userId=${loggedUser.data.id}&status=${JSON.stringify({ opt: "not", value: 'Completed' })}`;
 
         getData(fetchUrl, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
@@ -155,7 +155,7 @@ export default class List extends React.Component {
                 }
                 <div class="text-center">
                     {
-                        (currentPage != lastPage) && <a onClick={() => this.getNextResult()}>Load More Task</a>
+                        (currentPage != lastPage && task.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Task</a>
                     }
                     {
                         (taskList.length == 0 && task.Loading != "RETRIEVING") && <p>No Records Found</p>
