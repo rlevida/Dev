@@ -4,7 +4,7 @@ export default function reducer(state = {
     Count: {},
     CountList: [],
     Filter: {
-        taskStatus: "",
+        taskStatus: "Active",
         dueDate: "",
         taskAssigned: "",
         task: "",

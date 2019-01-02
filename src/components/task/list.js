@@ -46,7 +46,12 @@ export default class List extends React.Component {
         const { taskStatus, dueDate, taskAssigned } = task.Filter;
 
         if (taskStatus != "") {
-            requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
+            if (taskStatus === 'Active') {
+                requestUrl += `&status=${JSON.stringify({ opt: "not", value: 'Completed' })}`
+
+            } else {
+                requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
+            }
         }
 
         if (dueDate != "") {
