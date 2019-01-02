@@ -46,7 +46,7 @@ export default class ProjectFilter extends React.Component {
         if (_.isEqual(prevProps.task.Filter, this.props.task.Filter) == false && prevProps.task.FormActive == this.props.task.FormActive) {
             const { taskStatus, dueDate, taskAssigned, task, selected_month } = this.props.task.Filter;
             let requestUrl = `/api/task?projectId=${project}&starredUser=${loggedUser.data.id}`;
-
+    
             if (taskStatus != "") {
                 if (taskStatus === 'Active') {
                     requestUrl += `&status=${JSON.stringify({ opt: "not", value: 'Completed' })}`
@@ -83,6 +83,10 @@ export default class ProjectFilter extends React.Component {
 
             if (taskState.FormActive != "Calendar" && workstream.SelectedLink != "calendar") {
                 requestUrl += `&page=1`
+            }
+
+            if(workstream.SelectedLink === 'timeline'){
+                requestUrl += `&listType=timeline`
             }
 
             keyTimer && clearTimeout(keyTimer);

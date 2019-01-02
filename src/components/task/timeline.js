@@ -30,35 +30,47 @@ export default class List extends React.Component {
 	fetchData(page, nextResult) {
 		const { dispatch, task, loggedUser, workstream } = this.props;
 
-		let requestUrl = `/api/task?projectId=${project}&page=${page}&starredUser=${loggedUser.data.id}&listType=timeline`;
+		let requestUrl = `/api/task?projectId=${project}&page=${page}&starredUser=${
+			loggedUser.data.id
+			}&listType=timeline`;
 		const { taskStatus, dueDate, taskAssigned } = task.Filter;
 
 		if (taskStatus != "") {
-			if (taskStatus === 'Active') {
-				requestUrl += `&status=${JSON.stringify({ opt: "not", value: 'Completed' })}`
+			if (taskStatus === "Active") {
+				requestUrl += `&status=${JSON.stringify({
+					opt: "not",
+					value: "Completed"
+				})}`;
 			} else {
-				requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
+				requestUrl += `&status=${JSON.stringify({
+					opt: "eq",
+					value: taskStatus
+				})}`;
 			}
 		}
 
 		if (dueDate != "") {
-			requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`
+			requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`;
 		}
 
 		if (taskAssigned != "" && taskAssigned.length > 0) {
-			taskAssigned.map((assignedObj) => {
-				requestUrl += `&userId=${assignedObj.value}`
+			taskAssigned.map(assignedObj => {
+				requestUrl += `&userId=${assignedObj.value}`;
 			});
 		} else if (loggedUser.data.user_role[0].roleId >= 3) {
-			requestUrl += `&userId=${loggedUser.data.id}`
+			requestUrl += `&userId=${loggedUser.data.id}`;
 		}
 
 		if (workstream.SelectedLink == "timeline") {
-			requestUrl += `&workstreamId=${workstream.Selected.id}`
+			requestUrl += `&workstreamId=${workstream.Selected.id}`;
 		}
 
 		getData(requestUrl, {}, c => {
-			dispatch({ type: "SET_TASK_LIST", list: nextResult ? task.List.concat(c.data.result) : c.data.result, count: c.data.count });
+			dispatch({
+				type: "SET_TASK_LIST",
+				list: nextResult ? task.List.concat(c.data.result) : c.data.result,
+				count: c.data.count
+			});
 		});
 	}
 
@@ -126,13 +138,13 @@ export default class List extends React.Component {
 				{ type: "number", label: "Percent Complete" },
 				{ type: "string", label: "Dependencies" }
 			],
-			..._.map(taskList, (data) => {
+			..._.map(taskList, data => {
 				return [
 					data.id,
 					data.task,
 					null,
 					new Date(data.startDate),
-					moment(data.dueDate).endOf('day').toDate(),
+					moment(data.dueDate).endOf("day").toDate(),
 					100,
 					100,
 					null
@@ -141,27 +153,25 @@ export default class List extends React.Component {
 		];
 		return (
 			<div class="pd0">
-				{
-					(task.Loading == "RETRIEVING") && <Loading />
-				}
-				{
-					(task.Loading != "RETRIEVING" && taskList.length > 0) && <div>
+				{task.Loading == "RETRIEVING" && <Loading />}
+				{task.Loading != "RETRIEVING" && taskList.length > 0 && (
+					<div >
 						<Chart
 							width={"100%"}
-							height={42 * chartData.length}
+							height={chartData.length === 2 ? '100%' : 42 * chartData.length}
 							chartType="Gantt"
 							loader={<Loading />}
 							data={chartData}
 						/>
 					</div>
-				}
+				)}
 				<div class="text-center">
-					{
-						(currentPage != lastPage && task.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Task</a>
-					}
-					{
-						(taskList.length == 0 && task.Loading != "RETRIEVING") && <p>No Records Found</p>
-					}
+					{currentPage != lastPage && task.Loading != "RETRIEVING" && (
+						<a onClick={() => this.getNextResult()}>Load More Task</a>
+					)}
+					{taskList.length == 0 && task.Loading != "RETRIEVING" && (
+						<p>No Records Found</p>
+					)}
 				</div>
 			</div>
 		);
