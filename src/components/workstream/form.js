@@ -125,11 +125,10 @@ export default class FormComponent extends React.Component {
             return;
         }
 
-
         if (typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") {
             putData(`/api/workstream/${workstream.Selected.id}`, dataToBeSubmitted, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "UPDATE_DATA_WORKSTREAM_LIST", data: c.data });
+                    dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
                     showToast("success", "Workstream successfully updated.");
                     this.resetData();
                 } else {
