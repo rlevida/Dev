@@ -70,7 +70,7 @@ export default function reducer(state = {
             return { ...state, Loading: (typeof action.Loading != "undefined") ? action.Loading : "" }
         }
         case "EMPTY_WORKSTREAM_LIST": {
-            return { ...state, List: [] }
+            return { ...state, List: [] , Count : {} }
         }
         case "SET_WORKSTREAM_FILTER": {
             const { Filter } = { ...state };
