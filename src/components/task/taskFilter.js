@@ -49,7 +49,7 @@ export default class ProjectFilter extends React.Component {
     
             if (taskStatus != "") {
                 if (taskStatus === 'Active') {
-                    requestUrl += `&status=${JSON.stringify({ opt: "not", value: 'Completed' })}`
+                    requestUrl += `&status=${JSON.stringify({ opt: "not", value: 'Completed' })}&isActive=1`
 
                 } else {
                     requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`

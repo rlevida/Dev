@@ -27,11 +27,11 @@ export default class ProjectFilter extends React.Component {
 
     componentDidUpdate(prevProps) {
         const { dispatch, loggedUser } = this.props;
-
+    
         if (_.isEqual(prevProps.workstream.Filter, this.props.workstream.Filter) == false) {
             const { typeId, workstreamStatus, workstream } = this.props.workstream.Filter;
             const dueDateMoment = moment().format("YYYY-MM-DD");
-
+            
             getData(`/api/workstream?projectId=${project}&page=1&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstream}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
@@ -46,19 +46,23 @@ export default class ProjectFilter extends React.Component {
     }
 
     setDropDown(name, e) {
-        const { dispatch } = this.props;
-        
-        dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
-        dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
-        dispatch({ type: "SET_WORKSTREAM_FILTER", filter: { [name]: e } });
+        const { dispatch , workstream : { Filter} } = this.props;
+        let wokrstreamFilter = { ...Filter };
+        wokrstreamFilter = { ...wokrstreamFilter , [name] : e };
+
+        if (_.isEqual(wokrstreamFilter, this.props.workstream.Filter) == false) {
+            dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
+            dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
+            dispatch({ type: "SET_WORKSTREAM_FILTER", filter: { [name]: e } });
+        }
     }
 
     handleChange(e) {
         const { dispatch } = this.props;
         const filterState = { [e.target.name]: e.target.value };
 
-        dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
         dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
+        dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
 
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
