@@ -47,8 +47,7 @@ export default class List extends React.Component {
 
         if (taskStatus != "") {
             if (taskStatus === 'Active') {
-                requestUrl += `&status=${JSON.stringify({ opt: "not", value: 'Completed' })}`
-
+                requestUrl += `&status=${JSON.stringify({ opt: "not", value: 'Completed' })}&isActive=1`
             } else {
                 requestUrl += `&status=${JSON.stringify({ opt: "eq", value: taskStatus })}`
             }
@@ -65,7 +64,7 @@ export default class List extends React.Component {
         } else if (loggedUser.data.user_role[0].roleId > 3) {
             requestUrl += `&userId=${loggedUser.data.id}`
         }
-
+        
         getData(requestUrl, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });

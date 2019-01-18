@@ -153,7 +153,9 @@ exports.get = {
                 startDate: {
                     [Sequelize.Op.not]: null
                 }
-            } : {}
+            } : {},
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != '') ? { isActive : queryString.isActive } : {}
+
         };
         if (typeof queryString.userId != "undefined" && queryString.userId != "") {
             const compareOpt = (Array.isArray(queryString.userId)) ? "IN" : "=";
