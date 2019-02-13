@@ -112,6 +112,38 @@ export default class Component extends React.Component {
                                         {(this.props.page)}{this.props.form ? " > " + this.props.form : ""}{(this.props.form) == "Form" ? (this.props.formId > 0 ? " > Edit " : " > Add ") : ""}
                                     </h3>
                                 </div>
+                                <div class="action">
+                                    {
+                                        (reminderUnseen.length > 0) ?
+                                            <a class="dropdown-toggle" type="button" data-toggle="dropdown">
+                                                <span class="fa fa-bell"></span>
+                                                <span class="label label-danger" style={{ marginLeft: "5px", display: reminderUnseen.length ? "inline-block" : "none" }}>{reminderUnseen.length}</span>
+                                            </a>
+                                            :
+                                            <a class="dropdown-toggle" href={`/reminder`}>
+                                                <span class="fa fa-bell"></span>
+                                            </a>
+                                    }
+                                    {(reminderUnseen.length > 0) &&
+                                        <ul class="dropdown-menu" >
+                                            {
+                                                reminderUnseen.map((data, index) => {
+                                                    return (
+                                                        <li key={index} style={{ height: '100%' }}>
+                                                            <a href={`/reminder`} key={index} style={{ textDecoration: "none", fontWeight: "bold" }}>
+                                                                <span>{data.type}</span>
+                                                                <br />
+                                                            </a>
+                                                        </li>
+                                                    )
+                                                })
+                                            }
+                                        </ul>
+                                    }
+                                    <a data-tip="profile" href={"/profile"}>
+                                        <i class="glyphicon glyphicon-user"></i>
+                                    </a>
+                                </div>
                             </div>
                         </header>
                         <div id="content">

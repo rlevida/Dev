@@ -284,7 +284,7 @@ exports.get = {
             COALESCE(SUM(CASE WHEN member_task.memberType="assignedTo" AND member_task.userTypeLinkId = :user_id then 1 else 0 end),0)  AS assigned_active,  
             COALESCE(SUM(CASE WHEN myTask.dueDate < :date AND (myTask.status != "Completed" OR myTask.status IS NULL) AND member_task.memberType="assignedTo" AND member_task.userTypeLinkId = :user_id then 1 else 0 end), 0)  AS assigned_issues,
 
-            
+            COUNT(DISTINCT projectId ) AS project_count,
             COUNT(DISTINCT CASE WHEN workstream_responsible_id = :user_id THEN myTask.id END) AS responsible_active,
             COUNT(DISTINCT CASE WHEN myTask.dueDate < :date AND (myTask.status != "Completed" OR myTask.status IS NULL) AND workstream_responsible_id = :user_id THEN myTask.id END) AS responsible_issues,
 

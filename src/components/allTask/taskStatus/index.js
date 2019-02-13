@@ -8,7 +8,8 @@ import { getData } from '../../../globalFunction'
     return {
         socket: store.socket.container,
         task: store.task,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        project: store.project
     }
 })
 
@@ -28,79 +29,26 @@ export default class TaskStatus extends React.Component {
     render() {
         const { task } = this.props;
         const { StatusCount } = task;
-
-        return <div class="container-fluid">
-            {
-
-                (_.isEmpty(StatusCount) == false) && <div>
-                    <div className={(page == "mytask") ? "row status-multiple" : "row"}>
-                        <div class="col-lg-2 col-xs-12 count">
-                            <span>Assigned:</span>
+       
+        return (
+            <div class={(_.isEmpty(StatusCount)) ? "linear-background" : ""}>
+                {
+                    (_.isEmpty(StatusCount) == false) && <div class="row content-row status-count">
+                        <div class="col-lg-6 text-center">
+                            <p class="status-count text-orange">{('0' + StatusCount.all_assigned_active).slice(-2)}</p>
+                            <p class="status-label">Assigned to me</p>
+                            <p class="status-sublabel"> {`for ${StatusCount.project_count} Project(s)`}</p>
+                            <p class="status-sublabel text-red">{(StatusCount.all_assigned_issues > 0) ? StatusCount.all_assigned_issues : 'No'} delayed tasks</p>
                         </div>
-                        <div class="col-lg-3 col-xs-12 active-count count">
-                            <span class="text-white">{StatusCount.assigned_active}</span>
-                            <span class="text-white">Active Tasks:</span>
-                        </div>
-                        <div class="col-lg-3 col-xs-12 on-time count">
-                            <span class="text-white">
-                                {StatusCount.assigned_active - StatusCount.assigned_issues}
-                            </span>
-                            <span class="text-white">Tasks On Time:</span>
-                        </div>
-                        <div class="col-lg-3 col-xs-12 issues count">
-                            <span class="text-white">
-                                {(StatusCount.assigned_issues > 0) && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}
-                                {StatusCount.assigned_issues}
-                            </span>
-                            <span class="text-white">Tasks With Issues:</span>
+                        <div class="col-lg-6 text-center">
+                            <p class="status-count text-yellow">{('0' + StatusCount.followed_active).slice(-2)}</p>
+                            <p class="status-label">Task followed</p>
+                            <p class="status-sublabel"> {`for ${StatusCount.project_count} Project(s)`}</p>
+                            <p class="status-sublabel text-red">{(StatusCount.followed_issues > 0) ? StatusCount.followed_issues : 'No'} delayed tasks</p>
                         </div>
                     </div>
-                    <div className={(page == "mytask") ? "row status-multiple" : "row"}>
-                        <div class="col-lg-2 col-xs-12 count">
-                            <span>Responsible:</span>
-                        </div>
-                        <div class="col-lg-3 col-xs-12 active-count count">
-                            <span class="text-white">{StatusCount.responsible_active}</span>
-                            <span class="text-white">Active Tasks:</span>
-                        </div>
-                        <div class="col-lg-3 col-xs-12 on-time count">
-                            <span class="text-white">
-                                {StatusCount.responsible_active - StatusCount.responsible_issues}
-                            </span>
-                            <span class="text-white">Tasks On Time:</span>
-                        </div>
-                        <div class="col-lg-3 col-xs-12 issues count">
-                            <span class="text-white">
-                                {(StatusCount.responsible_issues > 0) && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}
-                                {StatusCount.responsible_issues}
-                            </span>
-                            <span class="text-white">Tasks With Issues:</span>
-                        </div>
-                    </div>
-                    <div className={(page == "mytask") ? "row status-multiple" : "row"}>
-                        <div class="col-lg-2 col-xs-12 count">
-                            <span>Following:</span>
-                        </div>
-                        <div class="col-lg-3 col-xs-12 active-count count">
-                            <span class="text-white">{StatusCount.followed_active}</span>
-                            <span class="text-white">Active Tasks:</span>
-                        </div>
-                        <div class="col-lg-3 col-xs-12 on-time count">
-                            <span class="text-white">
-                                {StatusCount.followed_active - StatusCount.followed_issues}
-                            </span>
-                            <span class="text-white">Tasks On Time:</span>
-                        </div>
-                        <div class="col-lg-3 col-xs-12 issues count">
-                            <span class="text-white">
-                                {(StatusCount.followed_issues > 0) && <i class="fa fa-exclamation-circle fa-lg" aria-hidden="true" style={{ marginRight: "5px" }}></i>}
-                                {StatusCount.followed_issues}
-                            </span>
-                            <span class="text-white">Tasks With Issues:</span>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
+                }
+            </div>
+        );
     }
 }

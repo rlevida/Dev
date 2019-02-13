@@ -8,12 +8,12 @@ a {
 }
 
 html, #main{
-  background-color: #f5f5fa;
   height: 100vh;
 }
 
 #main-container{
   height: 100vh;
+  background-color: #f5f5fa;
 }
 
 .m0 { margin : 0px !important}
@@ -342,21 +342,6 @@ button {
    width: 100%;
 }
 
-.card {
-    width: 100%;
-    background-color: #FFF;
-    width: 100%;
-    -webkit-box-shadow: 0 0 4px 0 rgba(0,0,0,0.2);
-    -moz-box-shadow: 0 0 4px 0 rgba(0,0,0,0.2);
-    box-shadow: 0 0 4px 0 rgba(0,0,0,0.2);
-    margin-bottom: 20px !important;
-    color: #333;
-
-}
-
-.card .card-body {
-    padding: 30px;
-}
 .sep {
     width: 100%;
     height: 1px;
@@ -412,8 +397,8 @@ button {
     color: #333;
     display: block;
     padding: 3px 20px;
-    white-space: nowrap;
 }
+
 .formTable{
    margin-left: auto;
    margin-right: auto;
@@ -1202,6 +1187,24 @@ ul.dropdown-menu {
   box-shadow: 0 0px 10px 0px rgba(51,51,51,0.2);
 }
 
+.card {
+  -webkit-box-shadow: 0 0px 10px 0px rgba(51,51,51,0.2);
+  -moz-box-shadow: 0 0px 10px 0px rgba(51,51,51,0.2);
+  box-shadow: 0 0px 10px 0px rgba(51,51,51,0.2);
+  padding: 20px;
+  min-height: 200px;
+}
+
+.card-header h4{
+  margin: 0px;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.card-body{
+  margin-top: 20px;
+}
+
 .menu-bar{
   background-color: #2f51d0;
   max-width: 300px;
@@ -1234,8 +1237,12 @@ ul.dropdown-menu {
   flex: 1;
 }
 
+.content-div{
+  overflow-y: scroll
+}
+
 .site-logo{
-  width: 100px;
+  max-width: 100px;
   margin: 0 auto;
   margin-top: 25px;
   margin-bottom: 50px;
@@ -1246,6 +1253,75 @@ ul.dropdown-menu {
   padding-bottom: 50px;
   padding-left: 25px;
   padding-right: 25px;
+}
+
+.head .fa-bell{
+  color: #ff9800;
+  margin-right: 25px;
+}
+
+.head .glyphicon-user,
+.head .fa-bell{
+  font-size: 24px;
+}
+
+.head .action{
+  margin-left: auto;
+}
+
+.status-count{
+  font-size: 100px;
+  font-weight: 400;
+  margin: 0px;
+  line-height: 1.1;
+}
+
+.status-label{
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.status-sublabel{
+  margin-bottom: 5px;
+  font-size: 15px;
+}
+
+.text-yellow{
+  color: #ffaf3b;
+}
+
+.text-orange{
+  color: #ff754a;
+}
+
+.text-red{
+  color: #ff3842;
+}
+
+@keyframes placeHolderShimmer{
+  0%{
+      background-position: -468px 0
+  }
+  100%{
+      background-position: 468px 0
+  }
+}
+.linear-background {
+  animation-duration: 1s;
+  animation-fill-mode: forwards;
+  animation-iteration-count: infinite;
+  animation-name: placeHolderShimmer;
+  animation-timing-function: linear;
+  background: #f6f7f8;
+  background: linear-gradient(to right, #eeeeee 8%, #dddddd 18%, #eeeeee 33%);
+  background-size: 1000px 104px;
+  position: relative;
+  overflow: hidden;
+  height: 200px;
+}
+
+.status-count [class*=col]:not(:last-child){
+  border-right: 1px #dddddd solid;
 }
 
 /* Extra Small */
@@ -1272,6 +1348,21 @@ ul.dropdown-menu {
   #menu > li > a {
     padding: 15px 5px 15px 5px!important;
   }
+  .site-logo{
+    margin-bottom: 0px;
+  }
+  .menu-bar{
+    max-width: 80px;
+  }
+  .menu-list{
+    text-align: center;
+  }
+  .menu-list i{
+    width: 100%;
+  }
+  .content-row [class*=col]:not(:last-child){
+    margin-bottom: 20px;
+  }
 }
 
 /* Small */
@@ -1294,6 +1385,18 @@ ul.dropdown-menu {
   }
   .status-div {
     float: none!important;
+  }
+  .site-logo{
+    margin-bottom: 0px;
+  }
+  .menu-bar{
+    max-width: 80px;
+  }
+  .menu-list{
+    text-align: center;
+  }
+  .menu-list i{
+    width: 100%;
   }
 }
 

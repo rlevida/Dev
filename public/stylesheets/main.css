@@ -7,9 +7,6 @@
 /* ==========================================================================
 metisAdmin: Base
 ========================================================================== */
-body {
-  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
 /*********************************************************/
 /*                 Layout Styles                         */
 /*********************************************************/
@@ -143,7 +140,7 @@ html {
   border: transparent;
 }
 .head .main-bar {
-  padding-right: 50px;
+  padding-right: 25px;
   height: 70px;
   display: flex;
   align-items: center;
