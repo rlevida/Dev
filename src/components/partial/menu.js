@@ -58,87 +58,95 @@ export default class Component extends React.Component {
 
     render() {
         let { loggedUser } = this.props;
-        let Menu = <ul id="menu" class="bg-dark dker">
-            <li class="nav-header">Menu</li>
+        let Menu = <ul id="menu">
             <li class={page == "index" ? "active" : ""}>
                 <a href="/" class="menu-list">
-                    <i class="fa fa-home" aria-hidden="true"></i>
-                    <span class="link-title">&nbsp; My Dashboard</span>
+                    <i class="fa fa-home mr10" aria-hidden="true"></i>
+                    <span class="link-title">Dashboard</span>
                 </a>
             </li>
             <li class={page == "project" ? "active" : ""}>
                 <a href="/project" class="menu-list">
-                    <i class="fa fa-calendar" aria-hidden="true"></i>
-                    <span class="link-title">&nbsp; Projects</span>
+                    <i class="fa fa-calendar mr10" aria-hidden="true"></i>
+                    <span class="link-title">Projects</span>
                 </a>
             </li>
             <li class={page == "mytask" ? "active" : ""}>
                 <a href="/mytask" class="menu-list">
-                    <i class="fa fa-tasks" aria-hidden="true"></i>
-                    <span class="link-title">&nbsp; My Tasks</span>
+                    <i class="fa fa-tasks mr10" aria-hidden="true"></i>
+                    <span class="link-title">My Tasks</span>
                 </a>
             </li>
             {
                 (loggedUser.data.userRole <= 3) && <li class={page == "users" ? "active" : ""}>
                     <a href="/users" class="menu-list">
-                        <i class="fa fa-users" aria-hidden="true"></i>
-                        <span class="link-title">&nbsp; Teams & Users</span>
+                        <i class="fa fa-users mr10" aria-hidden="true"></i>
+                        <span class="link-title">Teams & Users</span>
                     </a>
                 </li>
             }
-            <li><a href="javascript:void(0)" onClick={this.handleLogout} class="menu-list"><span class="fa fa-sign-out"></span><span class="link-title"> Logout</span></a></li>
+            <li>
+                <a href="javascript:void(0)" onClick={this.handleLogout} class="menu-list">
+                    <i class="fa fa-sign-out mr10"></i><span class="link-title">Logout</span>
+                </a>
+            </li>
         </ul>
         if ((page == "project" || page == "selectedTask") && subpage != "") {
-            Menu = <ul id="menu" class="bg-dark dker">
-                <li class="nav-header">Menu</li>
+            Menu = <ul id="menu">
                 <li class={page == "index" ? "active" : ""}>
                     <a href="/" class="menu-list">
-                        <i class="fa fa-home" aria-hidden="true"></i>
-                        <span class="link-title">&nbsp; My Dashboard</span>
+                        <i class="fa fa-home mr10" aria-hidden="true"></i>
+                        <span class="link-title">Dashboard</span>
                     </a>
                 </li>
                 <li class={page == "project" && subpage == "home" ? "active" : ""}>
                     <a href={`/project/${project}`} class="menu-list">
-                        <i class="fa fa-dashboard" aria-hidden="true"></i>
-                        <span class="link-title">&nbsp; Project Dashboard</span>
+                        <i class="fa fa-dashboard mr10" aria-hidden="true"></i>
+                        <span class="link-title">Project Dashboard</span>
                     </a>
                 </li>
                 <li class={page == "project" && subpage == "workstream" ? "active" : ""}>
                     <a href={`/project/${project}/workstream`} class="menu-list">
-                        <i class="fa fa-wpforms" aria-hidden="true"></i>
-                        <span class="link-title">&nbsp; Workstreams</span>
+                        <i class="fa fa-wpforms mr10" aria-hidden="true"></i>
+                        <span class="link-title">Workstreams</span>
                     </a>
                 </li>
                 <li class={page == "project" && subpage == "task" ? "active" : ""}>
                     <a href={`/project/${project}/task`} class="menu-list">
-                        <i class="fa fa-tasks" aria-hidden="true"></i>
-                        <span class="link-title">&nbsp; Tasks</span>
+                        <i class="fa fa-tasks mr10" aria-hidden="true"></i>
+                        <span class="link-title">Tasks</span>
                     </a>
                 </li>
                 <li class="has-submenu">
                     <a href={"/project/" + project} class="dropdown-toggle has-submenu" data-toggle="dropdown" aria-expanded="true">
-                        <i class="fa fa-calendar"></i>
-                        <span class="link-title">&nbsp; Documents</span>
-                        <span class="fa arrow"></span>
+                        <i class="fa fa-calendar mr10"></i>
+                        <span class="link-title">Documents</span>
+                        <span class="fa fa-caret-down"></span>
                     </a>
                     <ul>
                         <li style={{ backgroundColor: window.location.href.includes("document") ? "#201e1e" : "" }}>
                             <a href={`/project/${project}/documents`}>
-                                <i class="fa fa-book"></i>&nbsp; Library </a>
+                                <i class="fa fa-book mr10"></i>Library
+                            </a>
                         </li>
                         <li style={{ backgroundColor: window.location.href.includes("trash") ? "#201e1e" : "" }}>
                             <a href={`/project/${project}/trash`}>
-                                <i class="fa fa-trash"></i>&nbsp; Trash </a>
+                                <i class="fa fa-trash mr10"></i>Trash
+                            </a>
                         </li>
                     </ul>
                 </li>
                 <li class={page == "project" && subpage == "conversations" ? "active" : ""}>
                     <a href={`/project/${project}/conversations/`} class="menu-list">
-                        <i class="fa fa-comments" aria-hidden="true"></i>
-                        <span class="link-title">&nbsp; Conversations</span>
+                        <i class="fa fa-comments mr10" aria-hidden="true"></i>
+                        <span class="link-title">Conversations</span>
                     </a>
                 </li>
-                <li><a href="javascript:void(0)" onClick={this.handleLogout} class="menu-list"><span class="fa fa-sign-out"></span><span class="link-title"> Logout</span></a></li>
+                <li>
+                    <a href="javascript:void(0)" onClick={this.handleLogout} class="menu-list">
+                        <i class="fa fa-sign-out mr10"></i><span class="link-title">Logout</span>
+                    </a>
+                </li>
             </ul>
         }
 

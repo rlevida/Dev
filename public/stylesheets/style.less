@@ -7,6 +7,15 @@ a {
   cursor: pointer;
 }
 
+html, #main{
+  background-color: #f5f5fa;
+  height: 100vh;
+}
+
+#main-container{
+  height: 100vh;
+}
+
 .m0 { margin : 0px !important}
 .m10 { margin : 10px !important}
 .m20 { margin : 20px !important}
@@ -87,9 +96,10 @@ a {
 .bgcolor-red { background-color: #f90800 !important;color:white }
 .bgcolor-green { background-color: #05aa47 !important; color:white }
 
-#main {
-  min-height: 550px;
+.text-white{
+  color: white!important;
 }
+
 /**
   tree view
 */
@@ -201,11 +211,6 @@ ul{
   display:inline-block;    
   vertical-align:middle; 
 }
-
-#content {
-  padding: 0px!important;
-}
-
 .completed p {
   text-decoration:line-through
 }
@@ -280,6 +285,12 @@ section {
   width: 360px;
   padding: 8% 0 0;
   margin: auto;
+}
+.g-recaptcha{
+  transform: scale(0.95);
+  -webkit-transform: scale(0.95);
+  transform-origin: 0 0;
+  -webkit-transform-origin: 0 0;
 }
 .form-card{
     max-width: 480px;
@@ -434,7 +445,7 @@ td {
 
 .active{
     color: #fff;
-    background-color: #167F92;
+    background-color: #274095;
 }
 
 .clickable{
@@ -1185,6 +1196,58 @@ ul.dropdown-menu {
   max-width: 850px;
 }
 
+.shadow-dark-div {
+  -webkit-box-shadow: 0 0px 10px 0px rgba(51,51,51,0.2);
+  -moz-box-shadow: 0 0px 10px 0px rgba(51,51,51,0.2);
+  box-shadow: 0 0px 10px 0px rgba(51,51,51,0.2);
+}
+
+.menu-bar{
+  background-color: #2f51d0;
+  max-width: 300px;
+  position: relative;
+}
+
+#close-menu{
+  position: absolute;
+  right: 20px;
+  top: 10px;
+}
+
+.nav li{
+  color: #fff;
+}
+
+.flex-row {
+  display: inline-flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  width: 100%;
+}
+
+.flex-col {
+  -webkit-flex-direction: column;
+  flex-direction: column;
+}
+
+.menu-bar, .content-div{
+  flex: 1;
+}
+
+.site-logo{
+  width: 100px;
+  margin: 0 auto;
+  margin-top: 25px;
+  margin-bottom: 50px;
+}
+
+#content{
+  padding-top: 50px;
+  padding-bottom: 50px;
+  padding-left: 25px;
+  padding-right: 25px;
+}
+
 /* Extra Small */
 
 @media(max-width:767px) {
@@ -1205,6 +1268,9 @@ ul.dropdown-menu {
   }
   .status-div {
     float: none!important;
+  }
+  #menu > li > a {
+    padding: 15px 5px 15px 5px!important;
   }
 }
 

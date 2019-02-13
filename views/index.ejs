@@ -28,19 +28,17 @@
 
 <body style="padding: 0px;">
   <%- include(body); %>
-  <foot>
-    <script>
-      var page = '<%= page %>'
-      var subpage = '<%= (typeof subpage != "undefined") ? subpage : "" %>'
-      var taskId = '<%= (typeof task != "undefined") ? task : "" %>'
-      var project = '<%= (typeof project != "undefined") ? project : "" %>'
-      var workstreamId = '<%= (typeof workstream != "undefined") ? workstream : "" %>'
-      var user = '<%- (typeof user != "undefined")?JSON.parse(user):"" %>'
-      var loggedUser = user != "" ? JSON.parse(user) : ""
-    </script>
-    <script src="/javascripts/vendor.js"></script>
-    <script src="/javascripts/app.min.js"></script>
-  </foot>
+  <script>
+    var page = '<%= page %>'
+    var subpage = '<%= (typeof subpage != "undefined") ? subpage : "" %>'
+    var taskId = '<%= (typeof task != "undefined") ? task : "" %>'
+    var project = '<%= (typeof project != "undefined") ? project : "" %>'
+    var workstreamId = '<%= (typeof workstream != "undefined") ? workstream : "" %>'
+    var user = '<%- (typeof user != "undefined")?JSON.parse(user):"" %>'
+    var loggedUser = user != "" ? JSON.parse(user) : ""
+  </script>
+  <script src="/javascripts/vendor.js"></script>
+  <script src="/javascripts/app.min.js"></script>
 </body>
 
 </html>

@@ -20,10 +20,6 @@ html {
   position: relative;
   min-height: 100%;
 }
-body {
-  /* Margin bottom by footer height */
-  margin-bottom: 48px;
-}
 .Footer,
 #footer {
   position: absolute;
@@ -135,20 +131,6 @@ body {
 }
 /* END TOP bar */
 /* BEGIN header.head bar */
-.head {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-  box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.05) inset;
-  text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.5);
-}
-.head .search-bar {
-  margin: 0 auto;
-  padding: 10px 15px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-.head .search-bar .main-search {
-  border-bottom: 1px solid #7c7c7c;
-}
 .head .search-bar .main-search input[type="text"] {
   background-color: transparent;
   border-color: transparent;
@@ -160,25 +142,32 @@ body {
   background: transparent;
   border: transparent;
 }
-@media (min-width: 768px) {
-  .head .search-bar {
-    border-bottom-width: 0;
-    border-right: 1px solid rgba(0, 0, 0, 0.3);
-    box-shadow: -1px 0px 0px rgba(255, 255, 255, 0.05) inset;
-  }
-  .side-right .head .search-bar {
-    border-right-width: 0;
-    border-left: 1px solid rgba(0, 0, 0, 0.3);
-    box-shadow: 1px 0px 0px rgba(255, 255, 255, 0.05) inset;
-  }
-}
 .head .main-bar {
-  padding: 10px;
+  padding-right: 50px;
+  height: 70px;
+  display: flex;
+  align-items: center;
 }
 .head .main-bar h3 {
   margin-top: 0;
   margin-bottom: 0;
-  color: #bababa;
+  color: #333;
+  font-weight: 600;
+}
+.main-bar .toggle-menu{
+  height: 70px;
+  width: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #2f51d0;
+  color: #ffffff;
+}
+.toggle-menu i{
+  font-size: 25px;
+}
+.main-bar .title{
+  margin-left: 25px;
 }
 @media (min-width: 768px) {
   .head .main-bar h3 {
@@ -193,7 +182,6 @@ body {
 @media (min-width: 768px) {
   .search-bar {
     float: left;
-    padding: 10px 4px;
   }
   .side-right .search-bar {
     float: right;
@@ -207,10 +195,6 @@ body {
   }
 }
 @media (min-width: 992px) {
-  .search-bar {
-    width: 250px;
-    padding: 10px 15px;
-  }
   .search-bar .input-group-btn {
     display: table-cell;
   }
@@ -324,33 +308,30 @@ body {
   text-decoration: none;
 }
 #menu ul {
-  background: rgba(0, 0, 0, 0.3);
+  
 }
 #menu > li > a {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-  padding: 10px 0 10px 15px;
+  padding: 15px 0 15px 30px;
 }
 #menu > li.active > a {
   background-color: rgba(0, 0, 0, 0.1);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset;
 }
-#menu > li:hover > a,
-#menu > li:focus > a {
+#menu > li:hover,
+#menu > li:focus{
   background-color: rgba(0, 0, 0, 0.1);
   outline: none;
   box-shadow: none;
 }
 #menu > li ul {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   border-left-width: 0;
 }
 #menu > li ul a {
   padding: 11px 0 11px 30px;
   font-size: 13px;
+  margin-left: 25px;
 }
-#menu > li ul a:hover {
+#menu > li ul li:hover {
   background-color: rgba(0, 0, 0, 0.1);
 }
 @media (min-width: 768px) {
@@ -419,15 +400,15 @@ body:not(.sidebar-left-mini) #menu .nav-header {
   border: 0 !important;
   clip: rect(1px, 1px, 1px, 1px) !important;
 }
-#menu .fa.arrow {
+#menu .fa-caret-down {
   float: right;
   padding-top: 3px;
   margin-right: 15px;
 }
-#menu .fa.arrow:before {
+#menu .fa.down:before {
   content: "\f104";
 }
-#menu .active > a > .fa.arrow:before {
+#menu .active > a > .fa.down:before {
   content: "\f107";
 }
 /* BEGIN CONTENT STYLES */
@@ -2490,7 +2471,7 @@ body.error .logo h1 {
 .login {
   padding-top: 40px;
   padding-bottom: 40px;
-  background: url("../img/pattern/irongrip.png") repeat #444;
+  background-color: #2f51d0;
 }
 .login .form-signin {
   max-width: 330px;

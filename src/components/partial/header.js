@@ -15,7 +15,7 @@ export default class Component extends React.Component {
         super(props)
         this.state = {
             miniSideMenu: (getCookie("sidemenu")) ? getCookie("sidemenu") : "false",
-            showLeft: false,
+            showLeft: true,
             showMore: "",
             reminderCount: 0,
             getReminder: true
@@ -24,13 +24,8 @@ export default class Component extends React.Component {
     }
 
     showLeft() {
-        if (this.state.showLeft) {
-            this.setState({ showLeft: false })
-            $("body").removeClass("sidebar-left-opened");
-        } else {
-            this.setState({ showLeft: true })
-            $("body").addClass("sidebar-left-opened");
-        }
+        const { showLeft } = { ...this.state };
+        this.setState({ showLeft: !showLeft });
     }
 
     componentWillMount() {
@@ -83,104 +78,48 @@ export default class Component extends React.Component {
     }
 
     render() {
-        let { user, reminder } = this.props
-        let userView = "";
-        if (user.username != "") {
-            userView = <div class="headAccess"> Welcome : {user.username}</div>;
-        }
+        const { showLeft } = { ...this.state };
+        const { user, reminder } = { ...this.props };
+        const userView = (user.username != "") ? <div class="headAccess"> Welcome : {user.username}</div> : "";
+        let reminderUnseen = _.orderBy(reminder.List.filter(e => { return !e.seen && e.usersId == user.id }), ['dateAdded'], ['desc']);
 
-        let reminderUnseen = _.orderBy(reminder.List.filter(e => { return !e.seen && e.usersId == user.id }), ['dateAdded'], ['desc'])
-        return <div>
-            <div class={((this.state.miniSideMenu == "true") ? "sidebar-left-mini" : "") + " bg-dark dk "} id="wrap">
-                <div class="dropdown pull-right" style={{ marginTop: "10px", marginRight: "10px" }}>
-                    {(reminderUnseen.length > 0) ?
-                        <a class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                            <span class="fa fa-bell"></span>
-                            <span class="label label-danger" style={{ marginLeft: "5px", display: reminderUnseen.length ? "inline-block" : "none" }}>{reminderUnseen.length}</span>
-                        </a>
-                        :
-                        <a class="btn btn-default dropdown-toggle" href={`/reminder`}>
-                            <span class="fa fa-bell"></span>
-                        </a>
-                    }
-
-                    {(reminderUnseen.length > 0) &&
-                        <ul class="dropdown-menu" >
-                            {
-                                reminderUnseen.map((data, index) => {
-                                    return (
-                                        <li key={index} style={{ height: '100%' }}>
-                                            <a href={`/reminder`} key={index} style={{ textDecoration: "none", fontWeight: "bold" }}>
-                                                <span>{data.type}</span>
-                                                <br />
-                                            </a>
-                                        </li>
-                                    )
-                                })
-                            }
-                        </ul>
-                    }
-                </div>
-                <div class="pull-right" style={{ marginTop: 10, marginRight: 2 }}>
-                    <div class="btn-group">
-                        <a data-tip="profile" href={"/profile"} class="btn btn-default ">
-                            <i class="glyphicon glyphicon-user"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <header class="head">
-                    <div class="search-bar">
-                        <h3 style={{ marginTop: 0, marginBottom: 0 }}>Cloud CFO</h3>
-                    </div>
-                    <div class="main-bar">
-                        <h3 style={{ textTransform: 'capitalize', marginTop: 0, marginBottom: 0 }}>
-                            {(this.props.page)}{this.props.form ? " > " + this.props.form : ""}{(this.props.form) == "Form" ? (this.props.formId > 0 ? " > Edit " : " > Add ") : ""}
-                        </h3>
-                    </div>
-                </header>
-                <div id="left">
-                    <div class="media user-media bg-dark dker">
-                        <div class="user-media-toggleHover">
-                            <span class="glyphicon glyphicon-user"></span>
+        return (
+            <div class={(showLeft) ? 'flex-row' : ''} id="main-container">
+                {(showLeft) &&
+                    <div class="menu-bar flex-col">
+                        <div class="site-logo">
+                            <img src="/images/cloudcfo-flogo.png" class="img-responsive" />
                         </div>
-                        <div class="user-wrapper bg-dark">
-                            <a class="user-link" href={"/profile"}>
-                                <img class="media-object img-thumbnail user-img" alt="User Picture" src="/images/user.gif" />
-                            </a>
+                        <a id="close-menu" onClick={() => this.showLeft()}>
+                            <span class="fa fa-chevron-left text-white"></span>
+                        </a>
 
-                            <div class="media-body">
-                                <h5 class="media-heading"><p style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "120px" }} title={user.username}>{user.username}</p></h5>
-                                <ul class="list-unstyled user-info">
-                                    <li>{user.userType}</li>
-                                    <li>Last Updated: <br />
-                                        <small><i class="glyphicon glyphicon-calendar"></i>&nbsp;{displayDate(user.date_updated)}</small>
-                                    </li>
-                                </ul>
+                        <Menu miniSideMenu={this.state.miniSideMenu} />
+
+                    </div>
+                }
+                <div class="flex-col content-div">
+                    <div class={((this.state.miniSideMenu == "true") ? "sidebar-left-mini" : "") + ""} id="wrap">
+                        <header class="head shadow-dark-div">
+                            <div class="main-bar">
+                                <div class={(showLeft) ? "hide" : "toggle-menu"}>
+                                    <a onClick={() => this.showLeft()} class="text-white">
+                                        <i class="fa fa-bars" aria-hidden="true"></i>
+                                    </a>
+                                </div>
+                                <div class="title">
+                                    <h3 style={{ textTransform: 'capitalize', marginTop: 0, marginBottom: 0 }}>
+                                        {(this.props.page)}{this.props.form ? " > " + this.props.form : ""}{(this.props.form) == "Form" ? (this.props.formId > 0 ? " > Edit " : " > Add ") : ""}
+                                    </h3>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="side-menu-navigator">
-                        {this.state.miniSideMenu == "false" &&
-                            <a href="javascript:void(0);" onClick={e => this.setSideMenuState("true")} ><span class="glyphicon glyphicon-menu-left"></span></a>
-                        }
-                        {this.state.miniSideMenu == "true" &&
-                            <a href="javascript:void(0);" onClick={e => this.setSideMenuState("false")}><span class="glyphicon glyphicon-menu-right"></span></a>
-                        }
-                    </div>
-                    <Menu miniSideMenu={this.state.miniSideMenu} />
-                </div>
-                <div id="content">
-                    <div class="outer" style={{ minHeight: "400px" }}>
-                        <div class="inner bgcolor-gray lter" style={{ minHeight: "500px" }}>
+                        </header>
+                        <div id="content">
                             <div>{this.props.component}</div>
-                            <footer class="Footer bg-dark">
-                                <p>© 2013-{(new Date()).getFullYear()} All Rights Reserved. - Powered by <a class="red-text text-lighten-1" href="http://www.mobbizsolutions.com/" target="_blank">Mobbiz Solutions</a></p>
-                            </footer>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        )
     }
 }
