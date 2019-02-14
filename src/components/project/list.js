@@ -5,8 +5,8 @@ import _ from 'lodash';
 
 import { Loading, HeaderButtonContainer } from "../../globalComponents";
 import { showToast, getData } from "../../globalFunction";
-import ProjectFilter from "./projectFilter"
-import ProjectStatus from "./projectStatus"
+
+import ProjectFilter from "./projectFilter";
 import ArchiveModal from "./archiveModal"
 
 import { connect } from "react-redux"
@@ -141,15 +141,9 @@ export default class List extends React.Component {
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card">
-                        <HeaderButtonContainer withMargin={true}>
-                            <li class="btn btn-info" onClick={(e) => {
-                                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { isActive: true } });
-                                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
-                            }}
-                            >
-                                <span>New Project</span>
-                            </li>
-                        </HeaderButtonContainer>
+                        <div class="mb20 bd">
+                            <ProjectFilter />
+                        </div>
                         <div class={(project.Loading == "RETRIEVING" && (project.List).length == 0) ? "linear-background" : ""}>
                             {
                                 ((project.List).length > 0) && <table>

@@ -96,6 +96,10 @@ html, #main{
 .bgcolor-red { background-color: #f90800 !important;color:white }
 .bgcolor-green { background-color: #05aa47 !important; color:white }
 
+.bd{
+  border-bottom: 1px solid #e7e7e7;
+}
+
 .text-white{
   color: white!important;
 }
@@ -1386,6 +1390,43 @@ table th {
   font-weight: 100;
 }
 
+.filter .tab-row a{
+  font-size: 18px;
+}
+
+.filter .tab-row a.btn{
+  border: 0px;
+}
+
+.filter .tab-row a.btn:hover{
+  color: #fff;
+  background-color: #7068d6;
+}
+
+.filter .row{
+  display: flex;
+  align-items: center;
+}
+
+.add-action{
+  display: flex;
+  float: right;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.add-action .Select{
+  margin-right: 10px;
+  width: 100%;
+  max-width: 200px;
+}
+
+.add-action .btn-default{
+  background-color: #f6f6f6;
+  font-weight: 600;
+  color: #818181;
+}
+
 @media screen and (max-width: 600px) {
   table {
     border: 0;
@@ -1470,7 +1511,7 @@ table th {
   .menu-list i{
     width: 100%;
   }
-  .content-row [class*=col]:not(:last-child){
+  .content-row [class*=col-]:not(:last-child){
     margin-bottom: 20px;
   }
   .status-count [class*=col]:not(:last-child){
@@ -1496,6 +1537,24 @@ table th {
   }
 
   .tab-row .btn{
+    width: 100%;
+  }
+
+  .filter .tab-row .flex-col{
+    flex: 1 100% !important;
+  }
+  .filter .row{
+    display: block;
+  }
+
+  .add-action {
+    display: block
+  }
+  .add-action .Select{
+    margin-bottom: 30px;
+    max-width: none;
+  }
+  .add-action .btn{
     width: 100%;
   }
 }

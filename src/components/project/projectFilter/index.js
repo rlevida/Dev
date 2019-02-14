@@ -43,35 +43,49 @@ export default class ProjectFilter extends React.Component {
     }
 
     render() {
-        const { type, project } = this.props;
+        const { type, project, dispatch } = this.props;
         const { Filter } = { ...project }
-        let typeList = [{ id: "", name: "All Project Types" }];
+        const projectTypes = _(type.List).filter((o) => { return o.linkType == "project" }).map((o) => { return { id: o.id, name: o.type } }).value();
         const statusList = [
             { id: "All", name: "All Status" },
             { id: "Active", name: "Active" },
             { id: "On Time", name: "On Time" },
             { id: "Issues", name: "Issues" }
         ];
-        type.List.map((e, i) => { if (e.linkType == "project") { typeList.push({ id: e.id, name: e.type }) } });
+
 
         return (
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-md-6 col-xs-6 mb5">
-                        <label>Project Type</label>
-                        <DropDown multiple={false}
-                            required={false}
-                            options={typeList}
-                            selected={Filter.typeId}
-                            onChange={(e) => this.setDropDown("typeId", e.value)} />
+            <div class="container-fluid filter mb20">
+                <div class="row content-row">
+                    <div class="col-md-6 col-sm-6 col-xs-12 pd0">
+                        <div class="flex-row tab-row mb0">
+                            {
+                                _.map(projectTypes, (projectType, index) => {
+                                    return (<div class="flex-col" key={index}>
+                                        <a class={(projectType.id == project.Filter.typeId) ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("typeId", projectType.id)}>{projectType.name}</a>
+                                    </div>)
+                                })
+                            }
+                        </div>
                     </div>
-                    <div class="col-md-6 col-xs-6 mb5">
-                        <label>Project Status</label>
-                        <DropDown multiple={false}
-                            required={false}
-                            options={statusList}
-                            selected={Filter.projectStatus}
-                            onChange={(e) => this.setDropDown("projectStatus", e.value)} />
+                    <div class="col-md-6 col-sm-6 col-xs-12 pd0">
+                        <div class="add-action">
+                            <DropDown multiple={false}
+                                required={false}
+                                options={statusList}
+                                selected={Filter.projectStatus}
+                                onChange={(e) => this.setDropDown("projectStatus", e.value)} />
+                            <a class="btn btn-default" onClick={(e) => {
+                                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { isActive: true } });
+                                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
+                            }}
+                            >
+                                <span>
+                                    <i class="fa fa-plus mr10" aria-hidden="true"></i>
+                                    Add New Project
+                                </span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
