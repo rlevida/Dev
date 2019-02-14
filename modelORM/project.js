@@ -99,6 +99,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'linkId'
     })
 
+    Projects.hasMany(models.Members, {
+      as: 'members',
+      foreignKey: 'linkId'
+    })
+
     Projects.hasMany(models.Workstream, {
       as: 'workstream',
       foreignKey: 'projectId'

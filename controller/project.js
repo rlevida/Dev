@@ -39,6 +39,11 @@ const associationFindAllStack = [
         required: false,
     },
     {
+        model: Members,
+        as: 'members',
+        required: false,
+    },
+    {
         model: Tasks,
         as: 'taskActive',
         attributes: [],
@@ -397,7 +402,6 @@ exports.get = {
 }
 
 exports.post = {
-
     index: (req, cb) => {
         let d = req.body;
         sequence.create().then((nextThen) => {
@@ -822,46 +826,28 @@ exports.put = {
         })
     },
     archive: (req, cb) => {
-        let dataToSubmit = req.body
-        let id = req.params.id
+        const dataToSubmit = req.body
+        const id = req.params.id;
 
-        sequence.create().then((nextThen) => {
-            try {
-                Project
-                    .update({
-                        ...dataToSubmit
-                    }, {
-                            where: {
-                                id: id
-                            },
-                        })
-                    .then(res => {
-                        nextThen(res)
-                    })
-            } catch (err) {
-                cb({
-                    status: false,
-                    error: err
+        try {
+            Projects.update(
+                { ...dataToSubmit },
+                {
+                    where: {
+                        id: id
+                    },
+                }).then((res) => {
+                    cb({
+                        status: true,
+                        data: id
+                    });
                 })
-            }
-
-        }).then((nextThen, result) => {
-            try {
-                Project
-                    .findById(result[0])
-                    .then(res => {
-                        cb({
-                            status: true,
-                            data: res
-                        })
-                    })
-            } catch (err) {
-                cb({
-                    status: false,
-                    error: err
-                })
-            }
-        })
+        } catch (err) {
+            cb({
+                status: false,
+                error: err
+            });
+        }
     },
     projectMember: (req, cb) => {
         let d = req.body
@@ -887,246 +873,122 @@ exports.put = {
 }
 
 exports.delete = {
-    index: (req, cb) => {
-        let d = req.params
-        async.waterfall([
-            function (callback) {
-                async.parallel({
-                    projects: (parallelCallback) => {
-                        try {
-                            Project
-                                .findAll({
-                                    where: {
-                                        id: d.id
-                                    }
-                                })
-                                .map((res) => {
-                                    return res.id
-                                })
-                                .then((res) => {
-                                    parallelCallback(null, res)
-                                })
-                        } catch (err) {
-                            parallelCallback(null, "")
-                        }
-                    },
-                    workstreams: (parallelCallback) => {
-                        try {
-                            Workstream
-                                .findAll({
-                                    where: {
-                                        projectId: d.id
-                                    }
-                                })
-                                .map((res) => {
-                                    return res.id
-                                })
-                                .then((res) => {
-                                    parallelCallback(null, res)
-                                })
-                        } catch (err) {
-                            parallelCallback(null, "")
-                        }
-                    },
-                    tasks: (parallelCallback) => {
-                        try {
-                            Tasks
-                                .findAll({
-                                    where: {
-                                        projectId: d.id
-                                    }
-                                })
-                                .map((res) => {
-                                    return res.id
-                                })
-                                .then((res) => {
-                                    parallelCallback(null, res)
-                                })
-                        } catch (err) {
-                            parallelCallback(null, "")
-                        }
-                    },
-                    documents: (parallelCallback) => {
-                        try {
-                            DocumentLink
-                                .findAll({
-                                    where: {
-                                        linkType: 'project',
-                                        linkId: d.id
-                                    }
-                                })
-                                .map((res) => {
-                                    return res.documentId
-                                })
-                                .then((res) => {
-                                    parallelCallback(null, res)
-                                })
-                        } catch (err) {
-                            parallelCallback(null, "")
-                        }
-                    }
-                }, (err, parallelCallbackResult) => {
-                    callback(null, parallelCallbackResult)
-                })
-            },
-            function (result, callback) {
-                async.parallel({
-                    projects: (parallelCallback) => {
-                        try {
-                            if (result.projects.length > 0) {
-                                Project
-                                    .destroy({
-                                        where: {
-                                            id: result.projects
-                                        }
-                                    })
-                                    .then((res) => {
-                                        parallelCallback(null, res)
-                                    })
-                            } else {
-                                parallelCallback(null, "")
-                            }
-                        } catch (err) {
-                            parallelCallback(null, "")
-                        }
-                    },
-                    workstreams: (parallelCallback) => {
-                        try {
-                            if (result.workstreams.length > 0) {
-                                Workstream
-                                    .destroy({
-                                        where: {
-                                            id: result.workstreams
-                                        }
-                                    })
-                                    .then((res) => {
-                                        parallelCallback(null, res)
-                                    })
-                            } else {
-                                parallelCallback(null, "")
-                            }
-                        } catch (err) {
-                            parallelCallback(null, "")
-                        }
-                    },
-                    tasks: (parallelCallback) => {
-                        try {
-                            if (result.tasks.length > 0) {
-                                Tasks
-                                    .destroy({
-                                        where: {
-                                            id: result.tasks
-                                        }
-                                    })
-                                    .then((res) => {
-                                        parallelCallback(null, res)
-                                    })
-                                    .catch((err) => {
+    index: async (req, cb) => {
+        let d = req.params;
 
-                                    })
-                            } else {
-                                parallelCallback(null, "")
+        try {
+            const workstreamIds = await Workstream.findAll({ where: { projectId: d.id } }).map((o) => { return o.id });
+            const taskIds = await Tasks.findAll({ where: { projectId: d.id } }).map((o) => { return o.id });
+            const documentIds = await DocumentLink.findAll({ where: { linkType: 'project', linkId: d.id } }).map((o) => { return o.id });
+
+            async.parallel({
+                projects: (parallelCallback) => {
+                    Projects.destroy({
+                        where: {
+                            id: d.id
+                        }
+                    }).then((res) => {
+                        parallelCallback(null, res);
+                    }).catch((err) => {
+                        parallelCallback(err);
+                    });
+                },
+                workstreams: (parallelCallback) => {
+                    Workstream.destroy({
+                        where: {
+                            projectId: d.id
+                        }
+                    }).then((res) => {
+                        parallelCallback(null, res)
+                    }).catch((err) => {
+                        parallelCallback(err);
+                    });
+                },
+                tasks: (parallelCallback) => {
+                    Tasks.destroy({
+                        where: {
+                            projectId: d.id
+                        }
+                    }).then((res) => {
+                        parallelCallback(null, res)
+                    }).catch((err) => {
+                        parallelCallback(err);
+                    });
+                },
+                members: (parallelCallback) => {
+                    Members.destroy({
+                        where: {
+                            [Op.or]: [{
+                                linkType: 'project',
+                                linkId: d.id
+                            },
+                            {
+                                linkType: 'workstream',
+                                linkId: workstreamIds
+                            },
+                            {
+                                linkType: 'task',
+                                linkId: taskIds
                             }
-                        } catch (err) {
-                            parallelCallback(null, "")
+                            ]
                         }
-                    },
-                    members: (parallelCallback) => {
-                        try {
-                            Members
-                                .destroy({
-                                    where: {
-                                        [Op.or]: [{
-                                            linkType: 'project',
-                                            linkId: d.id
-                                        },
-                                        {
-                                            linkType: 'workstream',
-                                            linkId: {
-                                                [Op.or]: result.workstreams
-                                            }
-                                        },
-                                        {
-                                            linkType: 'task',
-                                            linkId: {
-                                                [Op.or]: result.tasks
-                                            }
-                                        }
-                                        ]
-                                    }
-                                })
-                                .then((res) => {
-                                    parallelCallback(null, res)
-                                })
-                        } catch (err) {
-                            parallelCallback(null, "")
+                    }).then((res) => {
+                        parallelCallback(null, res)
+                    }).catch((err) => {
+                        parallelCallback(err);
+                    });
+                },
+                documents: (parallelCallback) => {
+                    Document.destroy({
+                        where: {
+                            id: documentIds
                         }
-                    },
-                    documents: (parallelCallback) => {
-                        try {
-                            if (result.documents.length > 0) {
-                                Document
-                                    .destroy({
-                                        where: {
-                                            id: result.documents
-                                        }
-                                    })
-                                    .then((res) => {
-                                        parallelCallback(null, res)
-                                    })
-                            } else {
-                                parallelCallback(null, "")
-                            }
-                        } catch (err) {
-                            parallelCallback(null, "")
+                    }).then((res) => {
+                        parallelCallback(null, res)
+                    }).catch((err) => {
+                        parallelCallback(err);
+                    });
+                },
+                documentLinks: (parallelCallback) => {
+                    DocumentLink.destroy({
+                        where: {
+                            linkType: 'project',
+                            linkId: d.id
                         }
-                    },
-                    documentLinks: (parallelCallback) => {
-                        try {
-                            if (result.documents.length > 0) {
-                                DocumentLink
-                                    .destroy({
-                                        where: {
-                                            linkType: 'project',
-                                            linkId: result.projects
-                                        }
-                                    })
-                                    .then((res) => {
-                                        parallelCallback(null, res)
-                                    })
-                            } else {
-                                parallelCallback(null, "")
-                            }
-                        } catch (err) {
-                            parallelCallback(null, "")
+                    }).then((res) => {
+                        parallelCallback(null, res)
+                    }).catch((err) => {
+                        parallelCallback(err);
+                    });
+                },
+                documentTags: (parallelCallback) => {
+                    Tag.destroy({
+                        where: {
+                            tagType: 'document',
+                            tagTypeId: documentIds
                         }
-                    },
-                    documentTags: (parallelCallback) => {
-                        if (result.documents.length > 0) {
-                            Tag
-                                .destroy({
-                                    where: {
-                                        tagType: 'document',
-                                        tagTypeId: result.documents
-                                    }
-                                })
-                                .then((res) => {
-                                    parallelCallback(null, res)
-                                })
-                        } else {
-                            parallelCallback(null, "")
-                        }
-                    }
-                }, (err, parallelCallbackResult) => {
-                    callback(null, parallelCallbackResult)
-                })
-            }
-        ], function (error, result) {
+                    }).then((res) => {
+                        parallelCallback(null, res)
+                    }).catch((err) => {
+                        parallelCallback(err);
+                    });
+                }
+            }, (err) => {
+                if (err != null) {
+                    throw err
+                } else {
+                    cb({
+                        status: true,
+                        data: d.id
+                    });
+                }
+            });
+        } catch (error) {
             cb({
-                status: true,
-                data: d.id
-            })
-        });
+                status: false,
+                data: error
+            });
+        }
     },
     deleteProjectMember: (req, cb) => {
         try {

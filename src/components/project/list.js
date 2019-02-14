@@ -1,7 +1,7 @@
-import React from "react";
-import Tooltip from "react-tooltip";
+import React from 'react';
 import parallel from 'async/parallel';
 import moment from 'moment';
+import _ from 'lodash';
 
 import { Loading, HeaderButtonContainer } from "../../globalComponents";
 import { showToast, getData } from "../../globalFunction";
@@ -20,7 +20,13 @@ export default class List extends React.Component {
     constructor(props) {
         super(props)
 
-        this.getNextResult = this.getNextResult.bind(this)
+        _.map([
+            "getNextResult",
+            "renderStatus",
+            "handleEdit"
+        ], (fn) => {
+            this[fn] = this[fn].bind(this);
+        });
     }
 
     componentDidMount() {
@@ -107,121 +113,114 @@ export default class List extends React.Component {
         $(`#archiveModal`).modal("show");
     }
 
+    renderStatus({ lateWorkstream, workstreamTaskDueToday }) {
+        const status = (lateWorkstream > 0) ? `${lateWorkstream} stream(s) delayed` : (workstreamTaskDueToday > 0) ? `${workstreamTaskDueToday} stream(s) due today` : `On track`;
+        const color = (lateWorkstream > 0) ? "text-red" : (workstreamTaskDueToday > 0) ? "text-yellow" : "text-green";
+
+        return (
+            <p class={`mb0 ${color}`}>
+                {status}
+            </p>
+        );
+    }
+
+    handleEdit(params) {
+        const { dispatch } = { ...this.props };
+
+        dispatch({ type: "SET_PROJECT_SELECTED", Selected: params });
+        dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
+        dispatch({ type: "SET_PROJECT_MANAGER_ID", id: params.projectManagerId });
+    }
+
     render() {
-        let { project, loggedUser, dispatch } = this.props;
+        const { project, loggedUser, dispatch } = this.props;
         const currentPage = (typeof project.Count.current_page != "undefined") ? project.Count.current_page : 1;
         const lastPage = (typeof project.Count.last_page != "undefined") ? project.Count.last_page : 1;
 
         return (
-            <div class="pd20">
-                <div class="row mb20">
-                    <div class="col-lg-10 col-md-12 status-div">
-                        <ProjectStatus />
-                    </div>
-                </div>
-                {
-                    (typeof loggedUser.data != 'undefined' && loggedUser.data.userType != 'External' && loggedUser.data.userRole < 4) &&
-                    <HeaderButtonContainer withMargin={true}>
-                        <li class="btn btn-info" onClick={(e) => {
-                            dispatch({ type: "SET_PROJECT_SELECTED", Selected: { isActive: true } });
-                            dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
-                        }}
-                        >
-                            <span>New Project</span>
-                        </li>
-                    </HeaderButtonContainer>
-                }
-                <div class="row mb10">
-                    <div class="col-lg-4 col-md-6 pd0">
-                        <ProjectFilter />
-                    </div>
-                </div>
-                <table id="dataTable" class="table responsive-table">
-                    <tbody>
-                        <tr>
-                            <th></th>
-                            <th>Projects</th>
-                            <th class="text-center">Type</th>
-                            <th class="text-center">New Docs</th>
-                            <th class="text-center">Notifications</th>
-                            <th class="text-center">Active Workstreams</th>
-                            <th class="text-center">Late Workstreams</th>
-                            {(loggedUser.data.userRole == 1
-                                || loggedUser.data.userRole == 2
-                                || loggedUser.data.userRole == 3
-                                || loggedUser.data.userRole == 4) &&
-                                <th></th>
-                            }
-                        </tr>
-                        {
-                            project.List.map((data, index) => {
-                                if ((data.typeId == 2 || data.typeId == 3) && (loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3 && loggedUser.data.userRole != 4 && loggedUser.data.userRole != 5 && loggedUser.data.userRole != 6)) {
-                                    // if user is client the he can only see client project
-                                } else {
-                                    let lateWorkstream = 0;
-                                    let workstreamTaskDueToday = 0
-                                    data.workstream.map((e) => {
-                                        if (e.taskOverDue.length) {
-                                            lateWorkstream++;
-                                        }
-                                        if (e.taskDueToday.length) {
-                                            workstreamTaskDueToday++
-                                        }
-                                    });
-                                    return (
-                                        <tr key={index}>
-                                            <td>
-                                                {(data.isActive == 0) && <span class="fa fa-circle" style={{ color: "#bdc3c7" }}></span>}
-                                                {(data.isActive == 1) ? <span className={(lateWorkstream > 0) ? "fa fa-exclamation-circle" : "fa fa-circle"} style={{ color: (lateWorkstream > 0) ? "#c0392b" : (workstreamTaskDueToday > 0) ? "#f39c12" : "#27ae60" }}></span> : ""}
-                                            </td>
-                                            <td class="text-left"><a href={"/project/" + data.id} target="_blank">{data.project + ((data.projectNameCount > 0) ? " (" + data.projectNameCount + ")" : "")}</a></td>
-                                            <td class="text-center">
-                                                <span title={data.type.type}>
-                                                    <i class={(data.type.type == "Client") ? "fa fa-users" : (data.type.type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></i>
-                                                </span>
-                                            </td>
-                                            <td class="text-center">{data.newDocuments}</td>
-                                            <td class="text-center"><span><i class="fa fa-file-alt"></i></span></td>
-                                            <td class="text-center">{data.workstream.length ? data.workstream.length : ""}</td>
-                                            <td class="text-center">{lateWorkstream ? lateWorkstream : ""}</td>
-                                            {(loggedUser.data.userRole == 1
-                                                || loggedUser.data.userRole == 2
-                                                || loggedUser.data.userRole == 3) &&
-                                                <td class="text-center">
-                                                    <a href="javascript:void(0);" data-tip="EDIT"
-                                                        onClick={(e) => {
-                                                            dispatch({ type: "SET_PROJECT_SELECTED", Selected: data }),
-                                                                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" })
-                                                            dispatch({ type: "SET_PROJECT_MANAGER_ID", id: data.projectManagerId })
-                                                        }
-                                                        }
-                                                        class="btn btn-info btn-sm">
-                                                        <span class="glyphicon glyphicon-pencil"></span></a>
-                                                    <a href="javascript:void(0);" data-tip="ARCHIVE"
-                                                        onClick={(e) => this.archive(data)}
-                                                        class={data.allowedDelete == 0 ? 'hide' : 'btn btn-danger btn-sm ml10'}>
-                                                        <span class="fa fa-archive"></span></a>
-                                                    <Tooltip />
-                                                </td>
-                                            }
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <HeaderButtonContainer withMargin={true}>
+                            <li class="btn btn-info" onClick={(e) => {
+                                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { isActive: true } });
+                                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
+                            }}
+                            >
+                                <span>New Project</span>
+                            </li>
+                        </HeaderButtonContainer>
+                        <div class={(project.Loading == "RETRIEVING" && (project.List).length == 0) ? "linear-background" : ""}>
+                            {
+                                ((project.List).length > 0) && <table>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" class="td-left">Project Name</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Workstreams</th>
+                                            <th scope="col">Members</th>
+                                            <th scope="col">Actions</th>
                                         </tr>
-                                    )
-                                }
-                            })
-                        }
-                    </tbody>
-                </table>
-                {
-                    (project.Loading == "RETRIEVING") && <Loading />
-                }
+                                    </thead>
+                                    <tbody>
+                                        {
+                                            _.map(project.List, (projectElem, index) => {
+                                                const { id, project, workstream, members } = { ...projectElem };
+                                                let lateWorkstream = 0;
+                                                let workstreamTaskDueToday = 0;
 
-                <div class="text-center">
-                    {
-                        (currentPage != lastPage && project.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Projects</a>
-                    }
-                    {
-                        (project.List.length == 0 && project.Loading != "RETRIEVING") && <p>No Records Found</p>
-                    }
+                                                workstream.map((e) => {
+                                                    if (e.taskOverDue.length) {
+                                                        lateWorkstream++;
+                                                    }
+                                                    if (e.taskDueToday.length) {
+                                                        workstreamTaskDueToday++;
+                                                    }
+                                                });
+
+                                                return (
+                                                    <tr key={index}>
+                                                        <td data-label="Project Name" class="td-left">
+                                                            <p class="mb0"><a href={"/project/" + id} target="_blank">{project}</a></p>
+                                                        </td>
+                                                        <td data-label="Status">
+                                                            {this.renderStatus({ lateWorkstream, workstreamTaskDueToday })}
+                                                        </td>
+                                                        <td data-label="Workstreams">
+                                                            {workstream.length}
+                                                        </td>
+                                                        <td data-label="Members">
+                                                            {members.length}
+                                                        </td>
+                                                        <td data-label="Actions" class={(loggedUser.data.userRole <= 3) ? "" : "hide"}>
+                                                            <a href="javascript:void(0);"
+                                                                onClick={() => this.handleEdit(projectElem)}
+                                                                class="btn btn-action">
+                                                                <span class="glyphicon glyphicon-pencil" title="EDIT"></span>
+                                                            </a>
+                                                            <a href="javascript:void(0);"
+                                                                onClick={(e) => this.archive(projectElem)}
+                                                                class={projectElem.allowedDelete == 0 ? 'hide' : 'btn btn-action'}>
+                                                                <span class="fa fa-trash"></span></a>
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            })
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            {
+                                (project.Loading == "RETRIEVING" && (project.List).length > 0) && <Loading />
+                            }
+                            {
+                                (currentPage != lastPage && project.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNextResult()}>Load More Projects</a></p>
+                            }
+                            {
+                                ((project.List).length == 0 && project.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                            }
+                        </div>
+                    </div>
                 </div>
                 <ArchiveModal />
             </div>

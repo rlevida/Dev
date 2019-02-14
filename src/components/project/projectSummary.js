@@ -111,7 +111,7 @@ export default class List extends React.Component {
                             <tbody>
                                 {
                                     _.map(project.List, (projectElem, index) => {
-                                        const { project, type, newDocuments, dateAdded, dateUpdated } = { ...projectElem };
+                                        const { project, type, newDocuments, dateAdded } = { ...projectElem };
                                         return (
                                             <tr key={index}>
                                                 <td data-label="Project Name">
