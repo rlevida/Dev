@@ -38,11 +38,6 @@ export default class Component extends React.Component {
                 (task.FormActive != "Form") &&
                 <div>
                     <Link />
-                    <div class="row mb10 mt10">
-                        <div class="col-lg-6 status-div">
-                            <TaskStatus />
-                        </div>
-                    </div>
                     <div class="row mb10">
                         <div class="col-lg-10 pd0">
                             <TaskFilter />

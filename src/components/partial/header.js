@@ -147,7 +147,7 @@ export default class Component extends React.Component {
                             </div>
                         </header>
                         <div id="content">
-                            <div>{this.props.component}</div>
+                            {this.props.component}
                         </div>
                     </div>
                 </div>

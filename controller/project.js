@@ -86,7 +86,7 @@ exports.get = {
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : {},
             ...(typeof queryString.typeId != "undefined" && queryString.typeId != "") ? { typeId: queryString.typeId } : {},
-
+            isDeleted: 0
         };
 
         if (typeof queryString.projectStatus != "undefined" && queryString.projectStatus != "") {

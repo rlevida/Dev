@@ -90,11 +90,6 @@ export default class List extends React.Component {
 
         return (
             <div class="pd20">
-                <div class="row mb20">
-                    <div class="col-lg-10 col-md-12 status-div">
-                        <TaskStatus />
-                    </div>
-                </div>
                 <div class="row mb10">
                     <div class="col-lg-7 pd0">
                         <TaskFilter />

@@ -1,6 +1,6 @@
-body {
+html, body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-  overflow: hidden;
+  overflow: auto;
 }
 
 a {
@@ -12,8 +12,8 @@ html, #main{
 }
 
 #main-container{
-  height: 100vh;
   background-color: #f5f5fa;
+  min-height: 100vh;
 }
 
 .m0 { margin : 0px !important}
@@ -739,27 +739,6 @@ li.rc-time-picker-panel-select-option-disabled:hover {
   text-align: right;
 }
 
-/**
-* Screen Layout
-**/
-#content{
-      height: calc(~"100vh - 77px");
-      padding: 10px;
-
-      .outer {
-            height: 100%;
-            min-height: calc(~"100vh - 77px");
-
-            .inner {
-              height: 100%;
-              overflow: hidden;
-              min-height: calc(~"100vh - 77px");
-              overflow: hidden !important;
-              overflow-y: visible !important;
-              border: 0px;
-            }
-      }
-}
 
 /**
   Form Field Widget
@@ -1193,6 +1172,7 @@ ul.dropdown-menu {
   box-shadow: 0 0px 10px 0px rgba(51,51,51,0.2);
   padding: 20px;
   min-height: 200px;
+  background-color: #ffffff;
 }
 
 .card-header h4{
@@ -1236,11 +1216,6 @@ ul.dropdown-menu {
 .menu-bar, .content-div{
   flex: 1;
 }
-
-.content-div{
-  overflow-y: scroll
-}
-
 .site-logo{
   max-width: 100px;
   margin: 0 auto;
@@ -1298,6 +1273,24 @@ ul.dropdown-menu {
   color: #ff3842;
 }
 
+.tab-row .flex-col:not(:last-child){
+  margin-right: 10px;
+}
+
+.tab-row{
+  margin-bottom: 20px;
+}
+
+.tab-row .btn{
+  line-height: 15px;
+}
+
+.btn-active{
+  color: #ffffff!important;
+  background-color: #7068d6 !important;
+  border: 1px solid #7068d6 !important;
+}
+
 @keyframes placeHolderShimmer{
   0%{
       background-position: -468px 0
@@ -1322,6 +1315,85 @@ ul.dropdown-menu {
 
 .status-count [class*=col]:not(:last-child){
   border-right: 1px #dddddd solid;
+}
+
+table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+table caption {
+  font-size: 1.5em;
+  margin: .5em 0 .75em;
+}
+
+table tr {
+  background-color: transparent;
+  border: 0px;
+  padding: .35em;
+}
+
+table th,
+table td {
+  padding: .625em;
+  text-align: center;
+}
+
+table th {
+  font-size: .85em;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #c4c4c4;
+  font-weight: 100;
+}
+
+@media screen and (max-width: 600px) {
+  table {
+    border: 0;
+  }
+
+  table caption {
+    font-size: 1.3em;
+  }
+  
+  table thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+  }
+  
+  table tr {
+    border-bottom: 3px solid #ddd;
+    display: block;
+    margin-bottom: .625em;
+  }
+  
+  table td {
+    border-bottom: 1px solid #ddd;
+    display: block;
+    font-size: .8em;
+    text-align: right;
+  }
+  
+  table td::before {
+    /*
+    * aria-label has no advantage, it won't be read inside a table
+    content: attr(aria-label);
+    */
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  table td:last-child {
+    border-bottom: 0;
+  }
 }
 
 /* Extra Small */
@@ -1363,6 +1435,26 @@ ul.dropdown-menu {
   .content-row [class*=col]:not(:last-child){
     margin-bottom: 20px;
   }
+  .status-count [class*=col]:not(:last-child){
+    border-right: 0px;
+  }
+
+  .tab-row{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tab-row .flex-col{
+    margin-right: 0px!important;
+    flex: 1 50% !important;
+    padding: 2px;
+  }
+
+  .tab-row .btn{
+    width: 100%;
+  }
 }
 
 /* Small */
@@ -1398,6 +1490,12 @@ ul.dropdown-menu {
   .menu-list i{
     width: 100%;
   }
+  .status-count [class*=col]:not(:last-child){
+    border-right: 0px;
+  }
+  #menu > li > a {
+    padding: 15px 5px 15px 5px!important;
+  }
 }
 
 /* Medium */
@@ -1415,7 +1513,9 @@ ul.dropdown-menu {
   .single-status .count:first-child span:nth-of-type(1) {
     float:right;
   }
-  
+  .status-count [class*=col]:not(:last-child){
+    border-right: 0px;
+  }
 }
 
 @media (min-width: 1020px){
