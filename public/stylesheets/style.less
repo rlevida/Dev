@@ -296,11 +296,6 @@ section {
   transform-origin: 0 0;
   -webkit-transform-origin: 0 0;
 }
-.form-card{
-    max-width: 480px;
-    /*margin: 0px auto;*/
-    padding: 10px 20px;
-}
 .mid-card{
     max-width: 500px;
     margin: 0px auto;
@@ -319,7 +314,6 @@ section {
 input {
   outline: 0;
   background: #f2f2f2;
-  width: 100%;
   border: 0;
   margin: 0 0 15px;
   padding: 15px;
@@ -1296,7 +1290,8 @@ ul.dropdown-menu {
   line-height: 15px;
 }
 
-.btn-active{
+.btn-active,
+.btn-violet{
   color: #ffffff!important;
   background-color: #7068d6 !important;
   border: 1px solid #7068d6 !important;
@@ -1425,6 +1420,42 @@ table th {
   background-color: #f6f6f6;
   font-weight: 600;
   color: #818181;
+}
+
+.form-card{
+  padding: 0px;
+}
+
+.form-card .card-body{
+  padding: 20px;
+  margin-top: 0px;
+}
+
+.form-card .card-header{
+  padding: 20px;
+  background-color: #789ce4;
+  color: #ffffff;
+}
+
+form .header{
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.radio label, .checkbox label{
+  font-weight: 100!important;
+}
+
+label{
+  font-weight: 100!important;
+}
+
+form {
+  max-width: 450px;
+}
+
+.checkbox input[type="checkbox"]{
+  margin-top: 2px;
 }
 
 @media screen and (max-width: 600px) {
