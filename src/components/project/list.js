@@ -2,14 +2,14 @@ import React from 'react';
 import parallel from 'async/parallel';
 import moment from 'moment';
 import _ from 'lodash';
+import { connect } from "react-redux";
 
-import { Loading, HeaderButtonContainer } from "../../globalComponents";
+import { Loading } from "../../globalComponents";
 import { showToast, getData } from "../../globalFunction";
 
 import ProjectFilter from "./projectFilter";
-import ArchiveModal from "./archiveModal"
+import ArchiveModal from "./modals/archiveModal";
 
-import { connect } from "react-redux"
 @connect((store) => {
     return {
         project: store.project,
@@ -23,7 +23,8 @@ export default class List extends React.Component {
         _.map([
             "getNextResult",
             "renderStatus",
-            "handleEdit"
+            "handleEdit",
+            "handleArchive"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -107,12 +108,6 @@ export default class List extends React.Component {
         })
     }
 
-    archive(data) {
-        let { dispatch } = this.props;
-        dispatch({ type: "SET_PROJECT_SELECTED", Selected: data })
-        $(`#archiveModal`).modal("show");
-    }
-
     renderStatus({ lateWorkstream, workstreamTaskDueToday }) {
         const status = (lateWorkstream > 0) ? `${lateWorkstream} stream(s) delayed` : (workstreamTaskDueToday > 0) ? `${workstreamTaskDueToday} stream(s) due today` : `On track`;
         const color = (lateWorkstream > 0) ? "text-red" : (workstreamTaskDueToday > 0) ? "text-yellow" : "text-green";
@@ -130,6 +125,12 @@ export default class List extends React.Component {
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: params });
         dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
         dispatch({ type: "SET_PROJECT_MANAGER_ID", id: params.projectManagerId });
+    }
+
+    handleArchive(data) {
+        let { dispatch } = this.props;
+        dispatch({ type: "SET_PROJECT_SELECTED", Selected: data })
+        $(`#archiveModal`).modal("show");
     }
 
     render() {
@@ -193,7 +194,7 @@ export default class List extends React.Component {
                                                                 <span class="glyphicon glyphicon-pencil" title="EDIT"></span>
                                                             </a>
                                                             <a href="javascript:void(0);"
-                                                                onClick={(e) => this.archive(projectElem)}
+                                                                onClick={(e) => this.handleArchive(projectElem)}
                                                                 class={projectElem.allowedDelete == 0 ? 'hide' : 'btn btn-action'}>
                                                                 <span class="fa fa-trash"></span></a>
                                                         </td>
@@ -216,6 +217,7 @@ export default class List extends React.Component {
                         </div>
                     </div>
                 </div>
+                {/* Modals */}
                 <ArchiveModal />
             </div>
         )

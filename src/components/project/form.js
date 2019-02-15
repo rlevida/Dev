@@ -1,14 +1,10 @@
 import React from "react";
-import moment from 'moment';
-import Tooltip from "react-tooltip";
 import { connect } from "react-redux";
 import _ from "lodash";
 import { showToast, getData, putData, deleteData, postData } from '../../globalFunction';
-import { HeaderButtonContainer, DropDown } from "../../globalComponents";
-import Members from "./members";
+import { DeleteModal, DropDown } from "../../globalComponents";
+import ProjectMembers from "./projectMembers";
 import Workstreams from "./workstream";
-
-let keyTimer = "";
 
 @connect((store) => {
     return {
@@ -26,13 +22,18 @@ let keyTimer = "";
 
 export default class FormComponent extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
 
-        this.handleChange = this.handleChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.setDropDown = this.setDropDown.bind(this);
-        this.handleCheckbox = this.handleCheckbox.bind(this);
-        this.renderArrayTd = this.renderArrayTd.bind(this);
+        _.map([
+            "handleChange",
+            "handleSubmit",
+            "setDropDown",
+            "handleCheckbox",
+            "renderArrayTd",
+            "confirmDelete"
+        ], (fn) => {
+            this[fn] = this[fn].bind(this);
+        });
     }
 
     componentDidMount() {
@@ -52,24 +53,33 @@ export default class FormComponent extends React.Component {
     }
 
     deleteMember(value) {
-        let { dispatch, members } = this.props;
-        if (confirm("Do you really want to delete this record?")) {
-            deleteData(`/api/project/deleteProjectMember/${value.id}`, {}, (c) => {
-                if (c.status == 200) {
-                    if (value.usersType == "users") {
-                        dispatch({ type: "REMOVE_DELETED_MEMBERS_LIST", id: c.data })
-                    } else {
-                        let newMemberList = members.List.filter((e) => { return e.id != c.data })
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_MEMBERS_SELECTED", Selected: value });
+        $(`#global-delete-modal`).modal("show");
+    }
 
-                        dispatch({ type: "REMOVE_DELETED_TEAM_LIST", id: c.data })
-                        dispatch({ type: "SET_MEMBERS_LIST", list: newMemberList })
-                    }
-                    showToast("success", "Successfully Deleted")
+    confirmDelete() {
+        const { dispatch, members } = { ...this.props };
+        const { id, usersType } = members.Selected;
+
+        deleteData(`/api/project/deleteProjectMember/${id}`, {}, (c) => {
+            if (c.status == 200) {
+                if (usersType == "users") {
+                    dispatch({ type: "REMOVE_DELETED_MEMBERS_LIST", id: c.data });
+                    dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} });
                 } else {
-                    showToast("error", "Delete failed. Please try again.")
+                    let newMemberList = members.List.filter((e) => { return e.id != c.data })
+
+                    dispatch({ type: "REMOVE_DELETED_TEAM_LIST", id: c.data })
+                    dispatch({ type: "SET_MEMBERS_LIST", list: newMemberList })
                 }
-            })
-        }
+                showToast("success", "Successfully Deleted")
+            } else {
+                showToast("error", "Delete failed. Please try again.")
+            }
+        });
+
+        $(`#global-delete-modal`).modal("hide");
     }
 
     handleChange(e) {
@@ -176,8 +186,10 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        const { dispatch, project, loggedUser, members, status, type, users, teams, workstream, global } = { ...this.props };
+        const { dispatch, project, loggedUser, members, status, type, teams, workstream, global } = { ...this.props };
         let statusList = [], typeList = [];
+
+        const typeValue = (typeof members.Selected.user != "undefined" && _.isEmpty(members.Selected) == false) ? members.Selected.user.firstName + " " + members.Selected.user.lastName : "";
 
         status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
         type.List.map((e, i) => {
@@ -215,7 +227,6 @@ export default class FormComponent extends React.Component {
                 })
             })
         }
-
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -224,105 +235,195 @@ export default class FormComponent extends React.Component {
                             <h4>Create New Project</h4>
                         </div>
                         <div class="card-body">
-                            <form class="form-container">
-                                <div class="mb20">
-                                    <p class="header mb0">Project Details</p>
+                            <div class="mb20">
+                                <form class="form-container mb20">
+                                    <div class="mb20">
+                                        <p class="form-header mb0">Project Details</p>
+                                        <p>All with <span class="text-red">*</span> are required.</p>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox"
+                                                    checked={project.Selected.isActive ? true : false}
+                                                    onChange={() => { }}
+                                                    onClick={(f) => { this.handleCheckbox("isActive", (project.Selected.isActive) ? 0 : 1) }}
+                                                />
+                                                Active
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="project-name">Project Name: <span class="text-red">*</span></label>
+                                        <input id="project-name" type="text" name="project" required value={(typeof project.Selected.project == "undefined" || project.Selected.project == null) ? "" : project.Selected.project} class="form-control" placeholder="Enter project name" onChange={this.handleChange} />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="project-type">Project Type: <span class="text-red">*</span></label>
+                                        <DropDown multiple={false}
+                                            required={true}
+                                            options={typeList}
+                                            selected={(typeof project.Selected.typeId == "undefined") ? "" : project.Selected.typeId}
+                                            onChange={(e) => this.setDropDown("typeId", e.value)}
+                                            placeholder={"Select project type"}
+                                        />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                    {(typeof project.Selected.typeId == "undefined" || project.Selected.typeId == 1) &&
+                                        <div class="form-group">
+                                            <label for="tin">TIN Number:</label>
+                                            <input id="tin" type="text" name="tinNo" value={(typeof project.Selected.tinNo == "undefined" || project.Selected.tinNo == null) ? "" : project.Selected.tinNo} class="form-control" placeholder="Enter valid TIN number" onChange={this.handleChange} />
+                                        </div>
+                                    }
+                                    {(typeof project.Selected.typeId == "undefined" || project.Selected.typeId == 1) &&
+                                        <div class="form-group">
+                                            <label for="comp-address">Company Address:</label>
+                                            <input id="comp-address" type="text" name="companyAddress" value={(typeof project.Selected.companyAddress == "undefined" || project.Selected.companyAddress == null) ? "" : project.Selected.companyAddress} class="form-control" placeholder="Enter complete company address" onChange={this.handleChange} />
+                                        </div>
+                                    }
+                                    <div class="form-group">
+                                        <label for="project-manager">Project Lead <span class="text-red">*</span></label>
+                                        <DropDown multiple={false}
+                                            required={true}
+                                            options={projectManagerOptions}
+                                            selected={project.Selected.projectManagerId}
+                                            onChange={(e) => {
+                                                this.setDropDown("projectManagerId", (e == null) ? "" : e.value);
+                                            }}
+                                            placeholder={"Search or select project lead"}
+                                        />
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox"
+                                                    checked={project.Selected.remindOnDuedate ? true : false}
+                                                    onChange={() => { }}
+                                                    onClick={(f) => { this.handleCheckbox("remindOnDuedate", (project.Selected.remindOnDuedate) ? 0 : 1) }}
+                                                />
+                                                Remind on due date
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox"
+                                                    checked={project.Selected.remindBeforeDuedate ? true : false}
+                                                    onChange={() => { }}
+                                                    onClick={(f) => { this.handleCheckbox("remindBeforeDuedate", (project.Selected.remindBeforeDuedate) ? 0 : 1) }}
+                                                />
+                                                Remind before due date
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <a class="btn btn-violet mr5" onClick={this.handleSubmit}>
+                                        <span>{`${(typeof project.Selected.id != "undefined" && project.Selected.id != "") ? "Edit" : "Add"} Project`}</span>
+                                    </a>
+                                    <a class="btn btn-default"
+                                        onClick={(e) => {
+                                            dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
+                                            dispatch({ type: "SET_PROJECT_SELECTED", Selected: {} });
+                                            dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
+                                        }}
+                                    >
+                                        <span>Cancel</span>
+                                    </a>
+                                </form>
+                            </div>
+                            {
+                                (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") && <div class="mb20 bt">
+                                    <div class="mt20 mb20">
+                                        <p class="form-header mb0">Project Members</p>
+                                        <p>All with <span class="text-red">*</span> are required.</p>
+                                    </div>
+                                    <ProjectMembers />
+                                    <div>
+                                        <table class="mt20">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">User Id</th>
+                                                    <th scope="col">Username</th>
+                                                    <th scope="col">First Name</th>
+                                                    <th scope="col">Last Name</th>
+                                                    <th scope="col">Email Address</th>
+                                                    <th scope="col">Member Type</th>
+                                                    <th scope="col">Role(s)</th>
+                                                    <th scope="col">Team(s)</th>
+                                                    <th scope="col">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {
+                                                    _.orderBy(members.List, ['memberType'], ['desc']).map((data, index) => {
+                                                        return (
+                                                            <tr
+                                                                key={index}
+                                                                style={{ color: (data.user.id == project.Selected.projectManagerId) ? "green" : "" }}
+                                                            >
+                                                                <td data-label="User Id">
+                                                                    {data.user.id}
+                                                                </td>
+                                                                <td data-label="Username">
+                                                                    {data.user.username}
+                                                                </td>
+                                                                <td data-label="First Name">
+                                                                    {data.user.firstName}
+                                                                </td>
+                                                                <td data-label="Last Name">
+                                                                    {data.user.lastName}
+                                                                </td>
+                                                                <td data-label="Email Address">
+                                                                    {data.user.emailAddress}
+                                                                </td>
+                                                                <td data-label="Member Type">
+                                                                    {data.user.userType}
+                                                                </td>
+                                                                <td data-label="Role(s)">
+                                                                    {this.renderRoles(data.user.user_role)}
+                                                                </td>
+                                                                <td data-label="Team(s)">
+                                                                    {this.renderTeams(data.user.users_team)}
+                                                                </td>
+                                                                <td data-label="Actions">
+                                                                    {
+                                                                        (data.user.id != project.Selected.projectManagerId && data.usersType != "team")
+                                                                        && <a href="javascript:void(0);" title="DELETE"
+                                                                            onClick={(e) => this.deleteMember(data)}
+                                                                            class={data.allowedDelete == 0 ? 'hide' : 'btn btn-action'}
+                                                                        >
+                                                                            <span class="glyphicon glyphicon-trash"></span>
+                                                                        </a>
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                        )
+                                                    })
+                                                }
+                                            </tbody>
+                                        </table>
+                                        {
+                                            (members.List.length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            <div class="mb20 bt">
+                                <div class="mt20 mb20">
+                                    <p class="form-header mb0">Workstreams</p>
                                     <p>All with <span class="text-red">*</span> are required.</p>
                                 </div>
-                                <div class="form-group">
-                                    <div class="checkbox">
-                                        <label>
-                                            <input type="checkbox"
-                                                checked={project.Selected.isActive ? true : false}
-                                                onChange={() => { }}
-                                                onClick={(f) => { this.handleCheckbox("isActive", (project.Selected.isActive) ? 0 : 1) }}
-                                            />
-                                            Active
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="project-name">Project Name: <span class="text-red">*</span></label>
-                                    <input id="project-name" type="text" name="project" required value={(typeof project.Selected.project == "undefined" || project.Selected.project == null) ? "" : project.Selected.project} class="form-control" placeholder="Enter project name" onChange={this.handleChange} />
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="project-type">Project Type: <span class="text-red">*</span></label>
-                                    <DropDown multiple={false}
-                                        required={true}
-                                        options={typeList}
-                                        selected={(typeof project.Selected.typeId == "undefined") ? "" : project.Selected.typeId}
-                                        onChange={(e) => this.setDropDown("typeId", e.value)}
-                                        placeholder={"Select project type"}
-                                    />
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                                {(typeof project.Selected.typeId == "undefined" || project.Selected.typeId == 1) &&
-                                    <div class="form-group">
-                                        <label for="tin">TIN Number:</label>
-                                        <input id="tin" type="text" name="tinNo" value={(typeof project.Selected.tinNo == "undefined" || project.Selected.tinNo == null) ? "" : project.Selected.tinNo} class="form-control" placeholder="Enter valid TIN number" onChange={this.handleChange} />
-                                    </div>
-                                }
-                                {(typeof project.Selected.typeId == "undefined" || project.Selected.typeId == 1) &&
-                                    <div class="form-group">
-                                        <label for="comp-address">Company Address:</label>
-                                        <input id="comp-address" type="text" name="companyAddress" value={(typeof project.Selected.companyAddress == "undefined" || project.Selected.companyAddress == null) ? "" : project.Selected.companyAddress} class="form-control" placeholder="Enter complete company address" onChange={this.handleChange} />
-                                    </div>
-                                }
-                                <div class="form-group">
-                                    <label for="project-manager">Project Lead <span class="text-red">*</span></label>
-                                    <DropDown multiple={false}
-                                        required={true}
-                                        options={projectManagerOptions}
-                                        isClearable={(projectManagerOptions.length > 0)}
-                                        selected={project.Selected.projectManagerId}
-                                        onChange={(e) => {
-                                            this.setDropDown("projectManagerId", (e == null) ? "" : e.value);
-                                        }}
-                                        placeholder={"Search or select project lead"}
-                                    />
-                                    <div class="help-block with-errors"></div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="checkbox">
-                                        <label>
-                                            <input type="checkbox"
-                                                checked={project.Selected.remindOnDuedate ? true : false}
-                                                onChange={() => { }}
-                                                onClick={(f) => { this.handleCheckbox("remindOnDuedate", (project.Selected.remindOnDuedate) ? 0 : 1) }}
-                                            />
-                                            Remind on due date
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="checkbox">
-                                        <label>
-                                            <input type="checkbox"
-                                                checked={project.Selected.remindBeforeDuedate ? true : false}
-                                                onChange={() => { }}
-                                                onClick={(f) => { this.handleCheckbox("remindBeforeDuedate", (project.Selected.remindBeforeDuedate) ? 0 : 1) }}
-                                            />
-                                            Remind before due date
-                                        </label>
-                                    </div>
-                                </div>
-                                <a class="btn btn-violet mr5" onClick={this.handleSubmit}>
-                                    <span>Add Project</span>
-                                </a>
-                                <a class="btn btn-default"
-                                    onClick={(e) => {
-                                        dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
-                                        dispatch({ type: "SET_PROJECT_SELECTED", Selected: {} });
-                                        dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
-                                    }}
-                                >
-                                    <span>Cancel</span>
-                                </a>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>
+                {/* Modals */}
+                <DeleteModal
+                    type={'member'}
+                    type_value={typeValue}
+                    delete_function={this.confirmDelete}
+                />
             </div>
         )
     }

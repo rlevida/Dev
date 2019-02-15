@@ -9,7 +9,7 @@ import { showToast, putData, deleteData } from "../../../globalFunction";
         loggedUser: store.loggedUser
     }
 })
-export default class Component extends React.Component {
+export default class ArchiveModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -51,7 +51,7 @@ export default class Component extends React.Component {
         const { Selected } = project;
 
         return (
-            <div class="modal fade" id="archiveModal">
+            <div class="modal fade delete-modal" id="archiveModal">
                 <div class="modal-dialog modal-md" role="document">
                     <div class="modal-content">
                         <div class="modal-body">

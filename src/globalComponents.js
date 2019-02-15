@@ -53,7 +53,7 @@ export const DropDown = React.createClass({
             self.props.onChange(option);
             self.setState({ selected: (self.props.multiple) ? option : option ? option.value : "", });
         };
-        
+
         return (
             <Select multi={this.props.multiple}
                 disabled={this.state.disabled}
@@ -264,6 +264,36 @@ export const EditableCellDisplay = React.createClass({
 export const Loading = () => {
     return (
         <p style={{ fontSize: 16, textAlign: 'center', margin: 0 }}><i class="fa fa-circle-o-notch fa-spin fa-fw"></i> Loading...</p>
+    )
+}
+
+export const DeleteModal = (props) => {
+    const { type, type_value, delete_function } = { ...props };
+
+    return (
+        <div class="modal fade delete-modal" id="global-delete-modal">
+            <div class="modal-dialog modal-md" role="document">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+                        <p class="warning text-center">Delete or Archive this {type}?</p>
+                        <p class="warning text-center"><strong>{type_value}</strong></p>
+                        <div class="flex-row mt20" id="delete-action">
+                            <div class="flex-col">
+                                <button 
+                                    type="button" 
+                                    class="btn btn-danger"
+                                    onClick = {delete_function}
+                                >{`Yes Delete ${type}!`}</button>
+                            </div>
+                            <div class="flex-col">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">No Don't!</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     )
 }
 

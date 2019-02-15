@@ -99,6 +99,9 @@ html, #main{
 .bd{
   border-bottom: 1px solid #e7e7e7;
 }
+.bt{
+  border-top: 1px solid #e7e7e7;
+}
 
 .text-white{
   color: white!important;
@@ -1117,7 +1120,7 @@ ul.dropdown-menu {
   z-index: 9999!important;
 }
 
-#archiveModal .btn {
+.delete-modal .btn {
   margin: 5px;
   min-width: 200px;
 }
@@ -1301,13 +1304,13 @@ ul.dropdown-menu {
   color: #c4c4c4;
 }
 
-#archiveModal .fa-exclamation-circle{
+.delete-modal .fa-exclamation-circle{
   font-size: 80px;
   color: #ff3842;
   margin-bottom: 20px;
 }
 
-#archiveModal .modal-body{
+.delete-modal .modal-body{
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1437,7 +1440,7 @@ table th {
   color: #ffffff;
 }
 
-form .header{
+.form-header{
   font-weight: 700;
   font-size: 18px;
 }
@@ -1489,6 +1492,7 @@ form {
     display: block;
     font-size: .8em;
     text-align: right;
+    min-height: 30px;
   }
   
   table td::before {
