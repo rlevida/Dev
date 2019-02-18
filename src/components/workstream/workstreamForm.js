@@ -132,7 +132,7 @@ export default class WorkstreamForm extends React.Component {
         } else if (typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") {
             putData(`/api/workstream/${workstream.Selected.id}`, dataToBeSubmitted, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "UPDATE_DATA_WORKSTREAM_LIST", data: {...c.data, responsible: c.data.responsible[0].user.id}, });
+                    dispatch({ type: "UPDATE_DATA_WORKSTREAM_LIST", data: { ...c.data, responsible: c.data.responsible[0].user.id }, });
                     showToast("success", "Workstream successfully updated.");
                 } else {
                     showToast("error", "Something went wrong please try again later.");
@@ -163,6 +163,10 @@ export default class WorkstreamForm extends React.Component {
             : [];
         return (
             <form id="#workstream-form">
+                <div class="mb20">
+                    <p class="form-header mb0">Workstreams</p>
+                    <p>All with <span class="text-red">*</span> are required.</p>
+                </div>
                 <div class="form-group">
                     <div class="checkbox">
                         <label>

@@ -134,7 +134,6 @@ export default class FormComponent extends React.Component {
                 }
                 putData(`/api/project/${project.Selected.id}`, dataToSubmit, (c) => {
                     dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
-                    dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
                     showToast("success", "Successfully Updated.")
                 })
             }
@@ -342,7 +341,7 @@ export default class FormComponent extends React.Component {
                                 </form>
                             </div>
                             {
-                                (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") && <div class="mb20 bt">
+                                (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") && <div class="bt">
                                     <div class="mt20 mb20">
                                         <p class="form-header mb0">Project Members</p>
                                         <p>All with <span class="text-red">*</span> are required.</p>
@@ -420,13 +419,11 @@ export default class FormComponent extends React.Component {
                             }
                             {
                                 (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") &&
-                                <div class="mb20 bt">
+                                <div class="bt">
                                     <div class="mt20 mb20">
-                                        <p class="form-header mb0">Workstreams</p>
-                                        <p>All with <span class="text-red">*</span> are required.</p>
+                                        <WorkstreamForm project_id={project.Selected.id} />
+                                        <WorkstreamList />
                                     </div>
-                                    <WorkstreamForm project_id={project.Selected.id} />
-                                    <WorkstreamList />
                                 </div>
                             }
                         </div>

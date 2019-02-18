@@ -28,11 +28,16 @@ export default class workstreamList extends React.Component {
     }
 
     componentDidMount() {
-        const { project: projectObj } = { ...this.props };
+        const { project: projectObj, dispatch, workstream } = { ...this.props };
+
+        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
 
         if (
-            (_.isEmpty(projectObj.Selected) == false && typeof projectObj.Selected.id != "undefined") ||
-            (typeof project != "undefined" && project != "")
+            (
+                (_.isEmpty(projectObj.Selected) == false && typeof projectObj.Selected.id != "undefined") ||
+                (typeof project != "undefined" && project != "")
+            ) &&
+            _.isEmpty(workstream.Count)
         ) {
             this.getList(1);
         }
@@ -73,19 +78,20 @@ export default class workstreamList extends React.Component {
     editData(value) {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: value });
+        dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" });
     }
 
     confirmDelete() {
         const { workstream, dispatch } = { ...this.props };
         const { id } = workstream.Selected;
+        
         deleteData(`/api/workstream/${id}`, { isDeleted: 0 }, (c) => {
             dispatch({ type: 'REMOVE_DELETED_WORKSTREAM_LIST', id: id });
             dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: "" });
 
-            showToast("success", "Successfully Deleted");
+            showToast("success", "Workstream successfully deleted.");
             $(`#delete-workstream`).modal("hide");
         });
-
     }
 
 
