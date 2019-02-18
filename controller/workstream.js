@@ -75,7 +75,7 @@ exports.get = {
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : {},
             ...(typeof queryString.isTemplate != "undefined" && queryString.isTemplate != "") ? { isTemplate: queryString.isTemplate } : {},
             ...(typeof queryString.typeId != "undefined" && queryString.typeId != "") ? { typeId: queryString.typeId } : {},
-            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 },
             ...((typeof queryString.userType != "undefined" && queryString.userType == "External") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
                 [Sequelize.Op.or]: [
                     {

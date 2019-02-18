@@ -28,18 +28,22 @@ export default class workstreamList extends React.Component {
     }
 
     componentDidMount() {
-        const { project } = { ...this.props };
+        const { project: projectObj } = { ...this.props };
 
-        if (_.isEmpty(project.Selected) == false && typeof project.Selected.id != "undefined") {
+        if (
+            (_.isEmpty(projectObj.Selected) == false && typeof projectObj.Selected.id != "undefined") ||
+            (typeof project != "undefined" && project != "")
+        ) {
             this.getList(1);
         }
     }
 
     getList(page) {
-        const { dispatch, loggedUser, project, workstream } = this.props;
+        const { dispatch, loggedUser, project: projectObj, workstream } = this.props;
         const { typeId, workstreamStatus, workstream: workstreamFilter } = workstream.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
-        const requestUrl = `/api/workstream?projectId=${project.Selected.id}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
+        const projectId = (typeof projectObj.Selected.id != "undefined") ? projectObj.Selected.id : project;
+        const requestUrl = `/api/workstream?projectId=${projectId}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
 
         getData(requestUrl, {}, (c) => {
             if (c.status == 200) {
@@ -93,71 +97,73 @@ export default class workstreamList extends React.Component {
 
         return (
             <div>
-
-                <table class="mt20">
-                    <thead>
-                        <tr>
-                            <th scope="col">Workstream</th>
-                            <th scope="col">Pending</th>
-                            <th scope="col">Completed</th>
-                            <th scope="col">Issues</th>
-                            <th scope="col">New Document(s)</th>
-                            <th scope="col">Members</th>
-                            <th scope="col">Type</th>
-                            <th scope="col">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            _.map(workstream.List, (data, index) => {
-                                return (
-                                    <tr
-                                        key={index}
-                                    >
-                                        <td data-label="Workstream">
-                                            {data.workstream}
-                                        </td>
-                                        <td data-label="Pending">{(data.pending).length}</td>
-                                        <td data-label="Completed">{(data.completed).length}</td>
-                                        <td data-label="Issues">{(data.issues).length}</td>
-                                        <td data-label="New Document(s)">{(data.new_documents).length}</td>
-                                        <td data-label="Members">{(data.members.length > 0) &&
-                                            <span title={`${
-                                                (_(data.members)
-                                                    .uniqBy((o) => {
-                                                        return o.user.id
-                                                    })
-                                                    .map((o) => { return o.user.firstName + " " + o.user.lastName })
-                                                    .value())
-                                                    .join("\r\n")}`}>
-                                                <i class="fa fa-users fa-lg"></i>
-                                            </span>}
-                                        </td>
-                                        <td data-label="Type"><span title={`${data.type.type}`} class={data.type.type == "Output based" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
-                                        <td data-label="Actions">
-                                            <a href="javascript:void(0);"
-                                                onClick={() => this.editData(data)}
-                                                class="btn btn-action">
-                                                <span class="glyphicon glyphicon-pencil" title="EDIT"></span>
-                                            </a>
-                                            <a href="javascript:void(0);" title="DELETE"
-                                                onClick={(e) => this.deleteData(data)}
-                                                class={data.allowedDelete == 0 ? 'hide' : 'btn btn-action'}
-                                            >
-                                                <span class="glyphicon glyphicon-trash"></span>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                )
-                            })
-                        }
-                    </tbody>
-                </table>
                 {
-                    (workstream.List.length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                    ((workstream.List).length > 0) && <table class="mt20">
+                        <thead>
+                            <tr>
+                                <th scope="col">Workstream</th>
+                                <th scope="col">Pending</th>
+                                <th scope="col">Completed</th>
+                                <th scope="col">Issues</th>
+                                <th scope="col">New Document(s)</th>
+                                <th scope="col">Members</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                _.map(workstream.List, (data, index) => {
+                                    return (
+                                        <tr
+                                            key={index}
+                                        >
+                                            <td data-label="Workstream">
+                                                {data.workstream}
+                                            </td>
+                                            <td data-label="Pending">{(data.pending).length}</td>
+                                            <td data-label="Completed">{(data.completed).length}</td>
+                                            <td data-label="Issues">{(data.issues).length}</td>
+                                            <td data-label="New Document(s)">{(data.new_documents).length}</td>
+                                            <td data-label="Members">{(data.members.length > 0) &&
+                                                <span title={`${
+                                                    (_(data.members)
+                                                        .uniqBy((o) => {
+                                                            return o.user.id
+                                                        })
+                                                        .map((o) => { return o.user.firstName + " " + o.user.lastName })
+                                                        .value())
+                                                        .join("\r\n")}`}>
+                                                    <i class="fa fa-users fa-lg"></i>
+                                                </span>}
+                                            </td>
+                                            <td data-label="Type"><span title={`${data.type.type}`} class={data.type.type == "Output based" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
+                                            <td data-label="Actions">
+                                                <a href="javascript:void(0);"
+                                                    onClick={() => this.editData(data)}
+                                                    class="btn btn-action">
+                                                    <span class="glyphicon glyphicon-pencil" title="EDIT"></span>
+                                                </a>
+                                                <a href="javascript:void(0);" title="DELETE"
+                                                    onClick={(e) => this.deleteData(data)}
+                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-action'}
+                                                >
+                                                    <span class="glyphicon glyphicon-trash"></span>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    )
+                                })
+                            }
+                        </tbody>
+                    </table>
+                }
+
+                {
+                    (workstream.List.length == 0 && workstream.Loading != "RETRIEVING") && <p class="mb0 mt10 text-center"><strong>No Records Found</strong></p>
                 }
                 {
-                    (workstream.Loading == "RETRIEVING") && <Loading />
+                    (workstream.Loading == "RETRIEVING" && (workstream.List).length > 0) && <Loading />
                 }
                 {
                     (_.isEmpty(workstream) == false && (workstreamCurrentPage != workstreamLastPage) && workstream.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNext()}>Load More Workstream</a></p>

@@ -1,6 +1,6 @@
 import React from "react";
 import { showToast, putData, postData, getData } from '../../globalFunction';
-import { DropDown, HeaderButtonContainer, Loading } from "../../globalComponents";
+import { DropDown } from "../../globalComponents";
 import { connect } from "react-redux";
 import _ from "lodash";
 

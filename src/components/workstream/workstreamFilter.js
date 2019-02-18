@@ -3,8 +3,8 @@ import { connect } from "react-redux";
 import _ from "lodash";
 import moment from "moment";
 
-import { DropDown } from "../../../globalComponents";
-import { getData, showToast } from "../../../globalFunction";
+import { DropDown } from "../../globalComponents";
+import { getData, showToast } from "../../globalFunction";
 
 let keyTimer = "";
 
@@ -17,7 +17,7 @@ let keyTimer = "";
     }
 })
 
-export default class ProjectFilter extends React.Component {
+export default class WorkstreamFilter extends React.Component {
     constructor(props) {
         super(props);
 
@@ -27,11 +27,11 @@ export default class ProjectFilter extends React.Component {
 
     componentDidUpdate(prevProps) {
         const { dispatch, loggedUser } = this.props;
-    
+
         if (_.isEqual(prevProps.workstream.Filter, this.props.workstream.Filter) == false) {
             const { typeId, workstreamStatus, workstream } = this.props.workstream.Filter;
             const dueDateMoment = moment().format("YYYY-MM-DD");
-            
+
             getData(`/api/workstream?projectId=${project}&page=1&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstream}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
@@ -46,9 +46,9 @@ export default class ProjectFilter extends React.Component {
     }
 
     setDropDown(name, e) {
-        const { dispatch , workstream : { Filter} } = this.props;
+        const { dispatch, workstream: { Filter } } = this.props;
         let wokrstreamFilter = { ...Filter };
-        wokrstreamFilter = { ...wokrstreamFilter , [name] : e };
+        wokrstreamFilter = { ...wokrstreamFilter, [name]: e };
 
         if (_.isEqual(wokrstreamFilter, this.props.workstream.Filter) == false) {
             dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
@@ -90,30 +90,11 @@ export default class ProjectFilter extends React.Component {
         ];
 
         return (
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-md-4 col-xs-6 mb5">
-                        <label>Type</label>
-                        <DropDown multiple={false}
-                            required={false}
-                            options={typeList}
-                            selected={Filter.typeId}
-                            onChange={(e) => this.setDropDown("typeId", e.value)} />
-                    </div>
-                    <div class="col-md-3 col-xs-6 mb5">
-                        <label>Status</label>
-                        <DropDown multiple={false}
-                            required={false}
-                            options={statusList}
-                            selected={Filter.workstreamStatus}
-                            onChange={(e) => this.setDropDown("workstreamStatus", e.value)} />
-                    </div>
-                    <div class="col-md-5 mb5">
-                        <label>Workstream</label>
-                        <input type="text" name="workstream" class="form-control" onChange={this.handleChange} />
-                    </div>
-                </div>
-            </div>
+            <DropDown multiple={false}
+                required={false}
+                options={statusList}
+                selected={Filter.workstreamStatus}
+                onChange={(e) => this.setDropDown("workstreamStatus", e.value)} />
         )
     }
 }
