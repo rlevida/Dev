@@ -245,7 +245,7 @@ export default class FormComponent extends React.Component {
                         </div>
                         <div class="card-body">
                             <div class="mb20">
-                                <form class="mb20" id="#project-form">
+                                <form id="#project-form">
                                     <div class="mb20">
                                         <p class="form-header mb0">Project Details</p>
                                         <p>All with <span class="text-red">*</span> are required.</p>
@@ -348,8 +348,8 @@ export default class FormComponent extends React.Component {
                                         <p>All with <span class="text-red">*</span> are required.</p>
                                     </div>
                                     <ProjectMemberForm />
-                                    <div>
-                                        <table class="mt20">
+                                    <div class="mt20">
+                                        <table>
                                             <thead>
                                                 <tr>
                                                     <th scope="col">User Id</th>

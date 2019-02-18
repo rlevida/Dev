@@ -35,10 +35,10 @@ export default class TaskStatus extends React.Component {
                 {
                     (_.isEmpty(StatusCount) == false) && <div class="row content-row status-count">
                         <div class="col-lg-6 text-center">
-                            <p class="status-count text-orange">{('0' + StatusCount.all_assigned_active).slice(-2)}</p>
+                            <p class="status-count text-orange">{('0' + StatusCount.assigned_active).slice(-2)}</p>
                             <p class="status-label">Assigned to me</p>
                             <p class="status-sublabel"> {`for ${StatusCount.project_count} Project(s)`}</p>
-                            <p class="status-sublabel text-red">{(StatusCount.all_assigned_issues > 0) ? StatusCount.all_assigned_issues : 'No'} delayed tasks</p>
+                            <p class="status-sublabel text-red">{(StatusCount.assigned_issues > 0) ? StatusCount.assigned_issues : 'No'} delayed tasks</p>
                         </div>
                         <div class="col-lg-6 text-center">
                             <p class="status-count text-yellow">{('0' + StatusCount.followed_active).slice(-2)}</p>
