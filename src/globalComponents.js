@@ -271,12 +271,12 @@ export const DeleteModal = (props) => {
     const { type, type_value, delete_function } = { ...props };
 
     return (
-        <div class="modal fade delete-modal" id="global-delete-modal">
+        <div class="modal fade delete-modal" id={props.id}>
             <div class="modal-dialog modal-md" role="document">
                 <div class="modal-content">
                     <div class="modal-body">
                         <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
-                        <p class="warning text-center">Delete or Archive this {type}?</p>
+                        <p class="warning text-center">Delete this {type}?</p>
                         <p class="warning text-center"><strong>{type_value}</strong></p>
                         <div class="flex-row mt20" id="delete-action">
                             <div class="flex-col">

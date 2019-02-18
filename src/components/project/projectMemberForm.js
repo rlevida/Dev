@@ -17,7 +17,7 @@ import _ from "lodash";
     }
 })
 
-export default class ProjectMembers extends React.Component {
+export default class ProjectMemberForm extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -31,8 +31,8 @@ export default class ProjectMembers extends React.Component {
         const { members, dispatch, project } = { ...this.props };
         let result = true;
 
-        $('.member-form-container *').validator('validate');
-        $('.member-form-container .form-group').each(function () {
+        $('#project-member-form  *').validator('validate');
+        $('#project-member-form .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
                 result = false;
             }
@@ -60,7 +60,7 @@ export default class ProjectMembers extends React.Component {
                 } else {
                     dispatch({ type: "ADD_TEAM_TO_LIST", list: c.data });
                 }
-                $('.member-form-container *').validator('destroy');
+                $('#project-member-form *').validator('destroy');
                 showToast("success", "Successfully Added.");
                 dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} });
                 this.setState({ showAllUsers: false });
@@ -133,7 +133,7 @@ export default class ProjectMembers extends React.Component {
 
 
         return (
-            <form class="member-form-container">
+            <form id="#project-member-form">
                 <div class="form-group">
                     <label for="tin">Member Type: <span class="text-red">*</span></label>
                     <DropDown multiple={false}
@@ -176,7 +176,7 @@ export default class ProjectMembers extends React.Component {
                     </div>
                 </div>
                 <a class="btn btn-violet mr5" onClick={this.handleSubmit}>
-                    <span>{`Add member to project`}</span>
+                    <span>Add member to project</span>
                 </a>
             </form>
         )

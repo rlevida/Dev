@@ -3,8 +3,9 @@ import { connect } from "react-redux";
 import _ from "lodash";
 import { showToast, getData, putData, deleteData, postData } from '../../globalFunction';
 import { DeleteModal, DropDown } from "../../globalComponents";
-import ProjectMembers from "./projectMembers";
-import Workstreams from "./workstream";
+import ProjectMemberForm from "./projectMemberForm";
+import WorkstreamForm from "../workstream/workstreamForm";
+import WorkstreamList from "../workstream/workstreamList";
 
 @connect((store) => {
     return {
@@ -15,7 +16,6 @@ import Workstreams from "./workstream";
         users: store.users,
         teams: store.teams,
         members: store.members,
-        workstream: store.workstream,
         global: store.global
     }
 })
@@ -55,7 +55,7 @@ export default class FormComponent extends React.Component {
     deleteMember(value) {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_MEMBERS_SELECTED", Selected: value });
-        $(`#global-delete-modal`).modal("show");
+        $(`#delete-member`).modal("show");
     }
 
     confirmDelete() {
@@ -79,7 +79,7 @@ export default class FormComponent extends React.Component {
             }
         });
 
-        $(`#global-delete-modal`).modal("hide");
+        $(`#delete-member`).modal("hide");
     }
 
     handleChange(e) {
@@ -105,8 +105,8 @@ export default class FormComponent extends React.Component {
         const { project, loggedUser, dispatch } = this.props
         let result = true;
 
-        $('.form-container *').validator('validate');
-        $('.form-container .form-group').each(function () {
+        $('#project-form *').validator('validate');
+        $('#project-form .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
                 result = false;
             }
@@ -118,13 +118,10 @@ export default class FormComponent extends React.Component {
             if (!project.Selected.id) {
                 project.Selected.createdBy = loggedUser.data.id;
                 postData(`/api/project`, { ...project.Selected }, (c) => {
-                    dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project })
-                    dispatch({ type: "SET_MEMBERS_LIST", list: c.data.members })
-                    dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" })
-                    showToast("success", "Successfully Added.")
-                })
+                    showToast("success", "Project successfully added.");
+                });
             } else {
-                let dataToSubmit = {
+                const dataToSubmit = {
                     project: project.Selected.project,
                     isActive: project.Selected.isActive,
                     typeId: project.Selected.typeId,
@@ -186,10 +183,10 @@ export default class FormComponent extends React.Component {
     }
 
     render() {
-        const { dispatch, project, loggedUser, members, status, type, teams, workstream, global } = { ...this.props };
-        let statusList = [], typeList = [];
-
+        const { dispatch, project, loggedUser, members, status, type, teams, global } = { ...this.props };
         const typeValue = (typeof members.Selected.user != "undefined" && _.isEmpty(members.Selected) == false) ? members.Selected.user.firstName + " " + members.Selected.user.lastName : "";
+
+        let statusList = [], typeList = [];
 
         status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
         type.List.map((e, i) => {
@@ -227,16 +224,28 @@ export default class FormComponent extends React.Component {
                 })
             })
         }
+
         return (
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card form-card">
                         <div class="card-header">
-                            <h4>Create New Project</h4>
+                            <h4>
+                                <a
+                                    class="text-white mr10"
+                                    onClick={() => {
+                                        dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
+                                        dispatch({ type: "EMPTY_WORKSTREAM_LIST" });
+                                    }}
+                                >
+                                    <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                                </a>
+                                Create New Project
+                            </h4>
                         </div>
                         <div class="card-body">
                             <div class="mb20">
-                                <form class="form-container mb20">
+                                <form class="mb20" id="#project-form">
                                     <div class="mb20">
                                         <p class="form-header mb0">Project Details</p>
                                         <p>All with <span class="text-red">*</span> are required.</p>
@@ -282,7 +291,7 @@ export default class FormComponent extends React.Component {
                                         </div>
                                     }
                                     <div class="form-group">
-                                        <label for="project-manager">Project Lead <span class="text-red">*</span></label>
+                                        <label for="project-manager">Project Lead: <span class="text-red">*</span></label>
                                         <DropDown multiple={false}
                                             required={true}
                                             options={projectManagerOptions}
@@ -338,7 +347,7 @@ export default class FormComponent extends React.Component {
                                         <p class="form-header mb0">Project Members</p>
                                         <p>All with <span class="text-red">*</span> are required.</p>
                                     </div>
-                                    <ProjectMembers />
+                                    <ProjectMemberForm />
                                     <div>
                                         <table class="mt20">
                                             <thead>
@@ -409,17 +418,23 @@ export default class FormComponent extends React.Component {
                                     </div>
                                 </div>
                             }
-                            <div class="mb20 bt">
-                                <div class="mt20 mb20">
-                                    <p class="form-header mb0">Workstreams</p>
-                                    <p>All with <span class="text-red">*</span> are required.</p>
+                            {
+                                (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") &&
+                                <div class="mb20 bt">
+                                    <div class="mt20 mb20">
+                                        <p class="form-header mb0">Workstreams</p>
+                                        <p>All with <span class="text-red">*</span> are required.</p>
+                                    </div>
+                                    <WorkstreamForm project_id={project.Selected.id} />
+                                    <WorkstreamList />
                                 </div>
-                            </div>
+                            }
                         </div>
                     </div>
                 </div>
                 {/* Modals */}
                 <DeleteModal
+                    id="delete-member"
                     type={'member'}
                     type_value={typeValue}
                     delete_function={this.confirmDelete}
