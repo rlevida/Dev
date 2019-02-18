@@ -32,14 +32,14 @@ export default class Component extends React.Component {
         });
     }
 
-    renderStatusCard({ label, count }) {
+    renderStatusCard({ label, count, class_color }) {
         const { task } = this.props;
         const { StatusCount } = task;
 
         return (
             <div class="flex-row">
                 <div class="flex-col">
-                    <p class="status-count text-red">{('0' + count).slice(-2)}</p>
+                    <p class={`status-count ${class_color}`}>{('0' + count).slice(-2)}</p>
                 </div>
                 <div class="flex-col">
                     <p class="status-label">{label}</p>
@@ -52,14 +52,16 @@ export default class Component extends React.Component {
         const { task } = this.props;
         const { StatusCount } = task;
         const statusToBeDisplayed = [
-            { label: "Delayed Tasks", count: (StatusCount.assigned_issues != "undefined") ? StatusCount.assigned_issues : 0 }
+            { label: "Assigned Tasks", count: (StatusCount.assigned_active != "undefined") ? StatusCount.assigned_active : 0 , class_color: "text-orange"},
+            { label: "Followed Tasks", count: (StatusCount.followed_active != "undefined") ? StatusCount.followed_active : 0, class_color: "text-blue" },
+            { label: "Delayed Tasks", count: (StatusCount.assigned_issues != "undefined") ? StatusCount.assigned_issues : 0, class_color: "text-red" }
         ];
-        
-        const Component = <div class="row">
+        console.log(StatusCount)
+        const Component = <div class="row content-row">
             {
                 _.map(statusToBeDisplayed, (o, index) => {
                     return (
-                        <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12" key={index}>
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12" key={index}>
                             <div class="card dashboard-card">
                                 <div class={(_.isEmpty(StatusCount)) ? "linear-background" : "margin-center"}>
                                     {

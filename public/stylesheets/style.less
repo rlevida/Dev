@@ -1278,6 +1278,10 @@ ul.dropdown-menu {
   color: #ff3842;
 }
 
+.text-blue{
+  color: #789ce4;
+}
+
 .text-green{
   color: #34dc9a;
 }
@@ -1688,10 +1692,10 @@ form {
   }
 }
 
-@media(min-width:992px) and (max-width:1340px) {
+@media(min-width:992px) and (max-width:1340px){
   .dashboard-card{
     max-height: unset; 
-    min-height: unset; 
+    min-height: 185px;
   }
 
   .dashboard-card .status-label{
@@ -1706,16 +1710,41 @@ form {
   }
 
   .dashboard-card .flex-row .flex-col{
-    flex: 1 50% !important;
+    flex: 1 100% !important;
     text-align: center;
+    height: auto;
   }
 
   .dashboard-card .status-count{
     margin-right: 0px;
   }
+}
 
-  .dashboard-card .flex-col {
+@media(min-width:768px) and (max-width:888px) {
+  .dashboard-card{
+    max-height: unset; 
+    min-height: 185px;
+  }
+
+  .dashboard-card .status-label{
+    text-align: center;
+  }
+
+  .dashboard-card .flex-row{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dashboard-card .flex-row .flex-col{
+    flex: 1 100% !important;
+    text-align: center;
     height: auto;
+  }
+
+  .dashboard-card .status-count{
+    margin-right: 0px;
   }
 }
 
