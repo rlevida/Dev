@@ -325,7 +325,7 @@ export default class UserForm extends React.Component {
                         </div>
                     }
                     <a class="btn btn-violet" onClick={this.handleSubmit}>
-                        <span>Add user</span>
+                        <span>{`${(typeof users.Selected.id != "undefined" && users.Selected.id != "")? 'Edit' : 'Add'} User`}</span>
                     </a>
                 </form>
             </div>

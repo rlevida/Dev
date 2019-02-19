@@ -259,17 +259,16 @@ export default class WorkstreamForm extends React.Component {
                         options={members.SelectList}
                         onInputChange={this.getMemberList}
                         selected={(typeof workstream.Selected.responsible == "undefined" || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.responsible}
-                        placeholder={"Type to Search Member"}
                         onChange={(e) => {
                             this.setDropDown("responsible", (e == null) ? "" : e.value);
                         }}
                         isClearable={true}
-                        placeholder={'Select member responsible'}
+                        placeholder={'Search and select member responsible'}
                     />
                     <div class="help-block with-errors"></div>
                 </div>
                 <a class="btn btn-violet" onClick={this.handleSubmit}>
-                    <span>Add workstream</span>
+                    <span>{`${(typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") ? 'Edit' : 'Add'} workstream`}</span>
                 </a>
             </form>
         )

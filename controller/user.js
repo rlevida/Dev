@@ -1,18 +1,18 @@
-const dbName = "users";
 const async = require('async');
-const sequence = require('sequence').Sequence
-const Sequelize = require("sequelize")
-const Op = Sequelize.Op;
-
+const sequence = require("sequence").Sequence;
 const models = require('../modelORM');
+const dbName = "users";
 const {
     Users,
     UsersRole,
     UsersTeam,
     Roles,
     Teams,
-    Members
+    Members,
+    Sequelize,
+    sequelize
 } = models;
+const Op = Sequelize.Op;
 const associationStack = [
     {
         model: UsersRole,
@@ -59,11 +59,23 @@ exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
         const limit = 10;
-
         const whereObj = {
-            ...(typeof queryString.isDeleted !== 'undefined' && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : {}
+            ...(typeof queryString.isDeleted !== 'undefined' && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : {},
+            ...(typeof queryString.name != "undefined" && queryString.name != "") ? {
+                [Op.or]: [
+                    Sequelize.where(Sequelize.fn('lower', Sequelize.col('users.firstName')),
+                        {
+                            [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.name}%`)
+                        }
+                    ),
+                    Sequelize.where(Sequelize.fn('lower', Sequelize.col('users.lastName')),
+                        {
+                            [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.name}%`)
+                        }
+                    )
+                ]
+            } : {}
         }
-
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
         };

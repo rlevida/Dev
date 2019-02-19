@@ -1,10 +1,11 @@
 export default function reducer(state = {
     List: [],
     FormActive: "List",
-    Selected: {},
-    SelectedId: [],
     Trainer: [],
     Count: {},
+    Selected: {},
+    SelectedId: [],
+    SelectList: [],
     Loading: 'RETRIEVING',
     CurrentData: {}
 }, action) {
@@ -17,6 +18,9 @@ export default function reducer(state = {
         }
         case "SET_TRAINER_LIST": {
             return { ...state, Trainer: action.list }
+        }
+        case "SET_USER_SELECT_LIST": {
+            return { ...state, SelectList: action.List }
         }
         case "SET_USER_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
@@ -40,10 +44,11 @@ export default function reducer(state = {
             return { ...state, List: tempList }
         }
         case "UPDATE_USER_TEAM": {
-            let tempList = _.map(state.List, function(obj) {
-                return _.assign(obj, _.find(action.List, {id: obj.id}));
+            let tempList = _.map(state.List, function (obj) {
+                return _.assign(obj, _.find(action.List, { id: obj.id }));
             });
-            return { ...state , List : tempList}
+
+            return { ...state, List: tempList }
         }
         case "REMOVE_DELETED_USER_LIST": {
             let tempList = state.List.filter((e, i) => {

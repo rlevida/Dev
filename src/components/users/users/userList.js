@@ -21,8 +21,7 @@ export default class UserList extends React.Component {
             'confirmDelete',
             'updateActiveStatus',
             'renderArrayTd',
-            'getNext',
-            'handleCopyUser'
+            'getNext'
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         })
@@ -92,19 +91,7 @@ export default class UserList extends React.Component {
         const { dispatch } = this.props;
         dispatch({ type: 'SET_USER_SELECTED', Selected: { ...data, team: data.team.map((e) => { return { value: e.id, label: e.team } }) } });
         dispatch({ type: 'SET_CURRENT_DATA_SELECTED', Selected: { ...data, team: data.team.map((e) => { return { value: e.id, label: e.team } }) } });
-        dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })
-    }
-
-    handleChangePassword(id) {
-        const { dispatch } = this.props;
-        dispatch({ type: "SET_USER_ID", SelectedId: id });
-        $(`#changePasswordModal`).modal('show');
-    }
-
-    handleCopyUser(id) {
-        const { dispatch } = this.props;
-        $(`#usersModal`).modal('show');
-        dispatch({ type: 'SET_USER_SELECTED', Selected: { copy_id: id } });
+        dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" });
     }
 
     render() {
@@ -164,7 +151,6 @@ export default class UserList extends React.Component {
                                                 <ul class="dropdown-menu">
                                                     <li><a onClick={() => this.handleEdit(user)}>Edit</a></li>
                                                     <li><a onClick={() => this.deleteData(user)}>Delete</a></li>
-                                                    <li><a>Copy User</a></li>
                                                 </ul>
                                             </td>
                                         </tr>

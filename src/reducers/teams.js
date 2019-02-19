@@ -2,7 +2,8 @@ import _ from "lodash";
 
 export default function reducer(state = {
     List: [],
-    FormActive: "List",
+    MemberList: [],
+    FormActive: "",
     Selected: {},
     SelectedId: [],
     Trainer: [],
@@ -26,6 +27,9 @@ export default function reducer(state = {
         }
         case "SET_TEAM_SELECTED": {
             return { ...state, Selected: action.Selected }
+        }
+        case "SET_TEAM_MEMBER_SELECT_LIST": {
+            return { ...state, MemberList: action.List }
         }
         case "SET_TEAM_ID": {
             return { ...state, SelectedId: action.SelectedId }

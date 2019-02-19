@@ -78,7 +78,8 @@ exports.get = {
                             },
                             {
                                 model: Teams,
-                                as: 'team_as_teamLeader'
+                                as: 'team_as_teamLeader',
+                                where: { isDeleted: 0 }
                             },
                             {
                                 model: UsersTeam,
@@ -86,7 +87,8 @@ exports.get = {
                                 include: [{
                                     model: Teams,
                                     as: 'team'
-                                }]
+                                }],
+                                where: { isDeleted: 0 }
                             }
                         ]
                     })
@@ -233,15 +235,19 @@ exports.post = {
                             },
                             {
                                 model: Teams,
-                                as: 'team_as_teamLeader'
+                                as: 'team_as_teamLeader',
+                                where: { isDeleted: 0 },
+                                required: false
                             },
                             {
                                 model: UsersTeam,
                                 as: 'users_team',
+                                where: { isDeleted: 0 },
                                 include: [{
                                     model: Teams,
                                     as: 'team'
-                                }]
+                                }],
+                                required: false
                             }
                         ]
                     })
@@ -251,11 +257,12 @@ exports.post = {
                             cb({ status: false, message: "Incorrect username/password." })
                             return;
                         } else {
-                            let responseToReturn = {
-                                ...res.dataValues,
+                            const response = res.toJSON();
+                            const responseToReturn = {
+                                ...response,
                                 projectId: res.projectId.map((e) => { return e.linkId }),
-                                userRole: res.dataValues.user_role[0].roleId,
-                                team: res.dataValues.team_as_teamLeader.concat(res.dataValues.users_team.map((e) => { return e.team }))
+                                userRole: response.user_role[0].roleId,
+                                team: response.team_as_teamLeader.concat(response.users_team.map((e) => { return e.team }))
                             }
                             nextThen(_.omit(responseToReturn, "team_as_teamLeader", "users_team"), ipBlockData)
                         }

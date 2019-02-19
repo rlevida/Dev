@@ -1,6 +1,7 @@
 const dbName = "team";
 var { defaultPut, defaultDelete } = require("./")
 const sequence = require('sequence').Sequence;
+const async = require("async");
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const _ = require("lodash");
@@ -170,7 +171,7 @@ exports.post = {
                     try {
                         Teams
                             .findOne({
-                                where: { id: result.id },
+                                where: { id: result.id, isDeleted: 0 },
                                 include: associationStack,
                             })
                             .then((res) => {
@@ -278,7 +279,7 @@ exports.put = {
                     try {
                         Teams
                             .findOne({
-                                where: { id: body.id },
+                                where: { id: body.id, isDeleted: 0 },
                                 include: associationStack,
                             })
                             .then((res) => {
@@ -323,38 +324,47 @@ exports.put = {
             })
         })
     },
-    deleteTeam: (req, cb) => {
+    deleteTeam: async (req, cb) => {
         const body = req.body;
         const id = req.params.id
-        sequence.create().then((nextThen) => {
-            UsersTeam
-                .findAll({ where: { teamId: id } })
+        try {
+            const toBeDeleted = await Teams
+                .findOne({
+                    where: { id, isDeleted: 0 },
+                    include: associationStack,
+                }).then((res) => {
+                    const response = res.toJSON();
+                    return response;
+                });
+            const userTeam = await UsersTeam.findAll({ where: { teamId: id } })
                 .map((res) => {
                     return res.usersId
                 })
                 .then((res) => {
-                    nextThen(res)
-                })
-        }).then((nextThen, result) => {
-            try {
-                Teams
-                    .update(body, { where: { id: id } })
-                    .then((res) => {
-                        UsersTeam
-                            .update(body, { where: { teamId: id } })
-                            .then((usersTeamResult) => {
-                                nextThen(result)
-                            })
-                    })
-            } catch (err) {
-                cb({ status: false, error: err })
-            }
-        }).then((nextThen, result) => {
-            try {
+                    return res;
+                });
+            const allMembers = [...userTeam, ...[toBeDeleted.teamLeaderId]]
+
+            async.parallel({
+                team: (parallelCallback) => {
+                    Teams
+                        .update(body, { where: { id: id } })
+                        .then(() => {
+                            parallelCallback(null, "");
+                        });
+                },
+                members: (parallelCallback) => {
+                    UsersTeam
+                        .update(body, { where: { teamId: id } })
+                        .then(() => {
+                            parallelCallback(null, "");
+                        });
+                }
+            }, () => {
                 Users
                     .findAll({
                         where: {
-                            id: result
+                            id: allMembers
                         },
                         include: usersAssociationStack,
                         attributes: ['id', 'username', 'firstName', 'lastName', 'emailAddress', 'phoneNumber', 'avatar', 'isActive', 'userType', 'company']
@@ -366,20 +376,16 @@ exports.put = {
                             userRole: res.user_role[0].roleId,
                             team: res.team_as_teamLeader.concat(res.users_team.map((e) => { return e.team }))
                         }
-                        return _.omit(responseToReturn, "team_as_teamLeader", "users_team")
+                        return _.omit(responseToReturn, "team_as_teamLeader", "users_team");
                     })
                     .then((res) => {
-                        cb({ status: true, data: res })
-                    })
-            } catch (err) {
-                cb({ status: false, error: err })
-            }
-        })
+                        cb({ status: true, data: res });
+                    });
+            })
+
+        } catch (err) {
+            cb({ status: false, error: err });
+        }
     }
 
-}
-
-exports.delete = {
-    index: (req, cb) => {
-    }
 }

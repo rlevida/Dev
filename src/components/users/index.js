@@ -4,8 +4,7 @@ import { connect } from "react-redux";
 import { getData } from "../../globalFunction"
 import Header from "../partial/header"
 import Users from "./users"
-import Team from "./teams"
-import TeamsModal from './teams/teamsModal'
+import Teams from "./teams"
 
 @connect((store) => {
     return {
@@ -19,7 +18,7 @@ export default class Component extends React.Component {
 
     componentDidMount() {
         const { dispatch } = this.props;
-        
+
         getData(`/api/globalORM/selectList?selectName=roleList`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'roleList' })
         });
@@ -45,7 +44,10 @@ export default class Component extends React.Component {
     }
 
     render() {
-        const Component = <Users />
+        const Component = <div>
+            <Users />
+            <Teams />
+        </div>
         return (
             <Header component={Component} page={"Teams & Users"} />
         )
