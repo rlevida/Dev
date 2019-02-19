@@ -164,7 +164,6 @@ export default class workstreamList extends React.Component {
                         </tbody>
                     </table>
                 }
-
                 {
                     (workstream.List.length == 0 && workstream.Loading != "RETRIEVING") && <p class="mb0 mt10 text-center"><strong>No Records Found</strong></p>
                 }

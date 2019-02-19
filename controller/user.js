@@ -424,8 +424,8 @@ exports.put = {
         })
     },
     changePassword: (req, cb) => {
-        const body = req.body
-        const id = body.Id;
+        const body = req.body;
+        const id = body.id;
         const func = global.initFunc();
         let data = {}
 

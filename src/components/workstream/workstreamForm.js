@@ -215,7 +215,7 @@ export default class WorkstreamForm extends React.Component {
                         required
                         value={(typeof workstream.Selected.workstream == "undefined" || (typeof workstream.Selected.action != "undefined")) ? "" : workstream.Selected.workstream}
                         class="form-control"
-                        placeholder="Enter Workstream"
+                        placeholder="Enter workstream"
                         onChange={this.handleChange}
                     />
                 </div>

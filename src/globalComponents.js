@@ -76,14 +76,19 @@ export const DropDown = React.createClass({
 
 export class OnOffSwitch extends React.Component {
     render() {
-        let { Active, Action, custom_class } = this.props
-        return <div class="onoffswitch">
-            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" onChange={() => { }} checked={Active == 1} />
-            <label class="onoffswitch-label" for="myonoffswitch">
-                <span class={custom_class + " onoffswitch-inner"} onClick={Action} ></span>
-                <span class="onoffswitch-switch"></span>
+        let { Active, Action, custom_class = "" } = this.props
+        return (
+            <label class="switch ">
+                <input 
+                    type="checkbox" 
+                    name="onoffswitch" 
+                    class="onoffswitch-checkbox success" 
+                    onClick={Action} 
+                    defaultChecked={Active == 1}
+                />
+                <span class="slider"></span>
             </label>
-        </div>
+        )
     }
 }
 
@@ -280,10 +285,10 @@ export const DeleteModal = (props) => {
                         <p class="warning text-center"><strong>{type_value}</strong></p>
                         <div class="flex-row mt20" id="delete-action">
                             <div class="flex-col">
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     class="btn btn-danger"
-                                    onClick = {delete_function}
+                                    onClick={delete_function}
                                 >{`Yes Delete ${type}!`}</button>
                             </div>
                             <div class="flex-col">
