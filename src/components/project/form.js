@@ -119,6 +119,8 @@ export default class FormComponent extends React.Component {
                 project.Selected.createdBy = loggedUser.data.id;
                 postData(`/api/project`, { ...project.Selected }, (c) => {
                     showToast("success", "Project successfully added.");
+                    dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project });
+                    dispatch({ type: "SET_MEMBERS_LIST", list: c.data.members });
                 });
             } else {
                 const dataToSubmit = {
