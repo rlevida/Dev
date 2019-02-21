@@ -9,7 +9,8 @@ export default function reducer(state = {
         taskAssigned: "",
         task: "",
         selected_month: "",
-        projectId: ""
+        projectId: "",
+        type:"assignedToMe"
     },
     FormActive: "List",
     FormAction: "",

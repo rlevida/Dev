@@ -2,7 +2,7 @@ const async = require("async");
 const _ = require("lodash");
 const moment = require("moment");
 const models = require('../modelORM');
-const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, sequelize } = models;
+const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, Type, sequelize } = models;
 const dbName = "task";
 const { defaultDelete } = require("./");
 const func = global.initFunc();
@@ -67,6 +67,12 @@ const associationStack = [
                                 attributes: ['id', 'firstName', 'lastName', 'emailAddress']
                             }
                         ]
+                    },
+                    {
+                        model: Type,
+                        as: 'type',
+                        required: false,
+                        attributes: ["type"]
                     }
                 ]
             },
@@ -101,7 +107,6 @@ exports.get = {
                 dueDate = _.reduce(queryString.dueDate, function (obj, values) {
                     const arrValues = JSON.parse(values);
                     obj[Sequelize.Op[arrValues.opt]] = arrValues.value;
-
                     return obj;
                 }, {});
             } else {
@@ -141,10 +146,10 @@ exports.get = {
             } : {},
             ...(dueDate != "" || typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
                 dueDate: {
-                    ...(dueDate != "" && Array.isArray(queryString.dueDate)) ? {
+                    ...(dueDate != "" && Array.isArray(dueDate)) ? {
                         [Sequelize.Op.or]: dueDate
                     } : (dueDate != "") ? {
-                        [Sequelize.Op[dueDate.opt]]: dueDate.value
+                        [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, (o) => { return moment(o, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") })
                     } : {},
                     [Sequelize.Op.not]: null
                 }
@@ -154,9 +159,10 @@ exports.get = {
                     [Sequelize.Op.not]: null
                 }
             } : {},
-            ...(typeof queryString.isActive != "undefined" && queryString.isActive != '') ? { isActive : queryString.isActive } : {}
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != '') ? { isActive: queryString.isActive } : {}
 
         };
+
         if (typeof queryString.userId != "undefined" && queryString.userId != "") {
             const compareOpt = (Array.isArray(queryString.userId)) ? "IN" : "=";
             const ids = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;

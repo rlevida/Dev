@@ -52,7 +52,7 @@ switch (page) {
         }
         break;
     case "mytask":
-        require('./container/allTask');
+        require('./container/myTasks');
         break;
     case "wikis":
         require('./container/pageNotAvailable');

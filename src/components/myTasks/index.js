@@ -1,7 +1,7 @@
 import React from "react"
 
 import Header from "../partial/header"
-import List from "./list"
+import MyTaskList from "./myTaskList"
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -11,18 +11,18 @@ import { connect } from "react-redux"
 })
 export default class Component extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
     }
 
     render() {
-        let { task } = this.props
-        let Component = <div>
-            {task.FormActive == "List" &&
-                <List />
+        const { task } = this.props;
+        const component = <div>
+            {task.FormActive == "List" && 
+                <MyTaskList />
             }
         </div>
         return (
-            <Header component={Component} page={"My Task"} />
+            <Header component={component} page={"My Tasks"} />
         )
     }
 }
