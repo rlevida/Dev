@@ -1,8 +1,11 @@
 import React from "react";
-import { DropDown } from "../../../globalComponents";
-import { showToast, postData, putData } from '../../../globalFunction';
-import _ from 'lodash';
 import { connect } from "react-redux";
+import _ from 'lodash';
+
+import { DropDown } from "../../../globalComponents";
+import { showToast, postData, putData, getData } from '../../../globalFunction';
+
+let keyTimer = "";
 @connect((store) => {
     return {
         document: store.document,
@@ -14,7 +17,8 @@ import { connect } from "react-redux";
         task: store.task,
         project: store.project,
         folder: store.folder,
-        users: store.users
+        users: store.users,
+        teams: store.teams
 
     }
 })
@@ -24,16 +28,18 @@ export default class UserForm extends React.Component {
 
         _.map([
             'handleChange',
+            'handleChangePassword',
+            'handleDate',
             'handleSubmit',
             'setDropDown',
-            'handleDate',
-            'handleChangePassword'
+            'setTeamList',
+            'fetchTeamList'
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
     }
     componentDidMount() {
-        $(".users-modal").validator();
+        this.fetchTeamList();
     }
 
     handleDate(e) {
@@ -171,12 +177,31 @@ export default class UserForm extends React.Component {
         }
     }
 
+    setTeamList(options) {
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            this.fetchTeamList(options);
+        }, 1500);
+    }
+
+    fetchTeamList(options) {
+        const { dispatch, loggedUser } = this.props;
+        let fetchUrl = `/api/teams?page=1&isDeleted=0&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
+
+        if (typeof options != "undefined" && options != "") {
+            fetchUrl += `&name=${options}`;
+        }
+        getData(fetchUrl, {}, (c) => {
+            const teamOptions = _(c.data.result)
+                .map((e) => { return { id: e.id, name: e.team } })
+                .value();
+            dispatch({ type: "SET_TEAM_SELECT_LIST", List: teamOptions });
+        });
+    }
+
     render() {
-        const { users, loggedUser, global, project } = this.props;
+        const { users, loggedUser, global, project, teams } = this.props;
         const userType = [{ id: "External", name: "External" }];
-        const teamList = (typeof global.SelectList.teamList != "undefined") ? global.SelectList.teamList.map((e) => {
-            return { id: e.id, name: e.team }
-        }) : [];
         const userRole = _(global.SelectList.roleList)
             .filter((o) => {
                 if (loggedUser.data.userRole == 1) {
@@ -301,16 +326,18 @@ export default class UserForm extends React.Component {
                     {
                         (users.Selected.userType == 'Internal') && <div class="form-group">
                             <label>Team:</label>
-                            <DropDown multiple={true}
+                            <DropDown
+                                multiple={true}
                                 required={false}
-                                options={teamList}
+                                options={teams.SelectList}
+                                onInputChange={this.setTeamList}
+                                placeholder={'Search or select team'}
+                                onChange={(e) => this.setDropDownMultiple("team", e)}
                                 selected={
                                     (typeof users.Selected.team == "undefined") ? [] : users.Selected.team.map((e) => { return typeof e.value != "undefined" ? { value: e.value } : { value: e.id } })
                                 }
-                                onChange={(e) => this.setDropDownMultiple("team", e)}
-                                placeholder={'Search or select team'}
+                                isClearable={((users.SelectList).length > 0)}
                             />
-                            <div class="help-block with-errors"></div>
                         </div>
                     }
                     {
@@ -325,7 +352,7 @@ export default class UserForm extends React.Component {
                         </div>
                     }
                     <a class="btn btn-violet" onClick={this.handleSubmit}>
-                        <span>{`${(typeof users.Selected.id != "undefined" && users.Selected.id != "")? 'Edit' : 'Add'} User`}</span>
+                        <span>{`${(typeof users.Selected.id != "undefined" && users.Selected.id != "") ? 'Edit' : 'Add'} User`}</span>
                     </a>
                 </form>
             </div>

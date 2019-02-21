@@ -1,15 +1,16 @@
 import _ from "lodash";
 
 export default function reducer(state = {
+    Count: {},
+    CurrentData: {},
+    FormActive: "",
     List: [],
     MemberList: [],
-    FormActive: "",
     Selected: {},
     SelectedId: [],
+    SelectList: [],
     Trainer: [],
-    Count: {},
-    Loading: 'RETRIEVING',
-    CurrentData: {}
+    Loading: 'RETRIEVING'
 }, action) {
     switch (action.type) {
         case "ADD_TEAM_TO_LIST": {
@@ -63,6 +64,9 @@ export default function reducer(state = {
                 }
             })
             return { ...state, List: List }
+        }
+        case "SET_TEAM_SELECT_LIST": {
+            return { ...state, SelectList: action.List }
         }
         default:
             return state;

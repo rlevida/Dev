@@ -2,8 +2,6 @@ const dbName = "team";
 var { defaultPut, defaultDelete } = require("./")
 const sequence = require('sequence').Sequence;
 const async = require("async");
-const Sequelize = require("sequelize")
-const Op = Sequelize.Op;
 const _ = require("lodash");
 const models = require('../modelORM');
 
@@ -15,8 +13,11 @@ const {
     UsersTeam,
     UsersRole,
     Roles,
+    Sequelize,
+    sequelize
 } = models;
 
+const Op = Sequelize.Op;
 const associationStack = [
     {
         model: Users,
@@ -73,15 +74,40 @@ exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
         const limit = 10;
+
+        const orStack = [];
+
+        if (typeof queryString.userId !== 'undefined' && queryString.userId !== '') {
+            orStack.push(
+                { id: { [Op.in]: Sequelize.literal(`(SELECT DISTINCT id FROM team where teamLeaderId = ${queryString.userId})`) } },
+                { id: { [Op.in]: Sequelize.literal(`(SELECT DISTINCT teamId FROM users_team where usersId = ${queryString.userId})`) } }
+            );
+        }
+
+        if (typeof queryString.userRole !== 'undefined' && queryString.userRole <= 2) {
+            orStack.push(
+                {
+                    id: {
+                        [Op.ne]: 0
+                    }
+                }
+            );
+        }
+
         const whereObj = {
             ...(typeof queryString.isDeleted !== 'undefined' && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : {},
-            ...(typeof queryString.userId !== 'undefined' && queryString.userId !== '') ? {
-                [Op.or]: [
-                    { id: { [Op.in]: Sequelize.literal(`(SELECT DISTINCT id FROM team where teamLeaderId = ${queryString.userId})`) } },
-                    { id: { [Op.in]: Sequelize.literal(`(SELECT DISTINCT teamId FROM users_team where usersId = ${queryString.userId})`) } }
-                ]
+            ...(orStack.length > 0) ? {
+                [Op.or]: orStack
+            } : {},
+            ...(typeof queryString.name !== 'undefined' && queryString.name != "") ? {
+                [Op.and]: Sequelize.where(
+                    Sequelize.fn('lower', Sequelize.col('team.team')),
+                    {
+                        [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.name}%`)
+                    }
+                )
             } : {}
-        }
+        };
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
         };

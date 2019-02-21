@@ -289,10 +289,10 @@ export const DeleteModal = (props) => {
                                     type="button"
                                     class="btn btn-danger"
                                     onClick={delete_function}
-                                >{`Yes Delete ${type}!`}</button>
+                                >{`Yes delete ${type}!`}</button>
                             </div>
                             <div class="flex-col">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">No Don't!</button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">No don't!</button>
                             </div>
                         </div>
                     </div>

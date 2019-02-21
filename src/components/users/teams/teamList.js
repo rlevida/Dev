@@ -55,11 +55,12 @@ export default class TeamList extends React.Component {
     }
 
     getList(page) {
-        const { dispatch, teams } = this.props;
-        getData(`/api/teams?page=${page}&isDeleted=0`, {}, (c) => {
+        const { dispatch, teams, loggedUser } = this.props;
+        
+        getData(`/api/teams?page=${page}&isDeleted=0&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`, {}, (c) => {
             dispatch({ type: 'SET_TEAM_LIST', list: teams.List.concat(c.data.result), Count: c.data.count });
             dispatch({ type: 'SET_TEAM_LOADING', Loading: '' });
-        })
+        });
     }
 
     getNext() {
@@ -81,17 +82,12 @@ export default class TeamList extends React.Component {
     }
 
     render() {
-        let { teams, loggedUser } = this.props;
+        let { teams } = this.props;
         const currentPage = (typeof teams.Count.current_page != "undefined") ? teams.Count.current_page : 1;
         const lastPage = (typeof teams.Count.last_page != "undefined") ? teams.Count.last_page : 1;
         const typeValue = (typeof teams.Selected.team != "undefined" && _.isEmpty(teams.Selected) == false) ? teams.Selected.team : "";
-        const teamList = _.filter(teams.List, (o) => {
-            if (loggedUser.data.userRole <= 2) {
-                return o.id > 0
-            } else if (loggedUser.data.userRole == 3) {
-                return (o.teamLeaderId == loggedUser.data.id || o.usersId == loggedUser.data.id) || (_.filter(o.users_team, (lt) => { return lt.usersId == loggedUser.data.id })).length > 0;
-            }
-        });
+        const teamList = teams.List;
+
         return (
             <div>
                 {
