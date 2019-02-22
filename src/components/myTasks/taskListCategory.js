@@ -40,15 +40,17 @@ export default class taskListCategory extends React.Component {
         const { dispatch, task } = this.props;
 
         if (_.isEqual(prevProps.task.Filter, task.Filter) == false) {
-            this.setState({ loading: "RETRIEVING" });
+            this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
         }
     }
 
     getList(page) {
-        const { loggedUser, dispatch, date } = this.props;
+        const { loggedUser, dispatch, date, task } = this.props;
+        const { Filter } = task;
+
         let fromDate = "";
         let toDate = "";
-        let fetchUrl = `/api/task?page=${page}&userId=${loggedUser.data.id}&status=${JSON.stringify({ opt: "not", value: 'Completed' })}`;
+        let fetchUrl = `/api/task?page=${page}&userId=${loggedUser.data.id}&type=${Filter.type}`;
 
         switch (date) {
             case "Today":
@@ -79,17 +81,20 @@ export default class taskListCategory extends React.Component {
         this.setState({ loading: "RETRIEVING" }, () => this.getList(count.current_page + 1));
     }
 
-    renderRow({ index, task, dueDate, workstream }) {
+    renderRow({ index, task: task_name, dueDate, workstream, task_members }) {
+        const { task } = { ...this.props };
+        const { Filter } = task;
         const given = moment(dueDate, "YYYY-MM-DD");
         const current = moment().startOf('day');
         const { project } = workstream;
         let daysRemaining = moment.duration(given.diff(current)).asDays() + 1;
         daysRemaining = (daysRemaining == 0) ? 1 : daysRemaining;
+        const assigned = _.map(task_members, (o) => { return o.user.firstName + " " + o.user.lastName });
 
         return (
             <tr key={index} class={(daysRemaining < 0) ? "text-red" : ""}>
                 <td data-label="Task Name" class="td-left">
-                    {task}
+                    {task_name}
                 </td>
                 <td data-label="Deadline">
                     {moment(dueDate).format("MMMM DD, YYYY")}
@@ -104,6 +109,11 @@ export default class taskListCategory extends React.Component {
                         </span>
                         {project.project}
                     </p>
+                </td>
+                <td class={(Filter.type == "assignedToMe") ? "hide" : ""}>
+                    {
+                        assigned.join("\r\n")
+                    }
                 </td>
             </tr>
         );
@@ -136,7 +146,7 @@ export default class taskListCategory extends React.Component {
 
 
     render() {
-        const { task, date } = { ...this.props };
+        const { date } = { ...this.props };
         const { count, loading } = { ...this.state };
         const currentPage = (typeof count.current_page != "undefined") ? count.current_page : 1;
         const lastPage = (typeof count.last_page != "undefined") ? count.last_page : 1;

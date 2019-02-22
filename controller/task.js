@@ -2,7 +2,7 @@ const async = require("async");
 const _ = require("lodash");
 const moment = require("moment");
 const models = require('../modelORM');
-const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, Type, sequelize } = models;
+const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, Type, UsersTeam, Teams, sequelize } = models;
 const dbName = "task";
 const { defaultDelete } = require("./");
 const func = global.initFunc();
@@ -95,13 +95,13 @@ const associationStack = [
 ];
 
 exports.get = {
-    index: (req, cb) => {
+    index: async (req, cb) => {
         const associationArray = _.cloneDeep(associationStack);
         const queryString = req.query;
         const limit = 10;
         const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
         let dueDate = "";
-
+        
         if (typeof queryString.dueDate != "undefined" && queryString != "") {
             if (Array.isArray(queryString.dueDate)) {
                 dueDate = _.reduce(queryString.dueDate, function (obj, values) {
@@ -164,26 +164,73 @@ exports.get = {
         };
 
         if (typeof queryString.userId != "undefined" && queryString.userId != "") {
-            const compareOpt = (Array.isArray(queryString.userId)) ? "IN" : "=";
-            const ids = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;
+            let queryUserIds = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;
+            let opOrArray = [];
 
-            whereObj[Sequelize.Op.or] = [
-                {
-                    id: {
-                        [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids})`)
-                    }
-                },
-                {
-                    workstreamId: {
-                        [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT linkId FROM members WHERE memberType="responsible" AND linkType="workstream" AND userTypeLinkId ${compareOpt} ${ids})`)
-                    }
-                },
-                {
-                    approverId: queryString.userId
+            if (typeof queryString.type != "undefined") {
+                const compareOpt = (Array.isArray(queryString.userId)) ? "IN" : "=";
+                const ids = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;
+
+                switch (queryString.type) {
+                    case "assignedToMe":
+                        opOrArray.push(
+                            {
+                                id: {
+                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids})`)
+                                }
+                            },
+                            {
+                                workstreamId: {
+                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT linkId FROM members WHERE memberType="responsible" AND linkType="workstream" AND userTypeLinkId ${compareOpt} ${ids})`)
+                                }
+                            },
+                            {
+                                approverId: queryString.userId
+                            }
+                        );
+                        break;
+                    case "myTeam":
+                        const userTeams = await UsersTeam
+                            .findAll({ where: { usersId: queryUserIds, isDeleted: 0 } })
+                            .map((mapObject) => {
+                                const { teamId } = mapObject.toJSON();
+                                return teamId;
+                            });
+                        const teams = await Teams
+                            .findAll({ where: { teamLeaderId: queryUserIds, isDeleted: 0 } })
+                            .map((mapObject) => {
+                                const { id } = mapObject.toJSON();
+                                return id;
+                            });
+                        const teamIds = _.uniq([...userTeams, ...teams]);
+                        const allTeams = await UsersTeam
+                            .findAll({ where: { teamId: teamIds, isDeleted: 0 } })
+                            .map((mapObject) => {
+                                const { usersId } = mapObject.toJSON();
+                                return usersId;
+                            });
+                        opOrArray.push(
+                            {
+                                id: {
+                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId IN (${(allTeams).join(",")}) AND members.userTypeLinkId <> ${queryString.userId})`)
+                                }
+                            }
+                        );
+                        break;
+                    case "following":
+                        opOrArray.push(
+                            {
+                                id: {
+                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids} AND memberType = "Follower")`)
+                                }
+                            }
+                        );
+                        break;
+                    default:
                 }
-            ]
+            }
+            whereObj[Sequelize.Op.or] = opOrArray;
         }
-
         if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
             _.find(associationArray, { as: 'task_starred' }).where = {
                 linkType: 'task',

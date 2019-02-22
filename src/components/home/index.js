@@ -1,6 +1,6 @@
 import React from "react";
 import Header from "../partial/header";
-import TaskStatus from "../allTask/taskStatus";
+import TaskStatus from "../myTasks/taskStatus";
 import ProjectSummary from "../project/projectSummary";
 
 export default class Component extends React.Component {
