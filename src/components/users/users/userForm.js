@@ -241,7 +241,7 @@ export default class UserForm extends React.Component {
                             class="form-control"
                             placeholder="Enter username"
                             onChange={this.handleChange} />
-                        <div class="help-block with-errors"></div>
+                       
                     </div>
                     <div class="form-group">
                         <label>Email Address: <span class="text-red">*</span></label>
@@ -254,7 +254,7 @@ export default class UserForm extends React.Component {
                             placeholder="Enter valid email address"
                             onChange={this.handleChange}
                         />
-                        <div class="help-block with-errors"></div>
+                       
                     </div>
                     <div class="form-group">
                         <label>First name: <span class="text-red">*</span></label>
@@ -266,7 +266,7 @@ export default class UserForm extends React.Component {
                             placeholder="Enter first name"
                             onChange={this.handleChange}
                         />
-                        <div class="help-block with-errors"></div>
+                       
                     </div>
                     <div class="form-group">
                         <label>Last name: <span class="text-red">*</span></label>
@@ -279,7 +279,7 @@ export default class UserForm extends React.Component {
                             placeholder="Enter last Name"
                             onChange={this.handleChange}
                         />
-                        <div class="help-block with-errors"></div>
+                       
                     </div>
                     <div class="form-group">
                         <label>Phone Number: </label>
@@ -294,7 +294,7 @@ export default class UserForm extends React.Component {
                             onChange={(e) => {
                                 this.setDropDown("userType", e.value);
                             }} />
-                        <div class="help-block with-errors"></div>
+                       
                     </div>
                     {
                         (typeof users.Selected.userType != "undefined" && users.Selected.userType != "") && <div class="form-group">
@@ -306,7 +306,7 @@ export default class UserForm extends React.Component {
                                 onChange={(e) => this.setDropDown("userRole", e.value)}
                                 placeholder={"Select user role"}
                             />
-                            <div class="help-block with-errors"></div>
+                           
                         </div>
                     }
                     {
@@ -320,7 +320,7 @@ export default class UserForm extends React.Component {
                                 placeholder="Enter company"
                                 onChange={this.handleChange}
                             />
-                            <div class="help-block with-errors"></div>
+                           
                         </div>
                     }
                     {
@@ -374,7 +374,7 @@ export default class UserForm extends React.Component {
                                 placeholder="Enter new password"
                                 onChange={this.handleChange}
                             />
-                            <div class="help-block with-errors"></div>
+                           
                         </div>
                         <div class="form-group">
                             <label>Confirm Password: <span class="text-red">*</span></label>
@@ -387,7 +387,7 @@ export default class UserForm extends React.Component {
                                 placeholder="Confirm password"
                                 onChange={this.handleChange}
                             />
-                            <div class="help-block with-errors"></div>
+                           
                         </div>
                         <a class="btn btn-violet" onClick={this.handleChangePassword}>
                             <span>Change user password</span>

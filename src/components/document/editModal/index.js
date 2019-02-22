@@ -122,7 +122,7 @@ export default class EditModal extends React.Component {
                                         <label class="col-md-3 col-xs-12 control-label">Document Name *</label>
                                         <div class="col-md-7 col-xs-12">
                                             <input type="text" name="origin" required value={(typeof document.Selected.origin == "undefined") ? "" : document.Selected.origin} class="form-control" placeholder="Document" onChange={this.handleChange} />
-                                            <div class="help-block with-errors"></div>
+                                           
                                         </div>
                                     </div>
                                 }
@@ -138,7 +138,7 @@ export default class EditModal extends React.Component {
                                                 selected={(document.Selected.tags != null) ? document.Selected.tags : []}
                                                 onChange={(e) => this.selectTag(e, document.Selected)}
                                             />
-                                            <div class="help-block with-errors"></div>
+                                           
                                         </div>
                                     </div>
                                 }
@@ -147,7 +147,7 @@ export default class EditModal extends React.Component {
                                         <label class="col-md-3 col-xs-12 control-label">Folder Name *</label>
                                         <div class="col-md-7 col-xs-12">
                                             <input type="text" name="name" required value={(typeof document.Selected.name == "undefined") ? "" : document.Selected.name} class="form-control" placeholder="Document" onChange={this.handleChange} />
-                                            <div class="help-block with-errors"></div>
+                                           
                                         </div>
                                     </div>
                                 }

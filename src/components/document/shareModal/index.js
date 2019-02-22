@@ -86,7 +86,7 @@ export default class ShareModal extends React.Component {
                                         selected={(document.Selected.share != null) ? JSON.parse(document.Selected.share) : []}
                                         onChange={(e) => this.selectShare(e)}
                                     />
-                                    <div class="help-block with-errors"></div>
+                                   
                                 </div>
                             </div>
                             <br />

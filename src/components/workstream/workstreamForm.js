@@ -244,13 +244,13 @@ export default class WorkstreamForm extends React.Component {
                             placeholder="Number of Hours"
                             onChange={this.handleChange}
                         />
-                        <div class="help-block with-errors"></div>
+                       
                     </div>
                 }
                 <div class="form-group">
                     <label for="description">Workstream Description: <span class="text-red">*</span></label>
                     <textarea name="description" required value={(typeof workstream.Selected.description == "undefined" || workstream.Selected.description == null || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
-                    <div class="help-block with-errors"></div>
+                   
                 </div>
                 <div class="form-group">
                     <label>Responsible: <span class="text-red">*</span></label>
@@ -265,7 +265,7 @@ export default class WorkstreamForm extends React.Component {
                         isClearable={true}
                         placeholder={'Search and select member responsible'}
                     />
-                    <div class="help-block with-errors"></div>
+                   
                 </div>
                 <a class="btn btn-violet" onClick={this.handleSubmit}>
                     <span>{`${(typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") ? 'Edit' : 'Add'} workstream`}</span>

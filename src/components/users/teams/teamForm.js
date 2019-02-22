@@ -218,7 +218,7 @@ export default class TeamForm extends React.Component {
                             placeholder="Enter team name"
                             onChange={this.handleChange}
                         />
-                        <div class="help-block with-errors"></div>
+                       
                     </div>
                     <div class="form-group">
                         <label>Team Leader: <span class="text-red">*</span></label>
@@ -233,7 +233,7 @@ export default class TeamForm extends React.Component {
                             }}
                             isClearable={((users.SelectList).length > 0)}
                         />
-                        <div class="help-block with-errors"></div>
+                       
                     </div>
                     <div class="form-group">
                         <label>Members: <span class="text-red">*</span></label>
@@ -249,7 +249,7 @@ export default class TeamForm extends React.Component {
                             }}
                             isClearable={((teams.MemberList).length > 0)}
                         />
-                        <div class="help-block with-errors"></div>
+                       
                     </div>
                     <a class="btn btn-violet" onClick={this.handleSubmit}>
                         <span>{`${(typeof teams.Selected.id != "undefined" && teams.Selected.id != "") ? 'Edit' : 'Add'} Team`}</span>

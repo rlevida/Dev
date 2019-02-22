@@ -152,7 +152,7 @@ export default class UploadModal extends React.Component {
                                                                 selected={(typeof data.tags != "undefined") ? JSON.parse(data.tags) : []}
                                                                 onChange={(e) => this.selectTag(e, index)}
                                                             />
-                                                            <div class="help-block with-errors"></div>
+                                                           
                                                         </td>
                                                     </tr>
                                                 )

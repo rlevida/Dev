@@ -64,7 +64,7 @@ export default class ForgotPassword extends React.Component {
                             <div class="form-group">
                                 <p class="text-center">Please provide the email address that<br /> you used for your account.</p>
                                 <input type="email" name="email" required value={this.state.email} class="form-control" placeholder="email account" onChange={this.handleChange} />
-                                <div class="help-block with-errors"></div>
+                               
                             </div>
                             <button class="btn btn-primary btn-block" disabled={this.state.disabled}>Submit</button>
                         </form>

@@ -292,7 +292,7 @@ export default class FormComponent extends React.Component {
                                                         }}
                                                         isClearable={true}
                                                     />
-                                                    <div class="help-block with-errors"></div>
+                                                   
                                                 </div>
                                             </div>
                                         }
@@ -300,7 +300,7 @@ export default class FormComponent extends React.Component {
                                             <label class="col-md-3 col-xs-12 control-label">Workstream *</label>
                                             <div class="col-md-7 col-xs-12">
                                                 <input type="text" name="workstream" required value={(typeof workstream.Selected.workstream == "undefined") ? "" : workstream.Selected.workstream} class="form-control" placeholder="Workstream" onChange={this.handleChange} />
-                                                <div class="help-block with-errors"></div>
+                                               
                                             </div>
                                         </div>
                                         <div class="form-group">
@@ -313,7 +313,7 @@ export default class FormComponent extends React.Component {
                                                     onChange={(e) => {
                                                         this.setDropDown("typeId", e.value);
                                                     }} />
-                                                <div class="help-block with-errors"></div>
+                                               
                                             </div>
                                         </div>
                                         {
@@ -321,7 +321,7 @@ export default class FormComponent extends React.Component {
                                                 <label class="col-md-3 col-xs-12 control-label">Number of Hours</label>
                                                 <div class="col-md-7 col-xs-12">
                                                     <input type="number" name="numberOfHours" required value={(typeof workstream.Selected.numberOfHours == "undefined") ? "" : workstream.Selected.numberOfHours} class="form-control" placeholder="Number of Hours" onChange={this.handleChange} />
-                                                    <div class="help-block with-errors"></div>
+                                                   
                                                 </div>
                                             </div>
                                         }
@@ -329,7 +329,7 @@ export default class FormComponent extends React.Component {
                                             <label class="col-md-3 col-xs-12 control-label">Description</label>
                                             <div class="col-md-7 col-xs-12">
                                                 <textarea name="description" value={(typeof workstream.Selected.description == "undefined" || workstream.Selected.description == null) ? "" : workstream.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
-                                                <div class="help-block with-errors"></div>
+                                               
                                             </div>
                                         </div>
                                         <div class="form-group">
@@ -346,7 +346,7 @@ export default class FormComponent extends React.Component {
                                                     }}
                                                     isClearable={true}
                                                 />
-                                                <div class="help-block with-errors"></div>
+                                               
                                             </div>
                                         </div>
                                     </form>

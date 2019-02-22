@@ -12,7 +12,8 @@ export default function reducer(state = {
     ProjectManagerId: "",
     Selected: { isActive: true },
     StatusCount: [],
-    SelectedId: []
+    SelectedId: [],
+    SelectList: []
 }, action) {
     switch (action.type) {
         case "SET_PROJECT_LIST": {
@@ -72,6 +73,9 @@ export default function reducer(state = {
             const { Filter } = { ...state };
             const updatedFilter = _.merge({}, Filter, action.filter);
             return { ...state, Filter: updatedFilter }
+        }
+        case "SET_PROJECT_SELECT_LIST": {
+            return { ...state, SelectList: action.List }
         }
         default:
             return state;

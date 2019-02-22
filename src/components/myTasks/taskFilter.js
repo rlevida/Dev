@@ -28,7 +28,7 @@ export default class TaskFilter extends React.Component {
     }
 
     render() {
-        const { task } = { ...this.props };
+        const { task, dispatch } = { ...this.props };
         const tabs = [
             { id: "assignedToMe", name: 'Assigned to me' },
             { id: "myTeam", name: "My Team" },
@@ -57,23 +57,14 @@ export default class TaskFilter extends React.Component {
                         </div>
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
-                        {/* <div class="add-action">
-                            <DropDown multiple={false}
-                                required={false}
-                                options={statusList}
-                                selected={Filter.projectStatus}
-                                onChange={(e) => this.setDropDown("projectStatus", e.value)} />
-                            <a class="btn btn-default" onClick={(e) => {
-                                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { isActive: true } });
-                                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
-                            }}
-                            >
+                        <div class="add-action">
+                            <a class="btn btn-default" onClick={(e) => { dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" }); }}>
                                 <span>
                                     <i class="fa fa-plus mr10" aria-hidden="true"></i>
-                                    Add New Project
-                                </span>
+                                    Add New Task
+                            </span>
                             </a>
-                        </div> */}
+                        </div>
                     </div>
                 </div>
             </div>

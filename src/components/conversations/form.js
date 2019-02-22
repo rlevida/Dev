@@ -451,7 +451,7 @@ export default class FormComponent extends React.Component {
                                     options={clientUser}
                                     selected={(typeof specificClient === "string") ? JSON.parse(specificClient) : specificClient}
                                     onChange={(e) => { this.setDropDownMultiple('specificClient', e) }} />
-                                <div class="help-block with-errors"></div>
+                               
                             </div>
                         </div>
                     }

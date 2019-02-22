@@ -60,7 +60,7 @@ export default class Component extends React.Component {
                             >
                                 <i class="fa fa-chevron-left" aria-hidden="true"></i>
                             </a>
-                            Create New Workstream
+                            Add New Workstream
                             </h4>
                     </div>
                     <div class="card-body">

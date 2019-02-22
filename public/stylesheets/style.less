@@ -1520,7 +1520,7 @@ table ul.dropdown-menu{
 }
 
 #my-task > tbody > tr > td:last-child { 
-  color:#333; 
+  color:#333!important; 
 }
 #my-task > tbody > tr > td:last-child p {
   border: 1px #f6f6f6 solid;
@@ -1528,6 +1528,60 @@ table ul.dropdown-menu{
   border-radius: 20px;
   padding: 2px;
 }
+
+form .underlined{
+  border: 0;
+  box-shadow: none;
+  border-bottom: 1px solid #ccc;
+  border-radius: 0px;
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  background-image: none !important;
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+#task-name {
+  font-size: 25px;
+  font-weight: 600;
+  width: 100%;
+  max-width: unset!important;
+}
+
+.input-inline{
+  display: flex;
+}
+
+.input-inline input[type=text],
+.input-inline .Select{
+  width: 100%;
+}
+.input-inline label{
+  display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 0;
+    min-width: 105px;
+}
+
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control{
+  background-color: #ffffff!important;
+}
+
+#task-form textarea.underlined {
+  width: 100%;
+  height: 100px;
+}
+
+textarea::-webkit-scrollbar {
+  width: 5px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background-color: darkgrey;
+  outline: 1px solid slategrey;
+}
+
 
 @media screen and (max-width: 600px) {
   table {
@@ -1660,6 +1714,18 @@ table ul.dropdown-menu{
   .add-action .btn{
     width: 100%;
   }
+
+  .input-inline{
+   flex-direction: column;
+  }
+
+  // .form-inline .form-group{
+  //   display: unset!important;
+  // }
+  // .form-inline .form-group label{
+  //   margin-right: 0px;
+  //   margin-bottom: 5px;
+  // }
 }
 
 /* Small */
@@ -1701,6 +1767,9 @@ table ul.dropdown-menu{
   #menu > li > a {
     padding: 15px 5px 15px 5px!important;
   }
+  #task-form {
+    max-width: unset;
+  }
 }
 
 /* Medium */
@@ -1720,6 +1789,18 @@ table ul.dropdown-menu{
   }
   .status-count [class*=col]:not(:last-child){
     border-right: 0px;
+  }
+  #task-form {
+    max-width: unset;
+  }
+}
+
+
+/* Large */
+
+@media only screen  and (min-width : 1200px) {
+  #task-form {
+    max-width: unset;
   }
 }
 

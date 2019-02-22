@@ -91,7 +91,16 @@ exports.get = {
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : {},
             ...(typeof queryString.typeId != "undefined" && queryString.typeId != "") ? { typeId: queryString.typeId } : {},
-            isDeleted: 0
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 },
+            ...(typeof queryString.project != "undefined" && queryString.project != "") ? {
+                [Sequelize.Op.and]: [
+                    Sequelize.where(Sequelize.fn('lower', Sequelize.col('project')),
+                        {
+                            [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.project}%`)
+                        }
+                    )
+                ]
+            } : {}
         };
 
         if (typeof queryString.projectStatus != "undefined" && queryString.projectStatus != "") {

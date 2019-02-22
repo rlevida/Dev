@@ -18,7 +18,7 @@ export default class taskListCategory extends React.Component {
 
         this.state = {
             count: {},
-            loading: "RETRIEVING"
+            loading: ""
         };
 
         _.map([
@@ -33,11 +33,13 @@ export default class taskListCategory extends React.Component {
     }
 
     componentDidMount() {
-        this.getList(1);
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_TASK_LIST", list: [] });
+        this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
     }
 
     componentDidUpdate(prevProps) {
-        const { dispatch, task } = this.props;
+        const { task } = this.props;
 
         if (_.isEqual(prevProps.task.Filter, task.Filter) == false) {
             this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
@@ -110,11 +112,13 @@ export default class taskListCategory extends React.Component {
                         {project.project}
                     </p>
                 </td>
-                <td class={(Filter.type == "assignedToMe") ? "hide" : ""}>
-                    {
-                        assigned.join("\r\n")
-                    }
-                </td>
+                {
+                    (Filter.type != "assignedToMe") && <td>
+                        {
+                            assigned.join("\r\n")
+                        }
+                    </td>
+                }
             </tr>
         );
     }
@@ -146,11 +150,12 @@ export default class taskListCategory extends React.Component {
 
 
     render() {
-        const { date } = { ...this.props };
+        const { date, task } = { ...this.props };
         const { count, loading } = { ...this.state };
         const currentPage = (typeof count.current_page != "undefined") ? count.current_page : 1;
         const lastPage = (typeof count.last_page != "undefined") ? count.last_page : 1;
         const taskList = this.groupList();
+
         return (
             <div>
                 <div class="card-header">
@@ -166,6 +171,9 @@ export default class taskListCategory extends React.Component {
                                         <th scope="col">Deadline</th>
                                         <th scope="col">Time Remaining</th>
                                         <th scope="col">Project</th>
+                                        {
+                                            (task.Filter.type != "assignedToMe") && <th scope="col">Assigned</th>
+                                        }
                                     </tr>
                                 </thead>
                                 <tbody>

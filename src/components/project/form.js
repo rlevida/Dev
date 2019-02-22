@@ -112,34 +112,34 @@ export default class FormComponent extends React.Component {
             }
         });
 
-        if (!result) {
-            showToast("error", "Please fill up the required fields.");
-        } else {
-            if (!project.Selected.id) {
-                project.Selected.createdBy = loggedUser.data.id;
-                postData(`/api/project`, { ...project.Selected }, (c) => {
-                    showToast("success", "Project successfully added.");
-                    dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project });
-                    dispatch({ type: "SET_MEMBERS_LIST", list: c.data.members });
-                });
-            } else {
-                const dataToSubmit = {
-                    project: project.Selected.project,
-                    isActive: project.Selected.isActive,
-                    typeId: project.Selected.typeId,
-                    tinNo: project.Selected.tinNo,
-                    companyAddress: project.Selected.companyAddress,
-                    classification: project.Selected.classification,
-                    projectNameCount: project.Selected.projectNameCount,
-                    projectType: project.Selected.projectType,
-                    projectManagerId: project.Selected.projectManagerId
-                }
-                putData(`/api/project/${project.Selected.id}`, dataToSubmit, (c) => {
-                    dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
-                    showToast("success", "Successfully Updated.")
-                })
-            }
-        }
+        // if (!result) {
+        //     showToast("error", "Please fill up the required fields.");
+        // } else {
+        //     if (!project.Selected.id) {
+        //         project.Selected.createdBy = loggedUser.data.id;
+        //         postData(`/api/project`, { ...project.Selected }, (c) => {
+        //             showToast("success", "Project successfully added.");
+        //             dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project });
+        //             dispatch({ type: "SET_MEMBERS_LIST", list: c.data.members });
+        //         });
+        //     } else {
+        //         const dataToSubmit = {
+        //             project: project.Selected.project,
+        //             isActive: project.Selected.isActive,
+        //             typeId: project.Selected.typeId,
+        //             tinNo: project.Selected.tinNo,
+        //             companyAddress: project.Selected.companyAddress,
+        //             classification: project.Selected.classification,
+        //             projectNameCount: project.Selected.projectNameCount,
+        //             projectType: project.Selected.projectType,
+        //             projectManagerId: project.Selected.projectManagerId
+        //         }
+        //         putData(`/api/project/${project.Selected.id}`, dataToSubmit, (c) => {
+        //             dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
+        //             showToast("success", "Successfully Updated.")
+        //         })
+        //     }
+        // }
     }
 
     setDropDown(name, value) {
@@ -241,12 +241,12 @@ export default class FormComponent extends React.Component {
                                 >
                                     <i class="fa fa-chevron-left" aria-hidden="true"></i>
                                 </a>
-                                Create New Project
+                                Add New Project
                             </h4>
                         </div>
                         <div class="card-body">
                             <div class="mb20">
-                                <form id="#project-form">
+                                <form id="project-form">
                                     <div class="mb20">
                                         <p class="form-header mb0">Project Details</p>
                                         <p>All with <span class="text-red">*</span> are required.</p>
@@ -266,7 +266,7 @@ export default class FormComponent extends React.Component {
                                     <div class="form-group">
                                         <label for="project-name">Project Name: <span class="text-red">*</span></label>
                                         <input id="project-name" type="text" name="project" required value={(typeof project.Selected.project == "undefined" || project.Selected.project == null) ? "" : project.Selected.project} class="form-control" placeholder="Enter project name" onChange={this.handleChange} />
-                                        <div class="help-block with-errors"></div>
+                                       
                                     </div>
                                     <div class="form-group">
                                         <label for="project-type">Project Type: <span class="text-red">*</span></label>
@@ -277,7 +277,7 @@ export default class FormComponent extends React.Component {
                                             onChange={(e) => this.setDropDown("typeId", e.value)}
                                             placeholder={"Select project type"}
                                         />
-                                        <div class="help-block with-errors"></div>
+                                       
                                     </div>
                                     {(typeof project.Selected.typeId == "undefined" || project.Selected.typeId == 1) &&
                                         <div class="form-group">
@@ -302,7 +302,7 @@ export default class FormComponent extends React.Component {
                                             }}
                                             placeholder={"Search or select project lead"}
                                         />
-                                        <div class="help-block with-errors"></div>
+                                       
                                     </div>
                                     <div class="form-group">
                                         <div class="checkbox">

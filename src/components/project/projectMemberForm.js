@@ -148,7 +148,7 @@ export default class ProjectMemberForm extends React.Component {
                         }}
                         placeholder={'Select member type'}
                     />
-                    <div class="help-block with-errors"></div>
+                   
                 </div>
                 <div class="form-group">
                     <label>Member: <span class="text-red">*</span></label>
@@ -161,7 +161,7 @@ export default class ProjectMemberForm extends React.Component {
                         }}
                         placeholder={'Search or select user'}
                     />
-                    <div class="help-block with-errors"></div>
+                   
                 </div>
                 <div class="form-group">
                     <div class="checkbox">

@@ -103,7 +103,7 @@ export default class LogtimeModal extends React.Component {
                                                 }
                                             }}
                                         />
-                                        <div class="help-block with-errors"></div>
+                                       
                                     </div>
                                     <div class="col-md-6">
                                         <label>Period</label>

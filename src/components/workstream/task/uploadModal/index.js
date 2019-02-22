@@ -163,7 +163,7 @@ export default class UploadModal extends React.Component {
                                                             onChange={(e) => this.selectTag(e, index)}
                                                             disabled={true}
                                                         />
-                                                        <div class="help-block with-errors"></div>
+                                                       
                                                     </td>
                                                 </tr>
                                             )

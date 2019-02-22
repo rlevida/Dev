@@ -82,7 +82,7 @@ export default class NewForm extends React.Component {
                                     <label class="col-md-3 col-xs-12 control-label">Note *</label>
                                     <div class="col-md-7 col-xs-12">
                                         <input type="text" name="task" required value={data.note} onChange={e=> { this.state.data.note = e.target.value; this.setState({data:this.state.data})} } />
-                                        <div class="help-block with-errors"></div>
+                                       
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -93,7 +93,7 @@ export default class NewForm extends React.Component {
                                             selected={data.privacyType}
                                             onChange={e=> { this.state.data.privacyType = e.value; this.setState({privacyType:this.state.data})} }
                                         />
-                                        <div class="help-block with-errors"></div>
+                                       
                                     </div>
                                 </div>
                             </form>

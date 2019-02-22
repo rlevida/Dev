@@ -109,7 +109,7 @@ export default class ApprovalModal extends React.Component {
                                                 selected={(typeof task.Selected.approverId == "undefined") ? "" : task.Selected.approverId}
                                                 onChange={(e) => this.setDropDown("approverId", e.value)}
                                             />
-                                            <div class="help-block with-errors"></div>
+                                           
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -129,7 +129,7 @@ export default class ApprovalModal extends React.Component {
                                                 </span>
                                             </div>
                                         </div>
-                                        <div class="help-block with-errors"></div>
+                                       
                                     </div>
                                 </form>
                             </div>

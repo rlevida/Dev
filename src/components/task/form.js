@@ -370,14 +370,14 @@ export default class FormComponent extends React.Component {
                                                         onChange={(e) => this.setDropDown("workstreamId", e.value)}
                                                         disabled={!allowEdit}
                                                     />
-                                                    <div class="help-block with-errors"></div>
+                                                   
                                                 </div>
                                             </div>
                                             <div class="form-group">
                                                 <label class="col-md-3 col-xs-12 control-label">Task Name *</label>
                                                 <div class="col-md-7 col-xs-12">
                                                     <input type="text" name="task" required value={(typeof task.Selected.task == "undefined") ? "" : task.Selected.task} class="form-control" placeholder="Task Name" onChange={this.handleChange} disabled={!allowEdit} />
-                                                    <div class="help-block with-errors"></div>
+                                                   
                                                 </div>
                                             </div>
                                             <div class="form-group">
@@ -413,7 +413,7 @@ export default class FormComponent extends React.Component {
                                                             }}
                                                             disabled={!allowEdit}
                                                         />
-                                                        <div class="help-block with-errors"></div>
+                                                       
                                                     </div>
                                                 </div>
                                             }
@@ -428,7 +428,7 @@ export default class FormComponent extends React.Component {
                                                             onChange={(e) => this.setDropDown("periodType", e.value)}
                                                             disabled={!allowEdit}
                                                         />
-                                                        <div class="help-block with-errors"></div>
+                                                       
                                                     </div>
                                                 </div>
                                             }
@@ -450,7 +450,7 @@ export default class FormComponent extends React.Component {
                                                         </span>
                                                     </div>
 
-                                                    <div class="help-block with-errors"></div>
+                                                   
                                                 </div>
                                             </div>
                                             <div class="form-group">
@@ -471,7 +471,7 @@ export default class FormComponent extends React.Component {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div class="help-block with-errors"></div>
+                                               
                                             </div>
                                             <div class="form-group">
                                                 <label class="col-md-3 col-xs-12 control-label pt0">Assigned</label>
@@ -486,7 +486,7 @@ export default class FormComponent extends React.Component {
                                                         disabled={!allowEdit}
                                                         isClearable={(projectUserList.length > 0)}
                                                     />
-                                                    <div class="help-block with-errors"></div>
+                                                   
                                                 </div>
                                             </div>
                                             <div class="form-group">
