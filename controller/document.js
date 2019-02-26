@@ -117,6 +117,7 @@ exports.get = {
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
             ...((typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "")) ? { folderId: (queryString.folderId == 'null') ? null : queryString.folderId } : {},
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
+            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {},
             ...(typeof queryString.uploadFrom != "undefined" && typeof queryString.uploadTo != "undefined" && queryString.uploadFrom != "" && queryString.uploadTo != "" && queryString.uploadFrom != "undefined" && queryString.uploadTo != "undefined")
                 ? { dateAdded: { [Op.between]: [moment(queryString.uploadFrom).add(8, 'hours').toDate(), moment(queryString.uploadTo).add(8, 'hours').toDate()] } } : {},
             ...(typeof queryString.userType != "undefined" && queryString.userType == "External") ? {
@@ -1032,6 +1033,40 @@ exports.put = {
                     })
                 })
         })
+    },
+    readOn: (req, cb) => {
+        let body = req.body;
+        const id = req.params.id;
+        const queryString = req.query;
+        try {
+            Document
+                .update(body, { where: { id: id } })
+                .then((res) => {
+                        DocumentLink
+                            .findOne({
+                                where: { documentId: id },
+                                include: [{
+                                    model: Document,
+                                    as: 'document',
+                                    include: associationFindAllStack
+                                }]
+                            })
+                            .then((findRes) => {
+                                let resToReturn = {
+                                    ...findRes.document.toJSON(),
+                                    tags: findRes.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
+                                        .concat(findRes.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
+                                        .concat(findRes.document.tagDocumentNotes.map((e) => { return { value: `notes-${e.TagNotes.id}`, label: e.TagNotes.note } })),
+                                    members: findRes.document.share.map((e) => { return e.user }),
+                                    share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                    isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (findRes.document.document_starred).length > 0) ? findRes.document.document_starred[0].isActive : 0
+                                }
+                              cb({ status : true , data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
+                            })
+                })
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
     }
 }
 

@@ -20,7 +20,9 @@ export default function reducer(state = {
     LibraryCount: { Count: {} },
     TrashCount: { Count: {} },
     NewUploadCount: 0,
-    Filter: {},
+    Filter: {
+        isArchived: 'all'
+    },
     Status: {
         new: 0,
         library: 0

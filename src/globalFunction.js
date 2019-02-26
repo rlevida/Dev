@@ -31,6 +31,11 @@ let displayDate = exports.displayDate = function (strDate) {
     return displayDate;
 }
 
+let displayDateMD = exports.displayDateMD = function (strDate) {
+    let displayDate = moment(strDate).format("MMMM DD");
+    return displayDate;
+}
+
 let formatDate = exports.formatDate = function (strDate) {
     if (strDate == "" || strDate == undefined || strDate == "00-00-0000" || strDate == "00-00-0000 00:00:00") {
         strDate = "01-01-1970";

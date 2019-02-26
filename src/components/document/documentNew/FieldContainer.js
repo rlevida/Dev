@@ -1,6 +1,6 @@
 import React from "react";
 
-import { displayDate, getData, postData, putData, showToast } from '../../../globalFunction'
+import { displayDateMD, getData, postData, putData, showToast } from '../../../globalFunction'
 import { DragSource, DropTarget } from 'react-dnd';
 
 import { connect } from "react-redux"
@@ -53,10 +53,28 @@ export default class FieldContainer extends React.Component {
         super(props)
     }
 
+    archiveDocument(data) {
+        const { dispatch, loggedUser } = this.props;
+        if(!data.isArchived){
+            if (confirm("Do you really want to archive this record?")) {
+                putData(`/api/document/${data.id}`, { isArchived: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
+                    if (c.status == 200) {
+                        // dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'New', Id: data.id })
+                        dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: data.status, });
+                        dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
+                        showToast("success", "Successfully Deleted.");
+                    } else {
+                        showToast("error", "Delete failed. Please try again later.");
+                    }
+                })
+            }
+        }
+    }
+
     deleteDocument(data) {
         const { dispatch, loggedUser } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            putData(`/api/document/${data.id}`, { status: 'archived', usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
+            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'New', Id: data.id })
                     dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
@@ -161,15 +179,24 @@ export default class FieldContainer extends React.Component {
         if (data.type !== 'folder') {
             dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+            if (!data.readOn) {
+                let dataToSubmit = { readOn : new Date() };
+                putData(`/api/document/readOn/${data.id}?starredUser=${loggedUser.data.id}`, dataToSubmit,(c) => {
+                    dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: c.data });
+                    dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: data.status, });
+                })
+            } else {
+              dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+            }
         } else {
-            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' })
+            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' });
             getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-                    dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedNewFolder' })
-                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedNewFolderName.concat([data]), Type: 'SelectedNewFolderName' })
-                    showToast('success', 'Documents successfully retrieved.')
+                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' });
+                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' });
+                    dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedNewFolder' });
+                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedNewFolderName.concat([data]), Type: 'SelectedNewFolderName' });
+                    showToast('success', 'Documents successfully retrieved.');
                 }
             });
         }
@@ -186,18 +213,23 @@ export default class FieldContainer extends React.Component {
         return connectDragSource(
             connectDropTarget(
                 <tr class="item" key={index} style={{ opacity, background: backgroundColor }}>
-                    <td>
+                    {/* <td>
                         <input type="checkbox" style={{ width: 'auto' }} />
                     </td>
                     <td>
                         <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
                             <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
                         </a>
+                    </td> */}
+                    {/* <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td> */}
+                    <td class="document-name">
+                        <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
+                            <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span>
+                            <span>{documentName}</span>
+                        </a>
                     </td>
-                    <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td>
-                    <td class="new-document"> <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>{documentName}</a></td>
-                    <td>{displayDate(data.dateAdded)}</td>
-                    <td>{data.user.emailAddress}</td>
+                    <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`}/></td>
+                    <td>{displayDateMD(data.dateAdded)}</td>
                     <td>
                         {(data.tags.length > 0) &&
                             data.tags.map((t, tIndex) => {
@@ -208,14 +240,35 @@ export default class FieldContainer extends React.Component {
                             })
                         }
                     </td>
-                    <td>
-                        <div class="dropdown">
+                    <td>{data.readOn ? displayDateMD(data.readOn) : '--'}</td>
+                    <td style={{ display:'flex' }}>
+                        <span class="document-action document-active" title="Download" onClick={() => this.downloadDocument(data)}><i class="fa fa-download fa-lg"></i></span>
+                        <span class={ `document-action ${data.isArchived ? 'document-archived' : 'document-active'}` } title="Archive" onClick={e => this.archiveDocument(data)}><i class="fa fa-archive fa-lg"></i></span>
+                        
+                        <span class="document-action document-active dropdown dropdown-library" title="Move">
+                            <i class="fa fa-folder fa-lg"></i>
+                            <div class="dropdown-content dropdown-menu-right">
+                                {(loggedUser.data.userRole != 6) &&
+                                    <a href="javascript:void(0)" style={{ textDecoration: "none" }} data-tip="Move to library" onClick={() => this.moveToLibrary(data)}>Move to library</a>
+                                }
+                                {
+                                    _.filter(document.New, (d) => { return d.type == 'folder' && d.id != data.id }).map((f, fIndex) => {
+                                        let folderName = `${f.origin}${f.documentNameCount > 0 ? `(${f.documentNameCount})` : ``}`
+                                        return (
+                                            <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => moveTo(f, data)}>{folderName}</a>
+                                        )
+                                    })
+                                }
+                            </div>
+                        </span>
+                        <span class="document-action document-active" title="Delete" onClick={e => this.deleteDocument(data)}><i class="fa fa-trash fa-lg"></i></span>
+                        <div class="dropdown document-action-more">
                             <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                             <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
                                 {(loggedUser.data.userType == "Internal") &&
                                     <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={() => dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data })}>Share</a></li>
                                 }
-                                <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(data)}>Download</a></li>
+                                {/* <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(data)}>Download</a></li> */}
                                 {(data.type != 'folder') &&
                                     <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.duplicateDocument(data)}>Duplicate</a></li>
                                 }
@@ -226,7 +279,7 @@ export default class FieldContainer extends React.Component {
                                         {data.isStarred ? 'Unstarred' : 'Star'}
                                     </a>
                                 </li>
-                                <li class="dropdown dropdown-library">
+                                {/* <li class="dropdown dropdown-library">
                                     <span class="test" style={{ marginLeft: "20px", color: "#333", lineHeight: "1.42857143", cursor: "pointer" }}>Move to</span>
                                     <div class="dropdown-content">
                                         {(loggedUser.data.userRole != 6) &&
@@ -241,8 +294,8 @@ export default class FieldContainer extends React.Component {
                                             })
                                         }
                                     </div>
-                                </li>
-                                <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data)}>Delete</a></li>
+                                </li> */}
+                                {/* <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data)}>Delete</a></li> */}
                                 <li><a href="javascript:void(0)" data-tip="View" onClick={() => this.viewDocument(data)}>View</a></li>
                             </ul>
                         </div>

@@ -3,14 +3,19 @@ import Dropzone from 'react-dropzone';
 import { connect } from "react-redux"
 
 import { DropDown } from "../../../globalComponents";
-import { showToast, postData } from '../../../globalFunction';
+import { showToast, postData , getData } from '../../../globalFunction';
+import _ from "lodash";
+
+let keyTimer = "";
 
 @connect((store) => {
     return {
         document: store.document,
         loggedUser: store.loggedUser,
         global: store.global,
-        folder: store.folder
+        folder: store.folder,
+        project: store.project,
+        workstream: store.workstream
 
     }
 })
@@ -23,7 +28,77 @@ export default class UploadModal extends React.Component {
             loading: false,
             files: []
         }
-        this.onDrop = this.onDrop.bind(this)
+        _.map([
+            "onDrop",
+            "fetchProjectList",
+            "saveDocument",
+            "setDropDown",
+            "setWorkstreamList",
+        ], (fn) => { this[fn] = this[fn].bind(this) });
+    }
+
+    componentDidMount(){
+        const { project } = this.props;
+        this.fetchProjectList();
+        this.setWorkstreamList()
+    }
+
+    fetchProjectList(options) {
+        const { dispatch } = { ...this.props };
+        let fetchUrl = "/api/project?page=1";
+
+        if (typeof options != "undefined" && options != "") {
+            fetchUrl += `&project=${options}`;
+        }
+
+        getData(fetchUrl, {}, (c) => {
+            const projectOptions = _(c.data.result)
+                .map((e) => { return { id: e.id, name: e.project } })
+                .value();
+            dispatch({ type: "SET_PROJECT_SELECT_LIST", List: projectOptions });
+        });
+    }
+
+    setWorkstreamList(options) {
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            this.fetchWorkstreamList(options);
+        }, 1500);
+    }
+
+    fetchWorkstreamList(options) {
+        const { dispatch, document, loggedUser, project } = { ...this.props };
+        const { Selected } = document;
+        let fetchUrl = `/api/workstream?projectId=${typeof project.Selected.id !== 'undefined' ?  project.Selected.id : Selected.projectId}&page=1&userId=${loggedUser.data.id}`;
+
+        if (typeof options != "undefined" && options != "") {
+            fetchUrl += `&workstream=${options}`;
+        }
+        getData(fetchUrl, {}, (c) => {
+            const workstreamOptions = _(c.data.result)
+                .map((e) => { return { id: e.id, name: e.workstream } })
+                .value();
+            dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
+            dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
+        });
+    }
+
+
+    setDropDown(name, value) {
+        let { dispatch, document } = this.props
+        const selectedObj = { ...document.Selected, [name]: value };
+
+        if (name == "projectId" && value != "") {
+            selectedObj["workstreamId"] = [];
+        }
+
+        if (name == "projectId" && (typeof selectedObj.projectId != "undefined" && selectedObj.projectId != "")) {
+            dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
+            this.setWorkstreamList();
+        }
+
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj });
+
     }
 
     saveDocument() {
@@ -75,7 +150,7 @@ export default class UploadModal extends React.Component {
     }
 
     render() {
-        const { global } = this.props;
+        const { global , project, workstream , document } = this.props;
         let tagOptions = [];
 
         if (typeof global.SelectList.workstreamList != "undefined" && typeof global.SelectList.taskList != "undefined") {
@@ -88,79 +163,129 @@ export default class UploadModal extends React.Component {
 
         return (
             <div>
-                <div class="modal fade" id="uploadFileModal" tabIndex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
+                <div class="modal fade document-upload-modal" id="uploadFileModal" tabIndex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                     <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                                <h5 class="modal-title" id="uploadFileModalLabel">
-                                    {
+                                <h4 class="modal-title" id="uploadFileModalLabel">Add New file</h4>
+                                    {/* {
                                         (this.state.dataToSubmit.length == 0)
                                             ? "Upload File"
                                             : "Tag your files"
-                                    }
-                                </h5>
+                                    } */}
                                 {(this.state.dataToSubmit.length > 0) &&
                                     <p style={{ fontStyle: "italic", margin: "15px 20px 20px 25px" }}>Tagging your files will link them to a project or workflow and will make it easier to find them later.</p>
                                 }
 
                             </div>
                             <div class="modal-body">
-                                {(!this.state.loading && this.state.dataToSubmit.length == 0) &&
-                                    <Dropzone onDrop={this.onDrop.bind(this)}
-                                        class="document-file-upload"
-                                    >
-                                        <div style={{ textAlign: "center", height: "100%", padding: "60px" }}>
-                                            <div>
-                                                {(this.state.upload && !this.state.loading) ?
-                                                    <span style={{ fontSize: "75px" }} class="glyphicon glyphicon-file"></span> :
-                                                    <p>Drop some files here, or click to select files to upload.</p>
+                                <div class="row mb20">
+                                    <div class="col-lg-6 col-md-6 col-xs-12 ">
+                                    <label for="project-options">Project * <span class="text-red">*</span></label>
+                                        <DropDown 
+                                            id="project-options"
+                                            multiple={false}
+                                            required={false}
+                                            options={(typeof project.Selected.id ==='undefined') ? project.SelectList : [{ id:project.Selected.id ,name:project.Selected.project}]}
+                                            selected={(typeof project.Selected.id === "undefined") ? document.Selected.projectId : project.Selected.id}
+                                            onChange={(e) => {
+                                                this.setDropDown("projectId", (e == null) ? "" : e.value);
+                                            }}
+                                            
+                                            placeholder={'Search project'}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="row mb20">
+                                    <div class="col-lg-6 col-md-6 col-xs-12 ">
+                                    <label for="workstream-options">Workstream</label>
+                                            <DropDown 
+                                                id="workstream-options"
+                                                multiple={true}
+                                                required={false}
+                                                options={workstream.SelectList}
+                                                selected={(typeof document.Selected.workstreamId == "undefined") ? [] : document.Selected.workstreamId }
+                                                loading={true}
+                                                onChange={(e) => {
+                                                    this.setDropDown("workstreamId", (e == null) ? "" : e);
+                                                }}
+                                            />
+                                           <div>
+                                                {
+                                                    (workstream.Loading == "RETRIEVING" && typeof document.Selected.projectId != "undefined") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
                                                 }
                                             </div>
-                                        </div>
-                                    </Dropzone>
-                                }
-
-                                <br />
-
-                                {(this.state.upload && !this.state.loading) &&
-                                    <div class="form-group text-center">
-                                        <button class="btn btn-success" onClick={() => this.uploadFile()}> Upload</button>
                                     </div>
-                                }
-
-                                <table id="dataTable" class="table responsive-table" >
-                                    <tbody>
-                                        {(this.state.dataToSubmit.length == 0 && this.state.loading) &&
-                                            <tr>
-                                                <td colSpan={8}><i class="fa fa-spinner fa-spin" style={{ fontSize: "36px", marginTop: "50px" }}></i></td>
-                                            </tr>
+                                </div>
+                                <div class="row mb20">
+                                    <div class="col-lg-6 col-md-6 col-xs-12 ">
+                                    <label for="folder-options">Folder</label>
+                                        <DropDown 
+                                            id="folder-options"
+                                            multiple={false}
+                                            required={false}
+                                            options={[]}
+                                            selected={null}
+                                            // onChange={(e) => this.selectTag(e, index)}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="row mb20">
+                                    <div class="col-md-8">
+                                        {(!this.state.loading && this.state.dataToSubmit.length == 0) &&
+                                            <Dropzone onDrop={this.onDrop.bind(this)}
+                                                class="document-file-upload"
+                                            >
+                                                <div style={{ textAlign: "center", height: "100%", padding: "60px" }}>
+                                                    <div>
+                                                        {(this.state.upload && !this.state.loading) ?
+                                                            <span style={{ fontSize: "75px" }} class="glyphicon glyphicon-file"></span> :
+                                                            <p>Drop some files here, or click to select files to upload.</p>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </Dropzone>
                                         }
-                                        {(this.state.dataToSubmit.length > 0) &&
-                                            this.state.dataToSubmit.map((data, index) => {
-                                                return (
-                                                    <tr key={index}>
-                                                        <td style={{ border: "none", width: "20%" }}><span class="pull-left"><i class="fa fa-file" aria-hidden="true"></i>&nbsp;&nbsp;{data.origin}</span></td>
-                                                        <td style={{ border: "none", width: "10%" }}><span><i class="fa fa-tag" aria-hidden="true"></i></span></td>
-                                                        <td style={{ border: "none" }}>
-                                                            <DropDown multiple={false}
-                                                                multiple={true}
-                                                                required={false}
-                                                                options={tagOptions}
-                                                                selected={(typeof data.tags != "undefined") ? JSON.parse(data.tags) : []}
-                                                                onChange={(e) => this.selectTag(e, index)}
-                                                            />
-                                                           
-                                                        </td>
+                                    </div>
+                                </div>
+                                <div class="row mb20">
+                                    <div class="col-lg-2 col-md-2 col-xs-6">
+                                        {(this.state.upload && !this.state.loading) &&
+                                            <div class="form-group">
+                                                <button class="btn btn-success" onClick={() => this.uploadFile()}> Upload</button>
+                                            </div>
+                                        }
+
+                                        {/* <table id="dataTable" class="table responsive-table" >
+                                            <tbody>
+                                                {(this.state.dataToSubmit.length == 0 && this.state.loading) &&
+                                                    <tr>
+                                                        <td colSpan={8}><i class="fa fa-spinner fa-spin" style={{ fontSize: "36px", marginTop: "50px" }}></i></td>
                                                     </tr>
-                                                )
-                                            })
-                                        }
-                                    </tbody>
-                                </table>
-
+                                                }
+                                                {(this.state.dataToSubmit.length > 0) &&
+                                                    this.state.dataToSubmit.map((data, index) => {
+                                                        return (
+                                                            <tr key={index}>
+                                                                <td style={{ border: "none", width: "20%" }}><span class="pull-left"><i class="fa fa-file" aria-hidden="true"></i>&nbsp;&nbsp;{data.origin}</span></td>
+                                                                <td style={{ border: "none", width: "10%" }}><span><i class="fa fa-tag" aria-hidden="true"></i></span></td>
+                                                                <td style={{ border: "none" }}>
+                                                                    <DropDown multiple={false}
+                                                                        multiple={true}
+                                                                        required={false}
+                                                                        options={tagOptions}
+                                                                        selected={(typeof data.tags != "undefined") ? JSON.parse(data.tags) : []}
+                                                                        onChange={(e) => this.selectTag(e, index)}
+                                                                    />
+                                                                </td>
+                                                            </tr>
+                                                        )
+                                                    })
+                                                }
+                                            </tbody>
+                                        </table> */}
+                                    </div>
+                                </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

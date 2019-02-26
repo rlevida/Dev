@@ -203,10 +203,10 @@ export default class DocumentNew extends React.Component {
             <div class="mb20">
                 <div class="col-lg-12 col-md-12">
                     <h3>
-                        <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>New Documents</a>
+                        {/* <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>New Documents</a> */}
                         {folder.SelectedNewFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
                     </h3>
-                    {(this.state.folderAction == "") &&
+                    {/* {(this.state.folderAction == "") &&
                         <div class="row mb10">
                             <div class="col-lg-2">
                                 <div class="col-md-4 mb5">
@@ -216,9 +216,8 @@ export default class DocumentNew extends React.Component {
                                 </div>
                             </div>
                         </div>
-                    }
-
-                    {(this.state.folderAction == "create") &&
+                    } */}
+                    {/* {(this.state.folderAction == "create") &&
                         <form class="form-inline">
                             <div class="form-group">
                                 <input class="form-control m10" type="text" name="folderName" placeholder="Enter folder name" onChange={(e) => this.setState({ [e.target.name]: e.target.value })} value={this.state.folderName} />
@@ -226,18 +225,21 @@ export default class DocumentNew extends React.Component {
                                 <a href="javascript:void(0)" class="btn btn-primary m10" onClick={() => this.setState({ folderAction: "" })}>Cancel</a>
                             </div>
                         </form>
-                    }
-                    <table id="dataTable" class="table responsive-table table-bordered document-table">
+                    } */}
+                    <table class="table-document mb40">
                         <tbody>
                             <tr>
+                                {/* <th></th>
                                 <th></th>
-                                <th></th>
-                                <th></th>
-                                <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>Name</a></th>
-                                <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateAdded')}>Uploaded</a></th>
-                                <th><i class="fa fa-caret-down m10"></i>By</th>
-                                <th>Tags</th>
-                                <th></th>
+                                <th></th> */}
+                                {/* <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>File Name</a></th> */}
+                                <th style={{ textAlign:'left' }}>File Name</th>
+                                {/* <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateAdded')}>Uploaded By</a></th> */}
+                                <th>Uploaded By</th>
+                                <th>Uploaded Date</th>
+                                <th>Workstream</th>
+                                <th>Read On</th>
+                                <th>Actions</th>
                             </tr>
                             {(document.NewDocumentLoading != "RETRIEVING") &&
                                 document.New.map((data, index) => {

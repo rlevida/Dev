@@ -43,7 +43,6 @@ class List extends React.Component {
                 new: (parallelCallback) => {
                     let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new&starredUser=${loggedUser.data.id}`;
                     getData(requestUrl, {}, (c) => {
-                        console.log(`here`)
                         if (c.status == 200) {
                             dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                         } else {
@@ -81,34 +80,36 @@ class List extends React.Component {
 
         return (
             <div class="m10">
-                <h3><a class="ml15" href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{project.Selected.project}</a></h3>
+                {/* <h3><a class="ml15" href={"/project/" + project} style={{ color: "#000", textDecortion: "none" }}>{project.Selected.project}</a></h3> */}
                 <div class="row">
-                    <div class="col-lg-12">
-                        <DocumentFilter />
-                    </div>
-                </div>
-                <div style={{ padding: "20px" }}>
-                    <div class="row">
-                        <DocumentStatus />
-                        <Tabs class="mb40 mt40">
-                            <TabList>
-                                <Tab onClick={() => this.handleActiveTab('document')}>Documents</Tab>
-                                <Tab onClick={() => this.handleActiveTab('activity')}>Activity Logs</Tab>
-                            </TabList>
-                            <TabPanel>
-                                <DocumentNew />
-                                <DocumentLibrary />
-                            </TabPanel>
-                            <TabPanel>
-                                <DocumentActivityLog />
-                            </TabPanel>
-                        </Tabs>
+                    <div class="card">
+                        <div class="col-lg-12">
+                            <DocumentFilter />
+                        </div>
+                        <div style={{ padding: "20px" }}>
+                            <div class="row">
+                                {/* <DocumentStatus /> */}
+                                {/* <Tabs class="mb40 mt40">
+                                    <TabList>
+                                        <Tab onClick={() => this.handleActiveTab('document')}>Documents</Tab>
+                                        <Tab onClick={() => this.handleActiveTab('activity')}>Activity Logs</Tab>
+                                    </TabList>
+                                    <TabPanel> */}
+                                    <DocumentNew />
+                                    <DocumentLibrary />
+                                    {/* </TabPanel>
+                                    <TabPanel>
+                                        <DocumentActivityLog />
+                                    </TabPanel>
+                                </Tabs> */}
 
+                            </div>
+                        </div>
                     </div>
+                    <UploadModal />
+                    <ShareModal />
+                    <EditModal />
                 </div>
-                <UploadModal />
-                <ShareModal />
-                <EditModal />
             </div>
         )
     }

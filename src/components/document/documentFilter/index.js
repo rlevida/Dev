@@ -25,13 +25,14 @@ export default class DocumentFilter extends React.Component {
         this.handleDate = this.handleDate.bind(this)
     }
 
+    
+
     componentDidUpdate(prevProps) {
         const { dispatch, loggedUser, folder, document } = this.props;
-
         if (_.isEqual(prevProps.document.Filter, this.props.document.Filter) == false) {
             clearTimeout(delayTimer);
 
-            const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo } = this.props.document.Filter;
+            const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo , isArchived } = this.props.document.Filter;
 
             let requestUrl = ''
             if (document.ActiveTab === 'document') {
@@ -75,8 +76,10 @@ export default class DocumentFilter extends React.Component {
                 if (uploadTo) {
                     requestUrl += `&uploadTo=${uploadTo}`
                 }
-
-                if (document.ActiveTab === 'document') {
+                if(isArchived !== 'all'){
+                    requestUrl += `&isArchived=${isArchived}`
+                }
+                // if (document.ActiveTab === 'document') {
                     getData(`${requestUrl}&status=new&folderId=${folder.SelectedNewFolder.id}`, {}, (c) => {
                         if (c.status == 200) {
                             dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
@@ -99,12 +102,11 @@ export default class DocumentFilter extends React.Component {
                         }
                     });
 
-                } else if (document.ActiveTab === 'activity') {
-                    console.log(requestUrl)
-                    getData(`${requestUrl}`, {}, (c) => {
-                        dispatch({ type: 'SET_ACTIVITYLOG_DOCUMENT_LIST', list: c.data.result, count: c.data.count })
-                    })
-                }
+                // } else if (document.ActiveTab === 'activity') {
+                //     getData(`${requestUrl}`, {}, (c) => {
+                //         dispatch({ type: 'SET_ACTIVITYLOG_DOCUMENT_LIST', list: c.data.result, count: c.data.count })
+                //     })
+                // }
             }, 1000);
         }
 
@@ -148,8 +150,46 @@ export default class DocumentFilter extends React.Component {
         }
 
         return (
-            <div class="container-fluid">
-                <div class="row">
+            <div class="container-fluid filter mb20">
+                <div class="row content-row">
+                    <div class="col-md-6 col-sm-6 col-xs-12 pd0">
+                        <div class="flex-row tab-row mb0">
+                         <div class="flex-col">
+                                {/* <a class={(projectType.id == project.Filter.typeId) ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("typeId", projectType.id)}>{projectType.name}</a> */}
+                                <a class={ document.Filter.isArchived === 'all' ? "btn btn-default btn-active" : "btn btn-default" } onClick={ ()=> this.setDropDown('isArchived' , 'all')}>All</a>
+                                <a class={ document.Filter.isArchived === 0 ? "btn btn-default btn-active" : "btn btn-default"} onClick={ () => this.setDropDown('isArchived' , 0 )}>Active Files</a>
+                                <a class={ document.Filter.isArchived === 1 ? "btn btn-default btn-active" :"btn btn-default"} onClick={ () => this.setDropDown('isArchived' , 1 )}>Archived</a>
+                                {/* <a class={"btn btn-default"}>Activity Logs</a> */}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-sm-6 col-xs-12 pd0">
+                        <div class="add-action">
+                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#uploadFileModal"  >
+                                <span>
+                                <i class="fa fa-search fa-lg"></i>
+                                </span>
+                            </a> 
+                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#uploadFileModal"  >
+                                <span>
+                                <i class="fa fa-download fa-lg"></i>
+                                </span>
+                            </a> 
+                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#uploadFileModal"  >
+                                <span>
+                                <i class="fa fa-folder fa-lg"></i>
+                                </span>
+                            </a> 
+                            <a class="btn btn-default" data-toggle="modal" data-target="#uploadFileModal"  >
+                                <span>
+                                    <i class="fa fa-plus mr10" aria-hidden="true"></i>
+                                    Add New Files
+                                </span>
+                            </a> 
+                        </div>
+                    </div>
+                </div>
+                {/* <div class="row">
                     <div class="col-md-3 mb5">
                         <label>Document Status</label>
                         <DropDown multiple={false}
@@ -237,7 +277,7 @@ export default class DocumentFilter extends React.Component {
                             style={{ backgroundColor: (document.ActiveTab === 'document') ? '' : '#ddd' }}
                         />
                     </div>
-                </div>
+                </div> */}
             </div>
         )
     }
