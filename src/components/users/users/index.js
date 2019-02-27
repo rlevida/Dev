@@ -23,7 +23,7 @@ export default class Component extends React.Component {
                     (users.FormActive == "List") && <div class="row">
                         <div class="col-md-12">
                             <div class="card">
-                                <div class="mb20 bd">
+                                <div class="mb20 bb">
                                     <div class="container-fluid filter mb20">
                                         <div class="row content-row">
                                             <div class="col-md-6 col-sm-6 col-xs-12 pd0">
@@ -45,7 +45,7 @@ export default class Component extends React.Component {
                                                 </div>
                                             </div>
                                             <div class="col-md-6 col-sm-6 col-xs-12 pd0">
-                                                <div class="add-action">
+                                                <div class="button-action">
                                                     <a class="btn btn-default" onClick={() => {
                                                         dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })
                                                         dispatch({ type: "SET_USER_SELECTED", Selected: "" })

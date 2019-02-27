@@ -142,7 +142,7 @@ export default class List extends React.Component {
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card">
-                        <div class="mb20 bd">
+                        <div class="mb20 bb">
                             <ProjectFilter />
                         </div>
                         <div class={(project.Loading == "RETRIEVING" && (project.List).length == 0) ? "linear-background" : ""}>

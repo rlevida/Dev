@@ -1,5 +1,10 @@
 html, body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  color: #818181;
+}
+
+p, label, table td {
+  color: #818181;
 }
 
 a {
@@ -60,6 +65,7 @@ html, #main{
 .pd20{ padding: 20px;}
 .pb0{padding-bottom: 0px!important;}
 .pb10{padding-bottom: 10px!important;}
+.pb50{padding-bottom: 50px!important;}
 .pt0{padding-top: 0px!important;}
 .pt10{padding-top: 10px!important;}
 .pdl15 {padding-left: 15px;}
@@ -96,7 +102,7 @@ html, #main{
 .bgcolor-red { background-color: #f90800 !important;color:white }
 .bgcolor-green { background-color: #05aa47 !important; color:white }
 
-.bd{
+.bb{
   border-bottom: 1px solid #e7e7e7;
 }
 .bt{
@@ -1422,23 +1428,28 @@ table th {
   align-items: center;
 }
 
-.add-action{
+.button-action{
   display: flex;
   float: right;
   width: 100%;
   justify-content: flex-end;
 }
 
-.add-action .Select{
+.button-action .Select{
   margin-right: 10px;
   width: 100%;
   max-width: 200px;
 }
 
-.add-action .btn-default{
+.button-action .btn-default, 
+.modal-action .btn-default{
   background-color: #f6f6f6;
   font-weight: 600;
   color: #818181;
+}
+
+.text-grey{
+  color: #818181!important;
 }
 
 .form-card{
@@ -1461,12 +1472,9 @@ table th {
   font-size: 18px;
 }
 
-.radio label, .checkbox label{
-  font-weight: 100!important;
-}
 
 label{
-  font-weight: 100!important;
+  font-weight: bold!important;
 }
 
 form {
@@ -1555,17 +1563,22 @@ form .underlined{
 .input-inline input[type=text],
 .input-inline .Select{
   width: 100%;
+  max-width: 350px;
 }
 .input-inline label{
   display: flex;
     flex-wrap: wrap;
     align-items: center;
     margin-bottom: 0;
-    min-width: 105px;
+    width: 135px;
 }
 
 .form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control{
   background-color: #ffffff!important;
+}
+
+.full-form{
+  width: 100%;
 }
 
 #task-form textarea.underlined {
@@ -1582,6 +1595,78 @@ textarea::-webkit-scrollbar-thumb {
   outline: 1px solid slategrey;
 }
 
+.form-group .loading{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+
+// Left Modal
+
+.modal.left .modal-dialog, .modal.right .modal-dialog {
+  position: fixed;
+  margin: auto;
+  width: 320px;
+  height: 100%;
+  -webkit-transform: translate3d(0%, 0, 0);
+  -ms-transform: translate3d(0%, 0, 0);
+  -o-transform: translate3d(0%, 0, 0);
+  transform: translate3d(0%, 0, 0);
+}
+.modal.left .modal-content, .modal.right .modal-content {
+  height: 100%;
+  overflow-y: auto;
+}
+.modal.left .modal-body, .modal.right .modal-body {
+  padding: 15px;
+}
+
+.modal.right.fade .modal-dialog {
+  right: -320px;
+  -webkit-transition: opacity 0.3s linear, right 0.3s ease-out;
+  -moz-transition: opacity 0.3s linear, right 0.3s ease-out;
+  -o-transition: opacity 0.3s linear, right 0.3s ease-out;
+  transition: opacity 0.3s linear, right 0.3s ease-out;
+}
+.modal.right.fade.in .modal-dialog {
+  right: 0;
+}
+
+.modal-content  {
+  -webkit-border-radius: 0px !important;
+  -moz-border-radius: 0px !important;
+  border-radius: 0px !important; 
+}
+
+.label-div{
+  display: flex;
+  margin-bottom: 5px;
+}
+
+.label-div label{
+  margin-right: 10px;
+}
+
+#task-details .modal-body{
+  padding-top: 0px;
+}
+
+#task-details h3{
+  font-size: 14px;
+  margin-top: 0px;
+  color: #818181;
+  font-weight: bold;
+}
+
+.modal-header .logo-action{
+  font-size: 26px;
+}
+
+.modal-header .logo-action:not(:last-child){
+  margin-right: 10px;
+}
 
 @media screen and (max-width: 600px) {
   table {
@@ -1704,21 +1789,20 @@ textarea::-webkit-scrollbar-thumb {
     display: block;
   }
 
-  .add-action {
+  .button-action {
     display: block
   }
-  .add-action .Select{
+  .button-action .Select{
     margin-bottom: 15px;
     max-width: none;
   }
-  .add-action .btn{
+  .button-action .btn{
     width: 100%;
   }
 
   .input-inline{
    flex-direction: column;
   }
-
   // .form-inline .form-group{
   //   display: unset!important;
   // }
@@ -1767,7 +1851,7 @@ textarea::-webkit-scrollbar-thumb {
   #menu > li > a {
     padding: 15px 5px 15px 5px!important;
   }
-  #task-form {
+  .full-form{
     max-width: unset;
   }
 }
@@ -1790,8 +1874,12 @@ textarea::-webkit-scrollbar-thumb {
   .status-count [class*=col]:not(:last-child){
     border-right: 0px;
   }
-  #task-form {
+  .full-form{
     max-width: unset;
+  }
+  .modal.right.fade.in .modal-dialog {
+    right: 0;
+    width: 600px!important;
   }
 }
 
@@ -1799,8 +1887,12 @@ textarea::-webkit-scrollbar-thumb {
 /* Large */
 
 @media only screen  and (min-width : 1200px) {
-  #task-form {
+  .full-form{
     max-width: unset;
+  }
+  .modal.right.fade.in .modal-dialog {
+    right: 0;
+    width: 600px!important;
   }
 }
 

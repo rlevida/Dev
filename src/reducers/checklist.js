@@ -5,7 +5,7 @@ export default function reducer(state = {
     FormActive: "List",
     Selected: {},
     SelectedId: [],
-    Loading: true,
+    Loading: "RETRIEVING",
     Action: undefined
 }, action) {
     switch (action.type) {

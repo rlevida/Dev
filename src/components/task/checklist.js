@@ -21,27 +21,42 @@ export default class Checklist extends React.Component {
     }
 
     handleSubmit() {
-        const { checklist, task, loggedUser, dispatch } = this.props;
-        const toBeSubmitted = {
-            description: checklist.Selected.checklist,
-            types: (typeof checklist.Selected.types != "undefined") ? checklist.Selected.types : "",
-            taskId: task.Selected.id,
-            periodTask: (task.Selected.periodTask == null) ? task.Selected.id : task.Selected.periodTask,
-            isPeriodicTask: task.Selected.periodic,
-            taskDueDate: task.Selected.dueDate,
-            createdBy: loggedUser.data.id,
-            isDocument: (typeof checklist.Selected.isDocument != "undefined" && checklist.Selected.isDocument != "") ? checklist.Selected.isDocument : 0
-        };
+        let result = true;
 
-        postData(`/api/checklist/`, toBeSubmitted, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "ADD_CHECKLIST", data: c.data.checklist });
-                dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
-                showToast("success", "Checklist successfully updated.");
-            } else {
-                showToast("error", "Something went wrong please try again later.");
+        $('#checklist-form *').validator('validate');
+        $('#checklist-form .form-group').each(function () {
+            if ($(this).hasClass('has-error')) {
+                result = false;
             }
         });
+
+        if (!result) {
+            showToast("error", "Please fill up the required fields.");
+        } else {
+            const { checklist, task, loggedUser, dispatch } = this.props;
+            const toBeSubmitted = {
+                description: checklist.Selected.checklist,
+                types: (typeof checklist.Selected.types != "undefined") ? checklist.Selected.types : "",
+                taskId: task.Selected.id,
+                periodTask: (task.Selected.periodTask == null) ? task.Selected.id : task.Selected.periodTask,
+                isPeriodicTask: task.Selected.periodic,
+                taskDueDate: task.Selected.dueDate,
+                createdBy: loggedUser.data.id,
+                isDocument: (typeof checklist.Selected.isDocument != "undefined" && checklist.Selected.isDocument != "") ? checklist.Selected.isDocument : 0
+            };
+            
+            $("#task-form").validator('destroy');
+
+            postData(`/api/checklist/`, toBeSubmitted, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "ADD_CHECKLIST", data: c.data.checklist });
+                    dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
+                    showToast("success", "Checklist successfully updated.");
+                } else {
+                    showToast("error", "Something went wrong please try again later.");
+                }
+            });
+        }
     }
 
     handleChange(e) {
@@ -67,39 +82,35 @@ export default class Checklist extends React.Component {
         const { checklist } = { ...this.props };
 
         return (
-            <div>
-                <HeaderButtonContainer withMargin={true}>
-                    <li class="btn btn-info" onClick={this.handleSubmit} data-toggle="modal" data-target="#checklistModal">
-                        <span>Save</span>
-                    </li>
-                </HeaderButtonContainer>
-                <div class="row">
-                    <div class="col-lg-12 col-md-12 col-xs-12">
-                        <form onSubmit={this.handleSubmit} class="form-horizontal member-form-container">
-                            <div class="form-group">
-                                <div class="col-md-12 col-xs-12">
-                                    <label class="checkbox-inline pd0" style={{ fontWeight: "bold" }}>Item *</label>
-                                    <input type="text" name="checklist"
-                                        class="form-control"
-                                        placeholder="Add Item"
-                                        onChange={this.handleChange}
-                                        value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
-
-                                    />
-                                    <label class="checkbox-inline pd0" style={{ fontWeight: "bold" }}>
-                                        Document ?
-                                                    <input type="checkbox"
-                                            checked={checklist.Selected.isDocument ? true : false}
-                                            onChange={() => { }}
-                                            onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
-                                        />
-                                    </label>
-                                </div>
-                            </div>
-                        </form>
+            <form class="full-form" id="checklist-form">
+                <div class="mt10 row">
+                    <div class="col-lg-8 col-sm-12">
+                        <div class="form-group input-inline">
+                            <label>Item:<span class="text-red">*</span></label>
+                            <input
+                                required
+                                type="text"
+                                name="checklist"
+                                class="form-control"
+                                placeholder="Add Item"
+                                onChange={this.handleChange}
+                                value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
+                            />
+                        </div>
+                        <div class="form-group input-inline">
+                            <label>Document:</label>
+                            <input type="checkbox"
+                                checked={checklist.Selected.isDocument ? true : false}
+                                onChange={() => { }}
+                                onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
+                <a class="btn btn-violet" onClick={this.handleSubmit}>
+                    <span>Create Subtask</span>
+                </a>
+            </form>
         )
     }
 }

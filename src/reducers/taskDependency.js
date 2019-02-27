@@ -1,11 +1,13 @@
 import _ from "lodash";
 
 export default function reducer(state = {
-    List: []
+    List: [],
+    Loading: "",
+    Selected: {}
 }, action) {
     switch (action.type) {
         case "SET_TASK_DEPENDENCY_LIST": {
-            return { ...state, List: action.List }
+            return { ...state, List: action.List, Loading: "", Selected: {} }
         }
         case "UPDATE_DATA_TASK_DEPENDENCY_LIST": {
             const { List } = { ...state };
@@ -31,6 +33,9 @@ export default function reducer(state = {
             });
 
             return { ...state, List: updatedList }
+        }
+        case "SET_TASK_DEPENDENCY_SELECTED": {
+            return { ...state, Selected: action.Selected }
         }
         default:
             return state;

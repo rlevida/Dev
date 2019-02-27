@@ -112,34 +112,34 @@ export default class FormComponent extends React.Component {
             }
         });
 
-        // if (!result) {
-        //     showToast("error", "Please fill up the required fields.");
-        // } else {
-        //     if (!project.Selected.id) {
-        //         project.Selected.createdBy = loggedUser.data.id;
-        //         postData(`/api/project`, { ...project.Selected }, (c) => {
-        //             showToast("success", "Project successfully added.");
-        //             dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project });
-        //             dispatch({ type: "SET_MEMBERS_LIST", list: c.data.members });
-        //         });
-        //     } else {
-        //         const dataToSubmit = {
-        //             project: project.Selected.project,
-        //             isActive: project.Selected.isActive,
-        //             typeId: project.Selected.typeId,
-        //             tinNo: project.Selected.tinNo,
-        //             companyAddress: project.Selected.companyAddress,
-        //             classification: project.Selected.classification,
-        //             projectNameCount: project.Selected.projectNameCount,
-        //             projectType: project.Selected.projectType,
-        //             projectManagerId: project.Selected.projectManagerId
-        //         }
-        //         putData(`/api/project/${project.Selected.id}`, dataToSubmit, (c) => {
-        //             dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
-        //             showToast("success", "Successfully Updated.")
-        //         })
-        //     }
-        // }
+        if (!result) {
+            showToast("error", "Please fill up the required fields.");
+        } else {
+            if (!project.Selected.id) {
+                project.Selected.createdBy = loggedUser.data.id;
+                postData(`/api/project`, { ...project.Selected }, (c) => {
+                    showToast("success", "Project successfully added.");
+                    dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project });
+                    dispatch({ type: "SET_MEMBERS_LIST", list: c.data.members });
+                });
+            } else {
+                const dataToSubmit = {
+                    project: project.Selected.project,
+                    isActive: project.Selected.isActive,
+                    typeId: project.Selected.typeId,
+                    tinNo: project.Selected.tinNo,
+                    companyAddress: project.Selected.companyAddress,
+                    classification: project.Selected.classification,
+                    projectNameCount: project.Selected.projectNameCount,
+                    projectType: project.Selected.projectType,
+                    projectManagerId: project.Selected.projectManagerId
+                }
+                putData(`/api/project/${project.Selected.id}`, dataToSubmit, (c) => {
+                    dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
+                    showToast("success", "Successfully Updated.")
+                });
+            }
+        }
     }
 
     setDropDown(name, value) {

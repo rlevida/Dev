@@ -57,8 +57,13 @@ export default class TaskFilter extends React.Component {
                         </div>
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
-                        <div class="add-action">
-                            <a class="btn btn-default" onClick={(e) => { dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" }); }}>
+                        <div class="button-action">
+                            <a class="btn btn-default"
+                                onClick={(e) => {
+                                    dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
+                                    dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
+                                }}
+                            >
                                 <span>
                                     <i class="fa fa-plus mr10" aria-hidden="true"></i>
                                     Add New Task

@@ -25,11 +25,11 @@ export default class Component extends React.Component {
                 <div class="row">
                     <div class="col-md-12">
                         <div class="card">
-                            <div class="mb20 bd">
+                            <div class="mb20 bb">
                                 <div class="container-fluid filter mb20">
                                     <div class="row content-row">
                                         <div class="col-md-12 col-sm-12">
-                                            <div class="add-action">
+                                            <div class="button-action">
                                                 <WorkstreamFilter />
                                                 <a class="btn btn-default" onClick={() => { dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" }) }}>
                                                     <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>

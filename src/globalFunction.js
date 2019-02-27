@@ -27,7 +27,7 @@ let validateEmail = exports.validateEmail = (email) => {
 }
 
 let displayDate = exports.displayDate = function (strDate) {
-    let displayDate = moment(strDate).format("MMMM DD, YYYY");
+    const displayDate = moment(strDate, "YYYY MMM DD").format("MMMM DD, YYYY");
     return displayDate;
 }
 

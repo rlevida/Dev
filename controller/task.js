@@ -36,6 +36,7 @@ const associationStack = [
     {
         model: TaskChecklist,
         as: 'checklist',
+        where: { isDeleted: 0 },
         required: false,
         include: [
             {
@@ -405,8 +406,12 @@ exports.post = {
                             const taskPromises = _.times(body.periodInstance - 1, (o) => {
                                 return new Promise((resolve) => {
                                     const nextDueDate = moment(body.dueDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
-                                    const newPeriodTask = { ...body, dueDate: nextDueDate, periodTask: newTaskResponse.id, ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss') } : {} }
-
+                                    const newPeriodTask = { 
+                                        ...body, 
+                                        dueDate: nextDueDate, 
+                                        periodTask: newTaskResponse.id
+                                    };
+                                    
                                     Tasks.create(_.omit(newPeriodTask, ["task_dependency", "dependency_type", "assignedTo"])).then((response) => {
                                         const createTaskObj = response.toJSON();
                                         resolve(createTaskObj);

@@ -25,7 +25,8 @@ export default class taskListCategory extends React.Component {
             "getList",
             "getNext",
             "groupList",
-            "renderRow"
+            "renderRow",
+            "openTaskDetails"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -67,6 +68,10 @@ export default class taskListCategory extends React.Component {
                 fromDate = moment().add('days', 9).format("YYYY-MM-DD");
                 toDate = moment().add('days', 38).format("YYYY-MM-DD");
                 break;
+            case "Succeeding month":
+                fromDate = moment().add('days', 39).format("YYYY-MM-DD");
+                toDate = moment().endOf("year").format("YYYY-MM-DD");
+                break;
             default:
         }
 
@@ -83,24 +88,41 @@ export default class taskListCategory extends React.Component {
         this.setState({ loading: "RETRIEVING" }, () => this.getList(count.current_page + 1));
     }
 
-    renderRow({ index, task: task_name, dueDate, workstream, task_members }) {
+    openTaskDetails(id) {
+        const { dispatch } = { ...this.props };
+        $(`#task-details`).modal('show');
+        dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+
+        getData(`/api/task/detail/${id}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
+                dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+            } else {
+                showToast("error", "Error retrieving task. Please try again later.");
+            }
+        });
+    }
+
+    renderRow({ index, id, task: task_name, dueDate, workstream, task_members }) {
         const { task } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate, "YYYY-MM-DD");
         const current = moment().startOf('day');
         const { project } = workstream;
-        let daysRemaining = moment.duration(given.diff(current)).asDays() + 1;
-        daysRemaining = (daysRemaining == 0) ? 1 : daysRemaining;
+        let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
+        daysRemaining = (daysRemaining == 0 && dueDate != "") ? 1 : daysRemaining;
         const assigned = _.map(task_members, (o) => { return o.user.firstName + " " + o.user.lastName });
 
         return (
             <tr key={index} class={(daysRemaining < 0) ? "text-red" : ""}>
                 <td data-label="Task Name" class="td-left">
-                    {task_name}
+                    <a onClick={() => this.openTaskDetails(id)}>{task_name}</a>
                 </td>
-                <td data-label="Deadline">
-                    {moment(dueDate).format("MMMM DD, YYYY")}
-                </td>
+                {
+                    (dueDate != "") && <td data-label="Deadline">
+                        {moment(dueDate).format("MMMM DD, YYYY")}
+                    </td>
+                }
                 <td data-label="Time Remaining" class={(daysRemaining == 1) ? "text-yellow" : ""}>
                     {`${Math.abs(daysRemaining)} day(s) ${(daysRemaining < 0) ? "delayed" : ""}`}
                 </td>
@@ -139,7 +161,10 @@ export default class taskListCategory extends React.Component {
                     return daysRemaining > 0 && daysRemaining <= 7;
                     break;
                 case "This month":
-                    return daysRemaining > 0 && daysRemaining > 7;
+                    return daysRemaining > 7 && daysRemaining <= 8;
+                    break;
+                case "Succeeding month":
+                    return daysRemaining > 8;
                     break;
                 default:
             }

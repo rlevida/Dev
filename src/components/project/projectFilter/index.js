@@ -69,7 +69,7 @@ export default class ProjectFilter extends React.Component {
                         </div>
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
-                        <div class="add-action">
+                        <div class="button-action">
                             <DropDown multiple={false}
                                 required={false}
                                 options={statusList}
