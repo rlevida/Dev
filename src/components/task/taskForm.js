@@ -463,7 +463,17 @@ export default class TaskForm extends React.Component {
                                     </div>
                                     <div class="col-lg-4 md-12 col-sm-12">
                                         <div>
-                                            <div class="checkbox">
+                                            <label class="custom-checkbox">
+                                                Needs Approval
+                                                <input
+                                                    type="checkbox"
+                                                    checked={task.Selected.approvalRequired ? true : false}
+                                                    onChange={() => { }}
+                                                    onClick={(f) => { this.handleCheckbox("approvalRequired", (task.Selected.approvalRequired) ? 0 : 1) }}
+                                                />
+                                                <span class="checkmark"></span>
+                                            </label>
+                                            {/* <div class="checkbox">
                                                 <label>
                                                     <input type="checkbox"
                                                         checked={task.Selected.approvalRequired ? true : false}
@@ -472,19 +482,19 @@ export default class TaskForm extends React.Component {
                                                     />
                                                     Needs Approval
                                                     </label>
-                                            </div>
+                                            </div> */}
                                         </div>
                                         <div>
-                                            <div class="checkbox">
-                                                <label>
-                                                    <input type="checkbox"
-                                                        checked={task.Selected.periodic ? true : false}
-                                                        onChange={() => { }}
-                                                        onClick={(f) => { this.handleCheckbox("periodic", (task.Selected.periodic) ? 0 : 1) }}
-                                                    />
-                                                    Recurring Task
-                                                    </label>
-                                            </div>
+                                            <label class="custom-checkbox">
+                                                Recurring Task
+                                                <input
+                                                    type="checkbox"
+                                                    checked={task.Selected.periodic ? true : false}
+                                                    onChange={() => { }}
+                                                    onClick={(f) => { this.handleCheckbox("periodic", (task.Selected.periodic) ? 0 : 1) }}
+                                                />
+                                                <span class="checkmark"></span>
+                                            </label>
                                         </div>
                                         {
                                             (typeof task.Selected.periodic != "undefined" && task.Selected.periodic != "") && <div>

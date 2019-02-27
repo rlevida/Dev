@@ -168,27 +168,25 @@ export default class WorkstreamForm extends React.Component {
                     <p>All with <span class="text-red">*</span> are required.</p>
                 </div>
                 <div class="form-group">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox"
-                                checked={(workstream.Selected.isActive == 1 || typeof workstream.Selected.isActive == 'undefined') ? true : false}
-                                onChange={() => { }}
-                                onClick={(f) => { this.handleCheckbox("isActive", (workstream.Selected.isActive || typeof workstream.Selected.isActive == 'undefined') ? 0 : 1) }}
-                            />
-                            Active
-                        </label>
-                    </div>
+                    <label class="custom-checkbox">
+                        <input type="checkbox"
+                            checked={(workstream.Selected.isActive == 1 || typeof workstream.Selected.isActive == 'undefined') ? true : false}
+                            onChange={() => { }}
+                            onClick={(f) => { this.handleCheckbox("isActive", (workstream.Selected.isActive || typeof workstream.Selected.isActive == 'undefined') ? 0 : 1) }}
+                        />
+                        <span class="checkmark"></span>
+                        Active
+                    </label>
                 </div>
                 <div class="form-group">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox"
-                                checked={(workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == 'undefined') ? false : true}
-                                onClick={(f) => { this.handleCheckbox("isTemplate", (workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == 'undefined') ? 1 : 0) }}
-                            />
-                            Set as Workstream Template
-                        </label>
-                    </div>
+                    <label class="custom-checkbox">
+                        <input type="checkbox"
+                            checked={(workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == 'undefined') ? false : true}
+                            onClick={(f) => { this.handleCheckbox("isTemplate", (workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == 'undefined') ? 1 : 0) }}
+                        />
+                        <span class="checkmark"></span>
+                        Set as Workstream Template
+                    </label>
                 </div>
                 {
                     (typeof workstream.Selected.id == 'undefined' || workstream.Selected.id == "") && <div class="form-group">
@@ -244,13 +242,13 @@ export default class WorkstreamForm extends React.Component {
                             placeholder="Number of Hours"
                             onChange={this.handleChange}
                         />
-                       
+
                     </div>
                 }
                 <div class="form-group">
                     <label for="description">Workstream Description: <span class="text-red">*</span></label>
                     <textarea name="description" required value={(typeof workstream.Selected.description == "undefined" || workstream.Selected.description == null || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
-                   
+
                 </div>
                 <div class="form-group">
                     <label>Responsible: <span class="text-red">*</span></label>
@@ -265,7 +263,7 @@ export default class WorkstreamForm extends React.Component {
                         isClearable={true}
                         placeholder={'Search and select member responsible'}
                     />
-                   
+
                 </div>
                 <a class="btn btn-violet" onClick={this.handleSubmit}>
                     <span>{`${(typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") ? 'Edit' : 'Add'} workstream`}</span>

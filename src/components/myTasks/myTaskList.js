@@ -5,6 +5,8 @@ import TaskFilter from "./taskFilter";
 import TaskListCategory from "./taskListCategory";
 import { TaskDetails } from "./taskDetails";
 
+import { putData, showToast } from "../../globalFunction";
+
 @connect((store) => {
     return {
         task: store.task
@@ -13,7 +15,12 @@ import { TaskDetails } from "./taskDetails";
 export default class myTaskList extends React.Component {
     constructor(props) {
         super(props);
-        this.handleAction = this.handleAction.bind(this);
+        _.map([
+            "handleAction",
+            "completeChecklist"
+        ], (fn) => {
+            this[fn] = this[fn].bind(this);
+        });
     }
 
     handleAction(type) {
@@ -32,6 +39,30 @@ export default class myTaskList extends React.Component {
                 break;
             default:
         }
+    }
+
+    completeChecklist(id) {
+        const { task, dispatch } = { ...this.props };
+        const { checklist = [] } = task.Selected;
+        const updateIndex = _.findIndex(checklist, { id });
+        const getSelectedChecklist = _.find(checklist, (o) => o.id == id);
+        const isCompleted = (getSelectedChecklist.isCompleted == 0) ? 1 : 0;
+        const updatedChecklistObj = { ...getSelectedChecklist, isCompleted };
+
+        putData(`/api/checklist/${id}`, updatedChecklistObj, (c) => {
+            if (c.status == 200) {
+                checklist.splice(updateIndex, 1, updatedChecklistObj);
+                const toBeUpdatedObject = {
+                    ...task.Selected,
+                    checklist
+                };
+                dispatch({ type: "SET_TASK_SELECTED", Selected: toBeUpdatedObject });
+                showToast("success", "Checklist successfully updated.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
+
     }
 
     render() {
@@ -62,7 +93,8 @@ export default class myTaskList extends React.Component {
                 </div>
                 <TaskDetails
                     task={task}
-                    actionFunction={this.handleAction}
+                    handleAction={this.handleAction}
+                    completeChecklist={this.completeChecklist}
                 />
             </div>
         );

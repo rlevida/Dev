@@ -44,7 +44,7 @@ export default class Checklist extends React.Component {
                 createdBy: loggedUser.data.id,
                 isDocument: (typeof checklist.Selected.isDocument != "undefined" && checklist.Selected.isDocument != "") ? checklist.Selected.isDocument : 0
             };
-            
+
             $("#task-form").validator('destroy');
 
             postData(`/api/checklist/`, toBeSubmitted, (c) => {
@@ -98,12 +98,16 @@ export default class Checklist extends React.Component {
                             />
                         </div>
                         <div class="form-group input-inline">
-                            <label>Document:</label>
-                            <input type="checkbox"
-                                checked={checklist.Selected.isDocument ? true : false}
-                                onChange={() => { }}
-                                onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
-                            />
+                            <label class="custom-checkbox">
+                                <input
+                                    type="checkbox"
+                                    checked={checklist.Selected.isDocument ? true : false}
+                                    onChange={() => { }}
+                                    onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
+                                />
+                                <span class="checkmark"></span>
+                                Document
+                            </label>
                         </div>
                     </div>
                 </div>

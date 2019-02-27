@@ -252,21 +252,20 @@ export default class FormComponent extends React.Component {
                                         <p>All with <span class="text-red">*</span> are required.</p>
                                     </div>
                                     <div class="form-group">
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox"
-                                                    checked={project.Selected.isActive ? true : false}
-                                                    onChange={() => { }}
-                                                    onClick={(f) => { this.handleCheckbox("isActive", (project.Selected.isActive) ? 0 : 1) }}
-                                                />
-                                                Active
-                                            </label>
-                                        </div>
+                                        <label class="custom-checkbox">
+                                            <input type="checkbox"
+                                                checked={project.Selected.isActive ? true : false}
+                                                onChange={() => { }}
+                                                onClick={(f) => { this.handleCheckbox("isActive", (project.Selected.isActive) ? 0 : 1) }}
+                                            />
+                                            <span class="checkmark"></span>
+                                            Active
+                                        </label>
                                     </div>
                                     <div class="form-group">
                                         <label for="project-name">Project Name: <span class="text-red">*</span></label>
                                         <input id="project-name" type="text" name="project" required value={(typeof project.Selected.project == "undefined" || project.Selected.project == null) ? "" : project.Selected.project} class="form-control" placeholder="Enter project name" onChange={this.handleChange} />
-                                       
+
                                     </div>
                                     <div class="form-group">
                                         <label for="project-type">Project Type: <span class="text-red">*</span></label>
@@ -277,7 +276,7 @@ export default class FormComponent extends React.Component {
                                             onChange={(e) => this.setDropDown("typeId", e.value)}
                                             placeholder={"Select project type"}
                                         />
-                                       
+
                                     </div>
                                     {(typeof project.Selected.typeId == "undefined" || project.Selected.typeId == 1) &&
                                         <div class="form-group">
@@ -302,31 +301,29 @@ export default class FormComponent extends React.Component {
                                             }}
                                             placeholder={"Search or select project lead"}
                                         />
-                                       
+
                                     </div>
                                     <div class="form-group">
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox"
-                                                    checked={project.Selected.remindOnDuedate ? true : false}
-                                                    onChange={() => { }}
-                                                    onClick={(f) => { this.handleCheckbox("remindOnDuedate", (project.Selected.remindOnDuedate) ? 0 : 1) }}
-                                                />
-                                                Remind on due date
-                                            </label>
-                                        </div>
+                                        <label class="custom-checkbox">
+                                            <input type="checkbox"
+                                                checked={project.Selected.remindOnDuedate ? true : false}
+                                                onChange={() => { }}
+                                                onClick={(f) => { this.handleCheckbox("remindOnDuedate", (project.Selected.remindOnDuedate) ? 0 : 1) }}
+                                            />
+                                            <span class="checkmark"></span>
+                                            Remind on due date
+                                        </label>
                                     </div>
                                     <div class="form-group">
-                                        <div class="checkbox">
-                                            <label>
-                                                <input type="checkbox"
-                                                    checked={project.Selected.remindBeforeDuedate ? true : false}
-                                                    onChange={() => { }}
-                                                    onClick={(f) => { this.handleCheckbox("remindBeforeDuedate", (project.Selected.remindBeforeDuedate) ? 0 : 1) }}
-                                                />
-                                                Remind before due date
-                                            </label>
-                                        </div>
+                                        <label class="custom-checkbox">
+                                            <input type="checkbox"
+                                                checked={project.Selected.remindBeforeDuedate ? true : false}
+                                                onChange={() => { }}
+                                                onClick={(f) => { this.handleCheckbox("remindBeforeDuedate", (project.Selected.remindBeforeDuedate) ? 0 : 1) }}
+                                            />
+                                            <span class="checkmark"></span>
+                                            Remind before due date
+                                        </label>
                                     </div>
                                     <a class="btn btn-violet mr5" onClick={this.handleSubmit}>
                                         <span>{`${(typeof project.Selected.id != "undefined" && project.Selected.id != "") ? "Edit" : "Add"} Project`}</span>

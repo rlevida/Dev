@@ -20,6 +20,7 @@ const associationArray = [
             },
             {
                 model: UsersTeam,
+                where: { isDeleted: 0 },
                 as: 'users_team',
                 include: [
                     {

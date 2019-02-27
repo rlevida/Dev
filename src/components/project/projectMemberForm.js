@@ -148,7 +148,7 @@ export default class ProjectMemberForm extends React.Component {
                         }}
                         placeholder={'Select member type'}
                     />
-                   
+
                 </div>
                 <div class="form-group">
                     <label>Member: <span class="text-red">*</span></label>
@@ -161,19 +161,18 @@ export default class ProjectMemberForm extends React.Component {
                         }}
                         placeholder={'Search or select user'}
                     />
-                   
+
                 </div>
                 <div class="form-group">
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox"
-                                checked={showAllUsers}
-                                onChange={() => { }}
-                                onClick={(f) => this.setState({ showAllUsers: !showAllUsers })}
-                            />
-                            Show other users that is not part of my teams
-                        </label>
-                    </div>
+                    <label class="custom-checkbox">
+                        <input type="checkbox"
+                            checked={showAllUsers}
+                            onChange={() => { }}
+                            onClick={(f) => this.setState({ showAllUsers: !showAllUsers })}
+                        />
+                        <span class="checkmark"></span>
+                        Show other users that is not part of my teams
+                    </label>
                 </div>
                 <a class="btn btn-violet mr5" onClick={this.handleSubmit}>
                     <span>Add member to project</span>

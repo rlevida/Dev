@@ -3,9 +3,9 @@ import _ from "lodash";
 import moment from "moment";
 
 export const TaskDetails = (props) => {
-    const { task: taskObj, actionFunction } = { ...props };
+    const { task: taskObj, handleAction, completeChecklist } = { ...props };
     const { Loading, Selected } = taskObj;
-    const { id, task, task_members, dueDate, workstream, status, description } = Selected;
+    const { id, task, task_members, dueDate, workstream, status, description, checklist } = Selected;
 
     return (
         <div class="modal right fade" id="task-details">
@@ -18,7 +18,7 @@ export const TaskDetails = (props) => {
                                 <strong>Back</strong>
                             </span>
                         </a>
-                        <div class="row mt20">
+                        <div class="row mt20 content-row">
                             <div class="col-md-6 modal-action">
                                 <a class="btn btn-default">
                                     <span>
@@ -30,7 +30,7 @@ export const TaskDetails = (props) => {
                             <div class="col-md-6">
                                 <div class="button-action">
                                     <a class="logo-action text-grey"><i title="FAVORITE" class="fa fa-star-o" aria-hidden="true"></i></a>
-                                    <a data-dismiss="modal" onClick={() => actionFunction("edit")} class="logo-action text-grey"><i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i></a>
+                                    <a data-dismiss="modal" onClick={() => handleAction("edit")} class="logo-action text-grey"><i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i></a>
                                     <a class="logo-action text-grey"><i title="DELETE" class="fa fa-trash-o" aria-hidden="true"></i></a>
                                 </div>
                             </div>
@@ -101,6 +101,29 @@ export const TaskDetails = (props) => {
                                                 <h3>
                                                     Checklist
                                                 </h3>
+                                                <div class="ml20">
+                                                    {
+                                                        _.map(checklist, (checklistObj, index) => {
+                                                            const { id, isCompleted, description } = { ...checklistObj };
+                                                            return (
+                                                                <div key={index}>
+                                                                    <label class="custom-checkbox todo-checklist">
+                                                                        {description}
+                                                                        <input type="checkbox"
+                                                                            checked={isCompleted ? true : false}
+                                                                            onChange={() => { }}
+                                                                            onClick={() => completeChecklist(id)}
+                                                                        />
+                                                                        <span class="checkmark"></span>
+                                                                    </label>
+                                                                </div>
+                                                            )
+                                                        })
+                                                    }
+                                                    {
+                                                        ((checklist).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                                    }
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
