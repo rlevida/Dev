@@ -113,9 +113,8 @@ export default class FieldContainer extends React.Component {
 
     editDocument(data, type) {
         const { dispatch } = this.props;
-        const newData = { ...data, tags: data.tags };
-
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...newData, oldDocument: type === 'tags' ? data.tags.map((e) => { return e.label }).join(',') : newData.origin } });
+        const newData = { ...data, workstreamId: data.tagWorkstream };
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...newData, oldDocument: type === 'tags' ? data.tagWorkstream.map((e) => { return e.label }).join(',') : newData.origin } });
         dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type });
         $(`#editModal`).modal('show');
     }
@@ -230,15 +229,23 @@ export default class FieldContainer extends React.Component {
                     </td>
                     <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`}/></td>
                     <td>{displayDateMD(data.dateAdded)}</td>
-                    <td>
-                        {(data.tags.length > 0) &&
-                            data.tags.map((t, tIndex) => {
-                                tagCount += t.label.length
-                                let tempCount = tagCount;
-                                if (tagCount > 16) { tagCount = 0 }
-                                return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
-                            })
-                        }
+                    <td>{
+                        data.tagWorkstream.length > 0 &&
+                        data.tagWorkstream.map((t, tIndex) => {
+                            tagCount += t.label.length
+                            let tempCount = tagCount;
+                            if (tagCount > 16) { tagCount = 0 }
+                            return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
+                        })
+                    }
+                    {/* {(data.tags.length > 0) &&
+                        data.tags.map((t, tIndex) => {
+                            tagCount += t.label.length
+                            let tempCount = tagCount;
+                            if (tagCount > 16) { tagCount = 0 }
+                            return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
+                        })
+                    } */}
                     </td>
                     <td>{data.readOn ? displayDateMD(data.readOn) : '--'}</td>
                     <td style={{ display:'flex' }}>

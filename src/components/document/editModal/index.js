@@ -1,26 +1,59 @@
 import React from "react"
 import { showToast, putData } from '../../../globalFunction'
 import { DropDown } from "../../../globalComponents"
+import _ from "lodash";
 
 import { connect } from "react-redux"
 @connect((store) => {
     return {
         document: store.document,
         loggedUser: store.loggedUser,
-        global: store.global
+        global: store.global,
+        workstream: store.workstream
     }
 })
 
 export default class EditModal extends React.Component {
     constructor(props) {
         super(props)
-
-        this.handleChange = this.handleChange.bind(this)
-        this.handleSubmit = this.handleSubmit.bind(this)
+        _.map([
+            "handleChange",
+            "handleSubmit",
+            "fetchWorkstreamList",
+            "setWorkstreamList",
+            "handleSubmit",
+            "selectTag",
+            "setDropDown"
+        ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
     componentDidMount() {
         $(".form-container").validator();
+        this.setWorkstreamList();
+    }
+
+    setWorkstreamList(options) {
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            this.fetchWorkstreamList(options);
+        }, 1500);
+    }
+
+    fetchWorkstreamList(options) {
+        const { dispatch, document, loggedUser, project } = { ...this.props };
+        const { Selected } = document;
+        let fetchUrl = `/api/workstream?projectId=${typeof project.Selected.id !== 'undefined' ?  project.Selected.id : Selected.projectId}&page=1&userId=${loggedUser.data.id}`;
+
+        if (typeof options != "undefined" && options != "") {
+            fetchUrl += `&workstream=${options}`;
+        }
+        getData(fetchUrl, {}, (c) => {
+            const workstreamOptions = _(c.data.result)
+                .map((e) => { return { id: e.id, name: e.workstream } })
+                .value();
+            dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
+            dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
+        });
     }
 
     handleChange(e) {
@@ -68,9 +101,9 @@ export default class EditModal extends React.Component {
             })
         } else if (document.EditType == "tags") {
             const dataToSubmit = {
-                tags: JSON.stringify(document.Selected.tags),
+                tagWorkstream: document.Selected.tagWorkstream,
                 oldDocument: document.Selected.oldDocument,
-                newDocument: document.Selected.tags.map((e) => { return e.label }).join(','),
+                newDocument: document.Selected.tagWorkstream.map((e) => { return e.label }).join(','),
                 usersId: loggedUser.data.id,
                 projectId: project,
                 origin: document.Selected.origin
@@ -89,21 +122,27 @@ export default class EditModal extends React.Component {
     }
 
     selectTag(e) {
-        const { dispatch, document } = this.props;
+        const { dispatch, document , workstream} = this.props;
         const Selected = Object.assign({}, document.Selected);
 
         Selected["tags"] = e;
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: Selected });
     }
 
+    setDropDown(name, value) {
+        let { dispatch, document } = this.props
+        const selectedObj = { ...document.Selected, [name]: value };
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj });
+    }
+
     render() {
-        const { document, global } = this.props;
+        const { document, global , workstream } = this.props;
         let tagOptions = [];
 
-        if (typeof global.SelectList.workstreamList !== 'undefined' && typeof global.SelectList.taskList !== 'undefined') {
-            global.SelectList.workstreamList.map((e) => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) });
-            global.SelectList.taskList.filter((e) => { return e.status != "Completed" }).map((e) => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) });
-        }
+        // if (typeof global.SelectList.workstreamList !== 'undefined' && typeof global.SelectList.taskList !== 'undefined') {
+        //     global.SelectList.workstreamList.map((e) => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) });
+        //     global.SelectList.taskList.filter((e) => { return e.status != "Completed" }).map((e) => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) });
+        // }
 
         return (
             <div class="modal fade" id="editModal" tabIndex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -126,7 +165,7 @@ export default class EditModal extends React.Component {
                                         </div>
                                     </div>
                                 }
-                                {(document.EditType == "tags" && tagOptions.length > 0) &&
+                                {(document.EditType == "tags") &&
                                     <div class="form-group">
                                         <label class="col-md-3 col-xs-12 control-label">Document Tags *</label>
                                         <div class="col-md-7 col-xs-12">
@@ -134,9 +173,9 @@ export default class EditModal extends React.Component {
                                                 name="tags"
                                                 multiple={true}
                                                 required={false}
-                                                options={tagOptions}
-                                                selected={(document.Selected.tags != null) ? document.Selected.tags : []}
-                                                onChange={(e) => this.selectTag(e, document.Selected)}
+                                                options={workstream.SelectList}
+                                                selected={(document.Selected.tagWorkstream != null) ? document.Selected.tagWorkstream : []}
+                                                onChange={(e) => this.setDropDown("tagWorkstream", (e == null) ? "" : e)}
                                             />
                                            
                                         </div>
@@ -152,7 +191,6 @@ export default class EditModal extends React.Component {
                                     </div>
                                 }
                             </form>
-                            <br />
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

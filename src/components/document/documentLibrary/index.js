@@ -305,9 +305,9 @@ export default class DocumentLibrary extends React.Component {
                             ((currentPage != lastPage) && document.Library.length > 0 && document.LibraryDocumentLoading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
                         }
                     </div>
-                    {
+                    {/* {
                         (document.LibraryDocumentLoading == "RETRIEVING") && <Loading />
-                    }
+                    } */}
                 </div>
             </div>
         )

@@ -2,7 +2,7 @@ import React from "react";
 import Dropzone from 'react-dropzone';
 import { connect } from "react-redux"
 
-import { DropDown } from "../../../globalComponents";
+import { DropDown , Loading } from "../../../globalComponents";
 import { showToast, postData , getData } from '../../../globalFunction';
 import _ from "lodash";
 
@@ -89,7 +89,7 @@ export default class UploadModal extends React.Component {
         const selectedObj = { ...document.Selected, [name]: value };
 
         if (name == "projectId" && value != "") {
-            selectedObj["workstreamId"] = [];
+            selectedObj["tagWorkstream"] = [];
         }
 
         if (name == "projectId" && (typeof selectedObj.projectId != "undefined" && selectedObj.projectId != "")) {
@@ -98,13 +98,11 @@ export default class UploadModal extends React.Component {
         }
 
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj });
-
     }
 
     saveDocument() {
         const { dispatch, document } = this.props;
-        const { dataToSubmit } = this.state;
-        postData(`/api/document`, dataToSubmit, (c) => {
+        postData(`/api/document`, document.Selected, (c) => {
             if (c.status == 200) {
                 this.setState({ upload: false, dataToSubmit: [] });
                 dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New' });
@@ -125,41 +123,50 @@ export default class UploadModal extends React.Component {
     }
 
     onDrop(files) {
-        this.setState({ files, upload: true });
+        const { dispatch } = this.props;
+        dispatch({ type: 'SET_DOCUMENT_FILES' , Files : files })
+        // this.setState({ files, upload: true });
     }
 
     uploadFile() {
-        const { loggedUser, folder } = this.props,
-            { files } = this.state
-        let data = new FormData(), dataToSubmit = [];
-        this.setState({ loading: true })
+        const { loggedUser, folder , dispatch , document } = this.props;
+        const selectedObj = { ...document.Selected };
+        let data = new FormData()
+        dispatch({ type : 'SET_DOCUMENT_UPLOAD_LOADING' , Loading : true });
+        // this.setState({ loading: true })
 
-        files.map(e => {
+        document.Files.map(e => {
             data.append("file", e)
         })
 
         postData(`/api/document/upload`, data, (c) => {
+            const documentToSave = []
             c.data.map(e => {
-                dataToSubmit.push({
+                documentToSave.push({
                     name: e.filename, origin: e.origin, project: project, uploadedBy: loggedUser.data.id,
                     status: 'new', type: 'document', folderId: folder.SelectedNewFolder.id
                 })
             })
-            this.setState({ dataToSubmit: dataToSubmit, loading: false, upload: false })
+
+            selectedObj.DocumentToSave = documentToSave 
+
+            dispatch({ type : 'SET_DOCUMENT_SELECTED', Selected : selectedObj })
+            // dispatch({ type : 'SET_DOCUMENT_TO_SAVE' , DocumentToSave : documentToSave })
+            dispatch({ type : 'SET_DOCUMENT_UPLOAD_LOADING' , Loading : false });
         })
     }
 
     render() {
         const { global , project, workstream , document } = this.props;
-        let tagOptions = [];
+        // let tagOptions = [];
 
-        if (typeof global.SelectList.workstreamList != "undefined" && typeof global.SelectList.taskList != "undefined") {
-            global.SelectList.workstreamList
-                .map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) })
-            global.SelectList.taskList
-                .filter(e => { return e.status != "Completed" })
-                .map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) })
-        }
+        // if (typeof global.SelectList.workstreamList != "undefined" && typeof global.SelectList.taskList != "undefined") {
+        //     global.SelectList.workstreamList
+        //         .map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) })
+        //     global.SelectList.taskList
+        //         .filter(e => { return e.status != "Completed" })
+        //         .map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) })
+        // }
 
         return (
             <div>
@@ -204,10 +211,10 @@ export default class UploadModal extends React.Component {
                                                 multiple={true}
                                                 required={false}
                                                 options={workstream.SelectList}
-                                                selected={(typeof document.Selected.workstreamId == "undefined") ? [] : document.Selected.workstreamId }
+                                                selected={(typeof document.Selected.tagWorkstream == "undefined") ? [] : document.Selected.tagWorkstream }
                                                 loading={true}
                                                 onChange={(e) => {
-                                                    this.setDropDown("workstreamId", (e == null) ? "" : e);
+                                                    this.setDropDown("tagWorkstream", (e == null) ? "" : e);
                                                 }}
                                             />
                                            <div>
@@ -232,7 +239,7 @@ export default class UploadModal extends React.Component {
                                 </div>
                                 <div class="row mb20">
                                     <div class="col-md-8">
-                                        {(!this.state.loading && this.state.dataToSubmit.length == 0) &&
+                                        {(!document.DocumentUploadLoading && typeof document.Selected.DocumentToSave === 'undefined' ) &&
                                             <Dropzone onDrop={this.onDrop.bind(this)}
                                                 class="document-file-upload"
                                             >
@@ -249,47 +256,35 @@ export default class UploadModal extends React.Component {
                                     </div>
                                 </div>
                                 <div class="row mb20">
-                                    <div class="col-lg-2 col-md-2 col-xs-6">
-                                        {(this.state.upload && !this.state.loading) &&
+                                    <div class="col-lg-4 col-md-4 col-xs-12">
+                                        { (!document.DocumentUploadLoading && document.Files.length > 0 && typeof document.Selected.DocumentToSave === 'undefined') &&
                                             <div class="form-group">
                                                 <button class="btn btn-success" onClick={() => this.uploadFile()}> Upload</button>
                                             </div>
                                         }
-
-                                        {/* <table id="dataTable" class="table responsive-table" >
+                                        { (document.DocumentUploadLoading) &&
+                                            <Loading/>
+                                        }
+                                        <table id="dataTable" class="table responsive-table" >
                                             <tbody>
-                                                {(this.state.dataToSubmit.length == 0 && this.state.loading) &&
-                                                    <tr>
-                                                        <td colSpan={8}><i class="fa fa-spinner fa-spin" style={{ fontSize: "36px", marginTop: "50px" }}></i></td>
-                                                    </tr>
-                                                }
-                                                {(this.state.dataToSubmit.length > 0) &&
-                                                    this.state.dataToSubmit.map((data, index) => {
+                                              
+                                                {( document.Selected.DocumentToSave && document.Selected.DocumentToSave.length > 0) &&
+                                                    document.Selected.DocumentToSave.map((data, index) => {
                                                         return (
                                                             <tr key={index}>
                                                                 <td style={{ border: "none", width: "20%" }}><span class="pull-left"><i class="fa fa-file" aria-hidden="true"></i>&nbsp;&nbsp;{data.origin}</span></td>
-                                                                <td style={{ border: "none", width: "10%" }}><span><i class="fa fa-tag" aria-hidden="true"></i></span></td>
-                                                                <td style={{ border: "none" }}>
-                                                                    <DropDown multiple={false}
-                                                                        multiple={true}
-                                                                        required={false}
-                                                                        options={tagOptions}
-                                                                        selected={(typeof data.tags != "undefined") ? JSON.parse(data.tags) : []}
-                                                                        onChange={(e) => this.selectTag(e, index)}
-                                                                    />
-                                                                </td>
                                                             </tr>
                                                         )
                                                     })
                                                 }
                                             </tbody>
-                                        </table> */}
+                                        </table>
                                     </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                {(this.state.dataToSubmit.length > 0) &&
+                                {(document.Selected.DocumentToSave && document.Selected.DocumentToSave.length > 0) &&
                                     <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={() => this.saveDocument()}>Save</button>
                                 }
                             </div>
