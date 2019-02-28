@@ -15,8 +15,12 @@ export const DropDown = React.createClass({
     },
     componentWillReceiveProps: function (props) {
         var records = props.options.map((d, index) => { return { value: d.id, label: d.name }; });
-
-        this.setState({ records: records, noResultsText: "No Results Found", disabled: props.disabled });
+        var objToBeUpdated = { 
+            records: records, 
+            noResultsText: (records.length > 0) ? "" : "No Results Found", 
+            disabled: props.disabled 
+        };
+        this.setState(objToBeUpdated);
 
         if (typeof props.selected != "undefined") {
             if (props.multiple) {
@@ -47,6 +51,12 @@ export const DropDown = React.createClass({
             this.setState({ noResultsText: "Loading ..." })
         }
     },
+    onFocus: function () {
+        if (typeof this.props.onFocus != "undefined") {
+            this.props.onFocus();
+            this.setState({ noResultsText: "Loading ..." })
+        }
+    },
     render: function () {
         var self = this;
         var handleChange = function (option) {
@@ -64,6 +74,7 @@ export const DropDown = React.createClass({
                 clearable={(typeof this.props.isClearable != 'undefined') ? this.props.isClearable : false}
                 required={this.props.required}
                 onInputChange={this.onInputChange}
+                onFocus={this.onFocus}
                 noResultsText={self.state.noResultsText}
                 onSelectResetsInput={false}
                 onBlurResetsInput={true}

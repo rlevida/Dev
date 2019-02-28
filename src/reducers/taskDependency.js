@@ -2,7 +2,7 @@ import _ from "lodash";
 
 export default function reducer(state = {
     List: [],
-    Loading: "",
+    Loading: "RETRIEVING",
     Selected: {}
 }, action) {
     switch (action.type) {

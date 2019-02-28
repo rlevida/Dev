@@ -230,11 +230,11 @@ import axios from "axios"
 
 var postData = exports.postData = function (url,data,cb) {
     axios.post(url,data)
-    .then((res)=>{ 
+    .then((res)=>{         
         cb(res) 
     })
     .catch((err)=>{
-        console.error(err); 
+        cb(err); 
     });
 }
 

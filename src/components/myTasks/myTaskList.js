@@ -1,11 +1,13 @@
 import React from "react";
 import { connect } from "react-redux";
+import _ from "lodash";
 
 import TaskFilter from "./taskFilter";
 import TaskListCategory from "./taskListCategory";
 import { TaskDetails } from "./taskDetails";
 
-import { putData, showToast } from "../../globalFunction";
+import { putData, deleteData, showToast } from "../../globalFunction";
+import { DeleteModal } from "../../globalComponents";
 
 @connect((store) => {
     return {
@@ -17,7 +19,8 @@ export default class myTaskList extends React.Component {
         super(props);
         _.map([
             "handleAction",
-            "completeChecklist"
+            "completeChecklist",
+            "confirmDelete"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -36,6 +39,9 @@ export default class myTaskList extends React.Component {
                 };
                 dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
                 dispatch({ type: "SET_TASK_SELECTED", Selected: toBeUpdatedObject });
+                break;
+            case "delete":
+                $(`#delete-task`).modal("show");
                 break;
             default:
         }
@@ -65,8 +71,24 @@ export default class myTaskList extends React.Component {
 
     }
 
+    confirmDelete() {
+        const { task, dispatch } = { ...this.props };
+        const { id } = task.Selected;
+
+        deleteData(`/api/task/${id}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "DELETE_TASK", id });
+                showToast("success", "Task successfully deleted.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+            $(`#delete-task`).modal("hide");
+        });
+    }
+
     render() {
         const { task } = { ...this.props };
+        const typeValue = (typeof task.Selected.task != "undefined" && _.isEmpty(task.Selected) == false) ? task.Selected.task : "";
 
         return (
             <div>
@@ -91,10 +113,17 @@ export default class myTaskList extends React.Component {
                         </div>
                     </div>
                 </div>
+                {/* Modals */}
                 <TaskDetails
                     task={task}
                     handleAction={this.handleAction}
                     completeChecklist={this.completeChecklist}
+                />
+                <DeleteModal
+                    id="delete-task"
+                    type={'task'}
+                    type_value={typeValue}
+                    delete_function={this.confirmDelete}
                 />
             </div>
         );

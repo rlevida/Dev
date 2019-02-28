@@ -103,7 +103,7 @@ export default class taskListCategory extends React.Component {
         });
     }
 
-    renderRow({ index, id, task: task_name, dueDate, workstream, task_members }) {
+    renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic }) {
         const { task } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate, "YYYY-MM-DD");
@@ -116,7 +116,10 @@ export default class taskListCategory extends React.Component {
         return (
             <tr key={index} class={(daysRemaining < 0) ? "text-red" : ""}>
                 <td data-label="Task Name" class="td-left">
-                    <a onClick={() => this.openTaskDetails(id)}>{task_name}</a>
+                    <a onClick={() => this.openTaskDetails(id)}>
+                        {task_name}
+                        {(periodic == 1) && <i class="fa fa-refresh ml10" aria-hidden="true"></i>}
+                    </a>
                 </td>
                 {
                     (dueDate != "") && <td data-label="Deadline">

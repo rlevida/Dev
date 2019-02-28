@@ -188,6 +188,7 @@ export default class TaskForm extends React.Component {
 
         if (name == "projectId" && value != "") {
             selectedObj["workstreamId"] = "";
+            dispatch({ type: "SET_TASK_DEPENDENCY_SELECTED", Selected: "" })
         }
 
         if (name == "projectId" && (typeof selectedObj.projectId != "undefined" && selectedObj.projectId != "")) {
@@ -398,6 +399,7 @@ export default class TaskForm extends React.Component {
                                                             onChange={(e) => {
                                                                 this.setDropDown("projectId", (e == null) ? "" : e.value);
                                                             }}
+                                                            disabled={(typeof task.Selected.id != "undefined" && task.Selected.id != "")}
                                                             placeholder={'Search project'}
                                                         />
                                                     </div>
@@ -473,16 +475,6 @@ export default class TaskForm extends React.Component {
                                                 />
                                                 <span class="checkmark"></span>
                                             </label>
-                                            {/* <div class="checkbox">
-                                                <label>
-                                                    <input type="checkbox"
-                                                        checked={task.Selected.approvalRequired ? true : false}
-                                                        onChange={() => { }}
-                                                        onClick={(f) => { this.handleCheckbox("approvalRequired", (task.Selected.approvalRequired) ? 0 : 1) }}
-                                                    />
-                                                    Needs Approval
-                                                    </label>
-                                            </div> */}
                                         </div>
                                         <div>
                                             <label class="custom-checkbox">

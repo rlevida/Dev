@@ -39,85 +39,86 @@ exports.get = {
 exports.post = {
     index: (req, cb) => {
         const body = req.body;
-
-        TaskDependency.findAll(
-            {
+        const arrayChecker = [body.taskId, ..._.map(body.task_dependencies, (o) => { return o.value })];
+        try {
+            Tasks.findAll({
                 where: {
-                    taskId: body.taskId
-                },
-                include: [
-                    {
-                        model: Tasks,
-                        as: 'task',
-                        attributes: ['id', 'task', 'description']
-                    }
-                ]
-            }
-        ).map((mapObject) => {
-            return mapObject.toJSON();
-        }).then((resultArray) => {
-            const taskDependency = _.map(body.task_dependencies, (taskDependencyObj) => { return { taskId: body.taskId, dependencyType: body.dependencyType, linkTaskId: taskDependencyObj.value } });
+                    id: arrayChecker
+                }
+            }).map((mapObject) => {
+                return mapObject.toJSON();
+            }).then((result) => {
+                const workstreamIds = _.map(result, (o) => { return o.workstreamId });
 
-            TaskDependency.bulkCreate(taskDependency, { returning: true }).map((response) => {
-                return response.toJSON();
-            }).then((response) => {
-                TaskDependency.findAll(
-                    {
-                        where: {
-                            id: _.map(response, (responseObj) => { return responseObj.id })
-                        },
-                        include: [
-                            {
-                                model: Tasks,
-                                as: 'task',
-                                attributes: ['id', 'task', 'description']
-                            }
-                        ]
-                    }
-                ).map((mapObject) => {
-                    return mapObject.toJSON();
-                }).then((response) => {
-                    const insertResponse = response;
-                    const taskDependencyActivityLog = _(insertResponse)
-                        .map((o) => {
-                            const taskDependencyObj = _.omit(o, ["dateAdded", "dateUpdated"]);
-                            return {
-                                usersId: body.userId,
-                                linkType: "task",
-                                linkId: body.taskId,
-                                actionType: "added",
-                                new: JSON.stringify({ task_dependency: taskDependencyObj }),
-                                title: taskDependencyObj.task.task
-                            }
-                        }).value();
+                if (_.every(workstreamIds, (v) => v === workstreamIds[0])) {
+                    const taskDependency = _.map(body.task_dependencies, (taskDependencyObj) => { return { taskId: body.taskId, dependencyType: body.dependencyType, linkTaskId: taskDependencyObj.value } });
 
-                    ActivityLogs.bulkCreate(taskDependencyActivityLog).map((response) => {
+                    TaskDependency.bulkCreate(taskDependency, { returning: true }).map((response) => {
                         return response.toJSON();
-                    }).then((resultArray) => {
-                        const responseObj = _.map(resultArray, (o) => { return o.id });
-                        return ActivityLogs.findAll({
-                            include: [
-                                {
-                                    model: Users,
-                                    as: 'user',
-                                    attributes: ['firstName', 'lastName']
-                                }
-                            ],
-                            where: {
-                                id: {
-                                    [Sequelize.Op.in]: responseObj
-                                }
+                    }).then((response) => {
+                        TaskDependency.findAll(
+                            {
+                                where: {
+                                    id: _.map(response, (responseObj) => { return responseObj.id })
+                                },
+                                include: [
+                                    {
+                                        model: Tasks,
+                                        as: 'task',
+                                        attributes: ['id', 'task', 'description']
+                                    }
+                                ]
                             }
-                        })
-                    }).map((response) => {
-                        const responseObj = response.toJSON();
-                        return responseObj;
-                    }).then((resultArray) => {
-                        cb({ status: true, data: { task_dependencies: insertResponse, activity_log: resultArray } });
-                    })
-                });
+                        ).map((mapObject) => {
+                            return mapObject.toJSON();
+                        }).then((response) => {
+                            const insertResponse = response;
+                            const taskDependencyActivityLog = _(insertResponse)
+                                .map((o) => {
+                                    const taskDependencyObj = _.omit(o, ["dateAdded", "dateUpdated"]);
+                                    return {
+                                        usersId: body.userId,
+                                        linkType: "task",
+                                        linkId: body.taskId,
+                                        actionType: "added",
+                                        new: JSON.stringify({ task_dependency: taskDependencyObj }),
+                                        title: taskDependencyObj.task.task
+                                    }
+                                }).value();
+
+                            ActivityLogs.bulkCreate(taskDependencyActivityLog).map((response) => {
+                                return response.toJSON();
+                            }).then((resultArray) => {
+                                const responseObj = _.map(resultArray, (o) => { return o.id });
+                                return ActivityLogs.findAll({
+                                    include: [
+                                        {
+                                            model: Users,
+                                            as: 'user',
+                                            attributes: ['firstName', 'lastName']
+                                        }
+                                    ],
+                                    where: {
+                                        id: {
+                                            [Sequelize.Op.in]: responseObj
+                                        }
+                                    }
+                                })
+                            }).map((response) => {
+                                const responseObj = response.toJSON();
+                                return responseObj;
+                            }).then((resultArray) => {
+                                cb({ status: true, data: { task_dependencies: insertResponse, activity_log: resultArray } });
+                            })
+                        });
+                    });
+                } else {
+                    cb({ status: false, error: "Workstream of dependent task must be the same with the task. Please make sure you have saved your changes on the task first." })
+                }
             });
-        });
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
     }
 }
 

@@ -31,7 +31,7 @@ export const TaskDetails = (props) => {
                                 <div class="button-action">
                                     <a class="logo-action text-grey"><i title="FAVORITE" class="fa fa-star-o" aria-hidden="true"></i></a>
                                     <a data-dismiss="modal" onClick={() => handleAction("edit")} class="logo-action text-grey"><i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i></a>
-                                    <a class="logo-action text-grey"><i title="DELETE" class="fa fa-trash-o" aria-hidden="true"></i></a>
+                                    <a data-dismiss="modal" onClick={() => handleAction("delete")} class="logo-action text-grey"><i title="DELETE" class="fa fa-trash-o" aria-hidden="true"></i></a>
                                 </div>
                             </div>
                         </div>
@@ -96,7 +96,7 @@ export const TaskDetails = (props) => {
                                         </div>
                                     </div>
                                     <div class="row mb20">
-                                        <div class="col-md-12">
+                                        <div class="col-md-12 bb pb20">
                                             <div>
                                                 <h3>
                                                     Checklist
@@ -104,11 +104,14 @@ export const TaskDetails = (props) => {
                                                 <div class="ml20">
                                                     {
                                                         _.map(checklist, (checklistObj, index) => {
-                                                            const { id, isCompleted, description } = { ...checklistObj };
+                                                            const { id, isCompleted, isDocument, description } = { ...checklistObj };
                                                             return (
                                                                 <div key={index}>
                                                                     <label class="custom-checkbox todo-checklist">
                                                                         {description}
+                                                                        {
+                                                                            (isDocument == 1) &&  <span class="label label-success ml10">Document</span>
+                                                                        }
                                                                         <input type="checkbox"
                                                                             checked={isCompleted ? true : false}
                                                                             onChange={() => { }}
@@ -123,6 +126,21 @@ export const TaskDetails = (props) => {
                                                     {
                                                         ((checklist).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                                                     }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mb20">
+                                        <div class="col-md-12">
+                                            <div>
+                                                <h3>
+                                                    Attachments
+                                                    <a class="text-grey ml10">
+                                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                                    </a>
+                                                </h3>
+                                                <div class="ml20">
+                                                   
                                                 </div>
                                             </div>
                                         </div>
