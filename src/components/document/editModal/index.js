@@ -1,9 +1,11 @@
-import React from "react"
-import { showToast, putData } from '../../../globalFunction'
-import { DropDown } from "../../../globalComponents"
+import React from "react";
+import { showToast, putData } from '../../../globalFunction';
+import { DropDown } from "../../../globalComponents";
 import _ from "lodash";
+import { connect } from "react-redux";
 
-import { connect } from "react-redux"
+let keyTimer = "";
+
 @connect((store) => {
     return {
         document: store.document,

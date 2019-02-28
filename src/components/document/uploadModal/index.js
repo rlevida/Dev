@@ -38,7 +38,11 @@ export default class UploadModal extends React.Component {
     }
 
     componentDidMount(){
-        const { project } = this.props;
+        const { dispatch , document } = this.props;
+        const selectedObj = { ...document.Selected, projectId : project };
+        if (project){
+            dispatch({ type : 'SET_DOCUMENT_SELECTED', Selected : selectedObj })
+        }
         this.fetchProjectList();
         this.setWorkstreamList()
     }
@@ -108,6 +112,8 @@ export default class UploadModal extends React.Component {
                 dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New' });
                 dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                 dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'new', count: document.NewUploadCount + 1 })
+                dispatch({ type: "SET_DOCUMENT_SELECTED" , Selected: {} })
+                dispatch({ type: 'SET_DOCUMENT_FILES' , Files : [] })
                 showToast("success", "Successfully Added.")
             } else {
                 showToast("error", "Saving failed. Please Try again later.")
