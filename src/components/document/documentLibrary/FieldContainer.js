@@ -84,7 +84,7 @@ export default class DocumentLibrary extends React.Component {
 
     archiveDocument(data) {
         const { dispatch, loggedUser } = this.props;
-        if (confirm("Do you really want to delete this record?")) {
+        if (confirm("Do you really want to archive this record?")) {
             putData(`/api/document/${data.id}`, { isArchived:1 , usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
                 if (c.status == 200) {
                     // dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'Library', Id: data.id })
@@ -141,9 +141,8 @@ export default class DocumentLibrary extends React.Component {
 
     editDocument(data, type) {
         const { dispatch } = this.props;
-        const newData = { ...data, tags: data.tags };
-
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...newData, oldDocument: type === 'tags' ? data.tags.map((e) => { return e.label }).join(',') : newData.origin } });
+        const newData = { ...data, workstreamId: data.tagWorkstream };
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...newData, oldDocument: type === 'tags' ? data.tagWorkstream.map((e) => { return e.label }).join(',') : newData.origin } });
         dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type });
         $(`#editModal`).modal('show');
     }
@@ -237,7 +236,17 @@ export default class DocumentLibrary extends React.Component {
                     </td>
                     <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`}/></td>
                     <td>{displayDateMD(data.dateUpdated)}</td>
-                    <td></td>
+                    <td>
+                        {
+                            data.tagWorkstream.length > 0 &&
+                            data.tagWorkstream.map((t, tIndex) => {
+                                tagCount += t.label.length
+                                let tempCount = tagCount;
+                                if (tagCount > 16) { tagCount = 0 }
+                                return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
+                            })
+                        }
+                    </td>
                     <td>{data.readOn ? displayDateMD(data.readOn) : '--'}</td>
                     <td style={{ display:'flex' }}>
                         <span class="document-action document-active" title="Download" onClick={() => this.downloadDocument(data)}><i class="fa fa-download fa-lg"></i></span>

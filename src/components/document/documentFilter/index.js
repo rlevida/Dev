@@ -165,17 +165,17 @@ export default class DocumentFilter extends React.Component {
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="add-action">
-                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#uploadFileModal"  >
+                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#"  >
                                 <span>
                                 <i class="fa fa-search fa-lg"></i>
                                 </span>
                             </a> 
-                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#uploadFileModal"  >
+                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#"  >
                                 <span>
                                 <i class="fa fa-download fa-lg"></i>
                                 </span>
                             </a> 
-                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#uploadFileModal"  >
+                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#"  >
                                 <span>
                                 <i class="fa fa-folder fa-lg"></i>
                                 </span>
