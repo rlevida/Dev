@@ -41,6 +41,7 @@ exports.get = {
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? {
                 isActive: queryString.isActive
             } : {},
+            isDeleted: 0 
         }
 
         const modelList = {

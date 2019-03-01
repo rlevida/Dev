@@ -8,7 +8,7 @@ export const TaskDetails = (props) => {
     const { id, task, task_members, dueDate, workstream, status, description, checklist } = Selected;
     const assigned = _.filter(task_members, (o) => { return o.memberType == "assignedTo" });
     const approver = _.filter(task_members, (o) => { return o.memberType == "approver" });
-
+    
     return (
         <div class="modal right fade" id="task-details">
             <div class="modal-dialog" role="document">
@@ -35,7 +35,9 @@ export const TaskDetails = (props) => {
                             </div>
                             <div class="col-md-6">
                                 <div class="button-action">
-                                    <a class="logo-action text-grey"><i title="FAVORITE" class="fa fa-star-o" aria-hidden="true"></i></a>
+                                    <a class="logo-action text-grey" onClick={() => handleAction("starred")}>
+                                        <i title="FAVORITE" class={`fa ${Selected.isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true"></i>
+                                    </a>
                                     <a data-dismiss="modal" onClick={() => handleAction("edit")} class="logo-action text-grey"><i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i></a>
                                     <a data-dismiss="modal" onClick={() => handleAction("delete")} class="logo-action text-grey"><i title="DELETE" class="fa fa-trash-o" aria-hidden="true"></i></a>
                                 </div>

@@ -274,7 +274,6 @@ exports.get = {
                         }
                         return data;
                     }).then((resultArray) => {
-                        console.log(resultArray)
                         callback(null, resultArray);
                     });
                 } catch (err) {
@@ -290,13 +289,22 @@ exports.get = {
         });
     },
     getById: (req, cb) => {
+        const queryString = req.query;
+        const associationArray = _.cloneDeep(associationStack);
         const whereObj = {
             id: req.params.id
         };
-        const options = {
-            include: associationStack
-        };
 
+        if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
+            _.find(associationArray, { as: 'task_starred' }).where = {
+                linkType: 'task',
+                isActive: 1,
+                usersId: queryString.starredUser
+            };
+        }
+        const options = {
+            include: associationArray
+        };
         try {
             Tasks.findOne(
                 { ...options, where: whereObj }
@@ -307,7 +315,8 @@ exports.get = {
                     status: true,
                     data: {
                         ...responseData,
-                        assignedTo: ((assignedTaskMembers).length > 0) ? assignedTaskMembers[0].userTypeLinkId : ""
+                        assignedTo: ((assignedTaskMembers).length > 0) ? assignedTaskMembers[0].userTypeLinkId : "",
+                        isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.task_starred).length > 0) ? responseData.task_starred[0].isActive : 0
                     }
                 });
             });

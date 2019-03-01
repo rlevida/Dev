@@ -93,11 +93,11 @@ export default class taskListCategory extends React.Component {
     }
 
     openTaskDetails(id) {
-        const { dispatch } = { ...this.props };
+        const { dispatch, loggedUser } = { ...this.props };
         $(`#task-details`).modal('show');
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
 
-        getData(`/api/task/detail/${id}`, {}, (c) => {
+        getData(`/api/task/detail/${id}?starredUser=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
                 dispatch({ type: "SET_TASK_LOADING", Loading: "" });

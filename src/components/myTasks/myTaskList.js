@@ -6,7 +6,7 @@ import TaskFilter from "./taskFilter";
 import TaskListCategory from "./taskListCategory";
 import { TaskDetails } from "../task/taskDetails";
 
-import { putData, deleteData, showToast } from "../../globalFunction";
+import { putData, postData, deleteData, showToast } from "../../globalFunction";
 import { DeleteModal } from "../../globalComponents";
 
 @connect((store) => {
@@ -22,7 +22,8 @@ export default class myTaskList extends React.Component {
             "handleAction",
             "completeChecklist",
             "completeTask",
-            "confirmDelete"
+            "confirmDelete",
+            "starredTask"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -49,8 +50,30 @@ export default class myTaskList extends React.Component {
             case "status":
                 this.completeTask();
                 break;
+            case "starred":
+                this.starredTask();
+                break;
             default:
         }
+    }
+
+    starredTask() {
+        const { task, loggedUser, dispatch } = this.props;
+        const { Selected } = task;
+        const isStarredValue = (Selected.isStarred > 0) ? 0 : 1;
+
+        postData(`/api/starred/`, {
+            linkType: "task",
+            linkId: Selected.id,
+            usersId: loggedUser.data.id
+        }, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, isStarred: isStarredValue } });
+                showToast("success", `Task successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
     }
 
     completeTask() {
