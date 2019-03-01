@@ -75,7 +75,11 @@ export default class taskListCategory extends React.Component {
             default:
         }
 
-        fetchUrl += `&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
+        if (typeof date != "undefined" && date != "") {
+            fetchUrl += `&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
+        } else {
+            fetchUrl += `&dueDate=null`
+        }
 
         getData(fetchUrl, {}, (c) => {
             this.setState({ count: c.data.count, loading: "" }, () => dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result }));
@@ -121,13 +125,15 @@ export default class taskListCategory extends React.Component {
                         {(periodic == 1) && <i class="fa fa-refresh ml10" aria-hidden="true"></i>}
                     </a>
                 </td>
-                {
-                    (dueDate != "") && <td data-label="Deadline">
-                        {moment(dueDate).format("MMMM DD, YYYY")}
-                    </td>
-                }
+                <td data-label="Deadline">
+                    {
+                        `${(dueDate != "" && dueDate != null) ? moment(dueDate).format("MMMM DD, YYYY") : "N/A"}`
+                    }
+                </td>
                 <td data-label="Time Remaining" class={(daysRemaining == 1) ? "text-yellow" : ""}>
-                    {`${Math.abs(daysRemaining)} day(s) ${(daysRemaining < 0) ? "delayed" : ""}`}
+                    {
+                        `${(dueDate != "" && dueDate != null) ? Math.abs(daysRemaining) + "  day(s)" : "N/A"}`
+                    }
                 </td>
                 <td data-label="Project">
                     <p class="m0">
@@ -170,9 +176,9 @@ export default class taskListCategory extends React.Component {
                     return daysRemaining > 8;
                     break;
                 default:
+                    return dueDate == null;
             }
         });
-
         return taskList;
     }
 
@@ -187,7 +193,7 @@ export default class taskListCategory extends React.Component {
         return (
             <div>
                 <div class="card-header">
-                    <h4>{date}</h4>
+                    <h4>{(typeof date != "undefined") ? date : "No Due Date"}</h4>
                 </div>
                 <div class={(loading == "RETRIEVING" && (taskList).length == 0) ? "linear-background" : ""}>
                     <div class="card-body m0">

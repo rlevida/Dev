@@ -3,9 +3,11 @@ import _ from "lodash";
 import moment from "moment";
 
 export const TaskDetails = (props) => {
-    const { task: taskObj, handleAction, completeChecklist } = { ...props };
+    const { task: taskObj, handleAction, completeChecklist, isApprover } = { ...props };
     const { Loading, Selected } = taskObj;
     const { id, task, task_members, dueDate, workstream, status, description, checklist } = Selected;
+    const assigned = _.filter(task_members, (o) => { return o.memberType == "assignedTo" });
+    const approver = _.filter(task_members, (o) => { return o.memberType == "approver" });
 
     return (
         <div class="modal right fade" id="task-details">
@@ -20,12 +22,16 @@ export const TaskDetails = (props) => {
                         </a>
                         <div class="row mt20 content-row">
                             <div class="col-md-6 modal-action">
-                                <a class="btn btn-default">
-                                    <span>
-                                        <i class="fa fa-check mr10" aria-hidden="true"></i>
-                                        Complete
-                                    </span>
-                                </a>
+                                {
+                                    (isApprover || Selected.status != "For Approval") &&
+                                    <a class="btn btn-default" onClick={() => handleAction("status")}>
+                                        <span>
+                                            <i class={`fa mr10 ${(Selected.status != "Completed") ? "fa-check" : "fa-ban"}`} aria-hidden="true"></i>
+                                            {`${(Selected.status == "For Approval") ? "Approve" : (Selected.status == "Completed") ? "Uncomplete" : "Complete"}`}
+                                        </span>
+                                    </a>
+                                }
+
                             </div>
                             <div class="col-md-6">
                                 <div class="button-action">
@@ -47,7 +53,7 @@ export const TaskDetails = (props) => {
                                                 <label>Assigned:</label>
                                                 <p class="m0">
                                                     {
-                                                        _.map(task_members, (member, index) => {
+                                                        _.map(assigned, (member, index) => {
                                                             const { user } = member;
                                                             return (
                                                                 <span key={index}>{user.firstName + " " + user.lastName}</span>
@@ -71,10 +77,24 @@ export const TaskDetails = (props) => {
                                         </div>
                                         <div class="col-md-6">
                                             <div class="label-div">
+                                                <label>Approver:</label>
+                                                <p class="m0">
+                                                    {
+                                                        (approver.length > 0) ?
+                                                            _.map(assigned, (member, index) => {
+                                                                const { user } = member;
+                                                                return (
+                                                                    <span key={index}>{user.firstName + " " + user.lastName}</span>
+                                                                )
+                                                            }) : "N/A"
+                                                    }
+                                                </p>
+                                            </div>
+                                            <div class="label-div">
                                                 <label>Due Date:</label>
                                                 <p class="m0">
                                                     {
-                                                        moment(dueDate).format("MMMM DD, YYYY")
+                                                        (dueDate != null) ? moment(dueDate).format("MMMM DD, YYYY") : "N/A"
                                                     }
                                                 </p>
                                             </div>
@@ -110,7 +130,7 @@ export const TaskDetails = (props) => {
                                                                     <label class="custom-checkbox todo-checklist">
                                                                         {description}
                                                                         {
-                                                                            (isDocument == 1) &&  <span class="label label-success ml10">Document</span>
+                                                                            (isDocument == 1) && <span class="label label-success ml10">Document</span>
                                                                         }
                                                                         <input type="checkbox"
                                                                             checked={isCompleted ? true : false}
@@ -135,12 +155,9 @@ export const TaskDetails = (props) => {
                                             <div>
                                                 <h3>
                                                     Attachments
-                                                    <a class="text-grey ml10">
-                                                        <i class="fa fa-plus" aria-hidden="true"></i>
-                                                    </a>
                                                 </h3>
                                                 <div class="ml20">
-                                                   
+
                                                 </div>
                                             </div>
                                         </div>

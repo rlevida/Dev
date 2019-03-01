@@ -20,7 +20,7 @@ export default function reducer(state = {
             return { ...state, Trainer: action.list }
         }
         case "SET_USER_SELECT_LIST": {
-            return { ...state, SelectList: action.List }
+            return { ...state, SelectList: action.List, Loading: "" }
         }
         case "SET_USER_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }

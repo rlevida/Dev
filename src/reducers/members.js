@@ -74,7 +74,7 @@ export default function reducer(state = {
             return { ...state, List: updatedList }
         }
         case "SET_MEMBER_SELECT_LIST": {
-            return { ...state, SelectList: action.List }
+            return { ...state, SelectList: action.List, Loading: '' }
         }
         default:
             return state;

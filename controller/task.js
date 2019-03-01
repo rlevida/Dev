@@ -102,7 +102,7 @@ exports.get = {
         const limit = 10;
         const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
         let dueDate = "";
-        
+
         if (typeof queryString.dueDate != "undefined" && queryString != "") {
             if (Array.isArray(queryString.dueDate)) {
                 dueDate = _.reduce(queryString.dueDate, function (obj, values) {
@@ -114,7 +114,6 @@ exports.get = {
                 dueDate = JSON.parse(queryString.dueDate);
             }
         }
-
 
         (typeof queryString.dueDate != "undefined") ? (Array.isArray(queryString.dueDate)) ? _.map(queryString.dueDate, (o) => { return JSON.parse(o) }) : JSON.parse(queryString.dueDate) : "";
 
@@ -146,14 +145,15 @@ exports.get = {
                 }
             } : {},
             ...(dueDate != "" || typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
-                dueDate: {
-                    ...(dueDate != "" && Array.isArray(dueDate)) ? {
-                        [Sequelize.Op.or]: dueDate
-                    } : (dueDate != "") ? {
-                        [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, (o) => { return moment(o, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") })
-                    } : {},
-                    [Sequelize.Op.not]: null
-                }
+                dueDate: (queryString.dueDate == "null") ? null :
+                    {
+                        ...(dueDate != "" && Array.isArray(dueDate)) ? {
+                            [Sequelize.Op.or]: dueDate
+                        } : (dueDate != "") ? {
+                            [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, (o) => { return moment(o, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") })
+                        } : {},
+                        [Sequelize.Op.not]: null
+                    }
             } : {},
             ...(typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
                 startDate: {
@@ -274,6 +274,7 @@ exports.get = {
                         }
                         return data;
                     }).then((resultArray) => {
+                        console.log(resultArray)
                         callback(null, resultArray);
                     });
                 } catch (err) {
@@ -406,12 +407,12 @@ exports.post = {
                             const taskPromises = _.times(body.periodInstance - 1, (o) => {
                                 return new Promise((resolve) => {
                                     const nextDueDate = moment(body.dueDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
-                                    const newPeriodTask = { 
-                                        ...body, 
-                                        dueDate: nextDueDate, 
+                                    const newPeriodTask = {
+                                        ...body,
+                                        dueDate: nextDueDate,
                                         periodTask: newTaskResponse.id
                                     };
-                                    
+
                                     Tasks.create(_.omit(newPeriodTask, ["task_dependency", "dependency_type", "assignedTo"])).then((response) => {
                                         const createTaskObj = response.toJSON();
                                         resolve(createTaskObj);
@@ -448,10 +449,17 @@ exports.post = {
                                         });
                                     },
                                     members: (parallelCallback) => {
+                                        const members = [];
                                         if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
-                                            const assignedTo = { linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" };
-                                            Members.create(assignedTo).then((response) => {
-                                                parallelCallback(null, response.toJSON());
+                                            members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
+                                        }
+
+                                        if (typeof body.approverId != "undefined" && body.approverId != "") {
+                                            members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
+                                        }
+                                        if (members.length > 0) {
+                                            Members.bulkCreate(members).then((response) => {
+                                                parallelCallback(null, response);
                                             });
                                         } else {
                                             parallelCallback(null, {});

@@ -53,6 +53,10 @@ module.exports = function(sequelize, DataTypes) {
       as:'teamLeader',
       foreignKey: 'teamLeaderId'
     })
+    Teams.hasMany(models.Members,{
+      as:'memberTeam',
+      foreignKey: 'userTypeLinkId'
+    })
   };
 
   return Teams;

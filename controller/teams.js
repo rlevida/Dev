@@ -95,7 +95,7 @@ exports.get = {
         }
 
         const whereObj = {
-            ...(typeof queryString.isDeleted !== 'undefined' && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : {},
+            ...(typeof queryString.isDeleted !== 'undefined' && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 },
             ...(orStack.length > 0) ? {
                 [Op.or]: orStack
             } : {},

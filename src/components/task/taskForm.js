@@ -12,13 +12,14 @@ let keyTimer = "";
 
 @connect((store) => {
     return {
-        loggedUser: store.loggedUser,
-        project: store.project,
-        workstream: store.workstream,
         checklist: store.checklist,
+        loggedUser: store.loggedUser,
+        members: store.members,
+        project: store.project,
         task: store.task,
         taskDependency: store.taskDependency,
-        users: store.users
+        users: store.users,
+        workstream: store.workstream
     }
 })
 
@@ -36,9 +37,11 @@ export default class TaskForm extends React.Component {
             "fetchProjectList",
             "fetchWorkstreamList",
             "setProjectList",
+            "setApproverList",
             "handleCheckbox",
             "handleSubmit",
             "getTaskDetails",
+            "fetchProjectMembers",
             "deleteSubTask",
             "confirmDeleteSubtask",
             "confirmDeleteTaskDependency"
@@ -52,6 +55,7 @@ export default class TaskForm extends React.Component {
 
         if (typeof task.Selected.projectId != "undefined" && task.Selected.projectId != "") {
             this.fetchWorkstreamList();
+            this.fetchProjectMembers();
             this.getTaskDetails();
         }
     }
@@ -82,17 +86,24 @@ export default class TaskForm extends React.Component {
         }, 1500);
     }
 
+    setApproverList(options) {
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            this.fetchProjectMembers(options);
+        }, 1500);
+    }
+
     fetchUserList(options) {
-        const { dispatch } = { ...this.props };
-        let fetchUrl = "/api/user?page=1&isDeleted=0";
+        const { dispatch, task } = { ...this.props };
+        const { Selected } = task;
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${Selected.projectId}&linkType=project`;
 
         if (typeof options != "undefined" && options != "") {
-            fetchUrl += `&name=${options}`;
+            fetchUrl += `&memberName=${options}`;
         }
-
         getData(fetchUrl, {}, (c) => {
-            const usersOptions = _(c.data.result)
-                .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
+            const usersOptions = _(c.data)
+                .map((o) => { return { id: o.id, name: o.firstName + " " + o.lastName } })
                 .value();
             dispatch({ type: "SET_USER_SELECT_LIST", List: usersOptions });
         });
@@ -127,6 +138,25 @@ export default class TaskForm extends React.Component {
                 .value();
             dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
             dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
+        });
+    }
+
+    fetchProjectMembers(options) {
+        const { dispatch, task } = { ...this.props };
+        const { Selected } = task;
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${Selected.projectId}&linkType=project`;
+
+        if (typeof options != "undefined" && options != "") {
+            fetchUrl += `&memberName=${options}`;
+        }
+        getData(fetchUrl, {}, (c) => {
+            const getApproverSelectList = _(c.data)
+                .filter((o) => {
+                    return (_.filter(o.user_role, (role) => { return role.role.id <= 3 })).length > 0;
+                })
+                .map((o) => { return { id: o.id, name: o.firstName + " " + o.lastName } })
+                .value();
+            dispatch({ type: "SET_MEMBER_SELECT_LIST", List: getApproverSelectList });
         });
     }
 
@@ -188,16 +218,21 @@ export default class TaskForm extends React.Component {
 
         if (name == "projectId" && value != "") {
             selectedObj["workstreamId"] = "";
+            selectedObj["approverId"] = "";
             dispatch({ type: "SET_TASK_DEPENDENCY_SELECTED", Selected: "" })
         }
 
         if (name == "projectId" && (typeof selectedObj.projectId != "undefined" && selectedObj.projectId != "")) {
             dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
-            this.setWorkstreamList();
+            keyTimer && clearTimeout(keyTimer);
+            keyTimer = setTimeout(() => {
+                this.fetchWorkstreamList();
+                this.fetchProjectMembers();
+                this.fetchUserList();
+            }, 1500);
         }
 
         dispatch({ type: "SET_TASK_SELECTED", Selected: selectedObj });
-
     }
 
     handleCheckbox(name, value) {
@@ -235,7 +270,7 @@ export default class TaskForm extends React.Component {
                 projectId: task.Selected.projectId,
                 period: (typeof task.Selected.period != "undefined" && task.Selected.period != "" && task.Selected.period != null) ? _.toNumber(task.Selected.period) : 0,
                 periodInstance: (typeof task.Selected.periodic != "undefined" && task.Selected.periodic == 1) ? 3 : 0,
-                status: "In Progress",
+                status: (task.Selected.approvalRequired == 1 && (typeof task.Selected.status == "undefined" || task.Selected.status == "For Approval")) ? "For Approval" : task.Selected.status,
                 dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD HH:mm:ss') : null
             };
 
@@ -257,6 +292,7 @@ export default class TaskForm extends React.Component {
                         const {
                             id,
                             approvalRequired,
+                            approverId,
                             dueDate,
                             periodic,
                             period,
@@ -273,8 +309,9 @@ export default class TaskForm extends React.Component {
                             type: "SET_TASK_SELECTED", Selected: {
                                 id,
                                 approvalRequired,
+                                approverId,
                                 ...(task_members.length > 0) ? { assignedTo: task_members[0].userTypeLinkId } : {},
-                                dueDate: moment(dueDate).format("YYYY MMM DD"),
+                                dueDate: (dueDate != null) ? moment(dueDate).format("YYYY MMM DD") : "",
                                 description,
                                 periodic,
                                 period,
@@ -330,7 +367,7 @@ export default class TaskForm extends React.Component {
     }
 
     render() {
-        const { dispatch, task, users, project, workstream, checklist, taskDependency } = { ...this.props };
+        const { dispatch, task, users, project, workstream, checklist, taskDependency, members } = { ...this.props };
         const checklistTypeValue = (typeof checklist.Selected.description != "undefined" && _.isEmpty(checklist.Selected) == false) ? checklist.Selected.description : "";
         const taskDependencyValue = (typeof taskDependency.task != "undefined" && _.isEmpty(taskDependency.Selected) == false) ? taskDependency.task.task : "";
 
@@ -374,10 +411,13 @@ export default class TaskForm extends React.Component {
                                         <div class="mt20">
                                             <div class="mt10 row">
                                                 <div class="col-lg-6 col-sm-6">
-                                                    <div class="form-group input-inline">
-                                                        <label for="email">Assigned:</label>
+                                                    <div class={`form-group input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
+                                                        <label for="email">
+                                                            Assigned: <span class="text-red">*</span>
+                                                            <p class="m0 note">Please select a project first.</p>
+                                                        </label>
                                                         <DropDown
-                                                            required={false}
+                                                            required={true}
                                                             options={users.SelectList}
                                                             onInputChange={this.setAssignMemberList}
                                                             selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
@@ -386,6 +426,11 @@ export default class TaskForm extends React.Component {
                                                             }}
                                                             placeholder={'Search name'}
                                                         />
+                                                        <div class="loading">
+                                                            {
+                                                                (workstream.Loading == "RETRIEVING" && typeof task.Selected.projectId != "undefined" && task.Selected.projectId != "") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                                            }
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div class="col-lg-6 col-sm-6">
@@ -407,9 +452,10 @@ export default class TaskForm extends React.Component {
                                             </div>
                                             <div class="mt10 row">
                                                 <div class="col-lg-6 col-sm-6">
-                                                    <div class="form-group input-inline">
+                                                    <div class={`form-group input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
                                                         <label>
                                                             Workstream: <span class="text-red">*</span>
+                                                            <p class="m0 note">Please select a project first.</p>
                                                         </label>
                                                         <DropDown
                                                             required={true}
@@ -420,14 +466,12 @@ export default class TaskForm extends React.Component {
                                                                 this.setDropDown("workstreamId", (e == null) ? "" : e.value);
                                                             }}
                                                             placeholder={'Search workstream project'}
-                                                            disabled={(workstream.Loading == "RETRIEVING")}
                                                         />
                                                         <div class="loading">
                                                             {
                                                                 (workstream.Loading == "RETRIEVING" && typeof task.Selected.projectId != "undefined" && task.Selected.projectId != "") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
                                                             }
                                                         </div>
-
                                                     </div>
                                                 </div>
                                                 <div class="col-lg-6 col-sm-6">
@@ -445,7 +489,7 @@ export default class TaskForm extends React.Component {
                                                             class="form-control datepicker"
                                                             name="dueDate"
                                                             value={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != null && task.Selected.dueDate != '') ? displayDate(task.Selected.dueDate) : ""}
-                                                            placeholder="Select valid end date"
+                                                            placeholder="Select valid due date"
                                                             onChange={() => { }}
                                                         />
                                                     </div>
@@ -476,6 +520,37 @@ export default class TaskForm extends React.Component {
                                                 <span class="checkmark"></span>
                                             </label>
                                         </div>
+                                        {
+                                            (typeof task.Selected.approvalRequired != "undefined" && task.Selected.approvalRequired != "") && <div>
+                                                <div class="row">
+                                                    <div class="col-lg-8 md-8 col-sm-8">
+                                                        <div class="form-group">
+                                                            <label class="m0">
+                                                                Approver:<span class="text-red">*</span>
+                                                            </label>
+                                                            <p class="m0 note">Please select a project first.</p>
+                                                            <div class={`input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
+                                                                <DropDown
+                                                                    required={(task.Selected.periodic == 1)}
+                                                                    options={members.SelectList}
+                                                                    onInputChange={this.setApproverList}
+                                                                    selected={(typeof task.Selected.approverId == "undefined") ? "" : task.Selected.approverId}
+                                                                    onChange={(e) => {
+                                                                        this.setDropDown("approverId", (e == null) ? "" : e.value);
+                                                                    }}
+                                                                    placeholder={'Search Approver'}
+                                                                />
+                                                                <div class="loading">
+                                                                    {
+                                                                        (workstream.Loading == "RETRIEVING" && typeof task.Selected.projectId != "undefined" && task.Selected.projectId != "") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
                                         <div>
                                             <label class="custom-checkbox">
                                                 Recurring Task
@@ -491,7 +566,7 @@ export default class TaskForm extends React.Component {
                                         {
                                             (typeof task.Selected.periodic != "undefined" && task.Selected.periodic != "") && <div>
                                                 <div class="row">
-                                                    <div class="col-lg-6 md-6 col-sm-6">
+                                                    <div class="col-lg-8 md-8 col-sm-8">
                                                         <div class="form-group">
                                                             <label>
                                                                 Recurring Every:<span class="text-red">*</span>

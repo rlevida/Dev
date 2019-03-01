@@ -211,8 +211,12 @@ exports.get = {
             cb({ status: false, error: err })
         }
     },
-    getProjectMembers: (req, cb) => {
+    getProjectMembers: async (req, cb) => {
         const queryString = req.query;
+        const limit = 10;
+        const options = {
+            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+        };
         const whereObj = {
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? {
                 linkType: queryString.linkType
@@ -224,49 +228,142 @@ exports.get = {
                 usersType: queryString.usersType
             } : {},
         }
+
         try {
-            Members
+            const memberList = await Members
                 .findAll({
-                    where: whereObj,
-                    include: [{
-                        model: Users,
-                        as: 'user',
-                        include: [
-                            {
-                                model: UsersRole,
-                                as: 'user_role',
-                                include: [{
-                                    model: Roles,
-                                    as: 'role',
-                                }]
+                    ...options,
+                    where: whereObj
+                })
+                .map((o) => {
+                    return o.toJSON()
+                });
+
+            const userMembers = _.filter(memberList, (o) => { return o.usersType == "users" });
+            const teamMembers = _.filter(memberList, (o) => { return o.usersType == "team" });
+
+            async.parallel({
+                users: (parallelCallback) => {
+                    const userIds = _.map(userMembers, (o) => { return o.userTypeLinkId });
+                    parallelCallback(null, userIds)
+                },
+                team_users: (parallelCallback) => {
+                    const teamIds = _.map(teamMembers, (o) => { return o.userTypeLinkId });
+                    async.parallel({
+                        team_leaders: (parallelCallback) => {
+                            Teams
+                                .findAll({
+                                    where: {
+                                        id: teamIds
+                                    }
+                                })
+                                .map((o) => {
+                                    return o.toJSON()
+                                }).then((res) => {
+                                    const teamLeadUserIds = _.map(res, (o) => { return o.teamLeaderId });
+                                    parallelCallback(null, teamLeadUserIds);
+                                });
+                        },
+                        team_members: (parallelCallback) => {
+                            UsersTeam.findAll({
+                                where: {
+                                    teamId: teamIds
+                                }
+                            })
+                                .map((o) => {
+                                    return o.toJSON()
+                                }).then((res) => {
+                                    const teamUserIds = _.map(res, (o) => { return o.usersId });
+                                    parallelCallback(null, teamUserIds);
+                                });
+                        }
+                    }, (err, res) => {
+                        const returnStack = [...res.team_leaders, ...res.team_members];
+                        parallelCallback(null, returnStack);
+                    });
+                }
+            }, (err, results) => {
+                const userMemberIds = _.uniq([...results.users, ...results.team_users]);
+                Users.findAll({
+                    where: {
+                        id: userMemberIds,
+                        ...(typeof queryString.memberName != "undefined" && queryString.memberName != "") ? {
+                            [Op.or]: [
+                                Sequelize.where(Sequelize.fn('lower', Sequelize.col('users.firstName')),
+                                    {
+                                        [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.memberName}%`)
+                                    }
+                                ),
+                                Sequelize.where(Sequelize.fn('lower', Sequelize.col('users.lastName')),
+                                    {
+                                        [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.memberName}%`)
+                                    }
+                                )
+                            ]
+                        } : {}
+                    },
+                    include: [
+                        {
+                            model: Teams,
+                            as: 'team_as_teamLeader',
+                            where: {
+                                isDeleted: 0
                             },
-                            {
-                                model: UsersTeam,
-                                as: 'users_team',
-                                where: { isDeleted: 0 },
-                                include: [{
-                                    model: Teams,
-                                    as: 'team',
-                                }]
-                            }
-                        ]
-                    },]
-                }).map((mapObject) => {
-                    return mapObject.toJSON();
+                            required: false
+                        },
+                        {
+                            model: UsersRole,
+                            as: 'user_role',
+                            include: [{
+                                model: Roles,
+                                as: 'role',
+                            }],
+                            required: false
+                        },
+                        {
+                            model: UsersTeam,
+                            as: 'users_team',
+                            where: {
+                                isDeleted: 0
+                            },
+                            include: [{
+                                model: Teams,
+                                as: 'team',
+                                where: {
+                                    isDeleted: 0
+                                }
+                            }],
+                            required: false
+                        }
+                    ]
+                }).map((o) => {
+                    const responseObj = o.toJSON();
+                    const userTeams = _.map(responseObj.users_team, (o) => { return o.team });
+                    const teamArray = [...userTeams, ...responseObj.team_as_teamLeader];
+                    const memberByTeam = _.filter(teamArray, (o) => {
+                        const checkIndex = _.findIndex(teamMembers, (teamMember) => {
+                            return teamMember.userTypeLinkId == o.id
+                        });
+                        return checkIndex >= 0;
+                    });
+                    return {
+                        ...responseObj,
+                        team: _.uniqBy(teamArray, (o) => { return o.id }),
+                        memberByTeam
+                    };
                 }).then((res) => {
                     cb({
                         status: true,
                         data: res
                     })
-                })
-                .catch((err) => {
-                    console.error(err)
-                })
+                });
+            });
+
         } catch (err) {
             cb({
                 status: false,
                 error: err
-            })
+            });
         }
     },
     getProjectTeams: (req, cb) => {
@@ -310,7 +407,11 @@ exports.get = {
                                 },
                                 {
                                     model: UsersTeam,
-                                    as: 'team'
+                                    as: 'team',
+                                    include: [{
+                                        model: Teams,
+                                        as: 'team'
+                                    }]
                                 }
                                 ]
                             }]
@@ -1001,24 +1102,66 @@ exports.delete = {
         }
     },
     deleteProjectMember: (req, cb) => {
-        try {
-            let d = req.params
+        const queryString = req.query;
+        const memberId = req.params.id;
+
+        if (queryString.memberByTeam == 'true') {
+            async.parallel({
+                team_leaders: (parallelCallback) => {
+                    Teams
+                        .findAll({
+                            where: {
+                                teamLeaderId: memberId
+                            }
+                        })
+                        .map((o) => {
+                            return o.toJSON()
+                        }).then((res) => {
+                            parallelCallback(null, res);
+                        });
+                },
+                team_members: (parallelCallback) => {
+                    UsersTeam.findAll({
+                        where: {
+                            usersId: memberId
+                        }
+                    })
+                        .map((o) => {
+                            return o.toJSON()
+                        }).then((res) => {
+                            parallelCallback(null, res);
+                        });
+                }
+            }, (o, response) => {
+                const teamMemberToBeDeleted = _.map(response.team_members, (o) => { return o.teamId });
+                const teamToBeDeleted = _.map(response.team_leaders, (o) => { return o.id });
+                const teamToBeDeletedIds = _.uniq([...teamMemberToBeDeleted, ...teamToBeDeleted]);
+               
+                Members.destroy({
+                    where: {
+                        userTypeLinkId: teamToBeDeletedIds,
+                        usersType: "team"
+                    }
+                }).then((res) => {
+                    cb({
+                        status: true,
+                        data: memberId
+                    })
+                })
+            });
+        } else {
             Members.destroy({
                 where: {
-                    id: d.id
+                    userTypeLinkId: memberId,
+                    usersType: "users"
                 }
             })
                 .then((res) => {
                     cb({
                         status: true,
-                        data: d.id
+                        data: memberId
                     })
                 })
-        } catch (err) {
-            cb({
-                status: false,
-                error: err
-            })
         }
     }
 }

@@ -56,11 +56,11 @@ const associationStack = [
 ]
 
 exports.get = {
-    index: (req, cb) => {
+    index: async (req, cb) => {
         const queryString = req.query;
         const limit = 10;
-        const whereObj = {
-            ...(typeof queryString.isDeleted !== 'undefined' && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : {},
+        let whereObj = {
+            ...(typeof queryString.isDeleted !== 'undefined' && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 },
             ...(typeof queryString.name != "undefined" && queryString.name != "") ? {
                 [Op.or]: [
                     Sequelize.where(Sequelize.fn('lower', Sequelize.col('users.firstName')),
@@ -76,6 +76,32 @@ exports.get = {
                 ]
             } : {}
         }
+        
+        if (typeof queryString.showAllUsers != "undefined" && queryString.showAllUsers == "false") {
+            const teamLeader = await Teams.findAll({
+                where: {
+                    teamLeaderId: queryString.userId,
+                    isDeleted: 0
+                }
+            }).map((o) => { return o.toJSON().id });
+
+            const teamMembers = await UsersTeam.findAll({
+                where: {
+                    usersId: queryString.userId,
+                    isDeleted: 0
+                }
+            }).map((o) => { return o.toJSON().teamId });
+
+            const teamIds = [...teamLeader, ...teamMembers];
+
+            whereObj = {
+                ...whereObj,
+                id: {
+                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT users_team.usersId FROM users_team WHERE teamId IN (${teamIds.join(",")}))`)
+                }
+            };
+        }
+
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
         };
@@ -357,15 +383,10 @@ exports.put = {
                         UsersTeam
                             .destroy({ where: { usersId: body.id } })
                             .then((res) => {
-                                async.map(teams, (e, mapCallback) => {
-                                    UsersTeam
-                                        .create({ usersId: body.id, teamId: e.value })
-                                        .then((createRes) => {
-                                            mapCallback(null, createRes)
-                                        })
-                                }, (err, mapCallback) => {
-                                    parallelCallback(null, mapCallback)
-                                })
+                                UsersTeam.bulkCreate(_.map(teams, (o) => { return { usersId: body.id, teamId: o.value } }))
+                                    .then((createRes) => {
+                                        parallelCallback(null, createRes)
+                                    });
                             })
                     } else {
                         parallelCallback(null, [])

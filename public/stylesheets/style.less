@@ -85,13 +85,6 @@ html, #main{
 .td350{ width:350px; }
 .width100pcnt { width:100% }
 
-.pointer-none{
-  pointer-events: none;
-}
-.pointer-none .Select-control{
-    background-color: #eee;
-    opacity: 1;
-}
 
 .bgcolor-lightGreen { background-color: #42f48f !important }
 .bgcolor-lightBlue { background-color: #79e5d8 !important }
@@ -1230,6 +1223,13 @@ input:checked + .slider:before {
 .menu-bar, .content-div{
   flex: 1;
 }
+
+.display-flex{
+  display: flex;
+}
+.display-flex .Select{
+  width: 100%;
+}
 .site-logo{
   max-width: 100px;
   margin: 0 auto;
@@ -1596,11 +1596,15 @@ textarea::-webkit-scrollbar-thumb {
   outline: 1px solid slategrey;
 }
 
-.form-group .loading{
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-bottom: 0;
+.input-inline .loading{
+  position: absolute;
+    bottom: 7px;
+    right: 25px;
+    top: 8px;
+}
+
+.input-inline {
+  position: relative;
 }
 
 
@@ -1672,7 +1676,6 @@ textarea::-webkit-scrollbar-thumb {
 .custom-checkbox {
   position: relative;
   padding-left: 40px;
-  margin-bottom: 12px;
   cursor: pointer;
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -1730,6 +1733,19 @@ textarea::-webkit-scrollbar-thumb {
 .todo-checklist{
   font-weight: unset!important;
 }
+
+.note {
+  font-size: 10px;
+  font-weight: 100!important;
+}
+
+.pointer-none .Select-control,
+.pointer-none input{
+  pointer-events: none!important;
+  background-color: #f9f9f9!important;
+}
+
+
 
 @media screen and (max-width: 600px) {
   table {
@@ -1866,13 +1882,14 @@ textarea::-webkit-scrollbar-thumb {
   .input-inline{
    flex-direction: column;
   }
-  // .form-inline .form-group{
-  //   display: unset!important;
-  // }
-  // .form-inline .form-group label{
-  //   margin-right: 0px;
-  //   margin-bottom: 5px;
-  // }
+  .input-inline .loading{
+    position: absolute;
+    right: 0;
+    right: 40px;
+    top: 43px;
+    bottom: 15px;
+
+  }
 }
 
 /* Small */

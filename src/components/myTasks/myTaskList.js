@@ -4,14 +4,15 @@ import _ from "lodash";
 
 import TaskFilter from "./taskFilter";
 import TaskListCategory from "./taskListCategory";
-import { TaskDetails } from "./taskDetails";
+import { TaskDetails } from "../task/taskDetails";
 
 import { putData, deleteData, showToast } from "../../globalFunction";
 import { DeleteModal } from "../../globalComponents";
 
 @connect((store) => {
     return {
-        task: store.task
+        task: store.task,
+        loggedUser: store.loggedUser
     }
 })
 export default class myTaskList extends React.Component {
@@ -20,6 +21,7 @@ export default class myTaskList extends React.Component {
         _.map([
             "handleAction",
             "completeChecklist",
+            "completeTask",
             "confirmDelete"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
@@ -35,16 +37,35 @@ export default class myTaskList extends React.Component {
             case "edit":
                 const toBeUpdatedObject = {
                     ...task.Selected,
-                    dueDate: moment(dueDate).format("YYYY MMM DD")
+                    dueDate: (dueDate != null) ? moment(dueDate).format("YYYY MMM DD") : null
                 };
+
                 dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
                 dispatch({ type: "SET_TASK_SELECTED", Selected: toBeUpdatedObject });
                 break;
             case "delete":
                 $(`#delete-task`).modal("show");
                 break;
+            case "status":
+                this.completeTask();
+                break;
             default:
         }
+    }
+
+    completeTask() {
+        const { task, dispatch } = { ...this.props };
+        const { Selected } = task;
+        const status = (Selected.status == "For Approval" || Selected.status == "Completed") ? "In Progress" : "Completed";
+
+        putData(`/api/task/${Selected.id}`, { ...Selected, status }, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, status } });
+                showToast("success", "Task successfully updated.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
     }
 
     completeChecklist(id) {
@@ -87,7 +108,7 @@ export default class myTaskList extends React.Component {
     }
 
     render() {
-        const { task } = { ...this.props };
+        const { task, loggedUser } = { ...this.props };
         const typeValue = (typeof task.Selected.task != "undefined" && _.isEmpty(task.Selected) == false) ? task.Selected.task : "";
 
         return (
@@ -107,8 +128,11 @@ export default class myTaskList extends React.Component {
                             <div class="mb40">
                                 <TaskListCategory date="This month" />
                             </div>
-                            <div>
+                            <div class="mb40">
                                 <TaskListCategory date="Succeeding month" />
+                            </div>
+                            <div>
+                                <TaskListCategory />
                             </div>
                         </div>
                     </div>
@@ -118,6 +142,7 @@ export default class myTaskList extends React.Component {
                     task={task}
                     handleAction={this.handleAction}
                     completeChecklist={this.completeChecklist}
+                    isApprover={(typeof task.Selected.approverId != "undefined") ? loggedUser.data.id == task.Selected.approverId : false}
                 />
                 <DeleteModal
                     id="delete-task"

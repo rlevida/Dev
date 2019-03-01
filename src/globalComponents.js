@@ -15,10 +15,10 @@ export const DropDown = React.createClass({
     },
     componentWillReceiveProps: function (props) {
         var records = props.options.map((d, index) => { return { value: d.id, label: d.name }; });
-        var objToBeUpdated = { 
-            records: records, 
-            noResultsText: (records.length > 0) ? "" : "No Results Found", 
-            disabled: props.disabled 
+        var objToBeUpdated = {
+            records: records,
+            noResultsText: (records.length > 0) ? "" : "No Results Found",
+            disabled: props.disabled
         };
         this.setState(objToBeUpdated);
 
@@ -90,11 +90,11 @@ export class OnOffSwitch extends React.Component {
         let { Active, Action, custom_class = "" } = this.props
         return (
             <label class="switch ">
-                <input 
-                    type="checkbox" 
-                    name="onoffswitch" 
-                    class="onoffswitch-checkbox success" 
-                    onClick={Action} 
+                <input
+                    type="checkbox"
+                    name="onoffswitch"
+                    class="onoffswitch-checkbox success"
+                    onClick={Action}
                     defaultChecked={Active == 1}
                 />
                 <span class="slider"></span>
@@ -284,7 +284,7 @@ export const Loading = () => {
 }
 
 export const DeleteModal = (props) => {
-    const { type, type_value, delete_function } = { ...props };
+    const { type, type_value, delete_function, note = "", confirm_actions = [] } = { ...props };
 
     return (
         <div class="modal fade delete-modal" id={props.id}>
@@ -294,6 +294,9 @@ export const DeleteModal = (props) => {
                         <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
                         <p class="warning text-center">Delete this {type}?</p>
                         <p class="warning text-center"><strong>{type_value}</strong></p>
+                        {
+                            (note != "") && <p class="text-center">{note}</p>
+                        }
                         <div class="flex-row mt20" id="delete-action">
                             <div class="flex-col">
                                 <button

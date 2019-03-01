@@ -30,7 +30,8 @@ export default class FormComponent extends React.Component {
             "setDropDown",
             "handleCheckbox",
             "renderArrayTd",
-            "confirmDelete"
+            "confirmDelete",
+            "getMembers"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -39,10 +40,6 @@ export default class FormComponent extends React.Component {
     componentDidMount() {
         const { dispatch, project } = this.props;
 
-        getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project&usersType=users`, {}, (c) => {
-            dispatch({ type: "SET_MEMBERS_LIST", list: c.data });
-        });
-
         getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`, {}, (c) => {
             dispatch({ type: "SET_TEAM_LIST", list: c.data })
         });
@@ -50,30 +47,31 @@ export default class FormComponent extends React.Component {
         getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
         });
+
+        this.getMembers();
+    }
+
+    getMembers() {
+        const { dispatch, project } = this.props;
+        getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
+            dispatch({ type: "SET_MEMBERS_LIST", list: c.data });
+        });
     }
 
     deleteMember(value) {
         const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_MEMBERS_SELECTED", Selected: value });
+        dispatch({ type: "SET_MEMBERS_SELECTED", Selected: { ...value, action: "delete" } });
         $(`#delete-member`).modal("show");
     }
 
     confirmDelete() {
-        const { dispatch, members } = { ...this.props };
-        const { id, usersType } = members.Selected;
+        const { members } = { ...this.props };
+        const { id, memberByTeam } = members.Selected;
 
-        deleteData(`/api/project/deleteProjectMember/${id}`, {}, (c) => {
+        deleteData(`/api/project/deleteProjectMember/${id}?memberByTeam=${memberByTeam.length > 0}`, {}, (c) => {
             if (c.status == 200) {
-                if (usersType == "users") {
-                    dispatch({ type: "REMOVE_DELETED_MEMBERS_LIST", id: c.data });
-                    dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} });
-                } else {
-                    let newMemberList = members.List.filter((e) => { return e.id != c.data })
-
-                    dispatch({ type: "REMOVE_DELETED_TEAM_LIST", id: c.data })
-                    dispatch({ type: "SET_MEMBERS_LIST", list: newMemberList })
-                }
-                showToast("success", "Successfully Deleted")
+                this.getMembers();
+                showToast("success", "Successfully Deleted");
             } else {
                 showToast("error", "Delete failed. Please try again.")
             }
@@ -148,7 +146,7 @@ export default class FormComponent extends React.Component {
 
         if (name == "projectManagerId" && value != "") {
             if (value != project.ProjectManagerId) {
-                let newMemberList = members.List.filter((e) => { return e.user.id != project.ProjectManagerId })
+                let newMemberList = members.List.filter((e) => { return e.id != project.ProjectManagerId })
                 dispatch({ type: "SET_PROJECT_MANAGER_ID", id: name })
                 dispatch({ type: "SET_MEMBERS_LIST", list: newMemberList })
             }
@@ -178,14 +176,17 @@ export default class FormComponent extends React.Component {
     }
 
     renderTeams(value) {
-        return (
-            (_.map(value, (valueObj) => { return valueObj.team.team })).join(", ")
-        );
+        const team = _(value)
+            .orderBy(['team'], ['asc'])
+            .map((valueObj) => { return valueObj.team })
+            .value();
+        return team.join("\r\n");
     }
 
     render() {
-        const { dispatch, project, loggedUser, members, status, type, teams, global } = { ...this.props };
-        const typeValue = (typeof members.Selected.user != "undefined" && _.isEmpty(members.Selected) == false) ? members.Selected.user.firstName + " " + members.Selected.user.lastName : "";
+        const { dispatch, project, loggedUser, members, status, type, global } = { ...this.props };
+        const typeValue = (typeof members.Selected != "undefined" && _.isEmpty(members.Selected) == false) ? members.Selected.firstName + " " + members.Selected.lastName : "";
+        const isMemberByTeam = (typeof members.Selected.memberByTeam != "undefined" && _.isEmpty(members.Selected) == false) ? (members.Selected.memberByTeam).length > 0 : false;
 
         let statusList = [], typeList = [];
 
@@ -213,18 +214,6 @@ export default class FormComponent extends React.Component {
                 return { id: e.id, name: `${e.firstName} ${e.lastName}` }
             }).value()
             : [];
-
-        if (teams.List.length > 0) {
-            teams.List.map((e) => {
-                e.team.users_team.map((t) => {
-                    let index = _.findIndex(members.List, { userTypeLinkId: t.user.id })
-                    if (index < 0) {
-                        let userMemberToAdd = { id: e.id, usersType: "team", userTypeLinkId: t.user.id, linkType: "project", user: t.user }
-                        members.List.push(userMemberToAdd)
-                    }
-                })
-            })
-        }
 
         return (
             <div class="row">
@@ -347,71 +336,75 @@ export default class FormComponent extends React.Component {
                                     </div>
                                     <ProjectMemberForm />
                                     <div class="mt20">
-                                        <table>
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">User Id</th>
-                                                    <th scope="col">Username</th>
-                                                    <th scope="col">First Name</th>
-                                                    <th scope="col">Last Name</th>
-                                                    <th scope="col">Email Address</th>
-                                                    <th scope="col">Member Type</th>
-                                                    <th scope="col">Role(s)</th>
-                                                    <th scope="col">Team(s)</th>
-                                                    <th scope="col">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {
-                                                    _.orderBy(members.List, ['memberType'], ['desc']).map((data, index) => {
-                                                        return (
-                                                            <tr
-                                                                key={index}
-                                                                style={{ color: (data.user.id == project.Selected.projectManagerId) ? "green" : "" }}
-                                                            >
-                                                                <td data-label="User Id">
-                                                                    {data.user.id}
-                                                                </td>
-                                                                <td data-label="Username">
-                                                                    {data.user.username}
-                                                                </td>
-                                                                <td data-label="First Name">
-                                                                    {data.user.firstName}
-                                                                </td>
-                                                                <td data-label="Last Name">
-                                                                    {data.user.lastName}
-                                                                </td>
-                                                                <td data-label="Email Address">
-                                                                    {data.user.emailAddress}
-                                                                </td>
-                                                                <td data-label="Member Type">
-                                                                    {data.user.userType}
-                                                                </td>
-                                                                <td data-label="Role(s)">
-                                                                    {this.renderRoles(data.user.user_role)}
-                                                                </td>
-                                                                <td data-label="Team(s)">
-                                                                    {this.renderTeams(data.user.users_team)}
-                                                                </td>
-                                                                <td data-label="Actions">
-                                                                    {
-                                                                        (data.user.id != project.Selected.projectManagerId && data.usersType != "team")
-                                                                        && <a href="javascript:void(0);" title="DELETE"
-                                                                            onClick={(e) => this.deleteMember(data)}
-                                                                            class={data.allowedDelete == 0 ? 'hide' : 'btn btn-action'}
-                                                                        >
-                                                                            <span class="glyphicon glyphicon-trash"></span>
-                                                                        </a>
-                                                                    }
-                                                                </td>
-                                                            </tr>
-                                                        )
-                                                    })
-                                                }
-                                            </tbody>
-                                        </table>
                                         {
-                                            (members.List.length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                            (members.List.length > 0) && <table>
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">User Id</th>
+                                                        <th scope="col">Username</th>
+                                                        <th scope="col">First Name</th>
+                                                        <th scope="col">Last Name</th>
+                                                        <th scope="col">Email Address</th>
+                                                        <th scope="col">Member Type</th>
+                                                        <th scope="col">Role(s)</th>
+                                                        <th scope="col">Team(s)</th>
+                                                        <th scope="col">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {
+                                                        _.orderBy(members.List, ['firstName'], ['asc']).map((data, index) => {
+                                                            return (
+                                                                <tr
+                                                                    key={index}
+                                                                >
+                                                                    <td data-label="User Id">
+                                                                        {data.id}
+                                                                        {
+                                                                            (data.id == project.Selected.projectManagerId) && <i class="fa fa-user ml5" aria-hidden="true"></i>
+                                                                        }
+                                                                    </td>
+                                                                    <td data-label="Username">
+                                                                        {data.username}
+                                                                    </td>
+                                                                    <td data-label="First Name">
+                                                                        {data.firstName}
+                                                                    </td>
+                                                                    <td data-label="Last Name">
+                                                                        {data.lastName}
+                                                                    </td>
+                                                                    <td data-label="Email Address">
+                                                                        {data.emailAddress}
+                                                                    </td>
+                                                                    <td data-label="Member Type">
+                                                                        {data.userType}
+                                                                    </td>
+                                                                    <td data-label="Role(s)">
+                                                                        {this.renderRoles(data.user_role)}
+                                                                    </td>
+                                                                    <td data-label="Team(s)">
+                                                                        {this.renderTeams(data.team)}
+                                                                    </td>
+                                                                    <td data-label="Actions">
+                                                                        {
+                                                                            (data.id != project.Selected.projectManagerId)
+                                                                            && <a href="javascript:void(0);" title="DELETE"
+                                                                                onClick={(e) => this.deleteMember(data)}
+                                                                                class={data.allowedDelete == 0 ? 'hide' : 'btn btn-action'}
+                                                                            >
+                                                                                <span class="glyphicon glyphicon-trash"></span>
+                                                                            </a>
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+                                                            )
+                                                        })
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        }
+                                        {
+                                            (members.List.length == 0) && <p class="text-center"><strong>No Records Found</strong></p>
                                         }
                                     </div>
                                 </div>
@@ -434,6 +427,7 @@ export default class FormComponent extends React.Component {
                     type={'member'}
                     type_value={typeValue}
                     delete_function={this.confirmDelete}
+                    note={(isMemberByTeam) ? "This is a member of a team assigned to this project. Deleting this user will remove all its team assigned to this project. Consider deleting this user from the team in Teams & Users." : ""}
                 />
             </div>
         )
