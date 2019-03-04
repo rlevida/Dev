@@ -36,6 +36,10 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.BIGINT,
       allowNull: true
     },
+    color: {
+      type: DataTypes.CHAR(50),
+      allowNull: true
+    },
     dateAdded: {
       type: DataTypes.DATE,
       allowNull: true

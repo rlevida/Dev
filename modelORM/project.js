@@ -64,6 +64,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: '0'
     },
+    color: {
+      type: DataTypes.CHAR(50),
+      allowNull: true
+    },
     dateAdded: {
       type: DataTypes.DATE,
       allowNull: false,

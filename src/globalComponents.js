@@ -1,8 +1,9 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { SketchPicker } from 'react-color';
 import Select from 'react-select';
 import Tooltip from 'react-tooltip';
 import { saveData, showToast } from './globalFunction';
+import { relative } from "path";
 
 export const DropDown = React.createClass({
     getInitialState: function () {
@@ -337,4 +338,49 @@ export const MentionConvert = ({ string }) => {
             }
         </p>
     )
+}
+
+export class ColorPicker extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            show_color_picker: false
+        };
+    }
+
+    render() {
+        const { show_color_picker } = { ...this.state };
+        const { color, onSelect, placeholder = "Select Color", required } = { ...this.props };
+
+        return (
+            <div style={{ position: "relative" }}>
+                <input type="text"
+                    name="project_color"
+                    placeholder={placeholder}
+                    required={required}
+                    value={(typeof color == "undefined" || color == null) ? "" : color}
+                    class="form-control"
+                    onFocus={() => this.setState({ show_color_picker: true })}
+                    onChange={() => { }}
+                />
+                <div class="color-tab"
+                    style={{
+                        backgroundColor: color
+                    }}
+                />
+                {
+                    (show_color_picker) && <div style={{ position: "relative", width: 200 }}>
+                        <SketchPicker
+                            color={(typeof color == "undefined" || color == null) ? "#2980b9" : color}
+                            onChange={onSelect}
+                        />
+                        <a class="color-picker-close"
+                            onClick={() => this.setState({ show_color_picker: false })}
+                        ><i class="fa fa-times-circle" aria-hidden="true"></i></a>
+                    </div>
+                }
+            </div>
+        )
+    }
 }

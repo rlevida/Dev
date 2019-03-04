@@ -1,6 +1,6 @@
 import React from "react";
 import { showToast, putData, postData, getData } from '../../globalFunction';
-import { DropDown } from "../../globalComponents";
+import { DropDown, ColorPicker } from "../../globalComponents";
 import { connect } from "react-redux";
 import _ from "lodash";
 
@@ -30,7 +30,8 @@ export default class WorkstreamForm extends React.Component {
             'setDropDownMultiple',
             'getMemberList',
             'handleSubmit',
-            'handleCheckbox'
+            'handleCheckbox',
+            'handleColorSlider'
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -116,7 +117,8 @@ export default class WorkstreamForm extends React.Component {
             isTemplate: (typeof workstream.Selected.isTemplate == 'undefined') ? 0 : workstream.Selected.isTemplate,
             responsible: workstream.Selected.responsible,
             ...(typeof workstream.Selected.workstreamTemplate != "undefined") ? { workstreamTemplate: workstream.Selected.workstreamTemplate } : {},
-            userId: loggedUser.data.id
+            userId: loggedUser.data.id,
+            color: workstream.Selected.color
         };
         let result = true;
 
@@ -152,6 +154,12 @@ export default class WorkstreamForm extends React.Component {
         }
     }
 
+    handleColorSlider(e) {
+        const { dispatch, workstream } = { ...this.props };
+        const { Selected } = workstream
+        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: { ...Selected, color: e.hex } })
+    }
+
     render() {
         const { workstream, global, members } = { ...this.props };
         const typeList = (typeof global.SelectList.typeList != "undefined") ? _(global.SelectList.typeList)
@@ -162,7 +170,7 @@ export default class WorkstreamForm extends React.Component {
             .value()
             : [];
         return (
-            <form id="#workstream-form">
+            <form id="workstream-form">
                 <div class="mb20">
                     <p class="form-header mb0">Workstreams</p>
                     <p>All with <span class="text-red">*</span> are required.</p>
@@ -264,6 +272,15 @@ export default class WorkstreamForm extends React.Component {
                         placeholder={'Search and select member responsible'}
                     />
 
+                </div>
+                <div class="form-group">
+                    <label for="project-manager">Color Indicator: <span class="text-red">*</span></label>
+                    <ColorPicker
+                        onSelect={this.handleColorSlider}
+                        color={workstream.Selected.color}
+                        placeholder={"Select Workstream Color"}
+                        required={true}
+                    />
                 </div>
                 <a class="btn btn-violet" onClick={this.handleSubmit}>
                     <span>{`${(typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") ? 'Edit' : 'Add'} workstream`}</span>

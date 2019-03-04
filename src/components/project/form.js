@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
 import { showToast, getData, putData, deleteData, postData } from '../../globalFunction';
-import { DeleteModal, DropDown } from "../../globalComponents";
+import { DeleteModal, DropDown, ColorPicker } from "../../globalComponents";
 import ProjectMemberForm from "./projectMemberForm";
 import WorkstreamForm from "../workstream/workstreamForm";
 import WorkstreamList from "../workstream/workstreamList";
@@ -31,7 +31,8 @@ export default class FormComponent extends React.Component {
             "handleCheckbox",
             "renderArrayTd",
             "confirmDelete",
-            "getMembers"
+            "getMembers",
+            "handleColorSlider"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -130,7 +131,8 @@ export default class FormComponent extends React.Component {
                     classification: project.Selected.classification,
                     projectNameCount: project.Selected.projectNameCount,
                     projectType: project.Selected.projectType,
-                    projectManagerId: project.Selected.projectManagerId
+                    projectManagerId: project.Selected.projectManagerId,
+                    color: project.Selected.color
                 }
                 putData(`/api/project/${project.Selected.id}`, dataToSubmit, (c) => {
                     dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
@@ -183,6 +185,12 @@ export default class FormComponent extends React.Component {
         return team.join("\r\n");
     }
 
+    handleColorSlider(e) {
+        const { dispatch, project } = { ...this.props };
+        const { Selected } = project
+        dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...Selected, color: e.hex } })
+    }
+
     render() {
         const { dispatch, project, loggedUser, members, status, type, global } = { ...this.props };
         const typeValue = (typeof members.Selected != "undefined" && _.isEmpty(members.Selected) == false) ? members.Selected.firstName + " " + members.Selected.lastName : "";
@@ -214,7 +222,7 @@ export default class FormComponent extends React.Component {
                 return { id: e.id, name: `${e.firstName} ${e.lastName}` }
             }).value()
             : [];
-
+            
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -291,6 +299,15 @@ export default class FormComponent extends React.Component {
                                             placeholder={"Search or select project lead"}
                                         />
 
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="project-manager">Color Indicator: <span class="text-red">*</span></label>
+                                        <ColorPicker  
+                                            onSelect={this.handleColorSlider}
+                                            color={project.Selected.color}
+                                            placeholder={"Select Project Color"}
+                                            required={true}
+                                        />
                                     </div>
                                     <div class="form-group">
                                         <label class="custom-checkbox">

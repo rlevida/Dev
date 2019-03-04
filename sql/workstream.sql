@@ -8,6 +8,7 @@ CREATE TABLE `workstream` (
     `numberOfHours` BIGINT,
     `statusId` BIGINT,
     `typeId` BIGINT,
+    `color` VARCHAR(50),
     `isActive` TINYINT(1) DEFAULT '1',
     `isTemplate` TINYINT(1) DEFAULT '0',
     `isDeleted` TINYINT(1) DEFAULT '0',
