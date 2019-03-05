@@ -2,13 +2,12 @@ const _ = require("lodash");
 const dbName = "starred";
 const { defaultGet, defaultPut, defaultDelete } = require("./")
 const models = require('../modelORM');
-const { ActivityLogsDocument, Starred, Users, Tasks, Notes, Document, Sequelize } = models;
+const { ActivityLogsDocument, Starred, Users, Tasks, Notes, Document, DocumentLink, Workstream, Tag, Sequelize } = models;
 
 exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
         const limit = 10;
-
         const association = [
             {
                 model: Users,
@@ -16,26 +15,55 @@ exports.get = {
                 attributes: ['id', 'firstName', 'lastName', 'emailAddress']
             }
         ];
-
         if (typeof queryString.type != "undefined") {
             switch (queryString.type) {
                 case "task":
                     association.push({
                         model: Tasks,
                         as: 'task',
-                        attributes: ['id', 'task', 'status', 'dueDate']
+                        attributes: ['id', 'task', 'status', 'dueDate'],
+                        where: {
+                            ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {}
+                        },
+                        include: [{
+                            model: Workstream,
+                            as: 'workstream'
+                        }]
                     });
                     break;
                 case "notes":
                     association.push({
                         model: Notes,
+                        where: {
+                            ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {}
+                        },
                         as: 'notes'
                     });
                     break;
                 case "document":
                     association.push({
                         model: Document,
-                        as: 'document'
+                        as: 'document',
+                        include: [
+                            {
+                                model: DocumentLink,
+                                as: 'project_member',
+                                where: {
+                                    ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { linkId: queryString.projectId, linkType: 'project' } : {}
+                                }
+                            },
+                            {
+                                model: Tag,
+                                as: 'tagDocumentWorkstream',
+                                include: [{
+                                    model: Workstream,
+                                    as: 'workstream',
+                                    where: {
+                                        ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {}
+                                    }
+                                }]
+                            }
+                        ]
                     });
                     break;
                 default:
@@ -51,9 +79,9 @@ exports.get = {
             ...(typeof queryString.userId !== 'undefined' && queryString.userId !== '') ? { usersId: queryString.userId } : {},
             ...(typeof queryString.type !== 'undefined' && queryString.type !== '') ? { linkType: queryString.type } : {},
             ...(typeof queryString.isActive !== 'undefined' && queryString.isActive !== '') ? { isActive: queryString.isActive } : {},
-            ...(typeof queryString.type == "undefined" || queryString.type == '') ? { linkType: { [Sequelize.Op.not]: "project" } } : {}
+            ...(typeof queryString.type == "undefined" || queryString.type == '') ? { linkType: { [Sequelize.Op.not]: "project" } } : {},
+            ...(typeof queryString.isDeleted !== "undefined" && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 }
         }
-
         async.parallel({
             count: function (callback) {
                 try {
@@ -71,59 +99,26 @@ exports.get = {
             },
             result: function (callback) {
                 try {
-                    Starred.findAll({ ...options, where: whereObj }).map((response) => {
+                    Starred.findAll({
+                        ...options,
+                        where: whereObj,
+                    }).map((response) => {
                         let responseObj = response.toJSON();
-                        
                         if (typeof responseObj.task != "undefined") {
-                            responseObj = { ...responseObj, title: responseObj.task.task }
+                            responseObj = { ...responseObj, title: responseObj.task.task, type: "task", workstream: responseObj.task.workstream.workstream }
                         }
 
                         if (typeof responseObj.notes != "undefined") {
-                            responseObj = { ...responseObj, title: responseObj.notes.note }
+                            responseObj = { ...responseObj, title: responseObj.notes.note, type: "notes" }
                         }
 
                         if (typeof responseObj.document != "undefined") {
-                            responseObj = { ...responseObj, title: responseObj.document.origin }
+                            responseObj = { ...responseObj, title: responseObj.document.origin, type: "document", workstream: responseObj.document.tagDocumentWorkstream[0].workstream.workstream }
                         }
 
                         return responseObj;
-                    }).then((resultArray) => {
-                        if (typeof queryString.type == "undefined") {
-                            const promiseArray = _.map(resultArray, (resultObj) => {
-                                const { linkType, linkId } = resultObj;
-                                return (new Promise((resolve, reject) => {
-                                    switch (linkType) {
-                                        case "task":
-                                            Tasks.findOne({ where: { id: linkId } }).then((response) => {
-                                                const responseObj = response.toJSON();
-                                                resolve({ ...resultObj, task: _.pick(responseObj, ['id', 'task', 'status', 'dueDate']), title: responseObj.task });
-                                            });
-                                            break;
-                                        case "notes":
-                                            Notes.findOne({ where: { id: linkId } }).then((response) => {
-                                                const responseObj = response.toJSON();
-                                                resolve({ ...resultObj, notes: responseObj, title: responseObj.note });
-                                            });
-                                            break;
-                                        case "document":
-                                            Document.findOne({ where: { id: linkId } }).then((response) => {
-                                                const responseObj = response.toJSON();
-                                                resolve({ ...resultObj, document: responseObj, title: responseObj.origin });
-                                            });
-                                        default:
-                                    }
-                                }));
-
-                            });
-
-                            Promise.all(promiseArray).then((values) => {
-                                callback(null, values);
-                            }).catch((err) => {
-                                callback(err)
-                            });
-                        } else {
-                            callback(null, resultArray);
-                        }
+                    }).then(async (resultArray) => {
+                        callback(null, resultArray)
                     })
                 } catch (err) {
                     callback(err)
@@ -161,12 +156,12 @@ exports.post = {
                     const responseResult = (response != null) ? response.toJSON() : "";
 
                     if (responseResult == "") {
-                        Starred.create({ ...body, isActive: 1 }).then((response) => {
+                        Starred.create({ ...body, isDeleted: 0 }).then((response) => {
                             parallelCallback(null, _.omit(response.toJSON(), ["dateUpdated"]))
                         });
                     } else {
                         Starred.update(
-                            { ...body, isActive: (responseResult.isActive != 1) ? 1 : 0 },
+                            { ...body, isDeleted: (responseResult.isDeleted != 1) ? 1 : 0 },
                             { where: body }
                         ).then((response) => {
                             return Starred.findOne({ where: body });

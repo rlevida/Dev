@@ -31,7 +31,8 @@ export default class WorkstreamForm extends React.Component {
             'getMemberList',
             'handleSubmit',
             'handleCheckbox',
-            'handleColorSlider'
+            'handleColorSlider',
+            'getWorkstreamTemplateList'
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -104,6 +105,19 @@ export default class WorkstreamForm extends React.Component {
         this.setState({
             [name]: JSON.stringify(values ? values : [])
         });
+    }
+
+    getWorkstreamTemplateList(options) {
+        const { dispatch } = this.props;
+        if (options != "") {
+            keyTimer && clearTimeout(keyTimer);
+            keyTimer = setTimeout(() => {
+                getData(`/api/workstream?page=1&isActive=1&isTemplate=1&workstream=${options}`, {}, (c) => {
+                    const workstreamOptions = (c.status == 200) ? _.map(c.data.result, (workstreamObj) => { return { ..._.pick(workstreamObj, ["id", "workstream", "type", "description"]), name: workstreamObj.workstream, typeId: workstreamObj.type.id } }) : [];
+                    dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
+                });
+            }, 1500)
+        }
     }
 
 

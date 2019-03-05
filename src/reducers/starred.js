@@ -4,7 +4,7 @@ export default function reducer(state = {
     FormActive: "List",
     Selected: {},
     SelectedId: [],
-    Loading: "RETRIEVING",
+    Loading: {},
     Type: undefined
 }, action) {
     switch (action.type) {
@@ -16,7 +16,7 @@ export default function reducer(state = {
             return { ...state, List: List }
         }
         case "SET_STARRED_LIST": {
-            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {}, Loading:"" }
+            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {} }
         }
         case "SET_STARRED_TYPE": {
             return { ...state, Type: action.starred_type }
@@ -31,13 +31,7 @@ export default function reducer(state = {
             return { ...state, SelectedId: action.SelectedId }
         }
         case "UPDATE_DATA_STARRED_LIST": {
-            let tempList = action.List.map((e, i) => {
-                if (e.id == action.UpdatedData.id) {
-                    return action.UpdatedData
-                }
-                return e
-            })
-            return { ...state, List: tempList }
+            return { ...state, List: [...state.List, ...action.List], ...(typeof action.count != "undefined") ? { Count: {...state.Count, ...action.count} } : {} }
         }
         case "REMOVE_DELETED_STARRED_LIST": {
             let tempList = [];
@@ -60,7 +54,7 @@ export default function reducer(state = {
             return { ...state, List: List }
         }
         case "SET_STARRED_LOADING": {
-            return { ...state, Loading: (typeof action.Loading != "undefined") ? action.Loading : "" }
+            return { ...state, Loading: (typeof action.Loading != "undefined") ? {...state.Loading, ...action.Loading} : "" }
         }
         default:
             return state;

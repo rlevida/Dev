@@ -1,9 +1,11 @@
 import React from "react";
 import _ from "lodash";
+import { connect } from "react-redux";
 
-import { getData } from '../../globalFunction';
+import { getData, showToast } from '../../globalFunction';
 
-import { connect } from "react-redux"
+import Focus from '../focus';
+
 @connect((store) => {
     return {
         projectData: store.project,
@@ -11,16 +13,18 @@ import { connect } from "react-redux"
         loggedUser: store.loggedUser
     }
 })
-export default class Component extends React.Component {
+export default class ProjectDashboard extends React.Component {
     componentDidMount() {
-        const { loggedUser, dispatch } = this.props;
+        const { dispatch } = this.props;
         const projectId = this.props.match.params.number;
         const fetchUrl = `/api/task/projectTaskStatus?projectId=${projectId}&date=${moment(new Date()).format("YYYY-MM-DD")}`;
-        
+
         dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: {} });
+
         getData(fetchUrl, {}, ({ status, data }) => {
             if (status == 200) {
                 dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: data });
+                showToast("success", "Project details successfully retrieved.");
             }
         });
     }
@@ -53,7 +57,8 @@ export default class Component extends React.Component {
             { label: "New Files Uploaded", count: new_files, class_color: "text-orange" },
             { label: "Delayed Tasks", count: delayed_task, class_color: "text-red" }
         ];
-        
+        const projectId = this.props.match.params.number;
+
         return (
             <div class="row content-row">
                 {
@@ -73,6 +78,26 @@ export default class Component extends React.Component {
                         )
                     })
                 }
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mt30">
+                    <div class="card">
+                        <div class="card-header"><h4>Favorites</h4></div>
+                        <div class="card-body">
+                            <div class="container-fluid">
+                                <div class="row content-row">
+                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                        <Focus type={"task"} label={"Tasks"} project_id={projectId} />
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                        <Focus type={"notes"} label={"Conversations"} project_id={projectId} />
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                        <Focus type={"document"} label={"Documents"} project_id={projectId} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }

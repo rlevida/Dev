@@ -105,8 +105,8 @@ export default class ProjectList extends React.Component {
 
         getData(`/api/project?page=${Count.current_page + 1}&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_LIST", list: List.concat(c.data.result), count: c.data.count })
-            showToast("success", "Project successfully retrieved.");
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
+            showToast("success", "Project successfully retrieved.");
         })
     }
 

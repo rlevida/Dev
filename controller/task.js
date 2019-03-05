@@ -302,7 +302,7 @@ exports.get = {
         if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
             _.find(associationArray, { as: 'task_starred' }).where = {
                 linkType: 'task',
-                isActive: 1,
+                isDeleted: 0,
                 usersId: queryString.starredUser
             };
         }
