@@ -15,6 +15,7 @@ import { getData } from "../../globalFunction"
 import UploadModal from "./uploadModal";
 import ShareModal from "./shareModal";
 import EditModal from "./editModal";
+import FolderModal from "./folderModal";
 
 import { connect } from "react-redux";
 
@@ -109,6 +110,7 @@ class List extends React.Component {
                     <UploadModal />
                     <ShareModal />
                     <EditModal />
+                    <FolderModal />
                 </div>
             </div>
         )

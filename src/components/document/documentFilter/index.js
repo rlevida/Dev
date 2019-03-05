@@ -25,14 +25,14 @@ export default class DocumentFilter extends React.Component {
         this.handleDate = this.handleDate.bind(this)
     }
 
-    
+
 
     componentDidUpdate(prevProps) {
         const { dispatch, loggedUser, folder, document } = this.props;
         if (_.isEqual(prevProps.document.Filter, this.props.document.Filter) == false) {
             clearTimeout(delayTimer);
 
-            const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo , isArchived } = this.props.document.Filter;
+            const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, isArchived } = this.props.document.Filter;
 
             let requestUrl = ''
             if (document.ActiveTab === 'document') {
@@ -76,31 +76,31 @@ export default class DocumentFilter extends React.Component {
                 if (uploadTo) {
                     requestUrl += `&uploadTo=${uploadTo}`
                 }
-                if(isArchived !== 'all'){
+                if (isArchived !== 'all') {
                     requestUrl += `&isArchived=${isArchived}`
                 }
                 // if (document.ActiveTab === 'document') {
-                    getData(`${requestUrl}&status=new&folderId=${folder.SelectedNewFolder.id}`, {}, (c) => {
-                        if (c.status == 200) {
-                            dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-                            dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
-                            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-                            showToast('success', 'Documents successfully retrieved.')
-                        } else {
-                            showToast('success', 'Something went wrong!')
-                        }
-                    });
+                getData(`${requestUrl}&status=new&folderId=${typeof folder.SelectedNewFolder.id !== 'undefined' ? folder.SelectedNewFolder.id : null}`, {}, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                        dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
+                        dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
+                        showToast('success', 'Documents successfully retrieved.')
+                    } else {
+                        showToast('success', 'Something went wrong!')
+                    }
+                });
 
-                    getData(`${requestUrl}&status=library&folderId=${folder.SelectedLibraryFolder.id}`, {}, (c) => {
-                        if (c.status == 200) {
-                            dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
-                            dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
-                            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
-                            showToast('success', 'Documents successfully retrieved.')
-                        } else {
-                            showToast('success', 'Something went wrong!')
-                        }
-                    });
+                getData(`${requestUrl}&status=library&folderId=${folder.SelectedLibraryFolder.id}`, {}, (c) => {
+                    if (c.status == 200) {
+                        dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                        dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
+                        dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
+                        showToast('success', 'Documents successfully retrieved.')
+                    } else {
+                        showToast('success', 'Something went wrong!')
+                    }
+                });
 
                 // } else if (document.ActiveTab === 'activity') {
                 //     getData(`${requestUrl}`, {}, (c) => {
@@ -131,7 +131,7 @@ export default class DocumentFilter extends React.Component {
     }
 
     render() {
-        const { document, global } = this.props;
+        const { dispatch, document, global } = this.props;
         const { Filter } = { ...document }
         const statusList = [
             { id: "", name: "All Status" },
@@ -154,38 +154,38 @@ export default class DocumentFilter extends React.Component {
                 <div class="row content-row">
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="flex-row tab-row mb0">
-                         <div class="flex-col">
+                            <div class="flex-col">
                                 {/* <a class={(projectType.id == project.Filter.typeId) ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown("typeId", projectType.id)}>{projectType.name}</a> */}
-                                <a class={ document.Filter.isArchived === 'all' ? "btn btn-default btn-active" : "btn btn-default" } onClick={ ()=> this.setDropDown('isArchived' , 'all')}>All</a>
-                                <a class={ document.Filter.isArchived === 0 ? "btn btn-default btn-active" : "btn btn-default"} onClick={ () => this.setDropDown('isArchived' , 0 )}>Active Files</a>
-                                <a class={ document.Filter.isArchived === 1 ? "btn btn-default btn-active" :"btn btn-default"} onClick={ () => this.setDropDown('isArchived' , 1 )}>Archived</a>
+                                <a class={document.Filter.isArchived === 'all' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('isArchived', 'all')}>All</a>
+                                <a class={document.Filter.isArchived === 0 ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('isArchived', 0)}>Active Files</a>
+                                <a class={document.Filter.isArchived === 1 ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('isArchived', 1)}>Archived</a>
                                 {/* <a class={"btn btn-default"}>Activity Logs</a> */}
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="add-action">
-                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#"  >
+                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#">
                                 <span>
-                                <i class="fa fa-search fa-lg"></i>
+                                    <i class="fa fa-search fa-lg"></i>
                                 </span>
-                            </a> 
-                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#"  >
+                            </a>
+                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#">
                                 <span>
-                                <i class="fa fa-download fa-lg"></i>
+                                    <i class="fa fa-download fa-lg"></i>
                                 </span>
-                            </a> 
-                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#"  >
+                            </a>
+                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#folderModal">
                                 <span>
-                                <i class="fa fa-folder fa-lg"></i>
+                                    <i class="fa fa-folder fa-lg"></i>
                                 </span>
-                            </a> 
-                            <a class="btn btn-default" data-toggle="modal" data-target="#uploadFileModal"  >
+                            </a>
+                            <a class="btn btn-default" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>
                                 <span>
                                     <i class="fa fa-plus mr10" aria-hidden="true"></i>
                                     Add New Files
                                 </span>
-                            </a> 
+                            </a>
                         </div>
                     </div>
                 </div>

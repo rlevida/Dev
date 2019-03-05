@@ -19,7 +19,7 @@ let keyTimer = "";
 
     }
 })
-export default class UploadModal extends React.Component {
+export default class DocumentUpload extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -33,22 +33,21 @@ export default class UploadModal extends React.Component {
             "fetchProjectList",
             "saveDocument",
             "setDropDown",
-            "setWorkstreamList",
+            "getWorkstreamList",
+            "fetchFolderList",
+            "getFolderList",
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
     componentDidMount() {
-        const { dispatch, document, workstream, project } = this.props;
+        const { dispatch, document } = this.props;
         const selectedObj = { ...document.Selected, projectId: project };
         if (project) {
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
         }
-        if (_.isEmpty(project.SelectList)) {
-            this.fetchProjectList();
-        }
-        if (_.isEmpty(workstream.SelectList)) {
-            this.setWorkstreamList()
-        }
+        this.fetchProjectList();
+        this.getWorkstreamList();
+        this.fetchFolderList();
     }
 
     fetchProjectList(options) {
@@ -67,10 +66,17 @@ export default class UploadModal extends React.Component {
         });
     }
 
-    setWorkstreamList(options) {
+    getWorkstreamList(options) {
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
             this.fetchWorkstreamList(options);
+        }, 1500);
+    }
+
+    getFolderList(options) {
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            this.fetchFolderList(options);
         }, 1500);
     }
 
@@ -91,6 +97,23 @@ export default class UploadModal extends React.Component {
         });
     }
 
+    fetchFolderList(options) {
+        const { dispatch, loggedUser, document, folder } = this.props;
+        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${project}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
+        if (typeof options != "undefined" && options != "") {
+            requestUrl += `&name=${options}`;
+        }
+        getData(requestUrl, {}, (c) => {
+            if (c.status == 200) {
+                const folderOptions = _(c.data.result)
+                    .map((e) => { return { id: e.id, name: e.name } })
+                    .value();
+                dispatch({ type: "SET_FOLDER_SELECT_LIST", List: folderOptions });
+            } else {
+                showToast('success', 'Something went wrong!');
+            }
+        });
+    }
 
     setDropDown(name, value) {
         let { dispatch, document } = this.props
@@ -102,23 +125,33 @@ export default class UploadModal extends React.Component {
 
         if (name == "projectId" && (typeof selectedObj.projectId != "undefined" && selectedObj.projectId != "")) {
             dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
-            this.setWorkstreamList();
+            this.getWorkstreamList();
         }
 
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj });
     }
 
     saveDocument() {
-        const { dispatch, document } = this.props;
+        const { dispatch, document, folder } = this.props;
         postData(`/api/document`, document.Selected, (c) => {
             if (c.status == 200) {
                 this.setState({ upload: false, dataToSubmit: [] });
-                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New' });
-                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
-                dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'new', count: document.NewUploadCount + 1 })
-                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
-                dispatch({ type: 'SET_DOCUMENT_FILES', Files: [] })
+                const list = _(c.data.result).map((e) => {
+                    if (typeof e.folderId !== 'undefined' && folder.SelectedNewFolder.id !== "undefined" && e.folderId === folder.SelectedNewFolder.id) {
+                        return e
+                    } else if (e.folderId === null) {
+                        return e
+                    }
+                }).filter((e) => { return e }).value();
+
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: list, DocumentType: 'New' });
+                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs });
+                dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'new', count: document.NewUploadCount + 1 });
+                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+                dispatch({ type: 'SET_DOCUMENT_FILES', Files: [] });
+                dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'List' });
                 showToast("success", "Successfully Added.")
+
             } else {
                 showToast("error", "Saving failed. Please Try again later.")
             }
@@ -135,7 +168,6 @@ export default class UploadModal extends React.Component {
     onDrop(files) {
         const { dispatch } = this.props;
         dispatch({ type: 'SET_DOCUMENT_FILES', Files: files })
-        // this.setState({ files, upload: true });
     }
 
     uploadFile() {
@@ -143,7 +175,6 @@ export default class UploadModal extends React.Component {
         const selectedObj = { ...document.Selected };
         let data = new FormData()
         dispatch({ type: 'SET_DOCUMENT_UPLOAD_LOADING', Loading: true });
-        // this.setState({ loading: true })
 
         document.Files.map(e => {
             data.append("file", e)
@@ -161,44 +192,35 @@ export default class UploadModal extends React.Component {
             selectedObj.DocumentToSave = documentToSave
 
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
-            // dispatch({ type : 'SET_DOCUMENT_TO_SAVE' , DocumentToSave : documentToSave })
             dispatch({ type: 'SET_DOCUMENT_UPLOAD_LOADING', Loading: false });
         })
     }
 
     render() {
-        const { global, project, workstream, document } = this.props;
-        // let tagOptions = [];
-
-        // if (typeof global.SelectList.workstreamList != "undefined" && typeof global.SelectList.taskList != "undefined") {
-        //     global.SelectList.workstreamList
-        //         .map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) })
-        //     global.SelectList.taskList
-        //         .filter(e => { return e.status != "Completed" })
-        //         .map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) })
-        // }
+        const { dispatch, project, workstream, document, folder } = this.props;
 
         return (
-            <div>
-                <div class="modal fade document-upload-modal" id="uploadFileModal" tabIndex="-1" role="dialog" aria-labelledby="uploadFileModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-                    <div class="modal-dialog modal-lg" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h4 class="modal-title" id="uploadFileModalLabel">Add New file</h4>
-                                {/* {
-                                        (this.state.dataToSubmit.length == 0)
-                                            ? "Upload File"
-                                            : "Tag your files"
-                                    } */}
-                                {(this.state.dataToSubmit.length > 0) &&
-                                    <p style={{ fontStyle: "italic", margin: "15px 20px 20px 25px" }}>Tagging your files will link them to a project or workflow and will make it easier to find them later.</p>
-                                }
-
-                            </div>
-                            <div class="modal-body">
-                                <div class="row mb20">
-                                    <div class="col-lg-6 col-md-6 col-xs-12 ">
-                                        <label for="project-options">Project * <span class="text-red">*</span></label>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card form-card">
+                        <div class="card-header">
+                            <h4>
+                                <a
+                                    class="text-white mr10"
+                                    onClick={() => {
+                                        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
+                                    }}
+                                >
+                                    <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                                </a>
+                                Add New Files
+                        </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb20">
+                                <form id="">
+                                    <div class="form-group">
+                                        <label for="project-options">Project <span class="text-red">*</span></label>
                                         <DropDown
                                             id="project-options"
                                             multiple={false}
@@ -212,15 +234,14 @@ export default class UploadModal extends React.Component {
                                             placeholder={'Search project'}
                                         />
                                     </div>
-                                </div>
-                                <div class="row mb20">
-                                    <div class="col-lg-6 col-md-6 col-xs-12 ">
+                                    <div class="form-group">
                                         <label for="workstream-options">Workstream</label>
                                         <DropDown
                                             id="workstream-options"
                                             multiple={true}
                                             required={false}
                                             options={workstream.SelectList}
+                                            onInputChange={this.getWorkstreamList}
                                             selected={(typeof document.Selected.tagWorkstream == "undefined") ? [] : document.Selected.tagWorkstream}
                                             loading={true}
                                             onChange={(e) => {
@@ -233,22 +254,21 @@ export default class UploadModal extends React.Component {
                                             }
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row mb20">
-                                    <div class="col-lg-6 col-md-6 col-xs-12 ">
+                                    <div class="form-group">
                                         <label for="folder-options">Folder</label>
                                         <DropDown
                                             id="folder-options"
                                             multiple={false}
                                             required={false}
-                                            options={[]}
-                                            selected={null}
-                                        // onChange={(e) => this.selectTag(e, index)}
+                                            options={folder.SelectList}
+                                            selected={(typeof document.Selected.folderId == "undefined") ? null : document.Selected.folderId}
+                                            onInputChange={this.getFolderList}
+                                            onChange={(e) => {
+                                                this.setDropDown("folderId", (e == null) ? "" : e.value);
+                                            }}
                                         />
                                     </div>
-                                </div>
-                                <div class="row mb20">
-                                    <div class="col-md-8">
+                                    <div class="form-group">
                                         {(!document.DocumentUploadLoading && typeof document.Selected.DocumentToSave === 'undefined') &&
                                             <Dropzone onDrop={this.onDrop.bind(this)}
                                                 class="document-file-upload"
@@ -264,9 +284,7 @@ export default class UploadModal extends React.Component {
                                             </Dropzone>
                                         }
                                     </div>
-                                </div>
-                                <div class="row mb20">
-                                    <div class="col-lg-4 col-md-4 col-xs-12">
+                                    <div class="form-group">
                                         {(!document.DocumentUploadLoading && document.Files.length > 0 && typeof document.Selected.DocumentToSave === 'undefined') &&
                                             <div class="form-group">
                                                 <button class="btn btn-success" onClick={() => this.uploadFile()}> Upload</button>
@@ -290,18 +308,23 @@ export default class UploadModal extends React.Component {
                                             </tbody>
                                         </table>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                {(document.Selected.DocumentToSave && document.Selected.DocumentToSave.length > 0) &&
-                                    <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={() => this.saveDocument()}>Save</button>
-                                }
+                                    {(document.Selected.DocumentToSave && document.Selected.DocumentToSave.length > 0) &&
+                                        <a class="btn btn-primary mr5" data-dismiss="modal" onClick={() => this.saveDocument()}>Save</a>
+                                    }
+                                    <a class="btn btn-default"
+                                        onClick={(e) => {
+                                            dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
+                                            dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
+                                        }}
+                                    >
+                                        <span>Cancel</span>
+                                    </a>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
         )
     }
 }

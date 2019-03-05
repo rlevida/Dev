@@ -5,6 +5,7 @@ import { connect } from "react-redux"
 import { getData } from "../../globalFunction"
 
 import DocumentViewer from "./documentViewer"
+import DocumentUpload from "./documentUpload"
 import Header from "../partial/header"
 import Form from "./form"
 import List from "./list"
@@ -84,6 +85,9 @@ export default class Component extends React.Component {
             }
             {document.FormActive === "DocumentViewer" &&
                 <DocumentViewer />
+            }
+            {document.FormActive === "Upload" &&
+                <DocumentUpload />
             }
         </div>
         return (

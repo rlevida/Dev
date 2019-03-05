@@ -55,14 +55,13 @@ export default class FieldContainer extends React.Component {
 
     archiveDocument(data) {
         const { dispatch, loggedUser } = this.props;
-        if(!data.isArchived){
+        if (!data.isArchived) {
             if (confirm("Do you really want to archive this record?")) {
-                putData(`/api/document/${data.id}`, { isArchived: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
+                putData(`/api/document/${data.id}`, { isArchived: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document archived' }, (c) => {
                     if (c.status == 200) {
-                        // dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'New', Id: data.id })
                         dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: data.status, });
                         dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
-                        showToast("success", "Successfully Deleted.");
+                        showToast("success", "Successfully Archived.");
                     } else {
                         showToast("error", "Delete failed. Please try again later.");
                     }
@@ -179,13 +178,13 @@ export default class FieldContainer extends React.Component {
             dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
             if (!data.readOn) {
-                let dataToSubmit = { readOn : new Date() };
-                putData(`/api/document/readOn/${data.id}?starredUser=${loggedUser.data.id}`, dataToSubmit,(c) => {
+                let dataToSubmit = { readOn: new Date() };
+                putData(`/api/document/readOn/${data.id}?starredUser=${loggedUser.data.id}`, dataToSubmit, (c) => {
                     dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: c.data });
                     dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: data.status, });
                 })
             } else {
-              dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
             }
         } else {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' });
@@ -223,11 +222,14 @@ export default class FieldContainer extends React.Component {
                     {/* <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td> */}
                     <td class="document-name">
                         <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
-                            <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span>
+                            {data.type === "document" ?
+                                <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span> :
+                                <span class="mr10 fa fa-folder fa-lg"></span>
+                            }
                             <span>{documentName}</span>
                         </a>
                     </td>
-                    <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`}/></td>
+                    <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`} /></td>
                     <td>{displayDateMD(data.dateAdded)}</td>
                     <td>{
                         data.tagWorkstream.length > 0 &&
@@ -238,7 +240,7 @@ export default class FieldContainer extends React.Component {
                             return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
                         })
                     }
-                    {/* {(data.tags.length > 0) &&
+                        {/* {(data.tags.length > 0) &&
                         data.tags.map((t, tIndex) => {
                             tagCount += t.label.length
                             let tempCount = tagCount;
@@ -248,10 +250,10 @@ export default class FieldContainer extends React.Component {
                     } */}
                     </td>
                     <td>{data.readOn ? displayDateMD(data.readOn) : '--'}</td>
-                    <td style={{ display:'flex' }}>
+                    <td style={{ display: 'flex' }}>
                         <span class="document-action document-active" title="Download" onClick={() => this.downloadDocument(data)}><i class="fa fa-download fa-lg"></i></span>
-                        <span class={ `document-action ${data.isArchived ? 'document-archived' : 'document-active'}` } title="Archive" onClick={e => this.archiveDocument(data)}><i class="fa fa-archive fa-lg"></i></span>
-                        
+                        <span class={`document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="Archive" onClick={e => this.archiveDocument(data)}><i class="fa fa-archive fa-lg"></i></span>
+
                         <span class="document-action document-active dropdown dropdown-library" title="Move">
                             <i class="fa fa-folder fa-lg"></i>
                             <div class="dropdown-content dropdown-menu-right">

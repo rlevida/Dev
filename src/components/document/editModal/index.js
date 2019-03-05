@@ -1,5 +1,5 @@
 import React from "react";
-import { showToast, putData } from '../../../globalFunction';
+import { showToast, putData, getData } from '../../../globalFunction';
 import { DropDown } from "../../../globalComponents";
 import _ from "lodash";
 import { connect } from "react-redux";
@@ -11,7 +11,8 @@ let keyTimer = "";
         document: store.document,
         loggedUser: store.loggedUser,
         global: store.global,
-        workstream: store.workstream
+        workstream: store.workstream,
+        project: store.project
     }
 })
 
@@ -30,8 +31,11 @@ export default class EditModal extends React.Component {
     }
 
     componentDidMount() {
+        const { workstream } = this.props;
         $(".form-container").validator();
-        this.setWorkstreamList();
+        if (_.isEmpty(workstream.SelectList)) {
+            this.setWorkstreamList();
+        }
     }
 
     setWorkstreamList(options) {
@@ -44,7 +48,7 @@ export default class EditModal extends React.Component {
     fetchWorkstreamList(options) {
         const { dispatch, document, loggedUser, project } = { ...this.props };
         const { Selected } = document;
-        let fetchUrl = `/api/workstream?projectId=${typeof project.Selected.id !== 'undefined' ?  project.Selected.id : Selected.projectId}&page=1&userId=${loggedUser.data.id}`;
+        let fetchUrl = `/api/workstream?projectId=${typeof project.Selected.id !== 'undefined' ? project.Selected.id : Selected.projectId}&page=1&userId=${loggedUser.data.id}`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&workstream=${options}`;
@@ -124,7 +128,7 @@ export default class EditModal extends React.Component {
     }
 
     selectTag(e) {
-        const { dispatch, document , workstream} = this.props;
+        const { dispatch, document, workstream } = this.props;
         const Selected = Object.assign({}, document.Selected);
 
         Selected["tags"] = e;
@@ -138,7 +142,7 @@ export default class EditModal extends React.Component {
     }
 
     render() {
-        const { document, global , workstream } = this.props;
+        const { document, global, workstream } = this.props;
         let tagOptions = [];
 
         // if (typeof global.SelectList.workstreamList !== 'undefined' && typeof global.SelectList.taskList !== 'undefined') {
@@ -163,7 +167,7 @@ export default class EditModal extends React.Component {
                                         <label class="col-md-3 col-xs-12 control-label">Document Name *</label>
                                         <div class="col-md-7 col-xs-12">
                                             <input type="text" name="origin" required value={(typeof document.Selected.origin == "undefined") ? "" : document.Selected.origin} class="form-control" placeholder="Document" onChange={this.handleChange} />
-                                           
+
                                         </div>
                                     </div>
                                 }
@@ -179,7 +183,7 @@ export default class EditModal extends React.Component {
                                                 selected={(document.Selected.tagWorkstream != null) ? document.Selected.tagWorkstream : []}
                                                 onChange={(e) => this.setDropDown("tagWorkstream", (e == null) ? "" : e)}
                                             />
-                                           
+
                                         </div>
                                     </div>
                                 }
@@ -188,7 +192,7 @@ export default class EditModal extends React.Component {
                                         <label class="col-md-3 col-xs-12 control-label">Folder Name *</label>
                                         <div class="col-md-7 col-xs-12">
                                             <input type="text" name="name" required value={(typeof document.Selected.name == "undefined") ? "" : document.Selected.name} class="form-control" placeholder="Document" onChange={this.handleChange} />
-                                           
+
                                         </div>
                                     </div>
                                 }

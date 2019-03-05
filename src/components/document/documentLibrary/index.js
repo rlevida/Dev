@@ -167,6 +167,7 @@ export default class DocumentLibrary extends React.Component {
     moveTo(folderData, documentData) {
         let { dispatch, loggedUser } = this.props;
         let dataToSubmit = {
+            origin: documentData.origin,
             status: folderData.status,
             folderId: folderData.id,
             actionType: "moved",
@@ -243,21 +244,6 @@ export default class DocumentLibrary extends React.Component {
         return (
             <div>
                 <div class="col-lg-12 col-md-12">
-                    {/* <h3>
-                        <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>Library</a>
-                        {folder.SelectedLibraryFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
-                    </h3> */}
-                    {/* {(this.state.folderAction == "") &&
-                        <div class="row mb10">
-                            <div class="col-lg-2">
-                                <div class="col-md-4 mb5">
-                                    <div class="mt20">
-                                        <a href="javascript:void(0)" title="New Folder" style={{ textDecoration: "none" }} onClick={() => this.setState({ folderAction: "create" })}><span class="fa fa-folder fa-3x"></span></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    } */}
                     {(this.state.folderAction == "create") &&
                         <form class="form-inline">
                             <div class="form-group">
@@ -270,7 +256,7 @@ export default class DocumentLibrary extends React.Component {
                     <table class="table-document">
                         <tbody>
                             <tr>
-                                 {/* <th></th>
+                                {/* <th></th>
                                 <th></th>
                                 <th></th> */}
                                 {/* <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>File Name</a></th> */}
