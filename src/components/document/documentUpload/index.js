@@ -133,6 +133,20 @@ export default class DocumentUpload extends React.Component {
 
     saveDocument() {
         const { dispatch, document, folder } = this.props;
+        let result = true;
+
+        $('.form-container *').validator('validate');
+        $('.form-container .form-group').each(function () {
+            if ($(this).hasClass('has-error')) {
+                result = false;
+            }
+        });
+
+        if (!result) {
+            showToast("error", "Please fill up the required fields.");
+            return;
+        }
+
         postData(`/api/document`, document.Selected, (c) => {
             if (c.status == 200) {
                 this.setState({ upload: false, dataToSubmit: [] });
@@ -218,28 +232,27 @@ export default class DocumentUpload extends React.Component {
                         </div>
                         <div class="card-body">
                             <div class="mb20">
-                                <form id="">
+                                <form class="form-container">
                                     <div class="form-group">
                                         <label for="project-options">Project <span class="text-red">*</span></label>
                                         <DropDown
                                             id="project-options"
                                             multiple={false}
-                                            required={false}
                                             options={(typeof project.Selected.id === 'undefined') ? project.SelectList : [{ id: project.Selected.id, name: project.Selected.project }]}
                                             selected={(typeof project.Selected.id === "undefined") ? document.Selected.projectId : project.Selected.id}
                                             onChange={(e) => {
                                                 this.setDropDown("projectId", (e == null) ? "" : e.value);
                                             }}
-
                                             placeholder={'Search project'}
+                                            required={true}
+                                            disabled
                                         />
                                     </div>
                                     <div class="form-group">
-                                        <label for="workstream-options">Workstream</label>
+                                        <label for="workstream-options">Workstream  <span class="text-red">*</span></label>
                                         <DropDown
                                             id="workstream-options"
                                             multiple={true}
-                                            required={false}
                                             options={workstream.SelectList}
                                             onInputChange={this.getWorkstreamList}
                                             selected={(typeof document.Selected.tagWorkstream == "undefined") ? [] : document.Selected.tagWorkstream}
@@ -247,6 +260,7 @@ export default class DocumentUpload extends React.Component {
                                             onChange={(e) => {
                                                 this.setDropDown("tagWorkstream", (e == null) ? "" : e);
                                             }}
+                                            required={true}
                                         />
                                         <div>
                                             {

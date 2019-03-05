@@ -60,7 +60,7 @@ export default class DocumentLibrary extends React.Component {
         return (
             connectDropTarget(
                 <tr class="item" style={{ background: backgroundColor }}>
-                    <td colSpan="6">
+                    <td colSpan="7">
                         {
                             (document.Library.length > 0 && document.LibraryDocumentLoading != "RETRIEVING") && <div class="document-drop-file">Drop files here</div>
                         }

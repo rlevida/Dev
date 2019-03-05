@@ -184,15 +184,15 @@ export default class DocumentLibrary extends React.Component {
 
         if (data.type !== 'folder') {
             dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: "DocumentViewer" });
-            if (!data.readOn) {
-                let dataToSubmit = { readOn: new Date() };
-                putData(`/api/document/readOn/${data.id}?starredUser=${loggedUser.data.id}`, dataToSubmit, (c) => {
-                    dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: c.data });
-                    dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: data.status, });
-                })
-            } else {
-                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-            }
+            // if (!data.readOn) {
+            //     let dataToSubmit = { readOn: new Date() };
+            //     putData(`/api/document/readOn/${data.id}?starredUser=${loggedUser.data.id}`, dataToSubmit, (c) => {
+            //         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: c.data });
+            //         dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: data.status, });
+            //     })
+            // } else {
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+            // }
         } else {
             getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
                 if (c.status == 200) {
@@ -220,21 +220,23 @@ export default class DocumentLibrary extends React.Component {
                     {/* <td>
                         <input type="checkbox"
                         />
-                    </td>
+                    </td> */}
                     <td>
                         <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
                             <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
                         </a>
                     </td>
-                    <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td> */}
-                    <td class="document-name">
-                        <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
-                            {data.type === "document" ?
-                                <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span> :
-                                <span class="mr10 fa fa-folder fa-lg"></span>
-                            }
-                            <span>{documentName}</span>
-                        </a>
+                    {/* <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td> */}
+                    <td>
+                        <div class="document-name">
+                            <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
+                                {data.type === "document" ?
+                                    <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span> :
+                                    <span class="mr10 fa fa-folder fa-lg"></span>
+                                }
+                                <span>{documentName}</span>
+                            </a>
+                        </div>
                     </td>
                     <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`} /></td>
                     <td>{displayDateMD(data.dateUpdated)}</td>

@@ -253,9 +253,10 @@ export default class DocumentLibrary extends React.Component {
                             </div>
                         </form>
                     }
-                    <table class="table-document">
+                    <table class="table-document" cellpadding="0" cellspacing="0">
                         <tbody>
                             <tr>
+                                <th style={{ width: '5%' }}></th>
                                 {/* <th></th>
                                 <th></th>
                                 <th></th> */}

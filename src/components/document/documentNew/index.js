@@ -214,8 +214,8 @@ export default class DocumentNew extends React.Component {
                         <tbody>
                             <tr>
                                 {/* <th></th>
-                                <th></th>
                                 <th></th> */}
+                                <th style={{ width: '5%' }}></th>
                                 {/* <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>File Name</a></th> */}
                                 <th style={{ textAlign: 'left' }}>File Name</th>
                                 {/* <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateAdded')}>Uploaded By</a></th> */}

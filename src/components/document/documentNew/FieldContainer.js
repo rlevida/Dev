@@ -177,15 +177,15 @@ export default class FieldContainer extends React.Component {
         if (data.type !== 'folder') {
             dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-            if (!data.readOn) {
-                let dataToSubmit = { readOn: new Date() };
-                putData(`/api/document/readOn/${data.id}?starredUser=${loggedUser.data.id}`, dataToSubmit, (c) => {
-                    dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: c.data });
-                    dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: data.status, });
-                })
-            } else {
-                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-            }
+            // if (!data.readOn) {
+            //     let dataToSubmit = { readOn: new Date() };
+            //     putData(`/api/document/readOn/${data.id}?starredUser=${loggedUser.data.id}`, dataToSubmit, (c) => {
+            //         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: c.data });
+            //         dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: data.status, });
+            //     })
+            // } else {
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+            // }
         } else {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' });
             getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
@@ -213,12 +213,12 @@ export default class FieldContainer extends React.Component {
                 <tr class="item" key={index} style={{ opacity, background: backgroundColor }}>
                     {/* <td>
                         <input type="checkbox" style={{ width: 'auto' }} />
-                    </td>
+                    </td> */}
                     <td>
                         <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
-                            <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
+                            <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`}/>
                         </a>
-                    </td> */}
+                    </td>
                     {/* <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td> */}
                     <td class="document-name">
                         <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>

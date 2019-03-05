@@ -1910,13 +1910,23 @@ textarea::-webkit-scrollbar-thumb {
 
 .document-name a{
   color:#5bc0de!important;
-  text-align:left!important;
   text-decoration: none!important;
+  text-align: left;
   float: left;
+  width: 100px;
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .document-name a:hover{
   color:#2a7c95!important;
+  background-color: white;
+  overflow: visible;
+  position:relative
+}
+.document-name  a:hover span{
+  background: white;
 }
 
 .document-upload-modal .modal-header{
@@ -1931,4 +1941,7 @@ textarea::-webkit-scrollbar-thumb {
 .document-drop-file{
   border: dashed 1px;
   padding: 10px;
+}
+.fa-star{
+  color:#ffff00;
 }

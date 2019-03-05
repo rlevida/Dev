@@ -18,14 +18,14 @@ export default class FolderModal extends React.Component {
     }
 
     componentDidMount() {
-        $(".form-container").validator();
+        $("#folder-form").validator();
     }
 
     submit() {
         const { loggedUser, folder, dispatch } = this.props;
         let result = true;
-        $('.form-container *').validator('validate');
-        $('.form-container .form-group').each(function () {
+        $('#folder-form *').validator('validate');
+        $('#folder-form .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
                 result = false;
             }
@@ -78,7 +78,7 @@ export default class FolderModal extends React.Component {
                             <h4 class="modal-title" id="folderModalLabel">Add New Folder</h4>
                         </div>
                         <div class="modal-body">
-                            <form class="form-container">
+                            <div class="folder-form">
                                 <div class="form-group">
                                     <label for="project-options">Folder Name <span class="text-red">*</span></label>
                                     <input
@@ -91,7 +91,7 @@ export default class FolderModal extends React.Component {
                                         onChange={(e) => this.onChange(e)}
                                         required />
                                 </div>
-                            </form>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             {
