@@ -1,10 +1,10 @@
-import React from "react"
+import React from "react";
+import { connect } from "react-redux";
+import { Route, Switch } from 'react-router-dom';
 
-import Header from "../partial/header"
-import Form from "./form"
-import List from "./list"
+import ProjectList from "./projectList";
+import ProjectDashboard from "../projectDashboard";
 
-import { connect } from "react-redux"
 @connect((store) => {
     return {
         project: store.project,
@@ -16,18 +16,11 @@ export default class Component extends React.Component {
     }
 
     render() {
-        let { project } = this.props;
-        let Component = <div>
-            {(project.FormActive == "List") &&
-                <List />
-            }
-
-            {(project.FormActive == "Form") &&
-                <Form />
-            }
-        </div>
         return (
-            <Header component={Component} page={"Projects"} />
+            <Switch>
+                <Route exact={true} path="/projects" component={ProjectList} />
+                <Route path={`${this.props.match.path}/:number`} component={ProjectDashboard} />
+            </Switch>
         )
     }
 }

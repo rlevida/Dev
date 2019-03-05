@@ -1,7 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
-import { showToast, putData, deleteData } from "../../../globalFunction";
+import { showToast, putData, deleteData } from "../../globalFunction";
 
 @connect((store) => {
     return {

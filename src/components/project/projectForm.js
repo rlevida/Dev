@@ -20,7 +20,7 @@ import WorkstreamList from "../workstream/workstreamList";
     }
 })
 
-export default class FormComponent extends React.Component {
+export default class ProjectForm extends React.Component {
     constructor(props) {
         super(props);
 

@@ -1,8 +1,8 @@
 import React from "react";
 import { connect } from "react-redux";
 
-import { DropDown } from "../../../globalComponents";
-import { getData, showToast } from "../../../globalFunction";
+import { DropDown } from "../../globalComponents";
+import { getData, showToast } from "../../globalFunction";
 
 @connect((store) => {
     return {
@@ -13,7 +13,7 @@ import { getData, showToast } from "../../../globalFunction";
     }
 })
 
-export default class ProjectFilter extends React.Component {
+export default class ProjectActionTab extends React.Component {
     constructor(props) {
         super(props);
 

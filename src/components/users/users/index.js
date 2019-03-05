@@ -1,5 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
+import { getData, showToast } from '../../../globalFunction';
 
 import UserList from "./userList";
 import UserForm from "./userForm";
@@ -13,6 +14,15 @@ import UserForm from "./userForm";
 export default class Component extends React.Component {
     constructor(props) {
         super(props)
+    }
+
+    componentDidMount() {
+        const { dispatch } = this.props;
+        getData(`/api/user?page=1&isDeleted=0`, {}, (c) => {
+            dispatch({ type: 'SET_USER_LIST', list: c.data.result, Count: c.data.count });
+            dispatch({ type: 'SET_USER_LOADING', Loading: '' });
+            showToast("success", "Users successfully retrieved.");
+        });
     }
 
     render() {

@@ -1,7 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
 
-import Header from "../partial/header";
 import MyTaskList from "./myTaskList";
 import TaskForm from "../task/taskForm";
 
@@ -17,16 +16,15 @@ export default class Component extends React.Component {
 
     render() {
         const { task } = this.props;
-        const component = <div>
-            {
-                (task.FormActive == "List") && <MyTaskList />
-            }
-            {
-                (task.FormActive == "Form") && <TaskForm />
-            }
-        </div>
         return (
-            <Header component={component} page={"My Tasks"} />
+            <div>
+                {
+                    (task.FormActive == "List") && <MyTaskList />
+                }
+                {
+                    (task.FormActive == "Form") && <TaskForm />
+                }
+            </div>
         )
     }
 }

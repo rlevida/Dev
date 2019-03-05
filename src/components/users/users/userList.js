@@ -26,15 +26,7 @@ export default class UserList extends React.Component {
             this[fn] = this[fn].bind(this);
         })
     }
-
-    componentDidMount() {
-        const { users } = this.props;
-
-        if (_.isEmpty(users.Count)) {
-            this.fetchData(1);
-        }
-    }
-
+    
     deleteData(value) {
         const { dispatch } = { ...this.props };
         dispatch({ type: 'SET_USER_SELECTED', Selected: value });
@@ -96,8 +88,8 @@ export default class UserList extends React.Component {
 
     render() {
         const { users, loggedUser } = this.props;
-        const currentPage = (typeof users.Count.current_page != "undefined") ? users.Count.current_page : 1;
-        const lastPage = (typeof users.Count.last_page != "undefined") ? users.Count.last_page : 1;
+        const currentPage = (typeof users.Count != "undefined" && _.isEmpty(users.Count) == false) ? users.Count.current_page : 1;
+        const lastPage = (typeof users.Count != "undefined" && _.isEmpty(users.Count) == false) ? users.Count.last_page : 1;
         const typeValue = (typeof users.Selected.firstName != "undefined" && _.isEmpty(users.Selected) == false) ? users.Selected.firstName + " " + users.Selected.lastName : "";
 
         let userList = _.filter(users.List, (o) => {

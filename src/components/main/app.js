@@ -1,20 +1,27 @@
-import React from "react"
+import React from "react";
+import { connect } from "react-redux";
+import { withRouter } from "react-router";
+import { Route, Switch } from 'react-router-dom';
 
-import { displayDate, setCookie, getCookie, getData } from '../../globalFunction'
-import Menu from "./menu"
+import { getData } from '../../globalFunction';
 
-import { connect } from "react-redux"
+import Menu from "./menu";
+import Home from "../home";
+import Projects from "../project";
+import ProjectDashboard from "../projectDashboard";
+import MyTasks from "../myTasks";
+import Users from "../users";
+
 @connect((store) => {
     return {
         user: store.loggedUser.data,
         reminder: store.reminder
     }
 })
-export default class Component extends React.Component {
+class Main extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            miniSideMenu: (getCookie("sidemenu")) ? getCookie("sidemenu") : "false",
             showLeft: true,
             showMore: "",
             reminderCount: 0,
@@ -29,7 +36,7 @@ export default class Component extends React.Component {
     }
 
     componentWillMount() {
-        let { dispatch, user } = this.props;
+        const { dispatch, user } = this.props;
         getData(`/api/reminder?usersId=${user.id}`, {}, (c) => {
             dispatch({ type: "SET_REMINDER_LIST", list: c.data })
         })
@@ -79,10 +86,43 @@ export default class Component extends React.Component {
 
     render() {
         const { showLeft } = { ...this.state };
-        const { user, reminder } = { ...this.props };
-        const userView = (user.username != "") ? <div class="headAccess"> Welcome : {user.username}</div> : "";
-        let reminderUnseen = _.orderBy(reminder.List.filter(e => { return !e.seen && e.usersId == user.id }), ['dateAdded'], ['desc']);
+        const { location } = { ...this.props };
+        const pages = [
+            {
+                label: "Dashboard",
+                icon: "fa-home",
+                path_name: "",
+                component: Home,
+                exact: true,
+                show_menu: true
+            },
+            {
+                label: "Projects",
+                icon: "fa-calendar",
+                path_name: "projects",
+                component: Projects,
+                show_menu: true
+            },
+            {
+                label: "My Tasks",
+                icon: "fa-list",
+                path_name: "my-tasks",
+                component: MyTasks,
+                show_menu: true
+            },
+            {
+                label: "Users and Teams",
+                icon: "fa-users",
+                path_name: "users-and-team",
+                component: Users,
+                show_menu: true
+            }
+        ];
 
+        const currentPath = this.props.location.pathname;
+        const parentPath = currentPath.split("/")[1];
+        const currentPage = _.find(pages, (page) => { return page.path_name == parentPath });
+        
         return (
             <div class={(showLeft) ? 'flex-row' : ''} id="main-container">
                 {(showLeft) &&
@@ -93,9 +133,10 @@ export default class Component extends React.Component {
                         <a id="close-menu" onClick={() => this.showLeft()}>
                             <span class="fa fa-chevron-left text-white"></span>
                         </a>
-
-                        <Menu miniSideMenu={this.state.miniSideMenu} />
-
+                        <Menu
+                            pages={_.filter(pages, (page) => { return page.show_menu == true })}
+                            current_page={currentPage}
+                        />
                     </div>
                 }
                 <div class="flex-col content-div">
@@ -108,38 +149,16 @@ export default class Component extends React.Component {
                                     </a>
                                 </div>
                                 <div class="title">
-                                    <h3 style={{ textTransform: 'capitalize', marginTop: 0, marginBottom: 0 }}>
-                                        {(this.props.page)}{this.props.form ? " > " + this.props.form : ""}{(this.props.form) == "Form" ? (this.props.formId > 0 ? " > Edit " : " > Add ") : ""}
-                                    </h3>
+                                    {
+                                        (_.isEmpty(currentPage) == false) && <h3 style={{ textTransform: 'capitalize', marginTop: 0, marginBottom: 0 }}>
+                                            {currentPage.label}
+                                        </h3>
+                                    }
                                 </div>
                                 <div class="action">
-                                    {
-                                        (reminderUnseen.length > 0) ?
-                                            <a class="dropdown-toggle" type="button" data-toggle="dropdown">
-                                                <span class="fa fa-bell"></span>
-                                                <span class="label label-danger" style={{ marginLeft: "5px", display: reminderUnseen.length ? "inline-block" : "none" }}>{reminderUnseen.length}</span>
-                                            </a>
-                                            :
-                                            <a class="dropdown-toggle" href={`/reminder`}>
-                                                <span class="fa fa-bell"></span>
-                                            </a>
-                                    }
-                                    {(reminderUnseen.length > 0) &&
-                                        <ul class="dropdown-menu" >
-                                            {
-                                                reminderUnseen.map((data, index) => {
-                                                    return (
-                                                        <li key={index} style={{ height: '100%' }}>
-                                                            <a href={`/reminder`} key={index} style={{ textDecoration: "none", fontWeight: "bold" }}>
-                                                                <span>{data.type}</span>
-                                                                <br />
-                                                            </a>
-                                                        </li>
-                                                    )
-                                                })
-                                            }
-                                        </ul>
-                                    }
+                                    <a class="dropdown-toggle" href={`/reminder`}>
+                                        <span class="fa fa-bell"></span>
+                                    </a>
                                     <a data-tip="profile" href={"/profile"}>
                                         <i class="glyphicon glyphicon-user"></i>
                                     </a>
@@ -147,7 +166,20 @@ export default class Component extends React.Component {
                             </div>
                         </header>
                         <div id="content">
-                            {this.props.component}
+                            <Switch>
+                                {
+                                    _.map(pages, (page, index) => {
+                                        return (
+                                            <Route
+                                                exact={(typeof page.exact != "undefined") ? page.exact : false}
+                                                path={`/${page.path_name}`}
+                                                component={page.component}
+                                                key={index}
+                                            />
+                                        )
+                                    })
+                                }
+                            </Switch>
                         </div>
                     </div>
                 </div>
@@ -155,3 +187,5 @@ export default class Component extends React.Component {
         )
     }
 }
+
+export default withRouter(Main);

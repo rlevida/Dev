@@ -1,11 +1,15 @@
 const async = require("async");
 const _ = require("lodash");
 const moment = require("moment");
+
+const { defaultDelete } = require("./");
 const models = require('../modelORM');
 const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, Type, UsersTeam, Teams, sequelize } = models;
+
 const dbName = "task";
-const { defaultDelete } = require("./");
 const func = global.initFunc();
+const Op = Sequelize.Op;
+
 const associationStack = [
     {
         model: Members,
@@ -398,7 +402,95 @@ exports.get = {
             callback(err)
         }
 
+    },
+    projectTaskStatus: (req, cb) => {
+        const queryString = req.query;
+        const { projectId } = queryString;
+        const currentDate = moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm");
+        async.parallel({
+            task_due: (parallelCallback) => {
+                try {
+                    Tasks.findAndCountAll(
+                        {
+                            where: {
+                                dueDate: {
+                                    [Op.eq]: currentDate
+                                },
+                                projectId
+                            }
+                        }).then(({ count }) => {
+                            parallelCallback(null, count)
+                        });
+                } catch (err) {
+                    parallelCallback(err)
+                }
+            },
+            task_for_approval: (parallelCallback) => {
+                try {
+                    Tasks.findAndCountAll(
+                        {
+                            where: {
+                                status: 'For Approval',
+                                projectId
+                            }
+                        }).then(({ count }) => {
+                            parallelCallback(null, count)
+                        });
+                } catch (err) {
+                    parallelCallback(err)
+                }
+            },
+            delayed_task: (parallelCallback) => {
+                try {
+                    Tasks.findAndCountAll(
+                        {
+                            where: {
+                                dueDate: {
+                                    [Op.lt]: currentDate
+                                },
+                                projectId
+                            }
+                        }).then(({ count }) => {
+                            parallelCallback(null, count)
+                        });
+                } catch (err) {
+                    parallelCallback(err)
+                }
+            },
+            new_files: (parallelCallback) => {
+                try {
+                    DocumentLink.findAndCountAll(
+                        {
+                            where: {
+                                linkType: 'project',
+                                linkid: projectId
+                            },
+                            include: [
+                                {
+                                    model: Document,
+                                    as: 'document',
+                                    required: true,
+                                    where: {
+                                        status: 'new'
+                                    }
+                                }
+                            ]
+                        }).then(({ count }) => {
+                            parallelCallback(null, count)
+                        });
+                } catch (err) {
+                    parallelCallback(err)
+                }
+            }
+        }, (err, response) => {
+            if (err != null) {
+                cb({ status: false, data: err });
+            }else{
+                cb({ status: true, data: response })
+            }
+        });
     }
+
 }
 
 exports.post = {

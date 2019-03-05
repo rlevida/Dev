@@ -140,6 +140,7 @@ html {
   height: 70px;
   display: flex;
   align-items: center;
+  background-color: #ffffff;
 }
 .head .main-bar h3 {
   margin-top: 0;

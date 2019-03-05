@@ -2,7 +2,7 @@ import React from "react"
 import ReactDOM from "react-dom"
 import { Provider } from "react-redux"
 
-import Component from  "../components/home"
+import Main from  "../components/main"
 import Socket from  "../components/socket"
 
 import store from "../store"
@@ -13,7 +13,7 @@ ReactDOM.render(
         <Provider store={store}>
             <div>
                 <Socket />
-                <Component />
+                <Main />
             </div>
         </Provider>,
     app)
