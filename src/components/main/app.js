@@ -1,7 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import { withRouter } from "react-router";
-import { Route, Switch } from 'react-router-dom';
+import { Route, Switch, Link } from 'react-router-dom';
 
 import { getData } from '../../globalFunction';
 
@@ -14,6 +14,7 @@ import Users from "../users";
 @connect((store) => {
     return {
         user: store.loggedUser.data,
+        project: store.project,
         reminder: store.reminder
     }
 })
@@ -27,11 +28,12 @@ class Main extends React.Component {
             getReminder: true
         }
         this.showLeft = this.showLeft.bind(this)
+        this.showRight = this.showRight.bind(this)
     }
 
     showLeft() {
-        const { showLeft } = { ...this.state };
-        this.setState({ showLeft: !showLeft });
+        const { showLeft, showRight } = { ...this.state };
+        this.setState({ showLeft: !showLeft, showRight: !showRight });
     }
 
     componentWillMount() {
@@ -83,9 +85,13 @@ class Main extends React.Component {
         this.setState({ showMore: type })
     }
 
+    showRight() {
+
+    }
+
     render() {
         const { showLeft } = { ...this.state };
-        const { location } = { ...this.props };
+        const { project } = { ...this.props };
         const pages = [
             {
                 label: "Dashboard",
@@ -121,7 +127,16 @@ class Main extends React.Component {
         const currentPath = this.props.location.pathname;
         const parentPath = currentPath.split("/")[1];
         const currentPage = _.find(pages, (page) => { return page.path_name == parentPath });
-        
+        const getProjectDetailsPath = currentPath.split("/");
+        const showProjectMenu = (getProjectDetailsPath[2] == project.Selected.id && typeof project.Selected.id != "undefined");
+        const currentProjectPage = (typeof getProjectDetailsPath[3] == "undefined") ? "dashboard" : getProjectDetailsPath[3];
+        const projectMenu = [
+            { label: "Dashboard", link: "" },
+            { label: "Workstreams", link: "/workstreams" },
+            { label: "Calendar", link: "/calendar" },
+            { label: "Messages", link: "/messages" },
+            { label: "Files", link: "/files" }
+        ];
         return (
             <div class={(showLeft) ? 'flex-row' : ''} id="main-container">
                 {(showLeft) &&
@@ -142,25 +157,62 @@ class Main extends React.Component {
                     <div class={((this.state.miniSideMenu == "true") ? "sidebar-left-mini" : "") + ""} id="wrap">
                         <header class="head shadow-dark-div">
                             <div class="main-bar">
-                                <div class={(showLeft) ? "hide" : "toggle-menu"}>
+                                <div class={`${(showLeft) ? "hide" : "toggle-menu"} item`}>
                                     <a onClick={() => this.showLeft()} class="text-white">
                                         <i class="fa fa-bars" aria-hidden="true"></i>
                                     </a>
                                 </div>
-                                <div class="title">
+                                <div class="title item">
                                     {
                                         (_.isEmpty(currentPage) == false) && <h3 style={{ textTransform: 'capitalize', marginTop: 0, marginBottom: 0 }}>
                                             {currentPage.label}
                                         </h3>
                                     }
                                 </div>
-                                <div class="action">
-                                    <a class="dropdown-toggle" href={`/reminder`}>
-                                        <span class="fa fa-bell"></span>
-                                    </a>
-                                    <a data-tip="profile" href={"/profile"}>
-                                        <i class="glyphicon glyphicon-user"></i>
-                                    </a>
+                                {
+                                    (showProjectMenu) && <div class="flex-row tab-row mb0 ml30 item hidden-xs">
+                                        {
+                                            _.map(projectMenu, (o, index) => {
+                                                return (
+                                                    <div class="flex-col" key={index}>
+                                                        <Link to={`/projects/${project.Selected.id + o.link}`} class={`${(currentProjectPage == (o.label).toLowerCase()) ? "active" : ""}`}>
+                                                            {o.label}
+                                                        </Link>
+                                                    </div>
+                                                )
+                                            })
+                                        }
+                                    </div>
+                                }
+                                <div class="action item">
+                                    <div class="hidden-xs">
+                                        <a class="dropdown-toggle" href={`/reminder`}>
+                                            <span class="fa fa-bell"></span>
+                                        </a>
+                                        <a data-tip="profile" href={"/profile"}>
+                                            <i class="glyphicon glyphicon-user"></i>
+                                        </a>
+                                    </div>
+                                    <div class="dropdown visible-xs">
+                                        <a class="btn btn-action dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <span class="fa fa-ellipsis-v" title="MORE"></span>
+                                        </a>
+                                        <div class="dropdown-menu pull-right" aria-labelledby="dropdownMenuButton">
+                                            {
+                                                _.map(projectMenu, (o, index) => {
+                                                    return (
+                                                        <li>
+                                                            <Link to={`/projects/${project.Selected.id + o.link}`} class={`${(currentProjectPage == (o.label).toLowerCase()) ? "active" : ""}`}>
+                                                                {o.label}
+                                                            </Link>
+                                                        </li>
+                                                    )
+                                                })
+                                            }
+                                            <li class="bt"><a>Notification</a></li>
+                                            <li><a>Profile</a></li>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </header>

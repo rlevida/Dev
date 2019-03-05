@@ -16,10 +16,12 @@ import Focus from '../focus';
 export default class ProjectDashboard extends React.Component {
     componentDidMount() {
         const { dispatch } = this.props;
-        const projectId = this.props.match.params.number;
+        const projectId = this.props.match.params.projectId;
+
         const fetchUrl = `/api/task/projectTaskStatus?projectId=${projectId}&date=${moment(new Date()).format("YYYY-MM-DD")}`;
 
         dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: {} });
+        dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: projectId } })
 
         getData(fetchUrl, {}, ({ status, data }) => {
             if (status == 200) {
@@ -57,7 +59,7 @@ export default class ProjectDashboard extends React.Component {
             { label: "New Files Uploaded", count: new_files, class_color: "text-orange" },
             { label: "Delayed Tasks", count: delayed_task, class_color: "text-red" }
         ];
-        const projectId = this.props.match.params.number;
+        const projectId = this.props.match.params.projectId;
 
         return (
             <div class="row content-row">

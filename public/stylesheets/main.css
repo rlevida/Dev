@@ -157,11 +157,11 @@ html {
   background-color: #2f51d0;
   color: #ffffff;
 }
-.toggle-menu i{
+.toggle-menu i, .main-bar .dropdown a span{
   font-size: 25px;
 }
 .main-bar .title{
-  margin-left: 25px;
+  margin-left: 15px;
 }
 @media (min-width: 768px) {
   .head .main-bar h3 {

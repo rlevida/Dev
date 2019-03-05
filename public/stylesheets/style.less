@@ -1785,6 +1785,25 @@ textarea::-webkit-scrollbar-thumb {
   color: #d5d5d5;
 }
 
+.main-bar .flex-row{
+  width: unset;
+}
+
+.main-bar .flex-row a{
+  font-size: 18px;
+  color: #333;
+}
+
+.main-bar .flex-row a.active{
+  background-color: transparent!important;
+  color: #7068d6;
+  font-weight: 600;
+}
+
+.main-bar .flex-row .flex-col:not(:last-child){
+  margin-right: 20px;
+}
+
 @media screen and (max-width: 600px) {
   table {
     border: 0;
@@ -1941,6 +1960,11 @@ textarea::-webkit-scrollbar-thumb {
     margin: 0px;
     text-align: center;
   }
+
+  .main-bar .dropdown-menu a.active{
+    background-color: transparent!important;
+  }
+  
 }
 
 /* Small */

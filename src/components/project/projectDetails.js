@@ -12,7 +12,8 @@ export default class ProjectDetails extends React.Component {
     render() {
         return (
             <Switch>
-                <Route path={`${this.props.match.path}`} component={ProjectDashboard} />
+                <Route exact={true} path={`${this.props.match.path}`} component={ProjectDashboard} />
+                <Route path={`${this.props.match.path}/workstreams`} component={ProjectDashboard} />
             </Switch>
         )
     }

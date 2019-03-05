@@ -15,7 +15,7 @@ export default class Component extends React.Component {
         return (
             <Switch>
                 <Route exact={true} path="/projects" component={ProjectList} />
-                <Route path={`${this.props.match.path}/:number`} component={ProjectDetails} />
+                <Route path={`${this.props.match.path}/:projectId`} component={ProjectDetails} />
             </Switch>
         )
     }
