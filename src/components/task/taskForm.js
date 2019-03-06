@@ -44,7 +44,8 @@ export default class TaskForm extends React.Component {
             "fetchProjectMembers",
             "deleteSubTask",
             "confirmDeleteSubtask",
-            "confirmDeleteTaskDependency"
+            "confirmDeleteTaskDependency",
+            "generateDueDate"
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
     componentDidMount() {
@@ -204,12 +205,15 @@ export default class TaskForm extends React.Component {
         } else {
             selectedObj[e.target.name] = selectedDate;
         }
+        if (e.target.name == "startDate" && task.Selected.periodic == 1) {
+             setTimeout(() => { this.generateDueDate() }, 500);
+        }
 
         dispatch({ type: "SET_TASK_SELECTED", Selected: selectedObj });
     }
 
     setDropDown(name, value) {
-        let { dispatch, task } = this.props
+        const { dispatch, task } = this.props
         const selectedObj = { ...task.Selected, [name]: value };
 
         if (name == "dependency_type" && value == "") {
@@ -233,6 +237,11 @@ export default class TaskForm extends React.Component {
         }
 
         dispatch({ type: "SET_TASK_SELECTED", Selected: selectedObj });
+
+        if (name == "periodType" && (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "")) {
+            setTimeout(() => { this.generateDueDate() }, 500);
+        }
+
     }
 
     handleCheckbox(name, value) {
@@ -366,6 +375,14 @@ export default class TaskForm extends React.Component {
         });
     }
 
+    generateDueDate() {
+        const { dispatch, task } = this.props;
+        const { Selected } = task;
+        const { startDate, periodType } = Selected;
+        const computedDueDate = (moment(startDate, "YYYY MMM DD").add(1, periodType)).format("YYYY MMM DD");
+        dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, dueDate: computedDueDate } });
+    }
+
     render() {
         const { dispatch, task, users, project, workstream, checklist, taskDependency, members } = { ...this.props };
         const checklistTypeValue = (typeof checklist.Selected.description != "undefined" && _.isEmpty(checklist.Selected) == false) ? checklist.Selected.description : "";
@@ -474,12 +491,33 @@ export default class TaskForm extends React.Component {
                                                         </div>
                                                     </div>
                                                 </div>
+                                            </div>
+                                            <div class="mt10 row">
                                                 <div class="col-lg-6 col-sm-6">
                                                     <div class="form-group input-inline">
+                                                        <label>
+                                                            Start Date:
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            id="startDate"
+                                                            class="form-control datepicker"
+                                                            name="startDate"
+                                                            value={(typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != '') ? displayDate(task.Selected.startDate) : ""}
+                                                            placeholder="Select valid start date"
+                                                            onChange={() => { }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-6 col-sm-6">
+                                                    <div class={`form-group input-inline ${(typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != '' && task.Selected.periodic == 1) ? "pointer-none" : ""}`}>
                                                         <label>
                                                             Due Date:
                                                                 {
                                                                 (task.Selected.periodic == 1) && <span class="text-red">*</span>
+                                                            }
+                                                            {
+                                                                (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != '' && task.Selected.periodic == 1) && <p class="m0 note">Auto-populated</p>
                                                             }
                                                         </label>
                                                         <input

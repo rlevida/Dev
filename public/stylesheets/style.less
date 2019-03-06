@@ -1398,7 +1398,7 @@ table tr {
 }
 
 table th,
-table td {
+table td{
   padding: .625em;
   text-align: center;
   white-space: pre;
@@ -1406,13 +1406,48 @@ table td {
   word-wrap: break-word;
 }
 
-table th {
+.rbc-date-cell a{
+  color: #818181!important;
+  font-size: 15px;
+}
+
+table th, .rbc-header  {
   font-size: .85em;
   letter-spacing: .1em;
   text-transform: uppercase;
   color: #c4c4c4;
   font-weight: 100;
 }
+
+.rbc-toolbar .rbc-btn-group button {
+  background-color: #ffffff!important;
+  color: #818181!important;
+  border-radius: 0!important; 
+  border: solid 1px #ccc!important; 
+}
+
+
+.rbc-toolbar .rbc-btn-group:last-child button.rbc-active, .rbc-toolbar .rbc-btn-group:last-child button:active{
+  background-color: #818181!important;
+  color: #ffffff!important;
+  box-shadow: none!important;
+}
+
+.rbc-toolbar .rbc-btn-group:first-child button.rbc-active, .rbc-toolbar .rbc-btn-group:first-child button:active{
+  color: #7068d6!important;
+  border: solid 1px #7068d6!important; 
+  box-shadow: none!important;
+}
+
+.rbc-off-range-bg{
+  background-color: #818181;
+}
+
+.rbc-toolbar .rbc-toolbar-label{
+  color: #818181;
+  font-size: 20px;
+}
+
 
 .filter .tab-row a{
   font-size: 18px;

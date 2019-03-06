@@ -23,7 +23,7 @@ export const TaskDetails = (props) => {
                         <div class="row mt20 content-row">
                             <div class="col-md-6 modal-action">
                                 {
-                                    (isApprover || Selected.status != "For Approval") &&
+                                    ((isApprover || Selected.status != "For Approval") && Selected.status != "Completed") &&
                                     <a class="btn btn-default" onClick={() => handleAction("status")}>
                                         <span>
                                             <i class={`fa mr10 ${(Selected.status != "Completed") ? "fa-check" : "fa-ban"}`} aria-hidden="true"></i>

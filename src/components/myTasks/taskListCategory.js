@@ -116,7 +116,10 @@ export default class taskListCategory extends React.Component {
         const { project } = workstream;
         let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
         daysRemaining = (daysRemaining == 0 && dueDate != "") ? 1 : daysRemaining;
-        const assigned = _.map(task_members, (o) => { return o.user.firstName + " " + o.user.lastName });
+        const assigned = _(task_members)
+            .filter((o) => { return o.memberType == "assignedTo" })
+            .map((o) => { return o.user.firstName + " " + o.user.lastName })
+            .value();
         return (
             <tr key={index}>
                 <td data-label="Task Name" class="td-left">

@@ -511,6 +511,7 @@ exports.post = {
                                     const newPeriodTask = {
                                         ...body,
                                         dueDate: nextDueDate,
+                                        ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss') } : {}, 
                                         periodTask: newTaskResponse.id
                                     };
 

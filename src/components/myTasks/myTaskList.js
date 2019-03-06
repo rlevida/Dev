@@ -32,13 +32,14 @@ export default class myTaskList extends React.Component {
     handleAction(type) {
         const { dispatch } = { ...this.props };
         const { task } = { ...this.props };
-        const { dueDate } = task.Selected;
+        const { dueDate, startDate } = task.Selected;
 
         switch (type) {
             case "edit":
                 const toBeUpdatedObject = {
                     ...task.Selected,
-                    dueDate: (dueDate != null) ? moment(dueDate).format("YYYY MMM DD") : null
+                    dueDate: (dueDate != null) ? moment(dueDate).format("YYYY MMM DD") : null,
+                    startDate: (startDate != null) ? moment(startDate).format("YYYY MMM DD") : null
                 };
 
                 dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
@@ -77,14 +78,13 @@ export default class myTaskList extends React.Component {
     }
 
     completeTask() {
-        const { task, dispatch } = { ...this.props };
+        const { task, dispatch, loggedUser } = { ...this.props };
         const { Selected } = task;
-        const status = (Selected.status == "For Approval" || Selected.status == "Completed") ? "In Progress" : "Completed";
-
-        putData(`/api/task/${Selected.id}`, { ...Selected, status }, (c) => {
+        const { status, periodTask, periodic, id } = Selected;
+        putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: "Completed" }, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, status } });
-                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [{ ...Selected, status } ] });
+                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
+                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, status: "Completed" } });
                 showToast("success", "Task successfully updated.");
             } else {
                 showToast("error", "Something went wrong please try again later.");

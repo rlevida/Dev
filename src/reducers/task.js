@@ -10,7 +10,7 @@ export default function reducer(state = {
         task: "",
         selected_month: "",
         projectId: "",
-        type:"assignedToMe"
+        type: "assignedToMe"
     },
     FormActive: "List",
     FormAction: "",
@@ -63,7 +63,7 @@ export default function reducer(state = {
                 }
             });
 
-            return { ...state, List: copyOfList, ...(typeof action.Count != "undefined") ? { Count: action.Count } : {} }
+            return { ...state, List: copyOfList, ...(typeof action.Count != "undefined") ? { Count: action.Count } : {}, Loading: "" }
         }
         case "DELETE_TASK": {
             const { List } = { ...state };
