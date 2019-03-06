@@ -31,6 +31,10 @@ export default class Component extends React.Component {
             this.fetchData({ page: 1, type });
         }
     }
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_STARRED_LIST", list: [], count: {} });
+    }
     fetchData({ page, type }) {
         const { loggedUser, dispatch, starred, project_id = "" } = { ...this.props };
         const { List, Count } = starred;
@@ -88,7 +92,7 @@ export default class Component extends React.Component {
         const starredList = _.filter(starred.List, (o) => { return o.type == type });
         const currentPage = (typeof starred.Count[type] != "undefined" && _.isEmpty(starred.Count[type]) == false) ? starred.Count[type].current_page : 1;
         const lastPage = (typeof starred.Count[type] != "undefined" && _.isEmpty(starred.Count[type]) == false) ? starred.Count[type].last_page : 1;
-        
+
         return (
             <div>
                 <h5 class="mb20 mt0"><strong>{`${label}`}</strong></h5>

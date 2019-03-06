@@ -170,7 +170,7 @@ class Main extends React.Component {
                                     }
                                 </div>
                                 {
-                                    (showProjectMenu) && <div class="flex-row tab-row mb0 ml30 item hidden-xs">
+                                    (showProjectMenu) && <div class="flex-row tab-row mb0 ml10 mr10 item hidden-xs">
                                         {
                                             _.map(projectMenu, (o, index) => {
                                                 return (
@@ -185,8 +185,8 @@ class Main extends React.Component {
                                     </div>
                                 }
                                 <div class="action item">
-                                    <div class="hidden-xs">
-                                        <a class="dropdown-toggle" href={`/reminder`}>
+                                    <div class="hidden-xs text-center">
+                                        <a class="dropdown-toggle" href={`/reminder`}> 
                                             <span class="fa fa-bell"></span>
                                         </a>
                                         <a data-tip="profile" href={"/profile"}>
@@ -201,7 +201,7 @@ class Main extends React.Component {
                                             {
                                                 _.map(projectMenu, (o, index) => {
                                                     return (
-                                                        <li>
+                                                        <li key={index}>
                                                             <Link to={`/projects/${project.Selected.id + o.link}`} class={`${(currentProjectPage == (o.label).toLowerCase()) ? "active" : ""}`}>
                                                                 {o.label}
                                                             </Link>

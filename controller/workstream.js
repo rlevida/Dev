@@ -178,19 +178,21 @@ exports.get = {
                     }).map((mapObject) => {
                         const resultObj = mapObject.toJSON();
                         const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
+                        const forApproval = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "For Approval" });
+
                         const issuesTasks = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
-                            const currentDateMoment = moment(new Date());
+                            const currentDateMoment = moment.utc();
                             return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status != "Completed"
                         });
                         const pendingTasks = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
-                            const currentDateMoment = moment(new Date());
+                            const currentDateMoment = moment.utc();
                             return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && taskObj.status != "Completed"
                         });
                         const dueTodayTask = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
-                            const currentDateMoment = moment(new Date());
+                            const currentDateMoment = moment.utc();
                             return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status != "Completed"
                         });
                         const newDoc = _.filter(resultObj.tag, (tagObj) => {
@@ -210,9 +212,14 @@ exports.get = {
                             ...resultObj,
                             pending: pendingTasks,
                             completed: completedTasks,
-                            issues: issuesTasks,
-                            dueToday: dueTodayTask,
-                            new_documents: newDoc,
+                            issues: issuesTasks.length,
+                            dueToday: dueTodayTask.length,
+                            new_documents: newDoc.length,
+                            for_approval: {
+                                amount: forApproval.length,
+                                color: (_.filter(issuesTasks, (o) => { return o.status == "For Approval" }).length > 0) ? "text-red" : "text-orange"
+                            },
+                            completion: ((resultObj.task).length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
                             members,
                             responsible: ((responsible).length > 0) ? responsible[0].userTypeLinkId : ""
                         }
@@ -435,17 +442,17 @@ exports.post = {
                         const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
                         const issuesTasks = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
-                            const currentDateMoment = moment(new Date());
+                            const currentDateMoment = moment.utc();
                             return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status != "Completed"
                         });
                         const pendingTasks = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
-                            const currentDateMoment = moment(new Date());
+                            const currentDateMoment = moment.utc();
                             return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && taskObj.status != "Completed"
                         });
                         const dueTodayTask = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
-                            const currentDateMoment = moment(new Date());
+                            const currentDateMoment = moment.utc();
                             return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status != "Completed"
                         });
                         const newDoc = _.filter(resultObj.tag, (tagObj) => {
@@ -460,8 +467,24 @@ exports.post = {
                             })
                             .value()
                         ];
+                        const forApproval = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "For Approval" });
 
-                        cb({ status: true, data: { ...resultObj, pending: pendingTasks, completed: completedTasks, issues: issuesTasks, dueToday: dueTodayTask, new_documents: newDoc, members } });
+                        cb({
+                            status: true, data: {
+                                ...resultObj,
+                                pending: pendingTasks,
+                                completed: completedTasks,
+                                issues: issuesTasks.length,
+                                dueToday: dueTodayTask.length,
+                                new_documents: newDoc.length,
+                                for_approval: {
+                                    amount: forApproval.length,
+                                    color: (_.filter(issuesTasks, (o) => { return o.status == "For Approval" }).length > 0) ? "text-red" : "text-orange"
+                                },
+                                completion: 0,
+                                members,
+                            }
+                        });
                     });
                 });
             });
@@ -495,17 +518,17 @@ exports.put = {
                             const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
                             const issuesTasks = _.filter(resultObj.task, (taskObj) => {
                                 const dueDateMoment = moment(taskObj.dueDate);
-                                const currentDateMoment = moment(new Date());
+                                const currentDateMoment = moment.utc();
                                 return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status != "Completed"
                             });
                             const pendingTasks = _.filter(resultObj.task, (taskObj) => {
                                 const dueDateMoment = moment(taskObj.dueDate);
-                                const currentDateMoment = moment(new Date());
+                                const currentDateMoment = moment.utc();
                                 return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && taskObj.status != "Completed"
                             });
                             const dueTodayTask = _.filter(resultObj.task, (taskObj) => {
                                 const dueDateMoment = moment(taskObj.dueDate);
-                                const currentDateMoment = moment(new Date());
+                                const currentDateMoment = moment.utc();
                                 return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status != "Completed"
                             });
                             const newDoc = _.filter(resultObj.tag, (tagObj) => {
@@ -520,7 +543,24 @@ exports.put = {
                                 })
                                 .value()
                             ];
-                            cb({ status: true, data: { ...resultObj, pending: pendingTasks, completed: completedTasks, issues: issuesTasks, dueToday: dueTodayTask, new_documents: newDoc, members } });
+                            const forApproval = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "For Approval" });
+
+                            cb({
+                                status: true, data: {
+                                    ...resultObj,
+                                    pending: pendingTasks,
+                                    completed: completedTasks,
+                                    issues: issuesTasks.length,
+                                    dueToday: dueTodayTask.length,
+                                    new_documents: newDoc.length,
+                                    for_approval: {
+                                        amount: forApproval.length,
+                                        color: (_.filter(issuesTasks, (o) => { return o.status == "For Approval" }).length > 0) ? "text-red" : "text-orange"
+                                    },
+                                    completion: 0,
+                                    members,
+                                }
+                            });
                         });
                     });
                 });

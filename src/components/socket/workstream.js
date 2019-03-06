@@ -19,7 +19,7 @@ export default class Socket extends React.Component {
         var { socket, dispatch } = this.props;
 
         socket.on("FRONT_WORKSTREAM_LIST", (data) => {
-            dispatch({ type: "SET_WORKSTREAM_LIST", list: data })
+            dispatch({ type: "UPDATE_WORKSTREAM_LIST", list: data })
         })
 
         socket.on("FRONT_WORKSTREAM_COUNT_LIST",(data) => {

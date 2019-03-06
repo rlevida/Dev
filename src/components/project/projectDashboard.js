@@ -18,12 +18,8 @@ export default class ProjectDashboard extends React.Component {
         const { dispatch } = this.props;
         const projectId = this.props.match.params.projectId;
 
-        const fetchUrl = `/api/task/projectTaskStatus?projectId=${projectId}&date=${moment(new Date()).format("YYYY-MM-DD")}`;
-
         dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: {} });
-        dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: projectId } })
-
-        getData(fetchUrl, {}, ({ status, data }) => {
+        getData(`/api/task/projectTaskStatus?projectId=${projectId}&date=${moment(new Date()).format("YYYY-MM-DD")}`, {}, ({ status, data }) => {
             if (status == 200) {
                 dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: data });
                 showToast("success", "Project details successfully retrieved.");
@@ -63,6 +59,9 @@ export default class ProjectDashboard extends React.Component {
 
         return (
             <div class="row content-row">
+                <div class="col-lg-12">
+                    <h3 class="title">{moment(new Date()).format("MMMM YYYY")}</h3>
+                </div>
                 {
                     _.map(statusToBeDisplayed, (o, index) => {
                         return (

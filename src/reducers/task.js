@@ -53,7 +53,6 @@ export default function reducer(state = {
         case "UPDATE_DATA_TASK_LIST": {
             const { List } = { ...state };
             const copyOfList = [...List];
-
             _.map(action.List, (o) => {
                 const updateIndex = _.findIndex(copyOfList, { id: o.id });
 

@@ -21,7 +21,8 @@ export default class workstreamList extends React.Component {
             "getNext",
             "deleteData",
             "editData",
-            "confirmDelete"
+            "confirmDelete",
+            "renderStatus"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -30,29 +31,20 @@ export default class workstreamList extends React.Component {
     componentDidMount() {
         const { project: projectObj, dispatch, workstream } = { ...this.props };
 
-        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
-
-        if (
-            (
-                (_.isEmpty(projectObj.Selected) == false && typeof projectObj.Selected.id != "undefined") ||
-                (typeof project != "undefined" && project != "")
-            ) &&
-            _.isEmpty(workstream.Count)
-        ) {
+        if (_.isEmpty(workstream.Count)) {
             this.getList(1);
         }
     }
 
     getList(page) {
-        const { dispatch, loggedUser, project: projectObj, workstream } = this.props;
+        const { dispatch, loggedUser, project: projectObj, workstream, project_id = "" } = this.props;
         const { typeId, workstreamStatus, workstream: workstreamFilter } = workstream.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
-        const projectId = (typeof projectObj.Selected.id != "undefined") ? projectObj.Selected.id : project;
+        const projectId = (typeof projectObj.Selected.id != "undefined") ? projectObj.Selected.id : project_id;
         const requestUrl = `/api/workstream?projectId=${projectId}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
-
         getData(requestUrl, {}, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
+                dispatch({ type: "UPDATE_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
                 showToast("success", "Workstream successfully retrieved.");
             } else {
                 showToast("error", "Something went wrong please try again later.");
@@ -84,7 +76,7 @@ export default class workstreamList extends React.Component {
     confirmDelete() {
         const { workstream, dispatch } = { ...this.props };
         const { id } = workstream.Selected;
-        
+
         deleteData(`/api/workstream/${id}`, { isDeleted: 0 }, (c) => {
             dispatch({ type: 'REMOVE_DELETED_WORKSTREAM_LIST', id: id });
             dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: "" });
@@ -92,6 +84,11 @@ export default class workstreamList extends React.Component {
             showToast("success", "Workstream successfully deleted.");
             $(`#delete-workstream`).modal("hide");
         });
+    }
+
+    renderStatus({ issues, dueToday }) {
+        const color = (issues > 0) ? "text-red" : (dueToday > 0) ? "text-yellow" : "text-green";
+        return (<span class={`fa fa-circle mb0 mr5 ${color}`}></span>);
     }
 
 
@@ -107,13 +104,11 @@ export default class workstreamList extends React.Component {
                     ((workstream.List).length > 0) && <table class="mt20">
                         <thead>
                             <tr>
-                                <th scope="col">Workstream</th>
-                                <th scope="col">Pending</th>
-                                <th scope="col">Completed</th>
+                                <th scope="col">Workstream Name</th>
+                                <th scope="col">Completion</th>
+                                <th scope="col">For Approval</th>
                                 <th scope="col">Issues</th>
-                                <th scope="col">New Document(s)</th>
-                                <th scope="col">Members</th>
-                                <th scope="col">Type</th>
+                                <th scope="col">New Docs</th>
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
@@ -124,26 +119,22 @@ export default class workstreamList extends React.Component {
                                         <tr
                                             key={index}
                                         >
-                                            <td data-label="Workstream">
+                                            <td data-label="Workstream Name" class="display-flex">
+                                                {
+                                                    ((data.task).length > 0) && this.renderStatus(data)
+                                                }
                                                 {data.workstream}
                                             </td>
-                                            <td data-label="Pending">{(data.pending).length}</td>
-                                            <td data-label="Completed">{(data.completed).length}</td>
-                                            <td data-label="Issues">{(data.issues).length}</td>
-                                            <td data-label="New Document(s)">{(data.new_documents).length}</td>
-                                            <td data-label="Members">{(data.members.length > 0) &&
-                                                <span title={`${
-                                                    (_(data.members)
-                                                        .uniqBy((o) => {
-                                                            return o.user.id
-                                                        })
-                                                        .map((o) => { return o.user.firstName + " " + o.user.lastName })
-                                                        .value())
-                                                        .join("\r\n")}`}>
-                                                    <i class="fa fa-users fa-lg"></i>
-                                                </span>}
+                                            <td data-label="Completion">{data.completion + "%"}</td>
+                                            <td data-label="For Approval">
+                                                {(data.for_approval.amount > 0) && <p class={`${data.for_approval.color} m0`}>{data.for_approval.amount} task(s)</p>}
                                             </td>
-                                            <td data-label="Type"><span title={`${data.type.type}`} class={data.type.type == "Output based" ? "fa fa-calendar" : "glyphicon glyphicon-time"}></span></td>
+                                            <td data-label="Issues">
+                                                {
+                                                    (data.issues > 0) && <p class="m0 text-red">{data.issues} delayed</p>
+                                                }
+                                            </td>
+                                            <td data-label="New Docs">{`${data.new_documents} file(s)`}</td>
                                             <td data-label="Actions">
                                                 <a href="javascript:void(0);"
                                                     onClick={() => this.editData(data)}

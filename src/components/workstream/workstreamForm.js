@@ -28,7 +28,8 @@ export default class WorkstreamForm extends React.Component {
             'handleChange',
             'setDropDown',
             'setDropDownMultiple',
-            'getMemberList',
+            'fetchMemberList',
+            'setMemberList',
             'handleSubmit',
             'handleCheckbox',
             'handleColorSlider',
@@ -45,33 +46,35 @@ export default class WorkstreamForm extends React.Component {
             dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'typeList' });
         });
 
-        this.getMemberList();
+        this.fetchMemberList();
     }
 
-    getMemberList(options) {
+    componentWillUnmount() {
         const { dispatch } = this.props;
+        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
+    }
+
+    fetchMemberList(options) {
+        const { dispatch, project } = this.props;
+        let fetchUrl = `/api/member?linkType=project&linkId=${project.Selected.id}&page=1&userType=Internal`;
 
         if (typeof options != "undefined" && options != "") {
-            keyTimer && clearTimeout(keyTimer);
-            keyTimer = setTimeout(() => {
-                getData(`/api/member?linkType=project&linkId=${project}&page=1&memberName=${options}&userType=Internal`, {}, (c) => {
-                    const taskMemberOptions = _(c.data.result)
-                        .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
-                        .value();
-                    dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
-                });
-            }, 500)
-        } else {
-            keyTimer && clearTimeout(keyTimer);
-            keyTimer = setTimeout(() => {
-                getData(`/api/member/selectList?linkType=project&linkId=${project}&page=1&userType=Internal`, {}, (c) => {
-                    const taskMemberOptions = _(c.data.result)
-                        .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
-                        .value();
-                    dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
-                });
-            }, 500)
+            fetchUrl += `&memberName=${options}`;
         }
+
+        getData(fetchUrl, {}, (c) => {
+            const taskMemberOptions = _(c.data.result)
+                .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
+                .value();
+            dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
+        });
+    }
+
+    setMemberList(options) {
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            this.fetchMemberList(options);
+        }, 1500);
     }
 
     handleChange(e) {
@@ -122,10 +125,10 @@ export default class WorkstreamForm extends React.Component {
 
 
     handleSubmit() {
-        const { workstream, dispatch, loggedUser, project_id } = this.props;
+        const { workstream, dispatch, loggedUser, project } = this.props;
         const dataToBeSubmitted = {
             ..._.pick(workstream.Selected, ["workstream", "description", "typeId"]),
-            projectId: (typeof project != "undefined" && project != "") ? project : project_id,
+            projectId: project.Selected.id,
             numberOfHours: (workstream.Selected.typeId == 5) ? workstream.Selected.numberOfHours : 0,
             isActive: (typeof workstream.Selected.isActive == 'undefined') ? 1 : workstream.Selected.isActive,
             isTemplate: (typeof workstream.Selected.isTemplate == 'undefined') ? 0 : workstream.Selected.isTemplate,
@@ -277,7 +280,7 @@ export default class WorkstreamForm extends React.Component {
                     <DropDown
                         required={true}
                         options={members.SelectList}
-                        onInputChange={this.getMemberList}
+                        onInputChange={this.setMemberList}
                         selected={(typeof workstream.Selected.responsible == "undefined" || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.responsible}
                         onChange={(e) => {
                             this.setDropDown("responsible", (e == null) ? "" : e.value);

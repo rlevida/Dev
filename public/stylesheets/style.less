@@ -432,7 +432,6 @@ td {
 .active{
     color: #fff;
     background-color: #274095;
-    pointer-events: none;
 }
 
 .clickable{
@@ -1249,7 +1248,6 @@ input:checked + .slider:before {
 
 .head .fa-bell{
   color: #ff9800;
-  margin-right: 25px;
 }
 
 .head .glyphicon-user,
@@ -1259,6 +1257,10 @@ input:checked + .slider:before {
 
 .head .action{
   margin-left: auto;
+}
+
+.head .action a:not(:last-child) {
+  margin-right:10px;
 }
 
 .status-count{
@@ -1802,6 +1804,12 @@ textarea::-webkit-scrollbar-thumb {
 
 .main-bar .flex-row .flex-col:not(:last-child){
   margin-right: 20px;
+}
+
+.title {
+  margin-top: 0px;
+  margin-bottom: 20px;
+  font-weight: 600;
 }
 
 @media screen and (max-width: 600px) {

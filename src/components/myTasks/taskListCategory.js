@@ -108,7 +108,7 @@ export default class taskListCategory extends React.Component {
         });
     }
 
-    renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic }) {
+    renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic, status }) {
         const { task } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate, "YYYY-MM-DD");
@@ -117,27 +117,28 @@ export default class taskListCategory extends React.Component {
         let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
         daysRemaining = (daysRemaining == 0 && dueDate != "") ? 1 : daysRemaining;
         const assigned = _.map(task_members, (o) => { return o.user.firstName + " " + o.user.lastName });
-
         return (
             <tr key={index}>
                 <td data-label="Task Name" class="td-left">
                     <a
                         onClick={() => this.openTaskDetails(id)}
-                        class={(daysRemaining < 0) ? "text-red" : ""}
+                        class={(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}
                     >
                         {task_name}
                         {(periodic == 1) && <i class="fa fa-refresh ml10" aria-hidden="true"></i>}
                     </a>
                 </td>
-                <td data-label="Deadline" class={(daysRemaining < 0) ? "text-red" : ""}>
+                <td data-label="Deadline" class={(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}>
                     {
                         `${(dueDate != "" && dueDate != null) ? moment(dueDate).format("MMMM DD, YYYY") : "N/A"}`
                     }
                 </td>
-                <td data-label="Time Remaining" class={(daysRemaining == 1) ? "text-yellow" : (daysRemaining < 1) ? "text-red" : ""}>
-                    {
-                        `${(dueDate != "" && dueDate != null) ? Math.abs(daysRemaining) + `${(daysRemaining < 1) ? "  day(s) delayed" : " day(s)"}` : "N/A"}`
-                    }
+                <td data-label="Time Remaining" class={(daysRemaining == 1 && status != "Completed") ? "text-yellow" : (daysRemaining < 1 && status != "Completed") ? "text-red" : ""}>
+                    <p class="m0">
+                        {
+                            `${(dueDate != "" && dueDate != null && status != "Completed") ? Math.abs(daysRemaining) + `${(daysRemaining < 1) ? "  day(s) delayed" : " day(s)"}` : "N/A"}`
+                        }
+                    </p>
                 </td>
                 <td data-label="Project">
                     <p class="m0">

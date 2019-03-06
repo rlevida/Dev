@@ -52,6 +52,11 @@ export default class ProjectForm extends React.Component {
         this.getMembers();
     }
 
+    componentWillUnmount() {
+        const { dispatch } = this.props;
+        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
+    }
+
     getMembers() {
         const { dispatch, project } = this.props;
         getData(`/api/project/getProjectMembers?linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
@@ -222,7 +227,7 @@ export default class ProjectForm extends React.Component {
                 return { id: e.id, name: `${e.firstName} ${e.lastName}` }
             }).value()
             : [];
-            
+
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -302,7 +307,7 @@ export default class ProjectForm extends React.Component {
                                     </div>
                                     <div class="form-group">
                                         <label for="project-manager">Color Indicator: <span class="text-red">*</span></label>
-                                        <ColorPicker  
+                                        <ColorPicker
                                             onSelect={this.handleColorSlider}
                                             color={project.Selected.color}
                                             placeholder={"Select Project Color"}

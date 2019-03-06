@@ -84,6 +84,7 @@ export default class myTaskList extends React.Component {
         putData(`/api/task/${Selected.id}`, { ...Selected, status }, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, status } });
+                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [{ ...Selected, status } ] });
                 showToast("success", "Task successfully updated.");
             } else {
                 showToast("error", "Something went wrong please try again later.");

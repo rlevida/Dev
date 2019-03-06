@@ -17,6 +17,9 @@ export default function reducer(state = {
 }, action) {
     switch (action.type) {
         case "SET_WORKSTREAM_LIST": {
+            return { ...state, List: action.list, ...(typeof action.Count != "undefined") ? { Count: action.Count } : {} }
+        }
+        case "UPDATE_WORKSTREAM_LIST": {
             const { List } = { ...state };
             const updatedList = [...List, ...action.list];
 
@@ -29,7 +32,7 @@ export default function reducer(state = {
             return { ...state, FormActive: action.FormActive }
         }
         case "SET_WORKSTREAM_SELECTED": {
-            return { ...state, Selected: action.Selected, Loading: "" }
+            return { ...state, Selected: action.Selected }
         }
         case "SET_WORKSTREAM_ID": {
             return { ...state, SelectedId: action.SelectedId, ...((action.SelectedId).length) ? { Loading: "RETRIEVING" } : {} }
@@ -70,7 +73,7 @@ export default function reducer(state = {
             return { ...state, Loading: (typeof action.Loading != "undefined") ? action.Loading : "" }
         }
         case "EMPTY_WORKSTREAM_LIST": {
-            return { ...state, List: [] , Count : {} }
+            return { ...state, List: [], Count: {} }
         }
         case "SET_WORKSTREAM_FILTER": {
             const { Filter } = { ...state };

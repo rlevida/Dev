@@ -13,6 +13,7 @@ let keyTimer = "";
         status: store.status,
         loggedUser: store.loggedUser,
         workstream: store.workstream,
+        project: store.project,
         type: store.type
     }
 })
@@ -26,15 +27,15 @@ export default class WorkstreamFilter extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { dispatch, loggedUser } = this.props;
+        const { dispatch, loggedUser, project } = this.props;
 
         if (_.isEqual(prevProps.workstream.Filter, this.props.workstream.Filter) == false) {
             const { typeId, workstreamStatus, workstream } = this.props.workstream.Filter;
             const dueDateMoment = moment().format("YYYY-MM-DD");
 
-            getData(`/api/workstream?projectId=${project}&page=1&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstream}`, {}, (c) => {
+            getData(`/api/workstream?projectId=${project.Selected.id}&page=1&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstream}`, {}, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
+                    dispatch({ type: "UPDATE_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
                     showToast("success", "Workstream successfully retrieved.");
                 } else {
                     showToast("error", "Something went wrong please try again later.");

@@ -38,7 +38,7 @@ export default class FormComponent extends React.Component {
             workstreams: (parallelCallback) => {
                 getData(`/api/workstream?userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}`, {}, (c) => {
                     if (c.status == 200) {
-                        dispatch({ type: "SET_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
+                        dispatch({ type: "UPDATE_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
                         showToast("success", "Workstream successfully retrieved.");
                     } else {
                         showToast("error", "Something went wrong please try again later.");
