@@ -34,13 +34,20 @@ export default class TaskCalendar extends React.Component {
         this.fetchData(currentMonth);
     }
 
-    fetchData(selectedMonth) {
+    componentWillUnmount() {
         const { dispatch } = this.props;
+        dispatch({ type: "SET_TASK_LIST", list: [] });
+    }
+
+    fetchData(selectedMonth) {
+        const { dispatch, match } = this.props;
+        const projectId = match.params.projectId;
         const fromDate = moment(selectedMonth).subtract(1, 'week').format("YYYY-MM-DD");
         const toDate = moment(selectedMonth).add(1, 'week').endOf('month').format("YYYY-MM-DD");
-        let requestUrl = `/api/task?projectId=${project}&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
+        let requestUrl = `/api/task?projectId=${projectId}&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
         getData(requestUrl, {}, (c) => {
-            dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
+            dispatch({ type: "SET_TASK_LIST", list: c.data.result });
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
             showToast("success", "Task successfully retrieved.");
         });
     }

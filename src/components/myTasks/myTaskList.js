@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import _ from "lodash";
 
 import TaskFilter from "./taskFilter";
-import TaskListCategory from "./taskListCategory";
+import TaskListCategory from "../task/taskListCategory";
 import TaskDetails from "../task/taskDetails";
 
 @connect((store) => {

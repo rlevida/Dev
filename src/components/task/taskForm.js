@@ -6,7 +6,7 @@ import { showToast, postData, putData, getData, deleteData, setDatePicker, displ
 import { DropDown, DeleteModal } from "../../globalComponents";
 
 import TaskDependency from "./taskDependency";
-import Checklist from "./checklist";
+import TaskChecklist from "./taskChecklist";
 
 let keyTimer = "";
 
@@ -648,7 +648,7 @@ export default class TaskForm extends React.Component {
                                                 <p class="form-header mb0">Task Subtask</p>
                                                 <p>All with <span class="text-red">*</span> are required.</p>
                                             </div>
-                                            <Checklist />
+                                            <TaskChecklist />
                                             <div class={(checklist.Loading == "RETRIEVING" && (checklist.List).length == 0) ? "linear-background mt20" : "mt20"}>
                                                 {
                                                     ((checklist.List).length > 0) && <table>

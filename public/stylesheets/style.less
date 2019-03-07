@@ -1297,7 +1297,7 @@ input:checked + .slider:before {
 }
 
 .text-green{
-  color: #34dc9a;
+  color: #34dc9a!important;
 }
 
 .text-bold{
@@ -1340,6 +1340,16 @@ input:checked + .slider:before {
   justify-content: center;
   padding: 20px;
   flex-direction: column;
+}
+
+.action-td{
+  display: flex;
+  align-items: center;
+}
+
+.action-td .fa{
+  font-size: 25px;
+  color: #818181;
 }
 
 #delete-action{
@@ -2006,6 +2016,10 @@ textarea::-webkit-scrollbar-thumb {
 
   .main-bar .dropdown-menu a.active{
     background-color: transparent!important;
+  }
+
+  .action-td{
+    display: block;
   }
   
 }

@@ -15,6 +15,7 @@ export default function reducer(state = {
     FormActive: "List",
     FormAction: "",
     List: [],
+    Timeline: [],
     Loading: "RETRIEVING",
     ModalType: "",
     StatusCount: {},
@@ -28,6 +29,9 @@ export default function reducer(state = {
     switch (action.type) {
         case "SET_TASK_LIST": {
             return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {}, Selected: { isActive: true } }
+        }
+        case "SET_TASK_TIMELINE": {
+            return { ...state, Timeline: action.list }
         }
         case "SET_TASK_COUNT_LIST": {
             return { ...state, CountList: action.list }

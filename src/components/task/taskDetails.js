@@ -83,10 +83,12 @@ export default class TaskDetails extends React.Component {
         const { task, dispatch, loggedUser } = { ...this.props };
         const { Selected } = task;
         const { status, periodTask, periodic, id } = Selected;
-        putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: "Completed" }, (c) => {
+        const taskStatus = (Selected.status == "For Approval" || Selected.status == "Completed") ? "In Progress" : "Completed";
+        
+        putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus }, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
-                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, status: "Completed" } });
+                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, status: taskStatus } });
                 showToast("success", "Task successfully updated.");
             } else {
                 showToast("error", "Something went wrong please try again later.");
@@ -151,14 +153,14 @@ export default class TaskDetails extends React.Component {
                                 <div class="row mt20 content-row">
                                     <div class="col-md-6 modal-action">
                                         {
-                                        ((typeof Selected.approverId != "undefined" || Selected.status != "For Approval") && Selected.status != "Completed") &&
-                                        <a class="btn btn-default" onClick={() => this.handleAction("status")}>
-                                            <span>
-                                                <i class={`fa mr10 ${(Selected.status != "Completed") ? "fa-check" : "fa-ban"}`} aria-hidden="true"></i>
-                                                {`${(Selected.status == "For Approval") ? "Approve" : (Selected.status == "Completed") ? "Uncomplete" : "Complete"}`}
-                                            </span>
-                                        </a>
-                                    }
+                                            ((typeof Selected.approverId != "undefined" || Selected.status != "For Approval")) &&
+                                            <a class="btn btn-default" onClick={() => this.handleAction("status")}>
+                                                <span>
+                                                    <i class={`fa mr10 ${(Selected.status != "Completed") ? "fa-check" : "fa-ban"}`} aria-hidden="true"></i>
+                                                    {`${(Selected.status == "For Approval") ? "Approve" : (Selected.status == "Completed") ? "Uncomplete" : "Complete"}`}
+                                                </span>
+                                            </a>
+                                        }
 
                                     </div>
                                     <div class="col-md-6">

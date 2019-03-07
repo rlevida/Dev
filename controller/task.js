@@ -148,7 +148,7 @@ exports.get = {
                         }
                 }
             } : {},
-            ...(dueDate != "" || typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
+            ...(dueDate != "") ? {
                 dueDate: (queryString.dueDate == "null") ? null :
                     {
                         ...(dueDate != "" && Array.isArray(dueDate)) ? {
@@ -158,11 +158,6 @@ exports.get = {
                         } : {},
                         [Sequelize.Op.not]: null
                     }
-            } : {},
-            ...(typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
-                startDate: {
-                    [Sequelize.Op.not]: null
-                }
             } : {},
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != '') ? { isActive: queryString.isActive } : {}
 

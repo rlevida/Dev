@@ -178,7 +178,7 @@ export default class WorkstreamForm extends React.Component {
     }
 
     render() {
-        const { workstream, global, members } = { ...this.props };
+        const { workstream, global, members, dispatch } = { ...this.props };
         const typeList = (typeof global.SelectList.typeList != "undefined") ? _(global.SelectList.typeList)
             .filter((e, i) => {
                 return e.linkType == "workstream";
@@ -187,122 +187,139 @@ export default class WorkstreamForm extends React.Component {
             .value()
             : [];
         return (
-            <form id="workstream-form">
-                <div class="mb20">
-                    <p class="form-header mb0">Workstreams</p>
-                    <p>All with <span class="text-red">*</span> are required.</p>
-                </div>
-                <div class="form-group">
-                    <label class="custom-checkbox">
-                        <input type="checkbox"
-                            checked={(workstream.Selected.isActive == 1 || typeof workstream.Selected.isActive == 'undefined') ? true : false}
-                            onChange={() => { }}
-                            onClick={(f) => { this.handleCheckbox("isActive", (workstream.Selected.isActive || typeof workstream.Selected.isActive == 'undefined') ? 0 : 1) }}
-                        />
-                        <span class="checkmark"></span>
-                        Active
-                    </label>
-                </div>
-                <div class="form-group">
-                    <label class="custom-checkbox">
-                        <input type="checkbox"
-                            checked={(workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == 'undefined') ? false : true}
-                            onClick={(f) => { this.handleCheckbox("isTemplate", (workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == 'undefined') ? 1 : 0) }}
-                        />
-                        <span class="checkmark"></span>
-                        Set as Workstream Template
-                    </label>
-                </div>
-                {
-                    (typeof workstream.Selected.id == 'undefined' || workstream.Selected.id == "") && <div class="form-group">
-                        <label>Select existing workstream</label>
-                        <DropDown
-                            required={false}
-                            options={workstream.SelectList}
-                            onInputChange={this.getWorkstreamTemplateList}
-                            selected={(typeof workstream.Selected.workstreamTemplate == "undefined") ? "" : workstream.Selected.workstreamTemplate}
-                            placeholder={"Search workstream template to copy"}
-                            onChange={(e) => {
-                                this.setDropDown("workstreamTemplate", (e == null) ? "" : e.value);
+            <div class="card form-card">
+                <div class="card-header">
+                    <h4>
+                        <a
+                            class="text-white mr10"
+                            onClick={() => {
+                                dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
                             }}
-                            isClearable={true}
-                        />
-                    </div>
-                }
-                <div class="form-group">
-                    <label for="workstream">Workstream: <span class="text-red">*</span></label>
-                    <input
-                        id="workstream"
-                        type="text"
-                        name="workstream"
-                        required
-                        value={(typeof workstream.Selected.workstream == "undefined" || (typeof workstream.Selected.action != "undefined")) ? "" : workstream.Selected.workstream}
-                        class="form-control"
-                        placeholder="Enter workstream"
-                        onChange={this.handleChange}
-                    />
+                        >
+                            <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                        </a>
+                        {`${(typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") ? 'Edit' : 'Add New'} Workstream`}
+                    </h4>
                 </div>
-                <div class="form-group">
-                    <label>Workstream Type</label>
-                    <DropDown multiple={false}
-                        required={false}
-                        options={typeList}
-                        selected={(typeof workstream.Selected.typeId == "undefined" || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.typeId}
-                        onChange={(e) => {
-                            this.setDropDown("typeId", e.value);
-                        }}
-                        placeholder={'Select workstream type'}
-                    />
-                </div>
-                {
-                    (typeof workstream.Selected.typeId != "undefined" && workstream.Selected.typeId == 5) && <div class="form-group">
-                        <label for="number-hours">Number of Hours: <span class="text-red">*</span></label>
-                        <input
-                            id="number-hours"
-                            type="number"
-                            name="numberOfHours"
-                            required
-                            value={(typeof workstream.Selected.numberOfHours == "undefined" || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.numberOfHours}
-                            class="form-control"
-                            placeholder="Number of Hours"
-                            onChange={this.handleChange}
-                        />
+                <div class="card-body">
+                    <form id="workstream-form">
+                        <div class="mb20">
+                            <p class="form-header mb0">Workstreams</p>
+                            <p>All with <span class="text-red">*</span> are required.</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="custom-checkbox">
+                                <input type="checkbox"
+                                    checked={(workstream.Selected.isActive == 1 || typeof workstream.Selected.isActive == 'undefined') ? true : false}
+                                    onChange={() => { }}
+                                    onClick={(f) => { this.handleCheckbox("isActive", (workstream.Selected.isActive || typeof workstream.Selected.isActive == 'undefined') ? 0 : 1) }}
+                                />
+                                <span class="checkmark"></span>
+                                Active
+                    </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="custom-checkbox">
+                                <input type="checkbox"
+                                    checked={(workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == 'undefined') ? false : true}
+                                    onClick={(f) => { this.handleCheckbox("isTemplate", (workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == 'undefined') ? 1 : 0) }}
+                                />
+                                <span class="checkmark"></span>
+                                Set as Workstream Template
+                    </label>
+                        </div>
+                        {
+                            (typeof workstream.Selected.id == 'undefined' || workstream.Selected.id == "") && <div class="form-group">
+                                <label>Select existing workstream</label>
+                                <DropDown
+                                    required={false}
+                                    options={workstream.SelectList}
+                                    onInputChange={this.getWorkstreamTemplateList}
+                                    selected={(typeof workstream.Selected.workstreamTemplate == "undefined") ? "" : workstream.Selected.workstreamTemplate}
+                                    placeholder={"Search workstream template to copy"}
+                                    onChange={(e) => {
+                                        this.setDropDown("workstreamTemplate", (e == null) ? "" : e.value);
+                                    }}
+                                    isClearable={true}
+                                />
+                            </div>
+                        }
+                        <div class="form-group">
+                            <label for="workstream">Workstream: <span class="text-red">*</span></label>
+                            <input
+                                id="workstream"
+                                type="text"
+                                name="workstream"
+                                required
+                                value={(typeof workstream.Selected.workstream == "undefined" || (typeof workstream.Selected.action != "undefined")) ? "" : workstream.Selected.workstream}
+                                class="form-control"
+                                placeholder="Enter workstream"
+                                onChange={this.handleChange}
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label>Workstream Type</label>
+                            <DropDown multiple={false}
+                                required={false}
+                                options={typeList}
+                                selected={(typeof workstream.Selected.typeId == "undefined" || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.typeId}
+                                onChange={(e) => {
+                                    this.setDropDown("typeId", e.value);
+                                }}
+                                placeholder={'Select workstream type'}
+                            />
+                        </div>
+                        {
+                            (typeof workstream.Selected.typeId != "undefined" && workstream.Selected.typeId == 5) && <div class="form-group">
+                                <label for="number-hours">Number of Hours: <span class="text-red">*</span></label>
+                                <input
+                                    id="number-hours"
+                                    type="number"
+                                    name="numberOfHours"
+                                    required
+                                    value={(typeof workstream.Selected.numberOfHours == "undefined" || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.numberOfHours}
+                                    class="form-control"
+                                    placeholder="Number of Hours"
+                                    onChange={this.handleChange}
+                                />
 
-                    </div>
-                }
-                <div class="form-group">
-                    <label for="description">Workstream Description: <span class="text-red">*</span></label>
-                    <textarea name="description" required value={(typeof workstream.Selected.description == "undefined" || workstream.Selected.description == null || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
+                            </div>
+                        }
+                        <div class="form-group">
+                            <label for="description">Workstream Description: <span class="text-red">*</span></label>
+                            <textarea name="description" required value={(typeof workstream.Selected.description == "undefined" || workstream.Selected.description == null || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
 
-                </div>
-                <div class="form-group">
-                    <label>Responsible: <span class="text-red">*</span></label>
-                    <DropDown
-                        required={true}
-                        options={members.SelectList}
-                        onInputChange={this.setMemberList}
-                        selected={(typeof workstream.Selected.responsible == "undefined" || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.responsible}
-                        onChange={(e) => {
-                            this.setDropDown("responsible", (e == null) ? "" : e.value);
-                        }}
-                        isClearable={true}
-                        placeholder={'Search and select member responsible'}
-                    />
+                        </div>
+                        <div class="form-group">
+                            <label>Responsible: <span class="text-red">*</span></label>
+                            <DropDown
+                                required={true}
+                                options={members.SelectList}
+                                onInputChange={this.setMemberList}
+                                selected={(typeof workstream.Selected.responsible == "undefined" || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.responsible}
+                                onChange={(e) => {
+                                    this.setDropDown("responsible", (e == null) ? "" : e.value);
+                                }}
+                                isClearable={true}
+                                placeholder={'Search and select member responsible'}
+                            />
 
+                        </div>
+                        <div class="form-group">
+                            <label for="project-manager">Color Indicator: <span class="text-red">*</span></label>
+                            <ColorPicker
+                                onSelect={this.handleColorSlider}
+                                color={workstream.Selected.color}
+                                placeholder={"Select Workstream Color"}
+                                required={true}
+                            />
+                        </div>
+                        <a class="btn btn-violet" onClick={this.handleSubmit}>
+                            <span>{`${(typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") ? 'Edit' : 'Add'} workstream`}</span>
+                        </a>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="project-manager">Color Indicator: <span class="text-red">*</span></label>
-                    <ColorPicker
-                        onSelect={this.handleColorSlider}
-                        color={workstream.Selected.color}
-                        placeholder={"Select Workstream Color"}
-                        required={true}
-                    />
-                </div>
-                <a class="btn btn-violet" onClick={this.handleSubmit}>
-                    <span>{`${(typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") ? 'Edit' : 'Add'} workstream`}</span>
-                </a>
-            </form>
+            </div>
         )
     }
 }

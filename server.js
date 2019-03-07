@@ -60,7 +60,6 @@ app.use(function (req, res, next) {
 app.use('/api', api);
 app.use('/forgotPassword', forgot);
 app.use('/auth', auth);
-app.use('/project', project);
 app.use('/', index);
 
 app.use(function (req, res, next) {

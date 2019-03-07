@@ -56,6 +56,10 @@ router.use(function (req, res, next) {
     }
 })
 
+router.get('/', function (req, res, next) {
+    res.redirect('/account');
+});
+
 router.get('/account', function (req, res, next) {
     res.render('index', {
         title: global.site_name,

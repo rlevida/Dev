@@ -1,8 +1,13 @@
 import React from "react";
+import { connect } from "react-redux";
+import { Link } from 'react-router-dom';
+import _ from "lodash";
+
 import { showToast, getData, deleteData } from '../../globalFunction';
 import { Loading, DeleteModal } from "../../globalComponents";
-import { connect } from "react-redux";
-import _ from "lodash";
+
+import WorkstreamFilter from "./workstreamFilter";
+import WorkstreamForm from "./workstreamForm";
 
 @connect((store) => {
     return {
@@ -29,7 +34,7 @@ export default class workstreamList extends React.Component {
     }
 
     componentDidMount() {
-        const { project: projectObj, dispatch, workstream } = { ...this.props };
+        const { workstream } = { ...this.props };
 
         if (_.isEmpty(workstream.Count)) {
             this.getList(1);
@@ -37,11 +42,12 @@ export default class workstreamList extends React.Component {
     }
 
     getList(page) {
-        const { dispatch, loggedUser, project: projectObj, workstream, project_id = "" } = this.props;
+        const { dispatch, loggedUser, project: projectObj, workstream, match } = this.props;
         const { typeId, workstreamStatus, workstream: workstreamFilter } = workstream.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
-        const projectId = (typeof projectObj.Selected.id != "undefined") ? projectObj.Selected.id : project_id;
+        const projectId = (typeof projectObj.Selected.id != "undefined") ? projectObj.Selected.id : match.params.projectId;
         const requestUrl = `/api/workstream?projectId=${projectId}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
+
         getData(requestUrl, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_WORKSTREAM_LIST", list: c.data.result, Count: c.data.count })
@@ -93,87 +99,117 @@ export default class workstreamList extends React.Component {
 
 
     render() {
-        const { workstream } = { ...this.props };
+        const { workstream, dispatch } = { ...this.props };
         const workstreamCurrentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
         const workstreamLastPage = (typeof workstream.Count.last_page != "undefined") ? workstream.Count.last_page : 1;
         const typeValue = (typeof workstream.Selected.workstream != "undefined" && _.isEmpty(workstream.Selected) == false) ? workstream.Selected.workstream : "";
 
         return (
             <div>
-                {
-                    ((workstream.List).length > 0) && <table class="mt20">
-                        <thead>
-                            <tr>
-                                <th scope="col">Workstream Name</th>
-                                <th scope="col">Completion</th>
-                                <th scope="col">For Approval</th>
-                                <th scope="col">Issues</th>
-                                <th scope="col">New Docs</th>
-                                <th scope="col">Messages</th>
-                                <th scope="col">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {
-                                _.map(workstream.List, (data, index) => {
-                                    console.log(data)
-                                    return (
-                                        <tr
-                                            key={index}
-                                        >
-                                            <td data-label="Workstream Name">
-                                                <p class="m0">
-                                                    {((data.task).length > 0) ? this.renderStatus(data) : ""}
-                                                    {data.workstream}
-                                                </p>
-                                            </td>
-                                            <td data-label="Completion">{data.completion + "%"}</td>
-                                            <td data-label="For Approval">
-                                                {(data.for_approval.amount > 0) && <p class={`${data.for_approval.color} m0`}>{data.for_approval.amount} task(s)</p>}
-                                            </td>
-                                            <td data-label="Issues">
+                <div class="row">
+                    {
+                        (workstream.FormActive == "List") && <div class="col-lg-12">
+                            <div class="card">
+                                <div class="mb20 bb">
+                                    <div class="container-fluid filter mb20">
+                                        <div class="row content-row">
+                                            <div class="col-md-6 col-sm-12">
+                                                <h3 class="title m0">Workstreams</h3>
+                                            </div>
+                                            <div class="col-md-6 col-sm-12">
+                                                <div class="button-action">
+                                                    <WorkstreamFilter />
+                                                    <a class="btn btn-default" onClick={() => { dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" }) }}>
+                                                        <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>
+                                                        Add New Workstream
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class={(workstream.Loading == "RETRIEVING" && (workstream.List).length == 0) ? "linear-background" : ""}>
+                                    {
+                                        ((workstream.List).length > 0) && <table class="mt20">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Workstream Name</th>
+                                                    <th scope="col">Completion</th>
+                                                    <th scope="col">For Approval</th>
+                                                    <th scope="col">Issues</th>
+                                                    <th scope="col">New Docs</th>
+                                                    <th scope="col">Messages</th>
+                                                    <th scope="col">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
                                                 {
-                                                    (data.issues > 0) && <p class="m0 text-red">{data.issues} delayed</p>
+                                                    _.map(workstream.List, (data, index) => {
+                                                        return (
+                                                            <tr
+                                                                key={index}
+                                                            >
+                                                                <td data-label="Workstream Name">
+                                                                    <p class="m0">
+                                                                        {((data.task).length > 0) ? this.renderStatus(data) : ""}
+                                                                        <Link to={`workstreams/${data.id}`}>{data.workstream}</Link>
+                                                                    </p>
+                                                                </td>
+                                                                <td data-label="Completion">{data.completion + "%"}</td>
+                                                                <td data-label="For Approval">
+                                                                    {(data.for_approval.amount > 0) && <p class={`${data.for_approval.color} m0`}>{data.for_approval.amount} task(s)</p>}
+                                                                </td>
+                                                                <td data-label="Issues">
+                                                                    {
+                                                                        (data.issues > 0) && <p class="m0 text-red">{data.issues} delayed</p>
+                                                                    }
+                                                                </td>
+                                                                <td data-label="New Docs">
+                                                                    {
+                                                                        (data.new_documents > 0) && <p class="m0 text-red">{data.new_documents} file(s)</p>
+                                                                    }
+                                                                </td>
+                                                                <td data-label="Messages">
+                                                                    {
+                                                                        (data.messages > 0) && <p class="m0 text-blue">{data.messages} message(s)</p>
+                                                                    }
+                                                                </td>
+                                                                <td data-label="Actions">
+                                                                    <a href="javascript:void(0);"
+                                                                        onClick={() => this.editData(data)}
+                                                                        class="btn btn-action">
+                                                                        <span class="glyphicon glyphicon-pencil" title="EDIT"></span>
+                                                                    </a>
+                                                                    <a href="javascript:void(0);" title="DELETE"
+                                                                        onClick={(e) => this.deleteData(data)}
+                                                                        class={data.allowedDelete == 0 ? 'hide' : 'btn btn-action'}
+                                                                    >
+                                                                        <span class="glyphicon glyphicon-trash"></span>
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        )
+                                                    })
                                                 }
-                                            </td>
-                                            <td data-label="New Docs">
-                                                {
-                                                    (data.new_documents > 0) && <p class="m0 text-red">{data.new_documents} file(s)</p>
-                                                }
-                                            </td>
-                                            <td data-label="Messages">
-                                                {
-                                                    (data.messages > 0) && <p class="m0 text-blue">{data.messages} message(s)</p>
-                                                }
-                                            </td>
-                                            <td data-label="Actions">
-                                                <a href="javascript:void(0);"
-                                                    onClick={() => this.editData(data)}
-                                                    class="btn btn-action">
-                                                    <span class="glyphicon glyphicon-pencil" title="EDIT"></span>
-                                                </a>
-                                                <a href="javascript:void(0);" title="DELETE"
-                                                    onClick={(e) => this.deleteData(data)}
-                                                    class={data.allowedDelete == 0 ? 'hide' : 'btn btn-action'}
-                                                >
-                                                    <span class="glyphicon glyphicon-trash"></span>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    )
-                                })
-                            }
-                        </tbody>
-                    </table>
-                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                </div>
+                                {
+                                    (workstream.List.length == 0 && workstream.Loading != "RETRIEVING") && <p class="mb0 mt10 text-center"><strong>No Records Found</strong></p>
+                                }
+                                {
+                                    (workstream.Loading == "RETRIEVING" && (workstream.List).length > 0) && <Loading />
+                                }
+                                {
+                                    (_.isEmpty(workstream) == false && (workstreamCurrentPage != workstreamLastPage) && workstream.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNext()}>Load More Workstream</a></p>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
                 {
-                    (workstream.List.length == 0 && workstream.Loading != "RETRIEVING") && <p class="mb0 mt10 text-center"><strong>No Records Found</strong></p>
-                }
-                {
-                    (workstream.Loading == "RETRIEVING" && (workstream.List).length > 0) && <Loading />
-                }
-                {
-                    (_.isEmpty(workstream) == false && (workstreamCurrentPage != workstreamLastPage) && workstream.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNext()}>Load More Workstream</a></p>
+                    (workstream.FormActive == "Form") && <WorkstreamForm />
                 }
                 {/* Modals */}
                 <DeleteModal

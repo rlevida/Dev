@@ -4,7 +4,7 @@ import moment from 'moment';
 import { connect } from "react-redux";
 
 import { Loading } from "../../globalComponents";
-import { getData, showToast } from "../../globalFunction";
+import { getData, putData, showToast } from "../../globalFunction";
 
 @connect((store) => {
     return {
@@ -26,7 +26,8 @@ export default class TaskListCategory extends React.Component {
             "getNext",
             "groupList",
             "renderRow",
-            "openTaskDetails"
+            "openTaskDetails",
+            "completeTask"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -45,6 +46,20 @@ export default class TaskListCategory extends React.Component {
         if (_.isEqual(prevProps.task.Filter, task.Filter) == false) {
             this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
         }
+    }
+
+    completeTask({ id, status, periodic, periodTask }) {
+        const { dispatch, loggedUser } = { ...this.props };
+        const taskStatus = (status == "For Approval" || status == "Completed") ? "In Progress" : "Completed";
+
+        putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus }, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
+                showToast("success", "Task successfully updated.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
     }
 
     getList(page) {
@@ -96,9 +111,9 @@ export default class TaskListCategory extends React.Component {
     openTaskDetails(id) {
         const { dispatch, loggedUser } = { ...this.props };
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
-        
+
         $(`#task-details`).modal('show');
-        
+
         getData(`/api/task/detail/${id}?starredUser=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
@@ -109,7 +124,7 @@ export default class TaskListCategory extends React.Component {
         });
     }
 
-    renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic, status }) {
+    renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask }) {
         const { task } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate, "YYYY-MM-DD");
@@ -123,7 +138,12 @@ export default class TaskListCategory extends React.Component {
             .value();
         return (
             <tr key={index}>
-                <td data-label="Task Name" class="td-left">
+                <td data-label="Task Name" class="td-left action-td">
+                    {
+                        (status != "For Approval") && <a onClick={() => this.completeTask({ id, status, periodic, periodTask })}>
+                            <span class={`fa mr10 ${(status != "Completed") ? "fa-circle-thin" : "fa-check-circle text-green"}`} title="Complete"></span>
+                        </a>
+                    }
                     <a
                         onClick={() => this.openTaskDetails(id)}
                         class={(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}

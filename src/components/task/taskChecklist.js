@@ -12,7 +12,7 @@ import { showToast, postData } from '../../globalFunction';
     }
 })
 
-export default class Checklist extends React.Component {
+export default class TaskChecklist extends React.Component {
     constructor(props) {
         super(props);
 
