@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 
 import { getData, showToast } from "../../globalFunction";
 
+
 BigCalendar.momentLocalizer(moment);
 
 @connect((store) => {
@@ -61,9 +62,9 @@ export default class TaskCalendar extends React.Component {
     }
 
     openTaskDetails(e) {
-        const { dispatch } = this.props;
+        const { dispatch, loggedUser } = this.props;
         $(`#task-details`).modal('show');
-        getData(`/api/task/detail/${e.id}`, {}, (c) => {
+        getData(`/api/task/detail/${e.id}?starredUser=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
             } else {

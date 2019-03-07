@@ -113,17 +113,10 @@ export default class ProjectList extends React.Component {
     renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type }) {
         const status = (lateWorkstream > 0) ? `${lateWorkstream} stream(s) delayed` : (workstreamTaskDueToday > 0) ? `${workstreamTaskDueToday} stream(s) due today` : `On track`;
         const color = (lateWorkstream > 0) ? "text-red" : (workstreamTaskDueToday > 0) ? "text-yellow" : "text-green";
-
-        return (
-            <div>
-                {
-                    (render_type == "text") ? <p class={`mb0 ${color}`}>
-                        {status}
-                    </p> : <span class={`fa fa-circle mb0 mr5 ${color}`}></span>
-                }
-            </div>
-
-        );
+        const component = (render_type == "text") ? <p class={`mb0 ${color}`}>
+            {status}
+        </p> : <span class={`fa fa-circle mb0 mr5 ${color}`}></span>
+        return (component);
     }
 
     handleEdit(params) {
@@ -173,7 +166,6 @@ export default class ProjectList extends React.Component {
                                                         let workstreamTaskDueToday = 0;
 
                                                         workstream.map((e) => {
-                                                            console.log(workstream)
                                                             if (e.taskOverDue.length) {
                                                                 lateWorkstream++;
                                                             }
@@ -184,14 +176,14 @@ export default class ProjectList extends React.Component {
 
                                                         return (
                                                             <tr key={index}>
-                                                                <td data-label="Project Name" class="td-left display-flex">
-                                                                {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type:"icon" })}
+                                                                <td data-label="Project Name" class="td-left">
                                                                     <p class="mb0">
+                                                                        {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "icon" })}
                                                                         <Link to={`/projects/${id}`}>{project}</Link>
                                                                     </p>
                                                                 </td>
                                                                 <td data-label="Status">
-                                                                    {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type:"text" })}
+                                                                    {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "text" })}
                                                                 </td>
                                                                 <td data-label="Workstreams">
                                                                     {workstream.length}

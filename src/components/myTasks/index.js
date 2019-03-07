@@ -14,6 +14,11 @@ export default class Component extends React.Component {
         super(props);
     }
 
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+    }
+
     render() {
         const { task } = this.props;
         return (

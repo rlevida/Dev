@@ -56,7 +56,15 @@ const associationFindAllStack = [
             {
                 model: Tasks,
                 as: 'taskDueToday',
-                where: { dueDate: moment.utc().format("YYYY-MM-DD") },
+                where: {
+                    dueDate: moment.utc().format("YYYY-MM-DD"),
+                    status: {
+                        [Op.or]: {
+                            [Op.not]: "Completed",
+                            [Op.eq]: null
+                        }
+                    }
+                },
                 required: false,
             },
             {
@@ -1136,7 +1144,7 @@ exports.delete = {
                 const teamMemberToBeDeleted = _.map(response.team_members, (o) => { return o.teamId });
                 const teamToBeDeleted = _.map(response.team_leaders, (o) => { return o.id });
                 const teamToBeDeletedIds = _.uniq([...teamMemberToBeDeleted, ...teamToBeDeleted]);
-               
+
                 Members.destroy({
                     where: {
                         userTypeLinkId: teamToBeDeletedIds,

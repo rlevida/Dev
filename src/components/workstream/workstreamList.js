@@ -119,11 +119,11 @@ export default class workstreamList extends React.Component {
                                         <tr
                                             key={index}
                                         >
-                                            <td data-label="Workstream Name" class="display-flex">
-                                                {
-                                                    ((data.task).length > 0) && this.renderStatus(data)
-                                                }
-                                                {data.workstream}
+                                            <td data-label="Workstream Name">
+                                                <p class="m0">
+                                                    {((data.task).length > 0) ? this.renderStatus(data) : ""}
+                                                    {data.workstream}
+                                                </p>
                                             </td>
                                             <td data-label="Completion">{data.completion + "%"}</td>
                                             <td data-label="For Approval">

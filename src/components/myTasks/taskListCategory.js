@@ -12,7 +12,7 @@ import { getData, showToast } from "../../globalFunction";
         loggedUser: store.loggedUser
     }
 })
-export default class taskListCategory extends React.Component {
+export default class TaskListCategory extends React.Component {
     constructor(props) {
         super(props);
 
@@ -95,9 +95,10 @@ export default class taskListCategory extends React.Component {
 
     openTaskDetails(id) {
         const { dispatch, loggedUser } = { ...this.props };
-        $(`#task-details`).modal('show');
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
-
+        
+        $(`#task-details`).modal('show');
+        
         getData(`/api/task/detail/${id}?starredUser=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
