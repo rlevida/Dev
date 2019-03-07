@@ -109,12 +109,14 @@ export default class workstreamList extends React.Component {
                                 <th scope="col">For Approval</th>
                                 <th scope="col">Issues</th>
                                 <th scope="col">New Docs</th>
+                                <th scope="col">Messages</th>
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {
                                 _.map(workstream.List, (data, index) => {
+                                    console.log(data)
                                     return (
                                         <tr
                                             key={index}
@@ -134,7 +136,16 @@ export default class workstreamList extends React.Component {
                                                     (data.issues > 0) && <p class="m0 text-red">{data.issues} delayed</p>
                                                 }
                                             </td>
-                                            <td data-label="New Docs">{`${data.new_documents} file(s)`}</td>
+                                            <td data-label="New Docs">
+                                                {
+                                                    (data.new_documents > 0) && <p class="m0 text-red">{data.new_documents} file(s)</p>
+                                                }
+                                            </td>
+                                            <td data-label="Messages">
+                                                {
+                                                    (data.messages > 0) && <p class="m0 text-blue">{data.messages} message(s)</p>
+                                                }
+                                            </td>
                                             <td data-label="Actions">
                                                 <a href="javascript:void(0);"
                                                     onClick={() => this.editData(data)}

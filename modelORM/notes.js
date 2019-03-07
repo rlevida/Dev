@@ -29,6 +29,11 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: true,
       defaultValue: 0
     },
+    isDeleted: {
+      type: DataTypes.INTEGER(4),
+      allowNull: true,
+      defaultValue: 0
+    },
     specificClient: {
       type: DataTypes.TEXT,
       allowNull: true

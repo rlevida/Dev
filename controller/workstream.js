@@ -4,7 +4,7 @@ const sequence = require("sequence").Sequence;
 const models = require('../modelORM');
 const moment = require('moment');
 const { defaultDelete } = require("./");
-const { Type, Workstream, Tasks, Tag, Members, Users, Document, Sequelize, sequelize, Projects, ActivityLogs } = models;
+const { Type, Workstream, Tasks, Tag, Members, Users, Document, Sequelize, sequelize, Projects, ActivityLogs, Notes } = models;
 const associationStack = [
     {
         model: Type,
@@ -55,12 +55,26 @@ const associationStack = [
         model: Tag,
         as: 'tag',
         required: false,
-        where: { linkType: 'workstream' },
+        where: { linkType: 'workstream', tagType: 'tagType' },
         include: [
             {
                 required: false,
                 model: Document,
                 as: 'document',
+                where: { isDeleted: 0 },
+            }
+        ]
+    },
+    {
+        model: Tag,
+        as: 'tag_notes',
+        required: false,
+        where: { linkType: 'workstream', tagType: 'notes' },
+        include: [
+            {
+                required: false,
+                model: Notes,
+                as: 'TagNotes',
                 where: { isDeleted: 0 },
             }
         ]
@@ -221,6 +235,7 @@ exports.get = {
                             },
                             completion: ((resultObj.task).length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
                             members,
+                            messages: (resultObj.tag_notes).length,
                             responsible: ((responsible).length > 0) ? responsible[0].userTypeLinkId : ""
                         }
                     }).then((resultArray) => {
