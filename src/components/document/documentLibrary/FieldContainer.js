@@ -1,7 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import { DragSource, DropTarget } from 'react-dnd';
-import { displayDate, getData, postData, putData, showToast } from '../../../globalFunction';
+import { displayDateMD, getData, postData, putData, showToast } from '../../../globalFunction';
 
 const itemSource = {
     beginDrag(props) {
@@ -82,10 +82,25 @@ export default class DocumentLibrary extends React.Component {
         }
     }
 
+    archiveDocument(data) {
+        const { dispatch, loggedUser } = this.props;
+        if (confirm("Do you really want to archive this record?")) {
+            putData(`/api/document/${data.id}`, { isArchived: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: data.status, });
+                    dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
+                    showToast("success", "Successfully Deleted.");
+                } else {
+                    showToast("error", "Delete failed. Please try again later.");
+                }
+            })
+        }
+    }
+
     deleteDocument(data) {
         const { dispatch, loggedUser } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            putData(`/api/document/${data.id}`, { status: 'archived', usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
+            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'Library', Id: data.id })
                     dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
@@ -125,9 +140,8 @@ export default class DocumentLibrary extends React.Component {
 
     editDocument(data, type) {
         const { dispatch } = this.props;
-        const newData = { ...data, tags: data.tags };
-
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...newData, oldDocument: type === 'tags' ? data.tags.map((e) => { return e.label }).join(',') : newData.origin } });
+        const newData = { ...data, workstreamId: data.tagWorkstream };
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...newData, oldDocument: type === 'tags' ? data.tagWorkstream.map((e) => { return e.label }).join(',') : newData.origin } });
         dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type });
         $(`#editModal`).modal('show');
     }
@@ -170,7 +184,15 @@ export default class DocumentLibrary extends React.Component {
 
         if (data.type !== 'folder') {
             dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: "DocumentViewer" });
-            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
+            // if (!data.readOn) {
+            //     let dataToSubmit = { readOn: new Date() };
+            //     putData(`/api/document/readOn/${data.id}?starredUser=${loggedUser.data.id}`, dataToSubmit, (c) => {
+            //         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: c.data });
+            //         dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data, Status: data.status, });
+            //     })
+            // } else {
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+            // }
         } else {
             getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
                 if (c.status == 200) {
@@ -195,19 +217,100 @@ export default class DocumentLibrary extends React.Component {
         return connectDragSource(
             connectDropTarget(
                 <tr class="item" key={index} style={{ opacity, background: backgroundColor }}>
-                    <td>
+                    {/* <td>
                         <input type="checkbox"
                         />
-                    </td>
+                    </td> */}
                     <td>
                         <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
                             <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
                         </a>
                     </td>
-                    <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td>
-                    <td class="library-document"><a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>{documentName}</a></td>
-                    <td>{displayDate(data.dateUpdated)}</td>
+                    {/* <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td> */}
                     <td>
+                        <div class="document-name">
+                            <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
+                                {data.type === "document" ?
+                                    <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span> :
+                                    <span class="mr10 fa fa-folder fa-lg"></span>
+                                }
+                                <span>{documentName}</span>
+                            </a>
+                        </div>
+                    </td>
+                    <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`} /></td>
+                    <td>{displayDateMD(data.dateUpdated)}</td>
+                    <td>
+                        {
+                            data.tagWorkstream.length > 0 &&
+                            data.tagWorkstream.map((t, tIndex) => {
+                                tagCount += t.label.length
+                                let tempCount = tagCount;
+                                if (tagCount > 16) { tagCount = 0 }
+                                return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
+                            })
+                        }
+                    </td>
+                    <td>{data.readOn ? displayDateMD(data.readOn) : '--'}</td>
+                    <td style={{ display: 'flex' }}>
+                        <span class="document-action document-active" title="Download" onClick={() => this.downloadDocument(data)}><i class="fa fa-download fa-lg"></i></span>
+                        <span class={`document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="Archive" onClick={e => this.archiveDocument(data)}><i class="fa fa-archive fa-lg"></i></span>
+
+                        <span class="document-action document-active dropdown dropdown-library" title="Move">
+                            <i class="fa fa-folder fa-lg"></i>
+                            <div class="dropdown-content dropdown-menu-right">
+                                {(loggedUser.data.userRole != 6) &&
+                                    <a href="javascript:void(0)" style={{ textDecoration: "none" }} data-tip="Move to library" onClick={() => this.moveToLibrary(data)}>Move to library</a>
+                                }
+                                {
+                                    _.filter(document.Library, (d) => { return d.type == 'folder' && d.id != data.id }).map((f, fIndex) => {
+                                        const folderName = `${f.origin}${f.documentNameCount > 0 ? `(${f.documentNameCount})` : ``}`
+                                        return (
+                                            <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => moveTo(f, data)}>{folderName}</a>
+                                        )
+                                    })
+                                }
+                            </div>
+                        </span>
+                        <span class="document-action document-active" title="Delete" onClick={e => this.deleteDocument(data)}><i class="fa fa-trash fa-lg"></i></span>
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+                            <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >
+                                <li><a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>View</a></li>
+                                {(loggedUser.data.userType == "Internal") &&
+                                    <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={() => dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data })}>Share</a></li>
+                                }
+                                {/* <li class="dropdown dropdown-library">
+                                    <span class="test" style={{ marginLeft: "20px", color: "#333", lineHeight: "1.42857143", cursor: "pointer" }}>Move to</span>
+                                    <div class="dropdown-content">
+                                        {(typeof folder.SelectedLibraryFolder.id != "undefined") &&
+                                            <a href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => moveTo({ id: null }, data)}>Library</a>
+                                        }
+                                        {
+                                            _.filter(document.Library, (d) => { return d.type == 'folder' && d.id != data.id }).map((f, fIndex) => {
+                                                const folderName = `${f.origin}${f.documentNameCount > 0 ? `(${f.documentNameCount})` : ``}`
+                                                return (
+                                                    <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => moveTo(f, data)}>{folderName}</a>
+                                                )
+                                            })
+                                        }
+                                    </div>
+                                </li> */}
+                                <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>
+                                {/* <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(data)}>Download</a></li> */}
+                                {(data.type != 'folder') &&
+                                    <li><a href="javascript:void(0);" data-tip="Duplicate" onClick={e => this.duplicateDocument(data)}>Duplicate</a></li>
+                                }
+                                <li>
+                                    <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
+                                        {data.isStarred ? 'Unstarred' : 'Star'}
+                                    </a>
+                                </li>
+                                {/* <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data)}>Delete</a></li> */}
+                            </ul>
+                        </div>
+                    </td>
+                    {/* <td>
                         <span class="fa fa-users" data-tip data-for={`follower${index}`}
                             title={`${data.members.map((e, i) => { return `${e.firstName} ${e.lastName}` }).join(',')}`}>
                         </span>
@@ -251,7 +354,7 @@ export default class DocumentLibrary extends React.Component {
                                 <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>
                                 <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(data)}>Download</a></li>
                                 {(data.type != 'folder') &&
-                                    <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.duplicateDocument(data)}>Duplicate</a></li>
+                                    <li><a href="javascript:void(0);" data-tip="Duplicate" onClick={e => this.duplicateDocument(data)}>Duplicate</a></li>
                                 }
                                 <li>
                                     <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
@@ -261,7 +364,7 @@ export default class DocumentLibrary extends React.Component {
                                 <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data)}>Delete</a></li>
                             </ul>
                         </div>
-                    </td>
+                    </td> */}
                 </tr>
             )
         )

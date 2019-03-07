@@ -41,6 +41,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: '0'
     },
+    isArchived: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '0'
+    },
     documentNameCount: {
       type: DataTypes.INTEGER(11),
       allowNull: false,
@@ -50,6 +55,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER(11),
       allowNull: false,
       defaultValue: '0'
+    },
+    readOn: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
     dateAdded: {
       type: DataTypes.DATE,
