@@ -76,7 +76,7 @@ export default class ProjectActionTab extends React.Component {
                                 selected={Filter.projectStatus}
                                 onChange={(e) => this.setDropDown("projectStatus", e.value)} />
                             <a class="btn btn-default" onClick={(e) => {
-                                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { isActive: true } });
+                                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { isActive: 1 } });
                                 dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
                             }}
                             >

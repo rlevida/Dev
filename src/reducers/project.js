@@ -10,7 +10,7 @@ export default function reducer(state = {
     List: [],
     Loading: "RETRIEVING",
     ProjectManagerId: "",
-    Selected: { isActive: true },
+    Selected: { isActive: 1 },
     StatusCount: [],
     SelectedId: [],
     SelectList: []
