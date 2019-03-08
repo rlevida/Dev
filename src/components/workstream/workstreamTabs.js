@@ -15,7 +15,7 @@ export default class WorkstreamTabs extends React.Component {
         _.map(["handleTab"], (fn) => { this[fn] = this[fn].bind(this) })
     }
     handleTab(index) {
-        console.log(index)
+       
     }
     render() {
         const { workstream_id, dispatch } = { ...this.props };
