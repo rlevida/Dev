@@ -1280,6 +1280,10 @@ input:checked + .slider:before {
   font-size: 15px;
 }
 
+.text-black{
+  color: #333!important;
+}
+
 .text-yellow{
   color: #ffaf3b;
 }
@@ -1313,7 +1317,22 @@ input:checked + .slider:before {
 }
 
 .tab-row .btn{
-  line-height: 15px;
+  border-radius: 0px;
+}
+
+.ReactTabs__TabList .button-action{
+  width: auto;
+  margin-left: auto;
+}
+
+.ReactTabs__TabList {
+  display: flex;
+  align-items: center;
+}
+
+.react-tabs [role=tablist]{
+  margin-bottom: 20px!important;
+  border-bottom: 0px;
 }
 
 .btn-active,
@@ -1350,6 +1369,15 @@ input:checked + .slider:before {
 .action-td .fa{
   font-size: 25px;
   color: #818181;
+}
+
+.action-link{
+  display: flex;
+  align-items: center;
+}
+
+.action-link .fa {
+  font-size: 25px;
 }
 
 #delete-action{
@@ -1586,7 +1614,7 @@ table ul.dropdown-menu{
 #my-task > tbody > tr > td:last-child { 
   color:#333!important; 
 }
-#my-task > tbody > tr > td:last-child p {
+.td-oblong {
   border: 1px #f6f6f6 solid;
   background-color: #f6f6f6;
   border-radius: 20px;
@@ -1857,6 +1885,18 @@ textarea::-webkit-scrollbar-thumb {
   font-weight: 600;
 }
 
+.react-tabs [role=tab][aria-selected=true]{
+  color: #ffffff !important;
+  background-color: #7068d6 !important;
+  border: 1px solid #7068d6 !important;
+  border-radius: 0px;
+}
+
+.react-tabs [role=tab]{
+  font-size: 18px;
+}
+
+
 @media screen and (max-width: 600px) {
   table {
     border: 0;
@@ -2020,6 +2060,23 @@ textarea::-webkit-scrollbar-thumb {
 
   .action-td{
     display: block;
+  }
+
+  .react-tabs [role=tab]{
+    width: 100%;
+    text-align: center;
+  }
+
+  .ReactTabs__TabList{
+    display: block;
+  }
+
+  .ReactTabs__TabList .button-action{
+    width: 100%;
+  }
+
+  .ReactTabs__TabPanel{
+    margin-top: 50px;
   }
   
 }

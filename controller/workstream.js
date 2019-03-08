@@ -85,6 +85,7 @@ exports.get = {
         const queryString = req.query;
         const limit = 10;
         const whereObj = {
+            ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { id: queryString.workstreamId } : {},
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : {},
             ...(typeof queryString.isTemplate != "undefined" && queryString.isTemplate != "") ? { isTemplate: queryString.isTemplate } : {},

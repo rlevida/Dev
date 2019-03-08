@@ -10,7 +10,7 @@ export default function reducer(state = {
         task: "",
         selected_month: "",
         projectId: "",
-        type: "assignedToMe"
+        type: ""
     },
     FormActive: "List",
     FormAction: "",
@@ -28,7 +28,7 @@ export default function reducer(state = {
 }, action) {
     switch (action.type) {
         case "SET_TASK_LIST": {
-            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {}, Selected: { isActive: true } }
+            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {} }
         }
         case "SET_TASK_TIMELINE": {
             return { ...state, Timeline: action.list }

@@ -120,7 +120,6 @@ exports.get = {
         }
 
         (typeof queryString.dueDate != "undefined") ? (Array.isArray(queryString.dueDate)) ? _.map(queryString.dueDate, (o) => { return JSON.parse(o) }) : JSON.parse(queryString.dueDate) : "";
-
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
@@ -159,6 +158,11 @@ exports.get = {
                         [Sequelize.Op.not]: null
                     }
             } : {},
+            ...(typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
+                dueDate: {
+                    [Sequelize.Op.not]: null
+                }
+            } : {},
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != '') ? { isActive: queryString.isActive } : {}
 
         };
@@ -176,12 +180,7 @@ exports.get = {
                         opOrArray.push(
                             {
                                 id: {
-                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids})`)
-                                }
-                            },
-                            {
-                                workstreamId: {
-                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT linkId FROM members WHERE memberType="responsible" AND linkType="workstream" AND userTypeLinkId ${compareOpt} ${ids})`)
+                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids} AND members.isDeleted = 0)`)
                                 }
                             },
                             {

@@ -276,7 +276,7 @@ export default class TaskDetails extends React.Component {
                                                                 })
                                                             }
                                                             {
-                                                                ((checklist).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                                                (typeof checklist == "undefined" || (checklist).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                                                             }
                                                         </div>
                                                     </div>

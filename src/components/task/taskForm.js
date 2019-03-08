@@ -206,7 +206,7 @@ export default class TaskForm extends React.Component {
             selectedObj[e.target.name] = selectedDate;
         }
         if (e.target.name == "startDate" && task.Selected.periodic == 1) {
-             setTimeout(() => { this.generateDueDate() }, 500);
+            setTimeout(() => { this.generateDueDate() }, 500);
         }
 
         dispatch({ type: "SET_TASK_SELECTED", Selected: selectedObj });
@@ -279,7 +279,7 @@ export default class TaskForm extends React.Component {
                 projectId: task.Selected.projectId,
                 period: (typeof task.Selected.period != "undefined" && task.Selected.period != "" && task.Selected.period != null) ? _.toNumber(task.Selected.period) : 0,
                 periodInstance: (typeof task.Selected.periodic != "undefined" && task.Selected.periodic == 1) ? 3 : 0,
-                status: (task.Selected.approvalRequired == 1 && (typeof task.Selected.status == "undefined" || task.Selected.status == "For Approval")) ? "For Approval" : task.Selected.status,
+                status: (task.Selected.approvalRequired == 1 && (typeof task.Selected.status == "undefined" || task.Selected.status == null || task.Selected.status == "For Approval")) ? "For Approval" : (task.Selected.status == null || task.Selected.status == "") ? "In Progress" : task.Selected.status,
                 dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD HH:mm:ss') : null
             };
 
@@ -297,6 +297,7 @@ export default class TaskForm extends React.Component {
                 });
             } else {
                 postData(`/api/task`, submitData, (c) => {
+                    console.log(c)
                     if (c.status == 200) {
                         const {
                             id,
@@ -311,9 +312,9 @@ export default class TaskForm extends React.Component {
                             workstream,
                             task,
                             task_members,
+                            checklist,
                             description
                         } = { ...c.data[0] };
-
                         dispatch({
                             type: "SET_TASK_SELECTED", Selected: {
                                 id,
@@ -328,7 +329,9 @@ export default class TaskForm extends React.Component {
                                 periodType,
                                 projectId,
                                 task,
-                                workstreamId: workstream.id
+                                workstream,
+                                workstreamId: workstream.id,
+                                checklist
                             }
                         });
                         this.getTaskDetails();

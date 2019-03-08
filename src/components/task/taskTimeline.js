@@ -20,69 +20,51 @@ export default class TaskTimeline extends React.Component {
 
 		this.state = {
 			count: {},
-			loading: ""
+			loading: "",
+			chart_height: 41
 		};
 
 		_.map([
 			"deleteData",
 			"updateStatus",
-			"fetchData"
+			"getList"
 		], (fn) => { this[fn] = this[fn].bind(this) });
 	}
 
 	componentDidMount() {
-		this.setState({ loading: "RETRIEVING" }, () => this.fetchData(1));
+		this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
 	}
 
-	fetchData(page) {
-		const { dispatch, project_id, workstream_id } = this.props;
-		let requestUrl = `/api/task?projectId=${project_id}&workstreamId=${workstream_id}&page=${page}&listType=timeline`;
-		// const { taskStatus, dueDate, taskAssigned } = task.Filter;
+	componentWillUnmount() {
+		const { dispatch } = this.props;
+		dispatch({
+			type: "SET_TASK_TIMELINE",
+			list: []
+		});
+	}
 
-		// if (taskStatus != "") {
-		// 	if (taskStatus === "Active") {
-		// 		requestUrl += `&status=${JSON.stringify({
-		// 			opt: "not",
-		// 			value: "Completed"
-		// 		})}`;
-		// 	} else {
-		// 		requestUrl += `&status=${JSON.stringify({
-		// 			opt: "eq",
-		// 			value: taskStatus
-		// 		})}`;
-		// 	}
-		// }
-
-		// if (dueDate != "") {
-		// 	requestUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: dueDate })}`;
-		// }
-
-		// if (taskAssigned != "" && taskAssigned.length > 0) {
-		// 	taskAssigned.map(assignedObj => {
-		// 		requestUrl += `&userId=${assignedObj.value}`;
-		// 	});
-		// } else if (loggedUser.data.user_role[0].roleId >= 3) {
-		// 	requestUrl += `&userId=${loggedUser.data.id}`;
-		// }
-
-		// if (workstream.SelectedLink == "timeline") {
-		// 	requestUrl += `&workstreamId=${workstream.Selected.id}`;
-		// }
+	getList(page) {
+		const { dispatch, workstream_id } = this.props;
+		let requestUrl = `/api/task?workstreamId=${workstream_id}&page=${page}&listType=timeline`;
 
 		getData(requestUrl, {}, (c) => {
-			this.setState({ loading: false }, () => {
+			const { chart_height } = { ...this.state };
+			const { task } = { ...this.props };
+			const { Timeline } = task;
+			const taskStack = [...Timeline, ...c.data.result];
+
+			this.setState({ loading: false, count: c.data.count, chart_height: chart_height * (taskStack).length }, () => {
 				dispatch({
 					type: "SET_TASK_TIMELINE",
-					list: c.data.result
+					list: taskStack
 				});
 			});
 		});
 	}
 
-	getNextResult() {
-		const { task } = { ...this.props };
-		const { Count } = task;
-		this.fetchData(Count.current_page + 1, true);
+	getNext() {
+		const { count } = { ...this.state };
+		this.setState({ loading: "RETRIEVING" }, () => this.getList(count.current_page + 1));
 	}
 
 	updateStatus({ id, periodTask, periodic }) {
@@ -97,7 +79,7 @@ export default class TaskTimeline extends React.Component {
 				id,
 				status: "Completed"
 			},
-			c => {
+			(c) => {
 				if (c.status == 200) {
 					dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
 					showToast("success", "Task successfully updated.");
@@ -127,7 +109,7 @@ export default class TaskTimeline extends React.Component {
 	render() {
 		const { task } = { ...this.props };
 		const { Timeline } = task;
-		const { loading } = { ...this.state };
+		const { loading, count, chart_height } = { ...this.state };
 		const chartLabel = [
 			{ type: 'string', id: 'Date' },
 			{ type: 'string', id: 'Task Name' },
@@ -146,27 +128,43 @@ export default class TaskTimeline extends React.Component {
 			];
 		});
 		const chartData = [...[chartLabel], ...taskData]
+		const currentPage = (typeof count.current_page != "undefined") ? count.current_page : 1;
+		const lastPage = (typeof count.last_page != "undefined") ? count.last_page : 1;
 
 		return (
 			<div class="card">
 				<div class="card-header">
-					<h4>Timeline</h4>
+					<div class="row content-row">
+						<div class="col-md-6 col-sm-6 col-xs-12">
+							<h4>Timeline</h4>
+						</div>
+						<div class="col-md-6 col-sm-6 col-xs-12">
+						</div>
+					</div>
 				</div>
 				<div class={(loading == "RETRIEVING" && (Timeline).length == 0) ? "linear-background" : ""}>
 					<div class="card-body m0">
 						<div class="mt20">
-							<Chart
-								width={'100%'}
-								height={'auto'}
-								chartType="Timeline"
-								loader={<Loading />}
-								data={chartData}
-								options={
-									{
-										forceIFrame:false
+							{
+								((Timeline).length > 0) && <Chart
+									width={'100%'}
+									height={chart_height + 50}
+									chartType="Timeline"
+									loader={<Loading />}
+									data={chartData}
+									options={
+										{
+											forceIFrame: false
+										}
 									}
-								}
-							/>
+								/>
+							}
+							{
+								((Timeline).length == 0 && loading != "RETRIEVING") && <p class="text-center"><strong>No Records Found</strong></p>
+							}
+							{
+								(currentPage != lastPage && loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNext()}>Load More Tasks</a></p>
+							}
 						</div>
 					</div>
 				</div>

@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
 
-import TaskFilter from "./taskFilter";
+import MyTaskFilters from "./myTaskFilters";
 import TaskListCategory from "../task/taskListCategory";
 import TaskDetails from "../task/taskDetails";
 
@@ -14,25 +14,27 @@ import TaskDetails from "../task/taskDetails";
 })
 export default class MyTaskList extends React.Component {
     render() {
+        const { loggedUser } = this.props;
+        
         return (
             <div>
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="mb20 bb">
-                                <TaskFilter />
+                                <MyTaskFilters />
                             </div>
                             <div class="mt40 mb40">
-                                <TaskListCategory date="Today" />
+                                <TaskListCategory date="Today" user_id={loggedUser.data.id} />
                             </div>
                             <div class="mb40">
-                                <TaskListCategory date="This week" />
+                                <TaskListCategory date="This week" user_id={loggedUser.data.id} />
                             </div>
                             <div class="mb40">
-                                <TaskListCategory date="This month" />
+                                <TaskListCategory date="This month" user_id={loggedUser.data.id} />
                             </div>
                             <div class="mb40">
-                                <TaskListCategory date="Succeeding month" />
+                                <TaskListCategory date="Succeeding month" user_id={loggedUser.data.id} />
                             </div>
                             <div>
                                 <TaskListCategory />
@@ -40,7 +42,7 @@ export default class MyTaskList extends React.Component {
                         </div>
                     </div>
                 </div>
-                <TaskDetails/>
+                <TaskDetails />
             </div>
         );
     }

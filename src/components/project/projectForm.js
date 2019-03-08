@@ -435,8 +435,8 @@ export default class ProjectForm extends React.Component {
                                 (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") &&
                                 <div class="bt">
                                     <div class="mt20 mb20">
-                                        <WorkstreamForm project_id={project.Selected.id} />
-                                        <WorkstreamList />
+                                        <WorkstreamForm project_id={project.Selected.id} is_card={false} />
+                                        <WorkstreamList is_card={false} />
                                     </div>
                                 </div>
                             }

@@ -69,17 +69,21 @@ export default class Component extends React.Component {
     renderList({ id, title, workstream = "" }) {
         return (
             <div class="starred">
-                <p class="mb0 title">
+                <div class="action-link">
                     <a class="mr10" onClick={() => this.removeStarred(id)}>
                         <span>
                             <i title="FAVORITE" class="fa fa-star text-yellow" aria-hidden="true"></i>
                         </span>
                     </a>
-                    {title}
-                </p>
-                {
-                    (workstream != "") && <p class="ml40">{workstream}</p>
-                }
+                    <div>
+                        <p class="mb0 title">
+                            {title}
+                        </p>
+                        {
+                            (workstream != "") && <p class="ml40">{workstream}</p>
+                        }
+                    </div>
+                </div>
             </div>
         )
     }

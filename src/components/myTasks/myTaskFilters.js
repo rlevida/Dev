@@ -9,12 +9,32 @@ import _ from "lodash";
     }
 })
 
-export default class TaskFilter extends React.Component {
+export default class MyTaskFilters extends React.Component {
     constructor(props) {
         super(props);
 
         _.map(["setTaskList"], (fn) => {
             this[fn] = this[fn].bind(this);
+        });
+    }
+
+    componentDidMount() {
+        const { dispatch } = this.props;
+        dispatch({ type: "SET_TASK_FILTER", filter: { type: "assignedToMe" } });
+    }
+
+    componentWillUnmount() {
+        const { dispatch } = this.props;
+        dispatch({
+            type: "SET_TASK_FILTER", filter: {
+                taskStatus: "Active",
+                dueDate: "",
+                taskAssigned: "",
+                task: "",
+                selected_month: "",
+                projectId: "",
+                type: ""
+            }
         });
     }
 

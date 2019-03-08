@@ -107,11 +107,10 @@ export default class TaskCalendar extends React.Component {
                                 (Loading != "RETRIEVING") && <BigCalendar
                                     events={calendarTasks}
                                     defaultView='month'
-                                    views={['month', 'week']}
+                                    views={['month', 'week', 'day']}
                                     scrollToTime={new Date(1970, 1, 1, 6)}
                                     defaultDate={new Date()}
                                     onSelectEvent={this.openTaskDetails}
-                                    onSelectSlot={(slotInfo) => { console.log("called") }}
                                     eventPropGetter={(this.eventStyleGetter)}
                                     onNavigate={this.handleNavigate}
                                 />
