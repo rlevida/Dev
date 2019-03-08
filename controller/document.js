@@ -104,7 +104,7 @@ exports.get = {
         const queryString = req.query;
         const limit = 10;
         const options = {
-            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+            ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
             order: [['dateAdded', 'DESC']]
         };
         const documentLinkWhereObj = {
@@ -114,9 +114,11 @@ exports.get = {
         };
         let documentWhereObj = {
             ...(typeof queryString.status != "undefined" && queryString.status != "") ? { status: queryString.status } : {},
+            ...(typeof queryString.type != "undefined" && queryString.type != "") ? { type: queryString.type } : {},
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
             ...((typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "")) ? { folderId: (queryString.folderId == 'null') ? null : queryString.folderId } : {},
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
+            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {},
             ...(typeof queryString.uploadFrom != "undefined" && typeof queryString.uploadTo != "undefined" && queryString.uploadFrom != "" && queryString.uploadTo != "" && queryString.uploadFrom != "undefined" && queryString.uploadTo != "undefined")
                 ? { dateAdded: { [Op.between]: [moment(queryString.uploadFrom).add(8, 'hours').toDate(), moment(queryString.uploadTo).add(8, 'hours').toDate()] } } : {},
             ...(typeof queryString.userType != "undefined" && queryString.userType == "External") ? {
@@ -168,7 +170,6 @@ exports.get = {
                     { emailAddress: { [Op.like]: `%${queryString.uploadedBy}%` } },
                 ]
             };
-            console.log(`true`)
             _.find(associationFindAllStack, { as: 'user' }).required = true;
         } else {
             delete _.find(associationFindAllStack, { as: 'user' }).required;
@@ -237,9 +238,9 @@ exports.get = {
                         .map((res) => {
                             let resToReturn = {
                                 ...res.document.toJSON(),
-                                tags: res.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                    .concat(res.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
-                                    .concat(res.document.tagDocumentNotes.map((e) => { return { value: `notes-${e.TagNotes.id}`, label: e.TagNotes.note } })),
+                                tagWorkstream: res.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
+                                tagTask: res.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
+                                tagNote: res.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                                 members: res.document.share.map((e) => { return e.user }),
                                 share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
                                 isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (res.document.document_starred).length > 0) ? res.document.document_starred[0].isActive : 0
@@ -385,9 +386,9 @@ exports.get = {
                             .map((res) => {
                                 let resToReturn = {
                                     ...res.toJSON(),
-                                    tags: res.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                        .concat(res.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
-                                        .concat(res.tagDocumentNotes.map((e) => { return { value: `notes-${e.TagNotes.id}`, label: e.TagNotes.note } })),
+                                    tagWorkstream: res.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
+                                    tagTask: res.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
+                                    tagNote: res.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                                     members: res.share.map((e) => { return e.user }),
                                     share: JSON.stringify(res.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
                                     isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (res.document_starred).length > 0) ? res.document_starred[0].isActive : 0
@@ -414,18 +415,21 @@ exports.get = {
 
 exports.post = {
     index: (req, cb) => {
+
         const data = req.body;
-        const projectId = req.body[0].project;
+        const projectId = data.projectId;
+        const folderId = data.folderId;
         const isDuplicate = req.query.isDuplicate;
 
         sequence.create().then((nextThen) => {
-            async.map(data, (e, mapCallback) => {
+            async.map(data.DocumentToSave, (e, mapCallback) => {
                 let whereObj = {
                     ...(typeof e.origin != "undefined" && e.origin != "") ? { origin: e.origin } : {},
-                    ...(typeof e.folderId != "undefined" && e.folderId != "") ? { folderId: e.folderId } : { folderId: null },
+                    ...(typeof folderId != "undefined" && folderId != "") ? { folderId: folderId } : { folderId: null },
                     ...(typeof e.status != "undefined" && e.status != "") ? { status: e.status } : {},
                     ...(typeof e.type != "undefined" && e.type != "") ? { type: e.type } : {}
                 }
+                console.log(whereObj)
                 try {
                     Document
                         .findAll({
@@ -455,10 +459,9 @@ exports.post = {
 
         }).then((nextThen, result) => {
             async.map(result, (e, mapCallback) => {
-                let tags = e.tags
-                delete e.tags
+                const documentObj = { ...e, folderId: typeof folderId !== "undefined" ? folderId : null }
                 Document
-                    .create(e)
+                    .create(documentObj)
                     .then((res) => {
                         async.parallel({
                             documentLink: (parallelCallback) => {
@@ -478,11 +481,11 @@ exports.post = {
                                 }
                             },
                             documentTag: (parallelCallback) => {
-                                if (typeof tags != "undefined") {
-                                    async.map(JSON.parse(tags), (t, tagMapCallback) => {
+                                if (typeof data.tagWorkstream !== "undefined") {
+                                    async.map(data.tagWorkstream, (t, tagMapCallback) => {
                                         let tagData = {
-                                            linkType: t.value.split("-")[0],
-                                            linkId: t.value.split("-")[1],
+                                            linkType: 'workstream',
+                                            linkId: t.value,
                                             tagType: "document",
                                             tagTypeId: res.dataValues.id,
                                             projectId: projectId
@@ -561,9 +564,9 @@ exports.post = {
                     .map((res) => {
                         let resToReturn = {
                             ...res.document.toJSON(),
-                            tags: res.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                .concat(res.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
-                                .concat(res.document.tagDocumentNotes.map((e) => { return { value: `notes-${e.TagNotes.id}`, label: e.TagNotes.note } })),
+                            tagWorkstream: res.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
+                            tagTask: res.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
+                            tagNote: res.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                             members: res.document.share.map((e) => { return e.user }),
                             share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
                         }
@@ -715,10 +718,13 @@ exports.put = {
         const whereObj = {
             ...(typeof body.origin !== 'undefined' && body.origin !== '') ? { origin: body.origin } : {},
             ...(typeof body.folderId !== 'undefined' && body.folderId !== '') ? { folderId: body.folderId } : {},
-            ...(typeof body.status !== 'undefined' && body.status !== '') ? { status: body.status } : {}
+            ...(typeof body.status !== 'undefined' && body.status !== '') ? { status: body.status } : {},
         }
+
         sequence.create().then((nextThen) => {
-            if (typeof body.isDeleted == 'undefined') {
+            if (typeof body.isDeleted !== 'undefined' && typeof body.isArchived !== 'undefined') {
+                nextThen()
+            } else {
                 Document
                     .findAll({
                         where: whereObj,
@@ -733,8 +739,6 @@ exports.put = {
                         }
                         nextThen()
                     })
-            } else {
-                nextThen()
             }
         }).then((nextThen) => {
             try {
@@ -756,9 +760,9 @@ exports.put = {
                                         .then((findRes) => {
                                             let resToReturn = {
                                                 ...findRes.document.toJSON(),
-                                                tags: findRes.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                                    .concat(findRes.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
-                                                    .concat(findRes.document.tagDocumentNotes.map((e) => { return { value: `notes-${e.TagNotes.id}`, label: e.TagNotes.note } })),
+                                                tagWorkstream: findRes.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
+                                                tagTask: findRes.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
+                                                tagNote: findRes.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                                                 members: findRes.document.share.map((e) => { return e.user }),
                                                 share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
                                             }
@@ -835,18 +839,18 @@ exports.put = {
                 Tag.destroy({
                     where: tagWhereObj
                 }).then(res => {
-                    nextThen(body.tags)
+                    nextThen()
                 })
             } catch (err) {
                 cb({ status: false, error: err })
             }
         }).then((nextThen, data) => {
-            if (JSON.parse(data).length > 0) {
-                async.map(JSON.parse(data), (e, mapCallback) => {
+            if (body.tagWorkstream.length > 0) {
+                async.map(body.tagWorkstream, (e, mapCallback) => {
                     let tagData = {
                         ...tagWhereObj,
-                        linkType: e.value.split("-")[0],
-                        linkId: e.value.split("-")[1],
+                        linkType: 'workstream',
+                        linkId: e.value,
                     }
                     Tag.create(tagData)
                         .then(res => {
@@ -879,9 +883,9 @@ exports.put = {
                             }).then((res) => {
                                 let resToReturn = {
                                     ...res.document.toJSON(),
-                                    tags: res.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                        .concat(res.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
-                                        .concat(res.document.tagDocumentNotes.map((e) => { return { value: `notes-${e.TagNotes.id}`, label: e.TagNotes.note } })),
+                                    tagWorkstream: res.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
+                                    tagTask: res.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
+                                    tagNote: res.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                                     members: res.document.share.map((e) => { return e.user }),
                                     share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
                                 }
@@ -980,9 +984,9 @@ exports.put = {
                                     .then((findRes) => {
                                         let dataToReturn = {
                                             ...findRes.document.toJSON(),
-                                            tags: findRes.document.tagDocumentWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })
-                                                .concat(findRes.document.tagDocumentTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } }))
-                                                .concat(findRes.document.tagDocumentNotes.map((e) => { return { value: `notes-${e.TagNotes.id}`, label: e.TagNotes.note } })),
+                                            tagWorkstream: findRes.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
+                                            tagTask: findRes.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
+                                            tagNote: findRes.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                                             members: findRes.document.share.map((e) => { return e.user }),
                                             share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
                                         }
@@ -1032,6 +1036,40 @@ exports.put = {
                     })
                 })
         })
+    },
+    readOn: (req, cb) => {
+        let body = req.body;
+        const id = req.params.id;
+        const queryString = req.query;
+        try {
+            Document
+                .update(body, { where: { id: id } })
+                .then((res) => {
+                    DocumentLink
+                        .findOne({
+                            where: { documentId: id },
+                            include: [{
+                                model: Document,
+                                as: 'document',
+                                include: associationFindAllStack
+                            }]
+                        })
+                        .then((findRes) => {
+                            let resToReturn = {
+                                ...findRes.document.toJSON(),
+                                tagWorkstream: findRes.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
+                                tagTask: findRes.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
+                                tagNote: findRes.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
+                                members: findRes.document.share.map((e) => { return e.user }),
+                                share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (findRes.document.document_starred).length > 0) ? findRes.document.document_starred[0].isActive : 0
+                            }
+                            cb({ status: true, data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
+                        })
+                })
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
     }
 }
 

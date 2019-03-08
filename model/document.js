@@ -52,6 +52,11 @@ var field = exports.field = {
          */
         'attachmentId': {type : 'int' , access : "public"},
         
+        /**
+         * readOn (DATETIME)
+         */
+        
+        'readOn' : {type : 'date' , access : "public" },
          /**
          * dateAdded (DATETIME)
          */

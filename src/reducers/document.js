@@ -20,12 +20,17 @@ export default function reducer(state = {
     LibraryCount: { Count: {} },
     TrashCount: { Count: {} },
     NewUploadCount: 0,
-    Filter: {},
+    Filter: {
+        isArchived: 'all'
+    },
     Status: {
         new: 0,
         library: 0
     },
-    ActiveTab: 'document'
+    ActiveTab: 'document',
+    DocumentToSave: [],
+    DocumentUploadLoading: false,
+    Files:[]
 
 }, action) {
     switch (action.type) {
@@ -104,6 +109,15 @@ export default function reducer(state = {
         }
         case "SET_DOCUMENT_ACTIVE_TAB": {
             return { ...state, ActiveTab: action.active }
+        }
+        case "SET_DOCUMENT_TO_SAVE":{
+            return { ...state, DocumentToSave: action.DocumentToSave }
+        }
+        case "SET_DOCUMENT_UPLOAD_LOADING":{
+            return { ...state, DocumentUploadLoading: action.Loading }
+        }
+        case "SET_DOCUMENT_FILES":{
+            return { ...state, Files : action.Files }
         }
         case "UPDATE_DATA_DOCUMENT_LIST": {
             if (action.Status == "new") {

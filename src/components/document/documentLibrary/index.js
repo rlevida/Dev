@@ -109,12 +109,13 @@ export default class DocumentLibrary extends React.Component {
                 requestUrl += `&members=${e.value}`
             })
         }
-        if (typeof uploadFrom !== 'undefiend' && uploadFrom !== '') {
+        if (typeof uploadFrom !== 'undefined' && uploadFrom !== '') {
             requestUrl += `&uploadFrom=${uploadFrom}`
         }
-        if (typeof uploadTo !== 'undefiend' && uploadTo !== '') {
+        if (typeof uploadTo !== 'undefined' && uploadTo !== '') {
             requestUrl += `&uploadTo=${uploadTo}`
         }
+
         getData(requestUrl, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_DOCUMENT_LIST", list: document.Library.concat(c.data.result), DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
@@ -166,6 +167,7 @@ export default class DocumentLibrary extends React.Component {
     moveTo(folderData, documentData) {
         let { dispatch, loggedUser } = this.props;
         let dataToSubmit = {
+            origin: documentData.origin,
             status: folderData.status,
             folderId: folderData.id,
             actionType: "moved",
@@ -242,21 +244,6 @@ export default class DocumentLibrary extends React.Component {
         return (
             <div>
                 <div class="col-lg-12 col-md-12">
-                    <h3>
-                        <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>Library</a>
-                        {folder.SelectedLibraryFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
-                    </h3>
-                    {(this.state.folderAction == "") &&
-                        <div class="row mb10">
-                            <div class="col-lg-2">
-                                <div class="col-md-4 mb5">
-                                    <div class="mt20">
-                                        <a href="javascript:void(0)" title="New Folder" style={{ textDecoration: "none" }} onClick={() => this.setState({ folderAction: "create" })}><span class="fa fa-folder fa-3x"></span></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
                     {(this.state.folderAction == "create") &&
                         <form class="form-inline">
                             <div class="form-group">
@@ -266,19 +253,22 @@ export default class DocumentLibrary extends React.Component {
                             </div>
                         </form>
                     }
-                    <table id="dataTable" class="table responsive-table table-bordered document-table" ref={el => (this.componentRef = el)}>
+                    <table class="table-document" cellpadding="0" cellspacing="0">
                         <tbody>
                             <tr>
+                                <th style={{ width: '5%' }}></th>
+                                {/* <th></th>
                                 <th></th>
-                                <th></th>
-                                <th></th>
-                                <th><i class="fa fa-caret-down m10"></i> <a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>Name</a></th>
-                                <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateUpdated')}>Modified</a></th>
-                                <th><i class="fa fa-caret-down m10"></i>Members</th>
-                                <th><i class="fa fa-caret-down m10"></i>Tags</th>
-                                <th></th>
+                                <th></th> */}
+                                {/* <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>File Name</a></th> */}
+                                {/* <th style={{ textAlign:'left' }}>File Name</th> */}
+                                {/* <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateAdded')}>Uploaded By</a></th> */}
+                                {/* <th>Uploaded By</th>
+                                <th>Uploaded Date</th>
+                                <th>Workstream</th>
+                                <th>Read On</th>
+                                <th>Actions</th> */}
                             </tr>
-
                             {(document.LibraryDocumentLoading != "RETRIEVING") &&
                                 document.Library.map((data, index) => {
                                     return (
@@ -302,9 +292,9 @@ export default class DocumentLibrary extends React.Component {
                             ((currentPage != lastPage) && document.Library.length > 0 && document.LibraryDocumentLoading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
                         }
                     </div>
-                    {
+                    {/* {
                         (document.LibraryDocumentLoading == "RETRIEVING") && <Loading />
-                    }
+                    } */}
                 </div>
             </div>
         )

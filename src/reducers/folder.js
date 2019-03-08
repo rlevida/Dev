@@ -3,6 +3,7 @@ export default function reducer(state = {
     FormActive: "List",
     Selected: {},
     SelectedId: [],
+    SelectList: [],
     EditType: "",
     SelectedLibraryFolder: {},
     SelectedLibraryFolderName: [],
@@ -27,9 +28,6 @@ export default function reducer(state = {
         case "SET_FOLDER_LIST": {
             return { ...state, List: action.list }
         }
-        // case "SET_DOCUMENT_FORM_ACTIVE": {
-        //     return { ...state, FormActive: action.FormActive }
-        // }
         case "SET_FOLDER_SELECTED": {
             return { ...state, [action.Type]: action.Selected }
         }
@@ -42,21 +40,9 @@ export default function reducer(state = {
         case "SET_SELECTED_FOLDER_NAME": {
             return { ...state, [action.Type]: action.List }
         }
-        // case "SET_DOCUMENT_ID": {
-        //     return { ...state, SelectedId: action.SelectedId }
-        // }
-        // case "SET_DOCUMENT_STATUS": {
-        //     let List = state.List.map((e,i)=>{
-        //             if(e.id == action.record.id){
-        //                 e.Active = action.record.status
-        //                 return e
-        //             }else{
-        //                 return e
-        //             }
-        //         })
-        //     return {...state, List: List }
-        // }
-
+        case "SET_FOLDER_SELECT_LIST": {
+            return { ...state, SelectList: action.List }
+        }
         // //UPDATE
         case "UPDATE_DATA_FOLDER_LIST": {
             let tempList = state.List.map((e, i) => {
@@ -67,7 +53,6 @@ export default function reducer(state = {
             })
             return { ...state, List: tempList }
         }
-
         // //REMOVE
         case "REMOVE_DELETED_FOLDER_LIST": {
             let tempList = [];
@@ -78,7 +63,6 @@ export default function reducer(state = {
             })
             return { ...state, List: tempList }
         }
-
         default:
             return state;
     }
