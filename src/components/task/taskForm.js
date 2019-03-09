@@ -297,7 +297,6 @@ export default class TaskForm extends React.Component {
                 });
             } else {
                 postData(`/api/task`, submitData, (c) => {
-                    console.log(c)
                     if (c.status == 200) {
                         const {
                             id,

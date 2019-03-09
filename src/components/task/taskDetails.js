@@ -19,7 +19,7 @@ export default class TaskDetails extends React.Component {
             "completeChecklist",
             "completeTask",
             "starredTask",
-            "handleAction",
+            "editTask",
             "confirmDelete",
             "followTask"
         ], (fn) => {
@@ -27,33 +27,18 @@ export default class TaskDetails extends React.Component {
         })
     }
 
-    handleAction(type) {
+    editTask() {
         const { dispatch } = { ...this.props };
         const { task } = { ...this.props };
         const { dueDate, startDate } = task.Selected;
+        const toBeUpdatedObject = {
+            ...task.Selected,
+            dueDate: (dueDate != null) ? moment(dueDate).format("YYYY MMM DD") : null,
+            startDate: (startDate != null) ? moment(startDate).format("YYYY MMM DD") : null
+        };
 
-        switch (type) {
-            case "edit":
-                const toBeUpdatedObject = {
-                    ...task.Selected,
-                    dueDate: (dueDate != null) ? moment(dueDate).format("YYYY MMM DD") : null,
-                    startDate: (startDate != null) ? moment(startDate).format("YYYY MMM DD") : null
-                };
-
-                dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
-                dispatch({ type: "SET_TASK_SELECTED", Selected: toBeUpdatedObject });
-                break;
-            case "delete":
-                $(`#delete-task`).modal("show");
-                break;
-            case "status":
-                this.completeTask();
-                break;
-            case "starred":
-                this.starredTask();
-                break;
-            default:
-        }
+        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
+        dispatch({ type: "SET_TASK_SELECTED", Selected: toBeUpdatedObject });
     }
 
     completeChecklist(id) {
@@ -80,11 +65,11 @@ export default class TaskDetails extends React.Component {
 
     }
 
-    completeTask() {
+    completeTask(status) {
         const { task, dispatch, loggedUser } = { ...this.props };
         const { Selected } = task;
-        const { status, periodTask, periodic, id } = Selected;
-        const taskStatus = (Selected.status == "For Approval" || Selected.status == "Completed") ? "In Progress" : "Completed";
+        const { periodTask, periodic, id } = Selected;
+        const taskStatus = status;
 
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus }, (c) => {
             if (c.status == 200) {
@@ -154,11 +139,15 @@ export default class TaskDetails extends React.Component {
             });
         } else {
             putData(`/api/member/${id}`, { isDeleted: 1 }, (c) => {
-                if (c.status == 200) {
+               if (c.status == 200) {
                     const remainingMembers = _.remove(task_members, function (o) {
                         return o.id != id;
                     });
+                    const followingTasks = _.remove(task.List, (o) => {
+                        return o.id != remainingMembers[0].linkId;
+                    });
                     dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, task_members: remainingMembers } });
+                    dispatch({ type: "SET_TASK_LIST", list: followingTasks });
                     showToast("success", "Task successfully updated.");
                 } else {
                     showToast("success", "Something went wrong. Please try again later.");
@@ -172,6 +161,7 @@ export default class TaskDetails extends React.Component {
         const { Loading, Selected } = taskObj;
         const { id, task, task_members, dueDate, workstream, status, description, checklist } = Selected;
         const assigned = _.filter(task_members, (o) => { return o.memberType == "assignedTo" });
+        const isAssignedToMe = _.find(task_members, (o) => { return o.memberType == "assignedTo" && o.user.id == loggedUser.data.id });
         const approver = _.filter(task_members, (o) => { return o.memberType == "approver" });
         const isFollower = _.find(task_members, (o) => { return o.memberType == "follower" && o.user.id == loggedUser.data.id }) || {};
         const typeValue = (typeof Selected.task != "undefined" && _.isEmpty(Selected) == false) ? Selected.task : "";
@@ -190,27 +180,58 @@ export default class TaskDetails extends React.Component {
                                 </a>
                                 <div class="row mt20 content-row">
                                     <div class="col-md-6 modal-action">
-                                        {
-                                            ((typeof Selected.approverId != "undefined" || Selected.status != "For Approval")) &&
-                                            <a class="btn btn-default" onClick={() => this.handleAction("status")}>
-                                                <span>
-                                                    <i class={`fa mr10 ${(Selected.status != "Completed") ? "fa-check" : "fa-ban"}`} aria-hidden="true"></i>
-                                                    {`${(Selected.status == "For Approval") ? "Approve" : (Selected.status == "Completed") ? "Uncomplete" : "Complete"}`}
-                                                </span>
-                                            </a>
-                                        }
-
+                                        <div>
+                                            <div>
+                                                {
+                                                    (
+                                                        ((Selected.approverId == loggedUser.data.id && Selected.status == "For Approval") ||
+                                                        (typeof isAssignedToMe != "undefined" && Selected.status != "For Approval")) &&
+                                                        (Selected.status == "For Approval" || Selected.status == "In Progress")
+                                                    ) &&
+                                                    <a class="btn btn-default mr5" onClick={() => this.completeTask((Selected.status == "For Approval") ? "In Progress" : "Completed")}>
+                                                        <span>
+                                                            <i class={`fa mr10 ${(Selected.status != "Completed") ? "fa-check" : "fa-ban"}`} aria-hidden="true"></i>
+                                                            {`${(Selected.status == "For Approval") ? "Approve" : (Selected.status == "Completed") ? "Uncomplete" : "Complete"}`}
+                                                        </span>
+                                                    </a>
+                                                }
+                                                {
+                                                    (typeof isAssignedToMe != "undefined" && Selected.status == "Completed") && <a class="btn btn-default" onClick={() => this.completeTask("In Progress")}>
+                                                        <span>
+                                                            <i class="fa mr10 fa-line-chart" aria-hidden="true"></i>
+                                                            In Progress
+                                                        </span>
+                                                    </a>
+                                                }
+                                                {
+                                                    (Selected.approverId == loggedUser.data.id && (Selected.status == "For Approval" || Selected.status == "In Progress")) && <a class="btn btn-default" onClick={() => this.completeTask("Rejected")}>
+                                                        <span>
+                                                            <i class="fa mr10 fa-ban" aria-hidden="true"></i>
+                                                            Reject
+                                                        </span>
+                                                    </a>
+                                                }
+                                                {
+                                                    (Selected.approverId == loggedUser.data.id && Selected.status == "Rejected") && <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
+                                                        <span>
+                                                            <i class="fa mr10 fa-check" aria-hidden="true"></i>
+                                                            For Approval
+                                                        </span>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="button-action">
-                                            <a class="logo-action text-grey" onClick={() => this.handleAction("starred")}>
+                                            <a class="logo-action text-grey" onClick={() => this.starredTask()}>
                                                 <i title="FAVORITE" class={`fa ${Selected.isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true"></i>
                                             </a>
                                             <a class="logo-action text-grey" onClick={() => this.followTask(isFollower)}>
                                                 <i title="FOLLOW" class={`fa ${_.isEmpty(isFollower) == false ? "fa-user-plus text-yellow" : "fa-user-plus"}`} aria-hidden="true"></i>
                                             </a>
-                                            <a data-dismiss="modal" onClick={() => this.handleAction("edit")} class="logo-action text-grey"><i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i></a>
-                                            <a data-dismiss="modal" onClick={() => this.handleAction("delete")} class="logo-action text-grey"><i title="DELETE" class="fa fa-trash-o" aria-hidden="true"></i></a>
+                                            <a data-dismiss="modal" onClick={() => this.editTask()} class="logo-action text-grey"><i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i></a>
+                                            <a data-dismiss="modal" onClick={() => { $(`#delete-task`).modal("show"); }} class="logo-action text-grey"><i title="DELETE" class="fa fa-trash-o" aria-hidden="true"></i></a>
                                         </div>
                                     </div>
                                 </div>
@@ -254,7 +275,7 @@ export default class TaskDetails extends React.Component {
                                                         <p class="m0">
                                                             {
                                                                 (approver.length > 0) ?
-                                                                    _.map(assigned, (member, index) => {
+                                                                    _.map(approver, (member, index) => {
                                                                         const { user } = member;
                                                                         return (
                                                                             <span key={index}>{user.firstName + " " + user.lastName}</span>

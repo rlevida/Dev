@@ -137,22 +137,24 @@ export default class TaskListCategory extends React.Component {
     }
 
     renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask }) {
-        const { task, workstream_id = "" } = { ...this.props };
+        const { task, workstream_id = "", loggedUser } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate, "YYYY-MM-DD");
         const current = moment().startOf('day');
         const { project } = workstream;
         let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
         daysRemaining = (daysRemaining == 0 && dueDate != "") ? 1 : daysRemaining;
+        const isAssignedToMe = _.find(task_members, (o) => { return o.memberType == "assignedTo" && o.user.id == loggedUser.data.id });
         const assigned = _(task_members)
             .filter((o) => { return o.memberType == "assignedTo" })
             .map((o) => { return o.user.firstName + " " + o.user.lastName })
             .value();
+
         return (
             <tr key={index}>
                 <td data-label="Task Name" class="td-left action-td">
                     {
-                        (status != "For Approval") && <a onClick={() => this.completeTask({ id, status, periodic, periodTask })}>
+                        (status != "For Approval" && status != "Rejected" && typeof isAssignedToMe != "undefined") && <a onClick={() => this.completeTask({ id, status, periodic, periodTask })}>
                             <span class={`fa mr10 ${(status != "Completed") ? "fa-circle-thin" : "fa-check-circle text-green"}`} title="Complete"></span>
                         </a>
                     }
