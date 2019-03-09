@@ -143,9 +143,7 @@ export default class TaskDetails extends React.Component {
                 linkId: task.Selected.id,
                 memberType: "follower"
             };
-            console.log("=========================")
             postData(`/api/member`, { data: memberData, includes: 'user' }, (c) => {
-                console.log(c.data)
                 if (c.status == 200) {
                     task_members.push(c.data);
                     dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, task_members } });
