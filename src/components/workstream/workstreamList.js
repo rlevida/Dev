@@ -110,7 +110,7 @@ export default class workstreamList extends React.Component {
                         ((workstream.List).length > 0) && <table class="mt20">
                             <thead>
                                 <tr>
-                                    <th scope="col">Workstream Name</th>
+                                    <th scope="col" class="td-left">Workstream Name</th>
                                     <th scope="col">Completion</th>
                                     <th scope="col">For Approval</th>
                                     <th scope="col">Issues</th>
@@ -126,7 +126,7 @@ export default class workstreamList extends React.Component {
                                             <tr
                                                 key={index}
                                             >
-                                                <td data-label="Workstream Name">
+                                                <td data-label="Workstream Name" class="td-left">
                                                     <p class="m0">
                                                         {((data.task).length > 0) ? this.renderStatus(data) : ""}
                                                         <Link to={`/projects/${project.Selected.id}/workstreams/${data.id}`}>{data.workstream}</Link>

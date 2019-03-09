@@ -66,7 +66,6 @@ export default class TaskListCategory extends React.Component {
     getList(page) {
         const { dispatch, date, task, workstream_id = "", user_id = "" } = this.props;
         const { Filter } = task;
-
         let fromDate = "";
         let toDate = "";
 
@@ -177,8 +176,8 @@ export default class TaskListCategory extends React.Component {
                         `${(dueDate != "" && dueDate != null) ? moment(dueDate).format("MMMM DD, YYYY") : "N/A"}`
                     }
                 </td>
-                <td data-label="Time Remaining" class={(daysRemaining == 1 && status != "Completed") ? "text-yellow" : (daysRemaining < 1 && status != "Completed") ? "text-red" : ""}>
-                    <p class="m0">
+                <td data-label="Time Remaining">
+                    <p class={`m0 ${(daysRemaining == 1 && status != "Completed") ? "text-yellow" : (daysRemaining < 1 && status != "Completed") ? "text-red" : ""}`}>
                         {
                             `${(dueDate != "" && dueDate != null && status != "Completed") ? Math.abs(daysRemaining) + `${(daysRemaining < 1) ? "  day(s) delayed" : " day(s)"}` : "N/A"}`
                         }

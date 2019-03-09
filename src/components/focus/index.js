@@ -80,7 +80,7 @@ export default class Component extends React.Component {
                             {title}
                         </p>
                         {
-                            (workstream != "") && <p class="ml40">{workstream}</p>
+                            (workstream != "") && <p class="ml20">{workstream}</p>
                         }
                     </div>
                 </div>

@@ -220,7 +220,7 @@ exports.get = {
                         opOrArray.push(
                             {
                                 id: {
-                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids} AND memberType = "Follower")`)
+                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids} AND memberType = "follower")`)
                                 }
                             }
                         );
@@ -261,7 +261,8 @@ exports.get = {
                 try {
                     Tasks.findAll({
                         where: whereObj,
-                        ...options
+                        ...options,
+                        logging:true
                     }).map((mapObject) => {
                         const responseData = mapObject.toJSON();
                         const assignedTaskMembers = _.filter(responseData.task_members, (member) => { return member.memberType == "assignedTo" });
@@ -341,7 +342,7 @@ exports.get = {
         const queryString = req.query;
 
         async.parallel({
-            assigned_to_me: () => {
+            assigned_to_me: (parallelCallback) => {
                 try {
                     Tasks.findAll({
                         group: ['projectId'],
@@ -349,6 +350,9 @@ exports.get = {
                             isDeleted: 0,
                             dueDate: {
                                 [Op.lte]: moment(queryString.date, 'YYYY-MM-DD')
+                            },
+                            status:{
+                                [Op.ne]: "Completed"
                             }
                         },
                         include: [{
@@ -367,14 +371,49 @@ exports.get = {
                     }).map((response) => {
                         return response.toJSON();
                     }).then((response) => {
-                        console.log(response)
-                    })
+                        parallelCallback(null, response);
+                    });
                 } catch (err) {
-                    callback(err)
+                    parallelCallback(err)
                 }
+            },
+            following: (parallelCallback) => {
+                Tasks.findAll({
+                    group: ['projectId'],
+                    where: {
+                        isDeleted: 0,
+                        dueDate: {
+                            [Op.lte]: moment(queryString.date, 'YYYY-MM-DD')
+                        },
+                        status:{
+                            [Op.ne]: "Completed"
+                        }
+                    },
+                    include: [{
+                        attributes: [],
+                        model: Members,
+                        as: 'task_members',
+                        required: true,
+                        where: { linkType: 'task', usersType: 'users', userTypeLinkId: queryString.userId, isDeleted: 0, memberType: "follower" },
+                    }],
+                    attributes: [
+                        'projectId',
+                        [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
+                        [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today']
+                    ],
+                    logging: true
+                }).map((response) => {
+                    return response.toJSON();
+                }).then((response) => {
+                    parallelCallback(null, response);
+                });
             }
-        }, (error, response) => {
-
+        }, (err, response) => {
+            if (err != null) {
+                cb({ status: false, data: err });
+            } else {
+                cb({ status: true, data: response })
+            }
         })
     },
     projectTaskStatus: (req, cb) => {

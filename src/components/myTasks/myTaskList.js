@@ -15,7 +15,6 @@ import TaskDetails from "../task/taskDetails";
 export default class MyTaskList extends React.Component {
     render() {
         const { loggedUser } = this.props;
-        
         return (
             <div>
                 <div class="row">
@@ -37,7 +36,7 @@ export default class MyTaskList extends React.Component {
                                 <TaskListCategory date="Succeeding month" user_id={loggedUser.data.id} />
                             </div>
                             <div>
-                                <TaskListCategory />
+                                <TaskListCategory user_id={loggedUser.data.id}/>
                             </div>
                         </div>
                     </div>

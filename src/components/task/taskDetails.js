@@ -174,8 +174,6 @@ export default class TaskDetails extends React.Component {
         const assigned = _.filter(task_members, (o) => { return o.memberType == "assignedTo" });
         const approver = _.filter(task_members, (o) => { return o.memberType == "approver" });
         const isFollower = _.find(task_members, (o) => { return o.memberType == "follower" && o.user.id == loggedUser.data.id }) || {};
-        console.log(task_members)
-        console.log(_.find(task_members, (o) => { return o.memberType == "follower" && o.user.id == loggedUser.data.id }))
         const typeValue = (typeof Selected.task != "undefined" && _.isEmpty(Selected) == false) ? Selected.task : "";
 
         return (

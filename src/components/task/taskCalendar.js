@@ -8,6 +8,7 @@ import { getData, showToast } from "../../globalFunction";
 
 
 BigCalendar.momentLocalizer(moment);
+let keyTimer = "";
 
 @connect((store) => {
     return {
@@ -65,7 +66,10 @@ export default class TaskCalendar extends React.Component {
 
     handleNavigate(e) {
         const selectedMonth = moment(e).startOf('month');
-        this.fetchData(selectedMonth);
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            this.fetchData(selectedMonth);
+        }, 1500);
     }
 
     openTaskDetails(e) {

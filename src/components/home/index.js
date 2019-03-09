@@ -1,5 +1,5 @@
 import React from "react";
-import TaskStatus from "../myTasks/taskStatus";
+import MyTaskStatus from "../myTasks/myTaskStatus";
 import ProjectSummary from "../project/projectSummary";
 
 export default class Component extends React.Component {
@@ -17,7 +17,7 @@ export default class Component extends React.Component {
                                 <h4>Tasks Due Today</h4>
                             </div>
                             <div class="card-body">
-                                <TaskStatus />
+                                <MyTaskStatus />
                             </div>
                         </div>
                     </div>
