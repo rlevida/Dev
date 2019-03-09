@@ -356,15 +356,12 @@ exports.get = {
                             model: Members,
                             as: 'task_members',
                             required: true,
-                            where: { linkType: 'task', usersType: 'users', userTypeLinkId: queryString.userId, isDeleted: 0 },
+                            where: { linkType: 'task', usersType: 'users', userTypeLinkId: queryString.userId, isDeleted: 0, memberType: "assignedTo" },
                         }],
                         attributes: [
                             'projectId',
-                            [Sequelize.fn('count', {
-                                dueDate: {
-                                    [Op.eq]: moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")
-                                }
-                            }), 'due_today_task']
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today']
                         ],
                         logging: true
                     }).map((response) => {

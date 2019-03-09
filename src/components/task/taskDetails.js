@@ -20,7 +20,8 @@ export default class TaskDetails extends React.Component {
             "completeTask",
             "starredTask",
             "handleAction",
-            "confirmDelete"
+            "confirmDelete",
+            "followTask"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         })
@@ -84,7 +85,7 @@ export default class TaskDetails extends React.Component {
         const { Selected } = task;
         const { status, periodTask, periodic, id } = Selected;
         const taskStatus = (Selected.status == "For Approval" || Selected.status == "Completed") ? "In Progress" : "Completed";
-        
+
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus }, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
@@ -130,12 +131,53 @@ export default class TaskDetails extends React.Component {
         });
     }
 
+    followTask({ id = "" }) {
+        const { loggedUser, task, dispatch } = this.props;
+        const { task_members } = task.Selected;
+
+        if (id == "") {
+            const memberData = {
+                usersType: "users",
+                userTypeLinkId: loggedUser.data.id,
+                linkType: "task",
+                linkId: task.Selected.id,
+                memberType: "follower"
+            };
+            console.log("=========================")
+            postData(`/api/member`, { data: memberData, includes: 'user' }, (c) => {
+                console.log(c.data)
+                if (c.status == 200) {
+                    task_members.push(c.data);
+                    dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, task_members } });
+                    showToast("success", "Task successfully updated.");
+                } else {
+                    showToast("success", "Something went wrong. Please try again later.");
+                }
+            });
+        } else {
+            putData(`/api/member/${id}`, { isDeleted: 1 }, (c) => {
+                if (c.status == 200) {
+                    const remainingMembers = _.remove(task_members, function (o) {
+                        return o.id != id;
+                    });
+                    dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, task_members: remainingMembers } });
+                    showToast("success", "Task successfully updated.");
+                } else {
+                    showToast("success", "Something went wrong. Please try again later.");
+                }
+            });
+        }
+    }
+
     render() {
-        const { task: taskObj } = { ...this.props };
+        const { task: taskObj, loggedUser } = { ...this.props };
         const { Loading, Selected } = taskObj;
         const { id, task, task_members, dueDate, workstream, status, description, checklist } = Selected;
         const assigned = _.filter(task_members, (o) => { return o.memberType == "assignedTo" });
         const approver = _.filter(task_members, (o) => { return o.memberType == "approver" });
+        const isFollower = _.find(task_members, (o) => { return o.memberType == "follower" && o.user.id == loggedUser.data.id }) || {};
+        console.log(task_members)
+        console.log(_.find(task_members, (o) => { return o.memberType == "follower" && o.user.id == loggedUser.data.id }))
         const typeValue = (typeof Selected.task != "undefined" && _.isEmpty(Selected) == false) ? Selected.task : "";
 
         return (
@@ -167,6 +209,9 @@ export default class TaskDetails extends React.Component {
                                         <div class="button-action">
                                             <a class="logo-action text-grey" onClick={() => this.handleAction("starred")}>
                                                 <i title="FAVORITE" class={`fa ${Selected.isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true"></i>
+                                            </a>
+                                            <a class="logo-action text-grey" onClick={() => this.followTask(isFollower)}>
+                                                <i title="FOLLOW" class={`fa ${_.isEmpty(isFollower) == false ? "fa-user-plus text-yellow" : "fa-user-plus"}`} aria-hidden="true"></i>
                                             </a>
                                             <a data-dismiss="modal" onClick={() => this.handleAction("edit")} class="logo-action text-grey"><i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i></a>
                                             <a data-dismiss="modal" onClick={() => this.handleAction("delete")} class="logo-action text-grey"><i title="DELETE" class="fa fa-trash-o" aria-hidden="true"></i></a>

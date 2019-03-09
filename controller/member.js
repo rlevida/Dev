@@ -251,7 +251,7 @@ exports.post = {
             {
                 model: Users,
                 as: 'user',
-                attributes: ['firstName', 'lastName']
+                attributes: ['id','firstName', 'lastName']
             }
         ]
         const options = {
