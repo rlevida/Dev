@@ -53,7 +53,7 @@ export default class TaskListCategory extends React.Component {
         const { dispatch, loggedUser } = { ...this.props };
         const taskStatus = (status == "For Approval" || status == "Completed") ? "In Progress" : "Completed";
 
-        putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus }, (c) => {
+        putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus, date: moment().format("YYYY-MM-DD") }, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
                 showToast("success", "Task successfully updated.");
@@ -136,7 +136,7 @@ export default class TaskListCategory extends React.Component {
         });
     }
 
-    renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask }) {
+    renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted }) {
         const { task, workstream_id = "", loggedUser } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate, "YYYY-MM-DD");
@@ -166,13 +166,11 @@ export default class TaskListCategory extends React.Component {
                         {(periodic == 1) && <i class="fa fa-refresh ml10" aria-hidden="true"></i>}
                     </a>
                 </td>
-                {
-                    (Filter.type != "assignedToMe") && <td>
-                        {
-                            assigned.join("\r\n")
-                        }
-                    </td>
-                }
+                <td data-label="Status">
+                    <p class={`m0 ${(status == "Completed") ? "text-green" : (status == "For Approval") ? "text-red" : ""}`}>
+                        {status}
+                    </p>
+                </td>
                 <td data-label="Deadline" class={(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}>
                     {
                         `${(dueDate != "" && dueDate != null) ? moment(dueDate).format("MMMM DD, YYYY") : "N/A"}`
@@ -185,11 +183,13 @@ export default class TaskListCategory extends React.Component {
                         }
                     </p>
                 </td>
-                <td data-label="Status">
-                    <p class={`m0 ${(status == "Completed") ? "text-green" : (status == "For Approval") ? "text-red" : ""}`}>
-                        {status}
-                    </p>
-                </td>
+                {
+                    (Filter.type != "assignedToMe") && <td>
+                        {
+                            assigned.join("\r\n")
+                        }
+                    </td>
+                }
                 {
                     (workstream_id == "") && <td data-label="Project">
                         <p class="m0 td-oblong">
@@ -200,6 +200,11 @@ export default class TaskListCategory extends React.Component {
                         </p>
                     </td>
                 }
+                <td data-label="Completed On">
+                    {
+                        (dateCompleted != null) ? moment(dateCompleted).format("MMMM DD, YYYY") : "N/A"
+                    }
+                </td>
             </tr>
         );
     }
@@ -252,15 +257,16 @@ export default class TaskListCategory extends React.Component {
                                 <thead>
                                     <tr>
                                         <th scope="col" class="td-left">Task Name</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Deadline</th>
+                                        <th scope="col">Time Remaining</th>
                                         {
                                             (task.Filter.type != "assignedToMe") && <th scope="col">Assigned</th>
                                         }
-                                        <th scope="col">Deadline</th>
-                                        <th scope="col">Time Remaining</th>
-                                        <th scope="col">Status</th>
                                         {
                                             (workstream_id == "") && <th scope="col">Project</th>
                                         }
+                                        <th scope="col">Completed On</th>
                                     </tr>
                                 </thead>
                                 <tbody>

@@ -138,7 +138,7 @@ export default class workstreamList extends React.Component {
                                                 </td>
                                                 <td data-label="Issues">
                                                     {
-                                                        (data.issues > 0) && <p class="m0 text-red">{data.issues} delayed</p>
+                                                        (data.issues > 0) && <p class="m0 text-orange">{data.issues} delayed</p>
                                                     }
                                                 </td>
                                                 <td data-label="New Docs">

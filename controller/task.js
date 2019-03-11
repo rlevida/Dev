@@ -261,8 +261,7 @@ exports.get = {
                 try {
                     Tasks.findAll({
                         where: whereObj,
-                        ...options,
-                        logging: true
+                        ...options
                     }).map((mapObject) => {
                         const responseData = mapObject.toJSON();
                         const assignedTaskMembers = _.filter(responseData.task_members, (member) => { return member.memberType == "assignedTo" });
@@ -366,8 +365,7 @@ exports.get = {
                             'projectId',
                             [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
                             [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today']
-                        ],
-                        logging: true
+                        ]
                     }).map((response) => {
                         return response.toJSON();
                     }).then((response) => {
@@ -400,8 +398,7 @@ exports.get = {
                         'projectId',
                         [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
                         [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today']
-                    ],
-                    logging: true
+                    ]
                 }).map((response) => {
                     return response.toJSON();
                 }).then((response) => {
@@ -830,7 +827,7 @@ exports.put = {
                                             if (typeof body.approverId != "undefined" && body.approverId != "") {
                                                 members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
                                             }
-                                            
+
                                             if (members.length > 0) {
                                                 Members.bulkCreate(members).then((response) => {
                                                     return Members.findOne(
@@ -1005,7 +1002,10 @@ exports.put = {
                                 }
                             }).value();
 
-                        Tasks.update({ status }, { where: { id: body.id } }).then((response) => {
+                        Tasks.update({
+                            status,
+                            dateCompleted: (body.status == "Completed") ? moment(body.date).format('YYYY-MM-DD HH:mm:ss') : null
+                        }, { where: { id: body.id } }).then((response) => {
                             return Tasks.findOne({ ...options, where: { id: body.id } });
                         }).then((response) => {
                             const updatedResponse = response.toJSON();
