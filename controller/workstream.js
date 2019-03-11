@@ -193,8 +193,21 @@ exports.get = {
                     }).map((mapObject) => {
                         const resultObj = mapObject.toJSON();
                         const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
-                        const forApproval = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "For Approval" });
+                        const completionObj = _.reduce(completedTasks, (accTask, currTask) => {
+                            const dueDateMoment = moment(currTask.dueDate);
+                            const currentDateMoment = moment(currTask.dateCompleted);
 
+                            if (dueDateMoment.isBefore(currentDateMoment, 'day')) {
+                                accTask['late'] += 1
+                            } else if (dueDateMoment.isSame(currentDateMoment, 'day')) {
+                                accTask['on_time'] += 1
+                            } else {
+                                accTask['after'] += 1
+                            }
+
+                            return accTask;
+                        }, { late: 0, on_time: 0, after: 0 });
+                        const forApproval = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "For Approval" });
                         const issuesTasks = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
                             const currentDateMoment = moment.utc();

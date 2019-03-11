@@ -267,11 +267,14 @@ export default class TaskForm extends React.Component {
             }
         });
 
+        if (typeof task.Selected.dueDate == "undefined" || task.Selected.dueDate == "") {
+            $("#dueDate").addClass("border-red");
+            result = false;
+        }
+
 
         if (!result) {
             showToast("error", "Please fill up the required fields.");
-        } else if (typeof task.Selected.periodic != "undefined" && task.Selected.periodic == 1 && (typeof task.Selected.dueDate == "undefined" || task.Selected.dueDate == "")) {
-            showToast("error", "Due date is required for a periodic task.");
         } else {
             const submitData = {
                 ...task.Selected,
@@ -514,17 +517,11 @@ export default class TaskForm extends React.Component {
                                                 <div class="col-lg-6 col-sm-6">
                                                     <div class={`form-group input-inline ${(typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != '' && task.Selected.periodic == 1) ? "pointer-none" : ""}`}>
                                                         <label>
-                                                            Due Date:
-                                                                {
-                                                                (task.Selected.periodic == 1) && <span class="text-red">*</span>
-                                                            }
-                                                            {
-                                                                (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != '' && task.Selected.periodic == 1) && <p class="m0 note">Auto-populated</p>
-                                                            }
+                                                            Due Date: <span class="text-red">*</span>
                                                         </label>
                                                         <input
                                                             type="text"
-                                                            required={task.Selected.periodic == 1}
+                                                            required
                                                             id="dueDate"
                                                             class="form-control datepicker"
                                                             name="dueDate"

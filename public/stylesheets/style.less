@@ -1304,6 +1304,10 @@ input:checked + .slider:before {
   color: #34dc9a!important;
 }
 
+.text-pink{
+  color: #ff5b6f;
+}
+
 .text-bold{
   font-weight: 900;
 }
@@ -1896,6 +1900,24 @@ textarea::-webkit-scrollbar-thumb {
   font-size: 18px;
 }
 
+.chart-wrapper{
+  position: relative;
+}
+
+.chart-wrapper .title{
+  font-size: 15px;
+}
+
+.chart-wrapper .total {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0px;
+}
 
 @media screen and (max-width: 600px) {
   table {
@@ -2303,4 +2325,8 @@ textarea::-webkit-scrollbar-thumb {
 .document-drop-file{
   border: dashed 1px;
   padding: 10px;
+}
+
+.border-red{
+  border:solid 1px #a94442!important;
 }

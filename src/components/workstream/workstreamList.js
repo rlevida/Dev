@@ -36,7 +36,6 @@ export default class workstreamList extends React.Component {
 
     componentDidMount() {
         const { workstream } = { ...this.props };
-
         if (_.isEmpty(workstream.Count)) {
             this.getList(1);
         }
@@ -132,7 +131,7 @@ export default class workstreamList extends React.Component {
                                                         <Link to={`/projects/${project.Selected.id}/workstreams/${data.id}`}>{data.workstream}</Link>
                                                     </p>
                                                 </td>
-                                                <td data-label="Completion">{data.completion.toFixed(2) + "%"}</td>
+                                                <td data-label="Completion">{(data.completion).toFixed(2) + "%"}</td>
                                                 <td data-label="For Approval">
                                                     {(data.for_approval.amount > 0) && <p class={`${data.for_approval.color} m0`}>{data.for_approval.amount} task(s)</p>}
                                                 </td>
