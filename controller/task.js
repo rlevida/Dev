@@ -174,7 +174,6 @@ exports.get = {
             if (typeof queryString.type != "undefined") {
                 const compareOpt = (Array.isArray(queryString.userId)) ? "IN" : "=";
                 const ids = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;
-
                 switch (queryString.type) {
                     case "assignedToMe":
                         opOrArray.push(

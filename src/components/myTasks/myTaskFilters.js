@@ -80,6 +80,16 @@ export default class MyTaskFilters extends React.Component {
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="button-action">
+                            <a class="logo-action text-grey" onClick={() => {
+                                dispatch({
+                                    type: "SET_TASK_FORM_ACTIVE",
+                                    FormActive: (task.FormActive == "Calendar") ? "List" : "Calendar"
+                                });
+                            }}>
+                                {
+                                    (task.FormActive == "Calendar") ? <i class="fa fa-list" aria-hidden="true"></i> : <i class="fa fa-calendar" aria-hidden="true"></i>
+                                }
+                            </a>
                             <a class="btn btn-default"
                                 onClick={(e) => {
                                     dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });

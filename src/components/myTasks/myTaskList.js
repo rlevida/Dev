@@ -4,7 +4,6 @@ import _ from "lodash";
 
 import MyTaskFilters from "./myTaskFilters";
 import TaskListCategory from "../task/taskListCategory";
-import TaskDetails from "../task/taskDetails";
 
 @connect((store) => {
     return {
@@ -17,31 +16,21 @@ export default class MyTaskList extends React.Component {
         const { loggedUser } = this.props;
         return (
             <div>
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="card">
-                            <div class="mb20 bb">
-                                <MyTaskFilters />
-                            </div>
-                            <div class="mt40 mb40">
-                                <TaskListCategory date="Today" user_id={loggedUser.data.id} />
-                            </div>
-                            <div class="mb40">
-                                <TaskListCategory date="This week" user_id={loggedUser.data.id} />
-                            </div>
-                            <div class="mb40">
-                                <TaskListCategory date="This month" user_id={loggedUser.data.id} />
-                            </div>
-                            <div class="mb40">
-                                <TaskListCategory date="Succeeding month" user_id={loggedUser.data.id} />
-                            </div>
-                            <div>
-                                <TaskListCategory user_id={loggedUser.data.id}/>
-                            </div>
-                        </div>
-                    </div>
+                <div class="mt40 mb40">
+                    <TaskListCategory date="Today" user_id={loggedUser.data.id} />
                 </div>
-                <TaskDetails />
+                <div class="mb40">
+                    <TaskListCategory date="This week" user_id={loggedUser.data.id} />
+                </div>
+                <div class="mb40">
+                    <TaskListCategory date="This month" user_id={loggedUser.data.id} />
+                </div>
+                <div class="mb40">
+                    <TaskListCategory date="Succeeding month" user_id={loggedUser.data.id} />
+                </div>
+                <div>
+                    <TaskListCategory user_id={loggedUser.data.id} />
+                </div>
             </div>
         );
     }

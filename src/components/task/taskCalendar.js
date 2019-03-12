@@ -24,7 +24,8 @@ export default class TaskCalendar extends React.Component {
         _.map([
             "handleNavigate",
             "eventStyleGetter",
-            "openTaskDetails"
+            "openTaskDetails",
+            "renderCalendar"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -35,18 +36,42 @@ export default class TaskCalendar extends React.Component {
         this.fetchData(currentMonth);
     }
 
+    componentDidUpdate(prevProps) {
+        const { task, dispatch } = this.props;
+
+        if (_.isEqual(prevProps.task.Filter, task.Filter) == false) {
+            showToast("success", "Retrieving tasks. Please wait.");
+
+            keyTimer && clearTimeout(keyTimer);
+            keyTimer = setTimeout(() => {
+                const selectedMonth = (task.Filter.selected_month != "") ? task.Filter.selected_month : moment().startOf('month');
+                this.fetchData(selectedMonth);
+            }, 1000);
+        }
+    }
+
     componentWillUnmount() {
         const { dispatch } = this.props;
         dispatch({ type: "SET_TASK_LIST", list: [] });
+        dispatch({ type: "SET_TASK_FILTER", filter: { ["selected_month"]: "" } });
     }
 
     fetchData(selectedMonth) {
-        const { dispatch, match } = this.props;
-        const projectId = match.params.projectId;
+        const { dispatch, match = "", task, loggedUser } = this.props;
+        const projectId = (match != "") ? match.params.projectId : "";
         const fromDate = moment(selectedMonth).subtract(1, 'week').format("YYYY-MM-DD");
         const toDate = moment(selectedMonth).add(1, 'week').endOf('month').format("YYYY-MM-DD");
-        let requestUrl = `/api/task?projectId=${projectId}&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
-        getData(requestUrl, {}, (c) => {
+        let fetchUrl = `/api/task?dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
+
+        if (projectId != "") {
+            fetchUrl += `&projectId=${projectId}`
+        }
+
+        if (task.Filter.type != "") {
+            fetchUrl += `&type=${task.Filter.type}&userId=${loggedUser.data.id}`
+        }
+
+        getData(fetchUrl, {}, (c) => {
             dispatch({ type: "SET_TASK_LIST", list: c.data.result });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
             showToast("success", "Task successfully retrieved.");
@@ -65,11 +90,10 @@ export default class TaskCalendar extends React.Component {
     }
 
     handleNavigate(e) {
+        const { dispatch } = this.props;
         const selectedMonth = moment(e).startOf('month');
-        keyTimer && clearTimeout(keyTimer);
-        keyTimer = setTimeout(() => {
-            this.fetchData(selectedMonth);
-        }, 1500);
+
+        dispatch({ type: "SET_TASK_FILTER", filter: { ["selected_month"]: selectedMonth } });
     }
 
     openTaskDetails(e) {
@@ -84,9 +108,9 @@ export default class TaskCalendar extends React.Component {
         });
     }
 
-    render() {
+    renderCalendar() {
         const { task } = { ...this.props };
-        const { List, Loading } = task;
+        const { List } = task;
         const calendarTasks = _(List)
             .filter((o) => {
                 return o.dueDate != null && o.dueDate != "";
@@ -102,24 +126,42 @@ export default class TaskCalendar extends React.Component {
                 }
             })
             .value();
+
+        return (
+            <BigCalendar
+                events={calendarTasks}
+                defaultView='month'
+                views={['month', 'week', 'day']}
+                scrollToTime={new Date(1970, 1, 1, 6)}
+                defaultDate={new Date()}
+                onSelectEvent={this.openTaskDetails}
+                eventPropGetter={(this.eventStyleGetter)}
+                onNavigate={this.handleNavigate}
+            />
+
+        )
+    }
+
+    render() {
+        const { task, is_card = true } = { ...this.props };
+        const { Loading, List } = task;
+
         return (
             <div class="row">
                 <div class="col-lg-12">
-                    <div class="card">
-                        <div class={(Loading == "RETRIEVING" && (List).length == 0) ? "linear-background" : ""}>
-                            {
-                                (Loading != "RETRIEVING") && <BigCalendar
-                                    events={calendarTasks}
-                                    defaultView='month'
-                                    views={['month', 'week', 'day']}
-                                    scrollToTime={new Date(1970, 1, 1, 6)}
-                                    defaultDate={new Date()}
-                                    onSelectEvent={this.openTaskDetails}
-                                    eventPropGetter={(this.eventStyleGetter)}
-                                    onNavigate={this.handleNavigate}
-                                />
-                            }
-                        </div>
+                    <div class={(Loading == "RETRIEVING" && (List).length == 0) ? "linear-background" : ""}>
+                        {
+                            (is_card) ? <div class="card">
+                                {
+                                    (Loading != "RETRIEVING") && this.renderCalendar()
+                                }
+                            </div>
+                                : <div>
+                                    {
+                                        (Loading != "RETRIEVING") && this.renderCalendar()
+                                    }
+                                </div>
+                        }
                     </div>
                 </div>
             </div>

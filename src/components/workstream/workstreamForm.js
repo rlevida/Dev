@@ -308,7 +308,7 @@ export default class WorkstreamForm extends React.Component {
     }
 
     render() {
-        const { workstream, global, dispatch, is_card = true } = { ...this.props };
+        const { workstream, dispatch, is_card = true } = { ...this.props };
         return (
             <div>
                 {
