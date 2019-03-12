@@ -186,7 +186,6 @@ html {
   }
   .main-bar {
     display: block;
-    overflow: hidden;
   }
 }
 @media (min-width: 992px) {

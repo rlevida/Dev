@@ -586,7 +586,7 @@ exports.put = {
                                         amount: forApproval.length,
                                         color: (_.filter(issuesTasks, (o) => { return o.status == "For Approval" }).length > 0) ? "text-red" : "text-orange"
                                     },
-                                    completion: 0,
+                                    completion: ((resultObj.task).length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
                                     members,
                                 }
                             });

@@ -37,6 +37,11 @@ const associationFindAllStack = [
             memberType: 'project manager'
         },
         required: false,
+        include: [{
+            model: Users,
+            as: 'user',
+            required: false
+        }]
     },
     {
         model: Members,
@@ -211,9 +216,17 @@ exports.get = {
         const id = req.params.id;
         try {
             Projects
-                .findOne({ where: { id: id } })
+                .findOne({
+                    include: associationFindAllStack,
+                    where: { id: id }
+                })
                 .then((res) => {
-                    cb({ status: true, data: res })
+                    const response = res.toJSON();
+                    const returnObj = {
+                        ...response,
+                        projectManagerId: ((response.projectManager).length > 0) ? response.projectManager[0].userTypeLinkId : "",
+                    };
+                    cb({ status: true, data: returnObj })
                 })
         } catch (err) {
             cb({ status: false, error: err })

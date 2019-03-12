@@ -227,7 +227,6 @@ export default class ProjectForm extends React.Component {
                 return { id: e.id, name: `${e.firstName} ${e.lastName}` }
             }).value()
             : [];
-
         return (
             <div class="row">
                 <div class="col-lg-12">

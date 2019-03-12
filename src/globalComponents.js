@@ -285,10 +285,10 @@ export const Loading = () => {
 }
 
 export const DeleteModal = (props) => {
-    const { type, type_value, delete_function, note = "", confirm_actions = [] } = { ...props };
+    const { type, type_value, delete_function, note = "", confirm_actions = [], cancel_function } = { ...props };
 
     return (
-        <div class="modal fade delete-modal" id={props.id}>
+        <div class="modal fade delete-modal" id={props.id} data-backdrop="static" data-keyboard="false">
             <div class="modal-dialog modal-md" role="document">
                 <div class="modal-content">
                     <div class="modal-body">
@@ -307,7 +307,12 @@ export const DeleteModal = (props) => {
                                 >{`Yes delete ${type}!`}</button>
                             </div>
                             <div class="flex-col">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">No don't!</button>
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    data-dismiss="modal"
+                                    onClick={cancel_function}
+                                >No don't!</button>
                             </div>
                         </div>
                     </div>

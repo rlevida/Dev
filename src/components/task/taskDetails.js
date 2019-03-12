@@ -169,7 +169,7 @@ export default class TaskDetails extends React.Component {
         return (
             <div>
                 <div class="modal right fade" id="task-details">
-                    <div class="modal-dialog" role="document">
+                    <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <a class="text-grey" data-dismiss="modal" aria-label="Close">

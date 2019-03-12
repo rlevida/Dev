@@ -17,7 +17,7 @@ import WorkstreamForm from "./workstreamForm";
     }
 })
 
-export default class workstreamList extends React.Component {
+export default class WorkstreamList extends React.Component {
     constructor(props) {
         super(props);
 
@@ -101,7 +101,6 @@ export default class workstreamList extends React.Component {
         const { workstream, project } = { ...this.props };
         const workstreamCurrentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
         const workstreamLastPage = (typeof workstream.Count.last_page != "undefined") ? workstream.Count.last_page : 1;
-
         return (
             <div>
                 <div class={(workstream.Loading == "RETRIEVING" && (workstream.List).length == 0) ? "linear-background" : ""}>
@@ -192,43 +191,39 @@ export default class workstreamList extends React.Component {
         return (
             <div>
                 <div class="row">
-                    {
-                        (workstream.FormActive == "List") && <div class="col-lg-12">
-                            {
-                                (is_card) ? <div class="card">
-                                    <div class="mb20 bb">
-                                        <div class="container-fluid filter mb20">
-                                            <div class="row content-row">
-                                                <div class="col-md-6 col-sm-12">
-                                                    <h3 class="title m0">Workstreams</h3>
-                                                </div>
-                                                <div class="col-md-6 col-sm-12">
-                                                    <div class="button-action">
-                                                        <WorkstreamFilter />
-                                                        <a class="btn btn-default" onClick={() => { dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" }) }}>
-                                                            <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>
-                                                            Add New Workstream
+                    <div class="col-lg-12">
+                        {
+                            (is_card) ? <div class="card">
+                                <div class="mb20 bb">
+                                    <div class="container-fluid filter mb20">
+                                        <div class="row content-row">
+                                            <div class="col-md-6 col-sm-12">
+                                                <h3 class="title m0">Workstreams</h3>
+                                            </div>
+                                            <div class="col-md-6 col-sm-12">
+                                                <div class="button-action">
+                                                    <WorkstreamFilter />
+                                                    <a class="btn btn-default" onClick={() => { dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" }) }}>
+                                                        <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>
+                                                        Add New Workstream
                                                         </a>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    {this.renderList()}
-                                </div> : this.renderList()
-                            }
-                        </div>
-                    }
+                                </div>
+                                {this.renderList()}
+                            </div> : this.renderList()
+                        }
+                    </div>
                 </div>
-                {
-                    (workstream.FormActive == "Form") && <WorkstreamForm />
-                }
                 {/* Modals */}
                 <DeleteModal
                     id="delete-workstream"
                     type={'workstream'}
                     type_value={typeValue}
                     delete_function={this.confirmDelete}
+                    cancel_function={() => { dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: "" }); }}
                 />
             </div>
         )

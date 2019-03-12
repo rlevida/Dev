@@ -429,7 +429,7 @@ td {
     cursor: pointer;
 }
 
-.active{
+.main-bar .active{
     color: #fff;
     background-color: #274095;
 }
@@ -1227,6 +1227,9 @@ input:checked + .slider:before {
 .display-flex{
   display: flex;
 }
+.space-between{
+  justify-content: space-between;
+}
 .display-flex .Select{
   width: 100%;
 }
@@ -1752,11 +1755,11 @@ textarea::-webkit-scrollbar-thumb {
   font-weight: bold;
 }
 
-.modal-header .logo-action{
+.logo-action{
   font-size: 26px;
 }
 
-.modal-header .logo-action:not(:last-child){
+.logo-action:not(:last-child){
   margin-right: 10px;
 }
 
@@ -1919,6 +1922,16 @@ textarea::-webkit-scrollbar-thumb {
   margin: 0px;
 }
 
+#project-info title{
+  font-weight: 600
+}
+
+#project-info label{
+  font-weight: 100!important;
+  font-size: 12px;
+  margin: 0px;
+}
+
 @media screen and (max-width: 600px) {
   table {
     border: 0;
@@ -2074,10 +2087,6 @@ textarea::-webkit-scrollbar-thumb {
   .dashboard-card .status-count{
     margin: 0px;
     text-align: center;
-  }
-
-  .main-bar .dropdown-menu a.active{
-    background-color: transparent!important;
   }
 
   .action-td{

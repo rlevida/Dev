@@ -131,6 +131,7 @@ class Main extends React.Component {
         const showProjectMenu = (getProjectDetailsPath[2] == project.Selected.id && typeof project.Selected.id != "undefined");
         const currentProjectPage = (typeof getProjectDetailsPath[3] == "undefined") ? "dashboard" : getProjectDetailsPath[3];
         const projectMenu = [
+            { label: "Info", link: "/info" },
             { label: "Dashboard", link: "" },
             { label: "Workstreams", link: "/workstreams" },
             { label: "Calendar", link: "/calendar" },
@@ -170,7 +171,7 @@ class Main extends React.Component {
                                     }
                                 </div>
                                 {
-                                    (showProjectMenu) && <div class="flex-row tab-row mb0 ml10 mr10 item hidden-xs">
+                                    (showProjectMenu) && <div class="flex-row tab-row mb0 ml20 mr10 item hidden-sm hidden-xs">
                                         {
                                             _.map(projectMenu, (o, index) => {
                                                 return (
@@ -185,15 +186,15 @@ class Main extends React.Component {
                                     </div>
                                 }
                                 <div class="action item">
-                                    <div class="hidden-xs text-center">
-                                        <a class="dropdown-toggle" href={`/reminder`}> 
+                                    <div class="hidden-sm hidden-xs text-center">
+                                        <a class="dropdown-toggle" href={`/reminder`}>
                                             <span class="fa fa-bell"></span>
                                         </a>
                                         <a data-tip="profile" href={"/profile"}>
                                             <i class="glyphicon glyphicon-user"></i>
                                         </a>
                                     </div>
-                                    <div class="dropdown visible-xs">
+                                    <div class="dropdown visible-sm visible-xs">
                                         <a class="btn btn-action dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                             <span class="fa fa-ellipsis-v" title="MORE"></span>
                                         </a>

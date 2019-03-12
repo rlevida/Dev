@@ -187,7 +187,6 @@ export default class WorkstreamForm extends React.Component {
             .map((o, i) => { return { id: o.id, name: o.type } })
             .value()
             : [];
-
         return (
             <form id="workstream-form">
                 <div class="mb20">
@@ -296,13 +295,13 @@ export default class WorkstreamForm extends React.Component {
                     <label for="project-manager">Color Indicator: <span class="text-red">*</span></label>
                     <ColorPicker
                         onSelect={this.handleColorSlider}
-                        color={workstream.Selected.color}
+                        color={(typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.color}
                         placeholder={"Select Workstream Color"}
                         required={true}
                     />
                 </div>
                 <a class="btn btn-violet" onClick={this.handleSubmit}>
-                    <span>{`${(typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") ? 'Edit' : 'Add'} workstream`}</span>
+                    <span>{`${(typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "" && typeof workstream.Selected.action == "undefined") ? 'Edit' : 'Add'} workstream`}</span>
                 </a>
             </form>
         )

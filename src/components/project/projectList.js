@@ -9,7 +9,6 @@ import { Loading } from "../../globalComponents";
 import { showToast, getData } from "../../globalFunction";
 
 import ProjectActionTab from "./projectActionTab";
-import ProjectForm from "./projectForm";
 import ArchiveModal from "./archiveModal";
 
 @connect((store) => {
@@ -32,8 +31,15 @@ export default class ProjectList extends React.Component {
         });
     }
 
+    componentWillUnmount() {
+        const { dispatch } = this.props;
+        dispatch({ type: "SET_PROJECT_LIST", list: [], count: {} })
+        dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
+    }
+
     componentDidMount() {
-        let { dispatch } = this.props;
+        const { dispatch } = this.props;
+
         parallel({
             projects: (parallelCallback) => {
                 getData(`/api/project?page=${1}`, {}, (c) => {
@@ -121,7 +127,6 @@ export default class ProjectList extends React.Component {
 
     handleEdit(params) {
         const { dispatch } = { ...this.props };
-
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: params });
         dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
         dispatch({ type: "SET_PROJECT_MANAGER_ID", id: params.projectManagerId });
@@ -225,9 +230,6 @@ export default class ProjectList extends React.Component {
                     {/* Modals */}
                     <ArchiveModal />
                 </div>
-                {
-                    (project.FormActive == "Form") && <ProjectForm />
-                }
             </div>
         )
     }
