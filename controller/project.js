@@ -203,11 +203,71 @@ exports.get = {
                     callback(err)
                 }
             }
-        }, (err, results) => {
+        }, async (err, results) => {
             if (err != null) {
                 cb({ status: false, error: err });
             } else {
-                cb({ status: true, data: results })
+                const projectResults = results.result;
+                const projectIds = _.map(projectResults, (projectResult) => { return projectResult.id });
+                const dueDate = queryString.dueDate || new Date();
+                const startMonth = moment(dueDate, 'YYYY-MM-DD').startOf('month').utc().format("YYYY-MM-DD HH:mm");
+                const endMonth = moment(dueDate, 'YYYY-MM-DD').endOf('month').utc().format("YYYY-MM-DD HH:mm");
+
+                try {
+                    const projectTask = await Tasks.findAll({
+                        group: ['projectId'],
+                        where: {
+                            isDeleted: 0,
+                            projectId: projectIds,
+                            dueDate: {
+                                [Op.between]: [startMonth, endMonth]
+                            }
+                        },
+                        attributes: [
+                            'projectId',
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.id <> 0 THEN task.id END)'), 'total_tasks'],
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "Completed" THEN task.id END)'), 'completed'],
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate < "' + moment(dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" AND task.status = "In Progress" THEN task.id END)'), 'issues'],
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "For Approval" THEN task.id END)'), 'for_approval'],
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" AND task.status <> "Completed" THEN task.id END)'), 'due_today']
+                        ]
+                    }).map((response) => {
+                        return response.toJSON();
+                    });
+                    const projectStack = _.map(projectResults, function (obj) {
+                        const completionRate = _.find(projectTask, { projectId: obj.id });
+                        return {
+                            ...obj,
+                            numberOfTasks: (typeof completionRate != "undefined") ? completionRate.total_tasks : 0,
+                            completion_rate: {
+                                tasks_due_today: {
+                                    value: (typeof completionRate != "undefined") ? (completionRate.due_today / completionRate.total_tasks) * 100 : 0,
+                                    color: "#f6dc64",
+                                    count: (typeof completionRate != "undefined") ? completionRate.due_today : 0
+                                },
+                                tasks_for_approval: {
+                                    value: (typeof completionRate != "undefined") ? (completionRate.for_approval / completionRate.total_tasks) * 100 : 0,
+                                    color: "#ff754a",
+                                    count: (typeof completionRate != "undefined") ? completionRate.for_approval : 0
+                                },
+                                delayed_task: {
+                                    value: (typeof completionRate != "undefined") ? (completionRate.issues / completionRate.total_tasks) * 100 : 0,
+                                    color: '#f9003b',
+                                    count: (typeof completionRate != "undefined") ? completionRate.issues : 0
+                                },
+                                completed: {
+                                    value: (typeof completionRate != "undefined") ? (completionRate.completed / completionRate.total_tasks) * 100 : 0,
+                                    color: '#00e589',
+                                    count: (typeof completionRate != "undefined") ? completionRate.completed : 0
+                                },
+                            }
+                        }
+
+                    });
+                    cb({ status: true, data: { ...results, result: projectStack } })
+                } catch (err) {
+                    cb({ status: false, error: err });
+                }
             }
         })
 

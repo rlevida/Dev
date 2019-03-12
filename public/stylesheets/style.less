@@ -11,6 +11,10 @@ a {
   cursor: pointer;
 }
 
+a:hover{
+  text-decoration: none!important;
+}
+
 html, #main{
   height: 100vh;
 }
@@ -347,7 +351,7 @@ button {
     width: 100%;
     height: 1px;
     clear: both;
-    background: #e5e5e5;
+    background: #e7e7e7;
 }
 
 
@@ -1288,7 +1292,11 @@ input:checked + .slider:before {
 }
 
 .text-yellow{
-  color: #ffaf3b;
+  color: #f6dc64!important;
+}
+
+.text-dark-yellow{
+  color: #ffaf3b!important;
 }
 
 .text-orange{
@@ -1296,7 +1304,7 @@ input:checked + .slider:before {
 }
 
 .text-red{
-  color: #ff3842;
+  color: #f9003b;
 }
 
 .text-blue{
@@ -1304,7 +1312,11 @@ input:checked + .slider:before {
 }
 
 .text-green{
-  color: #34dc9a!important;
+  color: #00e589!important;
+}
+
+.text-light-grey{
+  color: #c4c4c4!important;
 }
 
 .text-pink{
@@ -1930,6 +1942,55 @@ textarea::-webkit-scrollbar-thumb {
   font-weight: 100!important;
   font-size: 12px;
   margin: 0px;
+}
+
+.progress{
+  border-radius: 25px!important;
+  box-shadow: none!important;
+  margin-bottom:0!important;
+  height: 10px!important;
+  background-color: #c4c4c4;
+}
+
+.progress-bar{
+  box-shadow: none!important;
+  height: 10px!important;
+}
+
+.__react_component_tooltip {
+  border: 1px solid #c4c4c4;
+  border-radius: 0px;
+  padding: 0px;
+}
+
+.__react_component_tooltip .wrapper{
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.__react_component_tooltip p {
+  font-size: 15px;
+  margin: 0px;
+}
+.__react_component_tooltip .tooltip-label{
+  color: #818181;
+}
+
+.__react_component_tooltip p.count{
+  padding: 0px;
+  margin-right: 10px;
+}
+
+.__react_component_tooltip.type-light.place-top:after{
+  border-top-color: #c4c4c4;
+}
+.__react_component_tooltip.type-light.place-left:after{
+  border-left-color: #c4c4c4;
+}
+.__react_component_tooltip.type-light.place-right:after{
+  border-right-color: #c4c4c4;
 }
 
 @media screen and (max-width: 600px) {

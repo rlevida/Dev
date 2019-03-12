@@ -345,6 +345,21 @@ export const MentionConvert = ({ string }) => {
     )
 }
 
+export const ProgressBar = ({ data }) => {
+    return (
+        <div class="progress">
+            {
+                _.map(data, ({ label, value, color }, index) => {
+                    return (
+                        <div class="progress-bar" key={index} role="progressbar" style={{ width: `${value}%`, backgroundColor: color }}></div>
+                    )
+                })
+            }
+        </div>
+    )
+
+}
+
 export class ColorPicker extends React.Component {
     constructor(props) {
         super(props);

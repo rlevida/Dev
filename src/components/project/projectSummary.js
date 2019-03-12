@@ -1,9 +1,10 @@
 import React from "react";
 import moment from 'moment';
 import _ from 'lodash';
-import { connect } from "react-redux"
+import { connect } from "react-redux";
+import ReactTooltip from 'react-tooltip';
 
-import { Loading } from "../../globalComponents";
+import { Loading, ProgressBar } from "../../globalComponents";
 import { showToast, getData } from "../../globalFunction";
 
 let keyTimer = "";
@@ -21,59 +22,63 @@ export default class List extends React.Component {
 
         _.map([
             "getNextResult",
-            "setFilter"
+            "setFilter",
+            "fetchProject",
+            "fetchType"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
     }
 
     componentDidMount() {
-        let { dispatch, type } = this.props;
-        getData(`/api/type`, {}, (c) => {
-            dispatch({ type: "SET_TYPE_LIST", list: c.data })
-        });
+        this.fetchProject(1);
+        this.fetchType();
+    }
 
-        getData(`/api/project?page=${1}`, {}, (c) => {
-            dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
-            dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
-            showToast("success", "Project successfully retrieved.");
-        });
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_PROJECT_LIST", list: [] });
     }
 
     componentDidUpdate(prevProps) {
         const { dispatch, project } = { ...this.props };
 
         if (_.isEqual(prevProps.project.Filter, project.Filter) == false) {
-            const { typeId, projectStatus } = project.Filter;
-            const dueDateMoment = moment().format("YYYY-MM-DD");
-
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
             dispatch({ type: "SET_PROJECT_LIST", list: [] });
 
             keyTimer && clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
-                getData(`/api/project?page=1&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}`, {}, (c) => {
-                    dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
-                    dispatch({ type: "SET_PROJECT_LOADING", Loading: false });
-                    showToast("success", "Project successfully retrieved.");
-                });
+                this.fetchProject(1);
             }, 1000);
         }
     }
 
-    getNextResult() {
-        const { project, dispatch } = { ...this.props };
-        const { Count, List, Filter } = project;
-        const { typeId, projectStatus } = Filter;
+    fetchType() {
+        const { dispatch } = this.props;
+
+        getData(`/api/type`, {}, (c) => {
+            dispatch({ type: "SET_TYPE_LIST", list: c.data })
+        });
+    }
+
+    fetchProject(page) {
+        const { dispatch, project } = { ...this.props };
+        const { typeId, projectStatus } = project.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
 
-        dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
-
-        getData(`/api/project?page=${Count.current_page + 1}&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}`, {}, (c) => {
-            dispatch({ type: "SET_PROJECT_LIST", list: List.concat(c.data.result), count: c.data.count })
+        getData(`/api/project?page=${page}&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}`, {}, (c) => {
+            dispatch({ type: "SET_PROJECT_LIST", list: [...project.List, ...c.data.result], count: c.data.count });
+            dispatch({ type: "SET_PROJECT_LOADING", Loading: false });
             showToast("success", "Project successfully retrieved.");
-            dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
         });
+    }
+
+    getNextResult() {
+        const { project, dispatch } = { ...this.props };
+        const { Count } = project;
+        dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
+        this.fetchProject(Count.current_page + 1);
     }
 
     setFilter(name, e) {
@@ -86,7 +91,6 @@ export default class List extends React.Component {
         const currentPage = (typeof project.Count.current_page != "undefined") ? project.Count.current_page : 1;
         const lastPage = (typeof project.Count.last_page != "undefined") ? project.Count.last_page : 1;
         const projectTypes = [...[{ id: "", name: "All" }], ..._(type.List).filter((o) => { return o.linkType == "project" }).map((o) => { return { id: o.id, name: o.type } }).value()];
-
         return (
             <div>
                 <div class="flex-row tab-row">
@@ -100,19 +104,37 @@ export default class List extends React.Component {
                 </div>
                 <div class={(project.Loading == "RETRIEVING" && (project.List).length == 0) ? "linear-background" : ""}>
                     {
-                        ((project.List).length > 0) && <table>
+                        ((project.List).length > 0) && <table id="project_summary">
                             <thead>
                                 <tr>
                                     <th scope="col">Project Name</th>
                                     <th scope="col">Type</th>
-                                    <th scope="col">New Docs</th>
+                                    <th scope="col">New Files</th>
                                     <th scope="col">Last Update</th>
+                                    <th scope="col">Active Month Completion Rate</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {
                                     _.map(project.List, (projectElem, index) => {
-                                        const { project, type, newDocuments, dateAdded } = { ...projectElem };
+                                        const { project, type, newDocuments, dateAdded, completion_rate, numberOfTasks } = { ...projectElem };
+                                        const completionRate = (completion_rate != "") ? _(completion_rate)
+                                            .mapValues(({ value, color, count }, key) => {
+                                                return {
+                                                    label: `${key.replace(/[_-]/g, " ")}`,
+                                                    value: value.toFixed(2),
+                                                    color: color,
+                                                    count
+                                                }
+                                            })
+                                            .values()
+                                            .value() : [];
+                                        const completionValue = _.find(completionRate, (o) => { return o.label == "completed" }).value;
+                                        const taskDueTodayCount = _.find(completionRate, (o) => { return o.label == "tasks due today" }).count;
+                                        const forApprovalCount = _.find(completionRate, (o) => { return o.label == "tasks for approval" }).count;
+                                        const delayedTaskCount = _.find(completionRate, (o) => { return o.label == "delayed task" }).count;
+                                        const completedCount = _.find(completionRate, (o) => { return o.label == "completed" }).count;
+
                                         return (
                                             <tr key={index}>
                                                 <td data-label="Project Name">
@@ -125,7 +147,7 @@ export default class List extends React.Component {
                                                         </span>
                                                     </p>
                                                 </td>
-                                                <td data-label="New Docs">
+                                                <td data-label="New Files">
                                                     <p class="mb0">
                                                         {newDocuments}
                                                     </p>
@@ -134,6 +156,50 @@ export default class List extends React.Component {
                                                     <p class="mb0">
                                                         {moment(dateAdded).from(new Date())}
                                                     </p>
+                                                </td>
+                                                <td data-label="Active Month Completion Rate">
+                                                    <a data-tip data-for={`task-${index}`}>
+                                                        <ProgressBar data={completionRate} />
+                                                        <p class="mb0">{completionValue}%</p>
+                                                    </a>
+                                                    <ReactTooltip id={`task-${index}`} aria-haspopup='true' type={'light'}>
+                                                        <div class="wrapper">
+                                                            <div class="display-flex mb5">
+                                                                <p class={`count ${(taskDueTodayCount > 0) ? "text-yellow" : "text-light-grey"}`}>
+                                                                    <strong>{taskDueTodayCount}</strong>
+                                                                </p>
+                                                                <p class={`tooltip-label ${(taskDueTodayCount > 0) ? "" : "text-light-grey"}`}>
+                                                                    Task due today
+                                                            </p>
+                                                            </div>
+                                                            <div class="display-flex mb5">
+                                                                <p
+                                                                    class={`count ${(forApprovalCount > 0) ? "text-orange" : "text-light-grey"}`}
+                                                                >
+                                                                    <strong>{forApprovalCount}</strong>
+                                                                </p>
+                                                                <p class={`tooltip-label ${(forApprovalCount > 0) ? "" : "text-light-grey"}`}>
+                                                                    Task for approval
+                                                            </p>
+                                                            </div>
+                                                            <div class="display-flex">
+                                                                <p
+                                                                    class={`count ${(delayedTaskCount > 0) ? "text-red" : "text-light-grey"}`}>
+                                                                    <strong>{delayedTaskCount}</strong>
+                                                                </p>
+                                                                <p
+                                                                    class={`tooltip-label ${(delayedTaskCount > 0) ? "" : "text-light-grey"}`}>
+                                                                    Delayed tasks
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="sep"></div>
+                                                        <div class="wrapper">
+                                                            <div class="display-flex">
+                                                                <p>Completed <strong><span class="text-green">{completedCount}</span></strong> out of <strong>{numberOfTasks}</strong> tasks</p>
+                                                            </div>
+                                                        </div>
+                                                    </ReactTooltip>
                                                 </td>
                                             </tr>
                                         )

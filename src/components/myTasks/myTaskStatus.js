@@ -60,22 +60,28 @@ export default class myTaskStatus extends React.Component {
                 {
                     (_.isEmpty(StatusCount) == false) && <div class="row content-row status-count">
                         <div class="col-lg-4 text-center">
-                            <p class="status-count text-orange">{('0' + assignedTask).slice(-2)}</p>
-                            <p class="status-label"><a onClick={() => this.visitPage("assignedToMe")}>Assigned to me</a></p>
-                            <p class="status-sublabel">for {(typeof StatusCount.assigned_to_me != "undefined") ? (StatusCount.assigned_to_me).length : '0'} Projects</p>
-                            <p class="status-sublabel text-red">{(typeof StatusCount.assigned_to_me != "undefined") ? (assignedIssues > 0) ? assignedIssues : 'No' : 'No'} delayed tasks</p>
+                            <a onClick={() => this.visitPage("assignedToMe")}>
+                                <p class="status-count text-orange">{('0' + assignedTask).slice(-2)}</p>
+                                <p class="status-label">Assigned to me</p>
+                                <p class="status-sublabel">for {(typeof StatusCount.assigned_to_me != "undefined") ? (StatusCount.assigned_to_me).length : '0'} Projects</p>
+                                <p class="status-sublabel text-red">{(typeof StatusCount.assigned_to_me != "undefined") ? (assignedIssues > 0) ? assignedIssues : 'No' : 'No'} delayed tasks</p>
+                            </a>
                         </div>
                         <div class="col-lg-4 text-center">
-                            <p class="status-count text-yellow">{('0' + teamTask).slice(-2)}</p>
-                            <p class="status-label"><a onClick={() => this.visitPage("myTeam")}>My Team</a></p>
-                            <p class="status-sublabel">for {(typeof StatusCount.team != "undefined") ? (StatusCount.team).length : '0'} Projects</p>
-                            <p class="status-sublabel text-red">{(typeof StatusCount.team != "undefined") ? (teamIssues > 0) ? teamIssues : 'No' : 'No'} delayed tasks</p>
+                            <a onClick={() => this.visitPage("myTeam")}>
+                                <p class="status-count text-dark-yellow">{('0' + teamTask).slice(-2)}</p>
+                                <p class="status-label">My Team</p>
+                                <p class="status-sublabel">for {(typeof StatusCount.team != "undefined") ? (StatusCount.team).length : '0'} Projects</p>
+                                <p class="status-sublabel text-red">{(typeof StatusCount.team != "undefined") ? (teamIssues > 0) ? teamIssues : 'No' : 'No'} delayed tasks</p>
+                            </a>
                         </div>
                         <div class="col-lg-4 text-center">
-                            <p class="status-count text-yellow">{('0' + followingTasks).slice(-2)}</p>
-                            <p class="status-label"><a onClick={() => this.visitPage("following")}>Task followed</a></p>
-                            <p class="status-sublabel">for {(typeof StatusCount.following != "undefined") ? (StatusCount.following).length : '0'} Projects</p>
-                            <p class="status-sublabel text-red">{(typeof StatusCount.following != "undefined") ? (followingIssues > 0) ? followingIssues : 'No' : 'No'} delayed tasks</p>
+                            <a onClick={() => this.visitPage("following")}>
+                                <p class="status-count text-dark-yellow">{('0' + followingTasks).slice(-2)}</p>
+                                <p class="status-label">Task followed</p>
+                                <p class="status-sublabel">for {(typeof StatusCount.following != "undefined") ? (StatusCount.following).length : '0'} Projects</p>
+                                <p class="status-sublabel text-red">{(typeof StatusCount.following != "undefined") ? (followingIssues > 0) ? followingIssues : 'No' : 'No'} delayed tasks</p>
+                            </a>
                         </div>
                     </div>
                 }
