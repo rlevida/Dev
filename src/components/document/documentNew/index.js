@@ -27,19 +27,20 @@ export default class DocumentNew extends React.Component {
     componentDidMount() {
         const { dispatch, document, loggedUser } = this.props;
         // automatically move to selected folder
-        if (folderParams !== "" && folderParamsStatus === "new" && folderParamsOrigin !== "") {
-            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderParams}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-                if (c.status == 200) {
-                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [{ id: folderParams, name: folderParamsOrigin }], Type: 'SelectedNewFolderName' });
+        // if (folderParams !== "" && folderParamsStatus === "new" && folderParamsOrigin !== "") {
+        //     getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderParams}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+        //         if (c.status == 200) {
+        //             dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+        //             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
+        //             dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [{ id: folderParams, name: folderParamsOrigin }], Type: 'SelectedNewFolderName' });
 
-                    showToast('success', 'Documents successfully retrieved.');
-                } else {
-                    showToast('success', 'Something went wrong!')
-                }
-            });
-        } else if (_.isEmpty(document.NewCount.Count)) {
+        //             showToast('success', 'Documents successfully retrieved.');
+        //         } else {
+        //             showToast('success', 'Something went wrong!')
+        //         }
+        //     });
+        // } else 
+        if (_.isEmpty(document.NewCount.Count)) {
             this.fetchData(1)
         }
     }
@@ -199,7 +200,7 @@ export default class DocumentNew extends React.Component {
         const { document, folder } = this.props
         const currentPage = (typeof document.NewCount.Count.current_page != "undefined") ? document.NewCount.Count.current_page : 1;
         const lastPage = (typeof document.NewCount.Count.last_page != "undefined") ? document.NewCount.Count.last_page : 1;
-
+        console.log(this.props)
         return (
             <div class="mb20">
                 <div class="col-lg-12 col-md-12">

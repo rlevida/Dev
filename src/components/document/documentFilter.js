@@ -3,8 +3,8 @@ import { connect } from "react-redux";
 import _ from "lodash";
 import moment from "moment";
 
-import { DropDown } from "../../../globalComponents";
-import { getData, showToast, displayDate, setDatePicker } from "../../../globalFunction";
+// import { DropDown } from "../../globalComponents";
+import { getData, showToast, displayDate, setDatePicker } from "../../globalFunction";
 
 let delayTimer = "";
 

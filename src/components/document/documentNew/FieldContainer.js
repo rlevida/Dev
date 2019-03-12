@@ -1,8 +1,7 @@
 import React from "react";
-
+import { Link } from 'react-router-dom';
 import { displayDateMD, getData, postData, putData, showToast } from '../../../globalFunction'
 import { DragSource, DropTarget } from 'react-dnd';
-
 import { connect } from "react-redux"
 
 const itemSource = {
@@ -28,7 +27,8 @@ const itemTarget = {
     return {
         document: store.document,
         loggedUser: store.loggedUser,
-        folder: store.folder
+        folder: store.folder,
+        project: store.project
     }
 })
 
@@ -201,7 +201,7 @@ export default class FieldContainer extends React.Component {
     }
 
     render() {
-        const { document, dispatch, loggedUser, data, index, moveTo } = this.props
+        const { document, dispatch, loggedUser, data, index, moveTo, project } = this.props
         let tagCount = 0;
         const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
         const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
@@ -216,18 +216,21 @@ export default class FieldContainer extends React.Component {
                     </td> */}
                     <td>
                         <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
-                            <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`}/>
+                            <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
                         </a>
                     </td>
                     {/* <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td> */}
                     <td class="document-name">
-                        <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
-                            {data.type === "document" ?
-                                <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span> :
-                                <span class="mr10 fa fa-folder fa-lg"></span>
-                            }
-                            <span>{documentName}</span>
-                        </a>
+                        {data.type === "document" ?
+                            <Link to={`/projects/${project.Selected.id}/files/${data.id}`}>{documentName}</Link>
+                            :
+                            <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
+                                {data.type === "document" ?
+                                    <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span> :
+                                    <span class="mr10 fa fa-folder fa-lg"></span>
+                                }
+                            </a>
+                        }
                     </td>
                     <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`} /></td>
                     <td>{displayDateMD(data.dateAdded)}</td>
@@ -270,7 +273,8 @@ export default class FieldContainer extends React.Component {
                                 }
                             </div>
                         </span>
-                        <span class="document-action document-active" title="Delete" onClick={e => this.deleteDocument(data)}><i class="fa fa-trash fa-lg"></i></span>
+                        {/* onClick={e => this.deleteDocument(data)} */}
+                        <span class="document-action document-active" title="Delete" data-toggle="modal" data-target="#deleteModal" onClick={() => dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data })}><i class="fa fa-trash fa-lg"></i></span>
                         <div class="dropdown document-action-more">
                             <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                             <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">

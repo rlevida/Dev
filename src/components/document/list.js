@@ -5,17 +5,19 @@ import HTML5Backend from 'react-dnd-html5-backend';
 import parallel from 'async/parallel';
 
 import DocumentNew from "./documentNew";
-import DocumentStatus from "./documentStatus";
 import DocumentLibrary from "./documentLibrary";
-import DocumentFilter from "./documentFilter";
-import DocumentActivityLog from "./documentActivityLog";
+
+import DocumentStatus from "../document/documentStatus";
+import DocumentFilter from "../document/documentFilter";
+import DocumentActivityLog from "../document/documentActivityLog";
 
 import { getData } from "../../globalFunction"
 
-import UploadModal from "./uploadModal";
-import ShareModal from "./shareModal";
-import EditModal from "./editModal";
-import FolderModal from "./folderModal";
+import ShareModal from "../document/modal/shareModal";
+import EditModal from "../document/modal/editModal";
+import FolderModal from "../document/modal/folderModal";
+import DeleteModal from "../document/modal/deleteModal";
+
 
 import { connect } from "react-redux";
 
@@ -96,9 +98,9 @@ class List extends React.Component {
                                         <Tab onClick={() => this.handleActiveTab('activity')}>Activity Logs</Tab>
                                     </TabList>
                                     <TabPanel> */}
-                                    <DocumentNew />
-                                    <DocumentLibrary />
-                                    {/* </TabPanel>
+                                <DocumentNew />
+                                <DocumentLibrary />
+                                {/* </TabPanel>
                                     <TabPanel>
                                         <DocumentActivityLog />
                                     </TabPanel>
@@ -107,10 +109,10 @@ class List extends React.Component {
                             </div>
                         </div>
                     </div>
-                    <UploadModal />
                     <ShareModal />
                     <EditModal />
                     <FolderModal />
+                    <DeleteModal />
                 </div>
             </div>
         )

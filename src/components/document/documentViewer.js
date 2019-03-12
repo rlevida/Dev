@@ -3,10 +3,10 @@ import moment from 'moment'
 import mime from "mime-types";
 import { connect } from "react-redux"
 
-import { getFilePathExtension, putData, showToast, postData, removeTempFile, getData } from '../../../globalFunction'
-import { HeaderButtonContainer } from "../../../globalComponents"
+import { getFilePathExtension, putData, showToast, postData, removeTempFile, getData } from '../../globalFunction'
+import { HeaderButtonContainer } from "../../globalComponents"
 
-import DocumentComment from "../comment"
+import DocumentComment from "./comment"
 
 var delayTimer = ''
 

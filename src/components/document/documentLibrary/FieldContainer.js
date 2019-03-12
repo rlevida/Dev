@@ -272,7 +272,8 @@ export default class DocumentLibrary extends React.Component {
                                 }
                             </div>
                         </span>
-                        <span class="document-action document-active" title="Delete" onClick={e => this.deleteDocument(data)}><i class="fa fa-trash fa-lg"></i></span>
+                        {/* onClick={e => this.deleteDocument(data)} */}
+                        <span class="document-action document-active" title="Delete" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash fa-lg"></i></span>
                         <div class="dropdown">
                             <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                             <ul class="dropdown-menu  pull-right document-actions" aria-labelledby="dropdownMenu2" >

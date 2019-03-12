@@ -4,9 +4,8 @@ import { connect } from "react-redux"
 
 import { getData } from "../../globalFunction"
 
-import DocumentViewer from "./documentViewer"
-import DocumentUpload from "./documentUpload"
-import Header from "../partial/header"
+import DocumentViewer from "../document/documentViewer"
+import DocumentUpload from "../document/documentUpload"
 import Form from "./form"
 import List from "./list"
 
@@ -23,20 +22,20 @@ export default class Component extends React.Component {
 
     componentDidMount() {
         const { dispatch, loggedUser } = this.props
-
-        if (documentId) {
-            let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&documentId=${documentId}`;
-            getData(requestUrl, {}, (c) => {
-                if (c.status == 200) {
-                    if (c.data.result.length > 0) {
-                        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
-                        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: c.data.result[0] });
-                    }
-                } else {
-                    showToast('success', 'Something went wrong!')
-                }
-            });
-        }
+        // console.log(`here`)
+        // if (documentId) {
+        //     let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&documentId=${documentId}`;
+        //     getData(requestUrl, {}, (c) => {
+        //         if (c.status == 200) {
+        //             if (c.data.result.length > 0) {
+        //                 dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
+        //                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: c.data.result[0] });
+        //             }
+        //         } else {
+        //             showToast('success', 'Something went wrong!')
+        //         }
+        //     });
+        // }
 
         parallel({
             shareList: (parallelCallback) => {
@@ -77,10 +76,10 @@ export default class Component extends React.Component {
     render() {
         const { document } = this.props
         const Component = <div>
-            {(document.FormActive === "List" && documentId === '') &&
+            {(document.FormActive === "List") &&
                 <List />
             }
-            {(document.FormActive === "Form" && documentId === '') &&
+            {(document.FormActive === "Form") &&
                 <Form />
             }
             {document.FormActive === "DocumentViewer" &&
@@ -91,7 +90,7 @@ export default class Component extends React.Component {
             }
         </div>
         return (
-            <Header component={Component} page={"document"} />
+            Component
         )
     }
 }

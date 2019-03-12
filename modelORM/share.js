@@ -36,6 +36,11 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.BIGINT,
       allowNull: true
     },
+    isDeleted: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: 0
+    },
     dateAdded: {
       type: DataTypes.DATE,
       allowNull: true

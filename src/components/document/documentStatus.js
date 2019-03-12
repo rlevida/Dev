@@ -1,6 +1,6 @@
 import React from "react"
 
-import { getData } from '../../../globalFunction'
+import { getData } from '../../globalFunction'
 
 import { connect } from "react-redux"
 @connect((store) => {
