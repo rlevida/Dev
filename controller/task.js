@@ -207,11 +207,12 @@ exports.get = {
                             .map((mapObject) => {
                                 const { usersId } = mapObject.toJSON();
                                 return usersId;
-                            });
+                            })
+                            .filter((o) => { return o != queryString.userId });
                         opOrArray.push(
                             {
                                 id: {
-                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId IN (${(allTeams).join(",")}) AND members.userTypeLinkId <> ${queryString.userId})`)
+                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId IN (${(allTeams).join(",")}) AND members.userTypeLinkId <> ${queryString.userId} AND members.isDeleted = 0 AND members.memberType = "assignedTo")`)
                                 }
                             }
                         );
@@ -220,7 +221,7 @@ exports.get = {
                         opOrArray.push(
                             {
                                 id: {
-                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids} AND memberType = "follower" AND members.isDeleted=0)`)
+                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids} AND members.memberType = "follower" AND members.isDeleted=0)`)
                                 }
                             }
                         );
@@ -337,8 +338,28 @@ exports.get = {
             });
         })
     },
-    myTaskStatus: (req, cb) => {
+    myTaskStatus: async (req, cb) => {
         const queryString = req.query;
+        const userTeams = await UsersTeam
+            .findAll({ where: { usersId: queryString.userId, isDeleted: 0 } })
+            .map((mapObject) => {
+                const { teamId } = mapObject.toJSON();
+                return teamId;
+            });
+        const teams = await Teams
+            .findAll({ where: { teamLeaderId: queryString.userId, isDeleted: 0 } })
+            .map((mapObject) => {
+                const { id } = mapObject.toJSON();
+                return id;
+            });
+        const teamIds = _.uniq([...userTeams, ...teams]);
+        const allTeams = await UsersTeam
+            .findAll({ where: { teamId: teamIds, isDeleted: 0 } })
+            .map((mapObject) => {
+                const { usersId } = mapObject.toJSON();
+                return usersId;
+            })
+            .filter((o) => { return o != queryString.userId });
 
         async.parallel({
             assigned_to_me: (parallelCallback) => {
@@ -393,6 +414,36 @@ exports.get = {
                         as: 'task_members',
                         required: true,
                         where: { linkType: 'task', usersType: 'users', userTypeLinkId: queryString.userId, isDeleted: 0, memberType: "follower" },
+                    }],
+                    attributes: [
+                        'projectId',
+                        [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
+                        [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today']
+                    ]
+                }).map((response) => {
+                    return response.toJSON();
+                }).then((response) => {
+                    parallelCallback(null, response);
+                });
+            },
+            team: (parallelCallback) => {
+                Tasks.findAll({
+                    group: ['projectId'],
+                    where: {
+                        isDeleted: 0,
+                        dueDate: {
+                            [Op.lte]: moment(queryString.date, 'YYYY-MM-DD')
+                        },
+                        status: {
+                            [Op.ne]: "Completed"
+                        }
+                    },
+                    include: [{
+                        attributes: [],
+                        model: Members,
+                        as: 'task_members',
+                        required: true,
+                        where: { linkType: 'task', usersType: 'users', userTypeLinkId: allTeams, isDeleted: 0, memberType: "assignedTo" },
                     }],
                     attributes: [
                         'projectId',

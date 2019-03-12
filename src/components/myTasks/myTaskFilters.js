@@ -19,8 +19,10 @@ export default class MyTaskFilters extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch } = this.props;
-        dispatch({ type: "SET_TASK_FILTER", filter: { type: "assignedToMe" } });
+        const { dispatch, task } = this.props;
+        const filterType = (task.Filter.type == "") ? "assignedToMe" : task.Filter.type
+
+        dispatch({ type: "SET_TASK_FILTER", filter: { type: filterType } });
     }
 
     componentWillUnmount() {

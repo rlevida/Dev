@@ -32,6 +32,7 @@ export default class List extends React.Component {
         getData(`/api/type`, {}, (c) => {
             dispatch({ type: "SET_TYPE_LIST", list: c.data })
         });
+
         getData(`/api/project?page=${1}`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
@@ -56,7 +57,7 @@ export default class List extends React.Component {
                     dispatch({ type: "SET_PROJECT_LOADING", Loading: false });
                     showToast("success", "Project successfully retrieved.");
                 });
-            }, 1500);
+            }, 1000);
         }
     }
 

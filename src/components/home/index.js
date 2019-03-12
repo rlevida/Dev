@@ -8,16 +8,17 @@ export default class Component extends React.Component {
     }
 
     render() {
+        const { history } = { ...this.props };
         return (
             <div>
                 <div class="row">
-                    <div class="col-lg-6">
+                    <div class="col-lg-8">
                         <div class="card mb20">
                             <div class="card-header">
                                 <h4>Tasks Due Today</h4>
                             </div>
                             <div class="card-body">
-                                <MyTaskStatus />
+                                <MyTaskStatus history={history} />
                             </div>
                         </div>
                     </div>

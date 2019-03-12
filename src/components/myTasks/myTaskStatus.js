@@ -17,7 +17,10 @@ export default class myTaskStatus extends React.Component {
     constructor(props) {
         super(props);
 
-        _.map(["sumBy"], (fn) => {
+        _.map([
+            "sumBy",
+            "visitPage"
+        ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
     }
@@ -36,6 +39,12 @@ export default class myTaskStatus extends React.Component {
         return assignedToMeTaskCount;
     }
 
+    visitPage(type) {
+        const { dispatch, history } = { ...this.props };
+        dispatch({ type: "SET_TASK_FILTER", filter: { type } });
+        history.push('/my-tasks');
+    }
+
     render() {
         const { task } = this.props;
         const { StatusCount } = task;
@@ -43,18 +52,28 @@ export default class myTaskStatus extends React.Component {
         const assignedIssues = this.sumBy("assigned_to_me", "issues");
         const followingTasks = this.sumBy("following", "due_today");
         const followingIssues = this.sumBy("following", "issues");
+        const teamTask = this.sumBy("team", "due_today");
+        const teamIssues = this.sumBy("team", "issues");
 
         return (
             <div class={(_.isEmpty(StatusCount)) ? "linear-background" : ""}>
                 {
                     (_.isEmpty(StatusCount) == false) && <div class="row content-row status-count">
-                        <div class="col-lg-6 text-center">
+                        <div class="col-lg-4 text-center">
                             <p class="status-count text-orange">{('0' + assignedTask).slice(-2)}</p>
+                            <p class="status-label"><a onClick={() => this.visitPage("assignedToMe")}>Assigned to me</a></p>
                             <p class="status-sublabel">for {(typeof StatusCount.assigned_to_me != "undefined") ? (StatusCount.assigned_to_me).length : '0'} Projects</p>
                             <p class="status-sublabel text-red">{(typeof StatusCount.assigned_to_me != "undefined") ? (assignedIssues > 0) ? assignedIssues : 'No' : 'No'} delayed tasks</p>
                         </div>
-                        <div class="col-lg-6 text-center">
+                        <div class="col-lg-4 text-center">
+                            <p class="status-count text-yellow">{('0' + teamTask).slice(-2)}</p>
+                            <p class="status-label"><a onClick={() => this.visitPage("myTeam")}>My Team</a></p>
+                            <p class="status-sublabel">for {(typeof StatusCount.team != "undefined") ? (StatusCount.team).length : '0'} Projects</p>
+                            <p class="status-sublabel text-red">{(typeof StatusCount.team != "undefined") ? (teamIssues > 0) ? teamIssues : 'No' : 'No'} delayed tasks</p>
+                        </div>
+                        <div class="col-lg-4 text-center">
                             <p class="status-count text-yellow">{('0' + followingTasks).slice(-2)}</p>
+                            <p class="status-label"><a onClick={() => this.visitPage("following")}>Task followed</a></p>
                             <p class="status-sublabel">for {(typeof StatusCount.following != "undefined") ? (StatusCount.following).length : '0'} Projects</p>
                             <p class="status-sublabel text-red">{(typeof StatusCount.following != "undefined") ? (followingIssues > 0) ? followingIssues : 'No' : 'No'} delayed tasks</p>
                         </div>
