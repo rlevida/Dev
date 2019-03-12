@@ -24,7 +24,8 @@ export default class List extends React.Component {
             "getNextResult",
             "setFilter",
             "fetchProject",
-            "fetchType"
+            "fetchType",
+            "renderStatus"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -86,6 +87,15 @@ export default class List extends React.Component {
         dispatch({ type: "SET_PROJECT_FILTER", filter: { [name]: e } });
     }
 
+    renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type }) {
+        const status = (lateWorkstream > 0) ? `${lateWorkstream} stream(s) delayed` : (workstreamTaskDueToday > 0) ? `${workstreamTaskDueToday} stream(s) due today` : `On track`;
+        const color = (lateWorkstream > 0) ? "text-red" : (workstreamTaskDueToday > 0) ? "text-yellow" : "text-green";
+        const component = (render_type == "text") ? <p class={`mb0 ${color}`}>
+            {status}
+        </p> : <span class={`fa fa-circle mb0 mr5 ${color}`}></span>
+        return (component);
+    }
+
     render() {
         const { project, type } = { ...this.props };
         const currentPage = (typeof project.Count.current_page != "undefined") ? project.Count.current_page : 1;
@@ -117,7 +127,7 @@ export default class List extends React.Component {
                             <tbody>
                                 {
                                     _.map(project.List, (projectElem, index) => {
-                                        const { project, type, newDocuments, dateAdded, completion_rate, numberOfTasks } = { ...projectElem };
+                                        const { project, type, newDocuments, dateAdded, completion_rate, numberOfTasks, workstream } = { ...projectElem };
                                         const completionRate = (completion_rate != "") ? _(completion_rate)
                                             .mapValues(({ value, color, count }, key) => {
                                                 return {
@@ -135,10 +145,25 @@ export default class List extends React.Component {
                                         const delayedTaskCount = _.find(completionRate, (o) => { return o.label == "delayed task" }).count;
                                         const completedCount = _.find(completionRate, (o) => { return o.label == "completed" }).count;
 
+                                        let lateWorkstream = 0;
+                                        let workstreamTaskDueToday = 0;
+
+                                        workstream.map((e) => {
+                                            if (e.taskOverDue.length) {
+                                                lateWorkstream++;
+                                            }
+                                            if (e.taskDueToday.length) {
+                                                workstreamTaskDueToday++;
+                                            }
+                                        });
                                         return (
                                             <tr key={index}>
                                                 <td data-label="Project Name">
-                                                    <p class="mb0"><strong>{project}</strong></p>
+
+                                                    <p class="mb0">
+                                                        {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "icon" })}
+                                                        {project}
+                                                    </p>
                                                 </td>
                                                 <td data-label="Type">
                                                     <p class="mb0">
