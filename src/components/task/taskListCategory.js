@@ -32,7 +32,6 @@ export default class TaskListCategory extends React.Component {
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
-
     }
 
     componentDidMount() {
@@ -45,7 +44,9 @@ export default class TaskListCategory extends React.Component {
         const { task } = this.props;
 
         if (_.isEqual(prevProps.task.Filter, task.Filter) == false) {
-            this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
+            this.setState({ loading: "RETRIEVING" }, () => {
+                this.getList(1)
+            });
         }
     }
 
@@ -99,6 +100,10 @@ export default class TaskListCategory extends React.Component {
 
         if (user_id != "") {
             fetchUrl += `&userId=${user_id}`
+        }
+
+        if (task != "") {
+            fetchUrl += `&task=${Filter.task}`
         }
 
         if (workstream_id != "") {
@@ -244,7 +249,6 @@ export default class TaskListCategory extends React.Component {
         const currentPage = (typeof count.current_page != "undefined") ? count.current_page : 1;
         const lastPage = (typeof count.last_page != "undefined") ? count.last_page : 1;
         const taskList = this.groupList();
-
         return (
             <div>
                 <div class="card-header">
