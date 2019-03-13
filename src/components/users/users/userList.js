@@ -26,7 +26,15 @@ export default class UserList extends React.Component {
             this[fn] = this[fn].bind(this);
         })
     }
-    
+
+    componentDidUpdate(prevProps) {
+        const { users } = this.props;
+
+        if (_.isEqual(prevProps.users.Filter, users.Filter) == false) {
+            this.fetchData(1);
+        }
+    }
+
     deleteData(value) {
         const { dispatch } = { ...this.props };
         dispatch({ type: 'SET_USER_SELECTED', Selected: value });
@@ -58,11 +66,17 @@ export default class UserList extends React.Component {
 
     fetchData(page) {
         const { dispatch, users } = this.props;
-        getData(`/api/user?page=${page}&isDeleted=0`, {}, (c) => {
+        let fetchUrl = `/api/user?page=${page}&isDeleted=0`;
+
+        if (users.Filter.name != "") {
+            fetchUrl += `&name=${users.Filter.name}`;
+        }
+
+        getData(fetchUrl, {}, (c) => {
             dispatch({ type: 'SET_USER_LIST', list: users.List.concat(c.data.result), Count: c.data.count });
             dispatch({ type: 'SET_USER_LOADING', Loading: '' });
             showToast("success", "Users successfully retrieved.");
-        })
+        });
     }
 
     renderArrayTd(arr) {

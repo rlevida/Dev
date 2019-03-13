@@ -404,3 +404,68 @@ export class ColorPicker extends React.Component {
         )
     }
 }
+
+export class Searchbar extends React.Component {
+    constructor(props) {
+        super(props);
+
+        _.map([
+            "handleShowSearch",
+            "handleChange"
+        ], (fn) => { this[fn] = this[fn].bind(this) });
+    }
+
+    handleShowSearch() {
+        const { handleCancel } = { ...this.props };
+        const { searchInput = "", searchIcon = "" } = { ...this.refs };
+        const searchClassList = (searchInput != "") ? searchInput.classList : "";
+        const searchIconClassList = (searchIcon != "") ? searchIcon.classList : "";
+
+        if (searchClassList.contains('hide')) {
+            (searchClassList).remove('hide');
+            (searchIconClassList).remove('fa-search');
+            (searchIconClassList).add('fa-times-circle-o');
+        } else {
+            (searchClassList).add('hide');
+            (searchIconClassList).remove('fa-times-circle-o');
+            (searchIconClassList).add('fa-search');
+            searchInput.value = "";
+
+            handleCancel();
+        }
+    }
+
+    handleChange(e) {
+        const { handleChange } = { ...this.props };
+        const filterState = { [e.target.name]: e.target.value };
+        
+        if (typeof e.key != "undefined" && e.key === 'Enter' && e.target.value != "") {
+            handleChange(filterState);
+        }
+    }
+
+    render() {
+        const { handleChange, name } = { ...this.props };
+
+        return (
+            <div style={{ display: "flex", marginRight: 10 }}>
+                <div class="mr5" >
+                    <input
+                        type="text"
+                        name={name}
+                        class="form-control hide"
+                        ref="searchInput"
+                        placeholder="Type and press enter to search"
+                        onKeyPress={this.handleChange}
+                    />
+                </div>
+                <a
+                    class="logo-action text-grey"
+                    onClick={this.handleShowSearch}
+                >
+                    <i ref="searchIcon" class="fa fa-search" aria-hidden="true"></i>
+                </a>
+            </div>
+        )
+    }
+}

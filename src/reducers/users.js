@@ -7,7 +7,10 @@ export default function reducer(state = {
     SelectedId: [],
     SelectList: [],
     Loading: 'RETRIEVING',
-    CurrentData: {}
+    CurrentData: {},
+    Filter: {
+        name: ""
+    }
 }, action) {
     switch (action.type) {
         case "ADD_USER_LIST": {
@@ -71,6 +74,11 @@ export default function reducer(state = {
         }
         case "SET_USER_LOADING": {
             return { ...state, Loading: action.Loading }
+        }
+        case "SET_USER_FILTER": {
+            const { Filter } = { ...state };
+            const updatedFilter = _.assign({}, Filter, action.filter);
+            return { ...state, Filter: updatedFilter }
         }
         default:
             return state;

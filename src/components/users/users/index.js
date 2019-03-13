@@ -1,6 +1,8 @@
 import React from "react";
 import { connect } from "react-redux";
+import _ from "lodash";
 import { getData, showToast } from '../../../globalFunction';
+import { Searchbar } from "../../../globalComponents";
 
 import UserList from "./userList";
 import UserForm from "./userForm";
@@ -13,7 +15,10 @@ import UserForm from "./userForm";
 })
 export default class Component extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
+
+        _.map(["handleChange"], (fn) => { this[fn] = this[fn].bind(this) });
+
     }
 
     componentDidMount() {
@@ -25,8 +30,19 @@ export default class Component extends React.Component {
         });
     }
 
+    handleChange(params) {
+        const { dispatch, users } = this.props;
+
+        if (users.Filter.name != params.name) {
+            dispatch({ type: "SET_USER_LIST", list: [] });
+            dispatch({ type: "SET_USER_FILTER", filter: params });
+            dispatch({ type: "SET_USER_LOADING", Loading: "RETRIEVING" });
+        }
+    }
+
     render() {
         const { users, dispatch } = this.props;
+        console.log()
         return (
             <div>
                 {
@@ -56,9 +72,16 @@ export default class Component extends React.Component {
                                             </div>
                                             <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                                                 <div class="button-action">
+                                                    <Searchbar
+                                                        handleChange={this.handleChange}
+                                                        handleCancel={() => {
+                                                            dispatch({ type: "SET_USER_FILTER", filter: { name: "" } });
+                                                        }}
+                                                        name="name"
+                                                    />
                                                     <a class="btn btn-default" onClick={() => {
-                                                        dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })
-                                                        dispatch({ type: "SET_USER_SELECTED", Selected: "" })
+                                                        // dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })
+                                                        // dispatch({ type: "SET_USER_SELECTED", Selected: "" })
                                                     }
                                                     }>
                                                         <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>

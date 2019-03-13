@@ -1,8 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
-
-let keyTimer = "";
+import { Searchbar } from "../../globalComponents";
 
 @connect((store) => {
     return {
@@ -18,7 +17,6 @@ export default class MyTaskFilters extends React.Component {
         _.map([
             "setTaskList",
             "handleChange",
-            "handleShowSearch"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -55,32 +53,12 @@ export default class MyTaskFilters extends React.Component {
         }
     }
 
-    handleChange(e) {
-        const { dispatch } = this.props;
-        const filterState = { [e.target.name]: e.target.value };
-
-        if (typeof e.key != "undefined" && e.key === 'Enter') {
+    handleChange(params) {
+        const { dispatch, task } = this.props;
+        
+        if (task.Filter.task != params.task) {
             dispatch({ type: "SET_TASK_LIST", list: [] });
-            dispatch({ type: "SET_TASK_FILTER", filter: filterState });
-        }
-    }
-
-    handleShowSearch() {
-        const { dispatch } = this.props;
-        const { searchInput = "", searchIcon = "" } = { ...this.refs };
-        const searchClassList = (searchInput != "") ? searchInput.classList : "";
-        const searchIconClassList = (searchIcon != "") ? searchIcon.classList : "";
-
-        if (searchClassList.contains('hide')) {
-            (searchClassList).remove('hide');
-            (searchIconClassList).remove('fa-search');
-            (searchIconClassList).add('fa-times-circle-o');
-        } else {
-            (searchClassList).add('hide');
-            (searchIconClassList).remove('fa-times-circle-o');
-            (searchIconClassList).add('fa-search');
-            searchInput.value = "";
-            dispatch({ type: "SET_TASK_FILTER", filter: { task: "" } });
+            dispatch({ type: "SET_TASK_FILTER", filter: params });
         }
     }
 
@@ -115,21 +93,13 @@ export default class MyTaskFilters extends React.Component {
                     </div>
                     <div class="col-md-6 col-sm-12 col-xs-12 pd0" >
                         <div class="button-action">
-                            <div class="mr10 hide" ref="searchInput" >
-                                <input
-                                    type="text"
-                                    name="task"
-                                    class="form-control"
-                                    placeholder="Type and press enter to search"
-                                    onKeyPress={this.handleChange}
-                                />
-                            </div>
-                            <a
-                                class="logo-action text-grey"
-                                onClick={this.handleShowSearch}
-                            >
-                                <i ref="searchIcon" class="fa fa-search" aria-hidden="true"></i>
-                            </a>
+                            <Searchbar
+                                handleChange={this.handleChange}
+                                handleCancel={() => {
+                                    dispatch({ type: "SET_TASK_FILTER", filter: { task: "" } });
+                                }}
+                                name="task"
+                            />
                             <a class="logo-action text-grey" onClick={() => {
                                 dispatch({
                                     type: "SET_TASK_FORM_ACTIVE",

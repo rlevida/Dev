@@ -112,7 +112,7 @@ export default class TaskListCategory extends React.Component {
         if (Filter.type != "") {
             fetchUrl += `&type=${Filter.type}`
         }
-
+        
         getData(fetchUrl, {}, (c) => {
             this.setState({ count: c.data.count, loading: "" }, () => dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result }));
             showToast("success", "Task successfully retrieved.");

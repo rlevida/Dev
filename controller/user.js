@@ -72,11 +72,16 @@ exports.get = {
                         {
                             [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.name}%`)
                         }
+                    ),
+                    Sequelize.where(Sequelize.fn('lower', Sequelize.col('users.username')),
+                        {
+                            [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.name}%`)
+                        }
                     )
                 ]
             } : {}
         }
-        
+
         if (typeof queryString.showAllUsers != "undefined" && queryString.showAllUsers == "false") {
             const teamLeader = await Teams.findAll({
                 where: {
