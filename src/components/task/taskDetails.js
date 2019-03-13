@@ -117,7 +117,7 @@ export default class TaskDetails extends React.Component {
     }
 
     followTask({ id = "" }) {
-        const { loggedUser, task, dispatch } = this.props;
+        const { loggedUser, task, dispatch } = { ...this.props };
         const { task_members } = task.Selected;
 
         if (id == "") {
@@ -130,8 +130,14 @@ export default class TaskDetails extends React.Component {
             };
             postData(`/api/member`, { data: memberData, includes: 'user' }, (c) => {
                 if (c.status == 200) {
-                    task_members.push(c.data);
-                    dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, task_members } });
+                    const currentTaskMember = task_members;
+                    const currentTask = task.List;
+                    currentTaskMember.push(c.data);
+                    const updatedSelectedTask = { ...task.Selected, task_members: currentTaskMember };
+                    currentTask.push(updatedSelectedTask)
+
+                    dispatch({ type: "SET_TASK_SELECTED", Selected: updatedSelectedTask });
+                    dispatch({ type: "SET_TASK_LIST", list: currentTask });
                     showToast("success", "Task successfully updated.");
                 } else {
                     showToast("success", "Something went wrong. Please try again later.");
@@ -139,7 +145,7 @@ export default class TaskDetails extends React.Component {
             });
         } else {
             putData(`/api/member/${id}`, { isDeleted: 1 }, (c) => {
-               if (c.status == 200) {
+                if (c.status == 200) {
                     const remainingMembers = _.remove(task_members, function (o) {
                         return o.id != id;
                     });
@@ -185,7 +191,7 @@ export default class TaskDetails extends React.Component {
                                                 {
                                                     (
                                                         ((Selected.approverId == loggedUser.data.id && Selected.status == "For Approval") ||
-                                                        (typeof isAssignedToMe != "undefined" && Selected.status != "For Approval")) &&
+                                                            (typeof isAssignedToMe != "undefined" && Selected.status != "For Approval")) &&
                                                         (Selected.status == "For Approval" || Selected.status == "In Progress")
                                                     ) &&
                                                     <a class="btn btn-default mr5" onClick={() => this.completeTask((Selected.status == "For Approval") ? "In Progress" : "Completed")}>
