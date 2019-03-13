@@ -137,7 +137,8 @@ export default class ProjectForm extends React.Component {
                     projectNameCount: project.Selected.projectNameCount,
                     projectType: project.Selected.projectType,
                     projectManagerId: project.Selected.projectManagerId,
-                    color: project.Selected.color
+                    color: project.Selected.color,
+                    updatedBy: loggedUser.data.id
                 }
                 putData(`/api/project/${project.Selected.id}`, dataToSubmit, (c) => {
                     dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });

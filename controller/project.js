@@ -895,8 +895,8 @@ exports.post = {
 
 exports.put = {
     index: (req, cb) => {
-        let dataToSubmit = req.body
-        let id = req.params.id
+        const dataToSubmit = req.body;
+        const id = req.params.id;
 
         sequence.create().then((nextThen) => {
             Projects
@@ -919,9 +919,9 @@ exports.put = {
                 })
         }).then((nextThen) => {
             Projects
-                .update(dataToSubmit, { where: { id: id } })
+                .update(_.omit(dataToSubmit, ['updatedBy']), { where: { id: id } })
                 .then((res) => {
-                    nextThen(res)
+                    nextThen(res);
                 })
         }).then((nextThen, result) => {
             Members

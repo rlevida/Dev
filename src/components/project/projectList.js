@@ -142,6 +142,7 @@ export default class ProjectList extends React.Component {
         const { project, loggedUser } = this.props;
         const currentPage = (typeof project.Count.current_page != "undefined") ? project.Count.current_page : 1;
         const lastPage = (typeof project.Count.last_page != "undefined") ? project.Count.last_page : 1;
+
         return (
             <div>
                 <div class="row">
@@ -157,6 +158,7 @@ export default class ProjectList extends React.Component {
                                             <thead>
                                                 <tr>
                                                     <th scope="col" class="td-left">Project Name</th>
+                                                    <th scope="col">Type</th>
                                                     <th scope="col">Status</th>
                                                     <th scope="col">Workstreams</th>
                                                     <th scope="col">Members</th>
@@ -166,7 +168,7 @@ export default class ProjectList extends React.Component {
                                             <tbody>
                                                 {
                                                     _.map(project.List, (projectElem, index) => {
-                                                        const { id, project, workstream, members } = { ...projectElem };
+                                                        const { id, project, workstream, members, type } = { ...projectElem };
                                                         let lateWorkstream = 0;
                                                         let workstreamTaskDueToday = 0;
 
@@ -185,6 +187,13 @@ export default class ProjectList extends React.Component {
                                                                     <p class="mb0">
                                                                         {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "icon" })}
                                                                         <Link to={`/projects/${id}`}>{project}</Link>
+                                                                    </p>
+                                                                </td>
+                                                                <td data-label="Type">
+                                                                    <p class="mb0">
+                                                                        <span title={type.type}>
+                                                                            <i class={(type.type == "Client") ? "fa fa-users" : (type.type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></i>
+                                                                        </span>
                                                                     </p>
                                                                 </td>
                                                                 <td data-label="Status">

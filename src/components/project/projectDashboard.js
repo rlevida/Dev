@@ -36,8 +36,10 @@ export default class ProjectDashboard extends React.Component {
 
     componentWillUnmount() {
         const { dispatch } = this.props;
+        
         dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: {} });
         dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
+        dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
     }
 
     fetchProjectStatus() {

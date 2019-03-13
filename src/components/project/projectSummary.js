@@ -39,6 +39,7 @@ export default class List extends React.Component {
     componentWillUnmount() {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_PROJECT_LIST", list: [] });
+        dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
     }
 
     componentDidUpdate(prevProps) {
@@ -70,7 +71,7 @@ export default class List extends React.Component {
 
         getData(`/api/project?page=${page}&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_LIST", list: [...project.List, ...c.data.result], count: c.data.count });
-            dispatch({ type: "SET_PROJECT_LOADING", Loading: false });
+            dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
             showToast("success", "Project successfully retrieved.");
         });
     }
