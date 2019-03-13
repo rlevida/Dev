@@ -70,6 +70,10 @@ export default class TaskCalendar extends React.Component {
         if (task.Filter.type != "") {
             fetchUrl += `&type=${task.Filter.type}&userId=${loggedUser.data.id}`
         }
+        
+        if (task.Filter.task != "") {
+            fetchUrl += `&task=${task.Filter.task}`
+        }
 
         getData(fetchUrl, {}, (c) => {
             dispatch({ type: "SET_TASK_LIST", list: c.data.result });

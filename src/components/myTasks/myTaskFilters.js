@@ -79,6 +79,7 @@ export default class MyTaskFilters extends React.Component {
             (searchClassList).add('hide');
             (searchIconClassList).remove('fa-times-circle-o');
             (searchIconClassList).add('fa-search');
+            searchInput.value = "";
             dispatch({ type: "SET_TASK_FILTER", filter: { task: "" } });
         }
     }

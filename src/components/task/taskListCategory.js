@@ -42,7 +42,6 @@ export default class TaskListCategory extends React.Component {
 
     componentDidUpdate(prevProps) {
         const { task } = this.props;
-
         if (_.isEqual(prevProps.task.Filter, task.Filter) == false) {
             this.setState({ loading: "RETRIEVING" }, () => {
                 this.getList(1)
@@ -101,8 +100,8 @@ export default class TaskListCategory extends React.Component {
         if (user_id != "") {
             fetchUrl += `&userId=${user_id}`
         }
-
-        if (task != "") {
+        
+        if (Filter.task != "") {
             fetchUrl += `&task=${Filter.task}`
         }
 
