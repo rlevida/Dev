@@ -42,7 +42,6 @@ export default class Component extends React.Component {
 
     render() {
         const { users, dispatch } = this.props;
-        console.log()
         return (
             <div>
                 {
@@ -80,8 +79,8 @@ export default class Component extends React.Component {
                                                         name="name"
                                                     />
                                                     <a class="btn btn-default" onClick={() => {
-                                                        // dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })
-                                                        // dispatch({ type: "SET_USER_SELECTED", Selected: "" })
+                                                        dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })
+                                                        dispatch({ type: "SET_USER_SELECTED", Selected: "" })
                                                     }
                                                     }>
                                                         <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>
