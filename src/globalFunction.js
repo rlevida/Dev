@@ -9,7 +9,7 @@ let showToast = exports.showToast = (type, message, duration, multiple) => {
     toastr[type](message);
 }
 
-let getParameterByName = exports.getParameterByName = (name, url) => {
+const getParameterByName = exports.getParameterByName = (name, url) => {
     if (!url) {
         url = window.location.href;
     }

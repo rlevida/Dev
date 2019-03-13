@@ -25,7 +25,8 @@ export default class List extends React.Component {
             "setFilter",
             "fetchProject",
             "fetchType",
-            "renderStatus"
+            "renderStatus",
+            "getLateTasks"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -97,6 +98,32 @@ export default class List extends React.Component {
         return (component);
     }
 
+    getLateTasks(projectId) {
+        const { dispatch } = { ...this.props };
+        const fromDate = moment().startOf('month').format("YYYY-MM-DD");
+        const toDate = moment().endOf('month').format("YYYY-MM-DD");
+        const today = moment().format("YYYY-MM-DD");
+
+        let fetchUrl = `/api/task?projectId=${projectId}&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
+
+        getData(fetchUrl, {}, (c) => {
+            const result = c.data.result;
+            const delayedTasks = _.filter(result, (o) => {
+                return o.status == "In Progress" && moment(o.dueDate).isBefore(today)
+            });
+            const remainingTasks = _.filter(result, (o) => {
+                const indexChecker = _.findIndex(delayedTasks, function (delayedTask) { return delayedTask.id == o.id });
+                return indexChecker < 0;
+            });
+            const taskList = [...delayedTasks, ...remainingTasks];
+
+            dispatch({ type: "SET_TASK_LIST", list: taskList });
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+        });
+
+        $('#completion-tasks').modal("show");
+    }
+
     render() {
         const { project, type } = { ...this.props };
         const currentPage = (typeof project.Count.current_page != "undefined") ? project.Count.current_page : 1;
@@ -128,7 +155,7 @@ export default class List extends React.Component {
                             <tbody>
                                 {
                                     _.map(project.List, (projectElem, index) => {
-                                        const { project, type, newDocuments, dateAdded, completion_rate, numberOfTasks, workstream } = { ...projectElem };
+                                        const { id, project, type, newDocuments, dateAdded, completion_rate, numberOfTasks, workstream } = { ...projectElem };
                                         const completionRate = (completion_rate != "") ? _(completion_rate)
                                             .mapValues(({ value, color, count }, key) => {
                                                 return {
@@ -184,7 +211,7 @@ export default class List extends React.Component {
                                                     </p>
                                                 </td>
                                                 <td data-label="Active Month Completion Rate">
-                                                    <a data-tip data-for={`task-${index}`}>
+                                                    <a data-tip data-for={`task-${index}`} onClick={() => this.getLateTasks(id)}>
                                                         <ProgressBar data={completionRate} />
                                                         <p class="mb0">{completionValue}%</p>
                                                     </a>

@@ -4,7 +4,7 @@ import moment from 'moment';
 import { connect } from "react-redux";
 
 import { Loading } from "../../globalComponents";
-import { getData, putData, showToast } from "../../globalFunction";
+import { getData, putData, showToast, getParameterByName } from "../../globalFunction";
 
 @connect((store) => {
     return {
@@ -36,8 +36,14 @@ export default class TaskListCategory extends React.Component {
 
     componentDidMount() {
         const { dispatch } = { ...this.props };
+        const taskId = getParameterByName("task-id");
+
         dispatch({ type: "SET_TASK_LIST", list: [] });
         this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
+
+        if (taskId != null) {
+            this.openTaskDetails(taskId);
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -100,7 +106,7 @@ export default class TaskListCategory extends React.Component {
         if (user_id != "") {
             fetchUrl += `&userId=${user_id}`
         }
-        
+
         if (Filter.task != "") {
             fetchUrl += `&task=${Filter.task}`
         }
@@ -112,7 +118,7 @@ export default class TaskListCategory extends React.Component {
         if (Filter.type != "") {
             fetchUrl += `&type=${Filter.type}`
         }
-        
+
         getData(fetchUrl, {}, (c) => {
             this.setState({ count: c.data.count, loading: "" }, () => dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result }));
             showToast("success", "Task successfully retrieved.");
@@ -128,12 +134,11 @@ export default class TaskListCategory extends React.Component {
         const { dispatch, loggedUser } = { ...this.props };
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
 
-        $(`#task-details`).modal('show');
-
         getData(`/api/task/detail/${id}?starredUser=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
                 dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+                $(`#task-details`).modal('show');
             } else {
                 showToast("error", "Error retrieving task. Please try again later.");
             }
@@ -188,7 +193,7 @@ export default class TaskListCategory extends React.Component {
                     </p>
                 </td>
                 {
-                    (Filter.type != "assignedToMe") && <td>
+                    (Filter.type != "assignedToMe") && <td data-label="Assigned">
                         {
                             assigned.join("\r\n")
                         }

@@ -307,16 +307,20 @@ exports.get = {
             Tasks.findOne(
                 { ...options, where: whereObj }
             ).then((response) => {
-                const responseData = response.toJSON();
-                const assignedTaskMembers = _.filter(responseData.task_members, (member) => { return member.memberType == "assignedTo" });
-                cb({
-                    status: true,
-                    data: {
-                        ...responseData,
-                        assignedTo: ((assignedTaskMembers).length > 0) ? assignedTaskMembers[0].userTypeLinkId : "",
-                        isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.task_starred).length > 0) ? responseData.task_starred[0].isActive : 0
-                    }
-                });
+                if (response != null) {
+                    const responseData = response.toJSON();
+                    const assignedTaskMembers = _.filter(responseData.task_members, (member) => { return member.memberType == "assignedTo" });
+                    cb({
+                        status: true,
+                        data: {
+                            ...responseData,
+                            assignedTo: ((assignedTaskMembers).length > 0) ? assignedTaskMembers[0].userTypeLinkId : "",
+                            isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.task_starred).length > 0) ? responseData.task_starred[0].isActive : 0
+                        }
+                    });
+                } else {
+                    cb({ status: false, error: "Task not found." })
+                }
             });
         } catch (err) {
             cb({ status: false, error: err })

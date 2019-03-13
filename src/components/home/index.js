@@ -1,10 +1,16 @@
 import React from "react";
 import MyTaskStatus from "../myTasks/myTaskStatus";
 import ProjectSummary from "../project/projectSummary";
+import ProjectCompletionTasks from "../project/projectCompletionTasks";
 
 export default class Component extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
+        this.handleRedirect = this.handleRedirect.bind(this);
+    }
+
+    handleRedirect(url) {
+        this.props.history.push(url)
     }
 
     render() {
@@ -35,6 +41,7 @@ export default class Component extends React.Component {
                         </div>
                     </div>
                 </div>
+                <ProjectCompletionTasks handleRedirect={this.handleRedirect} />
             </div>
         )
     }

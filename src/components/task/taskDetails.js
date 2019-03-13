@@ -314,7 +314,7 @@ export default class TaskDetails extends React.Component {
                                                     <div>
                                                         <h3>
                                                             Checklist
-                                                </h3>
+                                                        </h3>
                                                         <div class="ml20">
                                                             {
                                                                 _.map(checklist, (checklistObj, index) => {
