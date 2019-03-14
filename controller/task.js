@@ -25,6 +25,18 @@ const associationStack = [
         ],
     },
     {
+        model: TaskDependency,
+        as: 'task_dependency',
+        required: false,
+        where: { isDeleted: 0 },
+        include: [
+            {
+                model: Tasks,
+                as: 'task'
+            }
+        ],
+    },
+    {
         model: Starred,
         as: 'task_starred',
         where: { linkType: 'task', isActive: 1 },

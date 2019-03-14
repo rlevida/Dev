@@ -21,7 +21,8 @@ export default class TaskDetails extends React.Component {
             "starredTask",
             "editTask",
             "confirmDelete",
-            "followTask"
+            "followTask",
+            "handleBack"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         })
@@ -162,23 +163,42 @@ export default class TaskDetails extends React.Component {
         }
     }
 
+    handleBack() {
+        const { history } = { ...this.props };
+
+        if (history.location.search != "") {
+            history.push(history.location.pathname)
+        }
+    }
+
     render() {
         const { task: taskObj, loggedUser } = { ...this.props };
         const { Loading, Selected } = taskObj;
-        const { id, task, task_members, dueDate, workstream, status, description, checklist } = Selected;
+        const { id, task, task_members, dueDate, workstream, status, description, checklist, task_dependency } = Selected;
         const assigned = _.filter(task_members, (o) => { return o.memberType == "assignedTo" });
         const isAssignedToMe = _.find(task_members, (o) => { return o.memberType == "assignedTo" && o.user.id == loggedUser.data.id });
         const approver = _.filter(task_members, (o) => { return o.memberType == "approver" });
-        const isFollower = _.find(task_members, (o) => { return o.memberType == "follower" && o.user.id == loggedUser.data.id }) || {};
+        const followers = _.filter(task_members, (o) => { return o.memberType == "follower" });
+        const isFollower = _.find(followers, (o) => { return o.user.id == loggedUser.data.id }) || {};
         const typeValue = (typeof Selected.task != "undefined" && _.isEmpty(Selected) == false) ? Selected.task : "";
+
+        const given = moment(dueDate, "YYYY-MM-DD");
+        const current = moment().startOf('day');
+        let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
+        daysRemaining = (daysRemaining == 0 && dueDate != "") ? 1 : daysRemaining;
 
         return (
             <div>
-                <div class="modal right fade" id="task-details">
+                <div class="modal right fade" id="task-details" data-backdrop="static" data-keyboard="false">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <a class="text-grey" data-dismiss="modal" aria-label="Close">
+                                <a
+                                    class="text-grey"
+                                    data-dismiss="modal"
+                                    aria-label="Close"
+                                    onClick={this.handleBack}
+                                >
                                     <span>
                                         <i class="fa fa-chevron-left mr10" aria-hidden="true"></i>
                                         <strong>Back</strong>
@@ -246,7 +266,7 @@ export default class TaskDetails extends React.Component {
                                 <div class={(Loading == "RETRIEVING") ? "linear-background" : ""}>
                                     {
                                         (typeof id != "undefined") && <div>
-                                            <h2 class="mt20 mb20">{task}</h2>
+                                            <h2 class={`mt20 mb20 ${(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}`}>{task}</h2>
                                             <div class="row mb20">
                                                 <div class="col-md-6">
                                                     <div class="label-div">
@@ -264,7 +284,7 @@ export default class TaskDetails extends React.Component {
                                                     </div>
                                                     <div class="label-div">
                                                         <label>Project:</label>
-                                                        <p class="m0 text-green">
+                                                        <p class="m0" style={{ color: workstream.project.color }}>
                                                             <strong>{workstream.project.project}</strong>
                                                         </p>
                                                     </div>
@@ -273,6 +293,20 @@ export default class TaskDetails extends React.Component {
                                                         <p class="m0">
                                                             {workstream.workstream}
                                                         </p>
+                                                    </div>
+                                                    <div>
+                                                        <label>Follower/s:</label>
+                                                        <div class="ml20">
+                                                            {
+                                                                _.map(followers, ({ user }, index) => {
+                                                                    return (
+                                                                        <div key={index}>
+                                                                            <p>{user.firstName + " " + user.lastName}</p>
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
@@ -292,7 +326,7 @@ export default class TaskDetails extends React.Component {
                                                     </div>
                                                     <div class="label-div">
                                                         <label>Due Date:</label>
-                                                        <p class="m0">
+                                                        <p class={`0 ${(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}`}>
                                                             {
                                                                 (dueDate != null) ? moment(dueDate).format("MMMM DD, YYYY") : "N/A"
                                                             }
@@ -305,6 +339,21 @@ export default class TaskDetails extends React.Component {
                                                                 status
                                                             }
                                                         </p>
+                                                    </div>
+                                                    <div>
+                                                        <label>Dependency:</label>
+                                                        <div class="ml20">
+                                                            {
+                                                                _.map(task_dependency, ({ task, dependencyType }, index) => {
+                                                                    return (
+                                                                        <div key={index}>
+                                                                            <p class="m0">{task.task}</p>
+                                                                            <p class="note text-blue">{dependencyType}</p>
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -355,7 +404,7 @@ export default class TaskDetails extends React.Component {
                                                     <div>
                                                         <h3>
                                                             Attachments
-                                                </h3>
+                                                        </h3>
                                                         <div class="ml20">
 
                                                         </div>

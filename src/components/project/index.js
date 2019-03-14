@@ -16,7 +16,7 @@ import TaskDetails from "../task/taskDetails";
 })
 export default class Component extends React.Component {
     render() {
-        const { project, task } = { ...this.props };
+        const { project, task, history } = { ...this.props };
 
         return (
             <div>
@@ -32,7 +32,7 @@ export default class Component extends React.Component {
                 {
                     (project.FormActive == "Form") && <ProjectForm />
                 }
-                <TaskDetails />
+                <TaskDetails history={history}/>
             </div>
         )
     }

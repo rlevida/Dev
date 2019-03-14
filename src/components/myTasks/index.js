@@ -23,7 +23,7 @@ export default class Component extends React.Component {
     }
 
     render() {
-        const { task } = this.props;
+        const { task, history } = this.props;
 
         return (
             <div>
@@ -47,7 +47,7 @@ export default class Component extends React.Component {
                         </div>
                     </div>
                 }
-                <TaskDetails />
+                <TaskDetails history={history}/>
             </div>
         )
     }

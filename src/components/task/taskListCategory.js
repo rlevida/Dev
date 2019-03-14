@@ -42,7 +42,9 @@ export default class TaskListCategory extends React.Component {
         this.setState({ loading: "RETRIEVING" }, () => this.getList(1));
 
         if (taskId != null) {
-            this.openTaskDetails(taskId);
+            setTimeout(() => {
+                this.openTaskDetails(taskId);
+            }, 500);
         }
     }
 
