@@ -83,7 +83,7 @@ export default class ShareModal extends React.Component {
                                         multiple={true}
                                         required={false}
                                         options={shareOptions}
-                                        selected={(document.Selected.share != null) ? JSON.parse(document.Selected.share) : []}
+                                        selected={(document.Selected.share != null && document.Selected.share.length > 0) ? JSON.parse(document.Selected.share) : []}
                                         onChange={(e) => this.selectShare(e)}
                                     />
                                    

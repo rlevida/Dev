@@ -17,7 +17,8 @@ var delayTimer = ''
         settings: store.settings,
         conversation: store.conversation,
         global: store.global,
-        starred: store.starred
+        starred: store.starred,
+        project: store.project
     }
 })
 
@@ -34,9 +35,16 @@ export default class DocumentViewerComponent extends React.Component {
         this.handleOnChange = this.handleOnChange.bind(this)
     }
 
+    componentDidMount() {
+        const { dispatch, match } = this.props
+        getData(`/api/document/detail/${match.params.documentId}`, {}, (c) => {
+            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: c.data })
+        })
+    }
+
     componentWillMount() {
-        const { document } = this.props
-        if (document.Selected.id) {
+        const { document, match } = this.props
+        if (match.params.documentId) {
             this.fetchData(1)
         }
     }
@@ -62,8 +70,9 @@ export default class DocumentViewerComponent extends React.Component {
     }
 
     fetchData(page) {
-        const { dispatch, document } = this.props;
-        getData(`/api/conversation/getConversationList?linkType=document&linkId=${(documentId) ? documentId : document.Selected.id}`, {}, (c) => {
+        const { dispatch, match } = this.props;
+        getData(`/api/conversation/getConversationList?linkType=document&linkId=${match.params.documentId}`, {}, (c) => {
+
             dispatch({ type: 'SET_COMMENT_LIST', list: c.data })
         })
     }
@@ -135,8 +144,12 @@ export default class DocumentViewerComponent extends React.Component {
         });
     }
 
+    back() {
+
+    }
+
     render() {
-        const { dispatch, document, settings, conversation } = this.props;
+        const { dispatch, document, settings, conversation, history, project } = this.props;
         let isDocument = true, ext = "", documentContentType = "";
 
         if (typeof document.Selected.id !== 'undefined') {
@@ -146,37 +159,34 @@ export default class DocumentViewerComponent extends React.Component {
                 isDocument = false;
             }
         }
-
         return (
-            <div>
-                {
-                    (subpage === 'documents') &&
-                    <HeaderButtonContainer withMargin={true}>
-                        <li class="btn btn-info" style={{ marginRight: "2px" }}
-                            onClick={(e) => {
-                                dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
-                                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
-                                window.history.replaceState({}, document.title, "/project/" + `${project}/documents`);
-                                documentId = '';
-                            }} >
-                            <span>Back</span>
-                        </li>
-                    </HeaderButtonContainer>
-                }
-                <div class="row mt10">
-                    <div class="col-lg-12 col-md-12 col-xs-12">
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">DOCUMENT VIEWER</h3>
-                            </div>
-                            <div class="panel-body">
-                                <div class="row" style={{ height: "800px" }}>
-                                    <div class="col-lg-8 col-md-8 col-xs-12" style={{ height: "100%" }}>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card form-card">
+                        <div class="card-header">
+                            <h4>
+                                <a
+                                    class="text-white mr10"
+                                    onClick={() => {
+                                        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
+                                        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+                                        history.push(`/projects/${project.Selected.id}/files`)
+                                    }}
+                                >
+                                    <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                                </a>
+                                Document Viewer
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb20">
+                                <div class="row">
+                                    <div class="col-lg-8 col-md-8 col-xs-8" style={{ height: "100%" }}>
                                         <div id="documentImage" style={{ textAlign: "center", height: "100%" }}>
                                             {isDocument ?
                                                 <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${settings.imageUrl}/upload/${document.Selected.name}`}
                                                     width='100%' height='623px' frameBorder='0'>This is an embedded <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>.
-                                            </iframe>
+                                        </iframe>
                                                 :
                                                 <embed src={`${settings.imageUrl}/upload/${document.Selected.name}`} type={documentContentType} width={(ext == 'pdf' || ext == 'png') ? '100%' : "auto"} height={ext == 'pdf' ? '100%' : "auto"}></embed>
                                             }
@@ -197,7 +207,7 @@ export default class DocumentViewerComponent extends React.Component {
                                                                 {document.Selected.isStarred ? 'Unstarred' : 'Star'}
                                                             </a>
                                                         </li>
-                                                        <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(document.Selected.id)}>Delete</a></li>
+                                                        {/* <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(document.Selected.id)}>Delete</a></li> */}
                                                     </ul>
                                                 </div>
                                             </div>
@@ -222,7 +232,68 @@ export default class DocumentViewerComponent extends React.Component {
                         </div>
                     </div>
                 </div>
-            </div >
+            </div>
+            // <div>
+            //     <div class="row">
+            //         <div class="col-lg-12 col-md-12 col-xs-12">
+            //             <div class="panel panel-default">
+            //                 <div class="panel-heading">
+            //                     <h3 class="panel-title">DOCUMENT VIEWER</h3>
+            //                 </div>
+            //                 <div class="panel-body">
+            //                     <div class="row" style={{ height: "800px" }}>
+            //                         <div class="col-lg-8 col-md-8 col-xs-12" style={{ height: "100%" }}>
+            //                             <div id="documentImage" style={{ textAlign: "center", height: "100%" }}>
+            //                                 {isDocument ?
+            //                                     <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${settings.imageUrl}/upload/${document.Selected.name}`}
+            //                                         width='100%' height='623px' frameBorder='0'>This is an embedded <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>.
+            //                                 </iframe>
+            //                                     :
+            //                                     <embed src={`${settings.imageUrl}/upload/${document.Selected.name}`} type={documentContentType} width={(ext == 'pdf' || ext == 'png') ? '100%' : "auto"} height={ext == 'pdf' ? '100%' : "auto"}></embed>
+            //                                 }
+            //                             </div>
+            //                         </div>
+            //                         <div class="col-lg-4 col-md-4 col-xs-12">
+            //                             <div class="row  m10 mb40">
+            //                                 <div class="col-lg-10 col-md-10 col-xs-10">
+            //                                     <input class="form-control" type="text" placeholder="Search" name='search' aria-label="Search" value={(typeof conversation.Filter.search !== 'undefined') ? conversation.Filter.search : ''} onChange={(e) => this.handleOnChange(e)} />
+            //                                 </div>
+            //                                 <div class="col-lg-2 col-md-2 col-xs-2">
+            //                                     <div class="dropdown">
+            //                                         <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
+            //                                         <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
+            //                                             <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(document.Selected)}>Download</a></li>
+            //                                             <li>
+            //                                                 <a onClick={() => this.starredDocument({ isStarred: document.Selected.isStarred, id: document.Selected.id, origin: document.Selected.origin })}>
+            //                                                     {document.Selected.isStarred ? 'Unstarred' : 'Star'}
+            //                                                 </a>
+            //                                             </li>
+            //                                             <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(document.Selected.id)}>Delete</a></li>
+            //                                         </ul>
+            //                                     </div>
+            //                                 </div>
+            //                             </div>
+            //                             <div class="row  m10">
+            //                                 <div class="col-lg-12 col-md-12 col-xs-12">
+            //                                     <span class="glyphicon glyphicon-file"></span>
+            //                                     {typeof document.Selected.id !== 'undefined' && document.Selected.origin}
+            //                                     <br />
+            //                                     Uploaded by {typeof document.Selected.id !== 'undefined' && document.Selected.user.emailAddress}
+            //                                     <br />
+            //                                     {typeof document.Selected.id !== 'undefined' && moment(document.Selected.dateAdded).format('L')}
+            //                                     <br />
+            //                                     <h4>Comments</h4>
+            //                                     <hr />
+            //                                     <DocumentComment />
+            //                                 </div>
+            //                             </div>
+            //                         </div>
+            //                     </div>
+            //                 </div>
+            //             </div>
+            //         </div>
+            //     </div>
+            // </div >
         )
     }
 }

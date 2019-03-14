@@ -262,6 +262,21 @@ exports.get = {
             }
         })
     },
+    getById: (req, cb) => {
+        const id = req.params.id
+        const whereObj = {
+            ...(typeof id !== "undefined" && id !== "") ? { id: id } : {}
+        }
+
+        Document
+            .findOne({
+                where: whereObj,
+                include: associationFindAllStack,
+            })
+            .then((res) => {
+                cb({ status: true, data: res.toJSON() })
+            })
+    },
     getDocumentCount: (req, cb) => {
         const queryString = req.query
         const documentLinkWhereObj = {
@@ -429,7 +444,7 @@ exports.post = {
                     ...(typeof e.status != "undefined" && e.status != "") ? { status: e.status } : {},
                     ...(typeof e.type != "undefined" && e.type != "") ? { type: e.type } : {}
                 }
-                console.log(whereObj)
+
                 try {
                     Document
                         .findAll({

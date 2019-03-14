@@ -200,7 +200,7 @@ export default class DocumentNew extends React.Component {
         const { document, folder } = this.props
         const currentPage = (typeof document.NewCount.Count.current_page != "undefined") ? document.NewCount.Count.current_page : 1;
         const lastPage = (typeof document.NewCount.Count.last_page != "undefined") ? document.NewCount.Count.last_page : 1;
-        console.log(this.props)
+
         return (
             <div class="mb20">
                 <div class="col-lg-12 col-md-12">
@@ -214,12 +214,8 @@ export default class DocumentNew extends React.Component {
                     <table class="table-document mb40">
                         <tbody>
                             <tr>
-                                {/* <th></th>
-                                <th></th> */}
                                 <th style={{ width: '5%' }}></th>
-                                {/* <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>File Name</a></th> */}
                                 <th style={{ textAlign: 'left' }}>File Name</th>
-                                {/* <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateAdded')}>Uploaded By</a></th> */}
                                 <th>Uploaded By</th>
                                 <th>Uploaded Date</th>
                                 <th>Workstream</th>

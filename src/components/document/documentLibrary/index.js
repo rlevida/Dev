@@ -257,17 +257,6 @@ export default class DocumentLibrary extends React.Component {
                         <tbody>
                             <tr>
                                 <th style={{ width: '5%' }}></th>
-                                {/* <th></th>
-                                <th></th>
-                                <th></th> */}
-                                {/* <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('origin')}>File Name</a></th> */}
-                                {/* <th style={{ textAlign:'left' }}>File Name</th> */}
-                                {/* <th><i class="fa fa-caret-down m10"></i><a href="javascript:void(0)" onClick={() => this.sortDocument('dateAdded')}>Uploaded By</a></th> */}
-                                {/* <th>Uploaded By</th>
-                                <th>Uploaded Date</th>
-                                <th>Workstream</th>
-                                <th>Read On</th>
-                                <th>Actions</th> */}
                             </tr>
                             {(document.LibraryDocumentLoading != "RETRIEVING") &&
                                 document.Library.map((data, index) => {
@@ -292,9 +281,6 @@ export default class DocumentLibrary extends React.Component {
                             ((currentPage != lastPage) && document.Library.length > 0 && document.LibraryDocumentLoading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
                         }
                     </div>
-                    {/* {
-                        (document.LibraryDocumentLoading == "RETRIEVING") && <Loading />
-                    } */}
                 </div>
             </div>
         )

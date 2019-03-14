@@ -164,7 +164,7 @@ export default class DocumentFilter extends React.Component {
                         </div>
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
-                        <div class="add-action">
+                        <div class="button-action">
                             <a class="btn btn-default mr10" data-toggle="modal" data-target="#">
                                 <span>
                                     <i class="fa fa-search fa-lg"></i>
