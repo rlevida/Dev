@@ -8,6 +8,7 @@ CREATE TABLE `share` (
     `shareType` ENUM("document","folder"),
     `shareId` BIGINT,
     `sharedBy` BIGINT,
+    `isDeleted` TINYINT(1) DEFAULT '0',
     `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)

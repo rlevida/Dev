@@ -5,6 +5,8 @@ import ProjectInfo from "./projectInfo";
 import ProjectDashboard from "./projectDashboard";
 import Workstream from "../workstream";
 import TaskCalendar from "../task/taskCalendar";
+import Files from "../document";
+import DocumentViewer from "../document/documentViewer";
 
 @connect((store) => {
     return {
@@ -20,7 +22,7 @@ export default class ProjectDetails extends React.Component {
     }
     render() {
         const { task } = { ...this.props };
-        
+
         return (
             <div>
                 <Switch>
@@ -28,6 +30,7 @@ export default class ProjectDetails extends React.Component {
                     <Route exact={true} path={`${this.props.match.path}`} component={ProjectDashboard} />
                     <Route path={`${this.props.match.path}/workstreams`} component={Workstream} />
                     <Route path={`${this.props.match.path}/calendar`} component={TaskCalendar} />
+                    <Route path={`${this.props.match.path}/files`} component={Files} />
                 </Switch>
             </div>
         )

@@ -1,8 +1,7 @@
 import React from "react";
-
+import { Link } from 'react-router-dom';
 import { displayDateMD, getData, postData, putData, showToast } from '../../../globalFunction'
 import { DragSource, DropTarget } from 'react-dnd';
-
 import { connect } from "react-redux"
 
 const itemSource = {
@@ -28,7 +27,8 @@ const itemTarget = {
     return {
         document: store.document,
         loggedUser: store.loggedUser,
-        folder: store.folder
+        folder: store.folder,
+        project: store.project
     }
 })
 
@@ -201,7 +201,7 @@ export default class FieldContainer extends React.Component {
     }
 
     render() {
-        const { document, dispatch, loggedUser, data, index, moveTo } = this.props
+        const { document, dispatch, loggedUser, data, index, moveTo, project } = this.props
         let tagCount = 0;
         const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
         const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
@@ -211,23 +211,22 @@ export default class FieldContainer extends React.Component {
         return connectDragSource(
             connectDropTarget(
                 <tr class="item" key={index} style={{ opacity, background: backgroundColor }}>
-                    {/* <td>
-                        <input type="checkbox" style={{ width: 'auto' }} />
-                    </td> */}
                     <td>
                         <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
-                            <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`}/>
+                            <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
                         </a>
                     </td>
-                    {/* <td><span class={data.type !== "folder" ? 'glyphicon glyphicon-file' : 'fa fa-folder'}></span></td> */}
                     <td class="document-name">
-                        <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
-                            {data.type === "document" ?
-                                <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span> :
-                                <span class="mr10 fa fa-folder fa-lg"></span>
-                            }
-                            <span>{documentName}</span>
-                        </a>
+                        {data.type === "document" ?
+                            <Link to={`/projects/${project.Selected.id}/files/${data.id}`}>{documentName}</Link>
+                            :
+                            <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
+                                {data.type === "document" ?
+                                    <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span> :
+                                    <span class="mr10 fa fa-folder fa-lg"></span>
+                                }
+                            </a>
+                        }
                     </td>
                     <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`} /></td>
                     <td>{displayDateMD(data.dateAdded)}</td>
@@ -240,14 +239,6 @@ export default class FieldContainer extends React.Component {
                             return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
                         })
                     }
-                        {/* {(data.tags.length > 0) &&
-                        data.tags.map((t, tIndex) => {
-                            tagCount += t.label.length
-                            let tempCount = tagCount;
-                            if (tagCount > 16) { tagCount = 0 }
-                            return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
-                        })
-                    } */}
                     </td>
                     <td>{data.readOn ? displayDateMD(data.readOn) : '--'}</td>
                     <td style={{ display: 'flex' }}>
@@ -270,14 +261,13 @@ export default class FieldContainer extends React.Component {
                                 }
                             </div>
                         </span>
-                        <span class="document-action document-active" title="Delete" onClick={e => this.deleteDocument(data)}><i class="fa fa-trash fa-lg"></i></span>
+                        <span class="document-action document-active" title="Delete" data-toggle="modal" data-target="#deleteModal" onClick={() => dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data })}><i class="fa fa-trash fa-lg"></i></span>
                         <div class="dropdown document-action-more">
                             <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
                             <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
                                 {(loggedUser.data.userType == "Internal") &&
                                     <li><a href="javascript:void(0)" data-toggle="modal" data-target="#shareModal" onClick={() => dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data })}>Share</a></li>
                                 }
-                                {/* <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(data)}>Download</a></li> */}
                                 {(data.type != 'folder') &&
                                     <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.duplicateDocument(data)}>Duplicate</a></li>
                                 }
@@ -288,23 +278,6 @@ export default class FieldContainer extends React.Component {
                                         {data.isStarred ? 'Unstarred' : 'Star'}
                                     </a>
                                 </li>
-                                {/* <li class="dropdown dropdown-library">
-                                    <span class="test" style={{ marginLeft: "20px", color: "#333", lineHeight: "1.42857143", cursor: "pointer" }}>Move to</span>
-                                    <div class="dropdown-content">
-                                        {(loggedUser.data.userRole != 6) &&
-                                            <a href="javascript:void(0)" style={{ textDecoration: "none" }} data-tip="Move to library" onClick={() => this.moveToLibrary(data)}>Move to library</a>
-                                        }
-                                        {
-                                            _.filter(document.New, (d) => { return d.type == 'folder' && d.id != data.id }).map((f, fIndex) => {
-                                                let folderName = `${f.origin}${f.documentNameCount > 0 ? `(${f.documentNameCount})` : ``}`
-                                                return (
-                                                    <a key={fIndex} href="javascript:void(0)" style={{ textDecoration: "none" }} onClick={() => moveTo(f, data)}>{folderName}</a>
-                                                )
-                                            })
-                                        }
-                                    </div>
-                                </li> */}
-                                {/* <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(data)}>Delete</a></li> */}
                                 <li><a href="javascript:void(0)" data-tip="View" onClick={() => this.viewDocument(data)}>View</a></li>
                             </ul>
                         </div>

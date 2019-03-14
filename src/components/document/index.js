@@ -3,10 +3,9 @@ import parallel from 'async/parallel';
 import { connect } from "react-redux"
 
 import { getData } from "../../globalFunction"
-
-import DocumentViewer from "./documentViewer"
-import DocumentUpload from "./documentUpload"
-import Header from "../partial/header"
+import { Route, Switch } from 'react-router-dom';
+import DocumentViewer from "../document/documentViewer"
+import DocumentUpload from "../document/documentUpload"
 import Form from "./form"
 import List from "./list"
 
@@ -20,23 +19,27 @@ export default class Component extends React.Component {
     constructor(props) {
         super(props)
     }
-
+    componentWillUnmount() {
+        const { dispatch } = this.props;
+        dispatch({ type: 'CLEAR_DOCUMENT' });
+    }
     componentDidMount() {
         const { dispatch, loggedUser } = this.props
-
-        if (documentId) {
-            let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&documentId=${documentId}`;
-            getData(requestUrl, {}, (c) => {
-                if (c.status == 200) {
-                    if (c.data.result.length > 0) {
-                        dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
-                        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: c.data.result[0] });
-                    }
-                } else {
-                    showToast('success', 'Something went wrong!')
-                }
-            });
-        }
+        // if (documentId) {
+        //     let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&documentId=${documentId}`;
+        //     getData(requestUrl, {}, (c) => {
+        //         if (c.status == 200) {
+        //             if (c.data.result.length > 0) {
+        //                 dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
+        //                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: c.data.result[0] });
+        //             }
+        //         } else {
+        //             showToast('success', 'Something went wrong!')
+        //         }
+        //     });
+        // }
+        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: {} });
+        dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'List' });
 
         parallel({
             shareList: (parallelCallback) => {
@@ -75,23 +78,27 @@ export default class Component extends React.Component {
     }
 
     render() {
-        const { document } = this.props
+        const { document, match } = this.props
         const Component = <div>
-            {(document.FormActive === "List" && documentId === '') &&
-                <List />
+            {console.log(document.FormActive, match)
             }
-            {(document.FormActive === "Form" && documentId === '') &&
+            {(document.FormActive === "List") && <Switch>
+                <Route exact={true} path={`${match.path}`} component={List} />
+                <Route path={`${match.path}/:documentId`} component={DocumentViewer} />
+            </Switch>
+            }
+            {(document.FormActive === "Form") &&
                 <Form />
             }
-            {document.FormActive === "DocumentViewer" &&
+            {/* {document.FormActive === "DocumentViewer" &&
                 <DocumentViewer />
-            }
+            } */}
             {document.FormActive === "Upload" &&
                 <DocumentUpload />
             }
         </div>
         return (
-            <Header component={Component} page={"document"} />
+            Component
         )
     }
 }

@@ -2,8 +2,8 @@ import React from "react";
 import Dropzone from 'react-dropzone';
 import { connect } from "react-redux"
 
-import { DropDown, Loading } from "../../../globalComponents";
-import { showToast, postData, getData } from '../../../globalFunction';
+import { DropDown, Loading } from "../../globalComponents";
+import { showToast, postData, getData } from '../../globalFunction';
 import _ from "lodash";
 
 let keyTimer = "";
@@ -40,9 +40,9 @@ export default class DocumentUpload extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch, document } = this.props;
-        const selectedObj = { ...document.Selected, projectId: project };
-        if (project) {
+        const { dispatch, document, project } = this.props;
+        const selectedObj = { ...document.Selected, projectId: project.Selected.id };
+        if (project.Selected.id) {
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
         }
         this.fetchProjectList();
@@ -238,14 +238,14 @@ export default class DocumentUpload extends React.Component {
                                         <DropDown
                                             id="project-options"
                                             multiple={false}
-                                            options={(typeof project.Selected.id === 'undefined') ? project.SelectList : [{ id: project.Selected.id, name: project.Selected.project }]}
+                                            options={project.SelectList}
                                             selected={(typeof project.Selected.id === "undefined") ? document.Selected.projectId : project.Selected.id}
                                             onChange={(e) => {
                                                 this.setDropDown("projectId", (e == null) ? "" : e.value);
                                             }}
                                             placeholder={'Search project'}
-                                            required={true}
                                             disabled
+                                            required={true}
                                         />
                                     </div>
                                     <div class="form-group">
