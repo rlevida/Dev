@@ -30,7 +30,7 @@ export default function reducer(state = {
     ActiveTab: 'document',
     DocumentToSave: [],
     DocumentUploadLoading: false,
-    Files:[]
+    Files: []
 
 }, action) {
     switch (action.type) {
@@ -110,14 +110,14 @@ export default function reducer(state = {
         case "SET_DOCUMENT_ACTIVE_TAB": {
             return { ...state, ActiveTab: action.active }
         }
-        case "SET_DOCUMENT_TO_SAVE":{
+        case "SET_DOCUMENT_TO_SAVE": {
             return { ...state, DocumentToSave: action.DocumentToSave }
         }
-        case "SET_DOCUMENT_UPLOAD_LOADING":{
+        case "SET_DOCUMENT_UPLOAD_LOADING": {
             return { ...state, DocumentUploadLoading: action.Loading }
         }
-        case "SET_DOCUMENT_FILES":{
-            return { ...state, Files : action.Files }
+        case "SET_DOCUMENT_FILES": {
+            return { ...state, Files: action.Files }
         }
         case "UPDATE_DATA_DOCUMENT_LIST": {
             if (action.Status == "new") {
@@ -173,7 +173,42 @@ export default function reducer(state = {
         case "REMOVE_DELETED_DOCUMENT_LIST": {
             return { ...state, [action.DocumentType]: _.filter(state[action.DocumentType], (e) => { return e.id !== action.Id }) }
         }
-
+        case "CLEAR_DOCUMENT": {
+            return {
+                List: [],
+                Count: {},
+                FormActive: "List",
+                Selected: {},
+                SelectedId: [],
+                EditType: "",
+                DocumentToMove: {},
+                DocumentToMoveType: "",
+                Loading: "RETRIEVING",
+                DocumentToPrint: "",
+                PrinterList: [],
+                Library: [],
+                New: [],
+                Trash: [],
+                NewDocumentLoading: "RETRIEVING",
+                LibraryDocumentLoading: "RETRIEVING",
+                TrashDocumentLoading: "RETRIEVING",
+                NewCount: { Count: {} },
+                LibraryCount: { Count: {} },
+                TrashCount: { Count: {} },
+                NewUploadCount: 0,
+                Filter: {
+                    isArchived: 'all'
+                },
+                Status: {
+                    new: 0,
+                    library: 0
+                },
+                ActiveTab: 'document',
+                DocumentToSave: [],
+                DocumentUploadLoading: false,
+                Files: []
+            }
+        }
         default:
             return state;
     }
