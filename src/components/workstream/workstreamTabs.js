@@ -1,9 +1,11 @@
 import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
-import TaskListCategory from "../task/taskListCategory";
 import { Searchbar } from "../../globalComponents";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+
+import TaskListCategory from "../task/taskListCategory";
+import WorkstreamMembers from "./workstreamMembers";
 
 @connect((store) => {
     return {
@@ -28,8 +30,15 @@ export default class WorkstreamTabs extends React.Component {
             dispatch({ type: "SET_TASK_FILTER", filter: params });
         }
     }
-    handleTab() {
+    handleTab(o) {
+        const { buttonAction = "" } = { ...this.refs };
+        const buttonActionClassList = (buttonAction != "") ? buttonAction.classList : "";
 
+        if (o > 0) {
+            (buttonActionClassList).add('hide');
+        } else {
+            (buttonActionClassList).remove('hide');
+        }
     }
     render() {
         const { workstream_id, dispatch } = { ...this.props };
@@ -44,7 +53,7 @@ export default class WorkstreamTabs extends React.Component {
                                 <Tab>Active Files</Tab>
                                 <Tab>Messages</Tab>
                                 <Tab>Members</Tab>
-                                <div class="button-action">
+                                <div class="button-action" ref="buttonAction">
                                     <Searchbar
                                         handleChange={this.handleChange}
                                         handleCancel={() => {
@@ -66,7 +75,7 @@ export default class WorkstreamTabs extends React.Component {
                                 </div>
                             </TabList>
                             <TabPanel class="bt">
-                                <div class="mt40 mb40">
+                                <div class="mt20 mb40">
                                     <TaskListCategory date="Today" workstream_id={workstream_id} />
                                 </div>
                                 <div class="mb40">
@@ -79,14 +88,14 @@ export default class WorkstreamTabs extends React.Component {
                                     <TaskListCategory date="Succeeding month" workstream_id={workstream_id} />
                                 </div>
                             </TabPanel>
-                            <TabPanel>
+                            <TabPanel class="bt">
                                 <h2>Active Files</h2>
                             </TabPanel>
-                            <TabPanel>
+                            <TabPanel class="bt">
                                 <h2>Messages</h2>
                             </TabPanel>
-                            <TabPanel>
-                                <h2>Members</h2>
+                            <TabPanel class="bt">
+                                <WorkstreamMembers workstream_id={workstream_id}/>
                             </TabPanel>
                         </Tabs>
                     </div>

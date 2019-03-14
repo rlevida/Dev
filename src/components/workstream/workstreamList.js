@@ -7,7 +7,6 @@ import { showToast, getData, deleteData } from '../../globalFunction';
 import { Loading, DeleteModal } from "../../globalComponents";
 
 import WorkstreamFilter from "./workstreamFilter";
-import WorkstreamForm from "./workstreamForm";
 
 @connect((store) => {
     return {

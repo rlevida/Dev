@@ -41,37 +41,7 @@ const associationArray = [
 exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
-        const limit = 5;
-        const orObj = []
-        if (typeof queryString.taskId != "undefined" && queryString.taskId != "") {
-            orObj.push({
-                userTypeLinkId: {
-                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT userTypeLinkId FROM members WHERE linkType = "workstream" AND members.linkId = ${queryString.workstreamId} AND members.memberType ="responsible") `)
-                }
-            },
-                {
-                    userTypeLinkId: {
-                        [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT members.userTypeLinkId FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND task.workstreamId = ${queryString.workstreamId} AND task.id = ${queryString.taskId})`)
-                    }
-                })
-        } else {
-            orObj.push(
-                {
-                    userTypeLinkId: {
-                        [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT userTypeLinkId FROM members WHERE linkType = "workstream" AND members.linkId = ${queryString.workstreamId})`)
-                    }
-                },
-                {
-                    userTypeLinkId: {
-                        [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT members.userTypeLinkId FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND task.workstreamId = ${queryString.workstreamId})`)
-                    }
-                }
-            )
-        }
-
-        const linkIdObj = {
-            ...(typeof queryString.taskId != "undefined" && queryString.taskId != "") ? { linkId: [queryString.taskId, queryString.workstreamId] } : {}
-        }
+        const limit = 10;
         const whereObj = {
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
             ...(typeof queryString.linkType != "undefined" && queryString.linkType != "") ? { linkType: queryString.linkType } : {},
@@ -80,18 +50,36 @@ exports.get = {
             ...(typeof queryString.memberType != "undefined" && queryString.memberType != "") ? { memberType: queryString.memberType } : {},
             ...(typeof queryString.usersType != "undefined" && queryString.usersType != "") ? { usersType: queryString.usersType } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? {
-                [Sequelize.Op.or]: orObj,
-                linkType: {
-                    [Sequelize.Op.or]: [
-                        {
-                            [Sequelize.Op.eq]: "workstream"
+                [Sequelize.Op.or]: [
+                    {
+                        memberType: 'responsible',
+                        linkId: queryString.workstreamId,
+                        linkType: 'workstream'
+                    },
+                    {
+                        memberType: 'assignedTo',
+                        usersType: 'users',
+                        userTypeLinkId: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(
+                                SELECT DISTINCT
+                                    members.userTypeLinkId
+                                FROM
+                                    task
+                                LEFT JOIN members ON task.id = members.linkId
+                                WHERE
+                                    members.linkType = "task" AND task.workstreamId = ${queryString.workstreamId} AND members.userTypeLinkId NOT IN(
+                                    SELECT DISTINCT
+                                        members.userTypeLinkId
+                                    FROM
+                                        members
+                                    WHERE
+                                        memberType = "responsible" AND linkType = "workstream" AND linkId = ${queryString.workstreamId}
+                                )
+                            )`),
                         },
-                        {
-                            [Sequelize.Op.eq]: "task"
-                        }
-                    ]
-                },
-                ...linkIdObj
+                        linkType: 'task'
+                    }
+                ]
             } : {},
             ...(typeof queryString.memberName != "undefined" && queryString.memberName != "") ? {
                 [Sequelize.Op.and]: [
@@ -251,7 +239,7 @@ exports.post = {
             {
                 model: Users,
                 as: 'user',
-                attributes: ['id','firstName', 'lastName']
+                attributes: ['id', 'firstName', 'lastName']
             }
         ]
         const options = {

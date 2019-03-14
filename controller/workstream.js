@@ -535,7 +535,6 @@ exports.put = {
                 return Workstream.findOne({ where: { id: workstreamId }, ...options, })
             }).then((response) => {
                 const resultObj = response.toJSON();
-
                 Members.destroy({
                     where: { linkType: "workstream", linkId: resultObj.id, usersType: "users", memberType: "responsible" }
                 }).then((response) => {

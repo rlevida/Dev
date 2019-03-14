@@ -18,7 +18,7 @@ export default function reducer(state = {
             return { ...state, List: List }
         }
         case "SET_MEMBERS_LIST": {
-            return { ...state, List: action.list, Count: action.count, Loading: '' }
+            return { ...state, List: action.list, Count: action.count }
         }
         case "SET_MEMBERS_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
