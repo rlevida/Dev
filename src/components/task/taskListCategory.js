@@ -141,6 +141,13 @@ export default class TaskListCategory extends React.Component {
             }
         });
 
+        getData(`/api/conversation/getConversationList?page=1&linkType=task&linkId=${id}`, {}, (c) => {
+            if (c.status == 200) {
+                const { data } = c;
+                dispatch({ type: "SET_COMMENT_LIST", list: data.result, count: data.count });
+            }
+        });
+
         getData(`/api/task/detail/${id}?starredUser=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });

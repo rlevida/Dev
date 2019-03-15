@@ -215,6 +215,17 @@ exports.get = {
     },
     getConversationList: (req, cb) => {
         const queryString = req.query;
+        const limit = 5;
+        const options = {
+            include: [
+                {
+                    model: Users,
+                    as: 'users',
+                }
+            ],
+            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+            order: [['dateAdded', 'DESC']]
+        };
         let whereObj = {
             ...(typeof queryString.linkType !== 'undefined' && queryString.linkType !== '') ? { linkType: queryString.linkType } : {},
             ...(typeof queryString.linkId !== 'undefined' && queryString.linkId !== '') ? { linkId: queryString.linkId } : {}
@@ -227,19 +238,43 @@ exports.get = {
             }
         }
 
-        Conversation
-            .findAll({
-                where: whereObj,
-                include: [
-                    {
-                        model: Users,
-                        as: 'users',
-                    }
-                ]
-            })
-            .then((res) => {
-                cb({ status: true, data: res })
-            })
+        async.parallel({
+            count: function (callback) {
+                try {
+                    Conversation.findAndCountAll({ ..._.omit(options, ['offset', 'limit']), where: whereObj, distinct: true }).then((response) => {
+                        const pageData = {
+                            total_count: response.count,
+                            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
+                        }
+
+                        callback(null, pageData)
+                    });
+                } catch (err) {
+                    callback(err)
+                }
+            },
+            result: function (callback) {
+                try {
+                    Conversation
+                        .findAll({
+                            where: whereObj,
+                            ...options
+                        }).map((mapObject) => {
+                            return mapObject.toJSON();
+                        }).then((resultArray) => {
+                            callback(null, resultArray);
+                        })
+                } catch (err) {
+                    callback(err)
+                }
+            }
+        }, function (err, results) {
+            if (err != null) {
+                cb({ status: false, error: err });
+            } else {
+                cb({ status: true, data: results })
+            }
+        });
     },
     status: (req, cb) => {
         const queryString = req.query;
@@ -305,135 +340,98 @@ exports.post = {
             }
         })
     },
-    comment: (req, cb) => {
-        let d = req.body;
-        sequence.create().then((nextThen) => {
-            if (typeof d.data.id != "undefined" && d.data.id != "") {
-                cb({ status: false, message: "Data already exist." })
-            } else {
-                Conversation
-                    .create(d.data)
-                    .then((c) => {
-                        Conversation.findAll({
-                            where: { id: c.id },
-                            include: [
-                                {
-                                    model: Users,
-                                    as: 'users',
-                                }, {
-                                    model: NotesLastSeen,
-                                    as: 'seenComments',
-                                    where: {
-                                        linkType: 'conversation',
-                                        userId: d.userId
-                                    },
-                                    required: false
-                                }
-                            ]
-                        }).then((e) => {
-                            nextThen(e)
-                        })
-                    })
-            }
-        }).then((nextThen, result) => {
-            try {
-                NotesLastSeen
-                    .create({ projectId: d.projectId, userId: result[0].usersId, linkType: 'conversation', linkId: result[0].id })
-                    .then((res) => {
-                        nextThen(result)
-                    })
-            } catch (err) {
-                cb({ status: false, error: err })
-            }
-        }).then((nextThen, result) => {
-            if (d.data.linkType === 'notes') {
-                socketIo.emit("BROADCAST_SOCKET", { type: "FRONT_COMMENT_LIST", data: result })
-            }
-            nextThen(result)
-        }).then((nextThen, result) => {
-            if (JSON.parse(d.reminderList).length) {
-                async.map(JSON.parse(d.reminderList), (r, mapCallback) => {
-                    async.parallel({
-                        reminder: (parallelCallback) => {
-                            let data = {}
-                            if (d.data.linkType == "task") {
-                                data = {
-                                    usersId: r.userId,
-                                    linkType: "task",
-                                    linkId: d.taskId,
-                                    type: 'Tag in Comment',
-                                    detail: `${d.username} metioned you on the task ${d.task} on ${d.workstream}`,
-                                    projectId: d.projectId,
-                                    createdBy: d.userId
-                                }
-                            } else if (d.data.linkType == "notes") {
-                                data = {
-                                    usersId: r.userId,
-                                    linkType: d.data.linkType,
-                                    linkId: d.data.linkId,
-                                    type: 'Tag in Comment',
-                                    detail: `${d.username} metioned you on the ${d.note} on conversation `,
-                                    projectId: d.projectId,
-                                    createdBy: d.userId
-                                }
-                            } else if (d.data.linkType == "document") {
-                                data = {
-                                    usersId: r.userId,
-                                    linkType: d.data.linkType,
-                                    linkId: d.data.linkId,
-                                    type: 'Tag in Comment',
-                                    detail: `${d.username} metioned you on the ${d.data.linkType} ${d.document}`,
-                                    projectId: d.projectId,
-                                    createdBy: d.userId
-                                }
-                            }
-                            Reminder
-                                .create(data)
-                                .then((res) => {
-                                    Reminder
-                                        .findAll({
-                                            where: { usersId: r.userId, seen: 0 }
-                                        })
-                                        .then((findRes) => {
-                                            parallelCallback(null, findRes)
-                                        })
-                                })
+    comment: async (req, cb) => {
+        const body = req.body;
+        const bodyData = body.data;
+        const conversation = await Conversation
+            .create({
+                comment: bodyData.comment,
+                usersId: bodyData.usersId,
+                linkType: 'task',
+                linkId: bodyData.linkId
+            })
+            .then((o) => {
+                const responseObj = o.toJSON();
+                return Conversation
+                    .findOne({
+                        where: {
+                            id: responseObj.id
                         },
-                        email: (parallelCallback) => {
-                            let html = "";
-                            if (d.data.linkType == "task") {
-                                html = `<p>${d.username} metioned you on the task
-                                            <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${d.projectId}/workstream/${d.workstreamId}?task=${d.taskId}" style="color:red">${d.task}</a>
-                                            on ${d.workstream} 
-                                        </p>`
-                            } else if (d.data.linkType == "notes") {
-                                html = `<p>${d.username} metioned you on the conversation
-                                            <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${d.projectId}/conversations/${d.data.linkId}" style="color:red">${d.note}</a>
-                                        </p>`
-                            } else if (d.data.linkType == "document") {
-                                html = `<p>${d.username} metioned you on the document
-                                            <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${d.projectId}/conversations/${d.data.linkId}" style="color:red">${d.document}</a>
-                                        </p>`
+                        include: [
+                            {
+                                model: Users,
+                                as: 'users',
                             }
+                        ]
+                    }).then((res) => {
+                        return res.toJSON();
+                    })
+            });
+        const task = await Tasks.findOne({
+            include: {
+                model: Workstream,
+                as: 'workstream'
+            },
+            where: {
+                id: bodyData.linkId
+            }
+        }).then((o) => {
+            const responseObj = o.toJSON();
+            return responseObj;
+        });
+        async.parallel({
+            notesLastSeen: (parallelCallback) => {
+                NotesLastSeen
+                    .create({
+                        projectId: body.projectId,
+                        userId: bodyData.usersId,
+                        linkType: 'conversation',
+                        linkId: conversation.id
+                    })
+                    .then((res) => {
+                        parallelCallback(null, res)
+                    });
+            },
+            reminder: (parallelCallback) => {
+                Users.findAll({
+                    where: {
+                        id: [...body.reminderList, bodyData.usersId]
+                    }
+                })
+                    .map((o) => { return o.toJSON() })
+                    .then(async (users) => {
+                        const reminderList = _.map(_.filter(users, (o) => { return o.id != bodyData.usersId }), (o) => {
+                            const mentioned = _.find(users, (o) => { return o.id == bodyData.usersId });
+                            const message = `${mentioned.firstName + " " + mentioned.lastName} metioned you on the task ${task.task} under ${task.workstream.workstream} workstream.`;
                             const mailOptions = {
                                 from: '"no-reply" <no-reply@c_cfo.com>',
-                                to: `${r.emailAddress}`,
+                                to: `${o.emailAddress}`,
                                 subject: '[CLOUD-CFO]',
-                                html: html
+                                html: '<p>' + message + '</p>'
                             }
                             global.emailtransport(mailOptions)
-                            parallelCallback(null, '')
-                        }
-                    }, (err, { reminder }) => {
-                        mapCallback(null, reminder)
+                            return {
+                                detail: message,
+                                usersId: o.id,
+                                linkType: "task",
+                                linkId: bodyData.linkId,
+                                type: 'Tag in Comment',
+                                projectId: body.projectId,
+                                createdBy: bodyData.usersId
+                            };
+                        });
+                        Reminder.bulkCreate(reminderList).map((response) => {
+                            return response.toJSON();
+                        }).then((resultArray) => {
+                            parallelCallback(null, resultArray)
+                        });
                     })
-
-                }, (err, mapCallbackResult) => {
-                    socketIo.emit("BROADCAST_SOCKET", { type: "FRONT_REMINDER_LIST", data: mapCallbackResult[0] })
-                    cb({ status: true, data: result })
-                })
+            }
+        }, (err, result) => {
+            if (err != null) {
+                cb({ status: false, error: err });
             } else {
-                cb({ status: true, data: result })
+                cb({ status: true, data: _.omit(conversation, ["dateUpdated"]) });
             }
         })
     },

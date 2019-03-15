@@ -327,13 +327,13 @@ export const MentionConvert = ({ string }) => {
 
 
     return (
-        <p style={{ margin: 0 }}>
+        <p class="mb0">
             {
                 (split).map((o, index) => {
                     const regEx = /\[([^\]]+)]/;
                     if (regEx.test(o)) {
                         let mentionString = o.replace(/[\[\]']+/g, '');
-                        return <span key={index} style={{ color: "#00B7FF" }}>{mentionString.replace(/[(^0-9)]/g, '')}</span>
+                        return <strong key={index} ><span style={{ color: "#789ce4" }}>{mentionString.replace(/[(^0-9)]/g, '')}</span></strong>
                     } else if (o.match(/^http\:\//) || o.match(/^https\:\//)) {
                         return <a key={index} href={o}>{o}</a>
                     } else {
@@ -438,7 +438,7 @@ export class Searchbar extends React.Component {
     handleChange(e) {
         const { handleChange } = { ...this.props };
         const filterState = { [e.target.name]: e.target.value };
-        
+
         if (typeof e.key != "undefined" && e.key === 'Enter' && e.target.value != "") {
             handleChange(filterState);
         }

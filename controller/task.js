@@ -937,7 +937,7 @@ exports.put = {
                                                                     new: (o.new != "undefined" && _.isEmpty(o.new) == false) ? JSON.stringify({
                                                                         [o.type]: o.new
                                                                     }) : "",
-                                                                    actionType: _.isEmpty(o.new) ? "deleted" : "modified",
+                                                                    actionType: "modified",
                                                                     usersId: body.userId,
                                                                     linkType: "task",
                                                                     linkId: relatedTaskObj.data.id,
@@ -1106,24 +1106,6 @@ exports.put = {
                                         Reminder.create(reminderDetails).then((res) => {
                                             mapCallback(null, res)
                                         })
-                                    }, (err, mapCallbackResult) => {
-                                        statusParallelCallback(null)
-                                    })
-                                },
-                                email: (statusParallelCallback) => {
-                                    async.map(membersToRemind, (e, mapCallback) => {
-                                        const mailOptions = {
-                                            from: '"no-reply" <no-reply@c_cfo.com>',
-                                            to: `${e.emailAddress}`,
-                                            subject: '[CLOUD-CFO]',
-                                            text: `Task ${body.status}`,
-                                            html: `<p>${body.username} updated the task 
-                                                    <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${updatedResponse.projectId}/workstream/${updatedResponse.workstreamId}?task=${updatedResponse.id}" style="color:red">${updatedResponse.task}</a>
-                                                    on ${updatedResponse.workstream.workstream} to ${body.status}
-                                                </p>`
-                                        }
-                                        global.emailtransport(mailOptions)
-                                        mapCallback()
                                     }, (err, mapCallbackResult) => {
                                         statusParallelCallback(null)
                                     })

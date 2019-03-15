@@ -2,15 +2,19 @@ import React from "react";
 import _ from "lodash";
 import moment from 'moment';
 import { connect } from "react-redux";
-
+import { MentionsInput, Mention } from 'react-mentions';
 import { putData, postData, deleteData, getData, showToast } from "../../globalFunction";
-import { DeleteModal } from "../../globalComponents";
+import { DeleteModal, MentionConvert } from "../../globalComponents";
+import defaultStyle from "../global/react-mention-style";
+
+let keyTimer = "";
 
 @connect((store) => {
     return {
         task: store.task,
         loggedUser: store.loggedUser,
-        activityLog: store.activityLog
+        activityLog: store.activityLog,
+        conversation: store.conversation
     }
 })
 export default class TaskDetails extends React.Component {
@@ -25,7 +29,10 @@ export default class TaskDetails extends React.Component {
             "followTask",
             "handleBack",
             "renderActivityLogs",
-            "getNextAcitivyLogs"
+            "getNextAcitivyLogs",
+            "handleChange",
+            "renderUsers",
+            "addComment"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         })
@@ -61,6 +68,7 @@ export default class TaskDetails extends React.Component {
                     checklist
                 };
                 dispatch({ type: "SET_TASK_SELECTED", Selected: toBeUpdatedObject });
+                dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                 showToast("success", "Checklist successfully updated.");
             } else {
                 showToast("error", "Something went wrong please try again later.");
@@ -74,10 +82,10 @@ export default class TaskDetails extends React.Component {
         const { Selected } = task;
         const { periodTask, periodic, id } = Selected;
         const taskStatus = status;
-
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus }, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
+                dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                 dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, status: taskStatus } });
                 showToast("success", "Task successfully updated.");
             } else {
@@ -135,13 +143,16 @@ export default class TaskDetails extends React.Component {
             postData(`/api/member`, { data: memberData, includes: 'user' }, (c) => {
                 if (c.status == 200) {
                     const currentTaskMember = task_members;
-                    const currentTask = task.List;
                     currentTaskMember.push(c.data);
                     const updatedSelectedTask = { ...task.Selected, task_members: currentTaskMember };
-                    currentTask.push(updatedSelectedTask)
+
+                    if (task.Filter.type == "following") {
+                        const currentTask = task.List;
+                        currentTask.push(updatedSelectedTask)
+                        dispatch({ type: "SET_TASK_LIST", list: currentTask });
+                    }
 
                     dispatch({ type: "SET_TASK_SELECTED", Selected: updatedSelectedTask });
-                    dispatch({ type: "SET_TASK_LIST", list: currentTask });
                     showToast("success", "Task successfully updated.");
                 } else {
                     showToast("success", "Something went wrong. Please try again later.");
@@ -153,14 +164,16 @@ export default class TaskDetails extends React.Component {
                     const remainingMembers = _.remove(task_members, function (o) {
                         return o.id != id;
                     });
-                    const followingTasks = _.remove(task.List, (o) => {
-                        return o.id != remainingMembers[0].linkId;
-                    });
+                    if (task.Filter.type == "following") {
+                        const followingTasks = _.remove(task.List, (o) => {
+                            return o.id != remainingMembers[0].linkId;
+                        });
+                        dispatch({ type: "SET_TASK_LIST", list: followingTasks });
+                    }
                     dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, task_members: remainingMembers } });
-                    dispatch({ type: "SET_TASK_LIST", list: followingTasks });
                     showToast("success", "Task successfully updated.");
                 } else {
-                    showToast("success", "Something went wrong. Please try again later.");
+                    showToast("error", "Something went wrong. Please try again later.");
                 }
             });
         }
@@ -174,28 +187,104 @@ export default class TaskDetails extends React.Component {
         }
     }
 
-    renderActivityLogs({ user, linkType, actionType, dateAdded }) {
-        const linkTypeName = (linkType == "checklist") ? "subtask" : linkType;
-        const date = moment(dateAdded).from(new Date())
-        return (
-            <p><strong>{user.firstName + " " + user.lastName}</strong> {actionType + " " + linkTypeName}. {date}</p>
-        )
+    renderActivityLogs({ comment = "", linkType = "", actionType = "", type, user, users, dateAdded }) {
+        const date = moment(dateAdded).from(new Date());
+        if (type == "conversation") {
+            return (
+                <div key={users.id} class="comment">
+                    <MentionConvert string={comment} />
+                    <p class="note m0">Posted {date} by {users.firstName + " " + users.lastName}.</p>
+                </div>
+            )
+        } else {
+            const linkTypeName = (linkType == "checklist") ? "subtask" : linkType;
+            return (
+                <p class="ml20 mt10"><strong>{user.firstName + " " + user.lastName}</strong> {actionType + " " + linkTypeName}. {date}</p>
+            )
+        }
     }
 
     getNextAcitivyLogs() {
-        const { activityLog, task, dispatch } = { ...this.props };
-        const page = activityLog.Count.current_page + 1;
+        const { activityLog, task, dispatch, conversation } = { ...this.props };
+        const activityPage = activityLog.Count.current_page + 1;
+        const conversationPage = conversation.Count.current_page + 1;
 
-        getData(`/api/activityLog?taskId=${task.Selected.id}&page=${page}&includes=user`, {}, (c) => {
+        if (activityPage <= activityLog.Count.last_page) {
+            getData(`/api/activityLog?taskId=${task.Selected.id}&page=${activityPage}&includes=user`, {}, (c) => {
+                if (c.status == 200) {
+                    const { data } = c;
+                    dispatch({ type: "UPDATE_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+                }
+            });
+        }
+        if (conversationPage <= conversation.Count.last_page) {
+            getData(`/api/conversation/getConversationList?page=${conversationPage}&linkType=task&linkId=${task.Selected.id}`, {}, (c) => {
+                if (c.status == 200) {
+                    const { data } = c;
+                    dispatch({ type: "ADD_COMMENT_LIST", list: data.result, count: data.count });
+                }
+            });
+        }
+    }
+
+    handleChange(name, e) {
+        const { dispatch, conversation } = this.props
+        const { Selected } = conversation;
+        dispatch({ type: "SET_COMMENT_SELECTED", Selected: { ...Selected, [name]: e.target.value } });
+    }
+
+    renderUsers(query, callback) {
+        const { task } = { ...this.props };
+        const { Selected } = task;
+
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${Selected.projectId}&linkType=project`;
+            if (typeof query != "undefined" && query != "") {
+                fetchUrl += `&memberName=${query}`;
+            }
+            getData(fetchUrl, {}, (c) => {
+                const projectMemberOptions = _(c.data)
+                    .map((o) => { return { id: o.id, display: o.firstName + " " + o.lastName } })
+                    .value();
+                callback(projectMemberOptions);
+            });
+        }, 1500);
+    }
+
+    addComment() {
+        const { conversation, task, loggedUser, dispatch } = this.props;
+        const commentText = conversation.Selected.comment || "";
+        const commentSplit = (commentText).split(/{([^}]+)}/g).filter(Boolean);
+        const commentIds = _(commentSplit).filter((o) => {
+            const regEx = /\[([^\]]+)]/;
+            return regEx.test(o)
+        }).map((o) => {
+            return _.toNumber(o.match(/\((.*)\)/).pop());
+        }).value();
+
+        const dataToBeSubmited = {
+            data: { comment: commentText, linkType: "task", linkId: task.Selected.id, usersId: loggedUser.data.id },
+            reminderList: _.uniq(commentIds),
+            taskId: task.Selected.id,
+            projectId: task.Selected.projectId,
+            userId: loggedUser.data.id,
+        };
+
+        dispatch({ type: "SET_CONVERSATION_LOADING", Loading: "SUBMITTING" });
+        postData(`/api/conversation/comment`, dataToBeSubmited, (c) => {
             if (c.status == 200) {
-                const { data } = c;
-                dispatch({ type: "UPDATE_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+                dispatch({ type: "UPDATE_COMMENT_LIST", comment: c.data });
+                dispatch({ type: "SET_CONVERSATION_LOADING", Loading: "" });
+                dispatch({ type: "SET_COMMENT_SELECTED", Selected: { comment: "" } });
+            } else {
+                showToast("error", "Something went wrong. Please try again later.");
             }
         });
     }
 
     render() {
-        const { task: taskObj, loggedUser, activityLog } = { ...this.props };
+        const { task: taskObj, loggedUser, activityLog, conversation } = { ...this.props };
         const { Loading, Selected } = taskObj;
         const { id, task, task_members, dueDate, workstream, status, description, checklist, task_dependency } = Selected;
         const assigned = _.filter(task_members, (o) => { return o.memberType == "assignedTo" });
@@ -206,10 +295,17 @@ export default class TaskDetails extends React.Component {
         const typeValue = (typeof Selected.task != "undefined" && _.isEmpty(Selected) == false) ? Selected.task : "";
         const given = moment(dueDate, "YYYY-MM-DD");
         const current = moment().startOf('day');
+
         const currentActivityLogPage = (typeof activityLog.Count.current_page != "undefined") ? activityLog.Count.current_page : 1;
         const lastActivityLogPage = (typeof activityLog.Count.last_page != "undefined") ? activityLog.Count.last_page : 1;
+
+        const currentConversationLogPage = (typeof conversation.Count.current_page != "undefined") ? conversation.Count.current_page : 1;
+        const lastConversationLogPage = (typeof conversation.Count.last_page != "undefined") ? conversation.Count.last_page : 1;
+
         let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
         daysRemaining = (daysRemaining == 0 && dueDate != "") ? 1 : daysRemaining;
+        const commentText = (typeof conversation.Selected.comment != "undefined") ? conversation.Selected.comment : "";
+        const activityList = [..._.map(activityLog.List, (o) => { return { ...o, type: 'activity_log' } }), ..._.map(conversation.List, (o) => { return { ...o, type: 'conversation' } })]
 
         return (
             <div>
@@ -424,18 +520,6 @@ export default class TaskDetails extends React.Component {
                                                 </div>
                                             </div>
                                             <div class="row mb20">
-                                                <div class="col-md-12 bb pb20">
-                                                    <div>
-                                                        <h3>
-                                                            Attachments
-                                                        </h3>
-                                                        <div class="ml20">
-
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row mb20">
                                                 <div class="col-md-12">
                                                     <div>
                                                         <h3>
@@ -443,9 +527,9 @@ export default class TaskDetails extends React.Component {
                                                         </h3>
                                                         <div class="ml20">
                                                             {
-                                                                ((activityLog.List).length > 0) && <div>
+                                                                ((activityList).length > 0) && <div>
                                                                     {
-                                                                        _.map(activityLog.List, (log, index) => {
+                                                                        _.map(_.sortBy(activityList, 'dateAdded').reverse(), (log, index) => {
                                                                             return (
                                                                                 <div key={index}>
                                                                                     {
@@ -458,11 +542,38 @@ export default class TaskDetails extends React.Component {
                                                                 </div>
                                                             }
                                                             {
-                                                                ((activityLog.List).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                                                ((activityList).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                                                             }
                                                             {
-                                                                (currentActivityLogPage != lastActivityLogPage) && <a onClick={() => this.getNextAcitivyLogs()}>Load More Activities</a>
+                                                                (currentActivityLogPage != lastActivityLogPage || currentConversationLogPage != lastConversationLogPage) && <p class="m0 text-center"><a onClick={() => this.getNextAcitivyLogs()}>Load More Activities</a></p>
                                                             }
+                                                        </div>
+                                                        <div class="ml20 mt20 mb20">
+                                                            <div class="form-group mention">
+                                                                <MentionsInput
+                                                                    value={commentText}
+                                                                    onChange={this.handleChange.bind(this, "comment")}
+                                                                    style={defaultStyle}
+                                                                    classNames={{
+                                                                        mentions__input: 'form-control'
+                                                                    }}
+                                                                    markup="{[__display__](__id__)}"
+                                                                >
+                                                                    <Mention
+                                                                        trigger="@"
+                                                                        data={this.renderUsers}
+                                                                        appendSpaceOnAdd={true}
+                                                                        style={{ backgroundColor: '#ecf0f1', padding: 1 }}
+                                                                    />
+                                                                </MentionsInput>
+                                                                <a
+                                                                    class="btn btn-violet mt10"
+                                                                    onClick={this.addComment}
+                                                                    disabled={(conversation.Loading == "SUBMITTING")}
+                                                                ><span>{
+                                                                    (conversation.Loading == "SUBMITTING") ? "Sending ..." : "Submit Comment"
+                                                                }</span></a>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

@@ -1,24 +1,21 @@
 export default function reducer(state = {
+    Count: {},
     List: [],
     FormActive: "List",
     Selected: {},
     SelectedId: [],
-    Filter: {}
+    Filter: {},
+    Loading: "RETRIEVING"
 }, action) {
     switch (action.type) {
-
-        //ADD
         case "ADD_COMMENT_LIST": {
-            let List = state.List;
-            action.list.map(e => {
-                List.push(e)
-            })
-            return { ...state, List: List }
-        }
+            const { List } = { ...state };
+            const updatedList = _.uniqBy(List.concat(action.list), "id");
 
-        //SET
+            return { ...state, List: updatedList, ...(typeof action.count != "undefined") ? { Count: action.count } : {} }
+        }
         case "SET_COMMENT_LIST": {
-            return { ...state, List: action.list }
+            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {} }
         }
         case "SET_COMMENT_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }
@@ -40,23 +37,17 @@ export default function reducer(state = {
             })
             return { ...state, List: List }
         }
-        case "SET_CONVERSATION_FILTER" : {
+        case "SET_CONVERSATION_FILTER": {
             const { Filter } = { ...state };
             const updatedFilter = _.merge({}, _.omit(Filter, action.name), action.filter);
             return { ...state, Filter: updatedFilter }
         }
-
         //UPDATE
-        case "UPDATE_DATA_COMMENT_LIST": {
-            let tempList = action.list.map((e, i) => {
-                if (e.id == action.UpdatedData.id) {
-                    return action.UpdatedData
-                }
-                return e
-            })
-            return { ...state, List: tempList }
+        case "UPDATE_COMMENT_LIST": {
+            const { List } = { ...state };
+            List.unshift(action.comment);
+            return { ...state, List }
         }
-
         //REMOVE
         case "REMOVE_DELETED_COMMENT_LIST": {
             let tempList = [];
@@ -67,7 +58,9 @@ export default function reducer(state = {
             })
             return { ...state, List: tempList }
         }
-
+        case "SET_CONVERSATION_LOADING": {
+            return { ...state, Loading: (typeof action.Loading != "undefined") ? action.Loading : "" }
+        }
         default:
             return state;
     }
