@@ -8,7 +8,7 @@ const dbName = "project";
 const Op = Sequelize.Op;
 const models = require('../modelORM');
 
-const { Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, ActivityLogs, sequelize } = models;
+const { Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, sequelize } = models;
 const associationFindAllStack = [
     {
         model: DocumentLink,

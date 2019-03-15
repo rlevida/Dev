@@ -278,6 +278,7 @@ export default class TaskForm extends React.Component {
         } else {
             const submitData = {
                 ...task.Selected,
+                approverId: (task.Selected.approvalRequired > 0) ? task.Selected.approverId : "",
                 userId: loggedUser.data.id,
                 projectId: task.Selected.projectId,
                 period: (typeof task.Selected.period != "undefined" && task.Selected.period != "" && task.Selected.period != null) ? _.toNumber(task.Selected.period) : 0,
@@ -360,10 +361,10 @@ export default class TaskForm extends React.Component {
     }
 
     confirmDeleteSubtask() {
-        const { checklist, dispatch, task } = this.props;
+        const { checklist, dispatch, task, loggedUser } = this.props;
         const { Selected } = checklist;
 
-        deleteData(`/api/checklist/${Selected.id}?taskId=${task.Selected.id}`, {}, (c) => {
+        deleteData(`/api/checklist/${Selected.id}?taskId=${task.Selected.id}&userId=${loggedUser.data.id}`, {}, (c) => {
             dispatch({ type: "DELETE_CHECKLIST", data: { id: Selected.id } });
             showToast("success", "Subtask successfully deleted.");
             $('#delete-checklist').modal("hide");

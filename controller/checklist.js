@@ -171,7 +171,7 @@ exports.post = {
                                                         usersId: body.createdBy,
                                                         linkType: "checklist",
                                                         linkId: o.id,
-                                                        actionType: "added",
+                                                        actionType: "created",
                                                         new: JSON.stringify({ checklist: checklistObj }),
                                                         title: o.description
                                                     }

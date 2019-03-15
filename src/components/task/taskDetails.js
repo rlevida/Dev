@@ -3,13 +3,14 @@ import _ from "lodash";
 import moment from 'moment';
 import { connect } from "react-redux";
 
-import { putData, postData, deleteData, showToast } from "../../globalFunction";
+import { putData, postData, deleteData, getData, showToast } from "../../globalFunction";
 import { DeleteModal } from "../../globalComponents";
 
 @connect((store) => {
     return {
         task: store.task,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        activityLog: store.activityLog
     }
 })
 export default class TaskDetails extends React.Component {
@@ -22,7 +23,9 @@ export default class TaskDetails extends React.Component {
             "editTask",
             "confirmDelete",
             "followTask",
-            "handleBack"
+            "handleBack",
+            "renderActivityLogs",
+            "getNextAcitivyLogs"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         })
@@ -171,8 +174,28 @@ export default class TaskDetails extends React.Component {
         }
     }
 
+    renderActivityLogs({ user, linkType, actionType, dateAdded }) {
+        const linkTypeName = (linkType == "checklist") ? "subtask" : linkType;
+        const date = moment(dateAdded).from(new Date())
+        return (
+            <p><strong>{user.firstName + " " + user.lastName}</strong> {actionType + " " + linkTypeName}. {date}</p>
+        )
+    }
+
+    getNextAcitivyLogs() {
+        const { activityLog, task, dispatch } = { ...this.props };
+        const page = activityLog.Count.current_page + 1;
+
+        getData(`/api/activityLog?taskId=${task.Selected.id}&page=${page}&includes=user`, {}, (c) => {
+            if (c.status == 200) {
+                const { data } = c;
+                dispatch({ type: "UPDATE_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+            }
+        });
+    }
+
     render() {
-        const { task: taskObj, loggedUser } = { ...this.props };
+        const { task: taskObj, loggedUser, activityLog } = { ...this.props };
         const { Loading, Selected } = taskObj;
         const { id, task, task_members, dueDate, workstream, status, description, checklist, task_dependency } = Selected;
         const assigned = _.filter(task_members, (o) => { return o.memberType == "assignedTo" });
@@ -181,9 +204,10 @@ export default class TaskDetails extends React.Component {
         const followers = _.filter(task_members, (o) => { return o.memberType == "follower" });
         const isFollower = _.find(followers, (o) => { return o.user.id == loggedUser.data.id }) || {};
         const typeValue = (typeof Selected.task != "undefined" && _.isEmpty(Selected) == false) ? Selected.task : "";
-
         const given = moment(dueDate, "YYYY-MM-DD");
         const current = moment().startOf('day');
+        const currentActivityLogPage = (typeof activityLog.Count.current_page != "undefined") ? activityLog.Count.current_page : 1;
+        const lastActivityLogPage = (typeof activityLog.Count.last_page != "undefined") ? activityLog.Count.last_page : 1;
         let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
         daysRemaining = (daysRemaining == 0 && dueDate != "") ? 1 : daysRemaining;
 
@@ -400,13 +424,45 @@ export default class TaskDetails extends React.Component {
                                                 </div>
                                             </div>
                                             <div class="row mb20">
-                                                <div class="col-md-12">
+                                                <div class="col-md-12 bb pb20">
                                                     <div>
                                                         <h3>
                                                             Attachments
                                                         </h3>
                                                         <div class="ml20">
 
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row mb20">
+                                                <div class="col-md-12">
+                                                    <div>
+                                                        <h3>
+                                                            Activity
+                                                        </h3>
+                                                        <div class="ml20">
+                                                            {
+                                                                ((activityLog.List).length > 0) && <div>
+                                                                    {
+                                                                        _.map(activityLog.List, (log, index) => {
+                                                                            return (
+                                                                                <div key={index}>
+                                                                                    {
+                                                                                        this.renderActivityLogs(log)
+                                                                                    }
+                                                                                </div>
+                                                                            )
+                                                                        })
+                                                                    }
+                                                                </div>
+                                                            }
+                                                            {
+                                                                ((activityLog.List).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                                            }
+                                                            {
+                                                                (currentActivityLogPage != lastActivityLogPage) && <a onClick={() => this.getNextAcitivyLogs()}>Load More Activities</a>
+                                                            }
                                                         </div>
                                                     </div>
                                                 </div>

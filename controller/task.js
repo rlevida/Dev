@@ -720,7 +720,7 @@ exports.put = {
                         Tasks.findOne({ ...options, where: whereObj }).then((response) => {
                             const responseObj = response.toJSON();
                             const currentTask = _(responseObj)
-                                .omit(["workstreamId", "dateUpdated", "dateAdded"])
+                                .omit(["workstreamId", "approvalRequired", "approverId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
                                 .mapValues((objVal, objKey) => {
                                     if (objKey == "dueDate" || objKey == "startDate") {
                                         return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
@@ -735,7 +735,7 @@ exports.put = {
                             }).then((response) => {
                                 const updatedResponse = response.toJSON();
                                 const updatedTask = _(updatedResponse)
-                                    .omit(["workstreamId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
+                                    .omit(["workstreamId", "approvalRequired", "approverId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
                                     .mapValues((objVal, objKey) => {
                                         if (objKey == "dueDate" || objKey == "startDate") {
                                             return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
@@ -859,104 +859,103 @@ exports.put = {
                     members: (parallelCallback) => {
                         const memberPromise = _.map(allTask, (relatedTaskObj) => {
                             return new Promise((resolve) => {
-                                Members.findOne(
-                                    {
-                                        where: {
-                                            linkType: "task",
-                                            memberType: "assignedTo",
-                                            linkId: relatedTaskObj.data.id,
-                                            isDeleted: 0
-                                        },
-                                        include: [
-                                            {
-                                                model: Users,
-                                                as: 'user',
-                                                attributes: ['id', 'firstName', 'lastName']
-                                            }
-                                        ]
-                                    }
-                                ).then((response) => {
-                                    const oldUserResponse = (response == null) ? "" : response.toJSON();
-                                    Members.update({ isDeleted: 1 },
+                                Members.findAll({
+                                    where: {
+                                        linkType: "task",
+                                        linkId: relatedTaskObj.data.id,
+                                        isDeleted: 0
+                                    },
+                                    include: [
                                         {
-                                            where: {
-                                                linkType: "task",
-                                                linkId: relatedTaskObj.data.id,
-                                                usersType: "users"
-                                            }
-                                        }).then(() => {
-                                            const members = [];
-                                            if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
-                                                members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
-                                            }
+                                            model: Users,
+                                            as: 'user',
+                                            attributes: ['id', 'firstName', 'lastName']
+                                        }
+                                    ]
+                                })
+                                    .map((o) => { return o.toJSON() })
+                                    .then((responseObj) => {
+                                        const oldUserResponse = responseObj;
 
-                                            if (typeof body.approverId != "undefined" && body.approverId != "") {
-                                                members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
-                                            }
+                                        Members.update({ isDeleted: 1 },
+                                            {
+                                                where: {
+                                                    linkType: "task",
+                                                    linkId: relatedTaskObj.data.id,
+                                                    usersType: "users"
+                                                }
+                                            }).then(() => {
+                                                const members = [];
+                                                if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
+                                                    members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
+                                                }
 
-                                            if (members.length > 0) {
-                                                Members.bulkCreate(members).then((response) => {
-                                                    return Members.findOne(
-                                                        {
+                                                if (typeof body.approverId != "undefined" && body.approverId != "") {
+                                                    members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
+                                                }
+
+                                                if (members.length > 0) {
+                                                    Members.bulkCreate(members).map(async (response) => {
+                                                        const responseObj = response.toJSON();
+                                                        const userDetails = await Users.findOne({
                                                             where: {
-                                                                linkType: "task",
-                                                                memberType: "assignedTo",
-                                                                linkId: relatedTaskObj.data.id,
-                                                                usersType: "users",
-                                                                userTypeLinkId: body.assignedTo
+                                                                id: responseObj.userTypeLinkId
+                                                            }
+                                                        }).
+                                                            then((o) => {
+                                                                return o.toJSON();
+                                                            });
+                                                        return { ..._.omit(responseObj, ["dateUpdated"]), user: userDetails }
+                                                    }).then((o) => {
+                                                        const newAssigned = _.find(o, (res) => { return res.memberType == "assignedTo" });
+                                                        const newApprover = _.find(o, (res) => { return res.memberType == "approver" });
+                                                        const oldAssigned = _.find(oldUserResponse, (res) => { return res.memberType == "assignedTo" });
+                                                        const oldApprover = _.find(oldUserResponse, (res) => { return res.memberType == "approver" });
+
+                                                        const memberLogs = _([
+                                                            {
+                                                                old: oldAssigned,
+                                                                new: newAssigned,
+                                                                type: "assigned"
                                                             },
-                                                            include: [
-                                                                {
-                                                                    model: Users,
-                                                                    as: 'user',
-                                                                    attributes: ['id', 'firstName', 'lastName']
+                                                            {
+                                                                old: oldApprover,
+                                                                new: newApprover,
+                                                                type: "approver"
+                                                            }
+                                                        ])
+                                                            .filter((o) => {
+                                                                const oldUser = (typeof o.old != "undefined") ? o.old.userTypeLinkId : 0;
+                                                                const newUser = (typeof o.new != "undefined") ? o.new.userTypeLinkId : 0;
+                                                                return oldUser != newUser
+                                                            })
+                                                            .map((o) => {
+                                                                return {
+                                                                    old: (o.old != "undefined" && _.isEmpty(o.old) == false) ? JSON.stringify({
+                                                                        [o.type]: o.old
+                                                                    }) : "",
+                                                                    new: (o.new != "undefined" && _.isEmpty(o.new) == false) ? JSON.stringify({
+                                                                        [o.type]: o.new
+                                                                    }) : "",
+                                                                    actionType: _.isEmpty(o.new) ? "deleted" : "modified",
+                                                                    usersId: body.userId,
+                                                                    linkType: "task",
+                                                                    linkId: relatedTaskObj.data.id,
+                                                                    title: _.isEmpty(o.new) ? (_.isEmpty(o.old) == false) ? (o.old).user.firstName + " " + (o.old).user.lastName : "" : (o.new).user.firstName + " " + (o.new).user.lastName
                                                                 }
-                                                            ]
-                                                        });
-                                                }).then((response) => {
-                                                    resolve({
-                                                        data: oldUserResponse,
-                                                        logs: {
-                                                            old: JSON.stringify({ assigned_member: response }),
-                                                            actionType: "added",
-                                                            usersId: body.userId,
-                                                            linkType: "member",
-                                                            linkId: response.id,
-                                                            title: response.user.firstName + " " + response.user.lastName
-                                                        }
+                                                            }).value();
+                                                        resolve(memberLogs);
                                                     });
-                                                });
-                                            } else {
-                                                resolve({
-                                                    data: oldUserResponse,
-                                                    ...(oldUserResponse != "") ? {
-                                                        logs: {
-                                                            old: JSON.stringify({ assigned_member: oldUserResponse }),
-                                                            actionType: "deleted",
-                                                            usersId: body.userId,
-                                                            linkType: "member",
-                                                            linkId: oldUserResponse.id,
-                                                            title: response.user.firstName + " " + response.user.lastName
-                                                        }
-                                                    } : {}
-                                                });
-                                            }
-                                        });
-                                });
+                                                } else {
+                                                    resolve(null)
+                                                }
+                                            });
+                                    })
                             });
                         });
 
                         Promise.all(memberPromise).then((values) => {
-                            const memberLogsStack = _(values)
-                                .filter((memberObj) => {
-                                    return (typeof memberObj.logs != "undefined")
-                                })
-                                .map((memberObj) => {
-                                    return memberObj.logs;
-                                })
-                                .value();
-
-                            parallelCallback(null, memberLogsStack);
+                            parallelCallback(null, _.flatten(values));
                         });
                     }
                 }, (err, { members }) => {

@@ -98,8 +98,7 @@ export default class TaskListCategory extends React.Component {
                 break;
             default:
         }
-
-        if (typeof date != "undefined" && date != "") {
+        if (typeof date != "undefined" && date != "" && date != null) {
             fetchUrl += `&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
         } else {
             fetchUrl += `&dueDate=null`
@@ -120,7 +119,6 @@ export default class TaskListCategory extends React.Component {
         if (Filter.type != "") {
             fetchUrl += `&type=${Filter.type}`
         }
-
         getData(fetchUrl, {}, (c) => {
             this.setState({ count: c.data.count, loading: "" }, () => dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result }));
             showToast("success", "Task successfully retrieved.");
@@ -135,6 +133,13 @@ export default class TaskListCategory extends React.Component {
     openTaskDetails(id) {
         const { dispatch, loggedUser } = { ...this.props };
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+
+        getData(`/api/activityLog?taskId=${id}&page=1&includes=user`, {}, (c) => {
+            if (c.status == 200) {
+                const { data } = c;
+                dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+            }
+        });
 
         getData(`/api/task/detail/${id}?starredUser=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
