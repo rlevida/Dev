@@ -10,6 +10,7 @@ import Home from "../home";
 import Projects from "../project";
 import MyTasks from "../myTasks";
 import Users from "../users";
+import Profile from "../profile";
 
 @connect((store) => {
     return {
@@ -121,6 +122,12 @@ class Main extends React.Component {
                 path_name: "users-and-team",
                 component: Users,
                 show_menu: true
+            },
+            {
+                label: "Profile",
+                path_name: "profile",
+                component: Profile,
+                show_menu: false
             }
         ];
 
@@ -138,6 +145,7 @@ class Main extends React.Component {
             { label: "Messages", link: "/messages" },
             { label: "Files", link: "/files" }
         ];
+       
         return (
             <div class={(showLeft) ? 'flex-row' : ''} id="main-container">
                 {(showLeft) &&
@@ -190,9 +198,9 @@ class Main extends React.Component {
                                         <a class="dropdown-toggle" href={`/reminder`}>
                                             <span class="fa fa-bell"></span>
                                         </a>
-                                        <a data-tip="profile" href={"/profile"}>
+                                        <Link to={"/profile"}>
                                             <i class="glyphicon glyphicon-user"></i>
-                                        </a>
+                                        </Link>
                                     </div>
                                     <div class="dropdown visible-sm visible-xs">
                                         <a class="btn btn-action dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -211,7 +219,7 @@ class Main extends React.Component {
                                                 })
                                             }
                                             <li class="bt"><a>Notification</a></li>
-                                            <li><a>Profile</a></li>
+                                            <li><Link to={"/profile"}>Profile</Link></li>
                                         </div>
                                     </div>
                                 </div>

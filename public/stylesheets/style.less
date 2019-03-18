@@ -1319,6 +1319,10 @@ input:checked + .slider:before {
   color: #c4c4c4!important;
 }
 
+.text-grey-f1{
+  color: #f1f1f1;
+}
+
 .text-pink{
   color: #ff5b6f!important;
 }
@@ -1328,7 +1332,7 @@ input:checked + .slider:before {
 }
 
 .tab-row .flex-col:not(:last-child){
-  margin-right: 10px;
+  margin-right: 5px;
 }
 
 .tab-row{
@@ -1358,7 +1362,6 @@ input:checked + .slider:before {
 .btn-violet{
   color: #ffffff!important;
   background-color: #7068d6 !important;
-  border: 1px solid #7068d6 !important;
 }
 
 .btn-action{
@@ -1999,6 +2002,28 @@ textarea::-webkit-scrollbar-thumb {
   border-right-color: #c4c4c4;
 }
 
+#profile-details p{
+  margin-bottom: 3px;
+}
+
+#profile-details label{
+  width: 100px;
+}
+
+.monthly-performance .flex-col {
+  width: 100px;
+  text-align: center;
+}
+
+.monthly-performance h3{
+  color: #818181;
+  margin-top: 0px;
+  text-align: center;
+  font-size: 30px;
+}
+
+
+
 @media screen and (max-width: 600px) {
   table {
     border: 0;
@@ -2091,11 +2116,27 @@ textarea::-webkit-scrollbar-thumb {
     border-right: 0px;
   }
 
-  .tab-row, #delete-action{
+  .tab-row, #delete-action, .monthly-performance{
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
+  }
+
+  .monthly-performance .flex-col{
+    flex: 1 100% !important;
+    padding: 2px;
+    text-align: left;
+    display: flex;
+    flex-direction: unset;
+  }
+
+  .monthly-performance .flex-col h3{
+    font-size: 20px;
+    margin-bottom: 0px;
+  }
+  .monthly-performance .flex-col label{
+    width: 150px;
   }
 
   .tab-row .flex-col,
@@ -2164,6 +2205,7 @@ textarea::-webkit-scrollbar-thumb {
     width: 100%;
     text-align: center;
   }
+  
 
   .ReactTabs__TabList{
     display: block;
@@ -2226,7 +2268,10 @@ textarea::-webkit-scrollbar-thumb {
     margin-bottom: 20px;
   }
   .content-row [class*=col-]:not(:last-child){
-    margin-bottom: 20px;
+    margin-bottom: 0px;
+  }
+  .monthly-performance .flex-col {
+    width: 220px;
   }
 }
 
@@ -2261,6 +2306,9 @@ textarea::-webkit-scrollbar-thumb {
   .dashboard-card .flex-row{
     width: unset;
   }
+  .monthly-performance .flex-col {
+    width: 220px;
+  }
 }
 
 
@@ -2273,6 +2321,21 @@ textarea::-webkit-scrollbar-thumb {
   .modal.right.fade.in .modal-dialog {
     right: 0;
     width: 600px!important;
+  }
+
+  #performance{
+    border-left: 1px solid #e7e7e7;
+  }
+
+  #chart-row [class*=col-]:last-child{
+    padding-left: 0px;
+  }
+  #chart-row [class*=col-]:not(:last-child){
+    padding-right: 0px;
+  }
+  #chart-row {
+    display: flex;
+    align-items: center;
   }
 }
 

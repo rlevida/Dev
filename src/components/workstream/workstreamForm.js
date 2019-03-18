@@ -48,6 +48,7 @@ export default class WorkstreamForm extends React.Component {
         });
 
         this.fetchMemberList();
+        this.getWorkstreamTemplateList();
     }
 
     componentWillUnmount() {
@@ -57,15 +58,17 @@ export default class WorkstreamForm extends React.Component {
 
     fetchMemberList(options) {
         const { dispatch, project } = this.props;
-        let fetchUrl = `/api/member?linkType=project&linkId=${project.Selected.id}&page=1&userType=Internal`;
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${project.Selected.id}&linkType=project&userType=Internal`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
         }
 
         getData(fetchUrl, {}, (c) => {
-            const taskMemberOptions = _(c.data.result)
-                .map((e) => { return { id: e.userTypeLinkId, name: e.user.firstName + " " + e.user.lastName } })
+            const taskMemberOptions = _(c.data)
+                .map((e) => {
+                    return { id: e.id, name: e.firstName + " " + e.lastName }
+                })
                 .value();
             dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
         });
@@ -113,15 +116,19 @@ export default class WorkstreamForm extends React.Component {
 
     getWorkstreamTemplateList(options) {
         const { dispatch } = this.props;
-        if (options != "") {
-            keyTimer && clearTimeout(keyTimer);
-            keyTimer = setTimeout(() => {
-                getData(`/api/workstream?page=1&isActive=1&isTemplate=1&workstream=${options}`, {}, (c) => {
-                    const workstreamOptions = (c.status == 200) ? _.map(c.data.result, (workstreamObj) => { return { ..._.pick(workstreamObj, ["id", "workstream", "type", "description"]), name: workstreamObj.workstream, typeId: workstreamObj.type.id } }) : [];
-                    dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
-                });
-            }, 1500)
+        let fetchUrl = `/api/workstream?page=1&isActive=1&isTemplate=1`;
+
+        if (typeof options != "undefined" && options != "") {
+            fetchUrl += `&workstream=${options}`;
         }
+
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            getData(fetchUrl, {}, (c) => {
+                const workstreamOptions = (c.status == 200) ? _.map(c.data.result, (workstreamObj) => { return { ..._.pick(workstreamObj, ["id", "workstream", "type", "description"]), name: workstreamObj.workstream, typeId: workstreamObj.type.id } }) : [];
+                dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
+            });
+        }, 1000);
     }
 
 
@@ -207,6 +214,7 @@ export default class WorkstreamForm extends React.Component {
                 <div class="form-group">
                     <label class="custom-checkbox">
                         <input type="checkbox"
+                            onChange={() => { }}
                             checked={(workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == 'undefined') ? false : true}
                             onClick={(f) => { this.handleCheckbox("isTemplate", (workstream.Selected.isTemplate == 0 || typeof workstream.Selected.isTemplate == 'undefined') ? 1 : 0) }}
                         />

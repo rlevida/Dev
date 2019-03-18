@@ -381,6 +381,9 @@ exports.get = {
                                     }
                                 )
                             ]
+                        } : {},
+                        ...(typeof queryString.userType != "undefined" && queryString.userType != "") ? {
+                            userType: queryString.userType
                         } : {}
                     },
                     include: [

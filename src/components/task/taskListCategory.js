@@ -190,13 +190,13 @@ export default class TaskListCategory extends React.Component {
                     </a>
                 </td>
                 <td data-label="Status">
-                    <p class={`m0 ${(status == "Completed") ? "text-green" : (status == "For Approval") ? "text-red" : ""}`}>
+                    <p class={`m0 ${(status == "Completed") ? "text-green" : (status == "For Approval") ? "text-orange" : ""}`}>
                         {status}
                     </p>
                 </td>
                 <td data-label="Deadline" class={(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}>
                     {
-                        `${(dueDate != "" && dueDate != null) ? moment(dueDate).format("MMMM DD, YYYY") : "N/A"}`
+                        (dueDate != "" && dueDate != null) ? moment(dueDate).format("MMMM DD, YYYY") : "N/A"
                     }
                 </td>
                 <td data-label="Time Remaining">

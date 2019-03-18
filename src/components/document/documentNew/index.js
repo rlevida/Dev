@@ -211,31 +211,34 @@ export default class DocumentNew extends React.Component {
                         }
                         {folder.SelectedNewFolderName.map((e, index) => { return <span key={index}> <i class="fa fa-chevron-right" style={{ fontSize: '16px' }}></i><a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
                     </h3>
-                    <table class="table-document mb40">
-                        <tbody>
-                            <tr>
-                                <th style={{ width: '5%' }}></th>
-                                <th style={{ textAlign: 'left' }}>File Name</th>
-                                <th>Uploaded By</th>
-                                <th>Uploaded Date</th>
-                                <th>Workstream</th>
-                                <th>Read On</th>
-                                <th>Actions</th>
-                            </tr>
-                            {(document.NewDocumentLoading != "RETRIEVING") &&
-                                document.New.map((data, index) => {
-                                    return (
-                                        <FieldContainer
-                                            data={data}
-                                            index={index}
-                                            key={index}
-                                            moveTo={(folderData, documentData) => this.moveTo(folderData, documentData)}
-                                        />
-                                    )
-                                })
-                            }
-                        </tbody>
-                    </table>
+                    {
+                        (document.NewDocumentLoading != "RETRIEVING" && document.New.length > 0) && <table class="table-document mb40">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="td-left">File Name</th>
+                                    <th scope="col">Uploaded By</th>
+                                    <th scope="col">Upload Date</th>
+                                    <th scope="col">Workstream</th>
+                                    <th scope="col">Read On</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    document.New.map((data, index) => {
+                                        return (
+                                            <FieldContainer
+                                                data={data}
+                                                index={index}
+                                                key={index}
+                                                moveTo={(folderData, documentData) => this.moveTo(folderData, documentData)}
+                                            />
+                                        )
+                                    })
+                                }
+                            </tbody>
+                        </table>
+                    }
                     <div class="text-center">
                         {
                             ((currentPage != lastPage) && document.New.length > 0 && document.NewDocumentLoading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
@@ -243,6 +246,9 @@ export default class DocumentNew extends React.Component {
                     </div>
                     {
                         (document.NewDocumentLoading == "RETRIEVING") && <Loading />
+                    }
+                    {
+                        (document.New.length == 0 && document.NewDocumentLoading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                     }
                 </div>
             </div>

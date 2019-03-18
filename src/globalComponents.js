@@ -449,7 +449,7 @@ export class Searchbar extends React.Component {
 
         return (
             <div style={{ display: "flex", marginRight: 10 }}>
-                <div class="mr5" >
+                <div>
                     <input
                         type="text"
                         name={name}

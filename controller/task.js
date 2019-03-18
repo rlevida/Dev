@@ -353,6 +353,44 @@ exports.get = {
             });
         })
     },
+    profileTask: async (req, cb) => {
+        const queryString = req.query;
+        Tasks.findAll({
+            where: {
+                isDeleted: 0,
+                dueDate: {
+                    [Op.between]: [
+                        moment(queryString.date, 'YYYY-MM-DD').startOf('month').format("YYYY-MM-DD HH:mm"),
+                        moment(queryString.date, 'YYYY-MM-DD').endOf('month').format("YYYY-MM-DD HH:mm")
+                    ]
+                }
+            },
+            include: [{
+                attributes: [],
+                model: Members,
+                as: 'task_members',
+                required: true,
+                where: {
+                    linkType: 'task',
+                    usersType: 'users',
+                    userTypeLinkId: queryString.userId,
+                    isDeleted: 0,
+                    memberType: "assignedTo"
+                },
+            }],
+            attributes: [
+                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.id <> 0  THEN task.id END)'), 'assigned_tasks'],
+                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "Completed"  THEN task.id END)'), 'on_time'],
+                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today'],
+                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
+                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate > "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'remaining']
+            ]
+        }).map((response) => {
+            return response.toJSON();
+        }).then((response) => {
+            cb({ status: true, data: response })
+        });
+    },
     myTaskStatus: async (req, cb) => {
         const queryString = req.query;
         const userTeams = await UsersTeam
@@ -399,8 +437,8 @@ exports.get = {
                         }],
                         attributes: [
                             'projectId',
-                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
-                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today']
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today']
                         ]
                     }).map((response) => {
                         return response.toJSON();
@@ -432,8 +470,8 @@ exports.get = {
                     }],
                     attributes: [
                         'projectId',
-                        [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
-                        [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today']
+                        [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
+                        [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today']
                     ]
                 }).map((response) => {
                     return response.toJSON();
@@ -462,8 +500,8 @@ exports.get = {
                     }],
                     attributes: [
                         'projectId',
-                        [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
-                        [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today']
+                        [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
+                        [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today']
                     ]
                 }).map((response) => {
                     return response.toJSON();
@@ -653,44 +691,21 @@ exports.post = {
                             callback(null, newTasksArgs)
                         });
                     },
-                    function (newTasksArgs, callback) {
-                        async.parallel({
-                            tasks: (parallelCallback) => {
-                                Tasks.findAll(
-                                    {
-                                        ...options,
-                                        where: {
-                                            id: {
-                                                [Sequelize.Op.in]: _.map(newTasksArgs, (o) => { return o.id })
-                                            }
-                                        }
+                    function (newTasksArgs) {
+                        Tasks.findAll(
+                            {
+                                ...options,
+                                where: {
+                                    id: {
+                                        [Sequelize.Op.in]: _.map(newTasksArgs, (o) => { return o.id })
                                     }
-                                ).map((mapObject) => {
-                                    return mapObject.toJSON();
-                                }).then((response) => {
-                                    parallelCallback(null, response)
-                                });
-                            },
-                            activity_logs: (parallelCallback) => {
-                                const activityLogs = _.map(newTasksArgs, (taskObj) => {
-                                    const activityObj = _.omit(taskObj, ["dateAdded", "dateUpdated"]);
-                                    return {
-                                        usersId: body.userId,
-                                        linkType: "task",
-                                        linkId: taskObj.id,
-                                        actionType: "created",
-                                        new: JSON.stringify({ task: activityObj }),
-                                        title: taskObj.task
-                                    }
-                                });
-                                ActivityLogs.bulkCreate(activityLogs).then((response) => {
-                                    parallelCallback(null, response)
-                                });
+                                }
                             }
-                        }, (err, response) => {
-                            callback(null, response)
-                        })
-
+                        ).map((mapObject) => {
+                            return mapObject.toJSON();
+                        }).then((response) => {
+                            cb({ status: true, data: response });
+                        });
                     }
                 ], function (err, result) {
                     cb({ status: true, data: result.tasks });

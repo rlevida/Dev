@@ -1,24 +1,56 @@
-import React from "react"
-import Header from "../partial/header"
-import Form from "./form"
+import React from "react";
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import _ from "lodash";
 
-import { connect } from "react-redux"
-@connect((store) => {
-    return {
-        project: store.project,
-    }
-})
+import ProfileDetails from "./profileDetails";
+import ProfilePerformance from "./profilePerformance";
+import ProfileTask from "./profileTask";
+import ProfileProject from "./profileProject";
+
 export default class Component extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
     }
 
     render() {
-        let Component = <div>
-            <Form />
-        </div>
         return (
-            <Header component={Component} page={"Profile"} />
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <Tabs>
+                            <TabList>
+                                <Tab>Profile</Tab>
+                                <Tab>Account Settings</Tab>
+                                <Tab>Notifications</Tab>
+                            </TabList>
+                            <TabPanel class="bt">
+                                <div class="row content-row" id="profile">
+                                    <div class="col-md-5">
+                                        <ProfileDetails />
+                                    </div>
+                                    <div class="col-md-7" id="performance">
+                                        <ProfilePerformance />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <ProfileProject />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <ProfileTask />
+                                    </div>
+                                </div>
+                            </TabPanel>
+                            <TabPanel class="bt">
+                                <h2>Account Settings</h2>
+                            </TabPanel>
+                            <TabPanel class="bt">
+                                <h2>Notifications</h2>
+                            </TabPanel>
+                        </Tabs>
+                    </div>
+                </div>
+            </div>
         )
     }
 }

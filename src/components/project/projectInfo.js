@@ -151,11 +151,11 @@ export default class ProjectInfo extends React.Component {
                                                 <div class="row mt20">
                                                     <div class="col-md-6">
                                                         <div>
-                                                            <label>Project Name</label>
+                                                            <label>Project Name:</label>
                                                             <p>{projectName}</p>
                                                         </div>
                                                         <div>
-                                                            <label>Project Lead</label>
+                                                            <label>Project Lead:</label>
                                                             <p>
                                                                 {
                                                                     (projectManager.length > 0) ? projectManager[0].user.firstName + " " + projectManager[0].user.lastName : "N/A"
@@ -165,11 +165,11 @@ export default class ProjectInfo extends React.Component {
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div>
-                                                            <label>Project Type</label>
+                                                            <label>Project Type:</label>
                                                             <p>{type.type}</p>
                                                         </div>
                                                         <div>
-                                                            <label>Color Indicator</label>
+                                                            <label>Color Indicator:</label>
                                                             <p>
                                                                 <span class="fa fa-circle mr10" style={{ color }}></span>
                                                                 {color}

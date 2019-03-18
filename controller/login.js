@@ -2,7 +2,7 @@ const async = require("async");
 const sequence = require("sequence").Sequence;
 const _ = require("lodash");
 const models = require('../modelORM');
-const { Users, IpBlock, Teams, UsersTeam, Members, UsersRole, Session } = models;
+const { Users, IpBlock, Teams, UsersTeam, Members, UsersRole, Session, Roles } = models;
 const func = global.initFunc();
 
 
@@ -218,7 +218,13 @@ exports.post = {
                         include: [
                             {
                                 model: UsersRole,
-                                as: 'user_role'
+                                as: 'user_role',
+                                include: [
+                                    {
+                                        model: Roles,
+                                        as: 'role'
+                                    }
+                                ]
                             },
                             {
                                 model: Members,
