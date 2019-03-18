@@ -46,8 +46,8 @@ export default class ProfilePerformance extends React.Component {
             chartArea: {
                 left: "3%",
                 top: "3%",
-                height: "100%",
-                width: "100%"
+                height: "94%",
+                width: "94%"
             },
             colors: ['#00e589', '#f6dc64', '#f9003b', '#f1f1f1'],
         };
@@ -63,7 +63,7 @@ export default class ProfilePerformance extends React.Component {
             <div class={(taskLoading == "RETRIEVING" && _.isEmpty(StatusCount)) ? "linear-background mt20 mb20" : "mt20 mb20"}>
                 {
                     (_.isEmpty(StatusCount) == false) && <div>
-                        <h3 class="m0 mb20 text-center">{currentYear} Monthly Performance</h3>
+                        <h3 class="m0 mb20 text-center"><strong>{currentYear} Monthly Performance</strong></h3>
                         <div class="row" id="chart-row">
                             <div class="col-lg-5 col-md-12">
                                 <div class="chart-wrapper mb10">

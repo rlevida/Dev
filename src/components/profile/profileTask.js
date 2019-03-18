@@ -50,7 +50,7 @@ export default class ProfileTask extends React.Component {
 
         return (
             <div>
-                <h3>Tasks</h3>
+                <h4><strong>Tasks</strong></h4>
                 <div class={(taskLoading == "RETRIEVING" && (List).length == 0) ? "linear-background" : ""}>
                     {
                         ((List).length > 0) && <table id="my-task">

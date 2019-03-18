@@ -33,10 +33,10 @@ export default class Component extends React.Component {
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <ProfileProject />
                                     </div>
-                                    <div class="col-md-8">
+                                    <div class="col-md-9">
                                         <ProfileTask />
                                     </div>
                                 </div>
