@@ -7,7 +7,8 @@ import { connect } from "react-redux"
     return {
         document: store.document,
         global: store.global,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        project: store.project
     }
 })
 
@@ -17,12 +18,12 @@ export default class DocumentStatus extends React.Component {
     }
 
     componentDidMount() {
-        let { dispatch, loggedUser } = this.props;
-        getData(`/api/document/getDocumentCount?isDeleted=0&linkId=${project}&linkType=project&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&type=document`, {}, (c) => {
+        let { dispatch, loggedUser, project } = this.props;
+        getData(`/api/document/getDocumentCount?isDeleted=0&linkId=${project.Selected.id}&linkType=project&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&type=document`, {}, (c) => {
             dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'new', count: c.data.count })
         })
 
-        getData(`/api/document/getDocumentCount?isDeleted=0&linkId=${project}&linkType=project&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&type=document`, {}, (c) => {
+        getData(`/api/document/getDocumentCount?isDeleted=0&linkId=${project.Selected.id}&linkType=project&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&type=document`, {}, (c) => {
             dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'library', count: c.data.count })
         })
     }

@@ -64,26 +64,6 @@ export default class DocumentLibrary extends React.Component {
         this.starredDocument = this.starredDocument.bind(this);
     }
 
-    componentDidMount() {
-        const { dispatch, document, loggedUser } = this.props;
-        // automatically move to selected folder
-        // if (folderParams !== "" && folderParamsStatus === "library" && folderParamsOrigin !== "") {
-        //     getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderParams}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-        //         if (c.status == 200) {
-        //             dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
-        //             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
-        //             dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [{ id: folderParams, name: folderParamsOrigin }], Type: 'SelectedLibraryFolderName' });
-
-        //             showToast('success', 'Documents successfully retrieved.');
-        //         } else {
-        //             showToast('success', 'Something went wrong!')
-        //         }
-        //     });
-        // } else if (_.isEmpty(document.LibraryCount.Count)) {
-        //     this.fetchData(1)
-        // }
-    }
-
     archiveDocument(data) {
         const { dispatch, loggedUser, project } = this.props;
         if (confirm("Do you really want to archive this record?")) {

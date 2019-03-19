@@ -9,7 +9,8 @@ import { Loading } from '../../globalComponents';
     return {
         loggedUser: store.loggedUser,
         global: store.global,
-        activityLogDocument: store.activityLogDocument
+        activityLogDocument: store.activityLogDocument,
+        project: store.project
     }
 })
 
@@ -30,7 +31,7 @@ export default class DocumentActivityLog extends React.Component {
     fetchData(page) {
         const { dispatch, activityLogDocument, loggedUser } = this.props;
 
-        getData(`/api/activityLogDocument?projectId=${project}&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
+        getData(`/api/activityLogDocument?projectId=${project.Selected.id}&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`, {}, (c) => {
             dispatch({ type: 'SET_ACTIVITYLOG_DOCUMENT_LIST', list: activityLogDocument.List.concat(c.data.result), count: c.data.count })
         })
     }
@@ -45,7 +46,7 @@ export default class DocumentActivityLog extends React.Component {
         const { activityLogDocument } = this.props;
         const currentPage = (typeof activityLogDocument.Count.current_page != "undefined") ? activityLogDocument.Count.current_page : 1;
         const lastPage = (typeof activityLogDocument.Count.last_page != "undefined") ? activityLogDocument.Count.last_page : 1;
-        
+
         return (
             <div class="m20">
                 <h4>Activity Logs</h4>

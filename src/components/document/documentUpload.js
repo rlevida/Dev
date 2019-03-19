@@ -98,8 +98,8 @@ export default class DocumentUpload extends React.Component {
     }
 
     fetchFolderList(options) {
-        const { dispatch, loggedUser, document, folder } = this.props;
-        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${project}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
+        const { dispatch, loggedUser, document, folder, project } = this.props;
+        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${project.Selected.id}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
         if (typeof options != "undefined" && options != "") {
             requestUrl += `&name=${options}`;
         }
@@ -185,7 +185,7 @@ export default class DocumentUpload extends React.Component {
     }
 
     uploadFile() {
-        const { loggedUser, folder, dispatch, document } = this.props;
+        const { loggedUser, folder, dispatch, document, project } = this.props;
         const selectedObj = { ...document.Selected };
         let data = new FormData()
         dispatch({ type: 'SET_DOCUMENT_UPLOAD_LOADING', Loading: true });
@@ -198,7 +198,7 @@ export default class DocumentUpload extends React.Component {
             const documentToSave = []
             c.data.map(e => {
                 documentToSave.push({
-                    name: e.filename, origin: e.origin, project: project, uploadedBy: loggedUser.data.id,
+                    name: e.filename, origin: e.origin, project: project.Selected.id, uploadedBy: loggedUser.data.id,
                     status: 'new', type: 'document', folderId: folder.SelectedNewFolder.id
                 })
             })
