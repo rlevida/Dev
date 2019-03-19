@@ -26,14 +26,14 @@ class DocumentNew extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch, document, loggedUser, location } = this.props;
+        const { dispatch, document, loggedUser, location, project } = this.props;
         const searchParams = new URLSearchParams(location.search);
         const folderId = searchParams.get("id");
         const folderStatus = searchParams.get("status")
         const folderOrigin = searchParams.get("folder")
         // automatically move to selected folder
         if (location.search !== "" && folderStatus === "new" && folderOrigin !== "") {
-            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderId}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+            getData(`/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderId}&starredUser=${loggedUser.data.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
@@ -79,8 +79,8 @@ class DocumentNew extends React.Component {
     }
 
     fetchData(page) {
-        const { dispatch, loggedUser, document, folder } = this.props;
-        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new&folderId=${(typeof folder.SelectedNewFolder.id !== 'undefined') ? folder.SelectedNewFolder.id : null}&starredUser=${loggedUser.data.id}`;
+        const { dispatch, loggedUser, document, folder, project } = this.props;
+        let requestUrl = `/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new&folderId=${(typeof folder.SelectedNewFolder.id !== 'undefined') ? folder.SelectedNewFolder.id : null}&starredUser=${loggedUser.data.id}`;
         const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo } = document.Filter;
         if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
             requestUrl += `&isCompleted=${isCompleted}`
@@ -162,7 +162,7 @@ class DocumentNew extends React.Component {
     }
 
     moveTo(folderData, documentData) {
-        const { dispatch, loggedUser } = this.props;
+        const { dispatch, loggedUser, project } = this.props;
         const dataToSubmit = {
             origin: documentData.origin,
             status: folderData.status,
@@ -171,7 +171,7 @@ class DocumentNew extends React.Component {
             oldDocument: documentData.origin,
             newDocument: "",
             title: `${documentData.type === 'document' ? 'Document' : 'Folder'} moved to folder ${folderData.origin}`,
-            projectId: project,
+            projectId: project.Selected.id,
             usersId: loggedUser.data.id,
         };
 

@@ -8,7 +8,8 @@ import _ from "lodash";
     return {
         document: store.document,
         loggedUser: store.loggedUser,
-        folder: store.folder
+        folder: store.folder,
+        project: store.project
     }
 })
 
@@ -43,11 +44,11 @@ export default class FolderModal extends React.Component {
                 origin: folder.Selected.name,
                 createdBy: loggedUser.data.id,
                 type: "folder",
-                project: project,
+                project: project.Selected.id,
                 uploadedBy: loggedUser.data.id,
                 status: 'new',
             }],
-            projectId: project,
+            projectId: project.Selected.id,
             folderId: folder.SelectedNewFolder.id,
         };
 

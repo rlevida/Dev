@@ -57,7 +57,7 @@ export default class FieldContainer extends React.Component {
         const { dispatch, loggedUser } = this.props;
         if (!data.isArchived) {
             if (confirm("Do you really want to archive this record?")) {
-                putData(`/api/document/${data.id}`, { isArchived: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document archived' }, (c) => {
+                putData(`/api/document/${data.id}`, { isArchived: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project.Selected.id, type: data.type, actionType: "deleted", title: 'Document archived' }, (c) => {
                     if (c.status == 200) {
                         dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: data.status, });
                         dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
@@ -71,9 +71,9 @@ export default class FieldContainer extends React.Component {
     }
 
     deleteDocument(data) {
-        const { dispatch, loggedUser } = this.props;
+        const { dispatch, loggedUser, project } = this.props;
         if (confirm("Do you really want to delete this record?")) {
-            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
+            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project.Selected.id, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'New', Id: data.id })
                     dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
@@ -94,8 +94,8 @@ export default class FieldContainer extends React.Component {
     }
 
     duplicateDocument(data) {
-        const { dispatch, document, loggedUser } = this.props;
-        const dataToSubmit = [{ name: data.name, origin: data.origin, project: project, uploadedBy: loggedUser.data.id, status: data.status, tags: JSON.stringify(data.tags), type: 'document' }]
+        const { dispatch, document, loggedUser, project } = this.props;
+        const dataToSubmit = [{ name: data.name, origin: data.origin, project: project.Selected.id, uploadedBy: loggedUser.data.id, status: data.status, tags: JSON.stringify(data.tags), type: 'document' }]
         postData(`/api/document?isDuplicate=true`, dataToSubmit, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New' });
@@ -127,7 +127,7 @@ export default class FieldContainer extends React.Component {
             oldDocument: data.origin,
             newDocument: "",
             title: "Document moved to library",
-            projectId: project,
+            projectId: project.Selected.id,
             usersId: loggedUser.data.id
         }
 
@@ -150,7 +150,7 @@ export default class FieldContainer extends React.Component {
         const { document, loggedUser, dispatch } = this.props;
         const isStarredValue = (isStarred > 0) ? 0 : 1;
 
-        postData(`/api/starred?projectId=${project}&document=${origin}`, {
+        postData(`/api/starred?projectId=${project.Selected.id}&document=${origin}`, {
             linkType: "document",
             linkId: id,
             usersId: loggedUser.data.id
@@ -172,7 +172,7 @@ export default class FieldContainer extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch, loggedUser, folder,project } = this.props;
+        const { dispatch, loggedUser, folder, project } = this.props;
 
         if (data.type !== 'folder') {
             dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });

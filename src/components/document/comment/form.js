@@ -5,14 +5,15 @@ import _ from "lodash";
 import { postData, showToast } from '../../../globalFunction'
 import defaultStyle from "../../global/react-mention-style";
 
-@connect(({ document, conversation, users, loggedUser, global, members }) => {
+@connect(({ document, conversation, users, loggedUser, global, members, project }) => {
     return {
         document,
         conversation,
         users,
         loggedUser,
         global,
-        members
+        members,
+        project
     }
 })
 
@@ -43,7 +44,7 @@ export default class Form extends React.Component {
     }
 
     handleSubmit() {
-        const { dispatch, conversation, document, loggedUser, members } = this.props;
+        const { dispatch, conversation, document, loggedUser, members, project } = this.props;
         const commentText = conversation.Selected.comment;
         const commentSplit = (commentText).split(/{([^}]+)}/g).filter(Boolean);
         const commentIds = _(commentSplit).filter((o) => {
@@ -58,7 +59,7 @@ export default class Form extends React.Component {
             filter: { seen: 0 },
             data: { comment: commentText, linkType: "document", linkId: document.Selected.id, usersId: loggedUser.data.id },
             document: document.Selected.origin,
-            projectId: project,
+            projectId: project.Selected.id,
             userId: loggedUser.data.id,
             username: loggedUser.data.username,
             reminderList: JSON.stringify(_.uniqBy(commentIds, `userId`)),

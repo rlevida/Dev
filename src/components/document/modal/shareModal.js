@@ -9,6 +9,7 @@ import { postData, showToast } from '../../../globalFunction'
         document: store.document,
         loggedUser: store.loggedUser,
         global: store.global,
+        project: store.project
     }
 })
 
@@ -30,11 +31,11 @@ export default class ShareModal extends React.Component {
         const dataToSubmit = {
             users: document.Selected.share,
             linkType: "project",
-            linkId: project,
+            linkId: project.Selected.id,
             shareType: document.Selected.type,
             shareId: document.Selected.id,
             sharedBy: loggedUser.data.id,
-            projectId: project,
+            projectId: project.Selected.id,
             usersId: loggedUser.data.id,
             oldDocument: document.Selected.origin,
             newDocument: '',

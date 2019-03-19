@@ -35,7 +35,7 @@ class DocumentLibrary extends React.Component {
         const folderOrigin = searchParams.get("folder")
         // automatically move to selected folder
         if (location.search !== "" && folderStatus === "library" && folderOrigin !== "") {
-            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderId}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+            getData(`/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderId}&starredUser=${loggedUser.data.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
@@ -49,23 +49,6 @@ class DocumentLibrary extends React.Component {
         } else if (_.isEmpty(document.NewCount.Count)) {
             this.fetchData(1)
         }
-        // // automatically move to selected folder
-        // // if (folderParams !== "" && folderParamsStatus === "library" && folderParamsOrigin !== "") {
-        // //     getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderParams}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-        // //         if (c.status == 200) {
-        // //             dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
-        // //             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
-        // //             dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [{ id: folderParams, name: folderParamsOrigin }], Type: 'SelectedLibraryFolderName' });
-
-        // //             showToast('success', 'Documents successfully retrieved.');
-        // //         } else {
-        // //             showToast('success', 'Something went wrong!')
-        // //         }
-        // //     });
-        // // } else 
-        // if (_.isEmpty(document.LibraryCount.Count)) {
-        //     this.fetchData(1)
-        // }
     }
 
     addFolder() {
@@ -105,8 +88,8 @@ class DocumentLibrary extends React.Component {
     }
 
     fetchData(page) {
-        const { dispatch, document, loggedUser, folder } = this.props;
-        let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=library&folderId=${(typeof folder.SelectedNewFolder.id !== 'undefined') ? folder.SelectedNewFolder.id : null}&starredUser=${loggedUser.data.id}`;
+        const { dispatch, document, loggedUser, folder, project } = this.props;
+        let requestUrl = `/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=library&folderId=${(typeof folder.SelectedNewFolder.id !== 'undefined') ? folder.SelectedNewFolder.id : null}&starredUser=${loggedUser.data.id}`;
         const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo } = document.Filter;
         if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
             requestUrl += `&isCompleted=${isCompleted}`
@@ -189,7 +172,7 @@ class DocumentLibrary extends React.Component {
     }
 
     moveTo(folderData, documentData) {
-        let { dispatch, loggedUser } = this.props;
+        let { dispatch, loggedUser, project } = this.props;
         let dataToSubmit = {
             origin: documentData.origin,
             status: folderData.status,
@@ -198,7 +181,7 @@ class DocumentLibrary extends React.Component {
             oldDocument: documentData.origin,
             newDocument: "",
             title: `${documentData.type === 'document' ? 'Document' : 'Folder'} moved to folder ${folderData.origin}`,
-            projectId: project,
+            projectId: project.Selected.id,
             usersId: loggedUser.data.id
         };
 
@@ -216,7 +199,7 @@ class DocumentLibrary extends React.Component {
     }
 
     moveToLibrary(data) {
-        const { dispatch, document, loggedUser } = this.props;
+        const { dispatch, document, loggedUser, project } = this.props;
         const dataToSubmit = {
             id: data.id,
             status: "library",
@@ -224,7 +207,7 @@ class DocumentLibrary extends React.Component {
             oldDocument: data.origin,
             newDocument: "",
             title: "Document moved to library",
-            projectId: project,
+            projectId: project.Selected.id,
             usersId: loggedUser.data.id,
             origin: data.origin,
             type: data.type,
