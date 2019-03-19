@@ -1,7 +1,6 @@
 import React from "react"
 import parallel from 'async/parallel';
 import { connect } from "react-redux"
-
 import { getData } from "../../globalFunction"
 import { Route, Switch } from 'react-router-dom';
 import DocumentViewer from "../document/documentViewer"
@@ -15,7 +14,7 @@ import List from "./list"
         loggedUser: store.loggedUser
     }
 })
-export default class Component extends React.Component {
+export default  class DocumentComponent extends React.Component {
     constructor(props) {
         super(props)
     }
@@ -80,8 +79,6 @@ export default class Component extends React.Component {
     render() {
         const { document, match } = this.props
         const Component = <div>
-            {console.log(document.FormActive, match)
-            }
             {(document.FormActive === "List") && <Switch>
                 <Route exact={true} path={`${match.path}`} component={List} />
                 <Route path={`${match.path}/:documentId`} component={DocumentViewer} />

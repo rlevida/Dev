@@ -4,6 +4,7 @@ import _ from "lodash";
 import TaskListCategory from "../task/taskListCategory";
 import { Searchbar } from "../../globalComponents";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import WorkstreamDocument from "./workstreamDocument";
 
 @connect((store) => {
     return {
@@ -33,7 +34,7 @@ export default class WorkstreamTabs extends React.Component {
     }
     render() {
         const { workstream_id, dispatch } = { ...this.props };
-
+        console.log(this.props)
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -80,7 +81,9 @@ export default class WorkstreamTabs extends React.Component {
                                 </div>
                             </TabPanel>
                             <TabPanel>
-                                <h2>Active Files</h2>
+                                <div class="mt40 mb40">
+                                    <WorkstreamDocument workstream_id={workstream_id} />
+                                </div>
                             </TabPanel>
                             <TabPanel>
                                 <h2>Messages</h2>

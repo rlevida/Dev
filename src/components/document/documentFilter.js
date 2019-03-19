@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
 import moment from "moment";
-
+import { withRouter } from "react-router";
 // import { DropDown } from "../../globalComponents";
 import { getData, showToast, displayDate, setDatePicker } from "../../globalFunction";
 
@@ -17,7 +17,7 @@ let delayTimer = "";
     }
 })
 
-export default class DocumentFilter extends React.Component {
+class DocumentFilter extends React.Component {
     constructor(props) {
         super(props);
 
@@ -282,3 +282,6 @@ export default class DocumentFilter extends React.Component {
         )
     }
 }
+
+
+export default withRouter(DocumentFilter);

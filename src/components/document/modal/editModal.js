@@ -96,6 +96,8 @@ export default class EditModal extends React.Component {
             }
             putData(`/api/document/rename/${document.Selected.id}`, dataToSubmit, (c) => {
                 if (c.status == 200) {
+                    console.log(c.data.result)
+                    console.log(document.Selected.status)
                     dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status, })
                     dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                     showToast("success", "Successfully Updated.")

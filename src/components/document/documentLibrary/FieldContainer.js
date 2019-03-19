@@ -66,7 +66,6 @@ export default class DocumentLibrary extends React.Component {
 
     componentDidMount() {
         const { dispatch, document, loggedUser } = this.props;
-        console.log(this.props)
         // automatically move to selected folder
         // if (folderParams !== "" && folderParamsStatus === "library" && folderParamsOrigin !== "") {
         //     getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderParams}&starredUser=${loggedUser.data.id}`, {}, (c) => {
@@ -184,7 +183,6 @@ export default class DocumentLibrary extends React.Component {
 
     viewDocument(data) {
         const { dispatch, loggedUser, folder, project } = this.props;
-        console.log(data)
         if (data.type !== 'folder') {
             dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: "DocumentViewer" });
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
@@ -209,13 +207,13 @@ export default class DocumentLibrary extends React.Component {
     //         dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
     //         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
     //     } else {
-    //         dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' });
+    //         dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'LibraryDocumentLoading' });
     //         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
     //             if (c.status == 200) {
-    //                 dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' });
-    //                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' });
-    //                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedNewFolder' });
-    //                 dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedNewFolderName.concat([data]), Type: 'SelectedNewFolderName' });
+    //                 dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' });
+    //                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' });
+    //                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedLibraryFolder' });
+    //                 dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedNewFolderName.concat([data]), Type: 'SelectedLibraryFolderName' });
     //                 showToast('success', 'Documents successfully retrieved.');
     //             }
     //         });
@@ -248,6 +246,7 @@ export default class DocumentLibrary extends React.Component {
                                         <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span> :
                                         <span class="mr10 fa fa-folder fa-lg"></span>
                                     }
+                                    {documentName}
                                 </a>
                             }
                         </div>

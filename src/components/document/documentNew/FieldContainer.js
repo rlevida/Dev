@@ -172,7 +172,7 @@ export default class FieldContainer extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch, loggedUser, folder } = this.props;
+        const { dispatch, loggedUser, folder,project } = this.props;
 
         if (data.type !== 'folder') {
             dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
@@ -188,7 +188,7 @@ export default class FieldContainer extends React.Component {
             // }
         } else {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' });
-            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+            getData(`/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' });
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' });
@@ -225,6 +225,7 @@ export default class FieldContainer extends React.Component {
                                     <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span> :
                                     <span class="mr10 fa fa-folder fa-lg"></span>
                                 }
+                                {documentName}
                             </a>
                         }
                     </td>

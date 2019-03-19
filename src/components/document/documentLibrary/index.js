@@ -3,18 +3,19 @@ import LibraryContainer from "./libraryContainer";
 import FieldContainer from "./FieldContainer";
 import { Loading } from "../../../globalComponents"
 import { getData, postData, putData, showToast } from '../../../globalFunction'
-
+import { withRouter } from "react-router"
 import { connect } from "react-redux"
 
 @connect((store) => {
     return {
         document: store.document,
         loggedUser: store.loggedUser,
-        folder: store.folder
+        folder: store.folder,
+        project: store.project
     }
 })
 
-export default class DocumentLibrary extends React.Component {
+class DocumentLibrary extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -27,21 +28,42 @@ export default class DocumentLibrary extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch, document, loggedUser } = this.props;
+        const { dispatch, document, loggedUser, location } = this.props;
+        const searchParams = new URLSearchParams(location.search);
+        const folderId = searchParams.get("id");
+        const folderStatus = searchParams.get("status")
+        const folderOrigin = searchParams.get("folder")
         // automatically move to selected folder
-        // if (folderParams !== "" && folderParamsStatus === "library" && folderParamsOrigin !== "") {
-        //     getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderParams}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-        //         if (c.status == 200) {
-        //             dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
-        //             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
-        //             dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [{ id: folderParams, name: folderParamsOrigin }], Type: 'SelectedLibraryFolderName' });
+        if (location.search !== "" && folderStatus === "library" && folderOrigin !== "") {
+            getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderId}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
+                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [{ id: folderId, name: folderOrigin }], Type: 'SelectedLibraryFolderName' });
 
-        //             showToast('success', 'Documents successfully retrieved.');
-        //         } else {
-        //             showToast('success', 'Something went wrong!')
-        //         }
-        //     });
-        // } else if (_.isEmpty(document.LibraryCount.Count)) {
+                    showToast('success', 'Documents successfully retrieved.');
+                } else {
+                    showToast('success', 'Something went wrong!')
+                }
+            });
+        } else if (_.isEmpty(document.NewCount.Count)) {
+            this.fetchData(1)
+        }
+        // // automatically move to selected folder
+        // // if (folderParams !== "" && folderParamsStatus === "library" && folderParamsOrigin !== "") {
+        // //     getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderParams}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+        // //         if (c.status == 200) {
+        // //             dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+        // //             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
+        // //             dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [{ id: folderParams, name: folderParamsOrigin }], Type: 'SelectedLibraryFolderName' });
+
+        // //             showToast('success', 'Documents successfully retrieved.');
+        // //         } else {
+        // //             showToast('success', 'Something went wrong!')
+        // //         }
+        // //     });
+        // // } else 
+        // if (_.isEmpty(document.LibraryCount.Count)) {
         //     this.fetchData(1)
         // }
     }
@@ -129,9 +151,9 @@ export default class DocumentLibrary extends React.Component {
     }
 
     getFolderDocuments(data) {
-        const { dispatch, loggedUser, folder } = this.props;
+        const { dispatch, loggedUser, folder, history, project } = this.props;
         let folderList = folder.SelectedLibraryFolderName
-        getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+        getData(`/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&page=${1}&status=library&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: 'SET_DOCUMENT_LIST', list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
@@ -149,7 +171,9 @@ export default class DocumentLibrary extends React.Component {
                     }
                 }
                 if (data === '') {
-                    window.history.replaceState({}, document.title, "/project/" + `${project}/documents`);
+                    history.push(`/projects/${project.Selected.id}/files`)
+                    this.fetchData(1)
+                    // window.history.replaceState({}, document.title, "/project/" + `${project}/documents`);
                 }
                 dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList, Type: 'SelectedLibraryFolderName' });
                 showToast('success', 'Documents successfully retrieved.');
@@ -253,6 +277,10 @@ export default class DocumentLibrary extends React.Component {
                             </div>
                         </form>
                     }
+                    <h3>
+                        <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>Library</a>
+                        {folder.SelectedLibraryFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
+                    </h3>
                     <table class="table-document">
                         <tbody>
                             <tr>
@@ -286,3 +314,5 @@ export default class DocumentLibrary extends React.Component {
         )
     }
 }
+
+export default withRouter(DocumentLibrary);
