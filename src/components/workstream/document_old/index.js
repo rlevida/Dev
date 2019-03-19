@@ -6,7 +6,7 @@ import { connect } from "react-redux"
         document: store.document,
     }
 })
-export default class Component extends React.Component {
+export default class WorkstreamDocumentViewer extends React.Component {
     constructor(props) {
         super(props)
     }
@@ -15,10 +15,9 @@ export default class Component extends React.Component {
         let { document } = this.props;
         return (
             <div>
-                <h1>test</h1>
-                {/* { (document.FormActive == "List") && 
+                { (document.FormActive == "List") && 
                     <List/>
-                } */}
+                }
             </div>
         )
     }
