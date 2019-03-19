@@ -27,9 +27,19 @@ export default class ProjectDashboard extends React.Component {
 
     componentDidMount() {
         const { workstream } = { ...this.props };
-
         this.fetchProjectStatus();
         if (_.isEmpty(workstream.Count)) {
+            this.fetchCompletionRate(1);
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        const { dispatch } = { ...this.props };
+        if (prevProps.match.params.projectId !== this.props.match.params.projectId) {
+            dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: {} });
+            dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
+            dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
+            this.fetchProjectStatus();
             this.fetchCompletionRate(1);
         }
     }

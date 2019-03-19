@@ -16,11 +16,20 @@ import DocumentViewer from "../document/documentViewer";
     }
 })
 export default class ProjectDetails extends React.Component {
+
     componentDidMount() {
         const { dispatch } = { ...this.props };
         const projectId = this.props.match.params.projectId;
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: projectId } });
     }
+
+    componentDidUpdate(prevProps) {
+        const { dispatch } = { ...this.props };
+        if (prevProps.match.params.projectId !== this.props.match.params.projectId) {
+            dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: this.props.match.params.projectId } });
+        }
+    }
+
     render() {
         const { task } = { ...this.props };
 
