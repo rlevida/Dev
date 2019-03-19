@@ -62,7 +62,7 @@ export default class DocumentLibrary extends React.Component {
                 <tr class="item" style={{ background: backgroundColor }}>
                     <td colSpan="7">
                         {
-                            (document.Library.length > 0 && document.LibraryDocumentLoading != "RETRIEVING") && <div class="document-drop-file">Drop files here</div>
+                            (document.LibraryDocumentLoading != "RETRIEVING") && <div class="document-drop-file">Drop files here</div>
                         }
                     </td>
                 </tr>

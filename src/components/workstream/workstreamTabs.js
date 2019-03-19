@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import _ from "lodash";
 import { Searchbar } from "../../globalComponents";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import WorkstreamDocument from "./workstreamDocument";
 
 import TaskListCategory from "../task/taskListCategory";
 import WorkstreamMembers from "./workstreamMembers";
@@ -42,7 +43,7 @@ export default class WorkstreamTabs extends React.Component {
     }
     render() {
         const { workstream_id, dispatch } = { ...this.props };
-
+        console.log(this.props)
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -88,8 +89,10 @@ export default class WorkstreamTabs extends React.Component {
                                     <TaskListCategory date="Succeeding month" workstream_id={workstream_id} />
                                 </div>
                             </TabPanel>
-                            <TabPanel class="bt">
-                                <h2>Active Files</h2>
+                            <TabPanel>
+                                <div class="mt40 mb40">
+                                    <WorkstreamDocument workstream_id={workstream_id} />
+                                </div>
                             </TabPanel>
                             <TabPanel class="bt">
                                 <h2>Messages</h2>

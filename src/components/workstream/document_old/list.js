@@ -35,20 +35,19 @@ export default class List extends React.Component {
     }
 
     componentDidMount() {
-            console.log(`here`)
-        // let { dispatch, document } = this.props
+        let { dispatch, document } = this.props
 
-        // getData(`/api/globalORM/selectList?selectName=workstreamList&projectId=${project}`, {}, (c) => {
-        //     dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamList' })
-        // })
+        getData(`/api/globalORM/selectList?selectName=workstreamList&projectId=${project}`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamList' })
+        })
 
-        // getData(`/api/globalORM/selectList?selectName=taskList&projectId=${project}`, {}, (c) => {
-        //     dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'taskList' })
-        // })
+        getData(`/api/globalORM/selectList?selectName=taskList&projectId=${project}`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'taskList' })
+        })
 
-        // if (_.isEmpty(document.Count)) {
-        //     this.fetchData(1)
-        // }
+        if (_.isEmpty(document.Count)) {
+            this.fetchData(1)
+        }
     }
 
     fetchData(page) {
