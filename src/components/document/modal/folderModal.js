@@ -23,7 +23,7 @@ export default class FolderModal extends React.Component {
     }
 
     submit() {
-        const { loggedUser, folder, dispatch } = this.props;
+        const { loggedUser, folder, dispatch, project } = this.props;
         let result = true;
         $('#folder-form *').validator('validate');
         $('#folder-form .form-group').each(function () {
