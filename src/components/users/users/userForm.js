@@ -57,7 +57,7 @@ export default class UserForm extends React.Component {
     }
 
     handleSubmit(e) {
-        const { users, dispatch } = this.props;
+        const { users, dispatch, profileEdit = false, loggedUser } = this.props;
         let result = true;
 
         $('#user-form *').validator('validate');
@@ -97,19 +97,21 @@ export default class UserForm extends React.Component {
                 dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" });
             });
         } else {
-            let dataToSubmit = { id: users.CurrentData.id, emailAddress: dataToBeSubmitted.emailAddress, username: dataToBeSubmitted.username }
-            _.keys(users.CurrentData).map((e) => {
-                if (JSON.stringify(users.CurrentData[e]) !== JSON.stringify(users.Selected[e])) {
-                    dataToSubmit = { ...dataToSubmit, [e]: users.Selected[e] }
-                }
-            })
+            let dataToSubmit = (profileEdit == false) ? users.Selected : _.pick(users.Selected, ['id', 'firstName', 'lastName', 'phoneNumber', 'emailAddress', 'username']);
 
-            putData(`/api/user/${dataToBeSubmitted.id}`, dataToSubmit, (c) => {
+            putData(`/api/user/${dataToSubmit.id}`, dataToSubmit, (c) => {
                 if (c.data.error) {
                     showToast(`error`, c.data.message)
                 } else {
                     dispatch({ type: 'UPDATE_DATA_USER_LIST', UpdatedData: c.data })
                     showToast('success', 'User successfully updated.');
+                }
+
+                if (profileEdit) {
+                    dispatch({
+                        type: "SET_LOGGED_USER_DATA",
+                        data: _.merge(loggedUser.data, dataToSubmit)
+                    });
                 }
 
                 $("#user-form").validator('destroy');
@@ -140,7 +142,7 @@ export default class UserForm extends React.Component {
 
     handleChangePassword() {
         const { dispatch, users } = { ...this.props };
-        const { password, confirmPassword, id } = users.Selected;
+        const { new_password, confirmPassword, id } = users.Selected;
         let result = true;
 
         $('#user-password *').validator('validate');
@@ -155,13 +157,13 @@ export default class UserForm extends React.Component {
             return;
         }
 
-        if (password != confirmPassword) {
+        if (new_password != confirmPassword) {
             showToast('error', 'Password and confirm password must be the same.');
-        } else if (password.length < 6) {
+        } else if (new_password.length < 6) {
             showToast("error", "Passwords at least 6 characters.");
         } else {
             const data = {
-                password,
+                password: new_password,
                 confirmPassword,
                 id
             };
@@ -169,7 +171,7 @@ export default class UserForm extends React.Component {
             putData(`/api/user/changePassword/${id}`, data, (c) => {
                 if (c.status == 200) {
                     showToast('success', 'Password successfully changed.');
-                    dispatch({ type: "SET_USER_SELECTED", Selected: _.omit(users.Selected, ['password', 'confirmPassword']) });
+                    dispatch({ type: "SET_USER_SELECTED", Selected: _.omit(users.Selected, ['new_password', 'confirmPassword']) });
                 } else {
                     showToast('error', 'Something went wrong. Please try again.');
                 }
@@ -200,7 +202,7 @@ export default class UserForm extends React.Component {
     }
 
     render() {
-        const { users, loggedUser, global, project, teams } = this.props;
+        const { users, loggedUser, global, project, teams, profileEdit = false } = this.props;
         const userType = [{ id: "External", name: "External" }];
         const userRole = _(global.SelectList.roleList)
             .filter((o) => {
@@ -224,175 +226,197 @@ export default class UserForm extends React.Component {
             userType.push({ id: "Internal", name: "Internal" });
         }
 
-        return <div>
-            <div class="mb20">
-                <form id="user-form">
-                    <div class="mb20">
-                        <p class="form-header mb0">Users</p>
-                        <p>All with <span class="text-red">*</span> are required.</p>
-                    </div>
-                    <div class="form-group">
-                        <label>Username: <span class="text-red">*</span></label>
-                        <input
-                            type="text"
-                            name="username"
-                            required
-                            value={(typeof users.Selected.username == "undefined") ? "" : users.Selected.username}
-                            class="form-control"
-                            placeholder="Enter username"
-                            onChange={this.handleChange} />
-                       
-                    </div>
-                    <div class="form-group">
-                        <label>Email Address: <span class="text-red">*</span></label>
-                        <input
-                            type="email"
-                            name="emailAddress"
-                            required
-                            value={(typeof users.Selected.emailAddress == "undefined") ? "" : users.Selected.emailAddress}
-                            class="form-control"
-                            placeholder="Enter valid email address"
-                            onChange={this.handleChange}
-                        />
-                       
-                    </div>
-                    <div class="form-group">
-                        <label>First name: <span class="text-red">*</span></label>
-                        <input type="text"
-                            name="firstName"
-                            required
-                            value={(typeof users.Selected.firstName != "undefined" && users.Selected.firstName) ? users.Selected.firstName : ""}
-                            class="form-control"
-                            placeholder="Enter first name"
-                            onChange={this.handleChange}
-                        />
-                       
-                    </div>
-                    <div class="form-group">
-                        <label>Last name: <span class="text-red">*</span></label>
-                        <input
-                            type="text"
-                            name="lastName"
-                            required
-                            value={(typeof users.Selected.lastName != "undefined" && users.Selected.lastName) ? users.Selected.lastName : ""}
-                            class="form-control"
-                            placeholder="Enter last Name"
-                            onChange={this.handleChange}
-                        />
-                       
-                    </div>
-                    <div class="form-group">
-                        <label>Phone Number: </label>
-                        <input type="number" name="phoneNumber" value={(typeof users.Selected.phoneNumber != "undefined" && users.Selected.phoneNumber) ? users.Selected.phoneNumber : ""} class="form-control" placeholder="Enter phone number" onChange={this.handleChange} />
-                    </div>
-                    <div class="form-group">
-                        <label>User Type: <span class="text-red">*</span></label>
-                        <DropDown multiple={false}
-                            required={true}
-                            options={userType}
-                            selected={(typeof users.Selected.userType == "undefined") ? "" : users.Selected.userType}
-                            onChange={(e) => {
-                                this.setDropDown("userType", e.value);
-                            }} />
-                       
-                    </div>
-                    {
-                        (typeof users.Selected.userType != "undefined" && users.Selected.userType != "") && <div class="form-group">
-                            <label>User Role: <span class="text-red">*</span></label>
-                            <DropDown multiple={false}
-                                required={true}
-                                options={userRole}
-                                selected={(typeof users.Selected.userRole == "undefined") ? "" : users.Selected.userRole}
-                                onChange={(e) => this.setDropDown("userRole", e.value)}
-                                placeholder={"Select user role"}
-                            />
-                           
-                        </div>
-                    }
-                    {
-                        (users.Selected.userType == "External") && <div class="form-group">
-                            <label>Company:</label>
-                            <input
-                                type="text"
-                                name="company"
-                                value={(typeof users.Selected.company == "undefined") ? "" : users.Selected.company}
-                                class="form-control"
-                                placeholder="Enter company"
-                                onChange={this.handleChange}
-                            />
-                           
-                        </div>
-                    }
-                    {
-                        (users.Selected.userType == 'Internal') && <div class="form-group">
-                            <label>Team:</label>
-                            <DropDown
-                                multiple={true}
-                                required={false}
-                                options={teams.SelectList}
-                                onInputChange={this.setTeamList}
-                                placeholder={'Search or select team'}
-                                onChange={(e) => this.setDropDownMultiple("team", e)}
-                                selected={
-                                    (typeof users.Selected.team == "undefined") ? [] : users.Selected.team.map((e) => { return typeof e.value != "undefined" ? { value: e.value } : { value: e.id } })
+        return <div class="row">
+            <div class="col-md-6" id={(typeof users.Selected.id != "undefined" && users.Selected.id != "") ? "user-form-wrapper" : ""}>
+                <div class={(profileEdit) ? "mt20" : ""}>
+                    <form id="user-form">
+                        <div class="mb20">
+                            <p class="form-header mb0">
+                                {
+                                    (profileEdit == false) ? "Users" : "Profile Information"
                                 }
-                                isClearable={((users.SelectList).length > 0)}
-                            />
-                        </div>
-                    }
-                    {
-                        (loggedUser.data.userRole == 3 && users.Selected.userType == "External") && <div class="form-group">
-                            <label>Project:</label>
-                            <DropDown multiple={true}
-                                required={false}
-                                options={(projectList).map((o) => { return { id: o.id, name: o.project } })}
-                                selected={(typeof users.Selected.user_projects == "undefined") ? [] : users.Selected.user_projects}
-                                onChange={(e) => this.setDropDownMultiple("user_projects", e)}
-                            />
-                        </div>
-                    }
-                    <a class="btn btn-violet" onClick={this.handleSubmit}>
-                        <span>{`${(typeof users.Selected.id != "undefined" && users.Selected.id != "") ? 'Edit' : 'Add'} User`}</span>
-                    </a>
-                </form>
-            </div>
-            {
-                (typeof users.Selected.id != "undefined" && users.Selected.id != "") && <div class="bt">
-                    <form id="user-password">
-                        <div class="mt20 mb20">
-                            <p class="form-header mb0">Change Password</p>
+                            </p>
                             <p>All with <span class="text-red">*</span> are required.</p>
                         </div>
+                        {
+                            (profileEdit) && <div class="form-group">
+                                <div class="profile-wrapper">
+                                    <img src={users.Selected.avatar} alt="Profile Picture" class="img-responsive" />
+                                    <a onClick={() => { $('#upload-picture').modal('show'); }}>
+                                        <i class="fa fa-camera"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        }
                         <div class="form-group">
-                            <label>New Password: <span class="text-red">*</span></label>
+                            <label>Username: <span class="text-red">*</span></label>
                             <input
-                                type="password"
-                                name="password"
+                                type="text"
+                                name="username"
                                 required
-                                value={(typeof users.Selected.password == "undefined") ? "" : users.Selected.password}
+                                value={(typeof users.Selected.username == "undefined") ? "" : users.Selected.username}
                                 class="form-control"
-                                placeholder="Enter new password"
-                                onChange={this.handleChange}
-                            />
-                           
+                                placeholder="Enter username"
+                                onChange={this.handleChange} />
+
                         </div>
                         <div class="form-group">
-                            <label>Confirm Password: <span class="text-red">*</span></label>
+                            <label>Email Address: <span class="text-red">*</span></label>
                             <input
-                                type="password"
-                                name="confirmPassword"
+                                type="email"
+                                name="emailAddress"
                                 required
-                                value={(typeof users.Selected.confirmPassword == "undefined") ? "" : users.Selected.confirmPassword}
+                                value={(typeof users.Selected.emailAddress == "undefined") ? "" : users.Selected.emailAddress}
                                 class="form-control"
-                                placeholder="Confirm password"
+                                placeholder="Enter valid email address"
                                 onChange={this.handleChange}
                             />
-                           
+
                         </div>
-                        <a class="btn btn-violet" onClick={this.handleChangePassword}>
-                            <span>Change user password</span>
+                        <div class="form-group">
+                            <label>First name: <span class="text-red">*</span></label>
+                            <input type="text"
+                                name="firstName"
+                                required
+                                value={(typeof users.Selected.firstName != "undefined" && users.Selected.firstName) ? users.Selected.firstName : ""}
+                                class="form-control"
+                                placeholder="Enter first name"
+                                onChange={this.handleChange}
+                            />
+
+                        </div>
+                        <div class="form-group">
+                            <label>Last name: <span class="text-red">*</span></label>
+                            <input
+                                type="text"
+                                name="lastName"
+                                required
+                                value={(typeof users.Selected.lastName != "undefined" && users.Selected.lastName) ? users.Selected.lastName : ""}
+                                class="form-control"
+                                placeholder="Enter last Name"
+                                onChange={this.handleChange}
+                            />
+
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number: </label>
+                            <input type="number" name="phoneNumber" value={(typeof users.Selected.phoneNumber != "undefined" && users.Selected.phoneNumber) ? users.Selected.phoneNumber : ""} class="form-control" placeholder="Enter phone number" onChange={this.handleChange} />
+                        </div>
+                        {
+
+                            (profileEdit == false) && <div>
+                                <div class="form-group">
+                                    <label>User Type: <span class="text-red">*</span></label>
+                                    <DropDown multiple={false}
+                                        required={true}
+                                        options={userType}
+                                        selected={(typeof users.Selected.userType == "undefined") ? "" : users.Selected.userType}
+                                        onChange={(e) => {
+                                            this.setDropDown("userType", e.value);
+                                        }} />
+
+                                </div>
+                                {
+                                    (typeof users.Selected.userType != "undefined" && users.Selected.userType != "") && <div class="form-group">
+                                        <label>User Role: <span class="text-red">*</span></label>
+                                        <DropDown multiple={false}
+                                            required={true}
+                                            options={userRole}
+                                            selected={(typeof users.Selected.userRole == "undefined") ? "" : users.Selected.userRole}
+                                            onChange={(e) => this.setDropDown("userRole", e.value)}
+                                            placeholder={"Select user role"}
+                                        />
+
+                                    </div>
+                                }
+                                {
+                                    (users.Selected.userType == "External") && <div class="form-group">
+                                        <label>Company:</label>
+                                        <input
+                                            type="text"
+                                            name="company"
+                                            value={(typeof users.Selected.company == "undefined") ? "" : users.Selected.company}
+                                            class="form-control"
+                                            placeholder="Enter company"
+                                            onChange={this.handleChange}
+                                        />
+
+                                    </div>
+                                }
+                                {
+                                    (users.Selected.userType == 'Internal') && <div class="form-group">
+                                        <label>Team:</label>
+                                        <DropDown
+                                            multiple={true}
+                                            required={false}
+                                            options={teams.SelectList}
+                                            onInputChange={this.setTeamList}
+                                            placeholder={'Search or select team'}
+                                            onChange={(e) => this.setDropDownMultiple("team", e)}
+                                            selected={
+                                                (typeof users.Selected.team == "undefined") ? [] : users.Selected.team.map((e) => { return typeof e.value != "undefined" ? { value: e.value } : { value: e.id } })
+                                            }
+                                            isClearable={((users.SelectList).length > 0)}
+                                        />
+                                    </div>
+                                }
+                                {
+                                    (loggedUser.data.userRole == 3 && users.Selected.userType == "External") && <div class="form-group">
+                                        <label>Project:</label>
+                                        <DropDown multiple={true}
+                                            required={false}
+                                            options={(projectList).map((o) => { return { id: o.id, name: o.project } })}
+                                            selected={(typeof users.Selected.user_projects == "undefined") ? [] : users.Selected.user_projects}
+                                            onChange={(e) => this.setDropDownMultiple("user_projects", e)}
+                                        />
+                                    </div>
+                                }
+                            </div>
+                        }
+                        <a class="btn btn-violet" onClick={this.handleSubmit}>
+                            <span>{`${(typeof users.Selected.id != "undefined" && users.Selected.id != "") ? 'Update' : 'Add'} ${(profileEdit) ? 'Profile': 'User'}`}</span>
                         </a>
                     </form>
+                </div>
+            </div>
+            {
+                (typeof users.Selected.id != "undefined" && users.Selected.id != "") &&
+                <div class="col-md-6">
+                    <div class={(profileEdit) ? "mt20" : ""}>
+                        <form id="user-password">
+                            <p class="form-header mb0">Change Password</p>
+                            <p>All with <span class="text-red">*</span> are required.</p>
+                            <div class="form-group">
+                                <label class="m0">New Password: <span class="text-red">*</span></label>
+                                <p class="note">Passwords at least 6 characters.</p>
+                                <input
+                                    type="password"
+                                    name="new_password"
+                                    required
+                                    value={(typeof users.Selected.new_password == "undefined") ? "" : users.Selected.new_password}
+                                    class="form-control"
+                                    placeholder="Enter new password"
+                                    onChange={this.handleChange}
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm Password: <span class="text-red">*</span></label>
+                                <input
+                                    type="password"
+                                    name="confirmPassword"
+                                    required
+                                    value={(typeof users.Selected.confirmPassword == "undefined") ? "" : users.Selected.confirmPassword}
+                                    class="form-control"
+                                    placeholder="Confirm password"
+                                    onChange={this.handleChange}
+                                />
+
+                            </div>
+                            <a class="btn btn-violet" onClick={this.handleChangePassword}>
+                                <span>Change Password</span>
+                            </a>
+                        </form>
+                    </div>
                 </div>
             }
         </div>

@@ -356,7 +356,7 @@ exports.post = {
                 .on('file', function (field, file) {
                     var date = new Date();
                     var Id = func.generatePassword(date.getTime() + file.name, "attachment");
-                    var filename = Id+file.name;
+                    var filename = Id + file.name;
                     func.uploadFile({
                         file: file,
                         form: type,
@@ -441,14 +441,29 @@ exports.put = {
             async.parallel({
                 teams: (parallelCallback) => {
                     if (typeof teams !== 'undefined') {
-                        UsersTeam
-                            .destroy({ where: { usersId: body.id } })
-                            .then((res) => {
-                                UsersTeam.bulkCreate(_.map(teams, (o) => { return { usersId: body.id, teamId: o.value } }))
-                                    .then((createRes) => {
-                                        parallelCallback(null, createRes)
-                                    });
-                            })
+                        Teams.findAll({
+                            where: {
+                                teamLeaderId: body.id,
+                                isDeleted: 0
+                            }
+                        }).map((o) => {
+                            const responseObj = o.toJSON();
+                            return responseObj.id
+                        }).then((o) => {
+                            const teamLeaderTeams = o;
+                            const myTeam = _.filter(teams, (team) => {
+                                const teamIndex = _.findIndex(teamLeaderTeams, function (o) { return o == team.value; });
+                                return teamIndex < 0;
+                            });
+                            UsersTeam
+                                .destroy({ where: { usersId: body.id } })
+                                .then((res) => {
+                                    UsersTeam.bulkCreate(_.map(myTeam, (o) => { return { usersId: body.id, teamId: o.value } }))
+                                        .then((createRes) => {
+                                            parallelCallback(null, createRes)
+                                        });
+                                })
+                        });
                     } else {
                         parallelCallback(null, [])
                     }

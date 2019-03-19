@@ -23,6 +23,11 @@ export default class ProfileTask extends React.Component {
         });
     }
 
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_TASK_LIST", list: [], count: {} });
+    }
+
     componentDidMount() {
         this.getList(1);
     }
