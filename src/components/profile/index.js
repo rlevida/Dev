@@ -32,7 +32,7 @@ export default class Component extends React.Component {
                                         <ProfilePerformance />
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row content-row">
                                     <div class="col-md-3">
                                         <ProfileProject />
                                     </div>

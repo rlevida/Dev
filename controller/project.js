@@ -91,14 +91,14 @@ const associationFindAllStack = [
 ]
 
 exports.get = {
-    index: (req, cb) => {
+    index: async (req, cb) => {
         const queryString = req.query;
+
         const limit = 10;
         const options = {
             include: associationFindAllStack,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
         };
-
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
@@ -115,6 +115,40 @@ exports.get = {
                 ]
             } : {}
         };
+
+        if (typeof queryString.userId != "undefined" && queryString.userId != "") {
+            const userTeam = await UsersTeam.findAll({
+                where: {
+                    usersId: queryString.userId
+                }
+            }).map((res) => {
+                return res.toJSON();
+            });
+
+            const projectMembers = await Members.findAll({
+                where: {
+                    [Op.or]: [
+                        {
+                            usersType: "users",
+                            userTypeLinkId: queryString.userId,
+                            linkType: "project"
+                        },
+                        {
+                            usersType: "team",
+                            userTypeLinkId: _.map(userTeam, (o) => { return o.teamId }),
+                            linkType: "project"
+                        }
+                    ]
+                }
+            }).map((res) => {
+                return res.toJSON();
+            });
+
+            whereObj["id"] = _(projectMembers)
+                .uniqBy("linkId")
+                .map((o) => { return o.linkId })
+                .value();
+        }
 
         if (typeof queryString.projectStatus != "undefined" && queryString.projectStatus != "") {
             switch (queryString.projectStatus) {
