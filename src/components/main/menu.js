@@ -42,18 +42,22 @@ class Component extends React.Component {
 
             if (project.Category.Client.length) {
                 category = _.filter(project.Category.Client, (e) => { return e.id === parseInt(project.Selected.id) })
+                if (category.length) {
+                    dispatch({ type: "SET_ACTIVE_CATEGORY", ActiveCategory: category[0].type.type })
+                }
             }
             if (project.Category.Internal.length) {
                 category = _.filter(project.Category.Internal, (e) => { return e.id === parseInt(project.Selected.id) })
+                if (category.length) {
+                    dispatch({ type: "SET_ACTIVE_CATEGORY", ActiveCategory: category[0].type.type })
+                }
             }
             if (project.Category.Private.length) {
                 category = _.filter(project.Category.Private, (e) => { return e.id === parseInt(project.Selected.id) })
+                if (category.length) {
+                    dispatch({ type: "SET_ACTIVE_CATEGORY", ActiveCategory: category[0].type.type })
+                }
             }
-
-            if (category.length) {
-                dispatch({ type: "SET_ACTIVE_CATEGORY", ActiveCategory: category[0].type.type })
-            }
-
         }
     }
 
@@ -79,8 +83,11 @@ class Component extends React.Component {
 
     onClick(e, category) {
         const { dispatch, history } = { ...this.props };
-        dispatch({ type: "SET_ACTIVE_CATEGORY", ActiveCategory: category })
-        history.push(`/projects/${e.id}`)
+
+        if (history.location.pathname !== `/projects/${e.id}`) {
+            history.push(`/projects/${e.id}`)
+            dispatch({ type: "SET_ACTIVE_CATEGORY", ActiveCategory: category })
+        }
     }
 
     render() {
@@ -109,15 +116,15 @@ class Component extends React.Component {
                 </ul>
                 <div class="dropdown project-menu-category">
                     <ul id="menu" class={project.Category.Active === "Client" ? "open" : ""}>
-                        <li class="dropdown-toggle" type="button" data-toggle="dropdown">
-                            <a><i class="fa fa-caret-right mr20"></i>Client</a>
+                        <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Client" ? "" : "dropdown"}>
+                            <a href="javascript:void(0)"><i class="fa fa-caret-right mr20"></i>Client</a>
                         </li>
                         <ul class="dropdown-menu ml20">
                             {
                                 _.map(project.Category.Client, (e, i) => {
                                     return (
                                         <li key={i}>
-                                            <a onClick={() => this.onClick(e, 'Client')}>
+                                            <a href="javascript:void(0)" class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""} onClick={() => this.onClick(e, 'Client')}>
                                                 <span><i class="fa fa-square mr10" style={{ color: e.color }}></i></span>
                                                 {e.project}
                                             </a>
@@ -130,15 +137,15 @@ class Component extends React.Component {
                 </div>
                 <div class="dropdown project-menu-category">
                     <ul id="menu" class={project.Category.Active === "Internal" ? "open" : ""}>
-                        <li class="dropdown-toggle" type="button" data-toggle="dropdown">
-                            <a><i class="fa fa-caret-right mr20"></i>Internal</a>
+                        <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Internal" ? "" : "dropdown"}>
+                            <a href="javascript:void(0)"><i class="fa fa-caret-right mr20"></i>Internal</a>
                         </li>
                         <ul class="dropdown-menu ml20">
                             {
                                 _.map(project.Category.Internal, (e, i) => {
                                     return (
                                         <li key={i}>
-                                            <a onClick={() => this.onClick(e, 'Internal')}>
+                                            <a href="javascript:void(0)" class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""} onClick={() => this.onClick(e, 'Internal')}>
                                                 <span><i class="fa fa-square mr10" style={{ color: e.color }}></i></span>
                                                 {e.project}
                                             </a>
@@ -150,19 +157,19 @@ class Component extends React.Component {
                     </ul>
                 </div>
                 <div class="dropdown project-menu-category">
-                    <ul id="menu">
-                        <li class="dropdown-toggle" type="button" data-toggle="dropdown">
-                            <a><i class="fa fa-caret-right mr20"></i>Private</a>
+                    <ul id="menu" class={project.Category.Active === "Private" ? "open" : ""}>
+                        <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Private" ? "" : "dropdown"}>
+                            <a href="javascript:void(0)"><i class="fa fa-caret-right mr20"></i>Private</a>
                         </li>
                         <ul class="dropdown-menu ml20">
                             {
                                 _.map(project.Category.Private, (e, i) => {
                                     return (
                                         <li key={i}>
-                                            <Link to={`/projects/${e.id}`}>
+                                            <a href="javascript:void(0)" class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""} onClick={() => this.onClick(e, 'Private')}>
                                                 <span><i class="fa fa-square mr10" style={{ color: e.color }}></i></span>
                                                 {e.project}
-                                            </Link>
+                                            </a>
                                         </li>
                                     )
                                 })
