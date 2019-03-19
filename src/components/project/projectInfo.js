@@ -24,7 +24,7 @@ export default class ProjectInfo extends React.Component {
             "handleEdit"
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
-    componentWillUnmount(){
+    componentWillUnmount() {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
     }
@@ -156,11 +156,16 @@ export default class ProjectInfo extends React.Component {
                                                         </div>
                                                         <div>
                                                             <label>Project Lead:</label>
-                                                            <p>
-                                                                {
-                                                                    (projectManager.length > 0) ? projectManager[0].user.firstName + " " + projectManager[0].user.lastName : "N/A"
-                                                                }
-                                                            </p>
+                                                            {
+                                                                (projectManager.length > 0) ?
+                                                                    <div class="profile-div">
+                                                                        <div class="thumbnail-profile">
+                                                                            <img src={projectManager[0].user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                        </div>
+                                                                        <p class="m0">{projectManager[0].user.firstName + " " + projectManager[0].user.lastName}</p>
+                                                                    </div>
+                                                                    : "N/A"
+                                                            }
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">

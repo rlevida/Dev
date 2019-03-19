@@ -4,8 +4,13 @@ const jwt = require('jsonwebtoken');
 const router = express();
 const models = require('../modelORM');
 const {
+    Roles,
     Session,
-    Members
+    Members,
+    Users,
+    UsersRole,
+    Teams,
+    UsersTeam
 } = models;
 
 router.use(function (req, res, next) {
@@ -19,7 +24,57 @@ router.use(function (req, res, next) {
                         .then((updateRes) => {
                             req.userDetails = ret.toJSON();
                             req.userDetails.userType = JSON.parse(ret.toJSON().data).userType;
-                            next();
+                            Users
+                                .findOne({
+                                    where: { id: ret.toJSON().usersId },
+                                    include: [
+                                        {
+                                            model: UsersRole,
+                                            as: 'user_role',
+                                            include: [
+                                                {
+                                                    model: Roles,
+                                                    as: 'role'
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            model: Members,
+                                            as: 'projectId',
+                                            where: { usersType: 'users', linkType: 'project' },
+                                            required: false,
+                                            attributes: ['linkId']
+                                        },
+                                        {
+                                            model: Members,
+                                            as: 'user_projects',
+                                            where: { usersType: 'users', linkType: 'project' },
+                                            required: false,
+                                        },
+                                        {
+                                            model: Teams,
+                                            as: 'team_as_teamLeader'
+                                        },
+                                        {
+                                            model: UsersTeam,
+                                            as: 'users_team',
+                                            include: [{
+                                                model: Teams,
+                                                as: 'team'
+                                            }]
+                                        }
+                                    ]
+                                })
+                                .then((res) => {
+                                    let responseToReturn = {
+                                        ...res.dataValues,
+                                        projectId: res.projectId.map((e) => { return e.linkId }),
+                                        userRole: res.dataValues.user_role[0].roleId,
+                                        team: res.dataValues.team_as_teamLeader.concat(res.dataValues.users_team.map((e) => { return e.team }))
+                                    }
+                                    req.loggedData = _.omit(responseToReturn, "team_as_teamLeader", "users_team")
+                                    next();
+                                });
                         })
                 } else {
                     res.redirect('/auth');
@@ -44,7 +99,7 @@ router.use(function (req, res, next) {
                             title: global.site_name,
                             page: 'noProjectAvailable',
                             body: "./template/index",
-                            user: JSON.stringify(req.userDetails.data)
+                            user: JSON.stringify(req.loggedData)
                         });
                     }
                 })
@@ -65,7 +120,7 @@ router.get('/account', function (req, res, next) {
         title: global.site_name,
         page: 'account',
         body: "./template/index",
-        user: JSON.stringify(req.userDetails.data)
+        user: JSON.stringify(req.loggedData)
     });
 });
 

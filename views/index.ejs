@@ -34,7 +34,7 @@
     var taskId = '<%= (typeof task != "undefined") ? task : "" %>'
     var project = '<%= (typeof project != "undefined") ? project : "" %>'
     var workstreamId = '<%= (typeof workstream != "undefined") ? workstream : "" %>'
-    var user = '<%- (typeof user != "undefined")?JSON.parse(user):"" %>'
+    var user = '<%- (typeof user != "undefined")?user:"" %>'
     var loggedUser = user != "" ? JSON.parse(user) : ""
   </script>
   <script src="/javascripts/vendor.js"></script>

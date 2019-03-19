@@ -1713,9 +1713,23 @@ textarea::-webkit-scrollbar-thumb {
 }
 
 .comment{
-  padding: 20px;
+  padding: 15px;
   background-color: #f6f6f6;
   margin-bottom: 5px;
+  display: flex;
+}
+
+.comment .thumbnail-profile{
+  margin-right: 5px;
+}
+
+.profile-div{
+  display: flex;
+  align-items: center;
+}
+
+.profile-div .thumbnail-profile{
+  margin-right: 5px;
 }
 
 
@@ -1758,11 +1772,13 @@ textarea::-webkit-scrollbar-thumb {
 
 .label-div{
   display: flex;
+  align-items: center;
   margin-bottom: 5px;
 }
 
 .label-div label{
   margin-right: 10px;
+  margin-bottom: 0px;
 }
 
 #task-details .modal-body{
@@ -2025,6 +2041,31 @@ textarea::-webkit-scrollbar-thumb {
 .profile-project:not(:last-child){
   margin-bottom: 20px;
 } 
+.profile-picture i{
+  font-size: 20px;
+  margin-right: 15px;
+}
+
+.profile-wrapper{
+  max-width: 80px;
+  margin-right: 10px;
+}
+
+.profile-wrapper img, 
+.menu-profile img,
+.thumbnail-profile img{
+  border: solid 1px #ffffff;
+  border-radius: 50%;
+}
+
+.menu-profile{
+  max-width: 45px;
+}
+
+.thumbnail-profile{
+  max-width: 32px;
+}
+
 @media screen and (max-width: 600px) {
   table {
     border: 0;
@@ -2217,7 +2258,27 @@ textarea::-webkit-scrollbar-thumb {
   }
 
   .ReactTabs__TabPanel{
-    margin-top: 50px;
+    margin-top: 0px;
+  }
+
+  .profile-picture i{
+    text-align: center;
+    margin-right: 0px;
+    margin-bottom: 10px;
+  }
+
+  .profile-picture {
+    flex-direction: column;
+  }
+
+  .profile-wrapper{
+    margin: 0 auto;
+    margin-bottom: 10px;
+  }
+
+  .profile-wrapper img{
+    border: solid 1px #ffffff;
+    border-radius: 50%;
   }
   
 }

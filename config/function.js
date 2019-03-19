@@ -55,15 +55,15 @@ var uploadFile = exports.uploadFile = (params, cb) => {
         AWS = global.initAWS();
     var fileStream = fs.readFileSync(params.file.path);
     var s3 = new AWS.S3();
+    var environment = global.environment || "development";
     s3.putObject({
         Bucket: global.AWSBucket,
-        Key: global.environment + "/" + params.form + "/" + params.filename,
+        Key: environment + "/" + params.form + "/" + params.filename,
         Body: fileStream,
         ContentType: params.file.type,
         ACL: 'public-read-write'
     }, function (err, res) {
         if (err) {
-            console.log("Error in Uploading to AWS. [" + err + "]");
             cb({ Message: 'Failed to upload' })
         } else {
             cb({ Message: 'Success' })

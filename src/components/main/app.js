@@ -16,7 +16,8 @@ import Profile from "../profile";
     return {
         user: store.loggedUser.data,
         project: store.project,
-        reminder: store.reminder
+        reminder: store.reminder,
+        loggedUser: store.loggedUser
     }
 })
 class Main extends React.Component {
@@ -92,7 +93,8 @@ class Main extends React.Component {
 
     render() {
         const { showLeft } = { ...this.state };
-        const { project } = { ...this.props };
+        const { project, loggedUser } = { ...this.props };
+        const { avatar } = loggedUser.data;
         const pages = [
             {
                 label: "Dashboard",
@@ -145,7 +147,7 @@ class Main extends React.Component {
             { label: "Messages", link: "/messages" },
             { label: "Files", link: "/files" }
         ];
-       
+
         return (
             <div class={(showLeft) ? 'flex-row' : ''} id="main-container">
                 {(showLeft) &&
@@ -194,12 +196,14 @@ class Main extends React.Component {
                                     </div>
                                 }
                                 <div class="action item">
-                                    <div class="hidden-sm hidden-xs text-center">
+                                    <div class="hidden-sm hidden-xs text-center display-flex action-link">
                                         <a class="dropdown-toggle" href={`/reminder`}>
                                             <span class="fa fa-bell"></span>
                                         </a>
                                         <Link to={"/profile"}>
-                                            <i class="glyphicon glyphicon-user"></i>
+                                            <div class="menu-profile">
+                                                <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                            </div>
                                         </Link>
                                     </div>
                                     <div class="dropdown visible-sm visible-xs">

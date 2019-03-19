@@ -81,7 +81,7 @@ export default class UserForm extends React.Component {
         }
 
         if (typeof dataToBeSubmitted.avatar == "undefined" || !dataToBeSubmitted.avatar) {
-            dataToBeSubmitted.avatar = "https://s3-ap-northeast-1.amazonaws.com/marine-performer/avatars/user.png";
+            dataToBeSubmitted.avatar = "https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/profile_pictures/default.png";
         }
 
         if (typeof dataToBeSubmitted.id == 'undefined') {

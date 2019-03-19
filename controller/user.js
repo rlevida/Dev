@@ -339,6 +339,62 @@ exports.post = {
                 cb({ status: false, error: err });
             }
         })
+    },
+    upload: (req, cb) => {
+        const formidable = global.initRequire("formidable");
+        const func = global.initFunc();
+        let form = new formidable.IncomingForm();
+        let files = [];
+        let type = "profile_pictures";
+        let userId = "";
+        form.multiples = false;
+        files.push(new Promise((resolve, reject) => {
+            form
+                .on('field', function (name, field) {
+                    userId = field;
+                })
+                .on('file', function (field, file) {
+                    var date = new Date();
+                    var Id = func.generatePassword(date.getTime() + file.name, "attachment");
+                    var filename = Id+file.name;
+                    func.uploadFile({
+                        file: file,
+                        form: type,
+                        filename: filename
+                    }, response => {
+                        if (response.Message == 'Success') {
+                            resolve({
+                                filename: filename,
+                                origin: file.name,
+                                Id: Id,
+                                userId
+                            })
+                        } else {
+                            reject()
+                        }
+                    });
+                })
+
+        }));
+
+        Promise.all(files).then(e => {
+            if (e.length > 0) {
+                const { filename, userId } = e[0];
+                const url = global.AWSLink + global.environment + "/profile_pictures/" + filename;
+                Users
+                    .update({ avatar: url }, { where: { id: userId } })
+                    .then((res) => {
+                        cb({ status: true, data: global.AWSLink + global.environment + "/profile_pictures/" + filename });
+                    })
+            } else {
+                cb({ status: false, data: [] });
+            }
+        })
+        // log any errors that occur
+        form.on('error', function (err) {
+            cb({ status: false, error: "Upload error. Please try again later." });
+        });
+        form.parse(req);
     }
 }
 

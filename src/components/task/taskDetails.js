@@ -192,8 +192,13 @@ export default class TaskDetails extends React.Component {
         if (type == "conversation") {
             return (
                 <div key={users.id} class="comment">
-                    <MentionConvert string={comment} />
-                    <p class="note m0">Posted {date} by {users.firstName + " " + users.lastName}.</p>
+                    <div class="thumbnail-profile">
+                        <img src={users.avatar} alt="Profile Picture" class="img-responsive" />
+                    </div>
+                    <div>
+                        <MentionConvert string={comment} />
+                        <p class="note m0">Posted {date} by {users.firstName + " " + users.lastName}.</p>
+                    </div>
                 </div>
             )
         } else {
@@ -396,7 +401,14 @@ export default class TaskDetails extends React.Component {
                                                                 _.map(assigned, (member, index) => {
                                                                     const { user } = member;
                                                                     return (
-                                                                        <span key={index}>{user.firstName + " " + user.lastName}</span>
+                                                                        <div key={index}>
+                                                                            <div class="profile-div">
+                                                                                <div class="thumbnail-profile">
+                                                                                    <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                                </div>
+                                                                                <p class="m0">{user.firstName + " " + user.lastName}</p>
+                                                                            </div>
+                                                                        </div>
                                                                     )
                                                                 })
                                                             }
@@ -420,8 +432,11 @@ export default class TaskDetails extends React.Component {
                                                             {
                                                                 _.map(followers, ({ user }, index) => {
                                                                     return (
-                                                                        <div key={index}>
-                                                                            <p>{user.firstName + " " + user.lastName}</p>
+                                                                        <div key={index} class="profile-div">
+                                                                            <div class="thumbnail-profile">
+                                                                                <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                            </div>
+                                                                            <p class="m0">{user.firstName + " " + user.lastName}</p>
                                                                         </div>
                                                                     )
                                                                 })
@@ -438,7 +453,14 @@ export default class TaskDetails extends React.Component {
                                                                     _.map(approver, (member, index) => {
                                                                         const { user } = member;
                                                                         return (
-                                                                            <span key={index}>{user.firstName + " " + user.lastName}</span>
+                                                                            <div key={index}>
+                                                                                <div class="profile-div">
+                                                                                    <div class="thumbnail-profile">
+                                                                                        <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                                    </div>
+                                                                                    <p class="m0">{user.firstName + " " + user.lastName}</p>
+                                                                                </div>
+                                                                            </div>
                                                                         )
                                                                     }) : "N/A"
                                                             }
@@ -446,7 +468,7 @@ export default class TaskDetails extends React.Component {
                                                     </div>
                                                     <div class="label-div">
                                                         <label>Due Date:</label>
-                                                        <p class={`0 ${(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}`}>
+                                                        <p class={`m0 ${(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}`}>
                                                             {
                                                                 (dueDate != null) ? moment(dueDate).format("MMMM DD, YYYY") : "N/A"
                                                             }

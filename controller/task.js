@@ -19,8 +19,7 @@ const associationStack = [
         include: [
             {
                 model: Users,
-                as: 'user',
-                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+                as: 'user'
             }
         ],
     },
@@ -102,8 +101,7 @@ const associationStack = [
                 include: [
                     {
                         model: Users,
-                        as: 'user',
-                        attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+                        as: 'user'
                     }
                 ]
             }

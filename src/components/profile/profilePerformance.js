@@ -4,7 +4,7 @@ import _ from "lodash";
 import moment from "moment";
 import Chart from "react-google-charts";
 
-import { getData, showToast } from "../../globalFunction";
+import { getData } from "../../globalFunction";
 import { Loading } from '../../globalComponents';
 
 @connect((store) => {
