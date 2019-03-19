@@ -11,7 +11,6 @@ export default function reducer(state = {
     SelectedNewFolder: {},
     New: {},
     Library: {}
-
 }, action) {
     switch (action.type) {
 
@@ -62,6 +61,22 @@ export default function reducer(state = {
                 }
             })
             return { ...state, List: tempList }
+        }
+        case "CLEAR_FOLDER": {
+            return {
+                ...state, List: [],
+                FormActive: "List",
+                Selected: {},
+                SelectedId: [],
+                SelectList: [],
+                EditType: "",
+                SelectedLibraryFolder: {},
+                SelectedLibraryFolderName: [],
+                SelectedNewFolderName: [],
+                SelectedNewFolder: {},
+                New: {},
+                Library: {}
+            }
         }
         default:
             return state;

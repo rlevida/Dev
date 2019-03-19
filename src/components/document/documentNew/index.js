@@ -210,10 +210,7 @@ class DocumentNew extends React.Component {
             <div class="mb20">
                 <div class="col-lg-12 col-md-12">
                     <h3>
-                        {
-                            folder.SelectedNewFolderName.length > 0 &&
-                            <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>List</a>
-                        }
+                        <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>New</a>
                         {folder.SelectedNewFolderName.map((e, index) => { return <span key={index}> <i class="fa fa-chevron-right" style={{ fontSize: '16px' }}></i><a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
                     </h3>
                     <table class="table-document mb40">

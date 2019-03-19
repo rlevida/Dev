@@ -244,7 +244,7 @@ export default class FieldContainer extends React.Component {
                     <td>{data.readOn ? displayDateMD(data.readOn) : '--'}</td>
                     <td style={{ display: 'flex' }}>
                         <span class="document-action document-active" title="Download" onClick={() => this.downloadDocument(data)}><i class="fa fa-download fa-lg"></i></span>
-                        <span class={`document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="Archive" onClick={e => this.archiveDocument(data)}><i class="fa fa-archive fa-lg"></i></span>
+                        <span class={`document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="Archive"><i class="fa fa-archive fa-lg"></i></span>
 
                         <span class="document-action document-active dropdown dropdown-library" title="Move">
                             <i class="fa fa-folder fa-lg"></i>

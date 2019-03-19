@@ -199,28 +199,6 @@ export default class DocumentLibrary extends React.Component {
         }
     }
 
-
-    // viewDocument(data) {
-    //     const { dispatch, loggedUser, folder } = this.props;
-
-    //     if (data.type !== 'folder') {
-    //         dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
-    //         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-    //     } else {
-    //         dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'LibraryDocumentLoading' });
-    //         getData(`/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-    //             if (c.status == 200) {
-    //                 dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' });
-    //                 dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' });
-    //                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedLibraryFolder' });
-    //                 dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedNewFolderName.concat([data]), Type: 'SelectedLibraryFolderName' });
-    //                 showToast('success', 'Documents successfully retrieved.');
-    //             }
-    //         });
-    //     }
-    // }
-
-
     render() {
         const { document, dispatch, loggedUser, data, index, folder, moveTo, project } = this.props
         let tagCount = 0;
@@ -267,7 +245,7 @@ export default class DocumentLibrary extends React.Component {
                     <td>{data.readOn ? displayDateMD(data.readOn) : '--'}</td>
                     <td style={{ display: 'flex' }}>
                         <span class="document-action document-active" title="Download" onClick={() => this.downloadDocument(data)}><i class="fa fa-download fa-lg"></i></span>
-                        <span class={`document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="Archive" onClick={e => this.archiveDocument(data)}><i class="fa fa-archive fa-lg"></i></span>
+                        <span class={`document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="Archive"><i class="fa fa-archive fa-lg"></i></span>
                         <span class="document-action document-active dropdown dropdown-library" title="Move">
                             <i class="fa fa-folder fa-lg"></i>
                             <div class="dropdown-content dropdown-menu-right">
