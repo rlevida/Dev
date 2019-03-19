@@ -74,7 +74,7 @@ export default class ProfileProject extends React.Component {
                         _.map(projectList, (o, index) => {
                             return (
                                 <div key={index} class="profile-project">
-                                    <p class="m0">
+                                    <p class="mb5">
                                         <strong>
                                             <span title={o.type}>
                                                 <i class={`mr5 ${(o.type == "Client") ? "fa fa-users" : (o.type == "Private") ? "fa fa-lock" : "fa fa-cloud"}`}></i>

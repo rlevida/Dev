@@ -6,7 +6,7 @@ const associationArray = [
     {
         model: Users,
         as: 'user',
-        attributes: ["id", "firstName", "lastName", "username", "emailAddress", "userType"],
+        attributes: ["id", "firstName", "lastName", "username", "emailAddress", "userType", "avatar"],
         include: [
             {
                 model: UsersRole,
@@ -239,7 +239,7 @@ exports.post = {
             {
                 model: Users,
                 as: 'user',
-                attributes: ['id', 'firstName', 'lastName']
+                attributes: ['id', 'firstName', 'lastName', "avatar"]
             }
         ]
         const options = {

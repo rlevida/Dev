@@ -396,23 +396,21 @@ export default class TaskDetails extends React.Component {
                                                 <div class="col-md-6">
                                                     <div class="label-div">
                                                         <label>Assigned:</label>
-                                                        <p class="m0">
-                                                            {
-                                                                _.map(assigned, (member, index) => {
-                                                                    const { user } = member;
-                                                                    return (
-                                                                        <div key={index}>
-                                                                            <div class="profile-div">
-                                                                                <div class="thumbnail-profile">
-                                                                                    <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
-                                                                                </div>
-                                                                                <p class="m0">{user.firstName + " " + user.lastName}</p>
+                                                        {
+                                                            _.map(assigned, (member, index) => {
+                                                                const { user } = member;
+                                                                return (
+                                                                    <div key={index}>
+                                                                        <div class="profile-div">
+                                                                            <div class="thumbnail-profile">
+                                                                                <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
                                                                             </div>
+                                                                            <p class="m0">{user.firstName + " " + user.lastName}</p>
                                                                         </div>
-                                                                    )
-                                                                })
-                                                            }
-                                                        </p>
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
                                                     </div>
                                                     <div class="label-div">
                                                         <label>Project:</label>
