@@ -25,7 +25,7 @@ class DocumentFilter extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { dispatch, loggedUser, folder, document } = this.props;
+        const { dispatch, loggedUser, folder, document, project } = this.props;
         if (_.isEqual(prevProps.document.Filter, this.props.document.Filter) == false) {
             clearTimeout(delayTimer);
 
@@ -33,9 +33,9 @@ class DocumentFilter extends React.Component {
 
             let requestUrl = ''
             if (document.ActiveTab === 'document') {
-                requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`;
+                requestUrl = `/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`;
             } else {
-                requestUrl = `/api/activityLogDocument?projectId=${project}&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`
+                requestUrl = `/api/activityLogDocument?projectId=${roject.Selected.id}&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`
             }
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' });
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'LibraryDocumentLoading' });

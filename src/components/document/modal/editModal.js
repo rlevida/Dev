@@ -71,7 +71,7 @@ export default class EditModal extends React.Component {
     }
 
     handleSubmit(e) {
-        const { loggedUser, document, dispatch } = this.props;
+        const { loggedUser, document, dispatch, project } = this.props;
         let result = true;
 
         $('.form-container *').validator('validate');
@@ -92,7 +92,7 @@ export default class EditModal extends React.Component {
                 oldDocument: document.Selected.oldDocument,
                 newDocument: document.Selected.origin,
                 usersId: loggedUser.data.id,
-                projectId: project
+                projectId: project.Selected.id
             }
             putData(`/api/document/rename/${document.Selected.id}`, dataToSubmit, (c) => {
                 if (c.status == 200) {
@@ -113,7 +113,7 @@ export default class EditModal extends React.Component {
                 oldDocument: document.Selected.oldDocument,
                 newDocument: document.Selected.tagWorkstream.map((e) => { return e.label }).join(','),
                 usersId: loggedUser.data.id,
-                projectId: project,
+                projectId: project.Selected.id,
                 origin: document.Selected.origin
             }
             putData(`/api/document/tag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}`, dataToSubmit, (c) => {

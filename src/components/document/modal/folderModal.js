@@ -8,7 +8,8 @@ import _ from "lodash";
     return {
         document: store.document,
         loggedUser: store.loggedUser,
-        folder: store.folder
+        folder: store.folder,
+        project: store.project
     }
 })
 
@@ -22,7 +23,7 @@ export default class FolderModal extends React.Component {
     }
 
     submit() {
-        const { loggedUser, folder, dispatch } = this.props;
+        const { loggedUser, folder, dispatch, project } = this.props;
         let result = true;
         $('#folder-form *').validator('validate');
         $('#folder-form .form-group').each(function () {
@@ -43,11 +44,11 @@ export default class FolderModal extends React.Component {
                 origin: folder.Selected.name,
                 createdBy: loggedUser.data.id,
                 type: "folder",
-                project: project,
+                project: project.Selected.id,
                 uploadedBy: loggedUser.data.id,
                 status: 'new',
             }],
-            projectId: project,
+            projectId: project.Selected.id,
             folderId: folder.SelectedNewFolder.id,
         };
 

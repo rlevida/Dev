@@ -120,10 +120,10 @@ export default class DocumentViewerComponent extends React.Component {
     }
 
     starredDocument({ id, isStarred, origin }) {
-        const { document, loggedUser, dispatch } = this.props;
+        const { document, loggedUser, dispatch, project } = this.props;
         const isStarredValue = (isStarred > 0) ? 0 : 1;
 
-        postData(`/api/starred?projectId=${project}&document=${origin}`, {
+        postData(`/api/starred?projectId=${project.Selected.id}&document=${origin}`, {
             linkType: "document",
             linkId: id,
             usersId: loggedUser.data.id
