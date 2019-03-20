@@ -24,7 +24,7 @@ export default class DocumentComponent extends React.Component {
         dispatch({ type: 'CLEAR_DOCUMENT' });
     }
     componentDidMount() {
-        const { dispatch, loggedUser } = this.props
+        const { dispatch, project } = this.props
         // if (documentId) {
         //     let requestUrl = `/api/document?isDeleted=0&linkId=${project}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&documentId=${documentId}`;
         //     getData(requestUrl, {}, (c) => {
