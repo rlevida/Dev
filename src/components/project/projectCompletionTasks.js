@@ -49,7 +49,7 @@ export default class ProjectCompletionTasks extends React.Component {
                             <h2 class="mt20 mb0">Tasks</h2>
                             <div class={(Loading == "RETRIEVING") ? "linear-background" : ""}>
                                 {
-                                    ((List).length > 0) && <table id="late-task" class="mt20">
+                                    ((List).length > 0) && <table id="late-task">
                                         <thead>
                                             <tr>
                                                 <th scope="col" class="td-left">Task Name</th>

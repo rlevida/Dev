@@ -133,7 +133,7 @@ export default class TaskListCategory extends React.Component {
     openTaskDetails(id) {
         const { dispatch, loggedUser } = { ...this.props };
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
-        
+
         getData(`/api/activityLog?taskId=${id}&page=1&includes=user`, {}, (c) => {
             if (c.status == 200) {
                 const { data } = c;
@@ -175,19 +175,21 @@ export default class TaskListCategory extends React.Component {
 
         return (
             <tr key={index}>
-                <td data-label="Task Name" class="td-left action-td">
-                    {
-                        (status != "For Approval" && status != "Rejected" && typeof isAssignedToMe != "undefined") && <a onClick={() => this.completeTask({ id, status, periodic, periodTask })}>
-                            <span class={`fa mr10 ${(status != "Completed") ? "fa-circle-thin" : "fa-check-circle text-green"}`} title="Complete"></span>
+                <td data-label="Task Name" class="td-left">
+                    <div class="action-td">
+                        {
+                            (status != "For Approval" && status != "Rejected" && typeof isAssignedToMe != "undefined") && <a onClick={() => this.completeTask({ id, status, periodic, periodTask })}>
+                                <span class={`fa mr10 ${(status != "Completed") ? "fa-circle-thin" : "fa-check-circle text-green"}`} title="Complete"></span>
+                            </a>
+                        }
+                        <a
+                            onClick={() => this.openTaskDetails(id)}
+                            class={(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}
+                        >
+                            {task_name}
+                            {(periodic == 1) && <i class="fa fa-refresh ml10" aria-hidden="true"></i>}
                         </a>
-                    }
-                    <a
-                        onClick={() => this.openTaskDetails(id)}
-                        class={(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}
-                    >
-                        {task_name}
-                        {(periodic == 1) && <i class="fa fa-refresh ml10" aria-hidden="true"></i>}
-                    </a>
+                    </div>
                 </td>
                 <td data-label="Status">
                     <p class={`m0 ${(status == "Completed") ? "text-green" : (status == "For Approval") ? "text-orange" : ""}`}>

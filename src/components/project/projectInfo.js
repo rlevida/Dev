@@ -89,7 +89,7 @@ export default class ProjectInfo extends React.Component {
         const color = (lateWorkstream > 0) ? "text-red" : (workstreamTaskDueToday > 0) ? "text-yellow" : "text-green";
         const component = (render_type == "text") ? <p class={`mb0 ${color}`}>
             {status}
-        </p> : <span class={`fa fa-circle mb0 mr20 ${color}`}></span>
+        </p> : <span class={`fa fa-circle mb0 mr10 ${color}`}></span>
         return (component);
     }
     renderArrayTd(arr) {
@@ -136,11 +136,11 @@ export default class ProjectInfo extends React.Component {
                                         </h3>
                                     </div>
                                     <div>
-                                        <div class="row mt20">
+                                        <div class="row mt10">
                                             <div class="col-lg-8 md-12 col-sm-12">
                                                 <div class="row content-row">
-                                                    <div class="col-md-12 display-flex space-between">
-                                                        <h4>
+                                                    <div class="col-md-12 vh-center space-between">
+                                                        <h4 class="m0">
                                                             Project Details
                                                         </h4>
                                                         <a class="logo-action text-grey" onClick={() => this.handleEdit()}>
@@ -148,7 +148,7 @@ export default class ProjectInfo extends React.Component {
                                                         </a>
                                                     </div>
                                                 </div>
-                                                <div class="row mt20">
+                                                <div class="row mt10">
                                                     <div class="col-md-6">
                                                         <div>
                                                             <label>Project Name:</label>
@@ -212,6 +212,7 @@ export default class ProjectInfo extends React.Component {
                                                                         <td data-label="Color">
                                                                             <p class="m0">
                                                                                 <span class="fa fa-square mr10" style={{ color }}></span>
+                                                                                {color}
                                                                             </p>
                                                                         </td>
                                                                         <td data-label="Lead">

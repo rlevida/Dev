@@ -253,9 +253,9 @@ export default class WorkstreamForm extends React.Component {
                     />
                 </div>
                 <div class="form-group">
-                    <label>Workstream Type</label>
+                    <label>Workstream Type: <span class="text-red">*</span></label>
                     <DropDown multiple={false}
-                        required={false}
+                        required
                         options={typeList}
                         selected={(typeof workstream.Selected.typeId == "undefined" || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.typeId}
                         onChange={(e) => {
@@ -281,8 +281,8 @@ export default class WorkstreamForm extends React.Component {
                     </div>
                 }
                 <div class="form-group">
-                    <label for="description">Workstream Description: <span class="text-red">*</span></label>
-                    <textarea name="description" required value={(typeof workstream.Selected.description == "undefined" || workstream.Selected.description == null || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
+                    <label for="description">Workstream Description:</label>
+                    <textarea name="description" value={(typeof workstream.Selected.description == "undefined" || workstream.Selected.description == null || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.description} class="form-control" placeholder="Description" onChange={this.handleChange} />
 
                 </div>
                 <div class="form-group">

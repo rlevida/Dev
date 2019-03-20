@@ -129,23 +129,23 @@ export default class WorkstreamList extends React.Component {
                                                         <Link to={`/projects/${project.Selected.id}/workstreams/${data.id}`}>{data.workstream}</Link>
                                                     </p>
                                                 </td>
-                                                <td data-label="Completion">{(data.completion).toFixed(2) + "%"}</td>
+                                                <td data-label="Completion">{(data.completion_rate.completed.value).toFixed(2) + "%"}</td>
                                                 <td data-label="For Approval">
-                                                    {(data.for_approval.amount > 0) && <p class={`${data.for_approval.color} m0`}>{data.for_approval.amount} task(s)</p>}
+                                                    {(data.completion_rate.tasks_for_approval.count > 0) && <p class="text-orange m0">{data.completion_rate.tasks_for_approval.count} task(s)</p>}
                                                 </td>
                                                 <td data-label="Issues">
                                                     {
-                                                        (data.issues > 0) && <p class="m0 text-orange">{data.issues} delayed</p>
+                                                        (data.completion_rate.delayed_task.count > 0) && <p class="text-red m0">{data.completion_rate.delayed_task.count} delayed</p>
                                                     }
                                                 </td>
                                                 <td data-label="New Docs">
                                                     {
-                                                        (data.new_documents > 0) && <p class="m0 text-red">{data.new_documents} file(s)</p>
+                                                        (data.new_documents > 0) && <p class="text-red m0">{data.new_documents} file(s)</p>
                                                     }
                                                 </td>
                                                 <td data-label="Messages">
                                                     {
-                                                        (data.messages > 0) && <p class="m0 text-blue">{data.messages} message(s)</p>
+                                                        (data.messages > 0) && <p class="text-blue m0">{data.messages} message(s)</p>
                                                     }
                                                 </td>
                                                 <td data-label="Actions">

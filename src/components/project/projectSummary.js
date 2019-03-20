@@ -13,6 +13,7 @@ let keyTimer = "";
     return {
         project: store.project,
         loggedUser: store.loggedUser,
+        workstream: store.workstream,
         type: store.type
     }
 })
@@ -41,6 +42,7 @@ export default class List extends React.Component {
     componentWillUnmount() {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_PROJECT_LIST", list: [] });
+        dispatch({ type: "SET_WORKSTREAM_LIST", list: [] });
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
     }
 
@@ -90,22 +92,25 @@ export default class List extends React.Component {
         dispatch({ type: "SET_PROJECT_FILTER", filter: { [name]: e } });
     }
 
-    renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type }) {
-        const status = (lateWorkstream > 0) ? `${lateWorkstream} stream(s) delayed` : (workstreamTaskDueToday > 0) ? `${workstreamTaskDueToday} stream(s) due today` : `On track`;
-        const color = (lateWorkstream > 0) ? "text-red" : (workstreamTaskDueToday > 0) ? "text-yellow" : "text-green";
-        const component = (render_type == "text") ? <p class={`mb0 ${color}`}>
-            {status}
-        </p> : <span class={`fa fa-circle mb0 mr5 ${color}`}></span>
-        return (component);
+    renderStatus({ delayed_task, tasks_due_today, completed }) {
+        const color = (delayed_task.count > 0) ? "text-red" : (tasks_due_today.count > 0) ? "text-yellow" : (completed.count > 0) ? "text-green" : "hide";
+        return <span class={`fa fa-circle mb0 mr5 ${color}`}></span>;
     }
 
-    getLateTasks(projectId) {
+    getLateTasks({ id, type }) {
         const { dispatch } = { ...this.props };
         const fromDate = moment().startOf('month').format("YYYY-MM-DD");
         const toDate = moment().endOf('month').format("YYYY-MM-DD");
         const today = moment().format("YYYY-MM-DD");
+        let fetchUrl = `/api/task?dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
 
-        let fetchUrl = `/api/task?projectId=${projectId}&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
+        if (type == "project") {
+            fetchUrl += `&projectId=${id}`
+        }
+
+        if (type == "workstream") {
+            fetchUrl += `&workstreamId=${id}`
+        }
 
         getData(fetchUrl, {}, (c) => {
             const result = c.data.result;
@@ -126,23 +131,156 @@ export default class List extends React.Component {
     }
 
     getWorkstreams(id) {
-        const requestUrl = `/api/workstream?projectId=${id}`;
+        const { dispatch, workstream } = { ...this.props };
+        const dueDateMoment = moment().format("YYYY-MM-DD");
+        const requestUrl = `/api/workstream?projectId=${id}&dueDate=${dueDateMoment}`;
+        const projectWorkstream = _.filter(workstream.List, (o) => { return o.projectId == id });
 
-        getData(requestUrl, {}, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "UPDATE_WORKSTREAM_LIST", list: c.data.result });
-                showToast("success", "Workstream successfully retrieved.");
-            } else {
-                showToast("error", "Something went wrong please try again later.");
-            }
-        });
+        if (projectWorkstream.length > 0) {
+            dispatch({
+                type: "SET_WORKSTREAM_LIST", list: _.remove(workstream.List, (listObj) => {
+                    return listObj.projectId != id;
+                })
+            });
+        } else {
+            getData(requestUrl, {}, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "UPDATE_WORKSTREAM_LIST", list: c.data.result });
+                } else {
+                    showToast("error", "Something went wrong please try again later.");
+                }
+            });
+        }
     }
 
+    renderRow({ id, name, type, entity_type, new_files, dateUpdated, completion_rate, numberOfTasks }, index) {
+        const completionRate = (completion_rate != "") ? _(completion_rate)
+            .mapValues(({ value, color, count }, key) => {
+                return {
+                    label: `${key.replace(/[_-]/g, " ")}`,
+                    value: value.toFixed(2),
+                    color: color,
+                    count
+                }
+            })
+            .values()
+            .value() : [];
+        const completionValue = _.find(completionRate, (o) => { return o.label == "completed" }).value;
+        return (
+            <tr key={index}>
+                <td data-label="Project Name" class={(entity_type == "project") ? "td-left" : ""}>
+                    {
+                        (entity_type == "project") ? <a class="text-violet" onClick={() => this.getWorkstreams(id)}>
+                            {this.renderStatus(completion_rate)}
+                            <strong>{name}</strong>
+                        </a> : <p class="mb0 text-italic">{name}</p>
+                    }
+
+                </td>
+                <td data-label="Type">
+                    <p class={`m0 ${(entity_type == "workstream") ? "text-italic" : ""}`}>
+                        <span title={type}>
+                            <i class={(type == "Client") ? "fa fa-users" : (type == "Private") ? "fa fa-lock" : (type == "Internal") ? "fa fa-cloud" : (type == "Output based") ? "fa fa-upload" : "fa fa-clock-o"}></i>
+                        </span>
+                    </p>
+                </td>
+                <td data-label="New Files">
+                    <p class={`m0 ${(entity_type == "workstream") ? "text-italic" : ""}`}>
+                        {new_files}
+                    </p>
+                </td>
+                <td data-label="Last Update">
+                    <p class={`m0 ${(entity_type == "workstream") ? "text-italic" : ""}`}>
+                        {moment(dateUpdated).from(new Date())}
+                    </p>
+                </td>
+                <td data-label="Active Month Completion Rate">
+                    <a data-tip data-for={`task-${index}`} onClick={() => this.getLateTasks({ id, type: entity_type })}>
+                        <ProgressBar data={completionRate} />
+                        <p class={`m0 ${(entity_type == "workstream") ? "text-italic" : ""}`}>{completionValue}%</p>
+                    </a>
+                    <ReactTooltip id={`task-${index}`} aria-haspopup='true' type={'light'}>
+                        <div class="wrapper">
+                            <div class="display-flex mb5">
+                                <p class={`count ${(completion_rate.tasks_due_today.count > 0) ? "text-yellow" : "text-light-grey"}`}>
+                                    <strong>{completion_rate.tasks_due_today.count}</strong>
+                                </p>
+                                <p class={`tooltip-label ${(completion_rate.tasks_due_today.count > 0) ? "" : "text-light-grey"}`}>
+                                    Task due today
+                                </p>
+                            </div>
+                            <div class="display-flex mb5">
+                                <p
+                                    class={`count ${(completion_rate.tasks_for_approval.count > 0) ? "text-orange" : "text-light-grey"}`}
+                                >
+                                    <strong>{completion_rate.tasks_for_approval.count}</strong>
+                                </p>
+                                <p class={`tooltip-label ${(completion_rate.tasks_for_approval.count > 0) ? "" : "text-light-grey"}`}>
+                                    Task for approval
+                                </p>
+                            </div>
+                            <div class="display-flex">
+                                <p
+                                    class={`count ${(completion_rate.delayed_task.count > 0) ? "text-red" : "text-light-grey"}`}>
+                                    <strong>{completion_rate.delayed_task.count}</strong>
+                                </p>
+                                <p
+                                    class={`tooltip-label ${(completion_rate.delayed_task.count > 0) ? "" : "text-light-grey"}`}>
+                                    Delayed tasks
+                                </p>
+                            </div>
+                        </div>
+                        <div class="sep"></div>
+                        <div class="wrapper">
+                            <div class="display-flex">
+                                <p>Completed <strong><span class="text-green">{completion_rate.completed.count}</span></strong> out of <strong>{numberOfTasks}</strong> tasks</p>
+                            </div>
+                        </div>
+                    </ReactTooltip>
+                </td>
+            </tr>
+        )
+    }
+
+
     render() {
-        const { project, type } = { ...this.props };
+        const { project, type, workstream } = { ...this.props };
         const currentPage = (typeof project.Count.current_page != "undefined") ? project.Count.current_page : 1;
         const lastPage = (typeof project.Count.last_page != "undefined") ? project.Count.last_page : 1;
         const projectTypes = [...[{ id: "", name: "All" }], ..._(type.List).filter((o) => { return o.linkType == "project" }).map((o) => { return { id: o.id, name: o.type } }).value()];
+        const projectList = _.map(project.List, ({ id, project, type, newDocuments, dateUpdated, completion_rate, numberOfTasks }) => {
+            return {
+                id,
+                name: project,
+                type: type.type,
+                new_files: newDocuments,
+                dateUpdated,
+                completion_rate,
+                entity_type: "project",
+                numberOfTasks,
+                workstream: _(workstream.List)
+                    .map(({ id, workstream, type, new_documents, dateUpdated, completion_rate, projectId, numberOfTasks }) => {
+                        return {
+                            id,
+                            name: workstream,
+                            type: (type != null) ? type.type : "",
+                            new_files: new_documents,
+                            dateUpdated,
+                            completion_rate,
+                            projectId,
+                            entity_type: "workstream",
+                            numberOfTasks
+                        }
+                    })
+                    .filter((o) => { return o.projectId == id })
+                    .value()
+            }
+        });
+        const resultList = _.flatMap(projectList, function (o) {
+            return [o, ..._.map(o.workstream, function (o) {
+                return o;
+            })]
+        });
 
         return (
             <div>
@@ -169,107 +307,9 @@ export default class List extends React.Component {
                             </thead>
                             <tbody>
                                 {
-                                    _.map(project.List, (projectElem, index) => {
-                                        const { id, project, type, newDocuments, dateUpdated, completion_rate, numberOfTasks, workstream } = { ...projectElem };
-                                        const completionRate = (completion_rate != "") ? _(completion_rate)
-                                            .mapValues(({ value, color, count }, key) => {
-                                                return {
-                                                    label: `${key.replace(/[_-]/g, " ")}`,
-                                                    value: value.toFixed(2),
-                                                    color: color,
-                                                    count
-                                                }
-                                            })
-                                            .values()
-                                            .value() : [];
-                                        const completionValue = _.find(completionRate, (o) => { return o.label == "completed" }).value;
-                                        const taskDueTodayCount = _.find(completionRate, (o) => { return o.label == "tasks due today" }).count;
-                                        const forApprovalCount = _.find(completionRate, (o) => { return o.label == "tasks for approval" }).count;
-                                        const delayedTaskCount = _.find(completionRate, (o) => { return o.label == "delayed task" }).count;
-                                        const completedCount = _.find(completionRate, (o) => { return o.label == "completed" }).count;
-                                            
-                                        console.log(moment(dateUpdated).format('LLL'))
-                                        let lateWorkstream = 0;
-                                        let workstreamTaskDueToday = 0;
-
-                                        workstream.map((e) => {
-                                            if (e.taskOverDue.length) {
-                                                lateWorkstream++;
-                                            }
-                                            if (e.taskDueToday.length) {
-                                                workstreamTaskDueToday++;
-                                            }
-                                        });
+                                    _.map(resultList, (o, index) => {
                                         return (
-                                            <tr key={index}>
-                                                <td data-label="Project Name" class="td-left">
-                                                    <p class="mb0">
-                                                        {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "icon" })}
-                                                        {project}
-                                                    </p>
-                                                </td>
-                                                <td data-label="Type">
-                                                    <p class="mb0">
-                                                        <span title={type.type}>
-                                                            <i class={(type.type == "Client") ? "fa fa-users" : (type.type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></i>
-                                                        </span>
-                                                    </p>
-                                                </td>
-                                                <td data-label="New Files">
-                                                    <p class="mb0">
-                                                        {newDocuments}
-                                                    </p>
-                                                </td>
-                                                <td data-label="Last Update">
-                                                    <p class="mb0">
-                                                        {moment(dateUpdated).from(new Date())}
-                                                    </p>
-                                                </td>
-                                                <td data-label="Active Month Completion Rate">
-                                                    <a data-tip data-for={`task-${index}`} onClick={() => this.getLateTasks(id)}>
-                                                        <ProgressBar data={completionRate} />
-                                                        <p class="mb0">{completionValue}%</p>
-                                                    </a>
-                                                    <ReactTooltip id={`task-${index}`} aria-haspopup='true' type={'light'}>
-                                                        <div class="wrapper">
-                                                            <div class="display-flex mb5">
-                                                                <p class={`count ${(taskDueTodayCount > 0) ? "text-yellow" : "text-light-grey"}`}>
-                                                                    <strong>{taskDueTodayCount}</strong>
-                                                                </p>
-                                                                <p class={`tooltip-label ${(taskDueTodayCount > 0) ? "" : "text-light-grey"}`}>
-                                                                    Task due today
-                                                            </p>
-                                                            </div>
-                                                            <div class="display-flex mb5">
-                                                                <p
-                                                                    class={`count ${(forApprovalCount > 0) ? "text-orange" : "text-light-grey"}`}
-                                                                >
-                                                                    <strong>{forApprovalCount}</strong>
-                                                                </p>
-                                                                <p class={`tooltip-label ${(forApprovalCount > 0) ? "" : "text-light-grey"}`}>
-                                                                    Task for approval
-                                                            </p>
-                                                            </div>
-                                                            <div class="display-flex">
-                                                                <p
-                                                                    class={`count ${(delayedTaskCount > 0) ? "text-red" : "text-light-grey"}`}>
-                                                                    <strong>{delayedTaskCount}</strong>
-                                                                </p>
-                                                                <p
-                                                                    class={`tooltip-label ${(delayedTaskCount > 0) ? "" : "text-light-grey"}`}>
-                                                                    Delayed tasks
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <div class="sep"></div>
-                                                        <div class="wrapper">
-                                                            <div class="display-flex">
-                                                                <p>Completed <strong><span class="text-green">{completedCount}</span></strong> out of <strong>{numberOfTasks}</strong> tasks</p>
-                                                            </div>
-                                                        </div>
-                                                    </ReactTooltip>
-                                                </td>
-                                            </tr>
+                                            this.renderRow(o, index)
                                         )
                                     })
                                 }

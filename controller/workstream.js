@@ -82,6 +82,7 @@ const associationStack = [
 ];
 exports.get = {
     index: (req, cb) => {
+        const includeStack = _.cloneDeep(associationStack);
         const queryString = req.query;
         const limit = 10;
         const whereObj = {
@@ -115,8 +116,21 @@ exports.get = {
                 ]
             } : {}
         };
+
+        if (typeof queryString.dueDate != "undefined" && queryString.dueDate != "") {
+            const dueDate = queryString.dueDate || new Date();
+            const startMonth = moment(queryString.dueDate, 'YYYY-MM-DD').startOf('month').utc().format("YYYY-MM-DD HH:mm");
+            const endMonth = moment(queryString.dueDate, 'YYYY-MM-DD').endOf('month').utc().format("YYYY-MM-DD HH:mm");
+
+            _.find(includeStack, { as: 'task' }).where = {
+                dueDate: {
+                    [Sequelize.Op.between]: [startMonth, endMonth]
+                }
+            };
+        }
+
         const options = {
-            include: associationStack,
+            include: includeStack,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
             order: [['dateAdded', 'DESC']]
         };
@@ -193,20 +207,6 @@ exports.get = {
                     }).map((mapObject) => {
                         const resultObj = mapObject.toJSON();
                         const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
-                        const completionObj = _.reduce(completedTasks, (accTask, currTask) => {
-                            const dueDateMoment = moment(currTask.dueDate);
-                            const currentDateMoment = moment(currTask.dateCompleted);
-
-                            if (dueDateMoment.isBefore(currentDateMoment, 'day')) {
-                                accTask['late'] += 1
-                            } else if (dueDateMoment.isSame(currentDateMoment, 'day')) {
-                                accTask['on_time'] += 1
-                            } else {
-                                accTask['after'] += 1
-                            }
-
-                            return accTask;
-                        }, { late: 0, on_time: 0, after: 0 });
                         const forApproval = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "For Approval" });
                         const issuesTasks = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
@@ -243,11 +243,29 @@ exports.get = {
                             issues: issuesTasks.length,
                             dueToday: dueTodayTask.length,
                             new_documents: newDoc.length,
-                            for_approval: {
-                                amount: forApproval.length,
-                                color: (_.filter(issuesTasks, (o) => { return o.status == "For Approval" }).length > 0) ? "text-red" : "text-orange"
+                            numberOfTasks: (resultObj.task).length,
+                            completion_rate: {
+                                tasks_due_today: {
+                                    value: (dueTodayTask.length > 0) ? (dueTodayTask.length / (resultObj.task).length) * 100 : 0,
+                                    color: "#f6dc64",
+                                    count: dueTodayTask.length
+                                },
+                                tasks_for_approval: {
+                                    value: (forApproval.length > 0) ? (forApproval.length / (resultObj.task).length) * 100 : 0,
+                                    color: "#ff754a",
+                                    count: forApproval.length
+                                },
+                                delayed_task: {
+                                    value: (issuesTasks.length > 0) ? (issuesTasks.length / (resultObj.task).length) * 100 : 0,
+                                    color: '#f9003b',
+                                    count: issuesTasks.length
+                                },
+                                completed: {
+                                    value: (completedTasks.length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
+                                    color: '#00e589',
+                                    count: completedTasks.length
+                                },
                             },
-                            completion: ((resultObj.task).length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
                             members,
                             messages: (resultObj.tag_notes).length,
                             responsible: ((responsible).length > 0) ? responsible[0].userTypeLinkId : ""
@@ -510,11 +528,29 @@ exports.post = {
                                         issues: issuesTasks.length,
                                         dueToday: dueTodayTask.length,
                                         new_documents: newDoc.length,
-                                        for_approval: {
-                                            amount: forApproval.length,
-                                            color: (_.filter(issuesTasks, (o) => { return o.status == "For Approval" }).length > 0) ? "text-red" : "text-orange"
+                                        numberOfTasks: (resultObj.task).length,
+                                        completion_rate: {
+                                            tasks_due_today: {
+                                                value: (dueTodayTask.length > 0) ? (dueTodayTask.length / (resultObj.task).length) * 100 : 0,
+                                                color: "#f6dc64",
+                                                count: dueTodayTask.length
+                                            },
+                                            tasks_for_approval: {
+                                                value: (forApproval.length > 0) ? (forApproval.length / (resultObj.task).length) * 100 : 0,
+                                                color: "#ff754a",
+                                                count: forApproval.length
+                                            },
+                                            delayed_task: {
+                                                value: (issuesTasks.length > 0) ? (issuesTasks.length / (resultObj.task).length) * 100 : 0,
+                                                color: '#f9003b',
+                                                count: issuesTasks.length
+                                            },
+                                            completed: {
+                                                value: (completedTasks.length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
+                                                color: '#00e589',
+                                                count: completedTasks.length
+                                            }
                                         },
-                                        completion: 0,
                                         members,
                                     }
                                 });
@@ -577,28 +613,61 @@ exports.put = {
                                 .value()
                             ];
                             const forApproval = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "For Approval" });
-                            Projects.update({ dateUpdated: body.dateUpdated },
-                                {
-                                    where: { id: resultObj.projectId }
-                                })
-                                .then((res) => {
-                                    cb({
-                                        status: true, data: {
-                                            ...resultObj,
-                                            pending: pendingTasks,
-                                            completed: completedTasks,
-                                            issues: issuesTasks.length,
-                                            dueToday: dueTodayTask.length,
-                                            new_documents: newDoc.length,
-                                            for_approval: {
-                                                amount: forApproval.length,
-                                                color: (_.filter(issuesTasks, (o) => { return o.status == "For Approval" }).length > 0) ? "text-red" : "text-orange"
+                            async.parallel({
+                                projects: (parallelCallback) => {
+                                    Projects.update({ dateUpdated: body.dateUpdated },
+                                        {
+                                            where: { id: resultObj.projectId }
+                                        })
+                                        .then((res) => {
+                                            parallelCallback(null);
+                                        });
+                                },
+                                workstream: (parallelCallback) => {
+                                    Workstream.update({ dateUpdated: body.dateUpdated },
+                                        {
+                                            where: { id: resultObj.id }
+                                        })
+                                        .then((res) => {
+                                            parallelCallback(null);
+                                        });
+                                }
+                            }, () => {
+                                cb({
+                                    status: true, data: {
+                                        ...resultObj,
+                                        pending: pendingTasks,
+                                        completed: completedTasks,
+                                        issues: issuesTasks.length,
+                                        dueToday: dueTodayTask.length,
+                                        new_documents: newDoc.length,
+                                        numberOfTasks: (resultObj.task).length,
+                                        completion_rate: {
+                                            tasks_due_today: {
+                                                value: (dueTodayTask.length > 0) ? (dueTodayTask.length / (resultObj.task).length) * 100 : 0,
+                                                color: "#f6dc64",
+                                                count: dueTodayTask.length
                                             },
-                                            completion: ((resultObj.task).length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
-                                            members,
-                                        }
-                                    });
+                                            tasks_for_approval: {
+                                                value: (forApproval.length > 0) ? (forApproval.length / (resultObj.task).length) * 100 : 0,
+                                                color: "#ff754a",
+                                                count: forApproval.length
+                                            },
+                                            delayed_task: {
+                                                value: (issuesTasks.length > 0) ? (issuesTasks.length / (resultObj.task).length) * 100 : 0,
+                                                color: '#f9003b',
+                                                count: issuesTasks.length
+                                            },
+                                            completed: {
+                                                value: (completedTasks.length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
+                                                color: '#00e589',
+                                                count: completedTasks.length
+                                            }
+                                        },
+                                        members,
+                                    }
                                 });
+                            });
                         });
                     });
                 });

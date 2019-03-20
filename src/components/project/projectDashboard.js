@@ -36,7 +36,7 @@ export default class ProjectDashboard extends React.Component {
 
     componentWillUnmount() {
         const { dispatch } = this.props;
-        
+
         dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: {} });
         dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
         dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
@@ -112,7 +112,7 @@ export default class ProjectDashboard extends React.Component {
             { label: "Delayed Tasks", count: delayed_task, class_color: "text-pink" }
         ];
         const projectId = this.props.match.params.projectId;
-        const chartData = _.map(workstream.List, ({ id, issues, dueToday, completed, task, workstream, completion }) => {
+        const chartData = _.map(workstream.List, ({ id, issues, dueToday, completed, task, workstream, completion_rate }) => {
             return {
                 data: [
                     ["Workstream", "Completion"],
@@ -122,7 +122,7 @@ export default class ProjectDashboard extends React.Component {
                     ["In Progress", task.length]
                 ],
                 title: workstream,
-                total: completion.toFixed(2),
+                total: (completion_rate.completed.value).toFixed(2),
                 id
             }
         });

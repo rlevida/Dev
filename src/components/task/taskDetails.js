@@ -445,24 +445,22 @@ export default class TaskDetails extends React.Component {
                                                 <div class="col-md-6">
                                                     <div class="label-div">
                                                         <label>Approver:</label>
-                                                        <p class="m0">
-                                                            {
-                                                                (approver.length > 0) ?
-                                                                    _.map(approver, (member, index) => {
-                                                                        const { user } = member;
-                                                                        return (
-                                                                            <div key={index}>
-                                                                                <div class="profile-div">
-                                                                                    <div class="thumbnail-profile">
-                                                                                        <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
-                                                                                    </div>
-                                                                                    <p class="m0">{user.firstName + " " + user.lastName}</p>
+                                                        {
+                                                            (approver.length > 0) ?
+                                                                _.map(approver, (member, index) => {
+                                                                    const { user } = member;
+                                                                    return (
+                                                                        <div key={index}>
+                                                                            <div class="profile-div">
+                                                                                <div class="thumbnail-profile">
+                                                                                    <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
                                                                                 </div>
+                                                                                <p class="m0">{user.firstName + " " + user.lastName}</p>
                                                                             </div>
-                                                                        )
-                                                                    }) : "N/A"
-                                                            }
-                                                        </p>
+                                                                        </div>
+                                                                    )
+                                                                }) : "N/A"
+                                                        }
                                                     </div>
                                                     <div class="label-div">
                                                         <label>Due Date:</label>
@@ -474,7 +472,7 @@ export default class TaskDetails extends React.Component {
                                                     </div>
                                                     <div class="label-div">
                                                         <label>Status:</label>
-                                                        <p class="m0">
+                                                        <p class={`m0 ${(status == "Completed") ? "text-green" : (status == "For Approval") ? "text-orange" : ""}`}>
                                                             {
                                                                 status
                                                             }

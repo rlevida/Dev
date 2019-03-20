@@ -719,17 +719,28 @@ exports.post = {
                             ).map((mapObject) => {
                                 return mapObject.toJSON();
                             }).then((response) => {
-                                Projects
-                                    .update(
-                                        {
-                                            dateUpdated: body.dateUpdated
-                                        },
-                                        {
-                                            where: { id: response[0].projectId }
-                                        })
-                                    .then((res) => {
-                                        cb({ status: true, data: response });
-                                    });
+                                async.parallel({
+                                    projects: (parallelCallback) => {
+                                        Projects.update({ dateUpdated: body.dateUpdated },
+                                            {
+                                                where: { id: response[0].projectId }
+                                            })
+                                            .then((res) => {
+                                                parallelCallback(null);
+                                            });
+                                    },
+                                    workstream: (parallelCallback) => {
+                                        Workstream.update({ dateUpdated: body.dateUpdated },
+                                            {
+                                                where: { id: response[0].workstreamId }
+                                            })
+                                            .then((res) => {
+                                                parallelCallback(null);
+                                            });
+                                    }
+                                }, () => {
+                                    cb({ status: true, data: response });
+                                });
                             });
                         }
                     ], function (err, result) {
@@ -1034,6 +1045,15 @@ exports.put = {
                                 .then((res) => {
                                     parallelCallback(null)
                                 });
+                        },
+                        workstream: (parallelCallback) => {
+                            Workstream.update({ dateUpdated: body.dateUpdated },
+                                {
+                                    where: { id: allTask[0].data.workstreamId }
+                                })
+                                .then((res) => {
+                                    parallelCallback(null);
+                                });
                         }
                     }, (err, response) => {
                         cb({ status: true, data: response.tasks });
@@ -1232,13 +1252,29 @@ exports.put = {
                 if (periodic != "") {
                     statusStack.push(periodic)
                 }
-                Projects.update({ dateUpdated: body.dateUpdated},
-                        {
-                            where: { id: statusStack[0].projectId }
-                        })
-                    .then((res) => {
-                        cb({ status: true, data: { task: statusStack, activity_log: status.activity_log } });
-                    });
+
+                async.parallel({
+                    projects: (parallelCallback) => {
+                        Projects.update({ dateUpdated: body.dateUpdated },
+                            {
+                                where: { id: statusStack[0].projectId }
+                            })
+                            .then((res) => {
+                                parallelCallback(null);
+                            });
+                    },
+                    workstream: (parallelCallback) => {
+                        Workstream.update({ dateUpdated: body.dateUpdated },
+                            {
+                                where: { id: statusStack[0].workstreamId }
+                            })
+                            .then((res) => {
+                                parallelCallback(null);
+                            });
+                    }
+                }, () => {
+                    cb({ status: true, data: { task: statusStack, activity_log: status.activity_log } });
+                });
             })
         } catch (err) {
             cb({ status: false, error: err })

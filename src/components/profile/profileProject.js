@@ -24,6 +24,7 @@ export default class ProfileProject extends React.Component {
     componentWillUnmount() {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_PROJECT_LIST", list: [], count: {} });
+        dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
     }
 
     componentDidMount() {
