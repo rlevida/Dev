@@ -284,7 +284,8 @@ export default class TaskForm extends React.Component {
                 period: (typeof task.Selected.period != "undefined" && task.Selected.period != "" && task.Selected.period != null) ? _.toNumber(task.Selected.period) : 0,
                 periodInstance: (typeof task.Selected.periodic != "undefined" && task.Selected.periodic == 1) ? 3 : 0,
                 status: (task.Selected.approvalRequired == 1 && (typeof task.Selected.status == "undefined" || task.Selected.status == null || task.Selected.status == "For Approval")) ? "For Approval" : (task.Selected.status == null || task.Selected.status == "") ? "In Progress" : task.Selected.status,
-                dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD HH:mm:ss') : null
+                dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD HH:mm:ss') : null,
+                dateUpdated: moment().format('YYYY-MM-DD HH:mm:ss')
             };
 
             $("#task-form").validator('destroy');

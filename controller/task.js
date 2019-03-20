@@ -612,102 +612,131 @@ exports.post = {
             include: associationStack
         };
         try {
-            Tasks.create(_.omit(body, ["task_dependency", "dependency_type", "assignedTo"])).then((response) => {
+            Tasks.create(_.omit(body, ["task_dependency", "dependency_type", "assignedTo", "dateUpdated"])).then((response) => {
                 const newTaskResponse = response.toJSON();
-                async.waterfall([
-                    function (callback) {
-                        if (typeof body.periodic != "undefined" && body.periodic == 1) {
-                            const taskPromises = _.times(body.periodInstance - 1, (o) => {
-                                return new Promise((resolve) => {
-                                    const nextDueDate = moment(body.dueDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
-                                    const newPeriodTask = {
-                                        ...body,
-                                        dueDate: nextDueDate,
-                                        ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss') } : {},
-                                        periodTask: newTaskResponse.id
-                                    };
+                ActivityLogs.create({
+                    usersId: body.userId,
+                    linkType: "task",
+                    linkId: newTaskResponse.id,
+                    actionType: "created",
+                    new: JSON.stringify({ task: _.omit(newTaskResponse, ["dateAdded", "dateUpdated"]) }),
+                    title: newTaskResponse.task
+                }).then((response) => {
+                    async.waterfall([
+                        function (callback) {
+                            if (typeof body.periodic != "undefined" && body.periodic == 1) {
+                                const taskPromises = _.times(body.periodInstance - 1, (o) => {
+                                    return new Promise((resolve) => {
+                                        const nextDueDate = moment(body.dueDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss');
+                                        const newPeriodTask = {
+                                            ...body,
+                                            dueDate: nextDueDate,
+                                            ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, o + 1).format('YYYY-MM-DD HH:mm:ss') } : {},
+                                            periodTask: newTaskResponse.id
+                                        };
 
-                                    Tasks.create(_.omit(newPeriodTask, ["task_dependency", "dependency_type", "assignedTo"])).then((response) => {
-                                        const createTaskObj = response.toJSON();
-                                        resolve(createTaskObj);
+                                        Tasks.create(_.omit(newPeriodTask, ["task_dependency", "dependency_type", "assignedTo"])).then((response) => {
+                                            const createTaskObj = response.toJSON();
+                                            ActivityLogs.create({
+                                                usersId: body.userId,
+                                                linkType: "task",
+                                                linkId: createTaskObj.id,
+                                                actionType: "created",
+                                                new: JSON.stringify({ task: _.omit(createTaskObj, ["dateAdded", "dateUpdated"]) }),
+                                                title: createTaskObj.task
+                                            }).then((response) => {
+                                                resolve(createTaskObj);
+                                            });
+                                        });
                                     });
                                 });
-                            });
-                            Promise.all(taskPromises).then((values) => {
-                                callback(null, [...[newTaskResponse], ...values])
-                            })
-                        } else {
-                            callback(null, [newTaskResponse])
-                        }
-                    },
-                    function (newTasksArgs, callback) {
-                        const taskAttrPromises = _.map(newTasksArgs, (taskObj) => {
-                            return new Promise((resolve) => {
-                                async.parallel({
-                                    task_dependency: (parallelCallback) => {
-                                        const taskDependencyPromise = _.map(body.task_dependency, (taskDependencyObj) => {
-                                            return new Promise((resolve) => {
-                                                const dependentObj = {
-                                                    taskId: taskObj.id,
-                                                    dependencyType: body.dependency_type,
-                                                    linkTaskId: taskDependencyObj.value
-                                                };
-                                                TaskDependency.create(dependentObj).then((response) => {
-                                                    resolve({ data: response.toJSON() });
-                                                })
-                                            })
-                                        });
-
-                                        Promise.all(taskDependencyPromise).then((values) => {
-                                            parallelCallback(null, values);
-                                        });
-                                    },
-                                    members: (parallelCallback) => {
-                                        const members = [];
-                                        if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
-                                            members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
-                                        }
-
-                                        if (typeof body.approverId != "undefined" && body.approverId != "") {
-                                            members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
-                                        }
-                                        if (members.length > 0) {
-                                            Members.bulkCreate(members).then((response) => {
-                                                parallelCallback(null, response);
-                                            });
-                                        } else {
-                                            parallelCallback(null, {});
-                                        }
-                                    }
-                                }, (err, response) => {
-                                    resolve(response)
+                                Promise.all(taskPromises).then((values) => {
+                                    callback(null, [...[newTaskResponse], ...values])
                                 })
-                            })
-                        });
+                            } else {
+                                callback(null, [newTaskResponse])
+                            }
+                        },
+                        function (newTasksArgs, callback) {
+                            const taskAttrPromises = _.map(newTasksArgs, (taskObj) => {
+                                return new Promise((resolve) => {
+                                    async.parallel({
+                                        task_dependency: (parallelCallback) => {
+                                            const taskDependencyPromise = _.map(body.task_dependency, (taskDependencyObj) => {
+                                                return new Promise((resolve) => {
+                                                    const dependentObj = {
+                                                        taskId: taskObj.id,
+                                                        dependencyType: body.dependency_type,
+                                                        linkTaskId: taskDependencyObj.value
+                                                    };
+                                                    TaskDependency.create(dependentObj).then((response) => {
+                                                        resolve({ data: response.toJSON() });
+                                                    })
+                                                })
+                                            });
 
-                        Promise.all(taskAttrPromises).then((values) => {
-                            callback(null, newTasksArgs)
-                        });
-                    },
-                    function (newTasksArgs) {
-                        Tasks.findAll(
-                            {
-                                ...options,
-                                where: {
-                                    id: {
-                                        [Sequelize.Op.in]: _.map(newTasksArgs, (o) => { return o.id })
+                                            Promise.all(taskDependencyPromise).then((values) => {
+                                                parallelCallback(null, values);
+                                            });
+                                        },
+                                        members: (parallelCallback) => {
+                                            const members = [];
+                                            if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
+                                                members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
+                                            }
+
+                                            if (typeof body.approverId != "undefined" && body.approverId != "") {
+                                                members.push({ linkType: "task", linkId: taskObj.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
+                                            }
+                                            if (members.length > 0) {
+                                                Members.bulkCreate(members).then((response) => {
+                                                    parallelCallback(null, response);
+                                                });
+                                            } else {
+                                                parallelCallback(null, {});
+                                            }
+                                        }
+                                    }, (err, response) => {
+                                        resolve(response)
+                                    })
+                                })
+                            });
+
+                            Promise.all(taskAttrPromises).then((values) => {
+                                callback(null, newTasksArgs)
+                            });
+                        },
+                        function (newTasksArgs) {
+                            Tasks.findAll(
+                                {
+                                    ...options,
+                                    where: {
+                                        id: {
+                                            [Sequelize.Op.in]: _.map(newTasksArgs, (o) => { return o.id })
+                                        }
                                     }
                                 }
-                            }
-                        ).map((mapObject) => {
-                            return mapObject.toJSON();
-                        }).then((response) => {
-                            cb({ status: true, data: response });
-                        });
-                    }
-                ], function (err, result) {
-                    cb({ status: true, data: result.tasks });
+                            ).map((mapObject) => {
+                                return mapObject.toJSON();
+                            }).then((response) => {
+                                Projects
+                                    .update(
+                                        {
+                                            dateUpdated: body.dateUpdated
+                                        },
+                                        {
+                                            where: { id: response[0].projectId }
+                                        })
+                                    .then((res) => {
+                                        cb({ status: true, data: response });
+                                    });
+                            });
+                        }
+                    ], function (err, result) {
+                        cb({ status: true, data: result.tasks });
+                    });
                 });
+
             });
         } catch (err) {
             cb({ status: false, error: err })
@@ -992,6 +1021,19 @@ exports.put = {
                             }).then((resultArray) => {
                                 parallelCallback(null, resultArray)
                             });
+                        },
+                        project: (parallelCallback) => {
+                            Projects
+                                .update(
+                                    {
+                                        dateUpdated: body.dateUpdated
+                                    },
+                                    {
+                                        where: { id: allTask[0].data.projectId }
+                                    })
+                                .then((res) => {
+                                    parallelCallback(null)
+                                });
                         }
                     }, (err, response) => {
                         cb({ status: true, data: response.tasks });
@@ -1190,126 +1232,17 @@ exports.put = {
                 if (periodic != "") {
                     statusStack.push(periodic)
                 }
-                cb({ status: true, data: { task: statusStack, activity_log: status.activity_log } });
+                Projects.update({ dateUpdated: body.dateUpdated},
+                        {
+                            where: { id: statusStack[0].projectId }
+                        })
+                    .then((res) => {
+                        cb({ status: true, data: { task: statusStack, activity_log: status.activity_log } });
+                    });
             })
         } catch (err) {
             cb({ status: false, error: err })
         }
-    },
-    taskApproval: (req, cb) => {
-        const body = req.body
-        const id = req.params.id
-
-        async.parallel({
-            task: (parallelCallback) => {
-                try {
-                    Tasks
-                        .update(body.data, { where: { id: id } })
-                        .then((res) => {
-                            Tasks
-                                .findOne({
-                                    where: { id: id },
-                                    include: associationStack
-                                })
-                                .then((findRes) => {
-                                    parallelCallback(null, [findRes])
-                                })
-                        })
-                } catch (err) {
-                    parallelCallback(err)
-                }
-            },
-            reminder: (parallelCallback) => {
-                try {
-                    Reminder
-                        .create(body.reminder)
-                        .then((res) => {
-                            parallelCallback(null, res)
-                        })
-                } catch (err) {
-                    parallelCallback(err)
-                }
-            },
-            email: (parallelCallback) => {
-                try {
-                    if (body.mailDetails.receiveNotification) {
-                        const mailOptions = {
-                            from: '"no-reply" <no-reply@c_cfo.com>',
-                            to: `${body.mailDetails.emailAddress}`,
-                            subject: '[CLOUD-CFO]',
-                            text: 'Assigned as approver',
-                            html: `<p> Assigned as approver</p>
-                                <p>${body.mailDetails.task}</p>
-                                <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${body.mailDetails.project}/workstream/${body.mailDetails.workstreamId}?task=${body.mailDetails.taskId}">Click here</a>`
-                        }
-                        global.emailtransport(mailOptions)
-                    }
-                    parallelCallback(null, "")
-                } catch (err) {
-                    parallelCallback(err)
-                }
-            }
-        }, (err, result) => {
-            cb({ status: true, data: result })
-        })
-    },
-    taskReject: (req, cb) => {
-        const body = req.body
-        const id = req.params.id
-
-        async.parallel({
-            task: (parallelCallback) => {
-                try {
-                    Tasks
-                        .update(body.data, { where: { id: id } })
-                        .then((res) => {
-                            Tasks
-                                .findOne({
-                                    where: { id: id },
-                                    include: associationStack
-                                })
-                                .then((findRes) => {
-                                    parallelCallback(null, [findRes])
-                                })
-                        })
-                } catch (err) {
-                    parallelCallback(err)
-                }
-            },
-            reminder: (parallelCallback) => {
-                try {
-                    Reminder
-                        .create(body.reminder)
-                        .then((res) => {
-                            parallelCallback(null, res)
-                        })
-                } catch (err) {
-                    parallelCallback(err)
-                }
-            },
-            email: (parallelCallback) => {
-                try {
-                    if (body.mailDetails.receiveNotification) {
-                        const mailOptions = {
-                            from: '"no-reply" <no-reply@c_cfo.com>',
-                            to: `${body.mailDetails.emailAddress}`,
-                            subject: '[CLOUD-CFO]',
-                            text: 'Task Rejected',
-                            html: `<p> ${body.mailDetails.rejectMessage}</p>
-                                <p>${body.mailDetails.task}</p>
-                                <a href="${ ((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}project/${body.mailDetails.project}/workstream/${body.mailDetails.workstreamId}?task=${body.mailDetails.taskId}">Click here</a>`
-                        }
-                        global.emailtransport(mailOptions)
-                    }
-                    parallelCallback(null, "")
-                } catch (err) {
-                    parallelCallback(err)
-                }
-            }
-        }, (err, result) => {
-            cb({ status: true, data: result })
-        })
-
     }
 }
 

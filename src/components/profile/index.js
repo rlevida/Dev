@@ -79,7 +79,7 @@ export default class Component extends React.Component {
                                 <Tab>Notifications</Tab>
                             </TabList>
                             <TabPanel class="bt">
-                                <div class="row content-row" id="profile">
+                                <div class="row content-row mb20" id="profile">
                                     <div class="col-md-5">
                                         <ProfileDetails />
                                     </div>

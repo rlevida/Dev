@@ -26,7 +26,8 @@ export default class List extends React.Component {
             "fetchProject",
             "fetchType",
             "renderStatus",
-            "getLateTasks"
+            "getLateTasks",
+            "getWorkstreams"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -124,11 +125,25 @@ export default class List extends React.Component {
         $('#completion-tasks').modal("show");
     }
 
+    getWorkstreams(id) {
+        const requestUrl = `/api/workstream?projectId=${id}`;
+
+        getData(requestUrl, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "UPDATE_WORKSTREAM_LIST", list: c.data.result });
+                showToast("success", "Workstream successfully retrieved.");
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
+    }
+
     render() {
         const { project, type } = { ...this.props };
         const currentPage = (typeof project.Count.current_page != "undefined") ? project.Count.current_page : 1;
         const lastPage = (typeof project.Count.last_page != "undefined") ? project.Count.last_page : 1;
         const projectTypes = [...[{ id: "", name: "All" }], ..._(type.List).filter((o) => { return o.linkType == "project" }).map((o) => { return { id: o.id, name: o.type } }).value()];
+
         return (
             <div>
                 <div class="flex-row tab-row">
@@ -145,7 +160,7 @@ export default class List extends React.Component {
                         ((project.List).length > 0) && <table id="project_summary">
                             <thead>
                                 <tr>
-                                    <th scope="col">Project Name</th>
+                                    <th scope="col" class="td-left">Project Name</th>
                                     <th scope="col">Type</th>
                                     <th scope="col">New Files</th>
                                     <th scope="col">Last Update</th>
@@ -155,7 +170,7 @@ export default class List extends React.Component {
                             <tbody>
                                 {
                                     _.map(project.List, (projectElem, index) => {
-                                        const { id, project, type, newDocuments, dateAdded, completion_rate, numberOfTasks, workstream } = { ...projectElem };
+                                        const { id, project, type, newDocuments, dateUpdated, completion_rate, numberOfTasks, workstream } = { ...projectElem };
                                         const completionRate = (completion_rate != "") ? _(completion_rate)
                                             .mapValues(({ value, color, count }, key) => {
                                                 return {
@@ -172,7 +187,8 @@ export default class List extends React.Component {
                                         const forApprovalCount = _.find(completionRate, (o) => { return o.label == "tasks for approval" }).count;
                                         const delayedTaskCount = _.find(completionRate, (o) => { return o.label == "delayed task" }).count;
                                         const completedCount = _.find(completionRate, (o) => { return o.label == "completed" }).count;
-
+                                            
+                                        console.log(moment(dateUpdated).format('LLL'))
                                         let lateWorkstream = 0;
                                         let workstreamTaskDueToday = 0;
 
@@ -186,8 +202,7 @@ export default class List extends React.Component {
                                         });
                                         return (
                                             <tr key={index}>
-                                                <td data-label="Project Name">
-
+                                                <td data-label="Project Name" class="td-left">
                                                     <p class="mb0">
                                                         {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "icon" })}
                                                         {project}
@@ -207,7 +222,7 @@ export default class List extends React.Component {
                                                 </td>
                                                 <td data-label="Last Update">
                                                     <p class="mb0">
-                                                        {moment(dateAdded).from(new Date())}
+                                                        {moment(dateUpdated).from(new Date())}
                                                     </p>
                                                 </td>
                                                 <td data-label="Active Month Completion Rate">

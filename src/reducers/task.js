@@ -37,7 +37,7 @@ export default function reducer(state = {
             return { ...state, CountList: action.list }
         }
         case "SET_STATUS_TASK_COUNT_LIST": {
-            return { ...state, StatusCount: action.count }
+            return { ...state, StatusCount: { ...state.StatusCount, ...action.count } }
         }
         case "SET_TASK_FORM_ACTIVE": {
             return { ...state, FormActive: action.FormActive }

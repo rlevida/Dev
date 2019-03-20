@@ -70,7 +70,7 @@ export default class TaskCalendar extends React.Component {
         if (task.Filter.type != "") {
             fetchUrl += `&type=${task.Filter.type}&userId=${loggedUser.data.id}`
         }
-        
+
         if (task.Filter.task != "") {
             fetchUrl += `&task=${task.Filter.task}`
         }
@@ -103,6 +103,7 @@ export default class TaskCalendar extends React.Component {
     openTaskDetails(e) {
         const { dispatch, loggedUser } = this.props;
         $(`#task-details`).modal('show');
+
         getData(`/api/task/detail/${e.id}?starredUser=${loggedUser.data.id}`, {}, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
@@ -110,6 +111,21 @@ export default class TaskCalendar extends React.Component {
                 showToast("error", "Error retrieving task. Please try again later.");
             }
         });
+
+        getData(`/api/activityLog?taskId=${e.id}&page=1&includes=user`, {}, (c) => {
+            if (c.status == 200) {
+                const { data } = c;
+                dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+            }
+        });
+
+        getData(`/api/conversation/getConversationList?page=1&linkType=task&linkId=${e.id}`, {}, (c) => {
+            if (c.status == 200) {
+                const { data } = c;
+                dispatch({ type: "SET_COMMENT_LIST", list: data.result, count: data.count });
+            }
+        });
+
     }
 
     renderCalendar() {

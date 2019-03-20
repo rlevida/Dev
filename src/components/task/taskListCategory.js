@@ -61,7 +61,7 @@ export default class TaskListCategory extends React.Component {
         const { dispatch, loggedUser } = { ...this.props };
         const taskStatus = (status == "For Approval" || status == "Completed") ? "In Progress" : "Completed";
 
-        putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus, date: moment().format("YYYY-MM-DD") }, (c) => {
+        putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus, date: moment().format('YYYY-MM-DD HH:mm:ss') }, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
                 showToast("success", "Task successfully updated.");
@@ -133,7 +133,7 @@ export default class TaskListCategory extends React.Component {
     openTaskDetails(id) {
         const { dispatch, loggedUser } = { ...this.props };
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
-
+        
         getData(`/api/activityLog?taskId=${id}&page=1&includes=user`, {}, (c) => {
             if (c.status == 200) {
                 const { data } = c;

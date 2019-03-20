@@ -89,8 +89,8 @@ export default class WorkstreamTabs extends React.Component {
                                     <TaskListCategory date="Succeeding month" workstream_id={workstream_id} />
                                 </div>
                             </TabPanel>
-                            <TabPanel>
-                                <div class="mt40 mb40">
+                            <TabPanel class="bt">
+                                <div class="mt20">
                                     <WorkstreamDocument workstream_id={workstream_id} />
                                 </div>
                             </TabPanel>

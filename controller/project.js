@@ -956,7 +956,11 @@ exports.put = {
                 })
         }).then((nextThen) => {
             Projects
-                .update(_.omit(dataToSubmit, ['updatedBy']), { where: { id: id } })
+                .update(_.omit(dataToSubmit, ['updatedBy']),
+                    {
+                        where: { id: id },
+                        logging: true
+                    })
                 .then((res) => {
                     nextThen(res);
                 })

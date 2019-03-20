@@ -143,7 +143,8 @@ export default class WorkstreamForm extends React.Component {
             responsible: workstream.Selected.responsible,
             ...(typeof workstream.Selected.workstreamTemplate != "undefined") ? { workstreamTemplate: workstream.Selected.workstreamTemplate } : {},
             userId: loggedUser.data.id,
-            color: workstream.Selected.color
+            color: workstream.Selected.color,
+            dateUpdated: moment().format('YYYY-MM-DD HH:mm:ss')
         };
         let result = true;
 

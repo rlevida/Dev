@@ -497,23 +497,28 @@ exports.post = {
                             .value()
                         ];
                         const forApproval = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "For Approval" });
-
-                        cb({
-                            status: true, data: {
-                                ...resultObj,
-                                pending: pendingTasks,
-                                completed: completedTasks,
-                                issues: issuesTasks.length,
-                                dueToday: dueTodayTask.length,
-                                new_documents: newDoc.length,
-                                for_approval: {
-                                    amount: forApproval.length,
-                                    color: (_.filter(issuesTasks, (o) => { return o.status == "For Approval" }).length > 0) ? "text-red" : "text-orange"
-                                },
-                                completion: 0,
-                                members,
-                            }
-                        });
+                        Projects.update({ dateUpdated: body.dateUpdated },
+                            {
+                                where: { id: resultObj.projectId }
+                            })
+                            .then((res) => {
+                                cb({
+                                    status: true, data: {
+                                        ...resultObj,
+                                        pending: pendingTasks,
+                                        completed: completedTasks,
+                                        issues: issuesTasks.length,
+                                        dueToday: dueTodayTask.length,
+                                        new_documents: newDoc.length,
+                                        for_approval: {
+                                            amount: forApproval.length,
+                                            color: (_.filter(issuesTasks, (o) => { return o.status == "For Approval" }).length > 0) ? "text-red" : "text-orange"
+                                        },
+                                        completion: 0,
+                                        members,
+                                    }
+                                });
+                            });
                     });
                 });
             });
@@ -531,7 +536,7 @@ exports.put = {
             include: associationStack
         };
         try {
-            Workstream.update(body, { where: { id: workstreamId } }).then((response) => {
+            Workstream.update(_.omit(body, ["dateUpdated"]), { where: { id: workstreamId } }).then((response) => {
                 return Workstream.findOne({ where: { id: workstreamId }, ...options, })
             }).then((response) => {
                 const resultObj = response.toJSON();
@@ -572,23 +577,28 @@ exports.put = {
                                 .value()
                             ];
                             const forApproval = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "For Approval" });
-
-                            cb({
-                                status: true, data: {
-                                    ...resultObj,
-                                    pending: pendingTasks,
-                                    completed: completedTasks,
-                                    issues: issuesTasks.length,
-                                    dueToday: dueTodayTask.length,
-                                    new_documents: newDoc.length,
-                                    for_approval: {
-                                        amount: forApproval.length,
-                                        color: (_.filter(issuesTasks, (o) => { return o.status == "For Approval" }).length > 0) ? "text-red" : "text-orange"
-                                    },
-                                    completion: ((resultObj.task).length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
-                                    members,
-                                }
-                            });
+                            Projects.update({ dateUpdated: body.dateUpdated },
+                                {
+                                    where: { id: resultObj.projectId }
+                                })
+                                .then((res) => {
+                                    cb({
+                                        status: true, data: {
+                                            ...resultObj,
+                                            pending: pendingTasks,
+                                            completed: completedTasks,
+                                            issues: issuesTasks.length,
+                                            dueToday: dueTodayTask.length,
+                                            new_documents: newDoc.length,
+                                            for_approval: {
+                                                amount: forApproval.length,
+                                                color: (_.filter(issuesTasks, (o) => { return o.status == "For Approval" }).length > 0) ? "text-red" : "text-orange"
+                                            },
+                                            completion: ((resultObj.task).length > 0) ? (completedTasks.length / (resultObj.task).length) * 100 : 0,
+                                            members,
+                                        }
+                                    });
+                                });
                         });
                     });
                 });

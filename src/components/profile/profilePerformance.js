@@ -18,7 +18,7 @@ export default class ProfilePerformance extends React.Component {
         super(props);
     }
 
-    componentWillUnmount(){
+    componentWillUnmount() {
         const { dispatch } = this.props;
         dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: {} });
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
@@ -34,7 +34,7 @@ export default class ProfilePerformance extends React.Component {
 
     render() {
         const currentYear = moment().format("YYYY");
-        const { task } = this.props;
+        const { task, show_title = true, show_legend = true } = this.props;
         const { StatusCount, Loading: taskLoading } = task;
         const { assigned_tasks = 0, due_today = 0, issues = 0, on_time = 0, remaining = 0 } = StatusCount;
         const options = {
@@ -60,13 +60,15 @@ export default class ProfilePerformance extends React.Component {
         ];
 
         return (
-            <div class={(taskLoading == "RETRIEVING" && _.isEmpty(StatusCount)) ? "linear-background mt20 mb20" : "mt20 mb20"}>
+            <div class={(taskLoading == "RETRIEVING" && _.isEmpty(StatusCount)) ? "linear-background mt20" : "mt20"}>
                 {
                     (_.isEmpty(StatusCount) == false) && <div>
-                        <h3 class="m0 mb20 text-center"><strong>{currentYear} Monthly Performance</strong></h3>
-                        <div class="row" id="chart-row">
-                            <div class="col-lg-5 col-md-12">
-                                <div class="chart-wrapper mb10">
+                        {
+                            (show_title) && <h3 class="m0 mb20 text-center"><strong>{currentYear} Monthly Performance</strong></h3>
+                        }
+                        <div class="row" id={(show_legend) ? "chart-row" : ""}>
+                            <div class="col-lg-12 col-md-12">
+                                <div class="chart-wrapper">
                                     <Chart
                                         chartType="PieChart"
                                         width="100%"
@@ -78,32 +80,34 @@ export default class ProfilePerformance extends React.Component {
                                     <p class="total text-uppercase">{moment(new Date()).format("MMM")}</p>
                                 </div>
                             </div>
-                            <div class="col-lg-7 col-md-12">
-                                <div class="flex-row monthly-performance">
-                                    <div class="flex-col">
-                                        <label>Assigned:</label>
-                                        <h3>{assigned_tasks}</h3>
+                            {
+                                (show_legend) && <div class="col-lg-7 col-md-12">
+                                    <div class="flex-row monthly-performance">
+                                        <div class="flex-col">
+                                            <label>Assigned:</label>
+                                            <h3>{assigned_tasks}</h3>
+                                        </div>
+                                        <div class="flex-col">
+                                            <label><span class="fa fa-circle mb0 mr5 text-green"></span> On Time:</label>
+                                            <h3>{on_time}</h3>
+                                        </div>
+                                        <div class="flex-col">
+                                            <label><span class="fa fa-circle mb0 mr5 text-yellow"></span> Due Today:</label>
+                                            <h3>{due_today}</h3>
+                                        </div>
                                     </div>
-                                    <div class="flex-col">
-                                        <label><span class="fa fa-circle mb0 mr5 text-green"></span> On Time:</label>
-                                        <h3>{on_time}</h3>
-                                    </div>
-                                    <div class="flex-col">
-                                        <label><span class="fa fa-circle mb0 mr5 text-yellow"></span> Due Today:</label>
-                                        <h3>{due_today}</h3>
+                                    <div class="flex-row monthly-performance">
+                                        <div class="flex-col">
+                                            <label><span class="fa fa-circle mb0 mr5 text-red"></span> Delayed:</label>
+                                            <h3>{issues}</h3>
+                                        </div>
+                                        <div class="flex-col">
+                                            <label><span class="fa fa-circle mb0 mr5 text-grey-f1"></span> Remaining:</label>
+                                            <h3>{remaining}</h3>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="flex-row monthly-performance">
-                                    <div class="flex-col">
-                                        <label><span class="fa fa-circle mb0 mr5 text-red"></span> Delayed:</label>
-                                        <h3>{issues}</h3>
-                                    </div>
-                                    <div class="flex-col">
-                                        <label><span class="fa fa-circle mb0 mr5 text-grey-f1"></span> Remaining:</label>
-                                        <h3>{remaining}</h3>
-                                    </div>
-                                </div>
-                            </div>
+                            }
                         </div>
                     </div>
                 }

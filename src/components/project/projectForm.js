@@ -138,10 +138,10 @@ export default class ProjectForm extends React.Component {
                     projectType: project.Selected.projectType,
                     projectManagerId: project.Selected.projectManagerId,
                     color: project.Selected.color,
-                    updatedBy: loggedUser.data.id
+                    updatedBy: loggedUser.data.id,
+                    dateUpdated: moment().format('YYYY-MM-DD HH:mm:ss')
                 }
                 putData(`/api/project/${project.Selected.id}`, dataToSubmit, (c) => {
-                    dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
                     showToast("success", "Successfully Updated.")
                 });
             }
