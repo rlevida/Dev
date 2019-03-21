@@ -61,6 +61,10 @@ class Component extends React.Component {
         }
     }
 
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+    }
+
     componentDidMount() {
         const { dispatch } = this.props;
 
@@ -115,7 +119,7 @@ class Component extends React.Component {
                     }
                 </ul>
                 <div class="dropdown project-menu-category">
-                    <ul id="menu" class={project.Category.Active === "Client" ? "open" : ""}>
+                    <ul class={project.Category.Active === "Client" ? "open" : ""}>
                         <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Client" ? "" : "dropdown"}>
                             <a href="javascript:void(0)"><i class="fa fa-caret-right mr20"></i>Client</a>
                         </li>
@@ -136,7 +140,7 @@ class Component extends React.Component {
                     </ul>
                 </div>
                 <div class="dropdown project-menu-category">
-                    <ul id="menu" class={project.Category.Active === "Internal" ? "open" : ""}>
+                    <ul class={project.Category.Active === "Internal" ? "open" : ""}>
                         <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Internal" ? "" : "dropdown"}>
                             <a href="javascript:void(0)"><i class="fa fa-caret-right mr20"></i>Internal</a>
                         </li>
@@ -157,9 +161,9 @@ class Component extends React.Component {
                     </ul>
                 </div>
                 <div class="dropdown project-menu-category">
-                    <ul id="menu" class={project.Category.Active === "Private" ? "open" : ""}>
+                    <ul class={project.Category.Active === "Private" ? "open" : ""}>
                         <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Private" ? "" : "dropdown"}>
-                            <a href="javascript:void(0)"><i class="fa fa-caret-right mr20"></i>Private</a>
+                            <a href="javascript:void(0)"><i class={`fa fa-caret-${project.Category.Active === "Private" ? "down" : "right"} mr20`}></i>Private</a>
                         </li>
                         <ul class="dropdown-menu ml20">
                             {

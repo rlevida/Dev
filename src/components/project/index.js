@@ -21,6 +21,7 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: {} });
         dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "SET_ACTIVE_CATEGORY", ActiveCategory: "" })
     }
 
     render() {
