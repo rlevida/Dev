@@ -612,7 +612,7 @@ exports.post = {
             form.on('file', function (field, file) {
                 var date = new Date();
                 var Id = func.generatePassword(date.getTime() + file.name, "attachment");
-                var filename = file.name + "_" + Id + "." + func.getFilePathExtension(file.name);
+                var filename = Id + (file.name.replace(/[^A-Z0-9]/ig, "_"))
 
                 filenameList.push({
                     filename: filename,
