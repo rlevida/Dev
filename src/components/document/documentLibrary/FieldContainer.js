@@ -1,7 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import { DragSource, DropTarget } from 'react-dnd';
-import { displayDateMD, getData, postData, putData, showToast } from '../../../globalFunction';
+import { displayDateMD, getData, postData, putData, showToast, deleteData } from '../../../globalFunction';
 import { Link } from 'react-router-dom';
 import { withRouter } from "react-router";
 
@@ -192,6 +192,24 @@ class FieldContainer extends React.Component {
         }
     }
 
+    readDocument(data, action) {
+        const { dispatch, loggedUser } = this.props;
+        const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 }
+        if (action === "read") {
+            postData(`/api/document/read`, dataToSubmit, (c) => {
+                const documentObj = { ...data, isRead: 1, document_read: [c.data] }
+                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: documentObj, Status: documentObj.status });
+                showToast('success', 'Document successfully mark as read.');
+            })
+        } else {
+            deleteData(`/api/document/read/${data.id}?usersId=${loggedUser.data.id}&documentId=${data.id}`, {}, (c) => {
+                const documentObj = { ...data, isRead: 0, document_read: [] }
+                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: documentObj, Status: documentObj.status });
+                showToast('success', 'Document successfully mark as unread.');
+            })
+        }
+    }
+
     render() {
         const { document, dispatch, loggedUser, data, index, moveTo, match } = this.props
         const projectId = match.params.projectId;
@@ -212,7 +230,7 @@ class FieldContainer extends React.Component {
                     <td>
                         <div class="document-name">
                             {data.type === "document"
-                                ? <Link to={`/projects/${projectId}/files/${data.id}`}>{documentName}</Link>
+                                ? <Link to={`/projects/${projectId}/files/${data.id}`}><span class={data.isRead ? 'read' : ''}>{documentName}</span></Link>
                                 : <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
                                     <span class="mr10 fa fa-folder fa-lg"></span>
                                     {documentName}
@@ -233,7 +251,7 @@ class FieldContainer extends React.Component {
                             })
                         }
                     </td>
-                    <td>{data.readOn ? displayDateMD(data.readOn) : '--'}</td>
+                    <td>{data.isRead ? displayDateMD(data.document_read[0].dateUpdated) : '--'}</td>
                     <td style={{ display: 'flex' }}>
                         <span class="document-action document-active" title="Download" onClick={() => this.downloadDocument(data)}><i class="fa fa-download fa-lg"></i></span>
                         <span class={`document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="Archive"><i class="fa fa-archive fa-lg"></i></span>
@@ -269,6 +287,13 @@ class FieldContainer extends React.Component {
                                     <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
                                         {data.isStarred ? 'Unstarred' : 'Star'}
                                     </a>
+                                </li>
+                                <li>
+                                    {
+                                        (data.isRead > 0)
+                                            ? <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "unread")}>Mark as unread</a>
+                                            : <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "read")}>Mark as read</a>
+                                    }
                                 </li>
                             </ul>
                         </div>

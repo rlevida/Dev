@@ -34,9 +34,14 @@ class DocumentViewerComponent extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch, match } = this.props
+        const { dispatch, match, loggedUser } = this.props
+
         getData(`/api/document/detail/${match.params.documentId}`, {}, (c) => {
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: c.data })
+            if (c.data.document_read.length === 0) {
+                const dataToSubmit = { usersId: loggedUser.data.id, documentId: c.data.id, isDeleted: 0 }
+                postData(`/api/document/read`, dataToSubmit, (ret) => { })
+            }
         })
     }
 
@@ -49,6 +54,7 @@ class DocumentViewerComponent extends React.Component {
 
     componentWillUnmount() {
         const { dispatch } = this.props;
+        dispatch({ type: "CLEAR_DOCUMENT" })
         dispatch({ type: "SET_COMMENT_SELECTED", Selected: "" })
     }
 
@@ -161,6 +167,7 @@ class DocumentViewerComponent extends React.Component {
                 isDocument = false;
             }
         }
+
         return (
             <div class="row">
                 <div class="col-lg-12">
