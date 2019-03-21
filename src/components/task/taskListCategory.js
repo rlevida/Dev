@@ -272,7 +272,7 @@ export default class TaskListCategory extends React.Component {
         return (
             <div>
                 <div class="card-header">
-                    <h4>{(typeof date != "undefined") ? date : "No Due Date"}</h4>
+                    <h4>{(typeof date != "undefined") ? date : "No due date"}</h4>
                 </div>
                 <div class={(loading == "RETRIEVING" && (taskList).length == 0) ? "linear-background" : ""}>
                     <div class="card-body m0">

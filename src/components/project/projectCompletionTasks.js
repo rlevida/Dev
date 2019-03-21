@@ -70,13 +70,13 @@ export default class ProjectCompletionTasks extends React.Component {
                                                     daysRemaining = (daysRemaining == 0 && dueDate != "") ? 1 : daysRemaining;
 
                                                     const colorClass = (daysRemaining < 0 && status != "Completed") ? "text-red" :
-                                                        (status == "For Approval") ? "text-orange" : (status == "Completed") ? "text-green" : "";
-
+                                                        (status == "For Approval") ? "text-orange" : (daysRemaining == 1 && status != "Completed") ? "text-yellow" : (status == "Completed") ? "text-green" : "";
                                                     return (
                                                         <tr key={index}>
                                                             <td data-label="Task Name" class="td-left">
                                                                 <p class="m0">
-                                                                    <a class={`${colorClass}`} onClick={() => this.viewTask({ id, workstreamId: workstream.id, projectId })} data-dismiss="modal">
+                                                                    <a onClick={() => this.viewTask({ id, workstreamId: workstream.id, projectId })} data-dismiss="modal">
+                                                                        <span class={`fa fa-circle mb0 mr5 ${colorClass}`}></span>
                                                                         {task}
                                                                     </a>
                                                                 </p>
