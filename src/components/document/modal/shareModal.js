@@ -1,21 +1,24 @@
 import React from "react";
-import { connect } from "react-redux"
-
-import { DropDown } from "../../../globalComponents"
-import { postData, showToast } from '../../../globalFunction'
+import { connect } from "react-redux";
+import { withRouter } from "react-router";
+import { DropDown } from "../../../globalComponents";
+import { postData, showToast } from '../../../globalFunction';
 
 @connect((store) => {
     return {
         document: store.document,
         loggedUser: store.loggedUser,
         global: store.global,
-        project: store.project
     }
 })
 
-export default class ShareModal extends React.Component {
+class ShareModal extends React.Component {
     constructor(props) {
         super(props)
+        _.map([
+            "selectShare",
+            "share",
+        ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
     selectShare(e) {
@@ -27,15 +30,16 @@ export default class ShareModal extends React.Component {
     }
 
     share() {
-        const { dispatch, document, loggedUser } = this.props;
+        const { dispatch, document, loggedUser, match } = this.props;
+        const projectId = match.params.projectId;
         const dataToSubmit = {
             users: document.Selected.share,
             linkType: "project",
-            linkId: project.Selected.id,
+            linkId: projectId,
             shareType: document.Selected.type,
             shareId: document.Selected.id,
             sharedBy: loggedUser.data.id,
-            projectId: project.Selected.id,
+            projectId: projectId,
             usersId: loggedUser.data.id,
             oldDocument: document.Selected.origin,
             newDocument: '',
@@ -87,7 +91,7 @@ export default class ShareModal extends React.Component {
                                         selected={(document.Selected.share != null && document.Selected.share.length > 0) ? JSON.parse(document.Selected.share) : []}
                                         onChange={(e) => this.selectShare(e)}
                                     />
-                                   
+
                                 </div>
                             </div>
                             <br />
@@ -104,3 +108,5 @@ export default class ShareModal extends React.Component {
         )
     }
 }
+
+export default withRouter(ShareModal);

@@ -347,7 +347,7 @@ exports.post = {
             .create({
                 comment: bodyData.comment,
                 usersId: bodyData.usersId,
-                linkType: 'task',
+                linkType: bodyData.linkType,
                 linkId: bodyData.linkId
             })
             .then((o) => {
@@ -367,18 +367,6 @@ exports.post = {
                         return res.toJSON();
                     })
             });
-        const task = await Tasks.findOne({
-            include: {
-                model: Workstream,
-                as: 'workstream'
-            },
-            where: {
-                id: bodyData.linkId
-            }
-        }).then((o) => {
-            const responseObj = o.toJSON();
-            return responseObj;
-        });
         async.parallel({
             notesLastSeen: (parallelCallback) => {
                 NotesLastSeen
@@ -400,9 +388,54 @@ exports.post = {
                 })
                     .map((o) => { return o.toJSON() })
                     .then(async (users) => {
-                        const reminderList = _.map(_.filter(users, (o) => { return o.id != bodyData.usersId }), (o) => {
+                        const reminderList = _.map(_.filter(users, (o) => { return o.id != bodyData.usersId }), async (o) => {
                             const mentioned = _.find(users, (o) => { return o.id == bodyData.usersId });
-                            const message = `${mentioned.firstName + " " + mentioned.lastName} metioned you on the task ${task.task} under ${task.workstream.workstream} workstream.`;
+                            let message = "";
+                            let data = {};
+
+                            if (bodyData.linkType == "task") {
+                                const task = await Tasks.findOne({
+                                    include: {
+                                        model: Workstream,
+                                        as: 'workstream'
+                                    },
+                                    where: {
+                                        id: bodyData.linkId
+                                    }
+                                }).then((o) => {
+                                    const responseObj = o.toJSON();
+                                    return responseObj;
+                                });
+                                message = `${mentioned.firstName + " " + mentioned.lastName} metioned you on the task ${task.task} under ${task.workstream.workstream} workstream.`;
+                                data = {
+                                    detail: message,
+                                    usersId: o.id,
+                                    linkType: bodyData.linkType,
+                                    linkId: bodyData.linkId,
+                                    type: 'Tag in Comment',
+                                    projectId: body.projectId,
+                                    createdBy: bodyData.usersId
+                                }
+                            } else if (bodyData.linkType == "document") {
+                                const document = await Tasks.findOne({
+                                    where: {
+                                        id: bodyData.linkId
+                                    }
+                                }).then((o) => {
+                                    const responseObj = o.toJSON();
+                                    return responseObj;
+                                });
+                                message = `${mentioned.firstName + " " + mentioned.lastName} metioned you on the ${document.origin}`
+                                data = {
+                                    detail: message,
+                                    usersId: o.id,
+                                    linkType: bodyData.linkType,
+                                    linkId: bodyData.linkId,
+                                    type: 'Tag in Comment',
+                                    projectId: body.projectId,
+                                    createdBy: bodyData.usersId
+                                }
+                            }
                             const mailOptions = {
                                 from: '"no-reply" <no-reply@c_cfo.com>',
                                 to: `${o.emailAddress}`,
@@ -410,16 +443,9 @@ exports.post = {
                                 html: '<p>' + message + '</p>'
                             }
                             global.emailtransport(mailOptions)
-                            return {
-                                detail: message,
-                                usersId: o.id,
-                                linkType: "task",
-                                linkId: bodyData.linkId,
-                                type: 'Tag in Comment',
-                                projectId: body.projectId,
-                                createdBy: bodyData.usersId
-                            };
+                            return data
                         });
+
                         Reminder.bulkCreate(reminderList).map((response) => {
                             return response.toJSON();
                         }).then((resultArray) => {

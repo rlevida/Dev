@@ -4,8 +4,9 @@ import { MentionsInput, Mention } from 'react-mentions';
 import _ from "lodash";
 import { postData, showToast } from '../../../globalFunction'
 import defaultStyle from "../../global/react-mention-style";
+import { withRouter } from "react-router";
 
-@connect(({ document, conversation, users, loggedUser, global, members, project }) => {
+@connect(({ document, conversation, users, loggedUser, global, members }) => {
     return {
         document,
         conversation,
@@ -13,17 +14,17 @@ import defaultStyle from "../../global/react-mention-style";
         loggedUser,
         global,
         members,
-        project
     }
 })
 
-export default class Form extends React.Component {
+class Form extends React.Component {
     constructor(props) {
         super(props);
-
-        this.handleChange = this.handleChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.fetchUsers = this.fetchUsers.bind(this);
+        _.map([
+            "fetchUsers",
+            "handleSubmit",
+            "handleChange"
+        ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
     handleChange(name, e) {
@@ -34,7 +35,7 @@ export default class Form extends React.Component {
     }
 
     fetchUsers(query, callback) {
-        const { global, loggedUser, members } = { ...this.props };
+        const { loggedUser, members } = { ...this.props };
         return members.List.map((o) => {
             let userName = o.user.firstName + " " + o.user.lastName;
             if (userName.includes(query) && o.user.id != loggedUser.data.id) {
@@ -44,7 +45,8 @@ export default class Form extends React.Component {
     }
 
     handleSubmit() {
-        const { dispatch, conversation, document, loggedUser, members, project } = this.props;
+        const { dispatch, conversation, document, loggedUser, members, match } = this.props;
+        const projectId = match.params.projectId;
         const commentText = conversation.Selected.comment;
         const commentSplit = (commentText).split(/{([^}]+)}/g).filter(Boolean);
         const commentIds = _(commentSplit).filter((o) => {
@@ -59,12 +61,11 @@ export default class Form extends React.Component {
             filter: { seen: 0 },
             data: { comment: commentText, linkType: "document", linkId: document.Selected.id, usersId: loggedUser.data.id },
             document: document.Selected.origin,
-            projectId: project.Selected.id,
-            userId: loggedUser.data.id,
+            projectId: projectId,
+            usersId: loggedUser.data.id,
             username: loggedUser.data.username,
             reminderList: JSON.stringify(_.uniqBy(commentIds, `userId`)),
         };
-
         postData(`/api/conversation/comment`, dataToBeSubmited, (c) => {
             dispatch({ type: 'ADD_COMMENT_LIST', list: c.data })
             dispatch({ type: 'SET_COMMENT_SELECTED', Selected: {} })
@@ -113,3 +114,5 @@ export default class Form extends React.Component {
         )
     }
 }
+
+export default withRouter(Form)

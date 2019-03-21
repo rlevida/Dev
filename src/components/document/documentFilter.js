@@ -13,19 +13,23 @@ let delayTimer = "";
         global: store.global,
         document: store.document,
         folder: store.folder,
-        project: store.project
     }
 })
 
 class DocumentFilter extends React.Component {
     constructor(props) {
         super(props);
-        this.setDropDown = this.setDropDown.bind(this)
-        this.handleDate = this.handleDate.bind(this)
+        _.map([
+            "setDropDown",
+            "handleDate",
+            "handleOnChange"
+        ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
     componentDidUpdate(prevProps) {
-        const { dispatch, loggedUser, folder, document, project } = this.props;
+        const { dispatch, loggedUser, folder, document, match } = this.props;
+        const projectId = match.params.projectId;
+
         if (_.isEqual(prevProps.document.Filter, this.props.document.Filter) == false) {
             clearTimeout(delayTimer);
 
@@ -33,9 +37,9 @@ class DocumentFilter extends React.Component {
 
             let requestUrl = ''
             if (document.ActiveTab === 'document') {
-                requestUrl = `/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`;
+                requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
             } else {
-                requestUrl = `/api/activityLogDocument?projectId=${roject.Selected.id}&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}`
+                requestUrl = `/api/activityLogDocument?projectId=${projectId}&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`
             }
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' });
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'LibraryDocumentLoading' });
@@ -113,8 +117,10 @@ class DocumentFilter extends React.Component {
     }
 
     setDropDown(name, e) {
-        const { dispatch, history, project, folder } = this.props;
-        history.push(`/projects/${project.Selected.id}/files`);
+        const { dispatch, history, match, folder } = this.props;
+        const projectId = match.params.projectId;
+
+        history.push(`/projects/${projectId}/files`);
         if (!_.isEmpty(folder.SelectedLibraryFolderName) || !_.isEmpty(folder.SelectedNewFolderName)) {
             dispatch({ type: 'CLEAR_FOLDER' })
         }

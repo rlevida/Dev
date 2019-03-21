@@ -21,6 +21,7 @@ export default class List extends React.Component {
         return (
             <div class="row mt20">
                 {
+                    (conversation.List.length > 0) &&
                     _.map(conversation.List, (o, index) => {
                         return (
                             <div class="col-md-12" key={index} >

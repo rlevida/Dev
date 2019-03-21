@@ -5,6 +5,7 @@ import { connect } from "react-redux"
 import { DropDown, Loading } from "../../globalComponents";
 import { showToast, postData, getData } from '../../globalFunction';
 import _ from "lodash";
+import { withRouter } from "react-router";
 
 let keyTimer = "";
 
@@ -14,12 +15,12 @@ let keyTimer = "";
         loggedUser: store.loggedUser,
         global: store.global,
         folder: store.folder,
-        project: store.project,
-        workstream: store.workstream
+        workstream: store.workstream,
+        project: store.project
 
     }
 })
-export default class DocumentUpload extends React.Component {
+class DocumentUpload extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -40,11 +41,14 @@ export default class DocumentUpload extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch, document, project } = this.props;
-        const selectedObj = { ...document.Selected, projectId: project.Selected.id };
-        if (project.Selected.id) {
+        const { dispatch, document, match } = this.props;
+        const projectId = match.params.projectId;
+        const selectedObj = { ...document.Selected, projectId: projectId };
+
+        if (projectId) {
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
         }
+
         this.fetchProjectList();
         this.getWorkstreamList();
         this.fetchFolderList();
@@ -81,9 +85,10 @@ export default class DocumentUpload extends React.Component {
     }
 
     fetchWorkstreamList(options) {
-        const { dispatch, document, loggedUser, project } = { ...this.props };
-        const { Selected } = document;
-        let fetchUrl = `/api/workstream?projectId=${typeof project.Selected.id !== 'undefined' ? project.Selected.id : Selected.projectId}&page=1&userId=${loggedUser.data.id}`;
+        const { dispatch, loggedUser, match } = { ...this.props };
+        const projectId = match.params.projectId;
+
+        let fetchUrl = `/api/workstream?projectId=${projectId}&page=1&userId=${loggedUser.data.id}`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&workstream=${options}`;
@@ -98,8 +103,11 @@ export default class DocumentUpload extends React.Component {
     }
 
     fetchFolderList(options) {
-        const { dispatch, loggedUser, document, folder, project } = this.props;
-        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${project.Selected.id}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
+        const { dispatch, loggedUser, match } = { ...this.props };
+        const projectId = match.params.projectId;
+
+        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
+
         if (typeof options != "undefined" && options != "") {
             requestUrl += `&name=${options}`;
         }
@@ -172,46 +180,35 @@ export default class DocumentUpload extends React.Component {
         })
     }
 
-    selectTag(e, index) {
-        const { dataToSubmit } = this.state;
-        dataToSubmit[index].tags = JSON.stringify(e);
-        dataToSubmit[index].status = "new";
-        this.setState({ dataToSubmit: dataToSubmit });
-    }
-
-    onDrop(files) {
-        const { dispatch } = this.props;
-        dispatch({ type: 'SET_DOCUMENT_FILES', Files: files })
-    }
-
-    uploadFile() {
-        const { loggedUser, folder, dispatch, document, project } = this.props;
+    async onDrop(files) {
+        const { loggedUser, folder, dispatch, document, match } = { ...this.props };
+        const projectId = match.params.projectId;
         const selectedObj = { ...document.Selected };
-        let data = new FormData()
-        dispatch({ type: 'SET_DOCUMENT_UPLOAD_LOADING', Loading: true });
+        let data = new FormData();
 
-        document.Files.map(e => {
+        await dispatch({ type: "SET_DOCUMENT_UPLOAD_LOADING", Loading: true });
+
+        await files.map(e => {
             data.append("file", e)
         })
 
-        postData(`/api/document/upload`, data, (c) => {
-            const documentToSave = []
-            c.data.map(e => {
-                documentToSave.push({
-                    name: e.filename, origin: e.origin, project: project.Selected.id, uploadedBy: loggedUser.data.id,
+        await postData(`/api/document/upload`, data, async (c) => {
+            const documentToSave = c.data.map(e => {
+                e = {
+                    name: e.filename, origin: e.origin, project: projectId, uploadedBy: loggedUser.data.id,
                     status: 'new', type: 'document', folderId: folder.SelectedNewFolder.id
-                })
+                }
+                return e
             })
-
             selectedObj.DocumentToSave = documentToSave
-
-            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
+            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj });
             dispatch({ type: 'SET_DOCUMENT_UPLOAD_LOADING', Loading: false });
         })
     }
 
     render() {
-        const { dispatch, project, workstream, document, folder } = this.props;
+        const { dispatch, project, workstream, document, folder, match } = { ...this.props };
+        const projectId = match.params.projectId;
 
         return (
             <div class="row">
@@ -239,7 +236,7 @@ export default class DocumentUpload extends React.Component {
                                             id="project-options"
                                             multiple={false}
                                             options={project.SelectList}
-                                            selected={(typeof project.Selected.id === "undefined") ? document.Selected.projectId : project.Selected.id}
+                                            selected={projectId}
                                             onChange={(e) => {
                                                 this.setDropDown("projectId", (e == null) ? "" : e.value);
                                             }}
@@ -261,6 +258,7 @@ export default class DocumentUpload extends React.Component {
                                                 this.setDropDown("tagWorkstream", (e == null) ? "" : e);
                                             }}
                                             required={true}
+                                            disabled={document.DocumentUploadLoading ? true : false}
                                         />
                                         <div>
                                             {
@@ -280,6 +278,7 @@ export default class DocumentUpload extends React.Component {
                                             onChange={(e) => {
                                                 this.setDropDown("folderId", (e == null) ? "" : e.value);
                                             }}
+                                            disabled={document.DocumentUploadLoading ? true : false}
                                         />
                                     </div>
                                     <div class="form-group">
@@ -325,14 +324,16 @@ export default class DocumentUpload extends React.Component {
                                     {(document.Selected.DocumentToSave && document.Selected.DocumentToSave.length > 0) &&
                                         <a class="btn btn-primary mr5" data-dismiss="modal" onClick={() => this.saveDocument()}>Save</a>
                                     }
-                                    <a class="btn btn-default"
-                                        onClick={(e) => {
-                                            dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
-                                            dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
-                                        }}
-                                    >
-                                        <span>Cancel</span>
-                                    </a>
+                                    {!document.DocumentUploadLoading &&
+                                        <a class="btn btn-default"
+                                            onClick={(e) => {
+                                                dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });
+                                                dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
+                                            }}
+                                        >
+                                            <span>Cancel</span>
+                                        </a>
+                                    }
                                 </form>
                             </div>
                         </div>
@@ -342,3 +343,5 @@ export default class DocumentUpload extends React.Component {
         )
     }
 }
+
+export default withRouter(DocumentUpload);

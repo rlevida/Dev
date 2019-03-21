@@ -81,7 +81,7 @@ const associationFindAllStack = [
     {
         model: Starred,
         as: 'document_starred',
-        where: { linkType: 'document', isActive: 1 },
+        where: { linkType: 'document', isActive: 1, isDeleted: 0 },
         required: false,
         include: [
             {
@@ -191,6 +191,7 @@ exports.get = {
             _.find(associationFindAllStack, { as: 'document_starred' }).where = {
                 linkType: 'document',
                 isActive: 1,
+                isDeleted: 0,
                 usersId: queryString.starredUser
             };
         }
@@ -340,7 +341,7 @@ exports.get = {
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
             ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "") ? { folderId: queryString.folderId } : {},
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
-            ...(typeof queryString.type != "undefined" && queryString.type != "") ? { type : queryString.type } : {}
+            ...(typeof queryString.type != "undefined" && queryString.type != "") ? { type: queryString.type } : {}
         }
 
         const tagWhereObj = {
@@ -953,8 +954,10 @@ exports.put = {
     },
     rename: (req, cb) => {
         let body = req.body;
+        let queryString = req.query;
         const { usersId, oldDocument, newDocument, projectId } = body;
         let id = req.params.id;
+        console.log(queryString)
         body = _.omit(body, 'usersId', 'oldDocument', 'newDocument', 'projectId');
 
         sequence.create().then((nextThen) => {
@@ -1004,7 +1007,8 @@ exports.put = {
                                             tagTask: findRes.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
                                             tagNote: findRes.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                                             members: findRes.document.share.map((e) => { return e.user }),
-                                            share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                                            share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                            isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (findRes.document.document_starred).length > 0) ? findRes.document.document_starred[0].isActive : 0
                                         }
                                         parallelCallback(null, { data: _.omit(dataToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
                                     })

@@ -1,12 +1,10 @@
-import React from "react"
-import moment from 'moment'
+import React from "react";
+import moment from 'moment';
 import mime from "mime-types";
-import { connect } from "react-redux"
-
-import { getFilePathExtension, putData, showToast, postData, removeTempFile, getData } from '../../globalFunction'
-import { HeaderButtonContainer } from "../../globalComponents"
-
-import DocumentComment from "./comment"
+import { connect } from "react-redux";
+import { withRouter } from "react-router";
+import { getFilePathExtension, putData, showToast, postData, removeTempFile, getData } from '../../globalFunction';
+import DocumentComment from "./comment";
 
 var delayTimer = ''
 
@@ -22,7 +20,7 @@ var delayTimer = ''
     }
 })
 
-export default class DocumentViewerComponent extends React.Component {
+class DocumentViewerComponent extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -49,6 +47,11 @@ export default class DocumentViewerComponent extends React.Component {
         }
     }
 
+    componentWillUnmount() {
+        const { dispatch } = this.props;
+        dispatch({ type: "SET_COMMENT_SELECTED", Selected: "" })
+    }
+
     componentDidUpdate(prevProps) {
         const { dispatch, document } = this.props;
 
@@ -72,8 +75,7 @@ export default class DocumentViewerComponent extends React.Component {
     fetchData(page) {
         const { dispatch, match } = this.props;
         getData(`/api/conversation/getConversationList?linkType=document&linkId=${match.params.documentId}`, {}, (c) => {
-
-            dispatch({ type: 'SET_COMMENT_LIST', list: c.data })
+            dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
         })
     }
 
@@ -120,10 +122,11 @@ export default class DocumentViewerComponent extends React.Component {
     }
 
     starredDocument({ id, isStarred, origin }) {
-        const { document, loggedUser, dispatch, project } = this.props;
+        const { document, loggedUser, dispatch, match } = this.props;
+        const projectId = match.params.projectId;
         const isStarredValue = (isStarred > 0) ? 0 : 1;
 
-        postData(`/api/starred?projectId=${project.Selected.id}&document=${origin}`, {
+        postData(`/api/starred?projectId=${projectId}&document=${origin}`, {
             linkType: "document",
             linkId: id,
             usersId: loggedUser.data.id
@@ -136,7 +139,6 @@ export default class DocumentViewerComponent extends React.Component {
                     return documentObj;
                 });
                 dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList, DocumentType: document.Selected.status === 'new' ? 'New' : 'Library' });
-                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.documentActivityLog })
                 showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
             } else {
                 showToast("error", "Something went wrong please try again later.");
@@ -233,67 +235,9 @@ export default class DocumentViewerComponent extends React.Component {
                     </div>
                 </div>
             </div>
-            // <div>
-            //     <div class="row">
-            //         <div class="col-lg-12 col-md-12 col-xs-12">
-            //             <div class="panel panel-default">
-            //                 <div class="panel-heading">
-            //                     <h3 class="panel-title">DOCUMENT VIEWER</h3>
-            //                 </div>
-            //                 <div class="panel-body">
-            //                     <div class="row" style={{ height: "800px" }}>
-            //                         <div class="col-lg-8 col-md-8 col-xs-12" style={{ height: "100%" }}>
-            //                             <div id="documentImage" style={{ textAlign: "center", height: "100%" }}>
-            //                                 {isDocument ?
-            //                                     <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${settings.imageUrl}/upload/${document.Selected.name}`}
-            //                                         width='100%' height='623px' frameBorder='0'>This is an embedded <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>.
-            //                                 </iframe>
-            //                                     :
-            //                                     <embed src={`${settings.imageUrl}/upload/${document.Selected.name}`} type={documentContentType} width={(ext == 'pdf' || ext == 'png') ? '100%' : "auto"} height={ext == 'pdf' ? '100%' : "auto"}></embed>
-            //                                 }
-            //                             </div>
-            //                         </div>
-            //                         <div class="col-lg-4 col-md-4 col-xs-12">
-            //                             <div class="row  m10 mb40">
-            //                                 <div class="col-lg-10 col-md-10 col-xs-10">
-            //                                     <input class="form-control" type="text" placeholder="Search" name='search' aria-label="Search" value={(typeof conversation.Filter.search !== 'undefined') ? conversation.Filter.search : ''} onChange={(e) => this.handleOnChange(e)} />
-            //                                 </div>
-            //                                 <div class="col-lg-2 col-md-2 col-xs-2">
-            //                                     <div class="dropdown">
-            //                                         <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-            //                                         <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
-            //                                             <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(document.Selected)}>Download</a></li>
-            //                                             <li>
-            //                                                 <a onClick={() => this.starredDocument({ isStarred: document.Selected.isStarred, id: document.Selected.id, origin: document.Selected.origin })}>
-            //                                                     {document.Selected.isStarred ? 'Unstarred' : 'Star'}
-            //                                                 </a>
-            //                                             </li>
-            //                                             <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(document.Selected.id)}>Delete</a></li>
-            //                                         </ul>
-            //                                     </div>
-            //                                 </div>
-            //                             </div>
-            //                             <div class="row  m10">
-            //                                 <div class="col-lg-12 col-md-12 col-xs-12">
-            //                                     <span class="glyphicon glyphicon-file"></span>
-            //                                     {typeof document.Selected.id !== 'undefined' && document.Selected.origin}
-            //                                     <br />
-            //                                     Uploaded by {typeof document.Selected.id !== 'undefined' && document.Selected.user.emailAddress}
-            //                                     <br />
-            //                                     {typeof document.Selected.id !== 'undefined' && moment(document.Selected.dateAdded).format('L')}
-            //                                     <br />
-            //                                     <h4>Comments</h4>
-            //                                     <hr />
-            //                                     <DocumentComment />
-            //                                 </div>
-            //                             </div>
-            //                         </div>
-            //                     </div>
-            //                 </div>
-            //             </div>
-            //         </div>
-            //     </div>
-            // </div >
         )
     }
 }
+
+
+export default withRouter(DocumentViewerComponent)

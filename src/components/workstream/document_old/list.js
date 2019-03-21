@@ -83,7 +83,6 @@ export default class List extends React.Component {
                     return documentObj;
                 });
                 dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList, DocumentType: 'List' });
-                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.documentActivityLog })
                 showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
             } else {
                 showToast("error", "Something went wrong please try again later.");
