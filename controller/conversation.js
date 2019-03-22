@@ -5,7 +5,6 @@ const sequence = require("sequence").Sequence;
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const models = require('../modelORM');
-const moment = require('moment');
 const {
     Notes,
     NotesLastSeen,

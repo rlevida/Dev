@@ -425,9 +425,11 @@ export class Searchbar extends React.Component {
             (searchClassList).remove('hide');
             (searchIconClassList).remove('fa-search');
             (searchIconClassList).add('fa-times-circle-o');
+            (searchIconClassList).add('ml5');
         } else {
             (searchClassList).add('hide');
             (searchIconClassList).remove('fa-times-circle-o');
+            (searchIconClassList).remove('ml5');
             (searchIconClassList).add('fa-search');
             searchInput.value = "";
 

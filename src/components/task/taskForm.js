@@ -7,6 +7,7 @@ import { DropDown, DeleteModal } from "../../globalComponents";
 
 import TaskDependency from "./taskDependency";
 import TaskChecklist from "./taskChecklist";
+import TaskDocument from "./taskDocument";
 
 let keyTimer = "";
 
@@ -19,7 +20,8 @@ let keyTimer = "";
         task: store.task,
         taskDependency: store.taskDependency,
         users: store.users,
-        workstream: store.workstream
+        workstream: store.workstream,
+        document: store.document
     }
 })
 
@@ -45,7 +47,10 @@ export default class TaskForm extends React.Component {
             "deleteSubTask",
             "confirmDeleteSubtask",
             "confirmDeleteTaskDependency",
-            "generateDueDate"
+            "generateDueDate",
+            "deleteDocument",
+            "renderArrayTd",
+            "confirmDeleteDocument"
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
     componentDidMount() {
@@ -390,13 +395,73 @@ export default class TaskForm extends React.Component {
         dispatch({ type: "SET_TASK_SELECTED", Selected: { ...Selected, dueDate: computedDueDate } });
     }
 
+    renderArrayTd(arr) {
+        return (
+            arr.join("\r\n")
+        );
+    }
+
+    deleteDocument(value) {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...value, action: 'delete' } });
+        $('#delete-document').modal("show");
+    }
+
+    confirmDeleteDocument() {
+        const { dispatch, document, task } = this.props;
+        deleteData(`/api/task/document/${document.Selected.id}?type=${document.Selected.type}`, {}, (c) => {
+            if (document.Selected.type == "Task Document") {
+                const taskDocument = _.filter(task.Selected.tag_task, (o) => {
+                    return o.document.id != document.Selected.id;
+                });
+                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, tag_task: taskDocument } });
+            } else {
+                const checklist = _.map(task.Selected.checklist, (o) => {
+                    return { ...o, tagDocuments: _.filter(o.tagDocuments, (o) => { return o.id != document.Selected.id }) }
+                });
+                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, checklist } });
+            }
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+            showToast("success", "Task Document successfully deleted.");
+            $('#delete-document').modal("hide");
+        });
+    }
+
     render() {
-        const { dispatch, task, users, project, workstream, checklist, taskDependency, members } = { ...this.props };
+        const { dispatch, task, users, project, workstream, checklist, taskDependency, members, document } = { ...this.props };
         const checklistTypeValue = (typeof checklist.Selected.description != "undefined" && _.isEmpty(checklist.Selected) == false) ? checklist.Selected.description : "";
         const taskDependencyValue = (typeof taskDependency.task != "undefined" && _.isEmpty(taskDependency.Selected) == false) ? taskDependency.task.task : "";
-
+        const documentValue = (typeof document.Selected != "undefined" && _.isEmpty(document.Selected) == false) ? document.Selected.name : "";
+        const checklistDocuments = _(task.Selected.checklist)
+            .flatMap((o) => {
+                return _.map(o.tagDocuments, (o) => {
+                    return {
+                        id: o.id,
+                        name: o.document.origin,
+                        type: "Subtask Document",
+                        dateAdded: o.document.dateAdded,
+                        child: _(task.Selected.checklist)
+                            .filter((check) => { return check.id == o.checklistId })
+                            .map((o) => { return o.description })
+                            .value()
+                    };
+                })
+            })
+            .value();
+        const taskDocuments = _(task.Selected.tag_task)
+            .filter((o) => { return o.tagType == "document" })
+            .map((o) => {
+                return {
+                    id: o.document.id,
+                    name: o.document.origin,
+                    type: "Task Document",
+                    dateAdded: o.document.dateAdded
+                };
+            })
+            .value();
+        const documentList = [...checklistDocuments, ...taskDocuments];
         return (
-            <div class="row">
+            <div class="row" >
                 <div class="col-lg-12">
                     <div class="card form-card">
                         <div class="card-header">
@@ -716,6 +781,68 @@ export default class TaskForm extends React.Component {
                                     <div class="row">
                                         <div class=" col-lg-12 md-12 col-sm-12">
                                             <div class="mt20 mb20">
+                                                <p class="form-header mb0">Task Documents</p>
+                                                <p>All with <span class="text-red">*</span> are required.</p>
+                                            </div>
+                                            <TaskDocument />
+                                            <div class="mt20">
+                                                {
+                                                    ((documentList).length > 0) && <table>
+                                                        <thead>
+                                                            <tr>
+                                                                <th scope="col" class="td-left">File Name</th>
+                                                                <th scope="col">Upload Type</th>
+                                                                <th scope="col">Subtasks</th>
+                                                                <th scope="col">Upload Date</th>
+                                                                <th scope="col">Action</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {
+                                                                _.map(documentList, ({ id, name, type, child = [], dateAdded }, index) => {
+                                                                    return (
+                                                                        <tr key={index}>
+                                                                            <td data-label="File Name" class="td-left">
+                                                                                {name}
+                                                                            </td>
+                                                                            <td data-label="Upload Type">
+                                                                                {type}
+                                                                            </td>
+                                                                            <td data-label="Subtasks">
+                                                                                {this.renderArrayTd(child)}
+                                                                            </td>
+                                                                            <td data-label="Upload Date">
+                                                                                {moment(dateAdded).format("MMMM DD, YYYY")}
+                                                                            </td>
+                                                                            <td data-label="Action">
+                                                                                <a
+                                                                                    href="javascript:void(0);"
+                                                                                    onClick={(e) => this.deleteDocument({ id, name, type })}
+                                                                                    class="btn btn-action"
+                                                                                >
+                                                                                    <span class="fa fa-trash"></span></a>
+                                                                            </td>
+                                                                        </tr>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                }
+                                                {
+                                                    ((documentList).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            {
+                                (typeof task.Selected.id != "undefined" && task.Selected.id != "") &&
+                                <div class="bt mb20">
+                                    <div class="row">
+                                        <div class=" col-lg-12 md-12 col-sm-12">
+                                            <div class="mt20 mb20">
                                                 <p class="form-header mb0">Task Dependencies</p>
                                                 <p>All with <span class="text-red">*</span> are required.</p>
                                             </div>
@@ -782,7 +909,13 @@ export default class TaskForm extends React.Component {
                     type_value={taskDependencyValue}
                     delete_function={this.confirmDeleteTaskDependency}
                 />
-            </div>
+                <DeleteModal
+                    id="delete-document"
+                    type={'task document'}
+                    type_value={documentValue}
+                    delete_function={this.confirmDeleteDocument}
+                />
+            </div >
         )
     }
 }

@@ -354,9 +354,9 @@ exports.post = {
                     userId = field;
                 })
                 .on('file', function (field, file) {
-                    var date = new Date();
-                    var Id = func.generatePassword(date.getTime() + file.name, "attachment");
-                    var filename = Id + file.name;
+                    const date = new Date();
+                    const Id = func.generatePassword(date.getTime() + file.name, "attachment");
+                    const filename = Id + (file.name).replace(/[^\w.]|_/g, "_");
                     func.uploadFile({
                         file: file,
                         form: type,

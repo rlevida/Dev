@@ -6,6 +6,7 @@ import ProjectDashboard from "./projectDashboard";
 import Workstream from "../workstream";
 import TaskCalendar from "../task/taskCalendar";
 import Files from "../document";
+import Conversations from "../conversations";
 import DocumentViewer from "../document/documentViewer";
 
 @connect((store) => {
@@ -31,6 +32,7 @@ export default class ProjectDetails extends React.Component {
                     <Route path={`${this.props.match.path}/workstreams`} component={Workstream} />
                     <Route path={`${this.props.match.path}/calendar`} component={TaskCalendar} />
                     <Route path={`${this.props.match.path}/files`} component={Files} />
+                    <Route path={`${this.props.match.path}/messages`} component={Conversations} />
                 </Switch>
             </div>
         )

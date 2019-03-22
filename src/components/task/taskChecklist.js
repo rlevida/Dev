@@ -50,6 +50,7 @@ export default class TaskChecklist extends React.Component {
             postData(`/api/checklist/`, toBeSubmitted, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "ADD_CHECKLIST", data: c.data.checklist });
+                    dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, checklist: [...task.Selected.checklist, c.data.checklist] } });
                     dispatch({ type: "SET_CHECKLIST_ACTION", action: undefined });
                     showToast("success", "Checklist successfully updated.");
                 } else {

@@ -111,6 +111,7 @@ export default class Component extends React.Component {
                             <div class="modal-body">
                                 <p><strong>Upload Profile Picture</strong></p>
                                 <Dropzone
+                                    accept=".jpg,.png"
                                     onDrop={this.onDrop}
                                     class="document-file-upload"
                                     multiple={false}

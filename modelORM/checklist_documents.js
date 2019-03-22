@@ -23,6 +23,11 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
         },
+        isDeleted: {
+            type: DataTypes.INTEGER(1),
+            allowNull: true,
+            defaultValue: '0'
+        },
         dateUpdated: {
             type: DataTypes.DATE,
             allowNull: false,
@@ -36,6 +41,10 @@ module.exports = (sequelize, DataTypes) => {
         ChecklistDocuments.belongsTo(models.Document, {
             as: 'document',
             foreignKey: 'documentId'
+        });
+        ChecklistDocuments.belongsTo(models.TaskChecklist, {
+            as: 'tagChecklist',
+            foreignKey: 'checklistId'
         });
     }
     return ChecklistDocuments;

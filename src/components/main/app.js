@@ -11,6 +11,7 @@ import Projects from "../project";
 import MyTasks from "../myTasks";
 import Users from "../users";
 import Profile from "../profile";
+import Conversations from "../conversations";
 
 @connect((store) => {
     return {
@@ -116,6 +117,13 @@ class Main extends React.Component {
                 icon: "fa-list",
                 path_name: "my-tasks",
                 component: MyTasks,
+                show_menu: true
+            },
+            {
+                label: "Messages",
+                icon: "fa-comments",
+                path_name: "messages",
+                component: Conversations,
                 show_menu: true
             },
             {

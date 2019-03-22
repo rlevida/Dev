@@ -220,7 +220,7 @@ exports.post = {
 }
 
 exports.put = {
-    index: (req, cb) => {
+    index: async (req, cb) => {
         const body = req.body;
         const options = {
             include: [
@@ -240,145 +240,55 @@ exports.put = {
             ]
         }
         try {
-            TaskChecklist.findOne({ ...options, where: { id: body.id } }).then((response) => {
-                const responseObj = response.toJSON();
-                let oldTaskChecklist = responseObj;
-                let isMandatory = (oldTaskChecklist.isMandatory == 1) ? "Mandatory" : "Non Mandatory";
-                let isDocument = (oldTaskChecklist.isDocument == 1) ? "Document" : "Non Document";
-                let status = (oldTaskChecklist.isCompleted == 1) ? "Complete" : "Not Complete";
+            let oldChecklist = await TaskChecklist.findOne({ ...options, where: { id: body.id } }).then((response) => { return response.toJSON() });
+            let status = (oldChecklist.isCompleted == 1) ? "Complete" : "Not Complete";
+            oldTaskChecklist = _.pick({ ...oldChecklist, status }, ["description", "type", "status"]);
 
-                checklistType = isMandatory + " and " + isDocument;
-                oldTaskChecklist = _.pick({ ...oldTaskChecklist, type: checklistType, status }, ["description", "type", "status"]);
+            TaskChecklist.update({ isCompleted: body.isCompleted }, { where: { id: body.id } }).then((response) => {
+                return TaskChecklist.findOne({ ...options, where: { id: body.id } }).then((o) => { return o.toJSON() });
+            }).then((response) => {
+                const updateResponse = _.omit({
+                    ...response,
+                    document: response.tagDocuments.map((e) => { return e.document })
+                }, "tagDocuments");
+                status = (updateResponse.isCompleted == 1) ? "Complete" : "Not Complete";
+                const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, status }, ["description", "type", "status"]), oldTaskChecklist);
+                const objectKeys = _.map(newObject, function (value, key) { return key; });
 
-                TaskChecklist.update(body, { where: { id: body.id } }).then((response) => {
-                    return TaskChecklist.findOne({ ...options, where: { id: body.id } });
-                }).then((response) => {
-                    const updateResponse = _.omit({
-                        ...response.dataValues,
-                        document: response.dataValues.tagDocuments.map((e) => { return e.document })
-                    }, "tagDocuments");
-
-                    isMandatory = (updateResponse.isMandatory == 1) ? "Mandatory" : "Non Mandatory";
-                    isDocument = (updateResponse.isDocument == 1) ? "Document" : "Non Document";
-                    checklistType = isMandatory + " and " + isDocument;
-                    status = (updateResponse.isCompleted == 1) ? "Complete" : "Not Complete";
-
-                    const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, type: checklistType, status }, ["description", "type", "status"]), oldTaskChecklist);
-                    const objectKeys = _.map(newObject, function (value, key) { return key; });
-
-                    if (_.isEmpty(newObject)) {
-                        cb({ status: true, data: { checklist: updateResponse } });
-                    } else {
-                        const activityLogStack = [{
-                            usersId: body.createdBy,
-                            linkType: "checklist",
-                            linkId: updateResponse.id,
-                            actionType: "modified",
-                            old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
-                            new: JSON.stringify({ checklist: newObject }),
-                            title: oldTaskChecklist.description
-                        }];
-
-                        async.waterfall([
-                            function (callback) {
-                                if (typeof body.isPeriodicTask != "undefined" && body.isPeriodicTask == 1) {
-                                    const { id, periodTask, description, isDocument, isMandatory, taskDueDate, createdBy, periodChecklist } = body;
-                                    Tasks.findAll(
-                                        {
-                                            where: {
-                                                periodTask: periodTask,
-                                                $and: Tasks.sequelize.where(Tasks.sequelize.fn('date', Tasks.sequelize.col('dueDate')), '>', moment(taskDueDate).format('YYYY-MM-DD HH:mm:ss'))
-                                            }
-                                        }
-                                    ).map((mapObject) => {
-                                        return mapObject.toJSON();
-                                    }).then((resultArray) => {
-                                        if (resultArray.length > 0) {
-                                            const updatePeriodicChecklistPromise = _.map(resultArray, (resultObj) => {
-                                                const checkListPeriodId = (periodChecklist != null) ? periodChecklist : id;
-                                                const updatedChecklistData = {
-                                                    description: description,
-                                                    isDocument: isDocument,
-                                                    isMandatory: isMandatory,
-                                                    createdBy: createdBy
-                                                };
-                                                return new Promise((resolve) => {
-                                                    TaskChecklist.findOne({ ...options, where: { taskId: resultObj.id, periodChecklist: checkListPeriodId } }).then((response) => {
-                                                        let responseObj = response.toJSON();
-                                                        let isMandatory = (responseObj.isMandatory == 1) ? "Mandatory" : "Non Mandatory";
-                                                        let isDocument = (responseObj.isDocument == 1) ? "Document" : "Non Document";
-                                                        checklistType = isMandatory + " and " + isDocument;
-                                                        let oldTaskChecklist = _.pick({ ...responseObj, type: checklistType }, ["description", "type"]);
-
-                                                        TaskChecklist.update(updatedChecklistData, { where: { taskId: resultObj.id, periodChecklist: checkListPeriodId } }).then((response) => {
-                                                            return TaskChecklist.findOne({ ...options, where: { id: body.id } });
-                                                        }).then((response) => {
-                                                            const updateResponse = response.toJSON();
-                                                            isMandatory = (updateResponse.isMandatory == 1) ? "Mandatory" : "Non Mandatory";
-                                                            isDocument = (updateResponse.isDocument == 1) ? "Document" : "Non Document";
-                                                            checklistType = isMandatory + " and " + isDocument;
-                                                            const newObject = func.changedObjAttributes(_.pick({ ...updateResponse, type: checklistType }, ["description", "type"]), oldTaskChecklist);
-                                                            const objectKeys = _.map(newObject, function (value, key) { return key; });
-
-                                                            if (_.isEmpty(newObject)) {
-                                                                resolve("");
-                                                            } else {
-                                                                resolve({
-                                                                    usersId: body.createdBy,
-                                                                    linkType: "checklist",
-                                                                    linkId: responseObj.id,
-                                                                    actionType: "modified",
-                                                                    old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
-                                                                    new: JSON.stringify({ checklist: newObject }),
-                                                                    title: oldTaskChecklist.description
-                                                                });
-                                                            }
-                                                        });
-                                                    });
-                                                });
-                                            });
-                                            Promise.all(updatePeriodicChecklistPromise).then((values) => {
-                                                callback(null, [...activityLogStack, ...values]);
-                                            }).catch((err) => {
-                                                callback(null, activityLogStack);
-                                            });
-                                        } else {
-                                            callback(null, activityLogStack);
-                                        }
-                                    });
-                                } else {
-                                    callback(null, activityLogStack);
+                if (_.isEmpty(newObject)) {
+                    cb({ status: true, data: { checklist: updateResponse } });
+                } else {
+                    ActivityLogs.create({
+                        usersId: body.createdBy,
+                        linkType: "checklist",
+                        linkId: updateResponse.id,
+                        actionType: (body.isCompleted)?"completed":"modified",
+                        old: JSON.stringify({ checklist: _.pick(oldTaskChecklist, objectKeys) }),
+                        new: JSON.stringify({ checklist: newObject }),
+                        title: oldTaskChecklist.description
+                    }).then((resultArray) => {
+                        const responseObj = resultArray.toJSON();
+                        return ActivityLogs.findOne({
+                            include: [
+                                {
+                                    model: Users,
+                                    as: 'user',
+                                    attributes: ['firstName', 'lastName']
                                 }
-                            },
-                            function (params, callback) {
-                                ActivityLogs.bulkCreate(params).map((response) => {
-                                    return response.toJSON();
-                                }).then((resultArray) => {
-                                    const responseObj = resultArray[0];
-                                    return ActivityLogs.findOne({
-                                        include: [
-                                            {
-                                                model: Users,
-                                                as: 'user',
-                                                attributes: ['firstName', 'lastName']
-                                            }
-                                        ],
-                                        where: { id: responseObj.id }
-                                    })
-                                }).then((response) => {
-                                    const responseObj = response.toJSON();
-                                    callback(null, { checklist: updateResponse, activity_log: responseObj });
-                                });
-                            },
-                        ], function (err, result) {
-                            cb({ status: true, data: result });
-                        });
-                    }
+                            ],
+                            where: { id: responseObj.id }
+                        })
+                    }).then((response) => {
+                        const responseObj = response.toJSON();
+                        cb({ status: true, data: { checklist: updateResponse, activity_log: responseObj } });
+                    });
 
-                });
+                }
+
             });
+
         } catch (err) {
-            cb({ status: false, error: err })
+            cb({ status: false, error: err });
         }
     },
     updateChecklistDocument: (req, cb) => {

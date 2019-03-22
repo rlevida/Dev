@@ -140,13 +140,12 @@ export default class TaskCalendar extends React.Component {
                     id: o.id,
                     title: o.task,
                     start: (typeof o.startDate != "undefined" && o.startDate != null) ? moment(o.startDate).toDate() : moment(o.dueDate).toDate(),
-                    end: moment(o.dueDate).add(24, 'hours').toDate(),
+                    end: moment(o.dueDate).endOf('day').toDate(),
                     allday: true,
                     workstream: o.workstream
                 }
             })
             .value();
-
         return (
             <BigCalendar
                 events={calendarTasks}

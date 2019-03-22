@@ -4,13 +4,25 @@ const moment = require("moment");
 
 const { defaultDelete } = require("./");
 const models = require('../modelORM');
-const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, Type, UsersTeam, Teams, sequelize } = models;
+const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, Type, UsersTeam, Teams, Tag, sequelize } = models;
 
 const dbName = "task";
 const func = global.initFunc();
 const Op = Sequelize.Op;
 
 const associationStack = [
+    {
+        model: Tag,
+        as: 'tag_task',
+        required: false,
+        where: { linkType: 'task', isDeleted: 0 },
+        include: [
+            {
+                model: Document,
+                as: 'document'
+            }
+        ]
+    },
     {
         model: Members,
         as: 'task_members',
@@ -58,6 +70,18 @@ const associationStack = [
                 model: Users,
                 as: 'user',
                 attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+            },
+            {
+                model: ChecklistDocuments,
+                as: 'tagDocuments',
+                where: { isDeleted: 0 },
+                required: false,
+                include: [
+                    {
+                        model: Document,
+                        as: 'document'
+                    }
+                ]
             }
         ]
     },
@@ -106,7 +130,7 @@ const associationStack = [
                 ]
             }
         ]
-    },
+    }
 ];
 
 exports.get = {
@@ -752,6 +776,143 @@ exports.post = {
         } catch (err) {
             cb({ status: false, error: err })
         }
+    },
+    document: (req, cb) => {
+        const formidable = global.initRequire("formidable");
+        const func = global.initFunc();
+        let form = new formidable.IncomingForm();
+        let files = [];
+        let type = "upload";
+        let checklistStack = [];
+        let userId = "";
+        let taskId = "";
+        form.multiples = false;
+        files.push(new Promise((resolve, reject) => {
+            form
+                .on('field', function (name, field) {
+                    if (name == "userId") {
+                        userId = field
+                    } else if (name == "tagged") {
+                        checklistStack = JSON.parse(field);
+                    } else {
+                        taskId = field;
+                    }
+                })
+                .on('file', function (field, file) {
+                    const date = new Date();
+                    const id = func.generatePassword(date.getTime() + file.name, "attachment");
+                    const filename = id + (file.name).replace(/[^\w.]|_/g, "_");
+
+                    func.uploadFile({
+                        file: file,
+                        form: type,
+                        filename: filename
+                    }, response => {
+                        if (response.Message == 'Success') {
+                            resolve({
+                                filename: filename,
+                                origin: file.name,
+                                Id: id,
+                                userId,
+                                taskId,
+                                checklist: checklistStack
+                            })
+                        } else {
+                            reject()
+                        }
+                    });
+                })
+
+        }));
+
+        Promise.all(files).then(async (e) => {
+            if (e.length > 0) {
+                const { filename, origin, checklist, userId, taskId } = e[0];
+                const documentSubmitObj = {
+                    name: filename,
+                    origin,
+                    uploadedBy: userId,
+                    type: 'document',
+                    status: 'new'
+                }
+                const document = await Document.create(documentSubmitObj).then((o) => o.toJSON());
+
+                if (checklist.length > 0) {
+                    const checklistStack = _.map(checklist, ({ value }) => {
+                        return {
+                            taskId,
+                            checklistId: value,
+                            documentId: document.id
+                        }
+                    })
+
+                    ChecklistDocuments.bulkCreate(checklistStack).then((o) => {
+                        TaskChecklist.findAll(
+                            {
+                                where: {
+                                    id: _.map(checklistStack, (o) => { return o.checklistId })
+                                },
+                                include: [
+                                    {
+                                        model: Users,
+                                        as: 'user',
+                                        attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+                                    },
+                                    {
+                                        model: ChecklistDocuments,
+                                        as: 'tagDocuments',
+                                        include: [
+                                            {
+                                                model: Document,
+                                                as: 'document'
+                                            }
+                                        ]
+                                    }
+                                ],
+                            }
+                        ).map((mapObject) => {
+                            return mapObject.toJSON();
+                        }).then((o) => {
+                            cb({ status: true, data: { result: o, type: "checklist" } });
+                        })
+                    });
+                } else {
+                    Tag.create({
+                        linkType: "task",
+                        linkId: taskId,
+                        tagType: "document",
+                        tagTypeId: document.id
+                    }).then((o) => {
+                        Tag.findOne(
+                            {
+                                where: {
+                                    linkType: "task",
+                                    linkId: taskId,
+                                    tagType: "document",
+                                    tagTypeId: document.id
+                                },
+                                include: [
+                                    {
+                                        model: Document,
+                                        as: 'document'
+                                    }
+                                ]
+                            }
+                        ).then((o) => {
+                            cb({ status: true, data: { result: o.toJSON(), type: "document" } });
+                        })
+                    });
+                }
+
+            } else {
+                cb({ status: false, data: [] });
+            }
+        })
+        // log any errors that occur
+        form.on('error', function (err) {
+            cb({ status: false, error: "Upload error. Please try again later." });
+        });
+        form.parse(req);
     }
 }
 
@@ -1133,7 +1294,7 @@ exports.put = {
                     const { status } = body;
                     Tasks.findOne({ ...options, where: { id: body.id } }).then((response) => {
                         const currentTask = _(response.toJSON())
-                            .omit(["dateUpdated", "dateAdded"])
+                            .omit(["checklist", "tag_task", "dateUpdated", "dateAdded", "dateCompleted"])
                             .mapValues((objVal, objKey) => {
                                 if (objKey == "dueDate" || objKey == "startDate") {
                                     return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
@@ -1150,7 +1311,7 @@ exports.put = {
                         }).then((response) => {
                             const updatedResponse = response.toJSON();
                             const updatedTask = _(updatedResponse)
-                                .omit(["dateUpdated", "dateAdded"])
+                                .omit(["checklist", "tag_task", "dateUpdated", "dateAdded", "dateCompleted"])
                                 .mapValues((objVal, objKey) => {
                                     if (objKey == "dueDate" || objKey == "startDate") {
                                         return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
@@ -1224,28 +1385,40 @@ exports.put = {
                     });
                 },
                 document: (parallelCallback) => {
-                    if (body.status == "Completed") {
-                        ChecklistDocuments
-                            .findAll({
+                    async.parallel({
+                        documents: (parallelCallback) => {
+                            ChecklistDocuments.findAll({
                                 where: { taskId: body.id }
-                            })
-                            .map((res) => {
-                                return res.id
-                            })
-                            .then((res) => {
-                                if (res.length > 0) {
-                                    Document
-                                        .update({ isCompleted: 1 }, { where: { id: res } })
-                                        .then((documentRes) => {
-                                            parallelCallback(null, documentRes)
-                                        })
-                                } else {
-                                    parallelCallback(null, res)
+                            }).map((res) => {
+                                return res.toJSON().documentId
+                            }).then((o) => {
+                                parallelCallback(null, o)
+                            });
+                        },
+                        tag: (parallelCallback) => {
+                            Tag.findAll({
+                                where: {
+                                    linkType: 'task',
+                                    linkId: body.id,
+                                    tagType: 'document'
                                 }
+                            }).map((res) => {
+                                return res.toJSON().tagTypeId;
+                            }).then((o) => {
+                                parallelCallback(null, o)
                             })
-                    } else {
-                        parallelCallback(null)
-                    }
+                        }
+                    }, (err, data) => {
+                        const documentId = _.uniq([...data.documents, ...data.tag]);
+                        const updateBody = {
+                            isCompleted: (body.status == "Completed") ? 1 : 0
+                        };
+                        Document
+                            .update(updateBody, { where: { id: documentId } })
+                            .then((documentRes) => {
+                                parallelCallback(null, documentRes)
+                            });
+                    })
                 }
             }, (err, { status, periodic }) => {
                 const statusStack = [status.task];
@@ -1344,5 +1517,46 @@ exports.delete = {
                 cb({ status: false, error: res.error })
             }
         })
+    },
+    document: (req, cb) => {
+        const params = req.params;
+        const queryString = req.query;
+
+        if (queryString.type == "Subtask Document") {
+            ChecklistDocuments.update({ isDeleted: 1 },
+                {
+                    where: {
+                        id: params.id
+                    }
+                }).then(() => {
+                    cb({ status: true, id: params.id });
+                });
+        } else {
+            async.parallel({
+                tag: (parallelCallback) => {
+                    Tag.update({ isDeleted: 1 },
+                        {
+                            where: {
+                                tagType: "document",
+                                tagTypeId: params.id
+                            }
+                        }).then((response) => {
+                            parallelCallback(null);
+                        });
+                },
+                document: (parallelCallback) => {
+                    Document.update({ isDeleted: 1 },
+                        {
+                            where: {
+                                id: params.id
+                            }
+                        }).then(() => {
+                            parallelCallback(null);
+                        });
+                }
+            }, () => {
+                cb({ status: true, id: params.id });
+            })
+        }
     }
 }

@@ -104,8 +104,9 @@ module.exports = (sequelize, DataTypes) => {
     });
 
   Tasks.associate = function (models) {
-    Tasks.belongsTo(models.Tag, {
-      foreignKey: 'id'
+    Tasks.hasMany(models.Tag, {
+      as: 'tag_task',
+      foreignKey: 'linkId'
     });
     Tasks.hasMany(models.TaskDependency, {
       as: 'task_dependency',

@@ -3,6 +3,8 @@ import _ from "lodash";
 import moment from 'moment';
 import { connect } from "react-redux";
 import { MentionsInput, Mention } from 'react-mentions';
+import ReactTooltip from 'react-tooltip';
+
 import { putData, postData, deleteData, getData, showToast } from "../../globalFunction";
 import { DeleteModal, MentionConvert } from "../../globalComponents";
 import defaultStyle from "../global/react-mention-style";
@@ -54,27 +56,38 @@ export default class TaskDetails extends React.Component {
 
     completeChecklist(id) {
         const { task, dispatch } = { ...this.props };
-        const { checklist = [] } = task.Selected;
+        const { checklist = [], periodic, dueDate, id: taskId, periodTask } = task.Selected;
         const updateIndex = _.findIndex(checklist, { id });
         const getSelectedChecklist = _.find(checklist, (o) => o.id == id);
         const isCompleted = (getSelectedChecklist.isCompleted == 0) ? 1 : 0;
-        const updatedChecklistObj = { ...getSelectedChecklist, isCompleted };
-
-        putData(`/api/checklist/${id}`, updatedChecklistObj, (c) => {
-            if (c.status == 200) {
-                checklist.splice(updateIndex, 1, updatedChecklistObj);
-                const toBeUpdatedObject = {
-                    ...task.Selected,
-                    checklist
-                };
-                dispatch({ type: "SET_TASK_SELECTED", Selected: toBeUpdatedObject });
-                dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
-                showToast("success", "Checklist successfully updated.");
-            } else {
-                showToast("error", "Something went wrong please try again later.");
+        const updatedChecklistObj = {
+            ...getSelectedChecklist, ...{
+                isCompleted,
+                isPeriodicTask: periodic,
+                dueDate,
+                periodTask,
+                periodTask: (task.Selected.periodTask == null) ? taskId : periodTask
             }
-        });
+        };
 
+        if (updatedChecklistObj.isDocument == 1 && updatedChecklistObj.tagDocuments.length == 0) {
+            showToast("error", "Item requires document to complete.");
+        } else {
+            putData(`/api/checklist/${id}`, updatedChecklistObj, (c) => {
+                if (c.status == 200) {
+                    checklist.splice(updateIndex, 1, updatedChecklistObj);
+                    const toBeUpdatedObject = {
+                        ...task.Selected,
+                        checklist
+                    };
+                    dispatch({ type: "SET_TASK_SELECTED", Selected: toBeUpdatedObject });
+                    dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
+                    showToast("success", "Checklist successfully updated.");
+                } else {
+                    showToast("error", "Something went wrong please try again later.");
+                }
+            });
+        }
     }
 
     completeTask(status) {
@@ -291,7 +304,7 @@ export default class TaskDetails extends React.Component {
     render() {
         const { task: taskObj, loggedUser, activityLog, conversation } = { ...this.props };
         const { Loading, Selected } = taskObj;
-        const { id, task, task_members, dueDate, workstream, status, description, checklist, task_dependency } = Selected;
+        const { id, task, task_members, dueDate, workstream, status, description, checklist, task_dependency, tag_task } = Selected;
         const assigned = _.filter(task_members, (o) => { return o.memberType == "assignedTo" });
         const isAssignedToMe = _.find(task_members, (o) => { return o.memberType == "assignedTo" && o.user.id == loggedUser.data.id });
         const approver = _.filter(task_members, (o) => { return o.memberType == "approver" });
@@ -311,7 +324,26 @@ export default class TaskDetails extends React.Component {
         daysRemaining = (daysRemaining == 0 && dueDate != "") ? 1 : daysRemaining;
         const commentText = (typeof conversation.Selected.comment != "undefined") ? conversation.Selected.comment : "";
         const activityList = [..._.map(activityLog.List, (o) => { return { ...o, type: 'activity_log' } }), ..._.map(conversation.List, (o) => { return { ...o, type: 'conversation' } })]
-
+        const checklistDocuments = _(checklist)
+            .flatMap((o) => {
+                return _.map(o.tagDocuments, function (o) {
+                    return {
+                        name: o.document.origin,
+                        type: "Subtask Document",
+                        dateAdded: o.document.dateAdded,
+                        child: _(checklist)
+                            .filter((check) => { return check.id == o.checklistId })
+                            .map((o) => { return o.description })
+                            .value()
+                    };
+                })
+            })
+            .value();
+        const taskDocuments = _(tag_task)
+            .filter((o) => { return o.tagType == "document" })
+            .map((o) => { return { name: o.document.origin, type: "Task Document", dateAdded: o.document.dateAdded }; })
+            .value();
+        const documentList = [...checklistDocuments, ...taskDocuments];
         return (
             <div>
                 <div class="modal right fade" id="task-details" data-backdrop="static" data-keyboard="false">
@@ -495,10 +527,59 @@ export default class TaskDetails extends React.Component {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="row mb20">
+                                            <div class="row mb20 bb">
                                                 <div class="col-md-12">
-                                                    <div class="bb pb50">
+                                                    <div class="pb50">
                                                         <p class="m0">{description}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row mb20">
+                                                <div class="col-md-12 bb pb20">
+                                                    <div>
+                                                        <h3>
+                                                            Attachments
+                                                        </h3>
+                                                        <div class="ml20">
+                                                            {
+                                                                _.map(documentList, ({ name, child = [] }, index) => {
+                                                                    return (
+                                                                        <div key={index}>
+                                                                            <div class="display-flex vh-center mb10 attachment">
+                                                                                <i title={(child.length > 0) ? "Subtask Document" : "Task Document"} class={`fa ${(child.length > 0) ? "fa-file-text" : "fa-file"} mr10`} aria-hidden="true"></i>
+                                                                                <p class="m0">
+                                                                                    <a data-tip data-for={`attachment-${index}`}>
+                                                                                        {name}
+                                                                                    </a>
+                                                                                </p>
+                                                                            </div>
+                                                                            {
+                                                                                (child.length > 0) && <ReactTooltip id={`attachment-${index}`} aria-haspopup='true' type={'light'}>
+                                                                                    <div class="wrapper">
+                                                                                        <p class="mb0">Checklist:</p>
+                                                                                        {
+                                                                                            _.map(child, (o, index) => {
+                                                                                                return (
+                                                                                                    <div class="display-flex mb5 ml10" key={index}>
+                                                                                                        <p class="tooltip-label">
+                                                                                                            {o}
+                                                                                                        </p>
+                                                                                                    </div>
+                                                                                                )
+                                                                                            })
+                                                                                        }
+
+                                                                                    </div>
+                                                                                </ReactTooltip>
+                                                                            }
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                            {
+                                                                (typeof documentList == "undefined" || (documentList).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                                            }
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
