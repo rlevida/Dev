@@ -243,11 +243,11 @@ class FieldContainer extends React.Component {
                     </td>
                     <td class="document-name">
                         {data.type === "document" ?
-                            <Link to={`/projects/${projectId}/files/${data.id}`}><span class={data.isRead ? 'read' : ''}>{documentName}</span></Link>
+                            <Link to={`/projects/${projectId}/files/${data.id}`}><span class={data.isRead ? 'read' : 'unread'}>{documentName}</span></Link>
                             :
                             <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
-                                <span class="mr10 fa fa-folder fa-lg"></span>
-                                <span >{documentName}</span>
+                                <span class="fa fa-folder fa-lg read mr10"></span>
+                                <span class="read">{documentName}</span>
                             </a>
                         }
                     </td>
@@ -302,13 +302,16 @@ class FieldContainer extends React.Component {
                                     </a>
                                 </li>
                                 <li><a href="javascript:void(0)" data-tip="View" onClick={() => this.viewDocument(data)}>View</a></li>
-                                <li>
-                                    {
-                                        (data.isRead > 0)
-                                            ? <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "unread")}>Mark as unread</a>
-                                            : <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "read")}>Mark as read</a>
-                                    }
-                                </li>
+                                
+                                {data.type === "document" &&
+                                    <li>
+                                        {
+                                            (data.isRead > 0)
+                                                ? <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "unread")}>Mark as unread</a>
+                                                : <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "read")}>Mark as read</a>
+                                        }
+                                    </li>
+                                }
                             </ul>
                         </div>
                     </td>

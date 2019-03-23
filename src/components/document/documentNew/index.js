@@ -97,15 +97,18 @@ class DocumentNew extends React.Component {
         });
     }
 
-    getFolderDocuments(data) {
+    async getFolderDocuments(data) {
         const { dispatch, loggedUser, folder, history, match } = this.props;
         const projectId = match.params.projectId;
         let folderList = folder.SelectedNewFolderName;
         
         if (data === "") {
-            history.push(`/projects/${projectId}/files`)
-            this.fetchData(1)
-        } else {
+            dispatch({ type: "SET_DOCUMENT_LIST", list:[], DocumentType: 'New', Count: { Count: { current_page : 0,last_page:0,total_page:0 }}, CountType: 'NewCount' })
+            await  dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [], Type: 'SelectedNewFolderName' });
+            await dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {}, Type: 'SelectedNewFolder' })
+            await this.fetchData(1)
+            await  history.push(`/projects/${projectId}/files`)
+        } else if (folder.SelectedNewFolder.id !== data.id) {
             getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
@@ -187,15 +190,17 @@ class DocumentNew extends React.Component {
         return (
             <div class="mb20">
                 <div class="col-lg-12 col-md-12">
-                    <h3>
-                        <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>New</a>
-                        {folder.SelectedNewFolderName.map((e, index) => { return <span key={index}> <i class="fa fa-chevron-right" style={{ fontSize: '16px' }}></i><a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
-                    </h3>
+                    { (folder.SelectedNewFolderName.length > 0) &&
+                        <h3>
+                            <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>New</a>
+                            {folder.SelectedNewFolderName.map((e, index) => { return <span key={index}> <i class="fa fa-chevron-right" style={{ fontSize: '16px' }}></i><a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
+                        </h3>
+                    }
                     {
                         (document.NewDocumentLoading != "RETRIEVING" && document.New.length > 0) && <table class="table-document mb40">
                             <thead>
                                 <tr>
-                                    <th style={{ width: '5%' }}></th>
+                                    <th scope="col" style={{ width: '5%' }}></th>
                                     <th scope="col" class="td-left" >File Name</th>
                                     <th scope="col">Uploaded By</th>
                                     <th scope="col">Upload Date</th>

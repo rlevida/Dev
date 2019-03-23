@@ -807,7 +807,8 @@ exports.put = {
                                                 tagTask: findRes.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
                                                 tagNote: findRes.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                                                 members: findRes.document.share.map((e) => { return e.user }),
-                                                share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                                                share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                                isRead: findRes.document.document_read.length > 0 ? 1 : 0
                                             }
                                             parallelCallback(null, { data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
                                         })
