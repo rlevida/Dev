@@ -43,36 +43,26 @@ class Component extends React.Component {
             if (project.Category.Client.length) {
                 category = _.filter(project.Category.Client, (e) => { return e.id === parseInt(project.Selected.id) })
                 if (category.length) {
-                    dispatch({ type: "SET_ACTIVE_CATEGORY", ActiveCategory: category[0].type.type })
+                    dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: category[0].type.type })
                 }
             }
             if (project.Category.Internal.length) {
                 category = _.filter(project.Category.Internal, (e) => { return e.id === parseInt(project.Selected.id) })
                 if (category.length) {
-                    dispatch({ type: "SET_ACTIVE_CATEGORY", ActiveCategory: category[0].type.type })
+                    dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: category[0].type.type })
                 }
             }
             if (project.Category.Private.length) {
                 category = _.filter(project.Category.Private, (e) => { return e.id === parseInt(project.Selected.id) })
                 if (category.length) {
-                    dispatch({ type: "SET_ACTIVE_CATEGORY", ActiveCategory: category[0].type.type })
+                    dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: category[0].type.type })
                 }
             }
         }
     }
 
-    componentWillUnmount() {
-        const { dispatch } = { ...this.props };
-    }
-
     componentDidMount() {
         const { dispatch } = this.props;
-
-        // if (typeof project != "undefined" && project) {
-        //     getData(`/api/project/detail/${project}`, {}, (c) => {
-        //         dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data })
-        //     })
-        // }
 
         getData(`/api/project?typeId=1`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Client" })
@@ -90,7 +80,7 @@ class Component extends React.Component {
 
         if (history.location.pathname !== `/projects/${e.id}`) {
             history.push(`/projects/${e.id}`)
-            dispatch({ type: "SET_ACTIVE_CATEGORY", ActiveCategory: category })
+            dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: category })
         }
     }
 
@@ -136,6 +126,14 @@ class Component extends React.Component {
                                     )
                                 })
                             }
+                            {
+                                project.Category.Client.length === 0 &&
+                                <li>
+                                   <a href="javascript:void(0)">
+                                        No project available
+                                    </a>
+                                </li>
+                            }
                         </ul>
                     </ul>
                 </div>
@@ -157,6 +155,14 @@ class Component extends React.Component {
                                     )
                                 })
                             }
+                            {
+                                project.Category.Internal.length === 0 &&
+                                <li>
+                                   <a href="javascript:void(0)">
+                                        No project available
+                                    </a>
+                                </li>
+                            }
                         </ul>
                     </ul>
                 </div>
@@ -177,6 +183,14 @@ class Component extends React.Component {
                                         </li>
                                     )
                                 })
+                            }
+                            {
+                                project.Category.Private.length === 0 &&
+                                <li>
+                                   <a href="javascript:void(0)">
+                                        No project available
+                                    </a>
+                                </li>
                             }
                         </ul>
                     </ul>

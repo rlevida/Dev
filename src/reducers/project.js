@@ -86,7 +86,7 @@ export default function reducer(state = {
         case "SET_PROJECT_CATEGORY": {
             return { ...state, Category: { ...state.Category, [action.category]: action.list } }
         }
-        case "SET_ACTIVE_CATEGORY": {
+        case "SET_PROJECT_ACTIVE_CATEGORY": {
             return { ...state, Category: { ...state.Category, Active: action.ActiveCategory } }
         }
         default:
