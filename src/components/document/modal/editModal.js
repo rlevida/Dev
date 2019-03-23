@@ -3,6 +3,7 @@ import { showToast, putData, getData } from '../../../globalFunction';
 import { DropDown } from "../../../globalComponents";
 import _ from "lodash";
 import { connect } from "react-redux";
+import { withRouter } from "react-router";
 
 let keyTimer = "";
 
@@ -12,11 +13,10 @@ let keyTimer = "";
         loggedUser: store.loggedUser,
         global: store.global,
         workstream: store.workstream,
-        project: store.project
     }
 })
 
-export default class EditModal extends React.Component {
+class EditModal extends React.Component {
     constructor(props) {
         super(props)
         _.map([
@@ -46,13 +46,15 @@ export default class EditModal extends React.Component {
     }
 
     fetchWorkstreamList(options) {
-        const { dispatch, document, loggedUser, project } = { ...this.props };
-        const { Selected } = document;
-        let fetchUrl = `/api/workstream?projectId=${typeof project.Selected.id !== 'undefined' ? project.Selected.id : Selected.projectId}&page=1&userId=${loggedUser.data.id}`;
+        const { dispatch, loggedUser, match } = { ...this.props };
+        const projectId = match.params.projectId;
+
+        let fetchUrl = `/api/workstream?projectId=${projectId}&page=1&userId=${loggedUser.data.id}`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&workstream=${options}`;
         }
+
         getData(fetchUrl, {}, (c) => {
             const workstreamOptions = _(c.data.result)
                 .map((e) => { return { id: e.id, name: e.workstream } })
@@ -70,8 +72,9 @@ export default class EditModal extends React.Component {
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: Selected });
     }
 
-    handleSubmit(e) {
-        const { loggedUser, document, dispatch, project } = this.props;
+    handleSubmit() {
+        const { loggedUser, document, dispatch, match } = this.props;
+        const projectId = match.params.projectId;
         let result = true;
 
         $('.form-container *').validator('validate');
@@ -92,12 +95,10 @@ export default class EditModal extends React.Component {
                 oldDocument: document.Selected.oldDocument,
                 newDocument: document.Selected.origin,
                 usersId: loggedUser.data.id,
-                projectId: project.Selected.id
+                projectId: projectId
             }
-            putData(`/api/document/rename/${document.Selected.id}`, dataToSubmit, (c) => {
+            putData(`/api/document/rename/${document.Selected.id}?starredUser=${loggedUser.data.id}`, dataToSubmit, (c) => {
                 if (c.status == 200) {
-                    console.log(c.data.result)
-                    console.log(document.Selected.status)
                     dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status, })
                     dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                     showToast("success", "Successfully Updated.")
@@ -113,10 +114,10 @@ export default class EditModal extends React.Component {
                 oldDocument: document.Selected.oldDocument,
                 newDocument: document.Selected.tagWorkstream.map((e) => { return e.label }).join(','),
                 usersId: loggedUser.data.id,
-                projectId: project.Selected.id,
+                projectId: projectId,
                 origin: document.Selected.origin
             }
-            putData(`/api/document/tag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}`, dataToSubmit, (c) => {
+            putData(`/api/document/tag/${document.Selected.id}?tagTypeId=${document.Selected.id}&tagType=document&status=${document.Selected.status}&starredUser=${loggedUser.data.id}`, dataToSubmit, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: document.Selected.status });
                     dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
@@ -130,7 +131,7 @@ export default class EditModal extends React.Component {
     }
 
     selectTag(e) {
-        const { dispatch, document, workstream } = this.props;
+        const { dispatch, document } = this.props;
         const Selected = Object.assign({}, document.Selected);
 
         Selected["tags"] = e;
@@ -138,19 +139,13 @@ export default class EditModal extends React.Component {
     }
 
     setDropDown(name, value) {
-        let { dispatch, document } = this.props
+        const { dispatch, document } = this.props
         const selectedObj = { ...document.Selected, [name]: value };
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj });
     }
 
     render() {
-        const { document, global, workstream } = this.props;
-        let tagOptions = [];
-
-        // if (typeof global.SelectList.workstreamList !== 'undefined' && typeof global.SelectList.taskList !== 'undefined') {
-        //     global.SelectList.workstreamList.map((e) => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) });
-        //     global.SelectList.taskList.filter((e) => { return e.status != "Completed" }).map((e) => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) });
-        // }
+        const { document, workstream } = this.props;
 
         return (
             <div class="modal fade" id="editModal" tabIndex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -212,3 +207,5 @@ export default class EditModal extends React.Component {
         )
     }
 }
+
+export default withRouter(EditModal);

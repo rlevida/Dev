@@ -12,6 +12,7 @@ const {
     ActivityLogsDocument,
     Document,
     DocumentLink,
+    DocumentRead,
     Members,
     Share,
     Starred,
@@ -81,7 +82,7 @@ const associationFindAllStack = [
     {
         model: Starred,
         as: 'document_starred',
-        where: { linkType: 'document', isActive: 1 },
+        where: { linkType: 'document', isActive: 1, isDeleted: 0 },
         required: false,
         include: [
             {
@@ -90,10 +91,16 @@ const associationFindAllStack = [
                 attributes: ['id', 'firstName', 'lastName', 'emailAddress']
             }
         ]
-    }, {
+    },
+    {
         model: Document,
         as: 'document_folder',
         where: { type: 'folder' },
+        required: false
+    },
+    {
+        model: DocumentRead,
+        as: 'document_read',
         required: false
     }
 ]
@@ -141,6 +148,13 @@ exports.get = {
                     { origin: { [Op.like]: `%${queryString.search}%` } },
                 ]
             }
+        }
+
+        if (typeof queryString.userId !== "undefined" && queryString.userId !== '') {
+            _.find(associationFindAllStack, { as: 'document_read' }).where = {
+                usersId: queryString.userId,
+                isDeleted: 0
+            };
         }
 
         if (typeof queryString.workstream !== 'undefined' && queryString.workstream !== '') {
@@ -191,6 +205,7 @@ exports.get = {
             _.find(associationFindAllStack, { as: 'document_starred' }).where = {
                 linkType: 'document',
                 isActive: 1,
+                isDeleted: 0,
                 usersId: queryString.starredUser
             };
         }
@@ -243,7 +258,8 @@ exports.get = {
                                 tagNote: res.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                                 members: res.document.share.map((e) => { return e.user }),
                                 share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
-                                isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (res.document.document_starred).length > 0) ? res.document.document_starred[0].isActive : 0
+                                isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (res.document.document_starred).length > 0) ? res.document.document_starred[0].isActive : 0,
+                                isRead: res.document.document_read.length > 0 ? 1 : 0
                             }
                             return _.omit(resToReturn, 'tagDocumentWorkstream', 'tagDocumentTask', 'tagDocumentNotes')
                         })
@@ -267,7 +283,6 @@ exports.get = {
         const whereObj = {
             ...(typeof id !== "undefined" && id !== "") ? { id: id } : {}
         }
-
         Document
             .findOne({
                 where: whereObj,
@@ -340,7 +355,7 @@ exports.get = {
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
             ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "") ? { folderId: queryString.folderId } : {},
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
-            ...(typeof queryString.type != "undefined" && queryString.type != "") ? { type : queryString.type } : {}
+            ...(typeof queryString.type != "undefined" && queryString.type != "") ? { type: queryString.type } : {}
         }
 
         const tagWhereObj = {
@@ -584,7 +599,8 @@ exports.post = {
                             tagTask: res.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
                             tagNote: res.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                             members: res.document.share.map((e) => { return e.user }),
-                            share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                            share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                            isRead: res.document.document_read.length > 0 ? 1 : 0
                         }
                         return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
                     })
@@ -611,8 +627,8 @@ exports.post = {
             form.on('file', function (field, file) {
                 var date = new Date();
                 var Id = func.generatePassword(date.getTime() + file.name, "attachment");
-                var filename = file.name + "_" + Id + "." + func.getFilePathExtension(file.name);
-
+                var filename = Id + (file.name.replace(/[^\w.]|_/g, "_"));
+                
                 filenameList.push({
                     filename: filename,
                     origin: file.name,
@@ -722,6 +738,17 @@ exports.post = {
     removeTempFile: (req, cb) => {
         let fs = global.initRequire('fs')
         fs.unlink(`${__dirname} /../ public / temp / ${req.body.data}`, (t) => { });
+    },
+    read: (req, cb) => {
+        let data = req.body;
+        DocumentRead
+            .create({ ...data })
+            .then((res) => {
+                cb({ status: true, data: res })
+            })
+            .catch((err) => {
+                cb({ status: false, error: err })
+            })
     }
 }
 
@@ -780,7 +807,8 @@ exports.put = {
                                                 tagTask: findRes.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
                                                 tagNote: findRes.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                                                 members: findRes.document.share.map((e) => { return e.user }),
-                                                share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                                                share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                                isRead: findRes.document.document_read.length > 0 ? 1 : 0
                                             }
                                             parallelCallback(null, { data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
                                         })
@@ -903,7 +931,9 @@ exports.put = {
                                     tagTask: res.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
                                     tagNote: res.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                                     members: res.document.share.map((e) => { return e.user }),
-                                    share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                                    share: JSON.stringify(res.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                    isRead: res.document.document_read.length > 0 ? 1 : 0
+
                                 }
                                 parallelCallback(null, { data: _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
                             })
@@ -953,6 +983,7 @@ exports.put = {
     },
     rename: (req, cb) => {
         let body = req.body;
+        let queryString = req.query;
         const { usersId, oldDocument, newDocument, projectId } = body;
         let id = req.params.id;
         body = _.omit(body, 'usersId', 'oldDocument', 'newDocument', 'projectId');
@@ -1004,7 +1035,9 @@ exports.put = {
                                             tagTask: findRes.document.tagDocumentTask.map((e) => { return { value: e.tagTask.id, label: e.tagTask.task } }),
                                             tagNote: findRes.document.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                                             members: findRes.document.share.map((e) => { return e.user }),
-                                            share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } }))
+                                            share: JSON.stringify(findRes.document.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
+                                            isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (findRes.document.document_starred).length > 0) ? findRes.document.document_starred[0].isActive : 0,
+                                            isRead: res.document.document_read.length > 0 ? 1 : 0
                                         }
                                         parallelCallback(null, { data: _.omit(dataToReturn, "tagDocumentWorkstream", "tagDocumentTask") })
                                     })
@@ -1086,6 +1119,16 @@ exports.put = {
         } catch (err) {
             cb({ status: false, error: err })
         }
+    },
+    read: (req, cb) => {
+        const id = req.params.id
+        const body = req.body
+
+        DocumentRead
+            .update({ isDeleted: body.isDeleted }, { where: { id: id } })
+            .then((res) => {
+                cb({ status: true, data: res })
+            })
     }
 }
 
@@ -1101,5 +1144,18 @@ exports.delete = {
         } catch (err) {
             cb({ status: false, error: err });
         }
+    },
+    read: (req, cb) => {
+        const queryString = req.query;
+        const whereObj = {
+            ...(queryString.usersId) ? { usersId: queryString.usersId } : {},
+            ...(queryString.documentId) ? { documentId: queryString.documentId } : {}
+        }
+
+        DocumentRead
+            .destroy({ where: { ...whereObj } })
+            .then((res) => {
+                cb({ status: 200, data: res })
+            })
     }
 }

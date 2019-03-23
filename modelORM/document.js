@@ -108,6 +108,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'document_folder',
       foreignKey: 'folderId'
     })
+    Document.hasMany(models.DocumentRead, {
+      as: 'document_read',
+      foreignKey: 'documentId'
+    })
   };
 
   return Document;

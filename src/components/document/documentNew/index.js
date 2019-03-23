@@ -10,7 +10,6 @@ import { withRouter } from "react-router";
         document: store.document,
         loggedUser: store.loggedUser,
         folder: store.folder,
-        project: store.project
     }
 })
 
@@ -18,22 +17,22 @@ class DocumentNew extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            folderAction: "",
-            selectedFilter: 0,
             order: 'asc',
         }
         this.fetchData = this.fetchData.bind(this);
     }
 
     componentDidMount() {
-        const { dispatch, document, loggedUser, location, project } = this.props;
+        const { dispatch, document, loggedUser, location, match } = this.props;
+        const projectId = match.params.projectId;
         const searchParams = new URLSearchParams(location.search);
         const folderId = searchParams.get("id");
         const folderStatus = searchParams.get("status")
         const folderOrigin = searchParams.get("folder")
+
         // automatically move to selected folder
         if (location.search !== "" && folderStatus === "new" && folderOrigin !== "") {
-            getData(`/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderId}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderId}&starredUser=${loggedUser.data.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
@@ -49,39 +48,13 @@ class DocumentNew extends React.Component {
         }
     }
 
-    addFolder() {
-        const { loggedUser, folder, dispatch } = this.props;
-        const { folderName } = this.state;
-        const dataToSubmit = [
-            {
-                name: folderName,
-                projectId: project,
-                origin: folderName,
-                createdBy: loggedUser.data.id,
-                type: "folder",
-                folderId: folder.SelectedNewFolder.id,
-                project: project,
-                uploadedBy: loggedUser.data.id,
-                status: 'new'
-            }
-        ];
-
-        postData(`/api/document`, dataToSubmit, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New' });
-                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
-                showToast("success", "Successfully Added.")
-            } else {
-                showToast("error", "Saving failed. Please Try again later.")
-            }
-            this.setState({ folderAction: "", folderName: "" });
-        })
-    }
-
     fetchData(page) {
-        const { dispatch, loggedUser, document, folder, project } = this.props;
-        let requestUrl = `/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new&folderId=${(typeof folder.SelectedNewFolder.id !== 'undefined') ? folder.SelectedNewFolder.id : null}&starredUser=${loggedUser.data.id}`;
+        const { dispatch, loggedUser, document, folder, match } = this.props;
+        const projectId = match.params.projectId;
         const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo } = document.Filter;
+
+        let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&status=new&folderId=${(typeof folder.SelectedNewFolder.id !== 'undefined') ? folder.SelectedNewFolder.id : null}&starredUser=${loggedUser.data.id}`;
+
         if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
             requestUrl += `&isCompleted=${isCompleted}`
         }
@@ -124,36 +97,43 @@ class DocumentNew extends React.Component {
         });
     }
 
-    getFolderDocuments(data) {
-        const { dispatch, loggedUser, folder, history, project } = this.props;
-        let folderList = folder.SelectedNewFolderName
-        getData(`/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-                dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-                dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedNewFolder' })
+    async getFolderDocuments(data) {
+        const { dispatch, loggedUser, folder, history, match } = this.props;
+        const projectId = match.params.projectId;
+        let folderList = folder.SelectedNewFolderName;
+        
+        if (data === "") {
+            dispatch({ type: "SET_DOCUMENT_LIST", list:[], DocumentType: 'New', Count: { Count: { current_page : 0,last_page:0,total_page:0 }}, CountType: 'NewCount' })
+            await  dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [], Type: 'SelectedNewFolderName' });
+            await dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {}, Type: 'SelectedNewFolder' })
+            await this.fetchData(1)
+            await  history.push(`/projects/${projectId}/files`)
+        } else if (folder.SelectedNewFolder.id !== data.id) {
+            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+                if (c.status == 200) {
+                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
+                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
+                    dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedNewFolder' })
 
-                let hasFolder = true;
-                let parentFolderId = data.id;
-                while (hasFolder) {
-                    let parentFolder = folderList.filter((e) => { return e.folderId == parentFolderId });
-                    if (parentFolder.length > 0) {
-                        folderList = folderList.filter((e) => { return e.folderId != parentFolderId });
-                        parentFolderId = parentFolder[0].id;
-                    } else {
-                        hasFolder = false;
+                    let hasFolder = true;
+                    let parentFolderId = data.id;
+                    while (hasFolder) {
+                        let parentFolder = folderList.filter((e) => { return e.folderId == parentFolderId });
+                        if (parentFolder.length > 0) {
+                            folderList = folderList.filter((e) => { return e.folderId != parentFolderId });
+                            parentFolderId = parentFolder[0].id;
+                        } else {
+                            hasFolder = false;
+                        }
                     }
+
+                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList, Type: 'SelectedNewFolderName' });
+                    showToast('success', 'Documents successfully retrieved.');
+                } else {
+                    showToast('success', 'Something went wrong!')
                 }
-                if (data === '') {
-                    history.push(`/projects/${project.Selected.id}/files`)
-                    this.fetchData(1)
-                }
-                dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList, Type: 'SelectedNewFolderName' });
-                showToast('success', 'Documents successfully retrieved.');
-            } else {
-                showToast('success', 'Something went wrong!')
-            }
-        });
+            });
+        }
     }
 
     getNextResult() {
@@ -162,7 +142,8 @@ class DocumentNew extends React.Component {
     }
 
     moveTo(folderData, documentData) {
-        const { dispatch, loggedUser, project } = this.props;
+        const { dispatch, loggedUser, match } = this.props;
+        const projectId = match.params.projectId;
         const dataToSubmit = {
             origin: documentData.origin,
             status: folderData.status,
@@ -171,7 +152,7 @@ class DocumentNew extends React.Component {
             oldDocument: documentData.origin,
             newDocument: "",
             title: `${documentData.type === 'document' ? 'Document' : 'Folder'} moved to folder ${folderData.origin}`,
-            projectId: project.Selected.id,
+            projectId: projectId,
             usersId: loggedUser.data.id,
         };
 
@@ -209,15 +190,18 @@ class DocumentNew extends React.Component {
         return (
             <div class="mb20">
                 <div class="col-lg-12 col-md-12">
-                    <h3>
-                        <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>New</a>
-                        {folder.SelectedNewFolderName.map((e, index) => { return <span key={index}> <i class="fa fa-chevron-right" style={{ fontSize: '16px' }}></i><a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
-                    </h3>
+                    { (folder.SelectedNewFolderName.length > 0) &&
+                        <h3>
+                            <a style={{ cursor: "pointer" }} onClick={() => this.getFolderDocuments("")}>New</a>
+                            {folder.SelectedNewFolderName.map((e, index) => { return <span key={index}> <i class="fa fa-chevron-right" style={{ fontSize: '16px' }}></i><a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })}
+                        </h3>
+                    }
                     {
                         (document.NewDocumentLoading != "RETRIEVING" && document.New.length > 0) && <table class="table-document mb40">
                             <thead>
                                 <tr>
-                                    <th scope="col" class="td-left">File Name</th>
+                                    <th scope="col" style={{ width: '5%' }}></th>
+                                    <th scope="col" class="td-left" >File Name</th>
                                     <th scope="col">Uploaded By</th>
                                     <th scope="col">Upload Date</th>
                                     <th scope="col">Workstream</th>
@@ -227,7 +211,7 @@ class DocumentNew extends React.Component {
                             </thead>
                             <tbody>
                                 {
-                                    document.New.map((data, index) => {
+                                    _.orderBy(document.New, ['dateAdded'], ['desc']).map((data, index) => {
                                         return (
                                             <FieldContainer
                                                 data={data}

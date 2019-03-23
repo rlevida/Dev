@@ -1,16 +1,16 @@
 import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
-import { showToast, putData, deleteData } from "../../../globalFunction";
+import { showToast, putData } from "../../../globalFunction";
+import { withRouter } from "react-router";
 
 @connect((store) => {
     return {
-        project: store.project,
         loggedUser: store.loggedUser,
         document: store.document
     }
 })
-export default class ArchiveModal extends React.Component {
+class ArchiveModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -23,9 +23,15 @@ export default class ArchiveModal extends React.Component {
     }
 
     deleteDocument() {
-        let { document, dispatch, loggedUser, project } = this.props;
+        const { document, dispatch, loggedUser, match } = this.props;
+        const projectId = match.params.projectId;
 
-        putData(`/api/document/${document.Selected.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: document.Selected.origin, projectId: project.Selected.id, type: document.Selected.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
+        putData(`/api/document/${document.Selected.id}`, {
+            isDeleted: 1, usersId: loggedUser.data.id,
+            oldDocument: document.Selected.origin,
+            projectId: projectId, type: document.Selected.type,
+            actionType: "deleted", title: 'Document deleted'
+        }, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: document.Selected.status === 'new' ? 'New' : 'Library', Id: document.Selected.id });
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
@@ -39,10 +45,11 @@ export default class ArchiveModal extends React.Component {
     }
 
     archiveProject() {
-        let { dispatch, project } = this.props;
-        let dataToSubmit = { isDeleted: 1 }
+        const { dispatch, match } = this.props;
+        const projectId = match.params.projectId;
+        const dataToSubmit = { isDeleted: 1 }
 
-        putData(`/api/project/archive/${project.Selected.id}`, dataToSubmit, (c) => {
+        putData(`/api/project/archive/${projectId}`, dataToSubmit, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "REMOVE_DELETED_PROJECT_LIST", id: c.data });
                 showToast("success", "Successfully Archived.");
@@ -86,3 +93,5 @@ export default class ArchiveModal extends React.Component {
         )
     }
 }
+
+export default withRouter(ArchiveModal)

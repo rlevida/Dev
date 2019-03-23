@@ -1,21 +1,24 @@
 import React from "react";
-import { connect } from "react-redux"
-
+import { connect } from "react-redux";
 import { showToast, postData } from '../../../globalFunction';
 import _ from "lodash";
+import { withRouter } from "react-router";
 
 @connect((store) => {
     return {
         document: store.document,
         loggedUser: store.loggedUser,
         folder: store.folder,
-        project: store.project
     }
 })
 
-export default class FolderModal extends React.Component {
+class FolderModal extends React.Component {
     constructor(props) {
         super(props)
+        _.map([
+            "submit",
+            "onChange",
+        ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
     componentDidMount() {
@@ -23,8 +26,10 @@ export default class FolderModal extends React.Component {
     }
 
     submit() {
-        const { loggedUser, folder, dispatch, project } = this.props;
+        const { loggedUser, folder, dispatch, match } = this.props;
+        const projectId = match.params.projectId;
         let result = true;
+
         $('#folder-form *').validator('validate');
         $('#folder-form .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
@@ -44,11 +49,11 @@ export default class FolderModal extends React.Component {
                 origin: folder.Selected.name,
                 createdBy: loggedUser.data.id,
                 type: "folder",
-                project: project.Selected.id,
+                project: projectId,
                 uploadedBy: loggedUser.data.id,
                 status: 'new',
             }],
-            projectId: project.Selected.id,
+            projectId: projectId,
             folderId: folder.SelectedNewFolder.id,
         };
 
@@ -107,3 +112,5 @@ export default class FolderModal extends React.Component {
         )
     }
 }
+
+export default withRouter(FolderModal)

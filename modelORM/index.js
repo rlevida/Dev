@@ -29,6 +29,7 @@ const ChecklistDocuments = require('./checklist_documents')(sequelize, Sequelize
 const Conversation = require('./conversation')(sequelize, Sequelize.DataTypes);
 const Document = require('./document')(sequelize, Sequelize.DataTypes);
 const DocumentLink = require('./document_link')(sequelize, Sequelize.DataTypes);
+const DocumentRead = require('./document_read')(sequelize,Sequelize.DataTypes);
 const IpBlock = require('./ip_block')(sequelize, Sequelize.DataTypes);
 const Folder = require('./folder')(sequelize, Sequelize.DataTypes);
 const Members = require('./members')(sequelize, Sequelize.DataTypes);
@@ -62,6 +63,7 @@ const models = {
     Conversation,
     Document,
     DocumentLink,
+    DocumentRead,
     IpBlock,
     Folder,
     Members,
