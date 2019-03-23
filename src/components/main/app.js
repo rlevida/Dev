@@ -106,13 +106,6 @@ class Main extends React.Component {
                 show_menu: true
             },
             {
-                label: "Projects",
-                icon: "fa-calendar",
-                path_name: "projects",
-                component: Projects,
-                show_menu: true
-            },
-            {
                 label: "My Tasks",
                 icon: "fa-list",
                 path_name: "my-tasks",
@@ -131,6 +124,13 @@ class Main extends React.Component {
                 icon: "fa-users",
                 path_name: "users-and-team",
                 component: Users,
+                show_menu: true
+            },
+            {
+                label: "Projects",
+                icon: "fa-calendar",
+                path_name: "projects",
+                component: Projects,
                 show_menu: true
             },
             {

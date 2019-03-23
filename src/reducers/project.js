@@ -13,7 +13,13 @@ export default function reducer(state = {
     Selected: { isActive: 1 },
     StatusCount: [],
     SelectedId: [],
-    SelectList: []
+    SelectList: [],
+    Category: {
+        Client: [],
+        Internal: [],
+        Private: [],
+        Active: ""
+    }
 }, action) {
     switch (action.type) {
         case "SET_PROJECT_LIST": {
@@ -76,6 +82,12 @@ export default function reducer(state = {
         }
         case "SET_PROJECT_SELECT_LIST": {
             return { ...state, SelectList: action.List }
+        }
+        case "SET_PROJECT_CATEGORY": {
+            return { ...state, Category: { ...state.Category, [action.category]: action.list } }
+        }
+        case "SET_PROJECT_ACTIVE_CATEGORY": {
+            return { ...state, Category: { ...state.Category, Active: action.ActiveCategory } }
         }
         default:
             return state;
