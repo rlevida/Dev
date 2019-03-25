@@ -96,7 +96,7 @@ class Component extends React.Component {
                                     class={
                                         `
                                         ${(current_page != "" && current_page.label == page.label) ? 'active' : ''} 
-                                        ${page.path_name == "projects" ? 'mt20' : ''}
+                                        ${page.path_name == "projects" ? '' : ''}
                                         `
                                     }>
                                     <Link to={`/${page.path_name}`} class="menu-list">
