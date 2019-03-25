@@ -41,7 +41,7 @@ exports.get = {
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? {
                 isActive: queryString.isActive
             } : {},
-            isDeleted: 0 
+            isDeleted: 0
         }
 
         const modelList = {
@@ -264,7 +264,7 @@ exports.get = {
     settings: (req, cb) => {
         cb({
             status: true,
-            data: { name: "imageUrl", value: global.AWSLink + global.environment }
+            data: { name: "imageUrl", value: `${global.AWSLink}${global.environment || "development"}` }
         })
     }
 }

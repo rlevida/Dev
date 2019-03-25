@@ -2549,7 +2549,6 @@ textarea::-webkit-scrollbar-thumb {
 }
 
 .document-name a{
-  color:#5bc0de!important;
   text-decoration: none!important;
   text-align: left;
   float: left;
@@ -2557,6 +2556,13 @@ textarea::-webkit-scrollbar-thumb {
   white-space: nowrap; 
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.document-name a .read{
+  color:#4F4F4F;
+}
+
+.document-name a .unread{
+  color:#5bc0de!important;
 }
 
 .document-name a:hover{
@@ -2585,4 +2591,52 @@ textarea::-webkit-scrollbar-thumb {
 
 .border-red{
   border:solid 1px #a94442!important;
+}
+
+.project-menu-category ul{
+  padding: 0
+}
+
+.project-menu-category .open>.dropdown-menu {
+    display: contents!important;
+}
+
+.project-menu-category a{
+  color: #fff;
+  text-decoration: none;
+  padding: 15px 0 15px 30px
+
+}
+
+.project-menu-category .dropdown-menu > li > a{
+  padding:3px 50px;
+  margin: 2px;
+  color:#fff
+}
+
+.project-menu-category li:hover{
+  background-color:#2c4ebc;
+  cursor: pointer;
+}
+
+.project-menu-category 
+.dropdown-menu a:hover,
+.dropdown-menu a:focus,
+.dropdown-menu a:active{
+  background-color:#2c4ebc;
+  color:#fff;
+  text-decoration: none;
+}
+
+.project-menu-category .dropdown-menu li .active{
+  background-color:#2c4ebc;
+  color:#fff
+}
+
+.project-menu-category a, 
+.project-menu-category a:hover, 
+.project-menu-category a:focus, 
+.project-menu-category a:active {
+  text-decoration: none;
+  color: #fff;
 }

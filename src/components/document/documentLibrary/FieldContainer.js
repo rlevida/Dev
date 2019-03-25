@@ -1,8 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
 import { DragSource, DropTarget } from 'react-dnd';
-import { displayDateMD, getData, postData, putData, showToast } from '../../../globalFunction';
+import { displayDateMD, getData, postData, putData, showToast, deleteData } from '../../../globalFunction';
 import { Link } from 'react-router-dom';
+import { withRouter } from "react-router";
 
 const itemSource = {
     beginDrag(props) {
@@ -38,7 +39,6 @@ const itemTarget = {
         document: store.document,
         loggedUser: store.loggedUser,
         folder: store.folder,
-        project: store.project
     }
 })
 
@@ -58,16 +58,17 @@ const itemTarget = {
     }
 })
 
-export default class DocumentLibrary extends React.Component {
+class FieldContainer extends React.Component {
     constructor(props) {
         super(props)
         this.starredDocument = this.starredDocument.bind(this);
     }
 
     archiveDocument(data) {
-        const { dispatch, loggedUser, project } = this.props;
+        const { dispatch, loggedUser, match } = this.props;
+        const projectId = match.params.projectId;
         if (confirm("Do you really want to archive this record?")) {
-            putData(`/api/document/${data.id}`, { isArchived: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project.Selected.id, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
+            putData(`/api/document/${data.id}`, { isArchived: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: projectId, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result, Status: data.status, });
                     dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
@@ -80,9 +81,11 @@ export default class DocumentLibrary extends React.Component {
     }
 
     deleteDocument(data) {
-        const { dispatch, loggedUser, project } = this.props;
+        const { dispatch, loggedUser, match } = this.props;
+        const projectId = match.params.projectId;
+
         if (confirm("Do you really want to delete this record?")) {
-            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: project.Selected.id, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
+            putData(`/api/document/${data.id}`, { isDeleted: 1, usersId: loggedUser.data.id, oldDocument: data.origin, projectId: projectId, type: data.type, actionType: "deleted", title: 'Document deleted' }, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: 'Library', Id: data.id })
                     dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
@@ -103,8 +106,15 @@ export default class DocumentLibrary extends React.Component {
     }
 
     duplicateDocument(data) {
-        const { dispatch, document, loggedUser, project } = this.props;
-        const dataToSubmit = [{ name: data.name, origin: data.origin, project: project.Selected.id, uploadedBy: loggedUser.data.id, status: data.status, tags: JSON.stringify(data.tags), type: 'document' }]
+        const { dispatch, document, loggedUser, match } = this.props;
+        const projectId = match.params.projectId;
+        const dataToSubmit = {
+            DocumentToSave: [{ name: data.name, origin: data.origin, project: projectId, uploadedBy: loggedUser.data.id, status: data.status, type: data.type }],
+            projectId: projectId,
+            tagWorkstream: data.tagWorkstream,
+            tagTask: data.tagTask,
+            tagNote: data.tagNote
+        };
 
         postData(`/api/document?isDuplicate=true`, dataToSubmit, (c) => {
             if (c.status == 200) {
@@ -123,6 +133,7 @@ export default class DocumentLibrary extends React.Component {
     editDocument(data, type) {
         const { dispatch } = this.props;
         const newData = { ...data, workstreamId: data.tagWorkstream };
+
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...newData, oldDocument: type === 'tags' ? data.tagWorkstream.map((e) => { return e.label }).join(',') : newData.origin } });
         dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type });
         $(`#editModal`).modal('show');
@@ -137,10 +148,11 @@ export default class DocumentLibrary extends React.Component {
     }
 
     starredDocument({ id, isStarred, origin }) {
-        const { document, loggedUser, dispatch, project } = this.props;
+        const { document, loggedUser, dispatch, match } = this.props;
+        const projectId = match.params.projectId;
         const isStarredValue = (isStarred > 0) ? 0 : 1;
 
-        postData(`/api/starred?projectId=${project.Selected.id}&document=${origin}`, {
+        postData(`/api/starred?projectId=${projectId}&document=${origin}`, {
             linkType: "document",
             linkId: id,
             usersId: loggedUser.data.id
@@ -153,7 +165,6 @@ export default class DocumentLibrary extends React.Component {
                     return documentObj;
                 });
                 dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList, DocumentType: 'Library' });
-                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.documentActivityLog })
                 showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
             } else {
                 showToast("error", "Something went wrong please try again later.");
@@ -162,12 +173,14 @@ export default class DocumentLibrary extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch, loggedUser, folder, project } = this.props;
+        const { dispatch, loggedUser, folder, match } = this.props;
+        const projectId = match.params.projectId;
+
         if (data.type !== 'folder') {
             dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: "DocumentViewer" });
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
         } else {
-            getData(`/api/document?isDeleted=0&linkId=${project.Selected.id}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
+            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}`, {}, (c) => {
                 if (c.status == 200) {
                     dispatch({ type: 'SET_DOCUMENT_LIST', list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
@@ -179,8 +192,27 @@ export default class DocumentLibrary extends React.Component {
         }
     }
 
+    readDocument(data, action) {
+        const { dispatch, loggedUser } = this.props;
+        const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 }
+        if (action === "read") {
+            postData(`/api/document/read`, dataToSubmit, (c) => {
+                const documentObj = { ...data, isRead: 1, document_read: [c.data] }
+                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: documentObj, Status: documentObj.status });
+                showToast('success', 'Document successfully mark as read.');
+            })
+        } else {
+            deleteData(`/api/document/read/${data.id}?usersId=${loggedUser.data.id}&documentId=${data.id}`, {}, (c) => {
+                const documentObj = { ...data, isRead: 0, document_read: [] }
+                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: documentObj, Status: documentObj.status });
+                showToast('success', 'Document successfully mark as unread.');
+            })
+        }
+    }
+
     render() {
-        const { document, dispatch, loggedUser, data, index, folder, moveTo, project } = this.props
+        const { document, dispatch, loggedUser, data, index, moveTo, match } = this.props
+        const projectId = match.params.projectId;
         let tagCount = 0;
         const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
         const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
@@ -195,19 +227,15 @@ export default class DocumentLibrary extends React.Component {
                             <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
                         </a>
                     </td>
-                    <td>
-                        <div class="document-name">
-                            {data.type === "document"
-                                ? <Link to={`/projects/${project.Selected.id}/files/${data.id}`}>{documentName}</Link>
-                                : <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
-                                    {data.type === "document" ?
-                                        <span class="mr10" style={{ fontSize: '18px' }}>&bull;</span> :
-                                        <span class="mr10 fa fa-folder fa-lg"></span>
-                                    }
-                                    {documentName}
-                                </a>
-                            }
-                        </div>
+                    <td class="document-name">
+                        {data.type === "document" ?
+                            <Link to={`/projects/${projectId}/files/${data.id}`}><span class={data.isRead ? 'read' : 'unread'}>{documentName}</span></Link>
+                            :
+                            <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
+                                <span class="fa fa-folder fa-lg read mr10"></span>
+                                <span class="read">{documentName}</span>
+                            </a>
+                        }
                     </td>
                     <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`} /></td>
                     <td>{displayDateMD(data.dateUpdated)}</td>
@@ -222,7 +250,7 @@ export default class DocumentLibrary extends React.Component {
                             })
                         }
                     </td>
-                    <td>{data.readOn ? displayDateMD(data.readOn) : '--'}</td>
+                    <td>{data.isRead ? displayDateMD(data.document_read[0].dateUpdated) : '--'}</td>
                     <td style={{ display: 'flex' }}>
                         <span class="document-action document-active" title="Download" onClick={() => this.downloadDocument(data)}><i class="fa fa-download fa-lg"></i></span>
                         <span class={`document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="Archive"><i class="fa fa-archive fa-lg"></i></span>
@@ -259,6 +287,16 @@ export default class DocumentLibrary extends React.Component {
                                         {data.isStarred ? 'Unstarred' : 'Star'}
                                     </a>
                                 </li>
+                                { 
+                                    data.type === "document" &&
+                                        <li>
+                                            {
+                                                (data.isRead > 0)
+                                                    ? <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "unread")}>Mark as unread</a>
+                                                    : <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "read")}>Mark as read</a>
+                                            }
+                                        </li>
+                                }
                             </ul>
                         </div>
                     </td>
@@ -267,3 +305,5 @@ export default class DocumentLibrary extends React.Component {
         )
     }
 }
+
+export default withRouter(FieldContainer)
