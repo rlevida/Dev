@@ -301,8 +301,8 @@ html {
 #menu a:active {
   text-decoration: none;
 }
-#menu ul {
-  
+#menu {
+  margin-bottom: 0!important;
 }
 #menu > li > a {
   padding: 15px 0 15px 30px;
