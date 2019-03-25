@@ -91,7 +91,7 @@ if (process.env.NODE_ENV == "production") {
   var server_ip_address = '127.0.0.1';
   app.set('port', port);
 } else {
-  var port = '9003';
+  var port = '3008';
   var server_ip_address = '127.0.0.1';
   app.set('port', port);
 }
