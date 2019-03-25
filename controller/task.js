@@ -242,13 +242,15 @@ exports.get = {
                                 return usersId;
                             })
                             .filter((o) => { return o != queryString.userId });
-                        opOrArray.push(
-                            {
-                                id: {
-                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId IN (${(allTeams).join(",")}) AND members.userTypeLinkId <> ${queryString.userId} AND members.isDeleted = 0 AND members.memberType = "assignedTo")`)
+                        if (allTeams.length > 0) {
+                            opOrArray.push(
+                                {
+                                    id: {
+                                        [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId IN (${(allTeams).join(",")}) AND members.userTypeLinkId <> ${queryString.userId} AND members.isDeleted = 0 AND members.memberType = "assignedTo")`)
+                                    }
                                 }
-                            }
-                        );
+                            );
+                        }
                         break;
                     case "following":
                         opOrArray.push(
