@@ -20,6 +20,7 @@ export default class Component extends React.Component {
     componentWillUnmount() {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+        dispatch({ type: "SET_TASK_LIST", list: [], count: {} });
     }
 
     render() {
@@ -41,13 +42,13 @@ export default class Component extends React.Component {
                                     (task.FormActive == "List") && <MyTaskList />
                                 }
                                 {
-                                    (task.FormActive == "Calendar") && <TaskCalendar is_card={false}/>
+                                    (task.FormActive == "Calendar") && <TaskCalendar is_card={false} />
                                 }
                             </div>
                         </div>
                     </div>
                 }
-                <TaskDetails history={history}/>
+                <TaskDetails history={history} />
             </div>
         )
     }

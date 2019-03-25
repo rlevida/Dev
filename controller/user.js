@@ -26,6 +26,14 @@ const associationStack = [
         model: Teams,
         as: 'team_as_teamLeader',
         where: { isDeleted: 0 },
+        include: [
+            {
+                model: Users,
+                as: 'teamLeader',
+                where: { isDeleted: 0 },
+                required: false
+            }
+        ],
         required: false
     },
     {
@@ -35,7 +43,15 @@ const associationStack = [
             model: Teams,
             as: 'team',
             where: { isDeleted: 0 },
-            required: false
+            required: false,
+            include: [
+                {
+                    model: Users,
+                    as: 'teamLeader',
+                    where: { isDeleted: 0 },
+                    required: false
+                }
+            ]
         }],
         where: { isDeleted: 0 },
         required: false

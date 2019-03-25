@@ -29,7 +29,6 @@ export default class UserList extends React.Component {
 
     componentDidUpdate(prevProps) {
         const { users } = this.props;
-
         if (_.isEqual(prevProps.users.Filter, users.Filter) == false) {
             this.fetchData(1);
         }
@@ -67,7 +66,6 @@ export default class UserList extends React.Component {
     fetchData(page) {
         const { dispatch, users } = this.props;
         let fetchUrl = `/api/user?page=${page}&isDeleted=0`;
-
         if (users.Filter.name != "") {
             fetchUrl += `&name=${users.Filter.name}`;
         }
@@ -95,8 +93,29 @@ export default class UserList extends React.Component {
 
     handleEdit(data) {
         const { dispatch } = this.props;
-        dispatch({ type: 'SET_USER_SELECTED', Selected: { ...data, team: data.team.map((e) => { return { value: e.id, label: e.team } }) } });
-        dispatch({ type: 'SET_CURRENT_DATA_SELECTED', Selected: { ...data, team: data.team.map((e) => { return { value: e.id, label: e.team } }) } });
+        dispatch({
+            type: 'SET_USER_SELECTED', Selected: {
+                ...data, team: data.team.map((e) => {
+                    return {
+                        value: e.id,
+                        label: e.team,
+                        teamLeader: e.teamLeader
+                    }
+                })
+            }
+        });
+        dispatch({
+            type: 'SET_CURRENT_DATA_SELECTED', Selected: {
+                ...data, team: data.team.map((e) => {
+
+                    return {
+                        value: e.id,
+                        label: e.team,
+                        teamLeader: e.teamLeader
+                    }
+                })
+            }
+        });
         dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" });
     }
 
@@ -123,14 +142,12 @@ export default class UserList extends React.Component {
                     <table id="user-list">
                         <thead>
                             <tr>
-                                <th scope="col">User ID</th>
                                 <th scope="col">Username</th>
                                 <th scope="col">First Name</th>
                                 <th scope="col">Last Name</th>
                                 <th scope="col">Email Address</th>
                                 <th scope="col">Type</th>
                                 <th scope="col">Roles</th>
-                                <th scope="col">Teams</th>
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
@@ -140,9 +157,6 @@ export default class UserList extends React.Component {
                                     return (
                                         <tr key={index}>
                                             <td data-label="User ID">
-                                                {user.id}
-                                            </td>
-                                            <td data-label="User ID">
                                                 {user.username}
                                             </td>
                                             <td data-label="First Name">{user.firstName}</td>
@@ -150,7 +164,6 @@ export default class UserList extends React.Component {
                                             <td data-label="Email Address">{user.emailAddress}</td>
                                             <td data-label="Type">{user.userType}</td>
                                             <td data-label="Roles">{this.renderArrayTd(_.map(user.user_role, (el) => { return el.role.role }))}</td>
-                                            <td data-label="Teams">{this.renderArrayTd(_.map(user.team, (el) => { return el.team }))}</td>
                                             <td data-label="Actions" class="actions">
                                                 <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />
                                                 <a href="javascript:void(0);" class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown"><span class="fa fa-ellipsis-v" title="MORE"></span></a>

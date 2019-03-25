@@ -29,6 +29,7 @@ export default class ProfileTask extends React.Component {
     }
 
     componentDidMount() {
+        const { dispatch } = { ...this.props };
         this.getList(1);
     }
 
@@ -52,7 +53,6 @@ export default class ProfileTask extends React.Component {
         const { Loading: taskLoading, Count, List } = task;
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
-
         return (
             <div>
                 <h4><strong>Tasks</strong></h4>
@@ -70,9 +70,20 @@ export default class ProfileTask extends React.Component {
                             <tbody>
                                 {
                                     _.map(List, ({ periodic, task, workstream, dueDate, status }, index) => {
+                                        const given = moment(dueDate, "YYYY-MM-DD");
+                                        const current = moment().startOf('day');
+                                        let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
+                                        daysRemaining = (daysRemaining == 0 && dueDate != "") ? 1 : daysRemaining;
+
+                                        const colorClass = (daysRemaining < 0 && status != "Completed") ? "text-red" :
+                                            (status == "For Approval") ? "text-orange" : (daysRemaining == 1 && status != "Completed") ? "text-yellow" : (status == "Completed") ? "text-green" : "";
+
                                         return (
                                             <tr key={index}>
                                                 <td data-label="Task Name" class="td-left">
+                                                    {
+                                                        (colorClass != "") && <span class={`fa fa-circle mb0 mr5 ${colorClass}`}></span>
+                                                    }
                                                     {task}
                                                     {(periodic == 1) && <i class="fa fa-refresh ml10" aria-hidden="true"></i>}
                                                 </td>
@@ -109,7 +120,7 @@ export default class ProfileTask extends React.Component {
                         (taskLoading == "RETRIEVING" && (List).length > 0) && <Loading />
                     }
                     {
-                        ((List).length == 0 && taskLoading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                        ((List).length == 0 && taskLoading != "RETRIEVING") && <p class="mb0"><strong>No Records Found</strong></p>
                     }
                 </div>
             </div>

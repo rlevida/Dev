@@ -59,7 +59,7 @@ export default class ProjectCompletionTasks extends React.Component {
                                         </thead>
                                         <tbody>
                                             {
-                                                _.map(_.filter(List, (o, i) => { return i < 4 }), ({ id, task, task_members, dueDate, status, workstream, projectId }, index) => {
+                                                _.map(List, ({ id, task, task_members, dueDate, status, workstream, projectId }, index) => {
                                                     const given = moment(dueDate, "YYYY-MM-DD");
                                                     const current = moment().startOf('day');
                                                     const assigned = _(task_members)
@@ -76,7 +76,9 @@ export default class ProjectCompletionTasks extends React.Component {
                                                             <td data-label="Task Name" class="td-left">
                                                                 <p class="m0">
                                                                     <a onClick={() => this.viewTask({ id, workstreamId: workstream.id, projectId })} data-dismiss="modal">
-                                                                        <span class={`fa fa-circle mb0 mr5 ${colorClass}`}></span>
+                                                                        {
+                                                                            (colorClass != "") && <span class={`fa fa-circle mb0 mr5 ${colorClass}`}></span>
+                                                                        }
                                                                         {task}
                                                                     </a>
                                                                 </p>
@@ -97,11 +99,6 @@ export default class ProjectCompletionTasks extends React.Component {
                                             }
                                         </tbody>
                                     </table>
-                                }
-                                {
-                                    (Loading != "RETRIEVING" && (List).length > 4) && <p class="mb0 text-center">
-                                        <a onClick={this.viewAllTasks} data-dismiss="modal">View All Tasks</a>
-                                    </p>
                                 }
                                 {
                                     ((List).length == 0 && Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>

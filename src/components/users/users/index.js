@@ -74,6 +74,7 @@ export default class Component extends React.Component {
                                                     <Searchbar
                                                         handleChange={this.handleChange}
                                                         handleCancel={() => {
+                                                            dispatch({ type: "SET_USER_LIST", list: [] });
                                                             dispatch({ type: "SET_USER_FILTER", filter: { name: "" } });
                                                         }}
                                                         name="name"

@@ -187,7 +187,7 @@ export default class UserForm extends React.Component {
     }
 
     fetchTeamList(options) {
-        const { dispatch, loggedUser } = this.props;
+        const { dispatch, loggedUser, users } = this.props;
         let fetchUrl = `/api/teams?page=1&isDeleted=0&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
 
         if (typeof options != "undefined" && options != "") {
@@ -195,14 +195,30 @@ export default class UserForm extends React.Component {
         }
         getData(fetchUrl, {}, (c) => {
             const teamOptions = _(c.data.result)
-                .map((e) => { return { id: e.id, name: e.team } })
+                .map((e) => {
+                    return {
+                        id: e.id,
+                        name: e.team,
+                        teamLeader: e.teamLeader
+                    }
+                })
                 .value();
-            dispatch({ type: "SET_TEAM_SELECT_LIST", List: teamOptions });
+            const teamSelectList = _.uniqBy([...teamOptions, ..._.map(users.Selected.team, (o) => {
+                return {
+                    id: o.value,
+                    name: o.label,
+                    teamLeader: o.teamLeader
+                }
+            })], 'id');
+            dispatch({
+                type: "SET_TEAM_SELECT_LIST",
+                List: teamSelectList
+            });
         });
     }
 
     render() {
-        const { users, loggedUser, global, project, teams, profileEdit = false } = this.props;
+        const { users, loggedUser, global, teams, profileEdit = false } = this.props;
         const userType = [{ id: "External", name: "External" }];
         const userRole = _(global.SelectList.roleList)
             .filter((o) => {
@@ -218,9 +234,13 @@ export default class UserForm extends React.Component {
                 return { id: e.id, name: e.role }
             })
             .value();
-        const projectList = _.filter(project.List, (o) => {
-            return o.projectManagerId == loggedUser.data.id
-        });
+        const surpervisorSelectList = _(teams.SelectList)
+            .map(({ teamLeader, id }) => { return { id: teamLeader.id, name: teamLeader.firstName + " " + teamLeader.lastName, teamId: id } })
+            .filter((p) => {
+                return _.includes(_.map(users.Selected.team, ({ value }) => { return value }), p.teamId);
+            })
+            .value();
+
 
         if (loggedUser.data.user_role[0].roleId <= 2) {
             userType.push({ id: "Internal", name: "Internal" });
@@ -345,7 +365,7 @@ export default class UserForm extends React.Component {
                                 }
                                 {
                                     (users.Selected.userType == 'Internal') && <div class="form-group">
-                                        <label>Team:</label>
+                                        <label>Team/s:</label>
                                         <DropDown
                                             multiple={true}
                                             required={false}
@@ -361,20 +381,21 @@ export default class UserForm extends React.Component {
                                     </div>
                                 }
                                 {
-                                    (loggedUser.data.userRole == 3 && users.Selected.userType == "External") && <div class="form-group">
-                                        <label>Project:</label>
-                                        <DropDown multiple={true}
+                                    (users.Selected.userType == 'Internal') && <div class="form-group pointer-none">
+                                        <label class="m0">Supervisor/s:</label>
+                                        <p class="note">Generated based on selected team</p>
+                                        <DropDown
+                                            multiple={true}
                                             required={false}
-                                            options={(projectList).map((o) => { return { id: o.id, name: o.project } })}
-                                            selected={(typeof users.Selected.user_projects == "undefined") ? [] : users.Selected.user_projects}
-                                            onChange={(e) => this.setDropDownMultiple("user_projects", e)}
+                                            options={surpervisorSelectList}
+                                            selected={_.map(surpervisorSelectList, (o) => { return { value: o.id } })}
                                         />
                                     </div>
                                 }
                             </div>
                         }
                         <a class="btn btn-violet" onClick={this.handleSubmit}>
-                            <span>{`${(typeof users.Selected.id != "undefined" && users.Selected.id != "") ? 'Update' : 'Add'} ${(profileEdit) ? 'Profile': 'User'}`}</span>
+                            <span>{`${(typeof users.Selected.id != "undefined" && users.Selected.id != "") ? 'Update' : 'Add'} ${(profileEdit) ? 'Profile' : 'User'}`}</span>
                         </a>
                     </form>
                 </div>

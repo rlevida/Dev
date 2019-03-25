@@ -100,7 +100,7 @@ export default class ProfileProject extends React.Component {
                         (currentPage != lastPage && Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNext()}>Load More Projects</a></p>
                     }
                     {
-                        ((List).length == 0 && Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                        ((List).length == 0 && Loading != "RETRIEVING") && <p class="mb0"><strong>No Records Found</strong></p>
                     }
                 </div>
             </div>

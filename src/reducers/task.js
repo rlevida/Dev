@@ -28,7 +28,8 @@ export default function reducer(state = {
 }, action) {
     switch (action.type) {
         case "SET_TASK_LIST": {
-            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {} }
+            return { ...state, List: action.list, ...(typeof action.count != "undefined") ? { Count: action.count } : {}, ...((action.list).length == 0) ? { Loading: "RETRIEVING", } : {} }
+            
         }
         case "SET_TASK_TIMELINE": {
             return { ...state, Timeline: action.list }
