@@ -788,71 +788,75 @@ exports.post = {
         let checklistStack = [];
         let userId = "";
         let taskId = "";
-        form.multiples = false;
-        files.push(new Promise((resolve, reject) => {
-            form
-                .on('field', function (name, field) {
-                    if (name == "userId") {
-                        userId = field
-                    } else if (name == "tagged") {
-                        checklistStack = JSON.parse(field);
-                    } else {
-                        taskId = field;
-                    }
-                })
-                .on('file', function (field, file) {
-                    const date = new Date();
-                    const id = func.generatePassword(date.getTime() + file.name, "attachment");
-                    const filename = id + (file.name).replace(/[^\w.]|_/g, "_");
+        const filesStack = [];
 
-                    func.uploadFile({
-                        file: file,
-                        form: type,
-                        filename: filename
-                    }, response => {
-                        if (response.Message == 'Success') {
-                            resolve({
-                                filename: filename,
-                                origin: file.name,
-                                Id: id,
-                                userId,
-                                taskId,
-                                checklist: checklistStack
-                            })
-                        } else {
-                            reject()
-                        }
-                    });
-                })
+        form.multiples = true;
+        form.on('field', function (name, field) {
+            if (name == "userId") {
+                userId = field
+            } else if (name == "tagged") {
+                checklistStack = JSON.parse(field);
+            } else {
+                taskId = field;
+            }
+        }).on('file', function (field, file) {
+            const date = new Date();
+            const id = func.generatePassword(date.getTime() + file.name, "attachment");
+            const filename = id + (file.name).replace(/[^\w.]|_/g, "_");
 
-        }));
-
-        Promise.all(files).then(async (e) => {
-            if (e.length > 0) {
-                const { filename, origin, checklist, userId, taskId } = e[0];
-                const documentSubmitObj = {
-                    name: filename,
-                    origin,
-                    uploadedBy: userId,
-                    type: 'document',
-                    status: 'new'
-                }
-                const document = await Document.create(documentSubmitObj).then((o) => o.toJSON());
-
-                if (checklist.length > 0) {
-                    const checklistStack = _.map(checklist, ({ value }) => {
-                        return {
+            filesStack.push({
+                id,
+                file: file,
+                form: type,
+                filename: filename
+            });
+        }).on('end', function () {
+            async.map(filesStack, (fileObj, mapCallback) => {
+                func.uploadFile(_.omit(fileObj, ['id']), response => {
+                    if (response.Message == 'Success') {
+                        mapCallback(null, {
+                            filename: fileObj.filename,
+                            origin: fileObj.file.name,
+                            Id: fileObj.id,
+                            userId,
                             taskId,
-                            checklistId: value,
-                            documentId: document.id
-                        }
-                    })
+                            checklist: checklistStack
+                        })
+                    } else {
+                        mapCallback(esponse.Message)
+                    }
+                });
+            }, async (err, results) => {
+                const newDocs = _.map(results, ({ filename, origin, userId }) => {
+                    return {
+                        name: filename,
+                        origin,
+                        uploadedBy: userId,
+                        type: 'document',
+                        status: 'new'
+                    };
+                });
 
-                    ChecklistDocuments.bulkCreate(checklistStack).then((o) => {
+                const documentUpload = await Document.bulkCreate(newDocs).map((o) => { return o.toJSON() });
+
+                if (checklistStack.length > 0) {
+                    const checklistTag = _(documentUpload)
+                        .map(({ id }) => {
+                            return _.map(checklistStack, ({ value }) => {
+                                return {
+                                    taskId,
+                                    checklistId: value,
+                                    documentId: id
+                                }
+                            })
+                        })
+                        .flatten()
+                        .value();
+                    ChecklistDocuments.bulkCreate(checklistTag).then((o) => {
                         TaskChecklist.findAll(
                             {
                                 where: {
-                                    id: _.map(checklistStack, (o) => { return o.checklistId })
+                                    id: _.map(checklistTag, (o) => { return o.checklistId })
                                 },
                                 include: [
                                     {
@@ -879,41 +883,42 @@ exports.post = {
                         })
                     });
                 } else {
-                    Tag.create({
-                        linkType: "task",
-                        linkId: taskId,
-                        tagType: "document",
-                        tagTypeId: document.id
-                    }).then((o) => {
-                        Tag.findOne(
-                            {
-                                where: {
-                                    linkType: "task",
-                                    linkId: taskId,
-                                    tagType: "document",
-                                    tagTypeId: document.id
-                                },
-                                include: [
-                                    {
-                                        model: Document,
-                                        as: 'document'
-                                    }
-                                ]
-                            }
-                        ).then((o) => {
-                            cb({ status: true, data: { result: o.toJSON(), type: "document" } });
-                        })
+                    const taskTag = _.map(documentUpload, ({ id }) => {
+                        return {
+                            linkType: "task",
+                            linkId: taskId,
+                            tagType: "document",
+                            tagTypeId: id
+                        }
                     });
+                    Tag.bulkCreate(taskTag)
+                        .map((o) => { return o.toJSON() })
+                        .then((o) => {
+                            Tag.findAll(
+                                {
+                                    where: {
+                                        linkType: "task",
+                                        linkId: taskId,
+                                        tagType: "document",
+                                        tagTypeId: _.map(taskTag, ({ tagTypeId }) => { return tagTypeId })
+                                    },
+                                    include: [
+                                        {
+                                            model: Document,
+                                            as: 'document'
+                                        }
+                                    ]
+                                }
+                            ).then((o) => {
+                                cb({ status: true, data: { result: o, type: "document" } });
+                            })
+                        });
                 }
-
-            } else {
-                cb({ status: false, data: [] });
-            }
-        })
-        // log any errors that occur
-        form.on('error', function (err) {
+            });
+        }).on('error', function (err) {
             cb({ status: false, error: "Upload error. Please try again later." });
         });
+
         form.parse(req);
     }
 }

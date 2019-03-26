@@ -1,5 +1,6 @@
 import React from "react";
 import _ from 'lodash';
+import moment from 'moment';
 import { connect } from "react-redux";
 
 import { DropDown } from "../../globalComponents";
@@ -11,6 +12,7 @@ let keyTimer = "";
     return {
         teams: store.teams,
         notes: store.notes,
+        workstream: store.workstream,
         loggedUser: store.loggedUser
     }
 })
@@ -24,7 +26,11 @@ export default class ConversationForm extends React.Component {
             "getUsers",
             "setDropDownMultiple",
             "handleChange",
-            "handleSubmit"
+            "handleSubmit",
+            "setWorkstreamList",
+            "fetchWorkstreamList",
+            "handleFile",
+            "removefile"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -32,6 +38,7 @@ export default class ConversationForm extends React.Component {
 
     componentDidMount() {
         this.fetchUsers();
+        this.fetchWorkstreamList();
     }
 
     fetchUsers(options) {
@@ -62,14 +69,20 @@ export default class ConversationForm extends React.Component {
         dispatch({ type: "SET_NOTES_SELECTED", Selected: selected })
     }
 
+    setDropDown(name, value) {
+        const { dispatch, notes } = { ...this.props };
+        const { Selected } = notes;
+        dispatch({ type: "SET_NOTES_SELECTED", Selected: { ...Selected, [name]: value } });
+    }
+
     handleChange(e) {
-        const { dispatch, notes } = this.props
+        const { dispatch, notes } = { ...this.props };
         const { Selected } = notes;
         dispatch({ type: "SET_NOTES_SELECTED", Selected: { ...Selected, [e.target.name]: e.target.value } });
     }
 
     handleSubmit() {
-        const { dispatch, notes, loggedUser } = this.props
+        const { dispatch, notes, loggedUser } = { ...this.props };
         const { Selected } = notes;
         const submitData = {
             note: Selected.message,
@@ -82,8 +95,49 @@ export default class ConversationForm extends React.Component {
         });
     }
 
+    setWorkstreamList(options) {
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            this.fetchWorkstreamList(options);
+        }, 1500);
+    }
+
+    fetchWorkstreamList(options) {
+        const { projectId, loggedUser, dispatch } = { ...this.props };
+        let fetchUrl = `/api/workstream?projectId=${projectId}&page=1&userId=${loggedUser.data.id}`;
+
+        if (typeof options != "undefined" && options != "") {
+            fetchUrl += `&workstream=${options}`;
+        }
+
+        getData(fetchUrl, {}, (c) => {
+            const workstreamOptions = _(c.data.result)
+                .map((e) => { return { id: e.id, name: e.workstream } })
+                .value();
+            dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: workstreamOptions });
+            dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "" });
+        });
+    }
+
+    handleFile(e) {
+        const { dispatch, notes } = { ...this.props };
+        const { Selected } = notes;
+        const selectedFiles = (typeof Selected.files != "undefined") ? Selected.files : [];
+        const files = _.map(this.refs.fileUploader.files, (o) => {
+            return o;
+        });
+        dispatch({ type: "SET_NOTES_SELECTED", Selected: { ...Selected, files: [...selectedFiles, ...files] } });
+    }
+
+    removefile(selecindextedId) {
+        const { dispatch, notes } = { ...this.props };
+        const { Selected } = notes;
+        (Selected.files).splice(selecindextedId, 1);
+        dispatch({ type: "SET_NOTES_SELECTED", Selected: { ...Selected, files: Selected.files } });
+    }
+
     render() {
-        const { teams, notes } = this.props;
+        const { teams, workstream, notes } = this.props;
         // const { notes, setIsClosed, loggedUser, global, workstreamId } = { ...this.props }
         // const { notesState, commentText } = { ...this.state }
         // const { specificClient } = { ...notesState }
@@ -119,12 +173,72 @@ export default class ConversationForm extends React.Component {
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class='col-lg-4 col-lg-push-8'>
-                                </div>
-                                <div class='col-lg-8 col-lg-pull-4'>
+                                <div class='col-lg-8'>
                                     <form id="conversation-form" class="full-form">
                                         <div class="form-group">
-                                            <label for="project-type">Send a message to:</label>
+                                            <div class="row content-row">
+                                                <div class="col-md-8">
+                                                    <input
+                                                        type="text"
+                                                        name="title"
+                                                        required
+                                                        value={(typeof notes.Selected.title == "undefined") ? "" : notes.Selected.title}
+                                                        id="message-title"
+                                                        class="form-control underlined"
+                                                        placeholder="Type a title"
+                                                        onChange={this.handleChange}
+                                                    />
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="button-action">
+                                                        <DropDown
+                                                            required={true}
+                                                            options={workstream.SelectList}
+                                                            onInputChange={this.setWorkstreamList}
+                                                            selected={(typeof notes.Selected.workstreamId == "undefined") ? "" : notes.Selected.workstreamId}
+                                                            onChange={(e) => {
+                                                                this.setDropDown("workstreamId", (e == null) ? "" : e.value);
+                                                            }}
+                                                            placeholder={'Search workstream'}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <input type="file" id="message-file" ref="fileUploader" style={{ display: "none" }} multiple onChange={this.handleFile} />
+                                        </div>
+                                        <div class="form-group" id="message-div">
+                                            <textarea
+                                                name="message"
+                                                value={(typeof notes.Selected.message == "undefined" || notes.Selected.message == null) ? "" : notes.Selected.message}
+                                                class="form-control"
+                                                placeholder="Message"
+                                                onChange={this.handleChange}
+                                            />
+                                            <a class="logo-action text-grey" onClick={() => this.refs.fileUploader.click()}>
+                                                <i class="fa fa-paperclip" aria-hidden="true"></i>
+                                            </a>
+                                        </div>
+                                        {
+                                            (typeof notes.Selected.files != "undefined" && (notes.Selected.files).length > 0) && <div>
+                                                <label>
+                                                    Attachments:
+                                                </label>
+                                                {
+                                                    _.map(notes.Selected.files, ({ name, id }, index) => {
+                                                        return (
+                                                            <div class="file-div" key={index}>
+                                                                <p class="m0"><strong>{name.substring(0, 80)}{(name.length > 80) ? "..." : ""}</strong></p>
+                                                                <a onClick={() => this.removefile(index)}><i class="fa fa-times ml10" aria-hidden="true"></i></a>
+                                                            </div>
+                                                        )
+                                                    })
+                                                }
+                                            </div>
+                                        }
+                                        <div class="form-group mb40">
+                                            <label for="project-type">People:</label>
                                             <DropDown
                                                 multiple={true}
                                                 required={true}
@@ -138,17 +252,6 @@ export default class ConversationForm extends React.Component {
                                                 isClearable={((teams.MemberList).length > 0)}
                                             />
                                         </div>
-                                        <div class="form-group">
-                                            <label for="project-type">Send a message to:</label>
-                                            <textarea
-                                                name="message"
-                                                value={(typeof notes.Selected.message == "undefined" || notes.Selected.message == null) ? "" : notes.Selected.message}
-                                                class="form-control"
-                                                placeholder="Type your message"
-                                                onChange={this.handleChange}
-                                            />
-                                        </div>
-                                        <a class="btn btn-violet mr5" onClick={this.handleSubmit}><span>Send Message</span></a>
                                     </form>
                                 </div>
                             </div>

@@ -549,7 +549,7 @@ export default class TaskDetails extends React.Component {
                                                                                 <i title={(child.length > 0) ? "Subtask Document" : "Task Document"} class={`fa ${(child.length > 0) ? "fa-file-text" : "fa-file"} mr10`} aria-hidden="true"></i>
                                                                                 <p class="m0">
                                                                                     <a data-tip data-for={`attachment-${index}`}>
-                                                                                        {name}
+                                                                                        {name.substring(0, 50)}{(name.length > 50) ? "..." : ""}
                                                                                     </a>
                                                                                 </p>
                                                                             </div>

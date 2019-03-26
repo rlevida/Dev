@@ -23,7 +23,8 @@ export default class TaskDocument extends React.Component {
         _.map([
             "handleSubmit",
             "onDrop",
-            "setDropDownMultiple"
+            "setDropDownMultiple",
+            "removefile"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -62,7 +63,7 @@ export default class TaskDocument extends React.Component {
                 currentDocumentlist.push(c.data.result);
                 dispatch({
                     type: "SET_TASK_SELECTED",
-                    Selected: { ...task.Selected, tag_task: currentDocumentlist }
+                    Selected: { ...task.Selected, tag_task: [...currentDocumentlist, ...c.data.result] }
                 });
             }
 
@@ -74,18 +75,24 @@ export default class TaskDocument extends React.Component {
     }
 
     onDrop(file) {
-        const { dispatch } = this.props;
-        dispatch({ type: 'SET_DOCUMENT_FILES', Files: file });
+        const { dispatch, document } = this.props;
+        dispatch({ type: 'SET_DOCUMENT_FILES', Files: [...document.Files, ...file] });
     }
     setDropDownMultiple(name, values) {
         const { document, dispatch } = this.props;
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...document.Selected, [name]: values } });
     }
+    removefile(selecindextedId) {
+        const { dispatch, document } = { ...this.props };
+        const { Files } = document;
+        (Files).splice(selecindextedId, 1);
+        dispatch({ type: "SET_DOCUMENT_FILES", Files: Files });
+    }
     render() {
         const { task, document } = { ...this.props };
         const { checklist } = task.Selected;
         const { Files = [], Loading, Selected } = document;
-        const fileExtention = (Files.length > 0) ? (Files[0].type).split("/")[1] : "";
+        const fileExtention = (Files.length == 1) ? (Files[0].type).split("/")[1] : (Files.length > 1) ? "" : "";
 
         return (
             <form id="task-document-form">
@@ -94,11 +101,11 @@ export default class TaskDocument extends React.Component {
                         <div class="form-group">
                             <label for="email">Document:<span class="text-red">*</span></label>
                             <Dropzone
+                                accept=".jpg,.png,.pdf,.doc,.docx,.xlsx"
                                 onDrop={this.onDrop}
-                                class="document-file-upload"
+                                class="document-file-upload mb10"
                                 id="task-document"
                                 disabled={(Loading == "SUBMITTING")}
-                                multiple={false}
                             >
                                 <div class="dropzone-wrapper">
                                     <div class="upload-wrapper">
@@ -108,7 +115,7 @@ export default class TaskDocument extends React.Component {
                                                     {
                                                         (fileExtention == "png" || fileExtention == "jpg" || fileExtention == "jpeg") ?
                                                             <img src={Files[0].preview} alt="Task Document" class="img-responsive" /> :
-                                                            <i class="fa fa-file-text" aria-hidden="true"></i>
+                                                            <i class={`fa ${(Files.length > 1) ? "fa-files-o" : "fa-file"}`} aria-hidden="true"></i>
                                                     }
 
                                                 </div>
@@ -117,6 +124,16 @@ export default class TaskDocument extends React.Component {
                                     </div>
                                 </div>
                             </Dropzone>
+                            {
+                                _.map(Files, ({ name, id }, index) => {
+                                    return (
+                                        <div class="file-div" key={index}>
+                                            <p class="m0"><strong>{name.substring(0, 30)}{(name.length > 30) ? "..." : ""}</strong></p>
+                                            <a onClick={() => this.removefile(index)}><i class="fa fa-times ml10" aria-hidden="true"></i></a>
+                                        </div>
+                                    )
+                                })
+                            }
                         </div>
                         <div class="form-group">
                             <label for="email">Tag Checklist:</label>
@@ -132,13 +149,15 @@ export default class TaskDocument extends React.Component {
                         </div>
                     </div>
                 </div>
-                <a class="btn btn-violet" onClick={this.handleSubmit} disabled={(Loading == "SUBMITTING")}>
-                    <span>
-                        {
-                            (Loading == "SUBMITTING") ? "Uploading..." : "Create Task Document"
-                        }
-                    </span>
-                </a>
+                {
+                    (Files.length > 0) && <a class="btn btn-violet" onClick={this.handleSubmit} disabled={(Loading == "SUBMITTING")}>
+                        <span>
+                            {
+                                (Loading == "SUBMITTING") ? "Uploading..." : "Create Task Document"
+                            }
+                        </span>
+                    </a>
+                }
             </form>
         )
     }

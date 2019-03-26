@@ -13,9 +13,12 @@ import ConversationForm from "./conversationsForm";
 })
 export default class Component extends React.Component {
     render() {
+        const { match } = { ...this.props };
+        const projectId = match.params.projectId;
+        
         return (
             <div>
-                <ConversationForm />
+                <ConversationForm projectId={projectId}/>
             </div>
         )
     }

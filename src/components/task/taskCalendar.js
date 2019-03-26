@@ -168,20 +168,20 @@ export default class TaskCalendar extends React.Component {
         return (
             <div class="row">
                 <div class="col-lg-12">
-                    <div class={(Loading == "RETRIEVING" && (List).length == 0) ? "linear-background" : ""}>
-                        {
-                            (is_card) ? <div class="card">
+                    {
+                        (is_card) ? <div class="card">
+                            <div class={(Loading == "RETRIEVING" && (List).length == 0) ? "linear-background" : ""}>
                                 {
                                     (Loading != "RETRIEVING") && this.renderCalendar()
                                 }
                             </div>
-                                : <div>
-                                    {
-                                        (Loading != "RETRIEVING") && this.renderCalendar()
-                                    }
-                                </div>
-                        }
-                    </div>
+                        </div>
+                            : <div>
+                                {
+                                    (Loading != "RETRIEVING") && this.renderCalendar()
+                                }
+                            </div>
+                    }
                 </div>
             </div>
         )

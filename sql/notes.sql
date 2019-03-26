@@ -1,14 +1,11 @@
 DROP TABLE IF EXISTS `notes`;
 CREATE TABLE `notes` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
-    `note` VARCHAR(255),
-    `privacyType` VARCHAR(20),
-    `createdBy` BIGINT,
-    `isClosed` TINYINT DEFAULT '0',
-    `isDeleted` TINYINT DEFAULT '0',
     `projectId` BIGINT,
-    `specificClient` TEXT,
-    `accessType` VARCHAR(30),
+    `note` VARCHAR(255),
+    `privacyType` ENUM("Private","Public"),
+    `createdBy` BIGINT,
+    `isDeleted` TINYINT DEFAULT '0',
     `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)
