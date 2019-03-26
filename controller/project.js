@@ -100,6 +100,7 @@ exports.get = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
         };
         const whereObj = {
+            ...(typeof queryString.id != "undefined" && queryString.id != "") ? { id: queryString.id } : {},
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : {},
@@ -115,7 +116,7 @@ exports.get = {
                 ]
             } : {}
         };
-
+        console.log(whereObj)
         if (typeof queryString.userId != "undefined" && queryString.userId != "") {
             const userTeam = await UsersTeam.findAll({
                 where: {
