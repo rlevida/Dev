@@ -64,7 +64,7 @@ class Component extends React.Component {
     componentDidMount() {
         const { dispatch, loggedUser } = this.props;
         let requesUrl = `/api/project`
-        if (loggedUser.data.userType === "External") {
+        if (loggedUser.data.userRole >= 4) {
             requesUrl += `?id=${loggedUser.data.projectId}&`
         } else {
             requesUrl += `?`

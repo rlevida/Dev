@@ -42,7 +42,7 @@ export default class ProjectList extends React.Component {
         parallel({
             projects: (parallelCallback) => {
                 let requestUrl = `/api/project?page=${1}`;
-                if(loggedUser.data.userType === "External"){
+                if (loggedUser.data.userRole >= 4) {
                     requestUrl += `&id=${loggedUser.data.projectId}`
                 }
                 getData(requestUrl, {}, (c) => {

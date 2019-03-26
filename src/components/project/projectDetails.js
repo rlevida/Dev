@@ -12,25 +12,45 @@ import DocumentViewer from "../document/documentViewer";
 @connect((store) => {
     return {
         project: store.project,
-        task: store.task
+        task: store.task,
+        loggedUser: store.loggedUser
     }
 })
 export default class ProjectDetails extends React.Component {
 
     componentDidMount() {
-        const { dispatch } = { ...this.props };
+        const { dispatch, loggedUser, history } = { ...this.props };
         const projectId = this.props.match.params.projectId;
-        dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: projectId } });
-    }
-
-    componentDidUpdate(prevProps) {
-        const { dispatch } = { ...this.props };
-        if (prevProps.match.params.projectId !== this.props.match.params.projectId) {
-            dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: this.props.match.params.projectId } });
+        if (loggedUser.data.userRole >= 4) {
+            const isAssignedToProject = _.filter(loggedUser.data.projectId, (e) => e === parseInt(projectId)).length
+            if (isAssignedToProject) {
+                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: projectId } });
+            } else {
+                history.push('/projectNotAvailable')
+            }
+        } else {
+            dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: projectId } });
         }
     }
 
-    componentWillUnmount(){
+    componentDidUpdate(prevProps) {
+        const { dispatch, loggedUser, history } = { ...this.props };
+        if (prevProps.match.params.projectId !== this.props.match.params.projectId) {
+            if (loggedUser.data.userRole >= 4) {
+                const isAssignedToProject = _.filter(loggedUser.data.projectId, (e) => e === parseInt(this.props.match.params.projectId)).length
+                if (isAssignedToProject) {
+                    dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: this.props.match.params.projectId } });
+                } else {
+                    history.push('/projectNotAvailable')
+                }
+
+            } else {
+                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: this.props.match.params.projectId } });
+            }
+        }
+    }
+
+    componentWillUnmount() {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: "" })
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: {} });

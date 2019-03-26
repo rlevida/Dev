@@ -34,6 +34,12 @@ class Main extends React.Component {
         this.showLeft = this.showLeft.bind(this)
         this.showRight = this.showRight.bind(this)
     }
+    componentDidMount() {
+        const { loggedUser, history } = { ...this.props };
+        if (loggedUser.data.userRole >= 4 && loggedUser.data.projectId.length === 1) {
+            history.push(`/projects/${loggedUser.data.projectId[0]}`)
+        }
+    }
 
     showLeft() {
         const { showLeft, showRight } = { ...this.state };
@@ -141,7 +147,7 @@ class Main extends React.Component {
                 show_menu: false
             },
             {
-                label: "projectNotAvailable",
+                label: "Project not available",
                 path_name: "projectNotAvailable",
                 component: projectNotAvailable,
                 show_menu: false
@@ -149,7 +155,7 @@ class Main extends React.Component {
         ];
 
         if (loggedUser.data.userType === "External") {
-            pages = _.filter(pages, (e) => e.path_name !== 'users-and-team')
+            pages = _.filter(pages, (e) => e.path_name === 'my-tasks' || e.path_name === 'projects' || e.path_name === '' || e.path_name === 'projectNotAvailable')
         }
 
         const currentPath = this.props.location.pathname;
@@ -249,7 +255,6 @@ class Main extends React.Component {
                             </div>
                         </header>
                         <div id="content">
-                        {console.log(page.path_name)}
                             <Switch>
                                 {
                                     _.map(pages, (page, index) => {
