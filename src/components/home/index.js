@@ -3,11 +3,24 @@ import MyTaskStatus from "../myTasks/myTaskStatus";
 import ProjectSummary from "../project/projectSummary";
 import ProjectCompletionTasks from "../project/projectCompletionTasks";
 import ProfilePerformance from "../profile/profilePerformance";
+import { connect } from "react-redux";
+
+@connect((store) => {
+    return {
+        loggedUser: store.loggedUser
+    }
+})
 
 export default class Component extends React.Component {
     constructor(props) {
         super(props);
         this.handleRedirect = this.handleRedirect.bind(this);
+    }
+    componentDidMount() {
+        const { loggedUser, history } = { ...this.props }
+        if (loggedUser.data.userRole >= 4 && loggedUser.data.projectId.length === 1) {
+            history.push(`/projects/${loggedUser.data.projectId[0]}`)
+        }
     }
 
     handleRedirect(url) {

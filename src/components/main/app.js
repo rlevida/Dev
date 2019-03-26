@@ -12,6 +12,7 @@ import MyTasks from "../myTasks";
 import Users from "../users";
 import Profile from "../profile";
 import Conversations from "../conversations";
+import projectNotAvailable from "../projectNotAvailable";
 
 @connect((store) => {
     return {
@@ -32,6 +33,12 @@ class Main extends React.Component {
         }
         this.showLeft = this.showLeft.bind(this)
         this.showRight = this.showRight.bind(this)
+    }
+    componentDidMount() {
+        const { loggedUser, history } = { ...this.props };
+        if (loggedUser.data.userRole >= 4 && loggedUser.data.projectId.length === 1) {
+            history.push(`/projects/${loggedUser.data.projectId[0]}`)
+        }
     }
 
     showLeft() {
@@ -96,7 +103,7 @@ class Main extends React.Component {
         const { showLeft } = { ...this.state };
         const { project, loggedUser } = { ...this.props };
         const { avatar } = loggedUser.data;
-        const pages = [
+        let pages = [
             {
                 label: "Dashboard",
                 icon: "fa-home",
@@ -138,8 +145,18 @@ class Main extends React.Component {
                 path_name: "profile",
                 component: Profile,
                 show_menu: false
+            },
+            {
+                label: "Project not available",
+                path_name: "projectNotAvailable",
+                component: projectNotAvailable,
+                show_menu: false
             }
         ];
+
+        if (loggedUser.data.userType === "External") {
+            pages = _.filter(pages, (e) => e.path_name === 'my-tasks' || e.path_name === 'projects' || e.path_name === '' || e.path_name === 'projectNotAvailable' || e.path_name === 'profile')
+        }
 
         const currentPath = this.props.location.pathname;
         const parentPath = currentPath.split("/")[1];

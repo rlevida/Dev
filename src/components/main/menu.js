@@ -19,18 +19,11 @@ class Component extends React.Component {
     }
 
     handleLogout() {
-        const { loggedUser, dispatch } = this.props;
+        const { loggedUser } = this.props;
         deleteData(`/api/login/${loggedUser.data.id}`, {}, (c) => {
             setTimeout(function () {
                 window.location.replace('/');
             }, 1000);
-            dispatch({
-                type: "SET_LOGGED_USER_DATA", data: {
-                    username: "",
-                    emailAddress: "",
-                    userType: ""
-                }
-            })
             showToast("success", 'Successfully logout.');
         })
     }
@@ -62,15 +55,23 @@ class Component extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch } = this.props;
-
-        getData(`/api/project?typeId=1`, {}, (c) => {
+        const { dispatch, loggedUser } = this.props;
+        let requesUrl = `/api/project`
+        if (loggedUser.data.userRole >= 4) {
+            requesUrl += `?id=${loggedUser.data.projectId}&`
+        } else {
+            requesUrl += `?`
+        }
+        getData(`${requesUrl}typeId=1`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Client" })
         })
-        getData(`/api/project?typeId=2`, {}, (c) => {
+        getData(`${requesUrl}typeId=1`, {}, (c) => {
+            dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Client" })
+        })
+        getData(`${requesUrl}typeId=2`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Internal" })
         })
-        getData(`/api/project?typeId=3`, {}, (c) => {
+        getData(`${requesUrl}typeId=3`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Private" })
         })
     }

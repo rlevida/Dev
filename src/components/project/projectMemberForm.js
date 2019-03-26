@@ -112,10 +112,10 @@ export default class ProjectMemberForm extends React.Component {
         const { dispatch, loggedUser } = { ...this.props };
         const { showAllUsers } = { ...this.state };
         let fetchUrl = `/api/user?page=1&showAllUsers=${showAllUsers}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
-
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
         }
+        console.log(fetchUrl)
 
         getData(fetchUrl, {}, (c) => {
             const memberOptions = _.map(c.data.result, (o) => {
