@@ -43,9 +43,8 @@ export default class Component extends React.Component {
     handleSubmit(e) {
         let { socket, Login, dispatch } = this.props;
         e.preventDefault();
-
         if (Login.username == "" || Login.password == "") {
-            showToast("error", "Username/Password is required.", 360000)
+            showToast("error", "Username and password is required.", 360000)
             return;
         }
         // if (this.state.captchaPayload == "" && process.env.NODE_ENV != "development") {
@@ -100,38 +99,41 @@ export default class Component extends React.Component {
         let captchaUI = null;
         if (process.env.NODE_ENV != "development") {
             captchaUI = <Captcha
-                sitekey='6LeTGG0UAAAAAJNrNp2uNlwYiwGf39V4lJyCdBwg'
+                sitekey='6LcZ95kUAAAAAN2oDsWH8TVbTNTrROSzFVaI7a5g'
                 lang='en'
                 theme='light'
                 type='image'
                 callback={this.handleCaptcha}
+                size={'invisible'}
             />
         }
-        return <div class="form-signin">
-            <div class="text-center">
-                <h3>Cloud CFO</h3>
-            </div>
-            <hr />
-            <div class="tab-content">
-                <div class="tab-pane active">
-                    <form class="login-form" onSubmit={this.handleSubmit}>
-                        <p class="text-muted text-center">
-                            Enter your username and password
-                                </p>
-                        <input type="text" placeholder="Username" name="UserName" value={Login.username} onChange={(e) => dispatch({ type: "SET_LOGIN_DATA", name: "username", value: e.target.value })} class="form-control top" />
-                        <input type="password" placeholder="Password" name="Password" value={Login.password} onChange={(e) => dispatch({ type: "SET_LOGIN_DATA", name: "password", value: e.target.value })} class="form-control bottom" />
+        return (
+            <div id="login">
+                <div class="form-signin">
+                    <div class="logo">
+                        <img src="/images/blue-logo.png" class="img-responsive" />
+                    </div>
+                    <form class="login-form">
+                        <div class="form-group">
+                            <label for="project-type">Username</label>
+                            <input type="text" placeholder="Enter username" name="UserName" value={Login.username} onChange={(e) => dispatch({ type: "SET_LOGIN_DATA", name: "username", value: e.target.value })} class="form-control top" />
+                        </div>
+                        <div class="form-group mb20">
+                            <label for="project-type">Password</label>
+                            <input type="password" placeholder="Enter password" name="Password" value={Login.password} onChange={(e) => dispatch({ type: "SET_LOGIN_DATA", name: "password", value: e.target.value })} class="form-control bottom" />
+                        </div>
                         {captchaUI}
-                        <p>
+                        <a disabled={Login.disabled} class="btn btn-lg btn-violet btn-block mt20" onClick={this.handleSubmit}>Login</a>
+                        <p class="mt10 mb0">
                             <span><input type="checkbox" checked={Login.rememberMe} onChange={() => dispatch({ type: "SET_LOGIN_DATA", name: "rememberMe", value: (Login.rememberMe) ? false : true })} /> Remember Me</span>
                             <a href="#" style={{ float: 'right' }} type="button" data-toggle="modal" data-target="#modal">
                                 Forgot Password?
-                                    </a>
+                            </a>
                         </p>
-                        <button disabled={Login.disabled} class="btn btn-lg btn-primary btn-block">Sign in</button>
                     </form>
                 </div>
+                <ForgotPassword type={"client"} />
             </div>
-            <ForgotPassword type={"client"} />
-        </div>
+        )
     }
 }

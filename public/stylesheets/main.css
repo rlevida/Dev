@@ -2458,17 +2458,28 @@ body.error .logo h1 {
 }
 /* END ERROR PAGES STYLES */
 /* BEGIN LOGIN PAGE STYLES */
+
+.login #main > [data-reactroot] { 
+  height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.g-recaptcha div{
+  margin: 0 auto;
+}
 .login {
-  padding-top: 40px;
-  padding-bottom: 40px;
   background-color: #2f51d0;
 }
 .login .form-signin {
-  max-width: 330px;
-  padding: 20px;
+  max-width: 500px;
+    padding: 20px 50px 50px 50px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 15px;
+}
+.login .form-signin .logo img {
   margin: 0 auto;
-  background-color: #fff;
-  border-radius: 3px;
 }
 .login .form-signin .form-signin-heading,
 .login .form-signin .checkbox {
@@ -2503,5 +2514,9 @@ body.error .logo h1 {
 .login .form-signin input.bottom {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+}
+.login-form .btn-block{
+  max-width: 250px;
+  margin: 0 auto;
 }
 /* END LOGIN PAGE STYLES */

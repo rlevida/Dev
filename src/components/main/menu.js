@@ -103,98 +103,92 @@ class Component extends React.Component {
                                         <i class={`fa mr10 ${page.icon}`} aria-hidden="true"></i>
                                         <span class="link-title">{page.label}</span>
                                     </Link>
+                                    {
+                                        (page.path_name == "projects") && <div class="hidden-xs">
+                                            {
+                                                ((project.Category.Client).length > 0) &&
+                                                <div class="dropdown project-menu-category">
+                                                    <ul class={project.Category.Active === "Client" ? "open mb0" : "mb0"}>
+                                                        <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Client" ? "" : "dropdown"}>
+                                                            <a href="javascript:void(0)"><i class="fa fa-caret-right mr20"></i>Client</a>
+                                                        </li>
+                                                        <ul class="dropdown-menu ml20">
+                                                            {
+                                                                _.map(project.Category.Client, (e, i) => {
+                                                                    return (
+                                                                        <li key={i} class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""}>
+                                                                            <a href="javascript:void(0)" onClick={() => this.onClick(e, 'Client')} class="ml50">
+                                                                                <span><i class="fa fa-square mr10" style={{ color: e.color }}></i></span>
+                                                                                {e.project}
+                                                                            </a>
+                                                                        </li>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </ul>
+                                                    </ul>
+                                                </div>
+                                            }
+                                            {
+                                                ((project.Category.Internal).length > 0) && <div class="dropdown project-menu-category">
+                                                    <ul class={project.Category.Active === "Internal" ? "open" : ""}>
+                                                        <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Internal" ? "" : "dropdown"}>
+                                                            <a href="javascript:void(0)"><i class="fa fa-caret-right mr20"></i>Internal</a>
+                                                        </li>
+                                                        <ul class="dropdown-menu ml20 mb0">
+                                                            {
+                                                                _.map(project.Category.Internal, (e, i) => {
+                                                                    return (
+                                                                        <li key={i}>
+                                                                            <a href="javascript:void(0)" class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""} onClick={() => this.onClick(e, 'Internal')}>
+                                                                                <span><i class="fa fa-square mr10" style={{ color: e.color }}></i></span>
+                                                                                {e.project}
+                                                                            </a>
+                                                                        </li>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </ul>
+                                                    </ul>
+                                                </div>
+
+                                            }
+                                            {
+                                                ((project.Category.Private).length > 0) && <div class="dropdown project-menu-category">
+                                                    <ul class={project.Category.Active === "Private" ? "open mb0" : "mb0"}>
+                                                        <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Private" ? "" : "dropdown"}>
+                                                            <a href="javascript:void(0)"><i class={`fa fa-caret-${project.Category.Active === "Private" ? "down" : "right"} mr20`}></i>Private</a>
+                                                        </li>
+                                                        <ul class="dropdown-menu ml20">
+                                                            {
+                                                                _.map(project.Category.Private, (e, i) => {
+                                                                    return (
+                                                                        <li key={i}>
+                                                                            <a href="javascript:void(0)" class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""} onClick={() => this.onClick(e, 'Private')}>
+                                                                                <span><i class="fa fa-square mr10" style={{ color: e.color }}></i></span>
+                                                                                {e.project}
+                                                                            </a>
+                                                                        </li>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </ul>
+                                                    </ul>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
                                 </li>
                             )
                         })
                     }
+                    <li>
+                        <a class="menu-list" onClick={this.handleLogout}>
+                            <i class="fa mr10 fa-power-off" aria-hidden="true"></i>
+                            <span class="link-title">Logout</span>
+                        </a>
+                    </li>
                 </ul>
-                <div class="dropdown project-menu-category">
-                    <ul class={project.Category.Active === "Client" ? "open" : ""}>
-                        <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Client" ? "" : "dropdown"}>
-                            <a href="javascript:void(0)"><i class="fa fa-caret-right mr20"></i>Client</a>
-                        </li>
-                        <ul class="dropdown-menu ml20">
-                            {
-                                _.map(project.Category.Client, (e, i) => {
-                                    return (
-                                        <li key={i}>
-                                            <a href="javascript:void(0)" class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""} onClick={() => this.onClick(e, 'Client')}>
-                                                <span><i class="fa fa-square mr10" style={{ color: e.color }}></i></span>
-                                                {e.project}
-                                            </a>
-                                        </li>
-                                    )
-                                })
-                            }
-                            {
-                                project.Category.Client.length === 0 &&
-                                <li>
-                                   <a href="javascript:void(0)">
-                                        No project available
-                                    </a>
-                                </li>
-                            }
-                        </ul>
-                    </ul>
-                </div>
-                <div class="dropdown project-menu-category">
-                    <ul class={project.Category.Active === "Internal" ? "open" : ""}>
-                        <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Internal" ? "" : "dropdown"}>
-                            <a href="javascript:void(0)"><i class="fa fa-caret-right mr20"></i>Internal</a>
-                        </li>
-                        <ul class="dropdown-menu ml20">
-                            {
-                                _.map(project.Category.Internal, (e, i) => {
-                                    return (
-                                        <li key={i}>
-                                            <a href="javascript:void(0)" class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""} onClick={() => this.onClick(e, 'Internal')}>
-                                                <span><i class="fa fa-square mr10" style={{ color: e.color }}></i></span>
-                                                {e.project}
-                                            </a>
-                                        </li>
-                                    )
-                                })
-                            }
-                            {
-                                project.Category.Internal.length === 0 &&
-                                <li>
-                                   <a href="javascript:void(0)">
-                                        No project available
-                                    </a>
-                                </li>
-                            }
-                        </ul>
-                    </ul>
-                </div>
-                <div class="dropdown project-menu-category">
-                    <ul class={project.Category.Active === "Private" ? "open" : ""}>
-                        <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Private" ? "" : "dropdown"}>
-                            <a href="javascript:void(0)"><i class={`fa fa-caret-${project.Category.Active === "Private" ? "down" : "right"} mr20`}></i>Private</a>
-                        </li>
-                        <ul class="dropdown-menu ml20">
-                            {
-                                _.map(project.Category.Private, (e, i) => {
-                                    return (
-                                        <li key={i}>
-                                            <a href="javascript:void(0)" class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""} onClick={() => this.onClick(e, 'Private')}>
-                                                <span><i class="fa fa-square mr10" style={{ color: e.color }}></i></span>
-                                                {e.project}
-                                            </a>
-                                        </li>
-                                    )
-                                })
-                            }
-                            {
-                                project.Category.Private.length === 0 &&
-                                <li>
-                                   <a href="javascript:void(0)">
-                                        No project available
-                                    </a>
-                                </li>
-                            }
-                        </ul>
-                    </ul>
-                </div>
             </div>
         );
     }

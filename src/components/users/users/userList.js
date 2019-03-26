@@ -28,8 +28,10 @@ export default class UserList extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { users } = this.props;
+        const { users, dispatch } = this.props;
+
         if (_.isEqual(prevProps.users.Filter, users.Filter) == false) {
+            dispatch({ type: "SET_USER_LIST", list: [] });
             this.fetchData(1);
         }
     }

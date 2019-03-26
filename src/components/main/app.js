@@ -220,7 +220,7 @@ class Main extends React.Component {
                                         </a>
                                         <div class="dropdown-menu pull-right" aria-labelledby="dropdownMenuButton">
                                             {
-                                                _.map(projectMenu, (o, index) => {
+                                                (showProjectMenu) && _.map(projectMenu, (o, index) => {
                                                     return (
                                                         <li key={index}>
                                                             <Link to={`/projects/${project.Selected.id + o.link}`} class={`${(currentProjectPage == (o.label).toLowerCase()) ? "active" : ""}`}>

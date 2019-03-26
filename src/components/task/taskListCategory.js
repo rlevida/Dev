@@ -166,7 +166,6 @@ export default class TaskListCategory extends React.Component {
         const current = moment().startOf('day');
         const { project } = workstream;
         let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
-        daysRemaining = (daysRemaining == 0 && dueDate != "") ? 1 : daysRemaining;
         const isAssignedToMe = _.find(task_members, (o) => { return o.memberType == "assignedTo" && o.user.id == loggedUser.data.id });
         const assigned = _(task_members)
             .filter((o) => { return o.memberType == "assignedTo" })
@@ -202,7 +201,7 @@ export default class TaskListCategory extends React.Component {
                     }
                 </td>
                 <td data-label="Time Remaining">
-                    <p class={`m0 ${(daysRemaining == 1 && status != "Completed") ? "text-yellow" : (daysRemaining < 1 && status != "Completed") ? "text-red" : ""}`}>
+                    <p class={`m0 ${(daysRemaining == 0 && status != "Completed") ? "text-yellow" : (daysRemaining < 1 && status != "Completed") ? "text-red" : ""}`}>
                         {
                             `${(dueDate != "" && dueDate != null && status != "Completed") ? Math.abs(daysRemaining) + `${(daysRemaining < 1) ? "  day(s) delayed" : " day(s)"}` : "N/A"}`
                         }

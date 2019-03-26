@@ -339,6 +339,71 @@ exports.post = {
             }
         })
     },
+    message: async (req, cb) => {
+        const body = req.body;
+        const users = await Users.findAll({
+            where: {
+                id: [...body.receivers, body.sender]
+            }
+        }).map((o) => { return o.toJSON() });
+        const noteResult = await Notes.create({
+            note: body.note,
+            usersId: body.sender
+        }).then((o) => { return o.toJSON() });
+
+        async.parallel({
+            notesLastSeen: (parallelCallback) => {
+                NotesLastSeen
+                    .create({
+                        userId: body.sender,
+                        linkType: 'notes',
+                        linkId: noteResult.id
+                    })
+                    .then((res) => {
+                        parallelCallback(null, res.toJSON())
+                    });
+            },
+            reminder: (parallelCallback) => {
+                const reminderList = _.map(body.receivers, (o) => {
+                    const sender = _.find(users, (user) => { return user.id == body.sender });
+                    const receiver = _.find(users, (user) => { return user.id == o });
+
+                    return {
+                        detail: sender.firstName + " " + sender.lastName + " send you a message.",
+                        emailAddress: receiver.emailAddress,
+                        usersId: receiver.id,
+                        linkType: 'notes',
+                        linkId: noteResult.id,
+                        type: "Send Message",
+                        createdBy: sender.id
+                    }
+                });
+
+                Reminder.bulkCreate(
+                    _.map(reminderList, (o) => { return _.omit(o, ["emailAddress"]) })
+                ).map((response) => {
+                    return response.toJSON();
+                }).then((resultArray) => {
+                    async.map(reminderList, ({ emailAddress, detail }, mapCallback) => {
+                        const mailOptions = {
+                            from: '"no-reply" <no-reply@c_cfo.com>',
+                            to: `${emailAddress}`,
+                            subject: '[CLOUD-CFO]',
+                            html: '<p>' + detail + '</p>'
+                        };
+
+                        global.emailtransport(mailOptions);
+                        mapCallback(null);
+                    }, (err, result) => {
+                        parallelCallback(null, resultArray)
+                    });
+                });
+            }
+        }, (err, result) => {
+            console.log(result)
+        });
+
+    },
     comment: async (req, cb) => {
         const body = req.body;
         const bodyData = body.data;

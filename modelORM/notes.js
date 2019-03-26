@@ -8,40 +8,18 @@ module.exports = function (sequelize, DataTypes) {
       primaryKey: true,
       autoIncrement: true
     },
-    projectId: {
-      type: DataTypes.BIGINT,
-      allowNull: true
-    },
     note: {
-      type: DataTypes.STRING(255),
-      allowNull: true
-    },
-    privacyType: {
-      type: DataTypes.STRING(20),
+      type: DataTypes.TEXT,
       allowNull: true
     },
     createdBy: {
       type: DataTypes.BIGINT,
       allowNull: true
     },
-    isClosed: {
-      type: DataTypes.INTEGER(4),
-      allowNull: true,
-      defaultValue: 0
-    },
     isDeleted: {
       type: DataTypes.INTEGER(4),
       allowNull: true,
       defaultValue: 0
-    },
-    specificClient: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    accessType: {
-      type: DataTypes.STRING(30),
-      allowNull: true,
-      defaultValue: 'INTERNAL_ONLY'
     },
     dateAdded: {
       type: DataTypes.DATE,

@@ -246,7 +246,7 @@ export default class UserForm extends React.Component {
             userType.push({ id: "Internal", name: "Internal" });
         }
 
-        return <div class="row">
+        return <div class="row content-row">
             <div class="col-md-6" id={(typeof users.Selected.id != "undefined" && users.Selected.id != "") ? "user-form-wrapper" : ""}>
                 <div class={(profileEdit) ? "mt20" : ""}>
                     <form id="user-form">

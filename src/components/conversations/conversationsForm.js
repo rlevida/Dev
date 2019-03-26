@@ -3,14 +3,15 @@ import _ from 'lodash';
 import { connect } from "react-redux";
 
 import { DropDown } from "../../globalComponents";
-import { getData, showToast } from "../../globalFunction";
+import { getData, postData, showToast } from "../../globalFunction";
 
 let keyTimer = "";
 
 @connect((store) => {
     return {
         teams: store.teams,
-        notes: store.notes
+        notes: store.notes,
+        loggedUser: store.loggedUser
     }
 })
 
@@ -22,7 +23,8 @@ export default class ConversationForm extends React.Component {
             "fetchUsers",
             "getUsers",
             "setDropDownMultiple",
-            "handleChange"
+            "handleChange",
+            "handleSubmit"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -60,12 +62,25 @@ export default class ConversationForm extends React.Component {
         dispatch({ type: "SET_NOTES_SELECTED", Selected: selected })
     }
 
-    handleChange(name, e) {
+    handleChange(e) {
         const { dispatch, notes } = this.props
         const { Selected } = notes;
-        dispatch({ type: "SET_NOTES_SELECTED", Selected: { ...Selected, [name]: e.target.value } });
+        dispatch({ type: "SET_NOTES_SELECTED", Selected: { ...Selected, [e.target.name]: e.target.value } });
     }
 
+    handleSubmit() {
+        const { dispatch, notes, loggedUser } = this.props
+        const { Selected } = notes;
+        const submitData = {
+            note: Selected.message,
+            receivers: _.map(Selected.users, (user) => { return user.value }),
+            sender: loggedUser.data.id
+        };
+
+        postData(`/api/conversation/message`, submitData, (c) => {
+
+        });
+    }
 
     render() {
         const { teams, notes } = this.props;
@@ -133,6 +148,7 @@ export default class ConversationForm extends React.Component {
                                                 onChange={this.handleChange}
                                             />
                                         </div>
+                                        <a class="btn btn-violet mr5" onClick={this.handleSubmit}><span>Send Message</span></a>
                                     </form>
                                 </div>
                             </div>
