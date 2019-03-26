@@ -41,16 +41,16 @@ export default class Component extends React.Component {
     }
 
     handleSubmit(e) {
-        let { socket, Login, dispatch } = this.props;
+        let { Login } = this.props;
         e.preventDefault();
         if (Login.username == "" || Login.password == "") {
             showToast("error", "Username and password is required.", 360000)
             return;
         }
-        // if (this.state.captchaPayload == "" && process.env.NODE_ENV != "development") {
-        //     showToast("error", "Please confirm your not a robot.", 360000)
-        //     return;
-        // }
+        if (this.state.captchaPayload == "" && process.env.NODE_ENV != "development") {
+            showToast("error", "Please confirm your not a robot.", 360000)
+            return;
+        }
         showToast("success", "Logging in, please wait ...", 360000)
         localStorage.setItem('username', Login.username)
         localStorage.setItem('rememberMe', Login.rememberMe)
@@ -58,27 +58,7 @@ export default class Component extends React.Component {
         postData(`/auth/login`, { username: Login.username, password: Login.password, ipAddress: this.state.yourIp }, (c) => {
             if (c.data.status) {
                 showToast('success', c.data.message)
-                if (c.data.type == "Internal") {
-                    setTimeout(() => {
-                        window.location.replace('/');
-                    }, 1000);
-                } else {
-                    if (typeof c.data.data !== "undefined") {
-                        if (c.data.data.length > 1) {
-                            setTimeout(() => {
-                                window.location.replace(`/project/`);
-                            }, 1000);
-                        } else {
-                            setTimeout(() => {
-                                window.location.replace(`/`);
-                            }, 1000);
-                        }
-                    } else {
-                        setTimeout(() => {
-                            window.location.replace('/');
-                        }, 1000);
-                    }
-                }
+                window.location.replace('/');
             } else {
                 showToast('error', c.data.message)
             }
