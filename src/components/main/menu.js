@@ -19,18 +19,11 @@ class Component extends React.Component {
     }
 
     handleLogout() {
-        const { loggedUser, dispatch } = this.props;
+        const { loggedUser } = this.props;
         deleteData(`/api/login/${loggedUser.data.id}`, {}, (c) => {
             setTimeout(function () {
                 window.location.replace('/');
             }, 1000);
-            dispatch({
-                type: "SET_LOGGED_USER_DATA", data: {
-                    username: "",
-                    emailAddress: "",
-                    userType: ""
-                }
-            })
             showToast("success", 'Successfully logout.');
         })
     }
