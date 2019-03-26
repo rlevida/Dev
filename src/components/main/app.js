@@ -155,7 +155,7 @@ class Main extends React.Component {
         ];
 
         if (loggedUser.data.userType === "External") {
-            pages = _.filter(pages, (e) => e.path_name === 'my-tasks' || e.path_name === 'projects' || e.path_name === '' || e.path_name === 'projectNotAvailable')
+            pages = _.filter(pages, (e) => e.path_name === 'my-tasks' || e.path_name === 'projects' || e.path_name === '' || e.path_name === 'projectNotAvailable' || e.path_name === 'profile')
         }
 
         const currentPath = this.props.location.pathname;
