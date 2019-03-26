@@ -1,43 +1,70 @@
 import React from "react";
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
-
-import DocumentNew from "./documentNew";
-import DocumentLibrary from "./documentLibrary";
-
 import DocumentFilter from "../document/documentFilter";
-
-
 import ShareModal from "../document/modal/shareModal";
 import EditModal from "../document/modal/editModal";
 import FolderModal from "../document/modal/folderModal";
 import DeleteModal from "../document/modal/deleteModal";
-
+import DocumentList from "../document/documentList";
+import _ from "lodash";
 
 import { connect } from "react-redux";
 
+@connect((store) => {
+    return {
+        document: store.document,
+    }
+})
+
 class List extends React.Component {
     render() {
+        const { document } = { ...this.props };
+        const { Count } = { ...document }
         return (
-            <div class="m10">
+
+            <div>
                 <div class="row">
-                    <div class="card">
-                        <div class="col-lg-12">
-                            <DocumentFilter />
-                        </div>
-                        <div style={{ padding: "20px" }}>
-                            <div class="row">
-                                <DocumentNew />
-                                <DocumentLibrary />
+                    <div class="col-lg-12">
+                        <div class="card mb20">
+                            <div class="card-header">
+                                <DocumentFilter />
+                            </div>
+                            <div class="card-body">
+                                <div class={_.isEmpty(Count) ? "linear-background" : ""}>
+                                    <div style={{ padding: "20px" }}>
+                                        <div class="row">
+                                            <DocumentList />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <ShareModal />
-                    <EditModal />
-                    <FolderModal />
-                    <DeleteModal />
                 </div>
             </div>
+            // <div class="m10">
+            //     <div class="row">
+            //         <div class="card">
+            //             <div class="col-lg-12">
+            //                 <DocumentFilter />
+            //             </div>
+            //             <div class="card-body">
+            //                 <div class= "linear-background">
+            //                     {/* <div style={{ padding: "20px" }}>
+            //                     <div class="row">
+            //                         <DocumentList />
+            //                     </div>
+            //                 </div> */}
+            //                 </div>
+            //             </div>
+            //         </div>
+            //         <ShareModal />
+            //         <EditModal />
+            //         <FolderModal />
+            //         <DeleteModal />
+            //     </div>
+            // </div>
         )
     }
 }

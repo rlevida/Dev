@@ -33,18 +33,30 @@ class DocumentFilter extends React.Component {
         if (_.isEqual(prevProps.document.Filter, this.props.document.Filter) == false) {
             clearTimeout(delayTimer);
 
-            const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, isArchived } = this.props.document.Filter;
+            const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, isArchived, status } = this.props.document.Filter;
 
-            let requestUrl = ''
-            if (document.ActiveTab === 'document') {
-                requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
-            } else {
-                requestUrl = `/api/activityLogDocument?projectId=${projectId}&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`
-            }
-            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' });
-            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'LibraryDocumentLoading' });
+            let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
+
+            // let requestUrl = `/api/document?isDeleted=0&1linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
+
+
+            // if (document.ActiveTab === 'document') {
+            //     requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
+            // } else {
+            //     requestUrl = `/api/activityLogDocument?projectId=${projectId}&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`
+            // }
+
+            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
 
             delayTimer = setTimeout(() => {
+                if (status === 'active') {
+                    requestUrl += `&folderId=null&type=document`
+                }
+
+                if (status === 'sorted') {
+                    requestUrl += `&folderId=null&type=folder`
+                }
+
                 if (isCompleted) {
                     requestUrl += `&isCompleted=${isCompleted}`
                 }
@@ -81,27 +93,26 @@ class DocumentFilter extends React.Component {
                     requestUrl += `&isArchived=${isArchived}`
                 }
 
-                getData(`${requestUrl}&status=new&folderId=${typeof folder.SelectedNewFolder.id !== 'undefined' ? folder.SelectedNewFolder.id : null}`, {}, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-                        dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
-                        dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-                        showToast('success', 'Documents successfully retrieved.')
-                    } else {
-                        showToast('success', 'Something went wrong!')
-                    }
+                getData(`${requestUrl}`, {}, (c) => {
+                    const { result, count } = { ...c.data }
+                    console.log(`result`, result, count)
+                    dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count })
+                    // dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
+                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' })
+                    // showToast('success', 'Documents successfully retrieved.')
+
                 });
 
-                getData(`${requestUrl}&status=library&folderId=${typeof folder.SelectedNewFolder.id !== 'undefined' ? folder.SelectedNewFolder.id : null}`, {}, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
-                        dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
-                        dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
-                        showToast('success', 'Documents successfully retrieved.')
-                    } else {
-                        showToast('success', 'Something went wrong!')
-                    }
-                });
+                // getData(`${requestUrl}&status=library&folderId=${typeof folder.SelectedNewFolder.id !== 'undefined' ? folder.SelectedNewFolder.id : null}`, {}, (c) => {
+                //     if (c.status == 200) {
+                //         dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
+                //         dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
+                //         dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
+                //         showToast('success', 'Documents successfully retrieved.')
+                //     } else {
+                //         showToast('success', 'Something went wrong!')
+                //     }
+                // });
 
             }, 1000);
         }
@@ -140,9 +151,9 @@ class DocumentFilter extends React.Component {
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="flex-row tab-row mb0">
                             <div class="flex-col">
-                                <a class={document.Filter.isArchived === 'all' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('isArchived', 'all')}>All</a>
-                                <a class={document.Filter.isArchived === 0 ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('isArchived', 0)}>Active Files</a>
-                                <a class={document.Filter.isArchived === 1 ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('isArchived', 1)}>Archived</a>
+                                <a class={document.Filter.status === 'active' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'active')}>Active Files</a>
+                                <a class={document.Filter.status === 'sorted' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'sorted')}>Library</a>
+                                <a class={document.Filter.status === 1 ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('isArchived', 1)}>Sort Files</a>
                             </div>
                         </div>
                     </div>

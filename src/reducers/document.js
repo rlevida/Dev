@@ -21,7 +21,7 @@ export default function reducer(state = {
     TrashCount: { Count: {} },
     NewUploadCount: 0,
     Filter: {
-        isArchived: 'all'
+        status: 'active'
     },
     Status: {
         new: 0,
@@ -43,7 +43,8 @@ export default function reducer(state = {
             return { ...state, Library: Library }
         }
         case "SET_DOCUMENT_LIST": {
-            return { ...state, [action.DocumentType]: action.list, ...(typeof action.CountType !== 'undefined') ? { [action.CountType]: action.Count } : {} }
+            return { ...state, List: action.list, Count: action.count }
+            // return { ...state, [action.DocumentType]: action.list, ...(typeof action.CountType !== 'undefined') ? { [action.CountType]: action.Count } : {} }
         }
         case "SET_DOCUMENT_NEW_LIST": {
             return { ...state, New: action.list, NewCount: (typeof action.count != "undefined") ? action.count : state.NewCount }
@@ -84,7 +85,7 @@ export default function reducer(state = {
             return { ...state, PrinterList: action.List }
         }
         case "SET_DOCUMENT_LOADING": {
-            return { ...state, [action.LoadingType]: action.Loading }
+            return { ...state, Loading: action.Loading }
         }
         case "SET_NEW_DOCUMENT_LOADING": {
             return { ...state, NewDocumentLoading: action.Loading }
