@@ -38,11 +38,14 @@ export default class ProjectList extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch } = this.props;
-
+        const { dispatch, loggedUser } = this.props;
         parallel({
             projects: (parallelCallback) => {
-                getData(`/api/project?page=${1}`, {}, (c) => {
+                let requestUrl = `/api/project?page=${1}`;
+                if(loggedUser.data.userType === "External"){
+                    requestUrl += `&id=${loggedUser.data.projectId}`
+                }
+                getData(requestUrl, {}, (c) => {
                     dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count })
                     dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
                     showToast("success", "Project successfully retrieved.");

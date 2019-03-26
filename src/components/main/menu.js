@@ -62,15 +62,23 @@ class Component extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch } = this.props;
-
-        getData(`/api/project?typeId=1`, {}, (c) => {
+        const { dispatch, loggedUser } = this.props;
+        let requesUrl = `/api/project`
+        if (loggedUser.data.userType === "External") {
+            requesUrl += `?id=${loggedUser.data.projectId}&`
+        } else {
+            requesUrl += `?`
+        }
+        getData(`${requesUrl}typeId=1`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Client" })
         })
-        getData(`/api/project?typeId=2`, {}, (c) => {
+        getData(`${requesUrl}typeId=1`, {}, (c) => {
+            dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Client" })
+        })
+        getData(`${requesUrl}typeId=2`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Internal" })
         })
-        getData(`/api/project?typeId=3`, {}, (c) => {
+        getData(`${requesUrl}typeId=3`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Private" })
         })
     }

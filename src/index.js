@@ -5,4 +5,7 @@ switch (page) {
     case "account":
         require('./container/home');
         break;
+    case "projectNotAvailable":
+        require('./container/projectNotAvailable')
+        break;
 }

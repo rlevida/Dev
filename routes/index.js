@@ -86,7 +86,7 @@ router.use(function (req, res, next) {
 });
 
 router.use(function (req, res, next) {
-    if (req.userDetails.userType === "External") {
+    if (req.loggedData.projectId.length === 0 &&  req.loggedData.userRole >= 4) {
         try {
             Members
                 .findAll({ where: { userTypeLinkId: req.userDetails.usersId, linkType: "project" } })
@@ -97,7 +97,7 @@ router.use(function (req, res, next) {
                     } else {
                         res.render('index', {
                             title: global.site_name,
-                            page: 'noProjectAvailable',
+                            page: 'projectNotAvailable',
                             body: "./template/index",
                             user: JSON.stringify(req.loggedData)
                         });

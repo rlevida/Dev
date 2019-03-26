@@ -12,6 +12,7 @@ import MyTasks from "../myTasks";
 import Users from "../users";
 import Profile from "../profile";
 import Conversations from "../conversations";
+import projectNotAvailable from "../projectNotAvailable";
 
 @connect((store) => {
     return {
@@ -96,7 +97,7 @@ class Main extends React.Component {
         const { showLeft } = { ...this.state };
         const { project, loggedUser } = { ...this.props };
         const { avatar } = loggedUser.data;
-        const pages = [
+        let pages = [
             {
                 label: "Dashboard",
                 icon: "fa-home",
@@ -138,8 +139,18 @@ class Main extends React.Component {
                 path_name: "profile",
                 component: Profile,
                 show_menu: false
+            },
+            {
+                label: "projectNotAvailable",
+                path_name: "projectNotAvailable",
+                component: projectNotAvailable,
+                show_menu: false
             }
         ];
+
+        if (loggedUser.data.userType === "External") {
+            pages = _.filter(pages, (e) => e.path_name !== 'users-and-team')
+        }
 
         const currentPath = this.props.location.pathname;
         const parentPath = currentPath.split("/")[1];
@@ -238,6 +249,7 @@ class Main extends React.Component {
                             </div>
                         </header>
                         <div id="content">
+                        {console.log(page.path_name)}
                             <Switch>
                                 {
                                     _.map(pages, (page, index) => {
