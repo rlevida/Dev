@@ -73,9 +73,9 @@ export default class TaskDocument extends React.Component {
         });
     }
 
-    onDrop(picture) {
+    onDrop(file) {
         const { dispatch } = this.props;
-        dispatch({ type: 'SET_DOCUMENT_FILES', Files: picture })
+        dispatch({ type: 'SET_DOCUMENT_FILES', Files: file });
     }
     setDropDownMultiple(name, values) {
         const { document, dispatch } = this.props;
@@ -92,12 +92,13 @@ export default class TaskDocument extends React.Component {
                 <div class="mt10 row">
                     <div class="col-lg-8 col-sm-12">
                         <div class="form-group">
-                            <label for="email">Dependency Type:<span class="text-red">*</span></label>
+                            <label for="email">Document:<span class="text-red">*</span></label>
                             <Dropzone
                                 onDrop={this.onDrop}
                                 class="document-file-upload"
                                 id="task-document"
                                 disabled={(Loading == "SUBMITTING")}
+                                multiple={false}
                             >
                                 <div class="dropzone-wrapper">
                                     <div class="upload-wrapper">

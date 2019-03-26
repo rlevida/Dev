@@ -554,7 +554,7 @@ export default class TaskForm extends React.Component {
                                                             onChange={(e) => {
                                                                 this.setDropDown("workstreamId", (e == null) ? "" : e.value);
                                                             }}
-                                                            placeholder={'Search workstream project'}
+                                                            placeholder={'Search workstream'}
                                                         />
                                                         <div class="loading">
                                                             {
