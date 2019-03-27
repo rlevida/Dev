@@ -120,13 +120,6 @@ class Main extends React.Component {
                 show_menu: true
             },
             {
-                label: "Messages",
-                icon: "fa-comments",
-                path_name: "messages",
-                component: Conversations,
-                show_menu: true
-            },
-            {
                 label: "Users and Teams",
                 icon: "fa-users",
                 path_name: "users-and-team",

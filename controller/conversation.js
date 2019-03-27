@@ -1,9 +1,6 @@
 const dbName = "notes";
 const async = require('async')
 var { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./")
-const sequence = require("sequence").Sequence;
-const Sequelize = require("sequelize")
-const Op = Sequelize.Op;
 const models = require('../modelORM');
 const {
     Notes,
@@ -13,10 +10,13 @@ const {
     Workstream,
     Conversation,
     Users,
-    Starred,
     Document,
-    Reminder
+    Reminder,
+    Projects,
+    sequelize,
+    Sequelize
 } = models;
+const Op = Sequelize.Op;
 
 const NotesInclude = [
     {
@@ -34,18 +34,8 @@ const NotesInclude = [
         ]
     },
     {
-        model: Tag,
-        where: {
-            linkType: 'workstream', tagType: 'notes'
-        },
-        as: 'notesTagWorkstream',
-        required: false,
-        include: [
-            {
-                model: Workstream,
-                as: 'tagWorkstream',
-            }
-        ]
+        model: Workstream,
+        as: 'noteWorkstream'
     },
     {
         model: Tag,
@@ -104,104 +94,71 @@ const socketIo = io(((global.environment == "production") ? "https:" : "http:") 
 exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
-        const association = _.cloneDeep(NotesInclude);
-        sequence.create().then((nextThen) => {
-            if (queryString.workstreamId) {
-                sequence.create().then((nextThen2) => {
-                    // get workstream task ids
-                    Tasks.findAll({
-                        where: { workstreamId: queryString.workstreamId }
-                    }).map((e) => {
-                        return e.id
-                    }).then((res) => {
-                        nextThen2(res)
-                    })
-                }).then((nextThen2, taskIds) => {
-                    // get all notes ids to be shown base on task and workstream
-                    Tag.findAll({
-                        where: {
-                            [Op.or]: [
-                                { linkType: 'workstream', linkId: queryString.workstreamId },
-                                { linkType: 'task', linkId: { [Op.in]: taskIds } }
-                            ],
-                            tagType: 'notes'
-                        }
-                    }).map((e) => {
-                        return e.tagTypeId
-                    }).then((res) => {
-                        if (res.length > 0) {
-                            nextThen(true, res);
-                        } else {
-                            cb({ status: true, data: [] })
-                        }
-                    })
-                })
-            } else {
-                nextThen(false, []);
-            }
-        }).then((nextThen, isPerWorkstream, noteIds) => {
-            let whereCon = {};
-            if (isPerWorkstream) {
-                whereCon.id = { [Op.in]: noteIds };
-            }
-            if (typeof queryString.projectId !== 'undefined' && queryString.projectId !== '') {
-                whereCon.projectId = queryString.projectId;
-            }
-            if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
-                association.push({
-                    model: Starred,
-                    as: 'notes_starred',
-                    where: {
-                        linkType: 'notes',
-                        isActive: 1,
-                        usersId: queryString.starredUser
-                    },
-                    required: false,
+        const limit = 10;
+        const options = {
+            include: [
+                {
+                    model: Workstream,
+                    as: 'noteWorkstream',
                     include: [
                         {
-                            model: Users,
-                            as: 'user',
-                            attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+                            model: Projects,
+                            as: 'project'
                         }
                     ]
-                });
-            }
-            if (typeof queryString.userId !== 'undefined' && queryString.userId !== '') {
-                _.find(association, { as: 'comments' }).include.push({
-                    model: NotesLastSeen,
-                    as: 'seenComments',
-                    where: {
-                        linkType: 'conversation',
-                        userId: queryString.userId
-                    },
-                    required: false
-                })
-            }
-            try {
-                Notes
-                    .findAll({
-                        where: whereCon,
-                        include: association
-                    })
-                    .map((res) => {
-                        const responseData = res.toJSON();
-                        const data = {
-                            ...responseData,
-                            isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
-                            tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
-                                .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
-                            isSeen: responseData.comments.filter((e) => { return e.seenComments.length == 0 }).length ? 0 : 1
+                }
+            ],
+            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+        };
+        const whereObj = {
+            ...(typeof queryString.projectId !== 'undefined' && queryString.projectId !== '') ? { projectId: queryString.projectId } : {},
+            ...(typeof queryString.title != "undefined" && queryString.title != "") ? {
+                [Op.and]: [
+                    Sequelize.where(Sequelize.fn('lower', Sequelize.col('notes.note')),
+                        {
+                            [Op.like]: sequelize.fn('lower', `%${queryString.title}%`)
                         }
-                        return data;
-                    })
-                    .then((res) => {
-                        cb({ status: true, data: res })
-                    });
-            } catch (err) {
-                cb({ status: false, error: err })
-            }
-        })
+                    )
+                ]
+            } : {},
+        }
 
+        async.parallel({
+            count: function (callback) {
+                try {
+                    Notes.findAndCountAll({ ..._.omit(options, ['offset', 'limit']), where: whereObj, distinct: true }).then((response) => {
+                        const pageData = {
+                            total_count: response.count,
+                            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { current_page: (response.count > 0) ? _.toNumber(queryString.page) : 0, last_page: _.ceil(response.count / limit) } : {}
+                        }
+
+                        callback(null, pageData)
+                    });
+                } catch (err) {
+                    callback(err)
+                }
+            },
+            result: function (callback) {
+                try {
+                    Notes.findAll({
+                        ...options,
+                        where: whereObj
+                    }).map((mapObject) => {
+                        return mapObject.toJSON();
+                    }).then((resultArray) => {
+                        callback(null, resultArray);
+                    });
+                } catch (err) {
+                    callback(err)
+                }
+            }
+        }, function (err, results) {
+            if (err != null) {
+                cb({ status: false, error: err });
+            } else {
+                cb({ status: true, data: results })
+            }
+        });
     },
     getById: (req, cb) => {
         defaultGetById(dbName, req, (res) => {
@@ -313,96 +270,117 @@ exports.get = {
 }
 
 exports.post = {
-    index: (req, cb) => {
-        defaultPost(dbName, req, (res) => {
-            const queryString = req.query;
-            if (res.success) {
-                Notes.findAll({
-                    where: { id: res.data[0].id },
-                    include: NotesInclude
-
-                })
-                    .map((res) => {
-                        const responseData = res.toJSON();
-                        const data = {
-                            ...responseData,
-                            isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
-                            tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
-                                .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
-                        }
-                        return data;
-                    }).then((result) => {
-                        cb({ status: true, data: result })
-                    })
-            } else {
-                cb({ status: false, error: res.error })
-            }
-        })
-    },
     message: async (req, cb) => {
         const body = req.body;
-        console.log(body)
-        // const users = await Users.findAll({
-        //     where: {
-        //         id: [...body.receivers, body.sender]
-        //     }
-        // }).map((o) => { return o.toJSON() });
-        // const noteResult = await Notes.create({
-        //     note: body.note,
-        //     usersId: body.sender
-        // }).then((o) => { return o.toJSON() });
+        const userId = [..._.map(body.users, ({ value }) => { return value }), body.userId];
+        const noteResult = await Notes.create({
+            projectId: body.projectId,
+            workstreamId: body.workstreamId,
+            note: body.title,
+            usersId: body.userId
+        }).then((o) => { return o.toJSON() });
 
-        // async.parallel({
-        //     notesLastSeen: (parallelCallback) => {
-        //         NotesLastSeen
-        //             .create({
-        //                 userId: body.sender,
-        //                 linkType: 'notes',
-        //                 linkId: noteResult.id
-        //             })
-        //             .then((res) => {
-        //                 parallelCallback(null, res.toJSON())
-        //             });
-        //     },
-        //     reminder: (parallelCallback) => {
-        //         const reminderList = _.map(body.receivers, (o) => {
-        //             const sender = _.find(users, (user) => { return user.id == body.sender });
-        //             const receiver = _.find(users, (user) => { return user.id == o });
+        async.parallel({
+            notesLastSeen: (parallelCallback) => {
+                NotesLastSeen
+                    .create({
+                        userId: body.userId,
+                        linkType: 'notes',
+                        linkId: noteResult.id
+                    })
+                    .then((res) => {
+                        parallelCallback(null, res.toJSON())
+                    });
+            },
+            conversations: (parallelCallback) => {
+                Conversation
+                    .create({
+                        comment: body.message,
+                        usersId: body.userId,
+                        linkType: "notes",
+                        linkId: noteResult.id
+                    }).then((res) => {
+                        parallelCallback(null, res.toJSON())
+                    });
+            },
+            tags: (parallelCallback) => {
+                const submitArray = _.map(userId, (id) => {
+                    return {
+                        linkType: "notes",
+                        linkId: noteResult.id,
+                        tagType: "user",
+                        tagTypeId: id
+                    }
+                });
 
-        //             return {
-        //                 detail: sender.firstName + " " + sender.lastName + " send you a message.",
-        //                 emailAddress: receiver.emailAddress,
-        //                 usersId: receiver.id,
-        //                 linkType: 'notes',
-        //                 linkId: noteResult.id,
-        //                 type: "Send Message",
-        //                 createdBy: sender.id
-        //             }
-        //         });
+                Tag.bulkCreate(submitArray, { returning: true })
+                    .map((response) => {
+                        return response.toJSON();
+                    }).then((response) => {
+                        parallelCallback(null, response)
+                    });
+            },
+        }, (err, result) => {
+            Users.findAll({
+                where: {
+                    id: userId
+                }
+            }).map((o) => {
+                const userObj = o.toJSON();
+                return userObj;
+            }).then(async (response) => {
+                const workstream = await Workstream.findOne({
+                    where: {
+                        id: body.workstreamId
+                    },
+                    include: [
+                        {
+                            model: Projects,
+                            as: 'project'
+                        }
+                    ]
+                }).then((o) => { return o.toJSON() });
 
-        //         Reminder.bulkCreate(
-        //             _.map(reminderList, (o) => { return _.omit(o, ["emailAddress"]) })
-        //         ).map((response) => {
-        //             return response.toJSON();
-        //         }).then((resultArray) => {
-        //             async.map(reminderList, ({ emailAddress, detail }, mapCallback) => {
-        //                 const mailOptions = {
-        //                     from: '"no-reply" <no-reply@c_cfo.com>',
-        //                     to: `${emailAddress}`,
-        //                     subject: '[CLOUD-CFO]',
-        //                     html: '<p>' + detail + '</p>'
-        //                 };
+                const sender = _.find(response, (o) => { return o.id == body.userId });
+                const receivers = _.filter(response, (o) => { return o.id != body.userId });
+                const reminderList = _.map(receivers, (receiver) => {
+                    return {
+                        detail: sender.firstName + " " + sender.lastName + " send you a message.",
+                        emailAddress: receiver.emailAddress,
+                        usersId: receiver.id,
+                        linkType: 'notes',
+                        linkId: noteResult.id,
+                        type: "Send Message",
+                        createdBy: sender.id
+                    }
+                });
 
-        //                 global.emailtransport(mailOptions);
-        //                 mapCallback(null);
-        //             }, (err, result) => {
-        //                 parallelCallback(null, resultArray)
-        //             });
-        //         });
-        //     }
-        // }, (err, result) => {
-        //     console.log(result)
-        // });
+                Reminder.bulkCreate(
+                    _.map(reminderList, (o) => { return _.omit(o, ["emailAddress"]) })
+                ).map((response) => {
+                    return response.toJSON();
+                }).then((resultArray) => {
+                    async.map(reminderList, ({ emailAddress, detail }, mapCallback) => {
+                        let html = '<p>' + detail + '</p>';
+                        html += '<p style="margin-bottom:0">Title: ' + body.title + '</p>';
+                        html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                        html += '<p>Message:<br>' + body.message + '</p>';
+
+                        const mailOptions = {
+                            from: '"no-reply" <no-reply@c_cfo.com>',
+                            to: `${emailAddress}`,
+                            subject: '[CLOUD-CFO]',
+                            html: html
+                        };
+
+                        global.emailtransport(mailOptions);
+                        mapCallback(null);
+                    }, (err, result) => {
+                        console.log("====================")
+                    });
+                });
+            })
+        });
 
     },
     comment: async (req, cb) => {
@@ -525,185 +503,7 @@ exports.post = {
                 cb({ status: true, data: _.omit(conversation, ["dateUpdated"]) });
             }
         })
-    },
-    lastSeen: (req, cb) => {
-        const body = req.body;
-        const queryString = req.query
-        if (queryString.type == 'notes') {
-            NotesLastSeen
-                .findOne({
-                    where: body
-                })
-                .then((res) => {
-                    if (res !== null) {
-                        cb({ status: true, data: res })
-                    } else {
-                        NotesLastSeen
-                            .create(body)
-                            .then((res) => {
-                                cb({ status: true, data: res })
-                            })
-                    }
-                })
-        } else if (queryString.type == 'conversation') {
-            async.map(body.commentIds, (e, mapCallback) => {
-                try {
-                    NotesLastSeen
-                        .create({ projectId: body.projectId, linkType: 'conversation', linkId: e, userId: body.userId })
-                        .then((res) => {
-                            mapCallback(null, res)
-                        })
-                } catch (err) {
-                    mapCallback(err)
-                }
-            }, (err, mapCallback) => {
-                if (err) {
-                    cb({ status: false, error: err })
-                } else {
-                    cb({ status: true, data: mapCallback })
-                }
-            })
-        }
     }
-}
-
-exports.put = {
-    index: (req, cb) => {
-        defaultPut(dbName, req, (res) => {
-            const queryString = req.query;
-            if (res.success) {
-                Notes.findAll({
-                    where: { id: req.params.id },
-                    include: NotesInclude
-                })
-                    .map((res) => {
-                        const responseData = res.toJSON();
-                        const data = {
-                            ...responseData,
-                            isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseData.notes_starred).length > 0) ? responseData.notes_starred[0].isActive : 0,
-                            tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
-                                .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
-                        }
-                        return data;
-                    }).then((result) => {
-                        cb({ status: true, data: result })
-                    })
-            } else {
-                cb({ status: false, error: res.error })
-            }
-        })
-    },
-    comment: (req, cb) => {
-        let conversation = global.initModel("conversation")
-        let d = req.body;
-        let id = req.params.id;
-        sequence.create().then((nextThen) => {
-            if (typeof id != "undefined" && id != "") {
-                conversation.putData("conversation", d.data, { id: id }, (c) => {
-                    Conversation.findAll({
-                        where: { id: id },
-                        include: [
-                            {
-                                model: Users,
-                                as: 'users',
-                            }
-                        ]
-                    }).then((e) => {
-                        nextThen(e)
-                    })
-                })
-            } else {
-                cb({ status: false, message: "Data not found." })
-            }
-        }).then((nextThen, result) => {
-            if (JSON.parse(d.reminderList).length) {
-                let filter = (typeof d.filter != "undefined") ? d.filter : {};
-                let reminder = global.initModel("reminder");
-                let tempResData = []
-                tempResData.push(new Promise((resolve, reject) => {
-                    JSON.parse(d.reminderList).map(r => {
-                        let data = { ...d.reminder, usersId: r.userId }
-                        reminder.postData("reminder", data, (res) => {
-                            if (res.status) {
-                                filter.usersId = r.userId
-                                reminder.getReminderList(filter, (e) => {
-                                    if (e.data.length > 0) {
-                                        resolve(e.data)
-                                    } else {
-                                        reject()
-                                    }
-                                })
-                            } else {
-                                reject()
-                            }
-                        })
-                    })
-                }))
-
-                Promise.all(tempResData).then((values) => {
-                    socketIo.emit("BROADCAST_SOCKET", { type: "FRONT_REMINDER_LIST", data: values[0] })
-                    cb({ status: true, data: result })
-                }).catch((err) => {
-                    cb({ status: false, data: err })
-                })
-            } else {
-                cb({ status: true, data: result })
-            }
-        })
-    },
-    tag: (req, cb) => {
-        sequence.create().then((nextThen) => {
-            try {
-                Tag.destroy({
-                    where: {
-                        tagType: 'notes',
-                        tagTypeId: req.params.id
-                    }
-                }).then(res => {
-                    nextThen()
-                })
-            } catch (err) {
-                console.error(err)
-                cb({ status: false, data: [] })
-            }
-        }).then((nextThen) => {
-            let promiseList = [];
-            req.body.map((e) => {
-                promiseList.push(
-                    new Promise((resolve, reject) => {
-                        Tag.create({
-                            linkType: e.value.split("-")[0],
-                            linkId: e.value.split("-")[1],
-                            tagType: 'notes',
-                            tagTypeId: req.params.id
-                        })
-                        resolve()
-                    })
-                )
-            })
-            Promise.all(promiseList).then((values) => {
-                Notes.findAll({
-                    where: { id: req.params.id },
-                    include: NotesInclude
-
-                })
-                    .map((res) => {
-                        const responseData = res.toJSON();
-                        const data = {
-                            ...responseData,
-                            tag: responseData.notesTagTask.map((e) => { return { value: `task-${e.tagTask.id}`, label: e.tagTask.task } })
-                                .concat(responseData.notesTagWorkstream.map((e) => { return { value: `workstream-${e.tagWorkstream.id}`, label: e.tagWorkstream.workstream } })),
-                        }
-                        return data;
-                    }).then((result) => {
-                        cb({ status: true, data: result[0].tag })
-                    })
-            }).catch((err) => {
-                console.error(err)
-                cb({ status: false, data: [] })
-            })
-        })
-    },
 }
 
 exports.delete = {

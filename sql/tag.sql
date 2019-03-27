@@ -5,9 +5,9 @@ CREATE TABLE `tag` (
     `linkType` ENUM("user","workstream","task","conversation","document","others","notes"),
     `linkId` BIGINT,
     `tagType` ENUM("user","workstream","task","conversation","document","folder","notes"),
+    `tagTypeId` BIGINT,
     `isDeleted` TINYINT(1) DEFAULT '0',
     `isCompleted` TINYINT(1) DEFAULT '0',
-    `tagTypeId` BIGINT,
     `dateAdded` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `dateUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(`id`)

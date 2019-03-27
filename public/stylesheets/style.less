@@ -1420,17 +1420,17 @@ input:checked + .slider:before {
   font-size: 25px;
 }
 
-#delete-action{
-  align-items: center;
-  justify-content: center;
-}
-
 .warning{
   font-size: 25px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 500px;
+}
+
+#delete-action{
+  align-items: center;
+  justify-content: center;
 }
 
 @keyframes placeHolderShimmer{
@@ -1617,8 +1617,7 @@ form {
 .dashboard-card .card-body{
   margin-top: 0px;
   flex: 1;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding:20px;
 }
 
 .dashboard-card .status-count{
@@ -1856,6 +1855,7 @@ textarea::-webkit-scrollbar-thumb {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  font-weight: normal!important;
 }
 
 .custom-checkbox input {
@@ -2133,10 +2133,11 @@ textarea::-webkit-scrollbar-thumb {
   position: relative;
 }
 
-#message-div .logo-action{
+#message-div .logo-action,
+#chat-title .logo-action{
   position: absolute;
   top: 3px;
-  right: 10px;
+  right: 15px;
 }
 
 .file-div {
@@ -2146,7 +2147,7 @@ textarea::-webkit-scrollbar-thumb {
   align-items: center;
 }
 
-.file-div:not(:last-child){
+.file-div{
   margin-bottom: 5px;
 }
 
@@ -2158,6 +2159,45 @@ textarea::-webkit-scrollbar-thumb {
   text-align: right;
   float: right; 
   margin-left: auto;
+}
+
+#message-thread{
+    min-height: 350px;
+    background-color: #F8F8F8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#chat-area{
+  padding-top: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 10px;
+  background-color: #F8F8F8;
+}
+
+#message-thread .fa-envelope-o{
+  font-size: 150px;
+  color: #ddd;
+  opacity: 0.4;
+}
+
+#message_list {
+  height: 100%;
+}
+
+#message_list .linear-background{
+  height: 90%;
+}
+
+.message-div h3 {
+  font-size: 20px;
+  margin-top: 0px;
+}
+
+.message-div:not(:last-child){
+  margin-bottom: 20px;
 }
 
 @media screen and (max-width: 600px) {
@@ -2375,6 +2415,10 @@ textarea::-webkit-scrollbar-thumb {
     border-radius: 50%;
   }
   
+  #chat-area{
+    padding-left: 5px;
+    padding-right: 5px;
+  }
 }
 
 /* Small */
@@ -2495,6 +2539,12 @@ textarea::-webkit-scrollbar-thumb {
   #chart-row {
     display: flex;
     align-items: center;
+  }
+  .row-eq-height {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
   }
 }
 

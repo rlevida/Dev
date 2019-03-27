@@ -43,7 +43,6 @@ export default class WorkstreamTabs extends React.Component {
     }
     render() {
         const { workstream_id, dispatch } = { ...this.props };
-        console.log(this.props)
         return (
             <div class="row">
                 <div class="col-lg-12">

@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS `notes`;
 CREATE TABLE `notes` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
     `projectId` BIGINT,
+    `workstreamId` BIGINT,
     `note` VARCHAR(255),
     `privacyType` ENUM("Private","Public"),
     `createdBy` BIGINT,

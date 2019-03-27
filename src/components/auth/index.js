@@ -104,12 +104,24 @@ export default class Component extends React.Component {
                         </div>
                         {captchaUI}
                         <a disabled={Login.disabled} class="btn btn-lg btn-violet btn-block mt20" onClick={this.handleSubmit}>Login</a>
-                        <p class="mt10 mb0">
-                            <span><input type="checkbox" checked={Login.rememberMe} onChange={() => dispatch({ type: "SET_LOGIN_DATA", name: "rememberMe", value: (Login.rememberMe) ? false : true })} /> Remember Me</span>
-                            <a href="#" style={{ float: 'right' }} type="button" data-toggle="modal" data-target="#modal">
-                                Forgot Password?
-                            </a>
-                        </p>
+                        <div class="row mt20">
+                            <div class="col-md-6">
+                                <label class="custom-checkbox">
+                                    Remember Me
+                                    <input
+                                        type="checkbox"
+                                        checked={Login.rememberMe}
+                                        onChange={() => dispatch({ type: "SET_LOGIN_DATA", name: "rememberMe", value: (Login.rememberMe) ? false : true })}
+                                    />
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="#" style={{ float: 'right' }} type="button" data-toggle="modal" data-target="#modal">
+                                    Forgot Password?
+                                </a>
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <ForgotPassword type={"client"} />

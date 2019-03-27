@@ -4,9 +4,7 @@ export default function reducer(state = {
     Count: {},
     CountList: [],
     Filter: {
-        notesStatus: "",
-        dueDate: "",
-        notesAssigned: ""
+        title: ""
     },
     FormActive: "List",
     FormAction: "",

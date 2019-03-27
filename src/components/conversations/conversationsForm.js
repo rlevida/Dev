@@ -64,8 +64,8 @@ export default class ConversationForm extends React.Component {
     }
 
     setDropDownMultiple(name, values) {
-        const { dispatch, teams } = this.props
-        const selected = { ...teams.Selected, [name]: values };
+        const { dispatch, notes } = this.props
+        const selected = { ...notes.Selected, [name]: values };
         dispatch({ type: "SET_NOTES_SELECTED", Selected: selected })
     }
 
@@ -82,15 +82,10 @@ export default class ConversationForm extends React.Component {
     }
 
     handleSubmit() {
-        const { dispatch, notes, loggedUser } = { ...this.props };
+        const { dispatch, notes, loggedUser, projectId } = { ...this.props };
         const { Selected } = notes;
-        const submitData = {
-            note: Selected.message,
-            receivers: _.map(Selected.users, (user) => { return user.value }),
-            sender: loggedUser.data.id
-        };
 
-        postData(`/api/conversation/message`, submitData, (c) => {
+        postData(`/api/conversation/message`, { ...Selected, projectId, userId: loggedUser.data.id }, (c) => {
 
         });
     }
@@ -160,104 +155,91 @@ export default class ConversationForm extends React.Component {
         // }
 
         return (
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card form-card">
-                        <div class="card-header">
-                            <h4>
-                                <a class="text-white mr10">
-                                    <i class="fa fa-chevron-left" aria-hidden="true"></i>
-                                </a>
-                                Send New Message
-                            </h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class='col-lg-8'>
-                                    <form id="conversation-form" class="full-form">
-                                        <div class="form-group">
-                                            <div class="row content-row">
-                                                <div class="col-md-8">
-                                                    <input
-                                                        type="text"
-                                                        name="title"
-                                                        required
-                                                        value={(typeof notes.Selected.title == "undefined") ? "" : notes.Selected.title}
-                                                        id="message-title"
-                                                        class="form-control underlined"
-                                                        placeholder="Type a title"
-                                                        onChange={this.handleChange}
-                                                    />
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="button-action">
-                                                        <DropDown
-                                                            required={true}
-                                                            options={workstream.SelectList}
-                                                            onInputChange={this.setWorkstreamList}
-                                                            selected={(typeof notes.Selected.workstreamId == "undefined") ? "" : notes.Selected.workstreamId}
-                                                            onChange={(e) => {
-                                                                this.setDropDown("workstreamId", (e == null) ? "" : e.value);
-                                                            }}
-                                                            placeholder={'Search workstream'}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <input type="file" id="message-file" ref="fileUploader" style={{ display: "none" }} multiple onChange={this.handleFile} />
-                                        </div>
-                                        <div class="form-group" id="message-div">
-                                            <textarea
-                                                name="message"
-                                                value={(typeof notes.Selected.message == "undefined" || notes.Selected.message == null) ? "" : notes.Selected.message}
-                                                class="form-control"
-                                                placeholder="Message"
-                                                onChange={this.handleChange}
-                                            />
-                                            <a class="logo-action text-grey" onClick={() => this.refs.fileUploader.click()}>
-                                                <i class="fa fa-paperclip" aria-hidden="true"></i>
-                                            </a>
-                                        </div>
-                                        {
-                                            (typeof notes.Selected.files != "undefined" && (notes.Selected.files).length > 0) && <div>
-                                                <label>
-                                                    Attachments:
-                                                </label>
-                                                {
-                                                    _.map(notes.Selected.files, ({ name, id }, index) => {
-                                                        return (
-                                                            <div class="file-div" key={index}>
-                                                                <p class="m0"><strong>{name.substring(0, 80)}{(name.length > 80) ? "..." : ""}</strong></p>
-                                                                <a onClick={() => this.removefile(index)}><i class="fa fa-times ml10" aria-hidden="true"></i></a>
-                                                            </div>
-                                                        )
-                                                    })
-                                                }
-                                            </div>
-                                        }
-                                        <div class="form-group mb40">
-                                            <label for="project-type">People:</label>
-                                            <DropDown
-                                                multiple={true}
-                                                required={true}
-                                                options={teams.MemberList}
-                                                onInputChange={this.getUsers}
-                                                selected={(typeof notes.Selected.users == "undefined") ? [] : notes.Selected.users}
-                                                placeholder={"Search users"}
-                                                onChange={(e) => {
-                                                    this.setDropDownMultiple("users", (e == null) ? [] : e);
-                                                }}
-                                                isClearable={((teams.MemberList).length > 0)}
-                                            />
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
+            <div>
+                <form id="conversation-form" class="full-form">
+                    <div class="form-group" class="mb0" id="chat-title">
+                        <input
+                            type="text"
+                            name="title"
+                            required
+                            value={(typeof notes.Selected.title == "undefined") ? "" : notes.Selected.title}
+                            id="message-title"
+                            class="form-control underlined"
+                            placeholder="Type a title"
+                            onChange={this.handleChange}
+                        />
+                        <a class="logo-action text-grey"><i title="PRIVATE" class="fa fa-lock" aria-hidden="true"></i></a>
                     </div>
-                </div>
+                    <div id="chat-area">
+                        <div class="form-group">
+                            <DropDown
+                                required={true}
+                                options={workstream.SelectList}
+                                onInputChange={this.setWorkstreamList}
+                                selected={(typeof notes.Selected.workstreamId == "undefined") ? "" : notes.Selected.workstreamId}
+                                onChange={(e) => {
+                                    this.setDropDown("workstreamId", (e == null) ? "" : e.value);
+                                }}
+                                placeholder={'Select workstream'}
+                            />
+                        </div>
+                        <div id="message-thread">
+                            <i class="fa fa-envelope-o" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <input type="file" id="message-file" ref="fileUploader" style={{ display: "none" }} multiple onChange={this.handleFile} />
+                        </div>
+                        <div class="form-group" id="message-div">
+                            <textarea
+                                name="message"
+                                value={(typeof notes.Selected.message == "undefined" || notes.Selected.message == null) ? "" : notes.Selected.message}
+                                class="form-control"
+                                placeholder="Message"
+                                onChange={this.handleChange}
+                            />
+                            <a class="logo-action text-grey" onClick={() => this.refs.fileUploader.click()}>
+                                <i class="fa fa-paperclip" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                        {
+                            (typeof notes.Selected.files != "undefined" && (notes.Selected.files).length > 0) && <div>
+                                <label>
+                                    Attachments:
+                                                </label>
+                                {
+                                    _.map(notes.Selected.files, ({ name, id }, index) => {
+                                        return (
+                                            <div class="file-div" key={index}>
+                                                <p class="m0"><strong>{name.substring(0, 30)}{(name.length > 30) ? "..." : ""}</strong></p>
+                                                <a onClick={() => this.removefile(index)}><i class="fa fa-times ml10" aria-hidden="true"></i></a>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
+                        }
+                        <div class="form-group mb0">
+                            <label for="project-type">People:</label>
+                            <DropDown
+                                multiple={true}
+                                required={true}
+                                options={teams.MemberList}
+                                onInputChange={this.getUsers}
+                                selected={(typeof notes.Selected.users == "undefined") ? [] : notes.Selected.users}
+                                placeholder={"Search users"}
+                                onChange={(e) => {
+                                    this.setDropDownMultiple("users", (e == null) ? [] : e);
+                                }}
+                                isClearable={((teams.MemberList).length > 0)}
+                            />
+                        </div>
+                        <a class="btn btn-violet mt10" onClick={this.handleSubmit} disabled={(notes.Loading == "SUBMITTING")}>
+                            <span>
+                                Send
+                            </span>
+                        </a>
+                    </div>
+                </form>
             </div>
         )
     }

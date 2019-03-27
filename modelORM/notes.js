@@ -12,6 +12,14 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.TEXT,
       allowNull: true
     },
+    projectId: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    workstreamId: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
     createdBy: {
       type: DataTypes.BIGINT,
       allowNull: true
@@ -37,12 +45,12 @@ module.exports = function (sequelize, DataTypes) {
     });
 
   Notes.associate = function (models) {
-    Notes.hasMany(models.Tag, {
-      as: 'notesTagTask',
-      foreignKey: 'tagTypeId',
+    Notes.belongsTo(models.Workstream, {
+      as: 'noteWorkstream',
+      foreignKey: 'workstreamId',
     });
     Notes.hasMany(models.Tag, {
-      as: 'notesTagWorkstream',
+      as: 'notesTagTask',
       foreignKey: 'tagTypeId',
     });
     Notes.hasMany(models.Conversation, {
