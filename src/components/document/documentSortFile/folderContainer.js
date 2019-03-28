@@ -68,39 +68,60 @@ class FieldContainer extends React.Component {
         const { dispatch, loggedUser, folder, history, match } = this.props;
         const projectId = match.params.projectId;
         let folderList = folder.SelectedFolderName;
-        // if (data === "") {
-        //     dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
-        //     await dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
-        //     await dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
-        //     await this.fetchData(1);
-        //     await history.push(`/projects/${projectId}/files`);
-        // } else if (folder.Selected.id !== data.id) {
-        getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&type=folder&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-            const { result, count } = { ...c.data }
-            if (result.length > 0) {
-                let hasFolder = true;
-                let parentFolderId = data.id;
+        if (data === "") {
+            dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
+            await dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
+            await dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
+            await this.fetchData(1);
+            await history.push(`/projects/${projectId}/files`);
+        } else if (folder.Selected.id !== data.id) {
+            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&type=folder&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+                const { result, count } = { ...c.data }
+                if (result.length > 0) {
+                    let hasFolder = true;
+                    let parentFolderId = data.id;
 
-                while (hasFolder) {
-                    let parentFolder = folderList.filter((e) => { return e.folderId == parentFolderId });
-                    if (parentFolder.length > 0) {
-                        folderList = folderList.filter((e) => { return e.folderId != parentFolderId });
-                        parentFolderId = parentFolder[0].id;
-                    } else {
-                        hasFolder = false;
-                    }
-                }
-
-                let isSelectedFolder = true;
-                let newList = []
-                // while (isSelectedFolder) {
-                newList = folder.List.map((x) => {
-                    let a = Object.assign({}, x)
-                    if (a.id === data.id) {
-                        if (typeof a.childFolder === 'undefined') {
-                            a.childFolder = []
-                            a.childFolder = result;
+                    while (hasFolder) {
+                        let parentFolder = folderList.filter((e) => { return e.folderId == parentFolderId });
+                        if (parentFolder.length > 0) {
+                            folderList = folderList.filter((e) => { return e.folderId != parentFolderId });
+                            parentFolderId = parentFolder[0].id;
                         } else {
+                            hasFolder = false;
+                        }
+                    }
+
+                    let newList = []
+                    newList = folder.List.map((x) => {
+                        let a = Object.assign({}, x)
+                        if (a.id === data.id) {
+                            if (typeof a.childFolder === 'undefined') {
+                                a.childFolder = []
+                                a.childFolder = result;
+                            } else {
+                                a.childFolder.map((y) => {
+                                    let b = y
+                                    if (b.id === data.id) {
+                                        if (typeof b.childFolder === 'undefined') {
+                                            b.childFolder = []
+                                            b.childFolder = result
+                                        }
+                                    } else if (typeof b.childFolder !== "undefined") {
+                                        b.childFolder.map((c) => {
+                                            if (c.id === data.id) {
+                                                if (typeof c.childFolder === "undefined") {
+                                                    c.childFolder = []
+                                                    c.childFolder = result
+                                                }
+                                            }
+                                            return c
+                                        })
+                                    }
+                                    return b
+                                })
+                            }
+                        } else if (typeof a.childFolder !== "undefined") {
+
                             a.childFolder.map((y) => {
                                 let b = y
                                 if (b.id === data.id) {
@@ -108,10 +129,12 @@ class FieldContainer extends React.Component {
                                         b.childFolder = []
                                         b.childFolder = result
                                     }
+                                    console.log(b)
+
                                 } else if (typeof b.childFolder !== "undefined") {
                                     b.childFolder.map((c) => {
                                         if (c.id === data.id) {
-                                            if (typeof c.childFolder === "undefined") {
+                                            if (typeof c.childFolder === 'undefined') {
                                                 c.childFolder = []
                                                 c.childFolder = result
                                             }
@@ -122,53 +145,26 @@ class FieldContainer extends React.Component {
                                 return b
                             })
                         }
-                    } else if (typeof a.childFolder !== "undefined") {
+                        return a
+                    })
 
-                        a.childFolder.map((y) => {
-                            let b = y
-                            if (b.id === data.id) {
-                                if (typeof b.childFolder === 'undefined') {
-                                    b.childFolder = []
-                                    b.childFolder = result
-                                }
-                                console.log(b)
-
-                            } else if (typeof b.childFolder !== "undefined") {
-                                b.childFolder.map((c) => {
-                                    if (c.id === data.id) {
-                                        if (typeof c.childFolder === 'undefined') {
-                                            c.childFolder = []
-                                            c.childFolder = result
-                                        }
-                                    }
-                                    return c
-                                })
-                            }
-                            return b
-                        })
-                    }
-                    return a
-                })
-                // }
-                console.log(result)
-
-                dispatch({ type: 'SET_FOLDER_LIST', list: newList })
-                dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
-                dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList });
-            }
-        });
-        // }
+                    dispatch({ type: 'SET_FOLDER_LIST', list: newList })
+                    dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
+                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList });
+                }
+            });
+        }
     }
 
     renderFolder(data) {
         const { moveTo } = { ...this.props }
         return (
-            <div id={data.id}>
-                <p>
-                    <a href="javascript:void(0)" class="btn btn-primary" data-toggle="collapse" href={`#collapseExample${data.id}`} role="button" aria-expanded="false" aria-controls={`collapseExample${data.id}`} onClick={() => this.fetchFolder(data)}>
-                        {data.origin}
-                    </a>
-                </p>
+            <div class="folder-accordion" id={data.id}>
+                <a href="javascript:void(0)" class="accordion-toggle collapsed" data-toggle="collapse" href={`#collapseExample${data.id}`} role="button" aria-expanded="false" aria-controls={`collapseExample${data.id}`} onClick={() => this.fetchFolder(data)}>
+                    <i class="fa-chevron fa fa-chevron-down"></i>
+                    <i class="fa fa-fw fa-folder"></i>
+                    {data.origin}
+                </a>
                 <div class="collapse" id={`collapseExample${data.id}`}>
                     <div class="collapse-folder-child">
                         {typeof data.childFolder !== "undefined" && data.childFolder.length > 0 &&
