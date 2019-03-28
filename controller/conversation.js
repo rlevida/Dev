@@ -222,6 +222,7 @@ exports.get = {
                 {
                     model: Tag,
                     as: 'conversationDocuments',
+                    attributes: ['id'],
                     where: {
                         linkType: "conversation",
                         tagType: "document",
@@ -340,11 +341,8 @@ exports.post = {
         let form = new formidable.IncomingForm();
         let type = "upload";
         let bodyField = "";
-        let hasFile = false;
 
         form.multiples = true;
-
-
         form.on('field', function (name, field) {
             bodyField = field;
         }).on('file', function (field, file) {
@@ -698,132 +696,220 @@ exports.post = {
         })
     },
     index: async (req, cb) => {
-        const body = req.body;
-        async.parallel({
-            conversation: (parallelCallback) => {
-                try {
-                    Conversation
-                        .create(body)
-                        .then((o) => {
-                            const responseObj = o.toJSON();
-                            parallelCallback(null, responseObj);
-                        });
-                } catch (e) {
-                    parallelCallback(e);
-                }
-            },
-            users: (parallelCallback) => {
-                Tag.findAll({
-                    where: {
-                        tagType: 'notes',
-                        tagTypeId: body.linkId,
-                        linkType: 'user',
-                        linkId: {
-                            [Op.notIn]: [..._.map((body.users), ({ value }) => { return value }), body.usersId]
-                        },
-                        isDeleted: 0
+        const formidable = global.initRequire("formidable");
+        const func = global.initFunc();
+        const filesStack = [];
+        let form = new formidable.IncomingForm();
+        let type = "upload";
+        let bodyField = "";
+
+        form.multiples = true;
+        form.on('field', function (name, field) {
+            bodyField = field;
+        }).on('file', function (field, file) {
+            const date = new Date();
+            const id = func.generatePassword(date.getTime() + file.name, "attachment");
+            const filename = id + (file.name).replace(/[^\w.]|_/g, "_");
+
+            filesStack.push({
+                id,
+                file: file,
+                form: type,
+                filename: filename
+            });
+        }).on('end', async () => {
+            const body = _.omit(JSON.parse(bodyField), ["files"]);
+
+            async.parallel({
+                conversation: (parallelCallback) => {
+                    try {
+                        Conversation
+                            .create(body)
+                            .then((res) => {
+                                const responseObj = res.toJSON();
+                                if (filesStack.length > 0) {
+                                    async.map(filesStack, (fileObj, mapCallback) => {
+                                        func.uploadFile(_.omit(fileObj, ['id']), response => {
+                                            if (response.Message == 'Success') {
+                                                mapCallback(null, {
+                                                    filename: fileObj.filename,
+                                                    origin: fileObj.file.name,
+                                                    Id: fileObj.id,
+                                                    userId: body.userId
+                                                })
+                                            } else {
+                                                mapCallback(esponse.Message)
+                                            }
+                                        });
+                                    }, async (err, results) => {
+                                        const newDocs = _.map(results, ({ filename, origin, userId }) => {
+                                            return {
+                                                name: filename,
+                                                origin,
+                                                uploadedBy: userId,
+                                                type: 'document',
+                                                status: 'new'
+                                            };
+                                        });
+                                        const documentUpload = await Document.bulkCreate(newDocs).map((o) => { return o.toJSON() });
+                                        const conversationTag = _(documentUpload)
+                                            .map(({ id }) => {
+                                                return {
+                                                    linkType: "conversation",
+                                                    linkId: responseObj.id,
+                                                    tagType: "document",
+                                                    tagTypeId: id
+                                                }
+                                            })
+                                            .value();
+                                        Tag.bulkCreate(conversationTag).then((o) => {
+                                            parallelCallback(null, responseObj)
+                                        });
+                                    });
+                                } else {
+                                    parallelCallback(null, responseObj)
+                                }
+                            });
+                    } catch (e) {
+                        parallelCallback(e);
                     }
-                })
-                    .map((o) => { return o.toJSON() })
-                    .then(async (responseArray) => {
-                        if (responseArray.length > 0) {
-                            await Tag.update({ isDeleted: 1 }, {
+                },
+                users: (parallelCallback) => {
+                    Tag.findAll({
+                        where: {
+                            tagType: 'notes',
+                            tagTypeId: body.linkId,
+                            linkType: 'user',
+                            linkId: {
+                                [Op.notIn]: [..._.map((body.users), ({ value }) => { return value }), body.usersId]
+                            },
+                            isDeleted: 0
+                        }
+                    })
+                        .map((o) => { return o.toJSON() })
+                        .then(async (responseArray) => {
+                            if (responseArray.length > 0) {
+                                await Tag.update({ isDeleted: 1 }, {
+                                    where: {
+                                        tagType: 'notes',
+                                        tagTypeId: body.linkId,
+                                        linkType: 'user',
+                                        linkId: {
+                                            [Op.in]: _.map(responseArray, (o) => { return o.linkId })
+                                        }
+                                    }
+                                });
+                            }
+
+                            const currentMembers = await Tag.findAll({
                                 where: {
                                     tagType: 'notes',
                                     tagTypeId: body.linkId,
                                     linkType: 'user',
-                                    linkId: {
-                                        [Op.in]: _.map(responseArray, (o) => { return o.linkId })
-                                    }
+                                    isDeleted: 0
                                 }
-                            });
-                        }
-
-                        const currentMembers = await Tag.findAll({
-                            where: {
-                                tagType: 'notes',
-                                tagTypeId: body.linkId,
-                                linkType: 'user',
-                                isDeleted: 0
-                            }
-                        }).map((o => {
-                            const responseObj = o.toJSON();
-                            return {
-                                value: responseObj.linkId
-                            }
-                        }));
-
-                        const newMembers = _.differenceBy(body.users, currentMembers, 'value');
-
-                        if (newMembers.length > 0) {
-                            const submitArray = _.map(newMembers, ({ value }) => {
+                            }).map((o => {
+                                const responseObj = o.toJSON();
                                 return {
-                                    linkType: "user",
-                                    linkId: value,
-                                    tagType: "notes",
-                                    tagTypeId: body.linkId
+                                    value: responseObj.linkId
                                 }
-                            });
+                            }));
 
-                            Tag.bulkCreate(submitArray, { returning: true })
-                                .map((response) => {
-                                    return response.toJSON();
-                                }).then((response) => {
-                                    parallelCallback(null, response);
+                            const newMembers = _.differenceBy(body.users, currentMembers, 'value');
+
+                            if (newMembers.length > 0) {
+                                const submitArray = _.map(newMembers, ({ value }) => {
+                                    return {
+                                        linkType: "user",
+                                        linkId: value,
+                                        tagType: "notes",
+                                        tagTypeId: body.linkId
+                                    }
                                 });
-                        } else {
-                            parallelCallback(null);
-                        }
-                    });
-            }
-        }, (err, { conversation }) => {
-            Conversation
-                .findOne({
-                    where: {
-                        id: conversation.id
-                    },
-                    include: [
-                        {
-                            model: Users,
-                            as: 'users',
+
+                                Tag.bulkCreate(submitArray, { returning: true })
+                                    .map((response) => {
+                                        return response.toJSON();
+                                    }).then((response) => {
+                                        parallelCallback(null, response);
+                                    });
+                            } else {
+                                parallelCallback(null);
+                            }
+                        });
+                }
+            }, (err, { conversation }) => {
+                Conversation
+                    .findOne({
+                        where: {
+                            id: conversation.id
                         },
-                        {
-                            model: Notes,
-                            as: 'conversationNotes',
-                            include: [
-                                {
-                                    model: Workstream,
-                                    as: 'noteWorkstream',
-                                    include: [
-                                        {
-                                            model: Projects,
-                                            as: 'project'
-                                        }
-                                    ]
+                        include: [
+                            {
+                                model: Tag,
+                                as: 'conversationDocuments',
+                                attributes: ['id'],
+                                where: {
+                                    linkType: "conversation",
+                                    tagType: "document",
+                                    isDeleted: 0
                                 },
-                                {
-                                    model: Tag,
-                                    as: 'notesTagTask',
-                                    required: false,
+                                required: false,
+                                include: [{
+                                    model: Document,
+                                    as: 'document',
                                     where: {
-                                        linkType: 'user',
-                                        tagType: 'notes',
                                         isDeleted: 0
                                     },
-                                    include: [
-                                        {
-                                            model: Users,
-                                            as: 'user'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }).then((res) => {
-                    cb({ status: true, data: res.toJSON() });
-                })
-        })
+                                    required: false
+                                }]
+                            },
+                            {
+                                model: Users,
+                                as: 'users',
+                            },
+                            {
+                                model: Notes,
+                                as: 'conversationNotes',
+                                include: [
+                                    {
+                                        model: Workstream,
+                                        as: 'noteWorkstream',
+                                        include: [
+                                            {
+                                                model: Projects,
+                                                as: 'project'
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        model: Tag,
+                                        as: 'notesTagTask',
+                                        required: false,
+                                        where: {
+                                            linkType: 'user',
+                                            tagType: 'notes',
+                                            isDeleted: 0
+                                        },
+                                        include: [
+                                            {
+                                                model: Users,
+                                                as: 'user'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }).then((res) => {
+                        cb({ status: true, data: res.toJSON() });
+                    })
+            });
+        }).on('error', function (err) {
+            cb({ status: false, error: "Upload error. Please try again later." });
+        });
+
+        form.parse(req);
     }
 }
 

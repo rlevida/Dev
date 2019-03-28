@@ -97,6 +97,7 @@ export default class ConversationForm extends React.Component {
     handleSubmit() {
         const { dispatch, notes, loggedUser, projectId } = { ...this.props };
         const { Selected, List } = notes;
+        let data = new FormData();
 
         if (typeof Selected.id != "undefined" && Selected.id != "") {
             const messageObj = {
@@ -106,13 +107,21 @@ export default class ConversationForm extends React.Component {
                 linkId: Selected.id,
                 users: Selected.users
             };
-            postData(`/api/conversation`, messageObj, (c) => {
+            if (typeof Selected.files != "undefined" && (Selected.files).length > 0) {
+                _.map(Selected.files, (file) => {
+                    data.append("file", file);
+                });
+            }
+            data.append("body", JSON.stringify(messageObj));
+            dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
+            postData(`/api/conversation`, data, (c) => {
                 const conversationNotes = c.data.conversationNotes;
                 const { note, id, noteWorkstream, notesTagTask } = conversationNotes;
                 const noteIndex = _.findIndex(notes.List, { id: conversationNotes.id });
 
                 (notes.List).splice(noteIndex, 1, conversationNotes);
 
+                dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
                 dispatch({ type: "SET_NOTES_LIST", list: notes.List });
                 dispatch({ type: "ADD_COMMENT_LIST", list: c.data });
                 dispatch({
@@ -131,18 +140,13 @@ export default class ConversationForm extends React.Component {
                 });
             });
         } else {
-            let data = new FormData();
-
             if (typeof Selected.files != "undefined" && (Selected.files).length > 0) {
                 _.map(Selected.files, (file) => {
                     data.append("file", file);
                 });
-
             }
             data.append("body", JSON.stringify({ ...Selected, projectId, userId: loggedUser.data.id }));
-
             dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
-
             postData(`/api/conversation/message`, data, (c) => {
                 const selectedNote = c.data[0];
                 const { note, id, noteWorkstream, notesTagTask, comments } = selectedNote;
@@ -299,7 +303,7 @@ export default class ConversationForm extends React.Component {
                                                             (conversationDocuments.length > 0) && _.map(conversationDocuments, ({ document }, index) => {
                                                                 return (
                                                                     <p class="ml20" key={index}>
-                                                                        <i class="fa fa-file-o mr5" aria-hidden="true"></i>
+                                                                        <i class="fa fa-file mr5" aria-hidden="true"></i>
                                                                         {document.origin}
                                                                     </p>
                                                                 )
