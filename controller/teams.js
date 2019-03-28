@@ -137,6 +137,7 @@ exports.get = {
                         distinct: true,
                         where: whereObj
                     })
+                    .map((o) => { return o.toJSON() })
                     .then((res) => {
                         parallelCallback(null, res)
                     })

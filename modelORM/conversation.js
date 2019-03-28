@@ -47,6 +47,10 @@ module.exports = function (sequelize, DataTypes) {
     });
 
   Conversation.associate = function (models) {
+    Conversation.belongsTo(models.Notes, {
+      as: 'conversationNotes',
+      foreignKey: 'linkId',
+    });
     Conversation.belongsTo(models.Users, {
       as: 'users',
       foreignKey: 'usersId',

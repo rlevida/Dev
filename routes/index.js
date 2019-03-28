@@ -53,14 +53,19 @@ router.use(function (req, res, next) {
                                         },
                                         {
                                             model: Teams,
-                                            as: 'team_as_teamLeader'
+                                            as: 'team_as_teamLeader',
+                                            where: { isDeleted: 0 },
+                                            required: false,
                                         },
                                         {
                                             model: UsersTeam,
                                             as: 'users_team',
+                                            where: { isDeleted: 0 },
+                                            required: false,
                                             include: [{
                                                 model: Teams,
-                                                as: 'team'
+                                                as: 'team',
+                                                where: { isDeleted: 0 }
                                             }]
                                         }
                                     ]
@@ -86,7 +91,7 @@ router.use(function (req, res, next) {
 });
 
 router.use(function (req, res, next) {
-    if (req.loggedData.projectId.length === 0 &&  req.loggedData.userRole >= 4) {
+    if (req.loggedData.projectId.length === 0 && req.loggedData.userRole >= 4) {
         try {
             Members
                 .findAll({ where: { userTypeLinkId: req.userDetails.usersId, linkType: "project" } })

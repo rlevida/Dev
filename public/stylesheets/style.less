@@ -2123,8 +2123,10 @@ textarea::-webkit-scrollbar-thumb {
   max-width: 45px;
 }
 
-.thumbnail-profile{
-  max-width: 32px;
+.thumbnail-profile,
+.thumbnail-profile img{
+  width: 32px;
+  height: 32px;
 }
 
 #conversation-form .Select{
@@ -2206,9 +2208,16 @@ textarea::-webkit-scrollbar-thumb {
 
 #message-thread .thumbnail-profile{
   flex: 0 0 10%;
-  max-width: 50px;
-  margin-right: 10px;
+  width: 40px;
+  height:40px;
+  overflow:hidden;
 }
+
+#message-thread .thumbnail-profile img{
+  width:40px;
+  height:40px;
+}
+
 #message-thread .message-text{
   flex: 0 0 90%;
 }
@@ -2225,6 +2234,11 @@ textarea::-webkit-scrollbar-thumb {
 #messages {
   overflow-y: auto;
   max-height: 350px;   
+}
+
+#people{
+  display: flex;
+  margin-bottom: 10px;
 }
 
 @media screen and (max-width: 600px) {

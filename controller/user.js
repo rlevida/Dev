@@ -39,6 +39,7 @@ const associationStack = [
     {
         model: UsersTeam,
         as: 'users_team',
+        where: { isDeleted: 0 },
         include: [{
             model: Teams,
             as: 'team',

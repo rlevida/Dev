@@ -322,7 +322,7 @@ exports.post = {
             projectId: body.projectId,
             workstreamId: body.workstreamId,
             note: body.title,
-            usersId: body.userId
+            createdBy: body.userId
         }).then((o) => { return o.toJSON() });
         const getAssociation = [
             {
@@ -610,30 +610,131 @@ exports.post = {
     },
     index: async (req, cb) => {
         const body = req.body;
-        try {
-            const newConversation = await Conversation
-                .create(body)
-                .then((o) => {
-                    const responseObj = o.toJSON();
-                    return Conversation
-                        .findOne({
+        async.parallel({
+            conversation: (parallelCallback) => {
+                try {
+                    Conversation
+                        .create(body)
+                        .then((o) => {
+                            const responseObj = o.toJSON();
+                            parallelCallback(null, responseObj);
+                        });
+                } catch (e) {
+                    parallelCallback(e);
+                }
+            },
+            users: (parallelCallback) => {
+                Tag.findAll({
+                    where: {
+                        tagType: 'notes',
+                        tagTypeId: body.linkId,
+                        linkType: 'user',
+                        linkId: {
+                            [Op.notIn]: [..._.map((body.users), ({ value }) => { return value }), body.usersId]
+                        },
+                        isDeleted: 0
+                    }
+                })
+                    .map((o) => { return o.toJSON() })
+                    .then(async (responseArray) => {
+                        if (responseArray.length > 0) {
+                            await Tag.update({ isDeleted: 1 }, {
+                                where: {
+                                    tagType: 'notes',
+                                    tagTypeId: body.linkId,
+                                    linkType: 'user',
+                                    linkId: {
+                                        [Op.in]: _.map(responseArray, (o) => { return o.linkId })
+                                    }
+                                }
+                            });
+                        }
+
+                        const currentMembers = await Tag.findAll({
                             where: {
-                                id: responseObj.id
-                            },
+                                tagType: 'notes',
+                                tagTypeId: body.linkId,
+                                linkType: 'user',
+                                isDeleted: 0
+                            }
+                        }).map((o => {
+                            const responseObj = o.toJSON();
+                            return {
+                                value: responseObj.linkId
+                            }
+                        }));
+
+                        const newMembers = _.differenceBy(body.users, currentMembers, 'value');
+
+                        if (newMembers.length > 0) {
+                            const submitArray = _.map(newMembers, ({ value }) => {
+                                return {
+                                    linkType: "user",
+                                    linkId: value,
+                                    tagType: "notes",
+                                    tagTypeId: body.linkId
+                                }
+                            });
+
+                            Tag.bulkCreate(submitArray, { returning: true })
+                                .map((response) => {
+                                    return response.toJSON();
+                                }).then((response) => {
+                                    parallelCallback(null, response);
+                                });
+                        } else {
+                            parallelCallback(null);
+                        }
+                    });
+            }
+        }, (err, { conversation }) => {
+            Conversation
+                .findOne({
+                    where: {
+                        id: conversation.id
+                    },
+                    include: [
+                        {
+                            model: Users,
+                            as: 'users',
+                        },
+                        {
+                            model: Notes,
+                            as: 'conversationNotes',
                             include: [
                                 {
-                                    model: Users,
-                                    as: 'users',
+                                    model: Workstream,
+                                    as: 'noteWorkstream',
+                                    include: [
+                                        {
+                                            model: Projects,
+                                            as: 'project'
+                                        }
+                                    ]
+                                },
+                                {
+                                    model: Tag,
+                                    as: 'notesTagTask',
+                                    required: false,
+                                    where: {
+                                        linkType: 'user',
+                                        tagType: 'notes',
+                                        isDeleted: 0
+                                    },
+                                    include: [
+                                        {
+                                            model: Users,
+                                            as: 'user'
+                                        }
+                                    ]
                                 }
                             ]
-                        }).then((res) => {
-                            return res.toJSON();
-                        })
-                });
-            cb({ status: true, data: newConversation });
-        } catch (e) {
-            cb({ status: false, error: err });
-        }
+                        }
+                    ]
+                }).then((res) => {
+                    cb({ status: true, data: res.toJSON() });
+                })
+        })
     }
 }
 

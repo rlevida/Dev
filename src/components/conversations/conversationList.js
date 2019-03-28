@@ -100,12 +100,24 @@ export default class ConversationList extends React.Component {
         });
     }
 
-    openMessage({ note, id, noteWorkstream, notesTagTask }) {
+    openMessage({ note, id, noteWorkstream, notesTagTask, createdBy }) {
         const { dispatch } = { ...this.props };
         let requestUrl = `/api/conversation/getConversationList?page=1&linkType=notes&linkId=${id}`;
         //users
         dispatch({ type: "SET_COMMENT_LOADING", Loading: "RETRIEVING" });
-        dispatch({ type: "SET_NOTES_SELECTED", Selected: { title: note, id, workstream: noteWorkstream, workstreamId: noteWorkstream.id, users: _.map(notesTagTask, ({ user }) => { return { value: user.id, label: user.firstName + " " + user.lastName } }) } });
+        dispatch({
+            type: "SET_NOTES_SELECTED", Selected: {
+                title: note,
+                id,
+                createdBy,
+                workstream: noteWorkstream,
+                workstreamId: noteWorkstream.id,
+                users: _.map(notesTagTask, ({ user }) => {
+                    return { value: user.id, label: user.firstName + " " + user.lastName, avatar: user.avatar }
+                }),
+                notesTagTask
+            }
+        });
 
         getData(requestUrl, {}, (c) => {
             dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });

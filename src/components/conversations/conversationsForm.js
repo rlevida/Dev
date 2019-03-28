@@ -103,24 +103,58 @@ export default class ConversationForm extends React.Component {
                 comment: Selected.message,
                 usersId: loggedUser.data.id,
                 linkType: "notes",
-                linkId: Selected.id
+                linkId: Selected.id,
+                users: Selected.users
             };
             postData(`/api/conversation`, messageObj, (c) => {
+                const conversationNotes = c.data.conversationNotes;
+                const { note, id, noteWorkstream, notesTagTask } = conversationNotes;
+                const noteIndex = _.findIndex(notes.List, { id: conversationNotes.id });
+
+                (notes.List).splice(noteIndex, 1, conversationNotes);
+
+                dispatch({ type: "SET_NOTES_LIST", list: notes.List });
                 dispatch({ type: "ADD_COMMENT_LIST", list: c.data });
-                dispatch({ type: "SET_NOTES_SELECTED", Selected: { ...Selected, "message": "" } });
+                dispatch({
+                    type: "SET_NOTES_SELECTED", Selected:
+                    {
+                        title: note,
+                        id,
+                        workstream: noteWorkstream,
+                        workstreamId: noteWorkstream.id,
+                        users: _.map(notesTagTask, ({ user }) => {
+                            return { value: user.id, label: user.firstName + " " + user.lastName, avatar: user.avatar }
+                        }),
+                        notesTagTask,
+                        message: ""
+                    }
+                });
             });
         } else {
             postData(`/api/conversation/message`, { ...Selected, projectId, userId: loggedUser.data.id }, (c) => {
                 const selectedNote = c.data[0];
                 const { note, id, noteWorkstream, notesTagTask, comments } = selectedNote;
+
                 dispatch({ type: "SET_NOTES_LIST", list: [...List, ...c.data] });
-                dispatch({ type: "SET_NOTES_SELECTED", Selected: { title: note, id, workstream: noteWorkstream, workstreamId: noteWorkstream.id, users: _.map(notesTagTask, ({ user }) => { return { value: user.id, label: user.firstName + " " + user.lastName } }) } });
-                
+                dispatch({
+                    type: "SET_NOTES_SELECTED", Selected:
+                    {
+                        title: note,
+                        id,
+                        workstream: noteWorkstream,
+                        workstreamId: noteWorkstream.id,
+                        users: _.map(notesTagTask, ({ user }) => {
+                            return { value: user.id, label: user.firstName + " " + user.lastName, avatar: user.avatar }
+                        }),
+                        notesTagTask,
+                        message: ""
+                    }
+                });
+
                 dispatch({ type: "SET_COMMENT_LIST", list: comments, count: { total_count: 1, current_page: 1, last_page: 1 } });
                 dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
             });
         }
-
     }
 
     setWorkstreamList(options) {
@@ -177,9 +211,9 @@ export default class ConversationForm extends React.Component {
     }
 
     render() {
-        const { teams, workstream, notes, conversation } = this.props;
+        const { teams, workstream, notes, conversation, loggedUser } = this.props;
         const workstreamList = workstream.SelectList;
-        const userList = teams.MemberList;
+        const userList = [...teams.MemberList, ..._.map(notes.Selected.users, ({ value, label }) => { return { id: value, name: label } })];
         const conversationList = (typeof notes.Selected.id != "undefined" && notes.Selected.id != "") ? _(conversation.List)
             .filter((o) => { return o.linkType == "notes" && o.linkId == notes.Selected.id })
             .sortBy('dateAdded')
@@ -193,7 +227,6 @@ export default class ConversationForm extends React.Component {
                 id: notes.Selected.workstream.id,
                 name: notes.Selected.workstream.workstream
             });
-            userList.concat(_.map(notes.users, ({ user }) => { return { id: user.id, name: user.firstName + " " + user.lastName } }));
         }
 
         return (
@@ -293,25 +326,53 @@ export default class ConversationForm extends React.Component {
                         }
                         <div class="form-group mb0">
                             <label for="project-type">People:</label>
-                            <DropDown
-                                multiple={true}
-                                required={true}
-                                options={_.uniqBy(userList, 'id')}
-                                onInputChange={this.getUsers}
-                                selected={(typeof notes.Selected.users == "undefined") ? [] : notes.Selected.users}
-                                placeholder={"Search users"}
-                                onChange={(e) => {
-                                    this.setDropDownMultiple("users", (e == null) ? [] : e);
-                                }}
-                                isClearable={((teams.MemberList).length > 0)}
-                                disabled={typeof notes.Selected.id != "undefined" && notes.Selected.id != ""}
-                            />
+                            <div class="display-flex mb10">
+                                {
+                                    _.map(notes.Selected.notesTagTask, ({ user }, index) => {
+                                        return (
+                                            <div class="thumbnail-profile" key={index}>
+                                                <span title={user.firstName + " " + user.lastName}>
+                                                    <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                </span>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
+                            {
+                                (typeof notes.Selected.createdBy == "undefined" || notes.Selected.createdBy == loggedUser.data.id) && <DropDown
+                                    multiple={true}
+                                    required={true}
+                                    options={
+                                        _(userList)
+                                            .uniqBy('id')
+                                            .filter((o) => {
+                                                return o.id != loggedUser.data.id
+                                            })
+                                            .value()
+                                    }
+                                    onInputChange={this.getUsers}
+                                    selected={(typeof notes.Selected.users == "undefined") ? [] : notes.Selected.users}
+                                    placeholder={"Search users"}
+                                    onChange={(e) => {
+                                        this.setDropDownMultiple("users", (e == null) ? [] : e);
+                                    }}
+                                    isClearable={((teams.MemberList).length > 0)}
+                                />
+                            }
                         </div>
-                        <a class="btn btn-violet mt10" onClick={this.handleSubmit} disabled={(notes.Loading == "SUBMITTING")}>
-                            <span>
-                                Send
-                            </span>
-                        </a>
+                        {
+                            (
+                                (typeof notes.Selected.title != "undefined" && notes.Selected.title != "") &&
+                                (typeof notes.Selected.workstreamId != "undefined" && notes.Selected.workstreamId != "") &&
+                                (typeof notes.Selected.message != "undefined" && notes.Selected.message != null && notes.Selected.message != "") &&
+                                (typeof notes.Selected.users != "undefined" && (notes.Selected.users).length > 0) && <a class="btn btn-violet mt10" onClick={this.handleSubmit} disabled={(notes.Loading == "SUBMITTING")}>
+                                    <span>
+                                        Send
+                                    </span>
+                                </a>
+                            )
+                        }
                     </div>
                 </form>
             </div>

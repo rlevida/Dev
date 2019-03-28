@@ -187,7 +187,7 @@ export default class UserForm extends React.Component {
     }
 
     fetchTeamList(options) {
-        const { dispatch, loggedUser, users } = this.props;
+        const { dispatch, loggedUser, users, profileEdit = false } = this.props;
         let fetchUrl = `/api/teams?page=1&isDeleted=0&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
 
         if (typeof options != "undefined" && options != "") {
@@ -203,13 +203,15 @@ export default class UserForm extends React.Component {
                     }
                 })
                 .value();
-            const teamSelectList = _.uniqBy([...teamOptions, ..._.map(users.Selected.team, (o) => {
+                
+            const teamSelectList = (profileEdit == false) ? _.uniqBy([...teamOptions, ..._.map(users.Selected.team, (o) => {
                 return {
                     id: o.value,
                     name: o.label,
                     teamLeader: o.teamLeader
                 }
-            })], 'id');
+            })], 'id') : teamOptions;
+
             dispatch({
                 type: "SET_TEAM_SELECT_LIST",
                 List: teamSelectList
