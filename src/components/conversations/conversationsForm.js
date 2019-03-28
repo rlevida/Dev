@@ -131,7 +131,19 @@ export default class ConversationForm extends React.Component {
                 });
             });
         } else {
-            postData(`/api/conversation/message`, { ...Selected, projectId, userId: loggedUser.data.id }, (c) => {
+            let data = new FormData();
+
+            if (typeof Selected.files != "undefined" && (Selected.files).length > 0) {
+                _.map(Selected.files, (file) => {
+                    data.append("file", file);
+                });
+
+            }
+            data.append("body", JSON.stringify({ ...Selected, projectId, userId: loggedUser.data.id }));
+
+            dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
+
+            postData(`/api/conversation/message`, data, (c) => {
                 const selectedNote = c.data[0];
                 const { note, id, noteWorkstream, notesTagTask, comments } = selectedNote;
 
@@ -228,7 +240,6 @@ export default class ConversationForm extends React.Component {
                 name: notes.Selected.workstream.workstream
             });
         }
-
         return (
             <div>
                 <form id="conversation-form" class="full-form">
@@ -274,7 +285,7 @@ export default class ConversationForm extends React.Component {
                             {
                                 (conversationList.length > 0) && <div>
                                     {
-                                        _.map(conversationList, ({ comment, users, dateAdded }, index) => {
+                                        _.map(conversationList, ({ comment, users, dateAdded, conversationDocuments }, index) => {
                                             const date = moment(dateAdded).from(new Date());
                                             return (
                                                 <div class="thread" key={index} ref={(ref) => this.newData = ref}  >
@@ -284,6 +295,16 @@ export default class ConversationForm extends React.Component {
                                                     <div class="message-text">
                                                         <p class="note mb5"><strong>{users.firstName + " " + users.lastName}</strong> {date}</p>
                                                         <p>{comment}</p>
+                                                        {
+                                                            (conversationDocuments.length > 0) && _.map(conversationDocuments, ({ document }, index) => {
+                                                                return (
+                                                                    <p class="ml20" key={index}>
+                                                                        <i class="fa fa-file-o mr5" aria-hidden="true"></i>
+                                                                        {document.origin}
+                                                                    </p>
+                                                                )
+                                                            })
+                                                        }
                                                     </div>
                                                 </div>
                                             )
@@ -366,9 +387,12 @@ export default class ConversationForm extends React.Component {
                                 (typeof notes.Selected.title != "undefined" && notes.Selected.title != "") &&
                                 (typeof notes.Selected.workstreamId != "undefined" && notes.Selected.workstreamId != "") &&
                                 (typeof notes.Selected.message != "undefined" && notes.Selected.message != null && notes.Selected.message != "") &&
-                                (typeof notes.Selected.users != "undefined" && (notes.Selected.users).length > 0) && <a class="btn btn-violet mt10" onClick={this.handleSubmit} disabled={(notes.Loading == "SUBMITTING")}>
+                                (typeof notes.Selected.users != "undefined" && (notes.Selected.users).length > 0) && <a disabled={(conversation.Loading == "SUBMITTING")} class="btn btn-violet mt10" onClick={this.handleSubmit}>
+
                                     <span>
-                                        Send
+                                        {
+                                            (conversation.Loading == "SUBMITTING") ? "Sending..." : "Send"
+                                        }
                                     </span>
                                 </a>
                             )

@@ -220,6 +220,24 @@ exports.get = {
         const options = {
             include: [
                 {
+                    model: Tag,
+                    as: 'conversationDocuments',
+                    where: {
+                        linkType: "conversation",
+                        tagType: "document",
+                        isDeleted: 0
+                    },
+                    required: false,
+                    include: [{
+                        model: Document,
+                        as: 'document',
+                        where: {
+                            isDeleted: 0
+                        },
+                        required: false
+                    }]
+                },
+                {
                     model: Users,
                     as: 'users',
                 }
@@ -316,176 +334,247 @@ exports.get = {
 
 exports.post = {
     message: async (req, cb) => {
-        const body = req.body;
-        const userId = [..._.map(body.users, ({ value }) => { return value }), body.userId];
-        const noteResult = await Notes.create({
-            projectId: body.projectId,
-            workstreamId: body.workstreamId,
-            note: body.title,
-            createdBy: body.userId
-        }).then((o) => { return o.toJSON() });
-        const getAssociation = [
-            {
-                model: Conversation,
-                as: 'comments',
-                where: {
-                    linkType: 'notes',
-                    isDeleted: 0
-                },
-                include: [
-                    {
-                        model: Users,
-                        as: 'users'
-                    }
-                ]
-            },
-            {
-                model: Workstream,
-                as: 'noteWorkstream',
-                include: [
-                    {
-                        model: Projects,
-                        as: 'project'
-                    }
-                ]
-            },
-            {
-                model: Tag,
-                as: 'notesTagTask',
-                required: false,
-                where: {
-                    linkType: 'user',
-                    tagType: 'notes',
-                    isDeleted: 0
-                },
-                include: [
-                    {
-                        model: Users,
-                        as: 'user'
-                    }
-                ]
-            }
-        ]
+        const formidable = global.initRequire("formidable");
+        const func = global.initFunc();
+        const filesStack = [];
+        let form = new formidable.IncomingForm();
+        let type = "upload";
+        let bodyField = "";
+        let hasFile = false;
 
-        async.parallel({
-            notesLastSeen: (parallelCallback) => {
-                NotesLastSeen
-                    .create({
-                        userId: body.userId,
-                        linkType: 'notes',
-                        linkId: noteResult.id
-                    })
-                    .then((res) => {
-                        parallelCallback(null, res.toJSON())
-                    });
-            },
-            conversations: (parallelCallback) => {
-                Conversation
-                    .create({
-                        comment: body.message,
-                        usersId: body.userId,
-                        linkType: "notes",
-                        linkId: noteResult.id
-                    }).then((res) => {
-                        parallelCallback(null, res.toJSON())
-                    });
-            },
-            tags: (parallelCallback) => {
-                const submitArray = _.map(userId, (id) => {
-                    return {
-                        linkType: "user",
-                        linkId: id,
-                        tagType: "notes",
-                        tagTypeId: noteResult.id
-                    }
-                });
+        form.multiples = true;
 
-                Tag.bulkCreate(submitArray, { returning: true })
-                    .map((response) => {
-                        return response.toJSON();
-                    }).then((response) => {
-                        parallelCallback(null, response)
-                    });
-            },
-        }, (err, result) => {
-            Users.findAll({
-                where: {
-                    id: userId
-                }
-            }).map((o) => {
-                const userObj = o.toJSON();
-                return userObj;
-            }).then(async (response) => {
-                const workstream = await Workstream.findOne({
+
+        form.on('field', function (name, field) {
+            bodyField = field;
+        }).on('file', function (field, file) {
+            const date = new Date();
+            const id = func.generatePassword(date.getTime() + file.name, "attachment");
+            const filename = id + (file.name).replace(/[^\w.]|_/g, "_");
+
+            filesStack.push({
+                id,
+                file: file,
+                form: type,
+                filename: filename
+            });
+        }).on('end', async () => {
+            const body = _.omit(JSON.parse(bodyField), ["files"]);
+            const userId = [..._.map(body.users, ({ value }) => { return value }), body.userId];
+            const noteResult = await Notes.create({
+                projectId: body.projectId,
+                workstreamId: body.workstreamId,
+                note: body.title,
+                createdBy: body.userId
+            }).then((o) => { return o.toJSON() });
+            const getAssociation = [
+                {
+                    model: Conversation,
+                    as: 'comments',
                     where: {
-                        id: body.workstreamId
+                        linkType: 'notes',
+                        isDeleted: 0
                     },
+                    include: [
+                        {
+                            model: Users,
+                            as: 'users'
+                        }
+                    ]
+                },
+                {
+                    model: Workstream,
+                    as: 'noteWorkstream',
                     include: [
                         {
                             model: Projects,
                             as: 'project'
                         }
                     ]
-                }).then((o) => { return o.toJSON() });
+                },
+                {
+                    model: Tag,
+                    as: 'notesTagTask',
+                    required: false,
+                    where: {
+                        linkType: 'user',
+                        tagType: 'notes',
+                        isDeleted: 0
+                    },
+                    include: [
+                        {
+                            model: Users,
+                            as: 'user'
+                        }
+                    ]
+                }
+            ];
+            async.parallel({
+                notesLastSeen: (parallelCallback) => {
+                    NotesLastSeen
+                        .create({
+                            userId: body.userId,
+                            linkType: 'notes',
+                            linkId: noteResult.id
+                        })
+                        .then((res) => {
+                            parallelCallback(null, res.toJSON())
+                        });
+                },
+                conversations: (parallelCallback) => {
+                    Conversation
+                        .create({
+                            comment: body.message,
+                            usersId: body.userId,
+                            linkType: "notes",
+                            linkId: noteResult.id
+                        }).then((res) => {
+                            const responseObj = res.toJSON();
 
-                const sender = _.find(response, (o) => { return o.id == body.userId });
-                const receivers = _.filter(response, (o) => { return o.id != body.userId });
-                const reminderList = _.map(receivers, (receiver) => {
-                    return {
-                        detail: sender.firstName + " " + sender.lastName + " started a message.",
-                        emailAddress: receiver.emailAddress,
-                        usersId: receiver.id,
-                        linkType: 'notes',
-                        linkId: noteResult.id,
-                        type: "Send Message",
-                        createdBy: sender.id
+                            if (filesStack.length > 0) {
+                                async.map(filesStack, (fileObj, mapCallback) => {
+                                    func.uploadFile(_.omit(fileObj, ['id']), response => {
+                                        if (response.Message == 'Success') {
+                                            mapCallback(null, {
+                                                filename: fileObj.filename,
+                                                origin: fileObj.file.name,
+                                                Id: fileObj.id,
+                                                userId: body.userId
+                                            })
+                                        } else {
+                                            mapCallback(esponse.Message)
+                                        }
+                                    });
+                                }, async (err, results) => {
+                                    const newDocs = _.map(results, ({ filename, origin, userId }) => {
+                                        return {
+                                            name: filename,
+                                            origin,
+                                            uploadedBy: userId,
+                                            type: 'document',
+                                            status: 'new'
+                                        };
+                                    });
+                                    const documentUpload = await Document.bulkCreate(newDocs).map((o) => { return o.toJSON() });
+                                    const conversationTag = _(documentUpload)
+                                        .map(({ id }) => {
+                                            return {
+                                                linkType: "conversation",
+                                                linkId: responseObj.id,
+                                                tagType: "document",
+                                                tagTypeId: id
+                                            }
+                                        })
+                                        .value();
+                                    Tag.bulkCreate(conversationTag).then((o) => {
+                                        parallelCallback(null, responseObj)
+                                    });
+                                });
+                            } else {
+                                parallelCallback(null, responseObj)
+                            }
+                        });
+                },
+                tags: (parallelCallback) => {
+                    const submitArray = _.map(userId, (id) => {
+                        return {
+                            linkType: "user",
+                            linkId: id,
+                            tagType: "notes",
+                            tagTypeId: noteResult.id
+                        }
+                    });
+
+                    Tag.bulkCreate(submitArray, { returning: true })
+                        .map((response) => {
+                            return response.toJSON();
+                        }).then((response) => {
+                            parallelCallback(null, response)
+                        });
+                }
+            }, (err, result) => {
+                Users.findAll({
+                    where: {
+                        id: userId
                     }
-                });
-
-                Reminder.bulkCreate(
-                    _.map(reminderList, (o) => { return _.omit(o, ["emailAddress"]) })
-                ).map((response) => {
-                    return response.toJSON();
-                }).then((resultArray) => {
-                    async.map(reminderList, ({ emailAddress, detail }, mapCallback) => {
-                        let html = '<p>' + detail + '</p>';
-                        html += '<p style="margin-bottom:0">Title: ' + body.title + '</p>';
-                        html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                        html += '<p>Message:<br>' + body.message + '</p>';
-
-                        const mailOptions = {
-                            from: '"no-reply" <no-reply@c_cfo.com>',
-                            to: `${emailAddress}`,
-                            subject: '[CLOUD-CFO]',
-                            html: html
-                        };
-
-                        global.emailtransport(mailOptions);
-                        mapCallback(null);
-                    }, (err, result) => {
-                        const options = {
-                            include: getAssociation,
-                            order: [['dateUpdated', 'DESC']]
-                        };
-                        Notes.findAll({
-                            ...options,
-                            where: {
-                                id: noteResult.id
+                }).map((o) => {
+                    const userObj = o.toJSON();
+                    return userObj;
+                }).then(async (response) => {
+                    const workstream = await Workstream.findOne({
+                        where: {
+                            id: body.workstreamId
+                        },
+                        include: [
+                            {
+                                model: Projects,
+                                as: 'project'
                             }
-                        }).map((mapObject) => {
-                            const responseObj = mapObject.toJSON();
-                            return {
-                                ...responseObj,
-                                isStarred: 0
-                            }
-                        }).then((resultArray) => {
-                            cb({ status: true, data: resultArray });
+                        ]
+                    }).then((o) => { return o.toJSON() });
+
+                    const sender = _.find(response, (o) => { return o.id == body.userId });
+                    const receivers = _.filter(response, (o) => { return o.id != body.userId });
+                    const reminderList = _.map(receivers, (receiver) => {
+                        return {
+                            detail: sender.firstName + " " + sender.lastName + " started a message.",
+                            emailAddress: receiver.emailAddress,
+                            usersId: receiver.id,
+                            linkType: 'notes',
+                            linkId: noteResult.id,
+                            type: "Send Message",
+                            createdBy: sender.id
+                        }
+                    });
+
+                    Reminder.bulkCreate(
+                        _.map(reminderList, (o) => { return _.omit(o, ["emailAddress"]) })
+                    ).map((response) => {
+                        return response.toJSON();
+                    }).then((resultArray) => {
+                        async.map(reminderList, ({ emailAddress, detail }, mapCallback) => {
+                            let html = '<p>' + detail + '</p>';
+                            html += '<p style="margin-bottom:0">Title: ' + body.title + '</p>';
+                            html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                            html += '<p>Message:<br>' + body.message + '</p>';
+
+                            const mailOptions = {
+                                from: '"no-reply" <no-reply@c_cfo.com>',
+                                to: `${emailAddress}`,
+                                subject: '[CLOUD-CFO]',
+                                html: html
+                            };
+
+                            global.emailtransport(mailOptions);
+                            mapCallback(null);
+                        }, (err, result) => {
+                            const options = {
+                                include: getAssociation,
+                                order: [['dateUpdated', 'DESC']]
+                            };
+                            Notes.findAll({
+                                ...options,
+                                where: {
+                                    id: noteResult.id
+                                }
+                            }).map((mapObject) => {
+                                const responseObj = mapObject.toJSON();
+                                return {
+                                    ...responseObj,
+                                    isStarred: 0
+                                }
+                            }).then((resultArray) => {
+                                cb({ status: true, data: resultArray });
+                            });
                         });
                     });
-                });
-            })
+                })
+            });
+        }).on('error', function (err) {
+            cb({ status: false, error: "Upload error. Please try again later." });
         });
 
+        form.parse(req);
     },
     comment: async (req, cb) => {
         const body = req.body;

@@ -51,6 +51,10 @@ module.exports = function (sequelize, DataTypes) {
       as: 'conversationNotes',
       foreignKey: 'linkId',
     });
+    Conversation.hasMany(models.Tag, {
+      as: 'conversationDocuments',
+      foreignKey: 'linkId',
+    });
     Conversation.belongsTo(models.Users, {
       as: 'users',
       foreignKey: 'usersId',
