@@ -30,8 +30,15 @@ class DocumentFilter extends React.Component {
         const { dispatch, loggedUser, folder, document, match } = this.props;
         const projectId = match.params.projectId;
 
+
+
         if (_.isEqual(prevProps.document.Filter, this.props.document.Filter) == false) {
             clearTimeout(delayTimer);
+
+            if (_.isEmpty(folder.Selected) === false) {
+                dispatch({ type: "SET_SELECTED_FOLDER", Selected: {} })
+                dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] })
+            }
 
             const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, isArchived, status } = this.props.document.Filter;
 
@@ -49,71 +56,59 @@ class DocumentFilter extends React.Component {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
 
             delayTimer = setTimeout(() => {
-                if (status === 'active') {
+                if (status === 'active' || status === 'sort') {
                     requestUrl += `&folderId=null&type=document`
                 }
 
-                if (status === 'sorted') {
+                if (status === 'library') {
                     requestUrl += `&folderId=null&type=folder`
                 }
 
-                if (isCompleted) {
-                    requestUrl += `&isCompleted=${isCompleted}`
-                }
-                if (search) {
-                    requestUrl += `&search=${search}`
-                }
-                if (tags) {
-                    _.map(tags, (t) => {
-                        const tagType = t.value.split('-')[0];
-                        const tagId = t.value.split('-')[1];
-                        if (tagType === 'workstream') {
-                            requestUrl += `&workstream=${tagId}`
-                        }
-                        if (tagType === 'task') {
-                            requestUrl += `&task=${tagId}`
-                        }
-                    })
-                }
-                if (uploadedBy) {
-                    requestUrl += `&uploadedBy=${uploadedBy}`
-                }
-                if (members) {
-                    _.map(members, (e) => {
-                        requestUrl += `&members=${e.value}`
-                    })
-                }
-                if (uploadFrom) {
-                    requestUrl += `&uploadFrom=${uploadFrom}`
-                }
-                if (uploadTo) {
-                    requestUrl += `&uploadTo=${uploadTo}`
-                }
-                if (isArchived !== 'all') {
-                    requestUrl += `&isArchived=${isArchived}`
-                }
-
+                // if (isCompleted) {
+                //     requestUrl += `&isCompleted=${isCompleted}`
+                // }
+                // if (search) {
+                //     requestUrl += `&search=${search}`
+                // }
+                // if (tags) {
+                //     _.map(tags, (t) => {
+                //         const tagType = t.value.split('-')[0];
+                //         const tagId = t.value.split('-')[1];
+                //         if (tagType === 'workstream') {
+                //             requestUrl += `&workstream=${tagId}`
+                //         }
+                //         if (tagType === 'task') {
+                //             requestUrl += `&task=${tagId}`
+                //         }
+                //     })
+                // }
+                // if (uploadedBy) {
+                //     requestUrl += `&uploadedBy=${uploadedBy}`
+                // }
+                // if (members) {
+                //     _.map(members, (e) => {
+                //         requestUrl += `&members=${e.value}`
+                //     })
+                // }
+                // if (uploadFrom) {
+                //     requestUrl += `&uploadFrom=${uploadFrom}`
+                // }
+                // if (uploadTo) {
+                //     requestUrl += `&uploadTo=${uploadTo}`
+                // }
                 getData(`${requestUrl}`, {}, (c) => {
                     const { result, count } = { ...c.data }
-                    console.log(`result`, result, count)
                     dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count })
-                    // dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' })
-                    // showToast('success', 'Documents successfully retrieved.')
 
                 });
 
-                // getData(`${requestUrl}&status=library&folderId=${typeof folder.SelectedNewFolder.id !== 'undefined' ? folder.SelectedNewFolder.id : null}`, {}, (c) => {
-                //     if (c.status == 200) {
-                //         dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'Library', Count: { Count: c.data.count }, CountType: 'LibraryCount' })
-                //         dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
-                //         dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'LibraryDocumentLoading' })
-                //         showToast('success', 'Documents successfully retrieved.')
-                //     } else {
-                //         showToast('success', 'Something went wrong!')
-                //     }
-                // });
-
+                if (status === 'sort') {
+                    getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`, {}, (c) => {
+                        const { result, count } = { ...c.data }
+                        dispatch({ type: "SET_FOLDER_LIST", list: result, count: count })
+                    });
+                }
             }, 1000);
         }
 
@@ -152,8 +147,8 @@ class DocumentFilter extends React.Component {
                         <div class="flex-row tab-row mb0">
                             <div class="flex-col">
                                 <a class={document.Filter.status === 'active' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'active')}>Active Files</a>
-                                <a class={document.Filter.status === 'sorted' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'sorted')}>Library</a>
-                                <a class={document.Filter.status === 1 ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('isArchived', 1)}>Sort Files</a>
+                                <a class={document.Filter.status === 'library' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'library')}>Library</a>
+                                <a class={document.Filter.status === 'sort' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'sort')}>Sort Files</a>
                             </div>
                         </div>
                     </div>
@@ -169,17 +164,22 @@ class DocumentFilter extends React.Component {
                                     <i class="fa fa-download fa-lg"></i>
                                 </span>
                             </a>
-                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#folderModal">
-                                <span>
-                                    <i class="fa fa-folder fa-lg"></i>
-                                </span>
-                            </a>
-                            <a class="btn btn-default" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>
+                            <a class="btn btn-default mr10" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>
                                 <span>
                                     <i class="fa fa-plus mr10" aria-hidden="true"></i>
-                                    Add New Files
+                                    New File
                                 </span>
                             </a>
+                            {
+                                (document.Filter.status !== 'active') &&
+                                <a class="btn btn-default" data-toggle="modal" data-target="#folderModal">
+                                    <span>
+                                        <i class="fa fa-folder fa-lg mr5"></i>
+                                        New Folder
+                                    </span>
+                                </a>
+                            }
+
                         </div>
                     </div>
                 </div>

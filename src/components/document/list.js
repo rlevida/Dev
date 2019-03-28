@@ -42,29 +42,11 @@ class List extends React.Component {
                         </div>
                     </div>
                 </div>
+                <ShareModal />
+                <EditModal />
+                <FolderModal />
+                <DeleteModal />
             </div>
-            // <div class="m10">
-            //     <div class="row">
-            //         <div class="card">
-            //             <div class="col-lg-12">
-            //                 <DocumentFilter />
-            //             </div>
-            //             <div class="card-body">
-            //                 <div class= "linear-background">
-            //                     {/* <div style={{ padding: "20px" }}>
-            //                     <div class="row">
-            //                         <DocumentList />
-            //                     </div>
-            //                 </div> */}
-            //                 </div>
-            //             </div>
-            //         </div>
-            //         <ShareModal />
-            //         <EditModal />
-            //         <FolderModal />
-            //         <DeleteModal />
-            //     </div>
-            // </div>
         )
     }
 }

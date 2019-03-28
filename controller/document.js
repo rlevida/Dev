@@ -222,7 +222,9 @@ exports.get = {
                                 as: 'document',
                                 where: documentWhereObj,
                                 include: associationFindAllStack,
-                                required: true
+                               
+                                hierarchy: true 
+                            
                             },
                         ],
                     })
@@ -246,11 +248,13 @@ exports.get = {
                                     as: 'document',
                                     where: documentWhereObj,
                                     include: associationFindAllStack,
-                                    required: true
+                                    required: true,
+                                    hierarchy: true
                                 }
                             ],
                         })
                         .map((res) => {
+                            console.log(res.document.toJSON())
                             let resToReturn = {
                                 ...res.document.toJSON(),
                                 tagWorkstream: res.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),

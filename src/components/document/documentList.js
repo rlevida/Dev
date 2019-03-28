@@ -6,6 +6,8 @@ import { connect } from "react-redux"
 import { withRouter } from "react-router";
 import { Link } from 'react-router-dom';
 
+import DocumentSortFile from "./documentSortFile"
+
 @connect((store) => {
     return {
         document: store.document,
@@ -55,38 +57,42 @@ class DocumentList extends React.Component {
         const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, status } = document.Filter;
 
         let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
-        if (status === 'active') {
+        if (status === 'active' || status === 'sort') {
             requestUrl += `&folderId=null&type=document`
         }
-        if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
-            requestUrl += `&isCompleted=${isCompleted}`
+
+        if (status === 'library') {
+            requestUrl += `&folderId=null&type=folder`
         }
-        if (typeof search !== 'undefined' && search !== '') {
-            requestUrl += `&search=${search}`
-        }
-        if (typeof tags !== 'undefined') {
-            _.filter(tags, (t) => {
-                const tagType = t.value.split('-')[0];
-                const tagId = t.value.split('-')[1];
-                if (tagType === 'workstream') {
-                    requestUrl += `&workstream=${tagId}`
-                }
-            })
-        }
-        if (typeof uploadedBy !== 'undefined' && uploadedBy !== '') {
-            requestUrl += `&uploadedBy=${uploadedBy}`
-        }
-        if (typeof members !== 'undefined' && members !== '') {
-            _.map(members, (e) => {
-                requestUrl += `&members=${e.value}`
-            })
-        }
-        if (typeof uploadFrom !== 'undefiend' && uploadFrom !== '') {
-            requestUrl += `&uploadFrom=${uploadFrom}`
-        }
-        if (typeof uploadTo !== 'undefiend' && uploadTo !== '') {
-            requestUrl += `&uploadTo=${uploadTo}`
-        }
+        // if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
+        //     requestUrl += `&isCompleted=${isCompleted}`
+        // }
+        // if (typeof search !== 'undefined' && search !== '') {
+        //     requestUrl += `&search=${search}`
+        // }
+        // if (typeof tags !== 'undefined') {
+        //     _.filter(tags, (t) => {
+        //         const tagType = t.value.split('-')[0];
+        //         const tagId = t.value.split('-')[1];
+        //         if (tagType === 'workstream') {
+        //             requestUrl += `&workstream=${tagId}`
+        //         }
+        //     })
+        // }
+        // if (typeof uploadedBy !== 'undefined' && uploadedBy !== '') {
+        //     requestUrl += `&uploadedBy=${uploadedBy}`
+        // }
+        // if (typeof members !== 'undefined' && members !== '') {
+        //     _.map(members, (e) => {
+        //         requestUrl += `&members=${e.value}`
+        //     })
+        // }
+        // if (typeof uploadFrom !== 'undefiend' && uploadFrom !== '') {
+        //     requestUrl += `&uploadFrom=${uploadFrom}`
+        // }
+        // if (typeof uploadTo !== 'undefiend' && uploadTo !== '') {
+        //     requestUrl += `&uploadTo=${uploadTo}`
+        // }
 
         getData(requestUrl, {}, (c) => {
             const { count, result } = { ...c.data }
@@ -106,38 +112,34 @@ class DocumentList extends React.Component {
     async getFolderDocuments(data) {
         const { dispatch, loggedUser, folder, history, match } = this.props;
         const projectId = match.params.projectId;
-        let folderList = folder.SelectedNewFolderName;
+        let folderList = folder.SelectedFolderName;
 
         if (data === "") {
-            dispatch({ type: "SET_DOCUMENT_LIST", list: [], DocumentType: 'New', Count: { Count: { current_page: 0, last_page: 0, total_page: 0 } }, CountType: 'NewCount' })
-            await dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [], Type: 'SelectedNewFolderName' });
-            await dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {}, Type: 'SelectedNewFolder' })
-            await this.fetchData(1)
-            await history.push(`/projects/${projectId}/files`)
-        } else if (folder.SelectedNewFolder.id !== data.id) {
-            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-                if (c.status == 200) {
-                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-                    dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedNewFolder' })
+            dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
+            await dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
+            await dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
+            await this.fetchData(1);
+            await history.push(`/projects/${projectId}/files`);
+        } else if (folder.Selected.id !== data.id) {
+            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+                const { result, count } = { ...c.data }
 
-                    let hasFolder = true;
-                    let parentFolderId = data.id;
-                    while (hasFolder) {
-                        let parentFolder = folderList.filter((e) => { return e.folderId == parentFolderId });
-                        if (parentFolder.length > 0) {
-                            folderList = folderList.filter((e) => { return e.folderId != parentFolderId });
-                            parentFolderId = parentFolder[0].id;
-                        } else {
-                            hasFolder = false;
-                        }
+                let hasFolder = true;
+                let parentFolderId = data.id;
+
+                while (hasFolder) {
+                    let parentFolder = folderList.filter((e) => { return e.folderId == parentFolderId });
+                    if (parentFolder.length > 0) {
+                        folderList = folderList.filter((e) => { return e.folderId != parentFolderId });
+                        parentFolderId = parentFolder[0].id;
+                    } else {
+                        hasFolder = false;
                     }
-
-                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList, Type: 'SelectedNewFolderName' });
-                    showToast('success', 'Documents successfully retrieved.');
-                } else {
-                    showToast('success', 'Something went wrong!')
                 }
+
+                dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count })
+                dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
+                dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList });
             });
         }
     }
@@ -197,12 +199,13 @@ class DocumentList extends React.Component {
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
         } else {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
-            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+                const { result, count } = { ...c.data }
                 if (c.status == 200) {
-                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' });
+                    dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' });
-                    dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedNewFolder' });
-                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedNewFolderName.concat([data]), Type: 'SelectedNewFolderName' });
+                    dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data });
+                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedFolderName.concat([data]) });
                     showToast('success', 'Documents successfully retrieved.');
                 }
             });
@@ -234,6 +237,11 @@ class DocumentList extends React.Component {
         });
     }
 
+    createFolder() {
+        const { dispatch, folder } = { ...this.props }
+        dispatch({ type: 'SET_SELECTED_FOLDER', Selected: { folderId: folder.Selected.id } })
+    }
+
     render() {
         const { document, folder, match } = { ...this.props };
         const { Count } = { ...document };
@@ -244,76 +252,93 @@ class DocumentList extends React.Component {
 
         return (
             <div class="mb20">
-                <div class="col-lg-12 col-md-12">
-                    {(_.isEmpty(Count) === false) &&
-                        <table class="table-document mb40">
-                            <thead>
-                                <tr>
-                                    <th scope="col" style={{ width: '5%' }}></th>
-                                    <th scope="col" class="td-left" >File Name</th>
-                                    <th scope="col">Uploaded By</th>
-                                    <th scope="col">Upload Date</th>
-                                    <th scope="col">Workstream</th>
-                                    <th scope="col">Read On</th>
-                                    <th scope="col">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {document.Loading === "" &&
-                                    _.orderBy(document.List, ['dateAdded'], ['desc']).map((data, index) => {
-                                        const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
-                                        return (
-                                            <tr key={index}>
-                                                <td>
-                                                    <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
-                                                        <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
-                                                    </a>
-                                                </td>
-                                                <td class="document-name">
-                                                    {data.type === "document" ?
-                                                        <Link to={`/projects/${projectId}/files/${data.id}`}><span class={data.isRead ? 'read' : 'unread'}>{documentName}</span></Link>
-                                                        :
-                                                        <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
-                                                            <span class="fa fa-folder fa-lg read mr10"></span>
-                                                            <span class="read">{documentName}</span>
-                                                        </a>
-                                                    }
-                                                </td>
-                                                <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`} /></td>
-                                                <td>{displayDateMD(data.dateAdded)}</td>
-                                                <td>{
-                                                    data.tagWorkstream.length > 0 &&
-                                                    data.tagWorkstream.map((t, tIndex) => {
-                                                        tagCount += t.label.length
-                                                        let tempCount = tagCount;
-                                                        if (tagCount > 16) { tagCount = 0 }
-                                                        return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
-                                                    })
-                                                }
-                                                </td>
-                                                <td>{data.isRead ? displayDateMD(data.document_read[0].dateUpdated) : '--'}</td>
-                                            </tr>
-                                        )
-                                    })
-                                }
-
-                            </tbody>
-                        </table>
+                <div class='selected-folder'>
+                    {document.Filter.status === 'library' && <a href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>All Files</a>}
+                    {(folder.SelectedFolderName.length > 0) &&
+                        folder.SelectedFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })
                     }
-                    <div class="text-center">
-                        {
-                            ((currentPage != lastPage) && document.List.length > 0 && document.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
-                        }
-                    </div>
-                    {
-                        ((_.isEmpty(Count) === false) && document.Loading === "RETRIEVING") && <Loading />
-                    }
-                    {
-                        (document.List.length === 0 && document.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
-                    }
-
                 </div>
+                {document.Filter.status !== 'sort' ?
+                    <div class="col-lg-12 col-md-12">
+                        {(_.isEmpty(Count) === false) &&
+                            <table class="table-document mb40">
+                                <thead>
+                                    <tr>
+                                        {/* <th scope="col" style={{ width: '5%' }}></th> */}
+                                        <th scope="col" class="td-left" >File Name</th>
+                                        <th scope="col">Uploaded By</th>
+                                        <th scope="col">Upload Date</th>
+                                        <th scope="col">Workstream</th>
+                                        <th scope="col">Read On</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {document.Loading === "" &&
+                                        _.orderBy(document.List, ['dateAdded'], ['desc']).map((data, index) => {
+                                            const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
 
+                                            return (
+                                                <tr key={index}>
+                                                    {/* <td>
+                                                        <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
+                                                            <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
+                                                        </a>
+                                                    </td> */}
+                                                    <td class="document-name">
+                                                        {data.type === "document" ?
+                                                            <Link to={`/projects/${projectId}/files/${data.id}`}><span class={data.isRead ? 'read' : 'unread'}>{documentName}</span></Link>
+                                                            :
+                                                            <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
+                                                                <span class="fa fa-folder fa-lg read mr10"></span>
+                                                                <span class="read">{documentName}</span>
+                                                            </a>
+                                                        }
+                                                    </td>
+                                                    <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`} /></td>
+                                                    <td>{displayDateMD(data.dateAdded)}</td>
+                                                    <td>{
+                                                        data.tagWorkstream.length > 0 &&
+                                                        data.tagWorkstream.map((t, tIndex) => {
+                                                            tagCount += t.label.length
+                                                            let tempCount = tagCount;
+                                                            if (tagCount > 16) { tagCount = 0 }
+                                                            return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
+                                                        })
+                                                    }
+                                                    </td>
+                                                    <td>{data.isRead ? displayDateMD(data.document_read[0].dateUpdated) : '--'}</td>
+                                                </tr>
+
+                                            )
+                                        })
+                                    }
+
+                                </tbody>
+                            </table>
+                        }
+                        <div class="text-center">
+                            {
+                                ((currentPage != lastPage) && document.List.length > 0 && document.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
+                            }
+                        </div>
+                        {
+                            ((_.isEmpty(Count) === false) && document.Loading === "RETRIEVING") && <Loading />
+                        }
+                        {/* {
+                            (_.isEmpty(folder.Selected) === false) &&
+                            <div class="create-folder">
+                                <p class="mb0 text-center" onClick={() => this.createFolder()}><strong>Create Folder</strong></p>
+                            </div>
+                        } */}
+                        {
+                            (document.List.length === 0 && document.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                        }
+
+                    </div>
+                    :
+                    <DocumentSortFile />
+                }
             </div>
         )
     }

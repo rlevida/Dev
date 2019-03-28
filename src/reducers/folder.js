@@ -8,9 +8,11 @@ export default function reducer(state = {
     SelectedLibraryFolder: {},
     SelectedLibraryFolderName: [],
     SelectedNewFolderName: [],
+    SelectedFolderName: [],
     SelectedNewFolder: {},
     New: {},
-    Library: {}
+    Library: {},
+    Count: {}
 }, action) {
     switch (action.type) {
 
@@ -25,10 +27,10 @@ export default function reducer(state = {
 
         //SET
         case "SET_FOLDER_LIST": {
-            return { ...state, List: action.list }
+            return { ...state, List: action.list, Count: action.count }
         }
         case "SET_FOLDER_SELECTED": {
-            return { ...state, [action.Type]: action.Selected }
+            return { ...state, Selected: action.Selected }
         }
         case "SET_NEW_FOLDER_SELECTED": {
             return { ...state, SelectedNewFolder: action.Selected }
@@ -37,7 +39,7 @@ export default function reducer(state = {
             return { ...state, SelectedLibraryFolder: action.Selected }
         }
         case "SET_SELECTED_FOLDER_NAME": {
-            return { ...state, [action.Type]: action.List }
+            return { ...state, SelectedFolderName: action.List }
         }
         case "SET_FOLDER_SELECT_LIST": {
             return { ...state, SelectList: action.List }

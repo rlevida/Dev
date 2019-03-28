@@ -54,17 +54,14 @@ class FolderModal extends React.Component {
                 status: 'new',
             }],
             projectId: projectId,
-            folderId: folder.SelectedNewFolder.id,
+            folderId: folder.Selected.id,
         };
 
         postData(`/api/document`, dataToSubmit, (c) => {
-            if (c.status == 200) {
-                dispatch({ type: "ADD_DOCUMENT_LIST", List: c.data.result, DocumentType: 'New' });
-                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
-                showToast("success", "Successfully Added.")
-            } else {
-                showToast("error", "Saving failed. Please Try again later.")
-            }
+            const { result } = { ...c.data }
+            dispatch({ type: "ADD_DOCUMENT_LIST", List: result });
+            // dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
+            showToast("success", "Successfully Added.")
         })
     }
 
