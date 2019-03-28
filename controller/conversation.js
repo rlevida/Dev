@@ -13,6 +13,7 @@ const {
     Document,
     Reminder,
     Projects,
+    Starred,
     sequelize,
     Sequelize
 } = models;
@@ -92,24 +93,38 @@ const socketIo = io(((global.environment == "production") ? "https:" : "http:") 
 
 
 exports.get = {
-    index: (req, cb) => {
+    conversationNotes: (req, cb) => {
         const queryString = req.query;
         const limit = 10;
-        const options = {
-            include: [
-                {
-                    model: Workstream,
-                    as: 'noteWorkstream',
-                    include: [
-                        {
-                            model: Projects,
-                            as: 'project'
-                        }
-                    ]
-                }
-            ],
-            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-        };
+        const getAssociation = [
+            {
+                model: Workstream,
+                as: 'noteWorkstream',
+                include: [
+                    {
+                        model: Projects,
+                        as: 'project'
+                    }
+                ]
+            },
+            {
+                model: Tag,
+                as: 'notesTagTask',
+                required: false,
+                where: {
+                    linkType: 'user',
+                    tagType: 'notes',
+                    isDeleted: 0
+                },
+                include: [
+                    {
+                        model: Users,
+                        as: 'user'
+                    }
+                ]
+            }
+        ]
+
         const whereObj = {
             ...(typeof queryString.projectId !== 'undefined' && queryString.projectId !== '') ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.title != "undefined" && queryString.title != "") ? {
@@ -122,6 +137,32 @@ exports.get = {
                 ]
             } : {},
         }
+
+        if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
+            getAssociation.push({
+                model: Starred,
+                as: 'notes_starred',
+                where: {
+                    linkType: 'notes',
+                    isActive: 1,
+                    usersId: queryString.starredUser,
+                    isDeleted: 0
+                },
+                required: false,
+                include: [
+                    {
+                        model: Users,
+                        as: 'user',
+                        attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+                    }
+                ]
+            });
+        }
+        const options = {
+            include: getAssociation,
+            order: [['dateUpdated', 'DESC']],
+            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+        };
 
         async.parallel({
             count: function (callback) {
@@ -144,7 +185,11 @@ exports.get = {
                         ...options,
                         where: whereObj
                     }).map((mapObject) => {
-                        return mapObject.toJSON();
+                        const responseObj = mapObject.toJSON();
+                        return {
+                            ...responseObj,
+                            isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseObj.notes_starred).length > 0) ? responseObj.notes_starred[0].isActive : 0
+                        }
                     }).then((resultArray) => {
                         callback(null, resultArray);
                     });
@@ -279,6 +324,48 @@ exports.post = {
             note: body.title,
             usersId: body.userId
         }).then((o) => { return o.toJSON() });
+        const getAssociation = [
+            {
+                model: Conversation,
+                as: 'comments',
+                where: {
+                    linkType: 'notes',
+                    isDeleted: 0
+                },
+                include: [
+                    {
+                        model: Users,
+                        as: 'users'
+                    }
+                ]
+            },
+            {
+                model: Workstream,
+                as: 'noteWorkstream',
+                include: [
+                    {
+                        model: Projects,
+                        as: 'project'
+                    }
+                ]
+            },
+            {
+                model: Tag,
+                as: 'notesTagTask',
+                required: false,
+                where: {
+                    linkType: 'user',
+                    tagType: 'notes',
+                    isDeleted: 0
+                },
+                include: [
+                    {
+                        model: Users,
+                        as: 'user'
+                    }
+                ]
+            }
+        ]
 
         async.parallel({
             notesLastSeen: (parallelCallback) => {
@@ -306,10 +393,10 @@ exports.post = {
             tags: (parallelCallback) => {
                 const submitArray = _.map(userId, (id) => {
                     return {
-                        linkType: "notes",
-                        linkId: noteResult.id,
-                        tagType: "user",
-                        tagTypeId: id
+                        linkType: "user",
+                        linkId: id,
+                        tagType: "notes",
+                        tagTypeId: noteResult.id
                     }
                 });
 
@@ -345,7 +432,7 @@ exports.post = {
                 const receivers = _.filter(response, (o) => { return o.id != body.userId });
                 const reminderList = _.map(receivers, (receiver) => {
                     return {
-                        detail: sender.firstName + " " + sender.lastName + " send you a message.",
+                        detail: sender.firstName + " " + sender.lastName + " started a message.",
                         emailAddress: receiver.emailAddress,
                         usersId: receiver.id,
                         linkType: 'notes',
@@ -376,7 +463,24 @@ exports.post = {
                         global.emailtransport(mailOptions);
                         mapCallback(null);
                     }, (err, result) => {
-                        console.log("====================")
+                        const options = {
+                            include: getAssociation,
+                            order: [['dateUpdated', 'DESC']]
+                        };
+                        Notes.findAll({
+                            ...options,
+                            where: {
+                                id: noteResult.id
+                            }
+                        }).map((mapObject) => {
+                            const responseObj = mapObject.toJSON();
+                            return {
+                                ...responseObj,
+                                isStarred: 0
+                            }
+                        }).then((resultArray) => {
+                            cb({ status: true, data: resultArray });
+                        });
                     });
                 });
             })
@@ -503,6 +607,33 @@ exports.post = {
                 cb({ status: true, data: _.omit(conversation, ["dateUpdated"]) });
             }
         })
+    },
+    index: async (req, cb) => {
+        const body = req.body;
+        try {
+            const newConversation = await Conversation
+                .create(body)
+                .then((o) => {
+                    const responseObj = o.toJSON();
+                    return Conversation
+                        .findOne({
+                            where: {
+                                id: responseObj.id
+                            },
+                            include: [
+                                {
+                                    model: Users,
+                                    as: 'users',
+                                }
+                            ]
+                        }).then((res) => {
+                            return res.toJSON();
+                        })
+                });
+            cb({ status: true, data: newConversation });
+        } catch (e) {
+            cb({ status: false, error: err });
+        }
     }
 }
 

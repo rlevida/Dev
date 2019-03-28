@@ -1367,6 +1367,12 @@ input:checked + .slider:before {
   align-items: center;
 }
 
+.origin-center{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .react-tabs [role=tablist]{
   margin-bottom: 20px!important;
   border-bottom: 0px;
@@ -1946,6 +1952,7 @@ textarea::-webkit-scrollbar-thumb {
 
 .starred .title{
   font-size: 15px;
+  font-weight: normal;
 }
 
 .starred p:nth-child(2){
@@ -2164,9 +2171,8 @@ textarea::-webkit-scrollbar-thumb {
 #message-thread{
     min-height: 350px;
     background-color: #F8F8F8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    max-height: 350px;
+    overflow-y: auto;   
 }
 
 #chat-area{
@@ -2191,6 +2197,22 @@ textarea::-webkit-scrollbar-thumb {
   height: 90%;
 }
 
+#message-thread .thread{
+  padding: 15px;
+  background-color: #ffffff;
+  margin-bottom: 5px;
+  display: flex;
+}
+
+#message-thread .thumbnail-profile{
+  flex: 0 0 10%;
+  max-width: 50px;
+  margin-right: 10px;
+}
+#message-thread .message-text{
+  flex: 0 0 90%;
+}
+
 .message-div h3 {
   font-size: 20px;
   margin-top: 0px;
@@ -2198,6 +2220,11 @@ textarea::-webkit-scrollbar-thumb {
 
 .message-div:not(:last-child){
   margin-bottom: 20px;
+}
+
+#messages {
+  overflow-y: auto;
+  max-height: 350px;   
 }
 
 @media screen and (max-width: 600px) {

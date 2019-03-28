@@ -13,6 +13,14 @@ import ConversationList from "./conversationList";
     }
 })
 export default class Component extends React.Component {
+    componentWillUnmount() {
+        const { dispatch } = this.props;
+        
+        dispatch({ type: "SET_COMMENT_LIST", list: [] });
+        dispatch({ type: "SET_COMMENT_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "SET_NOTES_LIST", list: [] });
+        dispatch({ type: "SET_NOTES_LOADING", Loading: "RETRIEVING" });
+    }
     render() {
         const { match } = { ...this.props };
         const projectId = match.params.projectId;
@@ -30,7 +38,7 @@ export default class Component extends React.Component {
                 </div>
                 <div class="row content-row row-eq-height">
                     <div class="col-md-4 col-sm-12">
-                        <ConversationList projectId={projectId}/>
+                        <ConversationList projectId={projectId} />
                     </div>
                     <div class="col-md-8 col-sm-12">
                         <ConversationForm projectId={projectId} />

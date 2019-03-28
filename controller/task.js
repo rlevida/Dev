@@ -270,7 +270,8 @@ exports.get = {
             _.find(associationArray, { as: 'task_starred' }).where = {
                 linkType: 'task',
                 isActive: 1,
-                usersId: queryString.starredUser
+                usersId: queryString.starredUser,
+                isDeleted: 0
             };
         }
         const options = {

@@ -56,6 +56,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'tagTypeId'
     });
 
+    Tags.belongsTo(models.Users, {
+      as: 'user',
+      foreignKey: 'linkId'
+    });
+
     Tags.belongsTo(models.Workstream, {
       as: 'tagWorkstream',
       foreignKey: 'linkId',

@@ -124,7 +124,7 @@ class DocumentViewerComponent extends React.Component {
 
     handleOnChange(e) {
         const { dispatch } = this.props;
-        dispatch({ type: 'SET_CONVERSATION_FILTER', filter: { [e.target.name]: e.target.value } });
+        dispatch({ type: 'SET_COMMENT_FILTER', filter: { [e.target.name]: e.target.value } });
     }
 
     starredDocument({ id, isStarred, origin }) {

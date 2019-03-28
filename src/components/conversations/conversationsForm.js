@@ -3,7 +3,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import { connect } from "react-redux";
 
-import { DropDown } from "../../globalComponents";
+import { DropDown, Loading } from "../../globalComponents";
 import { getData, postData, showToast } from "../../globalFunction";
 
 let keyTimer = "";
@@ -12,6 +12,7 @@ let keyTimer = "";
     return {
         teams: store.teams,
         notes: store.notes,
+        conversation: store.conversation,
         workstream: store.workstream,
         loggedUser: store.loggedUser
     }
@@ -30,16 +31,28 @@ export default class ConversationForm extends React.Component {
             "setWorkstreamList",
             "fetchWorkstreamList",
             "handleFile",
-            "removefile"
+            "removefile",
+            "fetchConversation"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
+        this.myRef = null
     }
 
     componentDidMount() {
         this.fetchUsers();
         this.fetchWorkstreamList();
     }
+
+    componentDidUpdate(prevProps) {
+        if ((prevProps.conversation.List).length != (this.props.conversation.List).length && this.props.conversation.Count.current_page == 1) {
+            this.scrollToBottom();
+        }
+    }
+
+    scrollToBottom() {
+        this.newData.scrollIntoView({ behavior: "smooth" })
+    };
 
     fetchUsers(options) {
         const { dispatch } = this.props;
@@ -64,7 +77,7 @@ export default class ConversationForm extends React.Component {
     }
 
     setDropDownMultiple(name, values) {
-        const { dispatch, notes } = this.props
+        const { dispatch, notes } = this.props;
         const selected = { ...notes.Selected, [name]: values };
         dispatch({ type: "SET_NOTES_SELECTED", Selected: selected })
     }
@@ -83,11 +96,31 @@ export default class ConversationForm extends React.Component {
 
     handleSubmit() {
         const { dispatch, notes, loggedUser, projectId } = { ...this.props };
-        const { Selected } = notes;
+        const { Selected, List } = notes;
 
-        postData(`/api/conversation/message`, { ...Selected, projectId, userId: loggedUser.data.id }, (c) => {
+        if (typeof Selected.id != "undefined" && Selected.id != "") {
+            const messageObj = {
+                comment: Selected.message,
+                usersId: loggedUser.data.id,
+                linkType: "notes",
+                linkId: Selected.id
+            };
+            postData(`/api/conversation`, messageObj, (c) => {
+                dispatch({ type: "ADD_COMMENT_LIST", list: c.data });
+                dispatch({ type: "SET_NOTES_SELECTED", Selected: { ...Selected, "message": "" } });
+            });
+        } else {
+            postData(`/api/conversation/message`, { ...Selected, projectId, userId: loggedUser.data.id }, (c) => {
+                const selectedNote = c.data[0];
+                const { note, id, noteWorkstream, notesTagTask, comments } = selectedNote;
+                dispatch({ type: "SET_NOTES_LIST", list: [...List, ...c.data] });
+                dispatch({ type: "SET_NOTES_SELECTED", Selected: { title: note, id, workstream: noteWorkstream, workstreamId: noteWorkstream.id, users: _.map(notesTagTask, ({ user }) => { return { value: user.id, label: user.firstName + " " + user.lastName } }) } });
+                
+                dispatch({ type: "SET_COMMENT_LIST", list: comments, count: { total_count: 1, current_page: 1, last_page: 1 } });
+                dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
+            });
+        }
 
-        });
     }
 
     setWorkstreamList(options) {
@@ -131,28 +164,37 @@ export default class ConversationForm extends React.Component {
         dispatch({ type: "SET_NOTES_SELECTED", Selected: { ...Selected, files: Selected.files } });
     }
 
+    fetchConversation() {
+        const { dispatch, notes, conversation } = { ...this.props };
+        let requestUrl = `/api/conversation/getConversationList?page=${conversation.Count.current_page + 1}&linkType=notes&linkId=${notes.Selected.id}`;
+
+        dispatch({ type: "SET_COMMENT_LOADING", Loading: "RETRIEVING" });
+
+        getData(requestUrl, {}, (c) => {
+            dispatch({ type: "SET_COMMENT_LIST", list: [...conversation.List, ...c.data.result], count: c.data.count });
+            dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
+        });
+    }
+
     render() {
-        const { teams, workstream, notes } = this.props;
-        // const { notes, setIsClosed, loggedUser, global, workstreamId } = { ...this.props }
-        // const { notesState, commentText } = { ...this.state }
-        // const { specificClient } = { ...notesState }
-        // const data = notes.Selected;
+        const { teams, workstream, notes, conversation } = this.props;
+        const workstreamList = workstream.SelectList;
+        const userList = teams.MemberList;
+        const conversationList = (typeof notes.Selected.id != "undefined" && notes.Selected.id != "") ? _(conversation.List)
+            .filter((o) => { return o.linkType == "notes" && o.linkId == notes.Selected.id })
+            .sortBy('dateAdded')
+            .value()
+            : [];
+        const currentConversationPage = (typeof conversation.Count.current_page != "undefined") ? conversation.Count.current_page : 1;
+        const lastConversationPage = (typeof conversation.Count.last_page != "undefined") ? conversation.Count.last_page : 1;
 
-        // const clientUser = [];
-        // global.SelectList.projectMemberList.map((e) => {
-        //     if (e.userType === 'External') {
-        //         clientUser.push({ id: e.id, name: `${e.firstName} ${e.lastName}` })
-        //     }
-        // })
-
-        // let tagOptions = [];
-        // if (typeof global.SelectList.workstreamList != "undefined" && typeof global.SelectList.taskList != "undefined") {
-        //     global.SelectList.workstreamList
-        //         .map(e => { tagOptions.push({ id: `workstream-${e.id}`, name: e.workstream }) })
-        //     global.SelectList.taskList
-        //         .filter(e => { return e.status != "Completed" })
-        //         .map(e => { tagOptions.push({ id: `task-${e.id}`, name: e.task }) })
-        // }
+        if (typeof notes.Selected.id != "undefined" && notes.Selected.id != "") {
+            workstreamList.push({
+                id: notes.Selected.workstream.id,
+                name: notes.Selected.workstream.workstream
+            });
+            userList.concat(_.map(notes.users, ({ user }) => { return { id: user.id, name: user.firstName + " " + user.lastName } }));
+        }
 
         return (
             <div>
@@ -167,14 +209,15 @@ export default class ConversationForm extends React.Component {
                             class="form-control underlined"
                             placeholder="Type a title"
                             onChange={this.handleChange}
+                            disabled={typeof notes.Selected.id != "undefined" && notes.Selected.id != ""}
                         />
                         <a class="logo-action text-grey"><i title="PRIVATE" class="fa fa-lock" aria-hidden="true"></i></a>
                     </div>
                     <div id="chat-area">
-                        <div class="form-group">
+                        <div class={`form-group ${(typeof notes.Selected.id != "undefined" && notes.Selected.id != "") ? "pointer-none" : ""}`}>
                             <DropDown
                                 required={true}
-                                options={workstream.SelectList}
+                                options={_.uniqBy(workstreamList, 'id')}
                                 onInputChange={this.setWorkstreamList}
                                 selected={(typeof notes.Selected.workstreamId == "undefined") ? "" : notes.Selected.workstreamId}
                                 onChange={(e) => {
@@ -183,8 +226,38 @@ export default class ConversationForm extends React.Component {
                                 placeholder={'Select workstream'}
                             />
                         </div>
-                        <div id="message-thread">
-                            <i class="fa fa-envelope-o" aria-hidden="true"></i>
+                        <div
+                            id="message-thread"
+                            class={(conversationList.length == 0) ? "display-flex origin-center" : ""}>
+                            {
+                                (currentConversationPage != lastConversationPage && conversation.Loading != "RETRIEVING") && <p class="text-center"><a onClick={this.fetchConversation}>Load More Message</a></p>
+                            }
+                            {
+                                (conversation.Loading == "RETRIEVING" && (conversationList).length > 0) && <div class="mb10"><Loading /></div>
+                            }
+                            {
+                                (conversationList.length == 0) && <i class="fa fa-envelope-o" aria-hidden="true"></i>
+                            }
+                            {
+                                (conversationList.length > 0) && <div>
+                                    {
+                                        _.map(conversationList, ({ comment, users, dateAdded }, index) => {
+                                            const date = moment(dateAdded).from(new Date());
+                                            return (
+                                                <div class="thread" key={index} ref={(ref) => this.newData = ref}  >
+                                                    <div class="thumbnail-profile">
+                                                        <img src={users.avatar} alt="Profile Picture" class="img-responsive" />
+                                                    </div>
+                                                    <div class="message-text">
+                                                        <p class="note mb5"><strong>{users.firstName + " " + users.lastName}</strong> {date}</p>
+                                                        <p>{comment}</p>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })
+                                    }
+                                </div>
+                            }
                         </div>
                         <div>
                             <input type="file" id="message-file" ref="fileUploader" style={{ display: "none" }} multiple onChange={this.handleFile} />
@@ -223,7 +296,7 @@ export default class ConversationForm extends React.Component {
                             <DropDown
                                 multiple={true}
                                 required={true}
-                                options={teams.MemberList}
+                                options={_.uniqBy(userList, 'id')}
                                 onInputChange={this.getUsers}
                                 selected={(typeof notes.Selected.users == "undefined") ? [] : notes.Selected.users}
                                 placeholder={"Search users"}
@@ -231,6 +304,7 @@ export default class ConversationForm extends React.Component {
                                     this.setDropDownMultiple("users", (e == null) ? [] : e);
                                 }}
                                 isClearable={((teams.MemberList).length > 0)}
+                                disabled={typeof notes.Selected.id != "undefined" && notes.Selected.id != ""}
                             />
                         </div>
                         <a class="btn btn-violet mt10" onClick={this.handleSubmit} disabled={(notes.Loading == "SUBMITTING")}>

@@ -289,11 +289,11 @@ export default class TaskDetails extends React.Component {
             userId: loggedUser.data.id,
         };
 
-        dispatch({ type: "SET_CONVERSATION_LOADING", Loading: "SUBMITTING" });
+        dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
         postData(`/api/conversation/comment`, dataToBeSubmited, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_COMMENT_LIST", comment: c.data });
-                dispatch({ type: "SET_CONVERSATION_LOADING", Loading: "" });
+                dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
                 dispatch({ type: "SET_COMMENT_SELECTED", Selected: { comment: "" } });
             } else {
                 showToast("error", "Something went wrong. Please try again later.");

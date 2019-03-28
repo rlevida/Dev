@@ -37,7 +37,7 @@ export default function reducer(state = {
             })
             return { ...state, List: List }
         }
-        case "SET_CONVERSATION_FILTER": {
+        case "SET_COMMENT_FILTER": {
             const { Filter } = { ...state };
             const updatedFilter = _.merge({}, _.omit(Filter, action.name), action.filter);
             return { ...state, Filter: updatedFilter }
@@ -58,7 +58,7 @@ export default function reducer(state = {
             })
             return { ...state, List: tempList }
         }
-        case "SET_CONVERSATION_LOADING": {
+        case "SET_COMMENT_LOADING": {
             return { ...state, Loading: (typeof action.Loading != "undefined") ? action.Loading : "" }
         }
         default:

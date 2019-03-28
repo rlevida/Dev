@@ -4,11 +4,12 @@ import _ from "lodash";
 import { connect } from "react-redux";
 
 import { Loading } from "../../globalComponents";
-import { showToast, getData } from "../../globalFunction";
+import { showToast, getData, postData } from "../../globalFunction";
 
 @connect(store => {
     return {
-        notes: store.notes
+        notes: store.notes,
+        loggedUser: store.loggedUser
     };
 })
 export default class ConversationList extends React.Component {
@@ -19,7 +20,9 @@ export default class ConversationList extends React.Component {
             "fetchNotes",
             "getNextResult",
             "handleChange",
-            "clearSearch"
+            "clearSearch",
+            "starredTask",
+            "openMessage"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -38,9 +41,9 @@ export default class ConversationList extends React.Component {
     }
 
     fetchNotes(page) {
-        const { projectId, dispatch, notes } = { ...this.props };
+        const { projectId, dispatch, notes, loggedUser } = { ...this.props };
         const { List, Filter } = notes;
-        let requestUrl = `/api/conversation?page=${page}&projectId=${projectId}`;
+        let requestUrl = `/api/conversation/conversationNotes?page=${page}&projectId=${projectId}&starredUser=${loggedUser.data.id}`;
 
         if (Filter.title != "") {
             requestUrl += `&title=${Filter.title}`;
@@ -81,12 +84,44 @@ export default class ConversationList extends React.Component {
         dispatch({ type: "SET_NOTES_FILTER", filter: { title: "" } });
     }
 
+    starredTask({ id, isStarred }) {
+        const { loggedUser, dispatch, notes } = this.props;
+        const { List } = notes;
+        const isStarredValue = (isStarred > 0) ? 0 : 1;
+
+        postData(`/api/starred/`, {
+            linkType: "notes",
+            linkId: id,
+            usersId: loggedUser.data.id
+        }, (c) => {
+            _.find(List, { id: id }).isStarred = isStarredValue
+            dispatch({ type: "SET_NOTES_LIST", list: List });
+            showToast("success", `Message successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
+        });
+    }
+
+    openMessage({ note, id, noteWorkstream, notesTagTask }) {
+        const { dispatch } = { ...this.props };
+        let requestUrl = `/api/conversation/getConversationList?page=1&linkType=notes&linkId=${id}`;
+        //users
+        dispatch({ type: "SET_COMMENT_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "SET_NOTES_SELECTED", Selected: { title: note, id, workstream: noteWorkstream, workstreamId: noteWorkstream.id, users: _.map(notesTagTask, ({ user }) => { return { value: user.id, label: user.firstName + " " + user.lastName } }) } });
+
+        getData(requestUrl, {}, (c) => {
+            dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });
+            dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
+        });
+    }
 
     render() {
         const { notes } = { ...this.props };
         const { List, Count, Filter } = notes;
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
+        const conversationList = _(List)
+            .sortBy('dateAdded')
+            .reverse()
+            .value();
 
         return (
             <div id="message_list">
@@ -109,18 +144,21 @@ export default class ConversationList extends React.Component {
                 </div>
                 <div class={`pd10 ${(notes.Loading == "RETRIEVING" && (notes.List).length == 0) ? "linear-background" : ""}`}>
                     {
-                        (List.length > 0) && <div>
+                        (conversationList.length > 0) && <div id="messages">
                             {
-                                _.map(List, ({ note, noteWorkstream }, index) => {
+                                _.map(conversationList, (params, index) => {
+                                    const { id, note, noteWorkstream, isStarred } = { ...params };
                                     return (
                                         <div key={index} class="message-div bb display-flex">
-                                            <a class="logo-action text-grey" onClick={() => this.starredTask()}>
-                                                <i title="FAVORITE" class={`fa fa-star`} aria-hidden="true"></i>
+                                            <a class="logo-action text-grey" onClick={() => this.starredTask({ id, isStarred })}>
+                                                <i title="FAVORITE" class={`fa ${isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true"></i>
                                             </a>
-                                            <div>
-                                                <p class="note mb0">{noteWorkstream.workstream}</p>
-                                                <h3>{note}</h3>
-                                            </div>
+                                            <a onClick={() => { this.openMessage(params) }}>
+                                                <div>
+                                                    <p class="note mb0">{noteWorkstream.workstream}</p>
+                                                    <h3>{note}</h3>
+                                                </div>
+                                            </a>
                                         </div>
                                     )
                                 })
@@ -131,7 +169,7 @@ export default class ConversationList extends React.Component {
                         (notes.Loading == "RETRIEVING" && (List).length > 0) && <Loading />
                     }
                     {
-                        (currentPage != lastPage && notes.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNextResult()}>Load More Projects</a></p>
+                        (currentPage != lastPage && notes.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNextResult()}>Load More Messages</a></p>
                     }
                     {
                         ((List).length == 0 && notes.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
