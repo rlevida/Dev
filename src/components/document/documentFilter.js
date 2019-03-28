@@ -104,7 +104,7 @@ class DocumentFilter extends React.Component {
                 });
 
                 if (status === 'sort') {
-                    getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`, {}, (c) => {
+                    getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder&folderId=null`, {}, (c) => {
                         const { result, count } = { ...c.data }
                         dispatch({ type: "SET_FOLDER_LIST", list: result, count: count })
                     });

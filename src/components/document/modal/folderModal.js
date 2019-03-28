@@ -24,6 +24,10 @@ class FolderModal extends React.Component {
     componentDidMount() {
         $("#folder-form").validator();
     }
+    componentWillMount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} })
+    }
 
     submit() {
         const { loggedUser, folder, dispatch, match } = this.props;
@@ -56,13 +60,16 @@ class FolderModal extends React.Component {
             projectId: projectId,
             folderId: folder.Selected.id,
         };
-
-        postData(`/api/document`, dataToSubmit, (c) => {
-            const { result } = { ...c.data }
-            dispatch({ type: "ADD_DOCUMENT_LIST", List: result });
-            // dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
-            showToast("success", "Successfully Added.")
-        })
+        if (folder.SelectedFolderName.length <= 3) {
+            postData(`/api/document`, dataToSubmit, (c) => {
+                const { result } = { ...c.data }
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: result });
+                dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} })
+                showToast("success", "Successfully Added.")
+            })
+        } else {
+            showToast("warning", "Folder count reached")
+        }
     }
 
     onChange(e) {
@@ -89,9 +96,10 @@ class FolderModal extends React.Component {
                                         type="text"
                                         id="inputFolder"
                                         placeholder="Folder Name"
-                                        value={folder.Selected.name}
+                                        value={folder.Selected.name || ""}
                                         name="name"
                                         onChange={(e) => this.onChange(e)}
+                                        autoComplete="off"
                                         required />
                                 </div>
                             </div>

@@ -126,7 +126,6 @@ class DocumentList extends React.Component {
 
                 let hasFolder = true;
                 let parentFolderId = data.id;
-
                 while (hasFolder) {
                     let parentFolder = folderList.filter((e) => { return e.folderId == parentFolderId });
                     if (parentFolder.length > 0) {

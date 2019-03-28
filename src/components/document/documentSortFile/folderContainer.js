@@ -7,6 +7,8 @@ import { withRouter } from "react-router";
 
 var Collapse = require('rc-collapse');
 var Panel = Collapse.Panel;
+
+import Container from "./folderContainer"
 // require('rc-collapse/assets/index.css');
 
 const itemSource = {
@@ -22,9 +24,12 @@ const itemTarget = {
     },
     drop(props, monitor) {
         const draggedItem = monitor.getItem()
-        if (props.data.type === 'folder' && props.data.status == 'new' && props.data.id !== draggedItem.id && draggedItem.status === 'new') {
-            props.moveTo(props.data, monitor.getItem())
+        if (monitor.isOver()) {
+            props.moveTo(props.data, draggedItem)
         }
+        // if (props.data.type === 'folder' && props.data.status == 'new' && props.data.id !== draggedItem.id && draggedItem.status === 'new') {
+        //     props.moveTo(props.data, monitor.getItem())
+        // }
     }
 }
 
@@ -63,17 +68,16 @@ class FieldContainer extends React.Component {
         const { dispatch, loggedUser, folder, history, match } = this.props;
         const projectId = match.params.projectId;
         let folderList = folder.SelectedFolderName;
-
-        if (data === "") {
-            dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
-            await dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
-            await dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
-            await this.fetchData(1);
-            await history.push(`/projects/${projectId}/files`);
-        } else if (folder.Selected.id !== data.id) {
-            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&type=folder&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-                const { result, count } = { ...c.data }
-
+        // if (data === "") {
+        //     dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
+        //     await dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
+        //     await dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
+        //     await this.fetchData(1);
+        //     await history.push(`/projects/${projectId}/files`);
+        // } else if (folder.Selected.id !== data.id) {
+        getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&type=folder&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+            const { result, count } = { ...c.data }
+            if (result.length > 0) {
                 let hasFolder = true;
                 let parentFolderId = data.id;
 
@@ -89,68 +93,103 @@ class FieldContainer extends React.Component {
 
                 let isSelectedFolder = true;
                 let newList = []
-                while (isSelectedFolder) {
-                    newList = folder.List.map((a) => {
-                        if (a.id === data.id) {
-                            if (typeof a.childFolder === 'undefined') {
-                                a.childFolder = []
-                                a.childFolder = result;
-                                // console.log(result)
-                                isSelectedFolder = false;
-                            } else {
-                                a.childFolder.map((b) => {
-                                    if (b.id === data.id) {
-                                        if (typeof b.childFolder === 'undefined') {
-                                            b.childFolder = []
-                                            b.childFolder = result
-                                            isSelectedFolder = false;
+                // while (isSelectedFolder) {
+                newList = folder.List.map((x) => {
+                    let a = Object.assign({}, x)
+                    if (a.id === data.id) {
+                        if (typeof a.childFolder === 'undefined') {
+                            a.childFolder = []
+                            a.childFolder = result;
+                        } else {
+                            a.childFolder.map((y) => {
+                                let b = y
+                                if (b.id === data.id) {
+                                    if (typeof b.childFolder === 'undefined') {
+                                        b.childFolder = []
+                                        b.childFolder = result
+                                    }
+                                } else if (typeof b.childFolder !== "undefined") {
+                                    b.childFolder.map((c) => {
+                                        if (c.id === data.id) {
+                                            if (typeof c.childFolder === "undefined") {
+                                                c.childFolder = []
+                                                c.childFolder = result
+                                            }
+                                        }
+                                        return c
+                                    })
+                                }
+                                return b
+                            })
+                        }
+                    } else if (typeof a.childFolder !== "undefined") {
+
+                        a.childFolder.map((y) => {
+                            let b = y
+                            if (b.id === data.id) {
+                                if (typeof b.childFolder === 'undefined') {
+                                    b.childFolder = []
+                                    b.childFolder = result
+                                }
+                                console.log(b)
+
+                            } else if (typeof b.childFolder !== "undefined") {
+                                b.childFolder.map((c) => {
+                                    if (c.id === data.id) {
+                                        if (typeof c.childFolder === 'undefined') {
+                                            c.childFolder = []
+                                            c.childFolder = result
                                         }
                                     }
-                                    return b
+                                    return c
                                 })
                             }
-                        }
-                        return a
-                    })
-                }
+                            return b
+                        })
+                    }
+                    return a
+                })
+                // }
+                console.log(result)
+
                 dispatch({ type: 'SET_FOLDER_LIST', list: newList })
                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
                 dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList });
-            });
-        }
+            }
+        });
+        // }
+    }
+
+    renderFolder(data) {
+        const { moveTo } = { ...this.props }
+        return (
+            <div id={data.id}>
+                <p>
+                    <a href="javascript:void(0)" class="btn btn-primary" data-toggle="collapse" href={`#collapseExample${data.id}`} role="button" aria-expanded="false" aria-controls={`collapseExample${data.id}`} onClick={() => this.fetchFolder(data)}>
+                        {data.origin}
+                    </a>
+                </p>
+                <div class="collapse" id={`collapseExample${data.id}`}>
+                    <div class="collapse-folder-child">
+                        {typeof data.childFolder !== "undefined" && data.childFolder.length > 0 &&
+                            data.childFolder.map((e, index) => { return <Container data={e} moveTo={moveTo} key={index}></Container> })
+                        }
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     render() {
-        const { document, dispatch, loggedUser, data, index, moveTo, match } = this.props
+        const { document, dispatch, loggedUser, data, key, moveTo, match } = this.props
         const projectId = match.params.projectId;
         const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
         const opacity = isDragging ? 0 : 1;
         const backgroundColor = hovered ? 'lightblue' : '';
-        console.log(this.props)
         return (
             connectDropTarget(
-                <div>
-                    <p>
-                        <a class="btn btn-primary" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample" onClick={() => this.fetchFolder(data)}>
-                            {data.origin}
-                        </a>
-                    </p>
-                    {/* <div class="collapse" id="collapseExample">
-                        <div class="collapse-folder-child">
-                            <p>
-                                <a class="btn btn-primary" data-toggle="collapse" href="#collapseExample2" role="button" aria-expanded="false" aria-controls="collapseExample2">
-                                    Link with href
-                            </a>
-                            </p>
-                            <div class="collapse" id="collapseExample2">
-                                <div class="collapse-folder-child">
-                                    <a class="btn btn-primary" data-toggle="collapse" href="#collapseExample2" role="button" aria-expanded="false" aria-controls="collapseExample2">
-                                        Link with href
-                            </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div> */}
+                <div key={key}>
+                    {this.renderFolder(data, connectDropTarget)}
                 </div>
             )
         )

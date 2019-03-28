@@ -148,28 +148,36 @@ export default function reducer(state = {
             }
         }
         case "REMOVE_DOCUMENT_FROM_LIST": {
-            if (action.Status == "new") {
-                let tempList = state.New.filter((e, i) => {
-                    if (e.id != action.UpdatedData.id) {
-                        return action.UpdatedData
-                    }
-                })
-                return { ...state, New: tempList }
-            } else if (action.Status == "trash") {
-                const tempList = state.Trash.filter((e, i) => {
-                    if (e.id != action.UpdatedData.id) {
-                        return action.UpdatedData
-                    }
-                })
-                return { ...state, Trash: tempList }
-            } else {
-                let tempList = state.Library.filter((e, i) => {
-                    if (e.id != action.UpdatedData.id) {
-                        return action.UpdatedData
-                    }
-                })
-                return { ...state, Library: tempList }
-            }
+            let tempList = state.List.filter((e) => { return e.id !== action.UpdatedData.id })
+            return { ...state, List: tempList }
+            // let tempList = state.List.filter((e,i) => {
+            //     if(e.id !== action.UpdatedData.id){
+            //         return
+            //     }
+            // })
+
+            // if (action.Status == "new") {
+            //     let tempList = state.New.filter((e, i) => {
+            //         if (e.id != action.UpdatedData.id) {
+            //             return action.UpdatedData
+            //         }
+            //     })
+            //     return { ...state, New: tempList }
+            // } else if (action.Status == "trash") {
+            //     const tempList = state.Trash.filter((e, i) => {
+            //         if (e.id != action.UpdatedData.id) {
+            //             return action.UpdatedData
+            //         }
+            //     })
+            //     return { ...state, Trash: tempList }
+            // } else {
+            //     let tempList = state.Library.filter((e, i) => {
+            //         if (e.id != action.UpdatedData.id) {
+            //             return action.UpdatedData
+            //         }
+            //     })
+            //     return { ...state, Library: tempList }
+            // }
         }
         case "REMOVE_DELETED_DOCUMENT_LIST": {
             return { ...state, [action.DocumentType]: _.filter(state[action.DocumentType], (e) => { return e.id !== action.Id }) }

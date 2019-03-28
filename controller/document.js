@@ -254,7 +254,6 @@ exports.get = {
                             ],
                         })
                         .map((res) => {
-                            console.log(res.document.toJSON())
                             let resToReturn = {
                                 ...res.document.toJSON(),
                                 tagWorkstream: res.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),
