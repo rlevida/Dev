@@ -4,7 +4,7 @@ import moment from 'moment';
 import { connect } from "react-redux";
 
 import { DropDown, Loading } from "../../globalComponents";
-import { getData, postData, showToast } from "../../globalFunction";
+import { getData, postData, putData, showToast } from "../../globalFunction";
 
 let keyTimer = "";
 
@@ -32,7 +32,9 @@ export default class ConversationForm extends React.Component {
             "fetchWorkstreamList",
             "handleFile",
             "removefile",
-            "fetchConversation"
+            "fetchConversation",
+            "handleEditTitle",
+            "saveTitle"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -226,6 +228,43 @@ export default class ConversationForm extends React.Component {
         });
     }
 
+    handleEditTitle() {
+        const { dispatch, notes } = { ...this.props };
+        dispatch({
+            type: "SET_NOTES_SELECTED", Selected: {
+                ...notes.Selected,
+                editTitle: (typeof notes.Selected.editTitle == "undefined") ? true : !notes.Selected.editTitle
+            }
+        });
+        setTimeout(() => {
+            this.myTextInput.focus();
+            this.myTextInput.select();
+        }, 100);
+
+    }
+
+    saveTitle() {
+        const { dispatch, notes } = { ...this.props };
+        const { id, title } = notes.Selected;
+        const noteList = notes.List;
+
+        putData(`/api/conversation/${id}`, { title }, (c) => {
+            const noteIndex = _.findIndex(noteList, { id });
+            const updatedObject = _.merge(noteList[noteIndex], { note: title });
+            noteList.splice(noteIndex, 1, updatedObject);
+
+            dispatch({ type: "SET_NOTES_LIST", list: noteList });
+            dispatch({
+                type: "SET_NOTES_SELECTED",
+                Selected: {
+                    ...notes.Selected,
+                    editTitle: false
+                }
+            });
+            showToast("success", "Message successfully updated.");
+        });
+    }
+
     render() {
         const { teams, workstream, notes, conversation, loggedUser } = this.props;
         const workstreamList = workstream.SelectList;
@@ -244,6 +283,7 @@ export default class ConversationForm extends React.Component {
                 name: notes.Selected.workstream.workstream
             });
         }
+
         return (
             <div>
                 <form id="conversation-form" class="full-form">
@@ -257,9 +297,30 @@ export default class ConversationForm extends React.Component {
                             class="form-control underlined"
                             placeholder="Type a title"
                             onChange={this.handleChange}
-                            disabled={typeof notes.Selected.id != "undefined" && notes.Selected.id != ""}
+                            ref={(input) => { this.myTextInput = input; }}
+                            disabled={(typeof notes.Selected.editTitle == "undefined" || notes.Selected.editTitle == false)}
                         />
-                        <a class="logo-action text-grey"><i title="PRIVATE" class="fa fa-lock" aria-hidden="true"></i></a>
+                        <div class="form-action">
+                            {
+                                (
+                                    typeof notes.Selected.id != "undefined" && notes.Selected.id != "" &&
+                                    (typeof notes.Selected.editTitle == "undefined" || notes.Selected.editTitle == false)
+                                ) && <a
+                                    onClick={this.handleEditTitle}
+                                    class="logo-action text-grey mr10"
+                                ><i title="EDIT TITLE" class="fa fa-pencil" aria-hidden="true"></i></a>
+                            }
+                            {
+                                (
+                                    typeof notes.Selected.id != "undefined" && notes.Selected.id != "" &&
+                                    (typeof notes.Selected.editTitle != "undefined" && notes.Selected.editTitle)
+                                ) && <a
+                                    onClick={this.saveTitle}
+                                    class="logo-action text-grey mr10"
+                                ><i title="SAVE TITLE" class="fa fa-check" aria-hidden="true"></i></a>
+                            }
+                            <a class="logo-action text-grey"><i title="PRIVATE" class="fa fa-lock" aria-hidden="true"></i></a>
+                        </div>
                     </div>
                     <div id="chat-area">
                         <div class={`form-group ${(typeof notes.Selected.id != "undefined" && notes.Selected.id != "") ? "pointer-none" : ""}`}>
@@ -302,7 +363,7 @@ export default class ConversationForm extends React.Component {
                                                         {
                                                             (conversationDocuments.length > 0) && _.map(conversationDocuments, ({ document }, index) => {
                                                                 return (
-                                                                    <p class="ml20" key={index}>
+                                                                    <p class="ml10" key={index}>
                                                                         <i class="fa fa-file mr5" aria-hidden="true"></i>
                                                                         {document.origin}
                                                                     </p>
