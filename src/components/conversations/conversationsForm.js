@@ -352,7 +352,7 @@ export default class ConversationForm extends React.Component {
                             id="message-thread"
                             class={(conversationList.length == 0) ? "display-flex origin-center" : ""}>
                             {
-                                (currentConversationPage != lastConversationPage && conversation.Loading != "RETRIEVING" && _.isEmpty(notes.Selected) == false) && <p class="text-center"><a onClick={this.fetchConversation}>Load More Message</a></p>
+                                (currentConversationPage != lastConversationPage && conversation.Loading != "RETRIEVING" && _.isEmpty(notes.Selected) == false) && <p class="text-center mb15"><a onClick={this.fetchConversation}>Load More Message</a></p>
                             }
                             {
                                 (conversation.Loading == "RETRIEVING" && (conversationList).length > 0) && <div class="mb10"><Loading /></div>

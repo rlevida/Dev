@@ -23,7 +23,7 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
     }
     render() {
-        const { match, dispatch } = { ...this.props };
+        const { match, dispatch, notes } = { ...this.props };
         const projectId = match.params.projectId;
 
         return (
@@ -35,19 +35,21 @@ export default class Component extends React.Component {
                                 <h3 class="title m0">Messages</h3>
                             </div>
                             <div class="col-md-6 col-sm-12 col-xs-12 pd0" >
-                                <div class="button-action">
-                                    <a class="btn btn-default"
-                                        onClick={(e) => {
-                                            dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
-                                            dispatch({ type: "SET_COMMENT_LIST", list: [], count: {} });
-                                        }}
-                                    >
-                                        <span>
-                                            <i class="fa fa-plus mr10" aria-hidden="true"></i>
-                                            New Message
+                                {
+                                    (typeof notes.Selected.id != "undefined" && notes.Selected.id != "") && <div class="button-action">
+                                        <a class="btn btn-default"
+                                            onClick={(e) => {
+                                                dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
+                                                dispatch({ type: "SET_COMMENT_LIST", list: [], count: {} });
+                                            }}
+                                        >
+                                            <span>
+                                                <i class="fa fa-plus mr10" aria-hidden="true"></i>
+                                                New Message
                                          </span>
-                                    </a>
-                                </div>
+                                        </a>
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>

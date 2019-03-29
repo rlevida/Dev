@@ -17,6 +17,10 @@ import DocumentViewer from "../document/documentViewer";
     }
 })
 export default class ProjectDetails extends React.Component {
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: "" })       
+    }
 
     componentDidMount() {
         const { dispatch, loggedUser, history } = { ...this.props };
@@ -50,15 +54,7 @@ export default class ProjectDetails extends React.Component {
         }
     }
 
-    componentWillUnmount() {
-        const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: "" })
-        dispatch({ type: "SET_PROJECT_SELECTED", Selected: {} });
-    }
-
     render() {
-        const { task } = { ...this.props };
-
         return (
             <div>
                 <Switch>

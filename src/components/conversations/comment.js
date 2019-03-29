@@ -79,7 +79,6 @@ export default class CommentListItem extends React.Component {
                 dispatch({ type: "SET_NOTES_LIST", list: noteList });
                 showToast("success", "Comment successfully updated.");
             } catch (err) {
-                // console.log(err);
                 showToast("error", "Something went wrong please try again later.");
             }
         });

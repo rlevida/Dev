@@ -177,7 +177,9 @@ export default class ConversationList extends React.Component {
                                                     <h3>{note}</h3>
                                                 </div>
                                             </a>
-                                            <i class={`fa ${(privacyType == "Private") ? "fa-lock" : "fa-globe"} text-grey flex-right`} aria-hidden="true"></i>
+                                            <span title={(privacyType).toUpperCase()} class="flex-right">
+                                                <i class={`fa ${(privacyType == "Private") ? "fa-lock" : "fa-globe"} text-grey`} aria-hidden="true"></i>
+                                            </span>
                                         </div>
                                     )
                                 })
