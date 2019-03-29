@@ -34,7 +34,7 @@ export default class ConversationForm extends React.Component {
             "removefile",
             "fetchConversation",
             "handleEditTitle",
-            "saveTitle"
+            "updateMessage"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -49,6 +49,10 @@ export default class ConversationForm extends React.Component {
     componentDidUpdate(prevProps) {
         if ((prevProps.conversation.List).length != (this.props.conversation.List).length && this.props.conversation.Count.current_page == 1) {
             this.scrollToBottom();
+        }
+
+        if ((prevProps.conversation.List).length != (this.props.conversation.List).length) {
+            this.refs.fileUploader.value = "";
         }
     }
 
@@ -118,7 +122,7 @@ export default class ConversationForm extends React.Component {
             dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
             postData(`/api/conversation`, data, (c) => {
                 const conversationNotes = c.data.conversationNotes;
-                const { note, id, noteWorkstream, notesTagTask } = conversationNotes;
+                const { note, id, noteWorkstream, notesTagTask, createdBy } = conversationNotes;
                 const noteIndex = _.findIndex(notes.List, { id: conversationNotes.id });
 
                 (notes.List).splice(noteIndex, 1, conversationNotes);
@@ -137,9 +141,12 @@ export default class ConversationForm extends React.Component {
                             return { value: user.id, label: user.firstName + " " + user.lastName, avatar: user.avatar }
                         }),
                         notesTagTask,
-                        message: ""
+                        message: "",
+                        createdBy
                     }
                 });
+
+                this.scrollToBottom();
             });
         } else {
             if (typeof Selected.files != "undefined" && (Selected.files).length > 0) {
@@ -199,7 +206,7 @@ export default class ConversationForm extends React.Component {
         });
     }
 
-    handleFile(e) {
+    handleFile() {
         const { dispatch, notes } = { ...this.props };
         const { Selected } = notes;
         const selectedFiles = (typeof Selected.files != "undefined") ? Selected.files : [];
@@ -243,14 +250,15 @@ export default class ConversationForm extends React.Component {
 
     }
 
-    saveTitle() {
+    updateMessage() {
         const { dispatch, notes } = { ...this.props };
-        const { id, title } = notes.Selected;
+        const { id, title, privacyType } = notes.Selected;
         const noteList = notes.List;
+        const newprivacyType = (privacyType == "Private") ? "Public" : "Private";
 
-        putData(`/api/conversation/${id}`, { title }, (c) => {
+        putData(`/api/conversation/${id}`, { note: title, privacyType: newprivacyType }, (c) => {
             const noteIndex = _.findIndex(noteList, { id });
-            const updatedObject = _.merge(noteList[noteIndex], { note: title });
+            const updatedObject = _.merge(noteList[noteIndex], { note: title, privacyType: newprivacyType });
             noteList.splice(noteIndex, 1, updatedObject);
 
             dispatch({ type: "SET_NOTES_LIST", list: noteList });
@@ -258,6 +266,7 @@ export default class ConversationForm extends React.Component {
                 type: "SET_NOTES_SELECTED",
                 Selected: {
                     ...notes.Selected,
+                    privacyType: newprivacyType,
                     editTitle: false
                 }
             });
@@ -283,7 +292,6 @@ export default class ConversationForm extends React.Component {
                 name: notes.Selected.workstream.workstream
             });
         }
-
         return (
             <div>
                 <form id="conversation-form" class="full-form">
@@ -298,28 +306,33 @@ export default class ConversationForm extends React.Component {
                             placeholder="Type a title"
                             onChange={this.handleChange}
                             ref={(input) => { this.myTextInput = input; }}
-                            disabled={(typeof notes.Selected.editTitle == "undefined" || notes.Selected.editTitle == false)}
+                            disabled={(
+                                (typeof notes.Selected.editTitle == "undefined" || notes.Selected.editTitle == false) &&
+                                (typeof notes.Selected.id != "undefined" && notes.Selected.id != "")
+                            )}
                         />
                         <div class="form-action">
                             {
                                 (
                                     typeof notes.Selected.id != "undefined" && notes.Selected.id != "" &&
-                                    (typeof notes.Selected.editTitle == "undefined" || notes.Selected.editTitle == false)
+                                    (typeof notes.Selected.editTitle != "undefined" && notes.Selected.editTitle)
                                 ) && <a
-                                    onClick={this.handleEditTitle}
+                                    onClick={this.updateMessage}
                                     class="logo-action text-grey mr10"
-                                ><i title="EDIT TITLE" class="fa fa-pencil" aria-hidden="true"></i></a>
+                                ><i title="SAVE TITLE" class="fa fa-check" aria-hidden="true"></i></a>
                             }
                             {
                                 (
                                     typeof notes.Selected.id != "undefined" && notes.Selected.id != "" &&
-                                    (typeof notes.Selected.editTitle != "undefined" && notes.Selected.editTitle)
-                                ) && <a
-                                    onClick={this.saveTitle}
-                                    class="logo-action text-grey mr10"
-                                ><i title="SAVE TITLE" class="fa fa-check" aria-hidden="true"></i></a>
+                                    (typeof notes.Selected.editTitle == "undefined" || notes.Selected.editTitle == false)
+                                ) && <div>
+                                    <a href="javascript:void(0);" class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown"><span class="fa fa-ellipsis-v" title="Settings"></span></a>
+                                    <ul class="dropdown-menu pull-right">
+                                        <li><a onClick={this.handleEditTitle}>Edit Title</a></li>
+                                        <li><a onClick={this.updateMessage}>Make {(notes.Selected.privacyType == "Private") ? "Public" : "Private"}</a></li>
+                                    </ul>
+                                </div>
                             }
-                            <a class="logo-action text-grey"><i title="PRIVATE" class="fa fa-lock" aria-hidden="true"></i></a>
                         </div>
                     </div>
                     <div id="chat-area">
@@ -339,7 +352,7 @@ export default class ConversationForm extends React.Component {
                             id="message-thread"
                             class={(conversationList.length == 0) ? "display-flex origin-center" : ""}>
                             {
-                                (currentConversationPage != lastConversationPage && conversation.Loading != "RETRIEVING") && <p class="text-center"><a onClick={this.fetchConversation}>Load More Message</a></p>
+                                (currentConversationPage != lastConversationPage && conversation.Loading != "RETRIEVING" && _.isEmpty(notes.Selected) == false) && <p class="text-center"><a onClick={this.fetchConversation}>Load More Message</a></p>
                             }
                             {
                                 (conversation.Loading == "RETRIEVING" && (conversationList).length > 0) && <div class="mb10"><Loading /></div>

@@ -43,14 +43,16 @@ export default class ConversationList extends React.Component {
     fetchNotes(page) {
         const { projectId, dispatch, notes, loggedUser } = { ...this.props };
         const { List, Filter } = notes;
-        let requestUrl = `/api/conversation/conversationNotes?page=${page}&projectId=${projectId}&starredUser=${loggedUser.data.id}`;
+
+        let requestUrl = `/api/conversation/conversationNotes?page=${page}&projectId=${projectId}&starredUser=${loggedUser.data.id}&userId=${loggedUser.data.id}`;
 
         if (Filter.title != "") {
             requestUrl += `&title=${Filter.title}`;
         }
 
         getData(requestUrl, {}, (c) => {
-            dispatch({ type: "SET_NOTES_LIST", list: [...List, ...c.data.result], count: c.data.count });
+            const messageList = (page == 1) ? c.data.result : [...List, ...c.data.result];
+            dispatch({ type: "SET_NOTES_LIST", list: messageList, count: c.data.count });
             dispatch({ type: "SET_NOTES_LOADING", Loading: "" });
         });
     }
@@ -88,7 +90,6 @@ export default class ConversationList extends React.Component {
         const { loggedUser, dispatch, notes } = this.props;
         const { List } = notes;
         const isStarredValue = (isStarred > 0) ? 0 : 1;
-
         postData(`/api/starred/`, {
             linkType: "notes",
             linkId: id,
@@ -100,34 +101,39 @@ export default class ConversationList extends React.Component {
         });
     }
 
-    openMessage({ note, id, noteWorkstream, notesTagTask, createdBy }) {
-        const { dispatch } = { ...this.props };
-        let requestUrl = `/api/conversation/getConversationList?page=1&linkType=notes&linkId=${id}`;
-        //users
-        dispatch({ type: "SET_COMMENT_LOADING", Loading: "RETRIEVING" });
-        dispatch({
-            type: "SET_NOTES_SELECTED", Selected: {
-                title: note,
-                id,
-                createdBy,
-                workstream: noteWorkstream,
-                workstreamId: noteWorkstream.id,
-                users: _.map(notesTagTask, ({ user }) => {
-                    return { value: user.id, label: user.firstName + " " + user.lastName, avatar: user.avatar }
-                }),
-                notesTagTask
-            }
-        });
+    openMessage({ note, id, noteWorkstream, notesTagTask, privacyType, createdBy }) {
+        const { dispatch, notes } = { ...this.props };
+        const { id: noteId = 0 } = notes.Selected;
 
-        getData(requestUrl, {}, (c) => {
-            dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });
-            dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
-        });
+        if (id != noteId) {
+            let requestUrl = `/api/conversation/getConversationList?page=1&linkType=notes&linkId=${id}`;
+            dispatch({ type: "SET_COMMENT_LOADING", Loading: "RETRIEVING" });
+            dispatch({
+                type: "SET_NOTES_SELECTED", Selected: {
+                    title: note,
+                    id,
+                    privacyType,
+                    createdBy,
+                    workstream: noteWorkstream,
+                    workstreamId: noteWorkstream.id,
+                    users: _.map(notesTagTask, ({ user }) => {
+                        return { value: user.id, label: user.firstName + " " + user.lastName, avatar: user.avatar }
+                    }),
+                    notesTagTask
+                }
+            });
+
+            getData(requestUrl, {}, (c) => {
+                dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });
+                dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
+            });
+        }
     }
 
     render() {
         const { notes } = { ...this.props };
-        const { List, Count, Filter } = notes;
+        const { List, Count, Filter, Selected } = notes;
+        const { id: selectedNoteId = 0 } = Selected;
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
         const conversationList = _(List)
@@ -159,9 +165,9 @@ export default class ConversationList extends React.Component {
                         (conversationList.length > 0) && <div id="messages">
                             {
                                 _.map(conversationList, (params, index) => {
-                                    const { id, note, noteWorkstream, isStarred } = { ...params };
+                                    const { id, note, noteWorkstream, isStarred, privacyType } = { ...params };
                                     return (
-                                        <div key={index} class="message-div bb display-flex">
+                                        <div key={index} class={`message-div bb display-flex ${(selectedNoteId == id) ? "div-active" : ""}`}>
                                             <a class="logo-action text-grey" onClick={() => this.starredTask({ id, isStarred })}>
                                                 <i title="FAVORITE" class={`fa ${isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true"></i>
                                             </a>
@@ -171,6 +177,7 @@ export default class ConversationList extends React.Component {
                                                     <h3>{note}</h3>
                                                 </div>
                                             </a>
+                                            <i class={`fa ${(privacyType == "Private") ? "fa-lock" : "fa-globe"} text-grey flex-right`} aria-hidden="true"></i>
                                         </div>
                                     )
                                 })

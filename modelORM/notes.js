@@ -20,6 +20,10 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.BIGINT,
       allowNull: true
     },
+    privacyType: {
+      type: DataTypes.ENUM('Private', 'Public'),
+      allowNull: true
+    },
     createdBy: {
       type: DataTypes.BIGINT,
       allowNull: true

@@ -17,15 +17,26 @@ export default class Socket extends React.Component {
     }
 
     componentWillMount() {
-        var { socket, dispatch, notes } = this.props;
-        socket.on("FRONT_COMMENT_LIST", (data) => {
-            if (this.props.loggedUser.data.id !== data[0].users.id) {
-                const dataToUpdate = this.props.notes.List.filter((e) => { return e.id == data[0].linkId });
-                if (dataToUpdate.length > 0) {
-                    dataToUpdate[0].comments.push(data[0]);
-                    dataToUpdate[0].isSeen = 0;
-                    dispatch({ type: "UPDATE_DATA_NOTES_LIST", list: dataToUpdate })
-                }
+        const { socket, dispatch, notes, loggedUser } = this.props;
+        socket.on("FRONT_NEW_NOTE", (data) => {
+            if (loggedUser.data.id !== data.createdBy) {
+                dispatch({ type: "UPDATE_DATA_NOTES_LIST", list: [data] });
+            }
+        });
+        socket.on("FRONT_COMMENT_LIST", ({ result, members }) => {
+            const removedMember = _.find(members, ({ linkId }) => { return linkId == loggedUser.data.id });
+
+            if (loggedUser.data.id !== result.usersId) {
+                const conversationNotes = result.conversationNotes;
+                dispatch({ type: "ADD_COMMENT_LIST", list: result });
+            }
+
+            if (typeof removedMember != "undefined" && removedMember.member_type == "new") {
+                dispatch({ type: "UPDATE_DATA_NOTES_LIST", list: [result.conversationNotes] });
+            }
+
+            if (typeof removedMember != "undefined" && removedMember.member_type == "old") {
+                dispatch({ type: "DELETE_NOTES", id: result.conversationNotes.id });
             }
         })
     }

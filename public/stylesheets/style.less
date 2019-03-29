@@ -2224,21 +2224,32 @@ textarea::-webkit-scrollbar-thumb {
 
 .message-div h3 {
   font-size: 20px;
-  margin-top: 0px;
+  margin: 0px;
 }
 
-.message-div:not(:last-child){
-  margin-bottom: 20px;
+.message-div{
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.div-active{
+  background-color: #F8F8F8;
 }
 
 #messages {
   overflow-y: auto;
-  max-height: 350px;   
+  max-height: 527px;   
 }
 
 #people{
   display: flex;
   margin-bottom: 10px;
+}
+
+.flex-right{
+  margin-left: auto;
 }
 
 @media screen and (max-width: 600px) {

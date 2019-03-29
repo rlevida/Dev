@@ -81,8 +81,7 @@ const NotesInclude = [
 ];
 
 
-let io = require('socket.io-client');
-
+const io = require('socket.io-client');
 const socketIo = io(((global.environment == "production") ? "https:" : "http:") + global.site_url, {
     transports: ['websocket'],
     reconnection: true,
@@ -93,7 +92,7 @@ const socketIo = io(((global.environment == "production") ? "https:" : "http:") 
 
 
 exports.get = {
-    conversationNotes: (req, cb) => {
+    conversationNotes: async (req, cb) => {
         const queryString = req.query;
         const limit = 10;
         const getAssociation = [
@@ -124,7 +123,18 @@ exports.get = {
                 ]
             }
         ]
+        let taggedUser = [];
 
+        if (typeof queryString.userId && queryString.userId != "") {
+            taggedUser = await Tag.findAll({
+                where: {
+                    tagType: 'notes',
+                    linkType: 'user',
+                    linkId: queryString.userId,
+                    isDeleted: 0
+                }
+            }).map((o) => { return o.toJSON(); });
+        }
         const whereObj = {
             ...(typeof queryString.projectId !== 'undefined' && queryString.projectId !== '') ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.title != "undefined" && queryString.title != "") ? {
@@ -136,6 +146,9 @@ exports.get = {
                     )
                 ]
             } : {},
+            ...(typeof queryString.userId && queryString.userId != "") ? {
+                id: _.map(taggedUser, ({ tagTypeId }) => { return tagTypeId })
+            } : {}
         }
 
         if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
@@ -363,6 +376,7 @@ exports.post = {
                 projectId: body.projectId,
                 workstreamId: body.workstreamId,
                 note: body.title,
+                privacyType: 'Private',
                 createdBy: body.userId
             }).then((o) => { return o.toJSON() });
             const getAssociation = [
@@ -377,6 +391,25 @@ exports.post = {
                         {
                             model: Users,
                             as: 'users'
+                        },
+                        {
+                            model: Tag,
+                            as: 'conversationDocuments',
+                            attributes: ['id'],
+                            where: {
+                                linkType: "conversation",
+                                tagType: "document",
+                                isDeleted: 0
+                            },
+                            required: false,
+                            include: [{
+                                model: Document,
+                                as: 'document',
+                                where: {
+                                    isDeleted: 0
+                                },
+                                required: false
+                            }]
                         }
                     ]
                 },
@@ -557,6 +590,12 @@ exports.post = {
                                 }
                             }).map((mapObject) => {
                                 const responseObj = mapObject.toJSON();
+                                socketIo.emit("BROADCAST_SOCKET", {
+                                    type: "FRONT_NEW_NOTE", data: {
+                                        ...responseObj,
+                                        isStarred: 0
+                                    }
+                                });
                                 return {
                                     ...responseObj,
                                     isStarred: 0
@@ -774,7 +813,7 @@ exports.post = {
                         parallelCallback(e);
                     }
                 },
-                users: (parallelCallback) => {
+                members: (parallelCallback) => {
                     Tag.findAll({
                         where: {
                             tagType: 'notes',
@@ -786,7 +825,7 @@ exports.post = {
                             isDeleted: 0
                         }
                     })
-                        .map((o) => { return o.toJSON() })
+                        .map((o) => { return { ...o.toJSON(), member_type: "old" }; })
                         .then(async (responseArray) => {
                             if (responseArray.length > 0) {
                                 await Tag.update({ isDeleted: 1 }, {
@@ -829,16 +868,16 @@ exports.post = {
 
                                 Tag.bulkCreate(submitArray, { returning: true })
                                     .map((response) => {
-                                        return response.toJSON();
+                                        return { ...response.toJSON(), member_type: "new" };
                                     }).then((response) => {
-                                        parallelCallback(null, response);
+                                        parallelCallback(null, { new_members: response, removed_members: responseArray });
                                     });
                             } else {
-                                parallelCallback(null);
+                                parallelCallback(null, { new_members: [], removed_members: responseArray });
                             }
                         });
                 }
-            }, (err, { conversation }) => {
+            }, (err, { conversation, members }) => {
                 Conversation
                     .findOne({
                         where: {
@@ -901,8 +940,67 @@ exports.post = {
                                 ]
                             }
                         ]
-                    }).then((res) => {
-                        cb({ status: true, data: res.toJSON() });
+                    }).then(async (res) => {
+                        const responseObj = res.toJSON();
+                        const { users, conversationNotes } = responseObj;
+                        const memberUser = _.map([
+                            ...members.new_members,
+                            ...members.removed_members
+                        ], ({ linkId, member_type }) => { return { linkId, member_type } });
+
+                        if (memberUser.length > 0) {
+                            const reminderUsers = await Users.findAll({
+                                where: {
+                                    id: _.map(memberUser, ({ linkId }) => { return linkId })
+                                }
+                            }).map((o) => { return o.toJSON() });
+
+                            const reminderList = _.map(reminderUsers, ({ emailAddress, id }) => {
+                                const memberType = _.find(memberUser, ({ linkId }) => { return linkId == id });
+                                const message = (memberType.member_type == "new") ? "added you to a message" : "removed you to a message"
+                                return {
+                                    detail: users.firstName + " " + users.lastName + " " + message + ".",
+                                    emailAddress: emailAddress,
+                                    usersId: memberType.linkId,
+                                    linkType: 'notes',
+                                    linkId: conversationNotes.id,
+                                    type: "Send Message",
+                                    createdBy: users.id
+                                }
+                            });
+
+                            await Reminder.bulkCreate(
+                                _.map(reminderList, (o) => { return _.omit(o, ["emailAddress"]) })
+                            ).map((response) => {
+                                return response.toJSON();
+                            }).then((resultArray) => {
+                                async.map(reminderList, ({ emailAddress, detail }, mapCallback) => {
+                                    let html = '<p>' + detail + '</p>';
+                                    html += '<p style="margin-bottom:0">Title: ' + responseObj.conversationNotes.note + '</p>';
+                                    html += '<p style="margin-top:0">Project - Workstream: ' + responseObj.conversationNotes.noteWorkstream.project.project + ' - ' + responseObj.conversationNotes.noteWorkstream.workstream + '</p>';
+
+                                    const mailOptions = {
+                                        from: '"no-reply" <no-reply@c_cfo.com>',
+                                        to: `${emailAddress}`,
+                                        subject: '[CLOUD-CFO]',
+                                        html: html
+                                    };
+                                    global.emailtransport(mailOptions);
+                                    mapCallback(null);
+                                }, (err, result) => {
+                                    socketIo.emit("BROADCAST_SOCKET", {
+                                        type: "FRONT_COMMENT_LIST", data: { result: responseObj, members: memberUser }
+                                    });
+                                    cb({ status: true, data: responseObj });
+                                });
+                            });
+                        } else {
+                            socketIo.emit("BROADCAST_SOCKET", {
+                                type: "FRONT_COMMENT_LIST", data: { result: responseObj, members: memberUser }
+                            });
+                            cb({ status: true, data: responseObj });
+                        }
+
                     })
             });
         }).on('error', function (err) {
@@ -917,8 +1015,7 @@ exports.put = {
     index: (req, cb) => {
         const body = req.body;
         const conversationId = req.params.id;
-
-        Notes.update({ note: body.title }, { where: { id: conversationId } }).then((response) => {
+        Notes.update(body, { where: { id: conversationId } }).then((response) => {
 
             Notes.findOne({
                 where: {

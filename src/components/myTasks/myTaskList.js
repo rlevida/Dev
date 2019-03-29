@@ -27,9 +27,6 @@ export default class MyTaskList extends React.Component {
                 <div class="mb40">
                     <TaskListCategory date="Succeeding month" user_id={loggedUser.data.id} />
                 </div>
-                <div>
-                    <TaskListCategory user_id={loggedUser.data.id} />
-                </div>
             </div>
         );
     }

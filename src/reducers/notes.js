@@ -47,8 +47,7 @@ export default function reducer(state = {
         case "UPDATE_DATA_NOTES_LIST": {
             const { List } = { ...state };
             const copyOfList = [...List];
-
-            _.map(action.List, (o) => {
+            _.map(action.list, (o) => {
                 const updateIndex = _.findIndex(copyOfList, { id: o.id });
                 if (updateIndex >= 0) {
                     copyOfList.splice(updateIndex, 1, o);
