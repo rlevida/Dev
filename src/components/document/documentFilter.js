@@ -159,11 +159,6 @@ class DocumentFilter extends React.Component {
                                     <i class="fa fa-search fa-lg"></i>
                                 </span>
                             </a>
-                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#">
-                                <span>
-                                    <i class="fa fa-download fa-lg"></i>
-                                </span>
-                            </a>
                             <a class="btn btn-default mr10" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>
                                 <span>
                                     <i class="fa fa-plus mr10" aria-hidden="true"></i>

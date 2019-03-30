@@ -35,7 +35,6 @@ export default class List extends React.Component {
     }
 
     componentDidMount() {
-            console.log(`here`)
         // let { dispatch, document } = this.props
 
         // getData(`/api/globalORM/selectList?selectName=workstreamList&projectId=${project}`, {}, (c) => {

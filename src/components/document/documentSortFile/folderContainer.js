@@ -7,7 +7,7 @@ import { withRouter } from "react-router";
 
 var Collapse = require('rc-collapse');
 var Panel = Collapse.Panel;
-
+var hoveredId = ''
 import Container from "./folderContainer"
 // require('rc-collapse/assets/index.css');
 
@@ -17,19 +17,11 @@ const itemSource = {
     }
 }
 const itemTarget = {
-    hover(props, monitor) {
-        const draggedId = monitor.getItem().id
-        if (draggedId !== props.data.id) {
-        }
-    },
     drop(props, monitor) {
         const draggedItem = monitor.getItem()
-        if (monitor.isOver()) {
+        if (monitor.isOver({ shallow: true })) {
             props.moveTo(props.data, draggedItem)
         }
-        // if (props.data.type === 'folder' && props.data.status == 'new' && props.data.id !== draggedItem.id && draggedItem.status === 'new') {
-        //     props.moveTo(props.data, monitor.getItem())
-        // }
     }
 }
 
@@ -52,7 +44,7 @@ const itemTarget = {
 @DropTarget('item', itemTarget, (connect, monitor) => {
     return {
         connectDropTarget: connect.dropTarget(),
-        hovered: monitor.isOver(),
+        hovered: monitor.isOver({ shallow: true }),
         item: monitor.getItem()
     }
 })
@@ -60,6 +52,10 @@ const itemTarget = {
 class FieldContainer extends React.Component {
     constructor(props) {
         super(props)
+
+        this.state = {
+            hoveredItem: ""
+        }
     }
     componentDidMount() {
     }
@@ -129,8 +125,6 @@ class FieldContainer extends React.Component {
                                         b.childFolder = []
                                         b.childFolder = result
                                     }
-                                    console.log(b)
-
                                 } else if (typeof b.childFolder !== "undefined") {
                                     b.childFolder.map((c) => {
                                         if (c.id === data.id) {
@@ -157,9 +151,9 @@ class FieldContainer extends React.Component {
     }
 
     renderFolder(data) {
-        const { moveTo } = { ...this.props }
+        const { moveTo, document, hovered } = { ...this.props }
         return (
-            <div class="folder-accordion" id={data.id}>
+            <div class="folder-accordion" id={data.id} style={{ backgroundColor: hovered ? '#e4e4e4' : '' }}>
                 <a href="javascript:void(0)" class="accordion-toggle collapsed" data-toggle="collapse" href={`#collapseExample${data.id}`} role="button" aria-expanded="false" aria-controls={`collapseExample${data.id}`} onClick={() => this.fetchFolder(data)}>
                     <i class="fa-chevron fa fa-chevron-down"></i>
                     <i class="fa fa-fw fa-folder"></i>
@@ -182,6 +176,7 @@ class FieldContainer extends React.Component {
         const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
         const opacity = isDragging ? 0 : 1;
         const backgroundColor = hovered ? 'lightblue' : '';
+
         return (
             connectDropTarget(
                 <div key={key}>

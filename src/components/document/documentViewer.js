@@ -54,7 +54,6 @@ class DocumentViewerComponent extends React.Component {
 
     componentWillUnmount() {
         const { dispatch } = this.props;
-        dispatch({ type: "CLEAR_DOCUMENT" })
         dispatch({ type: "SET_COMMENT_SELECTED", Selected: "" })
     }
 
@@ -167,7 +166,6 @@ class DocumentViewerComponent extends React.Component {
                 isDocument = false;
             }
         }
-
         return (
             <div class="row">
                 <div class="col-lg-12">

@@ -51,6 +51,13 @@ class DocumentList extends React.Component {
         // }
     }
 
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props }
+        dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
+        dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
+        dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
+    }
+
     fetchData(page) {
         const { dispatch, loggedUser, document, folder, match } = this.props;
         const projectId = match.params.projectId;
@@ -189,13 +196,22 @@ class DocumentList extends React.Component {
         }
     }
 
-    viewDocument(data) {
+    async viewDocument(data) {
         const { dispatch, loggedUser, folder, match } = this.props;
         const projectId = match.params.projectId;
 
         if (data.type !== 'folder') {
-            dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
-            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
+            if (data.document_read.length === 0) {
+                const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
+                await postData(`/api/document/read`, dataToSubmit, (ret) => {
+                    dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
+                    dispatch({ type: 'UPDATE_DATA_DOCUMENT_LIST', UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } })
+                    $(`#documentViewerModal`).modal('show')
+                });
+            } else {
+                dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
+                $(`#documentViewerModal`).modal('show')
+            }
         } else {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
             getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
@@ -205,7 +221,6 @@ class DocumentList extends React.Component {
                     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' });
                     dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data });
                     dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedFolderName.concat([data]) });
-                    showToast('success', 'Documents successfully retrieved.');
                 }
             });
         }
@@ -251,12 +266,14 @@ class DocumentList extends React.Component {
 
         return (
             <div class="mb20">
-                <div class='selected-folder'>
-                    {document.Filter.status === 'library' && <a href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>All Files</a>}
-                    {(folder.SelectedFolderName.length > 0) &&
-                        folder.SelectedFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })
-                    }
-                </div>
+                {document.Filter.status === 'library' &&
+                    <div class='selected-folder'>
+                        <a href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>All Files</a>
+                        {(folder.SelectedFolderName.length > 0) &&
+                            folder.SelectedFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })
+                        }
+                    </div>
+                }
                 {document.Filter.status !== 'sort' ?
                     <div class="col-lg-12 col-md-12">
                         {(_.isEmpty(Count) === false) &&
@@ -279,20 +296,16 @@ class DocumentList extends React.Component {
 
                                             return (
                                                 <tr key={index}>
-                                                    {/* <td>
-                                                        <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
-                                                            <span class={`fa ${data.isStarred ? "fa-star" : "fa-star-o"}`} />
-                                                        </a>
-                                                    </td> */}
                                                     <td class="document-name">
-                                                        {data.type === "document" ?
+                                                        {/* {data.type === "document" ?
                                                             <Link to={`/projects/${projectId}/files/${data.id}`}><span class={data.isRead ? 'read' : 'unread'}>{documentName}</span></Link>
-                                                            :
-                                                            <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
-                                                                <span class="fa fa-folder fa-lg read mr10"></span>
-                                                                <span class="read">{documentName}</span>
-                                                            </a>
-                                                        }
+                                                            : */}
+                                                        <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
+                                                            {data.type === "folder" && <span class="fa fa-folder fa-lg read mr10"></span>}
+                                                            {data.type === "folder" && <span class="read">{documentName}</span>}
+                                                            {data.type === "document" && < span class={data.isRead ? 'read' : 'unread'}>{documentName}</span>}
+                                                        </a>
+                                                        {/* } */}
                                                     </td>
                                                     <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`} /></td>
                                                     <td>{displayDateMD(data.dateAdded)}</td>

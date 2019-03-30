@@ -30,8 +30,7 @@ export default function reducer(state = {
     ActiveTab: 'document',
     DocumentToSave: [],
     DocumentUploadLoading: false,
-    Files: []
-
+    Files: [],
 }, action) {
     switch (action.type) {
         case "ADD_DOCUMENT_LIST": {
@@ -44,7 +43,6 @@ export default function reducer(state = {
         }
         case "SET_DOCUMENT_LIST": {
             return { ...state, List: action.list, Count: action.count }
-            // return { ...state, [action.DocumentType]: action.list, ...(typeof action.CountType !== 'undefined') ? { [action.CountType]: action.Count } : {} }
         }
         case "SET_DOCUMENT_NEW_LIST": {
             return { ...state, New: action.list, NewCount: (typeof action.count != "undefined") ? action.count : state.NewCount }
@@ -121,102 +119,21 @@ export default function reducer(state = {
             return { ...state, Files: action.Files }
         }
         case "UPDATE_DATA_DOCUMENT_LIST": {
-            if (action.Status == "new") {
-                const tempList = state.New.map((e, i) => {
-                    if (e.id == action.UpdatedData.id) {
-                        return action.UpdatedData
-                    }
-                    return e
-                })
-                return { ...state, New: tempList }
-            } else if (action.Status == "library") {
-                const tempList = state.Library.map((e, i) => {
-                    if (e.id == action.UpdatedData.id) {
-                        return action.UpdatedData
-                    }
-                    return e
-                })
-                return { ...state, Library: tempList }
-            } else {
-                const tempList = state.List.map((e, i) => {
-                    if (e.id == action.UpdatedData.id) {
-                        return action.UpdatedData
-                    }
-                    return e
-                })
-                return { ...state, List: tempList }
-            }
+            const tempList = state.List.map((e, i) => {
+                if (e.id == action.UpdatedData.id) {
+                    return action.UpdatedData
+                }
+                return e
+            })
+            return { ...state, List: tempList }
         }
         case "REMOVE_DOCUMENT_FROM_LIST": {
             let tempList = state.List.filter((e) => { return e.id !== action.UpdatedData.id })
             return { ...state, List: tempList }
-            // let tempList = state.List.filter((e,i) => {
-            //     if(e.id !== action.UpdatedData.id){
-            //         return
-            //     }
-            // })
-
-            // if (action.Status == "new") {
-            //     let tempList = state.New.filter((e, i) => {
-            //         if (e.id != action.UpdatedData.id) {
-            //             return action.UpdatedData
-            //         }
-            //     })
-            //     return { ...state, New: tempList }
-            // } else if (action.Status == "trash") {
-            //     const tempList = state.Trash.filter((e, i) => {
-            //         if (e.id != action.UpdatedData.id) {
-            //             return action.UpdatedData
-            //         }
-            //     })
-            //     return { ...state, Trash: tempList }
-            // } else {
-            //     let tempList = state.Library.filter((e, i) => {
-            //         if (e.id != action.UpdatedData.id) {
-            //             return action.UpdatedData
-            //         }
-            //     })
-            //     return { ...state, Library: tempList }
-            // }
+           
         }
         case "REMOVE_DELETED_DOCUMENT_LIST": {
             return { ...state, [action.DocumentType]: _.filter(state[action.DocumentType], (e) => { return e.id !== action.Id }) }
-        }
-        case "CLEAR_DOCUMENT": {
-            return {
-                List: [],
-                Count: {},
-                FormActive: "List",
-                Selected: {},
-                SelectedId: [],
-                EditType: "",
-                DocumentToMove: {},
-                DocumentToMoveType: "",
-                Loading: "RETRIEVING",
-                DocumentToPrint: "",
-                PrinterList: [],
-                Library: [],
-                New: [],
-                Trash: [],
-                NewDocumentLoading: "RETRIEVING",
-                LibraryDocumentLoading: "RETRIEVING",
-                TrashDocumentLoading: "RETRIEVING",
-                NewCount: { Count: {} },
-                LibraryCount: { Count: {} },
-                TrashCount: { Count: {} },
-                NewUploadCount: 0,
-                Filter: {
-                    isArchived: 'all'
-                },
-                Status: {
-                    new: 0,
-                    library: 0
-                },
-                ActiveTab: 'document',
-                DocumentToSave: [],
-                DocumentUploadLoading: false,
-                Files: []
-            }
         }
         default:
             return state;

@@ -57,7 +57,6 @@ class DocumentNew extends React.Component {
                             if (typeof a.childFolder === 'undefined') {
                                 a.childFolder = []
                                 a.childFolder = result;
-                                // console.log(result)
                                 isSelectedFolder = false;
                             } else {
                                 a.childFolder.map((b) => {
@@ -130,7 +129,8 @@ class DocumentNew extends React.Component {
         return (
             <div class="mb20">
                 <div class="col-lg-6 col-md-6">
-                    <table class="table-document mb40">
+                    <label class="sort-file-label" htmlFor="activeFiles">Active Files</label>
+                    <table class="table-document mb40" id="activeFiles">
                         <thead>
                             <tr>
                                 <th scope="col" class="td-left" >File Name</th>
@@ -167,11 +167,15 @@ class DocumentNew extends React.Component {
                     }
                 </div>
                 <div class="col-lg-6 col-md-6">
-                    {_.orderBy(folder.List, ['dateAdded'], ['desc']).map((data, index) => {
-                        return (
-                            <FolderContainer data={data} moveTo={(folderObj, documentObj) => this.moveTo(folderObj, documentObj)} key={index} />
-                        )
-                    })}
+                    <label class="sort-file-label" htmlFor="library">Library</label>
+                    <div id="library">
+                        {_.orderBy(folder.List, ['dateAdded'], ['desc']).map((data, index) => {
+                            return (
+                                <FolderContainer data={data} moveTo={(folderObj, documentObj) => this.moveTo(folderObj, documentObj)} key={index} />
+                            )
+                        })}
+                    </div>
+
                 </div>
             </div>
         )

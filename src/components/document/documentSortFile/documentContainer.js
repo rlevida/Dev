@@ -9,7 +9,7 @@ import { getEmptyImage } from 'react-dnd-html5-backend'
 const itemSource = {
     beginDrag(props) {
         return props.data
-    }
+    },
 }
 const itemTarget = {
     hover(props, monitor) {
