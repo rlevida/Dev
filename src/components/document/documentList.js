@@ -1,10 +1,9 @@
 import React from "react";
 import { Loading } from "../../globalComponents";
-import { getData, postData, putData, showToast, getParameterByName, displayDateMD } from '../../globalFunction';
+import { getData, postData, putData, showToast, displayDateMD } from '../../globalFunction';
 
 import { connect } from "react-redux"
 import { withRouter } from "react-router";
-import { Link } from 'react-router-dom';
 
 import DocumentSortFile from "./documentSortFile"
 
@@ -19,36 +18,11 @@ import DocumentSortFile from "./documentSortFile"
 class DocumentList extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {
-            order: 'asc',
-        }
         this.fetchData = this.fetchData.bind(this);
     }
 
     componentDidMount() {
-        // const { dispatch, document, loggedUser, location, match } = this.props;
-        // const projectId = match.params.projectId;
-        // const searchParams = new URLSearchParams(location.search);
-        // const folderId = searchParams.get("id");
-        // const folderStatus = searchParams.get("status")
-        // const folderOrigin = searchParams.get("folder")
-
-        // // automatically move to selected folder
-        // if (location.search !== "" && folderStatus === "new" && folderOrigin !== "") {
-        //     getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${folderId}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-        //         if (c.status == 200) {
-        //             dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-        //             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-        //             dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [{ id: folderId, name: folderOrigin }], Type: 'SelectedNewFolderName' });
-
-        //             showToast('success', 'Documents successfully retrieved.');
-        //         } else {
-        //             showToast('success', 'Something went wrong!')
-        //         }
-        //     });
-        // } else if (_.isEmpty(document.NewCount.Count)) {
         this.fetchData(1)
-        // }
     }
 
     componentWillUnmount() {
@@ -105,14 +79,6 @@ class DocumentList extends React.Component {
             const { count, result } = { ...c.data }
             dispatch({ type: 'SET_DOCUMENT_LIST', list: result, count: count });
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' });
-            // if (c.status == 200) {
-            //     dispatch({ type: "SET_DOCUMENT_LIST", list: document.New.concat(c.data.result), DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' })
-            //     dispatch({ type: "SET_FOLDER_LIST", list: c.data.result })
-            //     dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' })
-            //     showToast('success', 'Documents successfully retrieved.')
-            // } else {
-            //     showToast('success', 'Something went wrong!')
-            // }
         });
     }
 
@@ -256,12 +222,19 @@ class DocumentList extends React.Component {
         dispatch({ type: 'SET_SELECTED_FOLDER', Selected: { folderId: folder.Selected.id } })
     }
 
+    downloadDocument(data) {
+        if (data.type === 'document') {
+            window.open(encodeURI(`/api/downloadDocument?fileName=${data.name}&origin=${data.origin}`));
+        } else {
+            window.open(encodeURI(`/api/downloadFolder?folder=${data.id}&folderName=${`${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`}`));
+        }
+    }
+
     render() {
-        const { document, folder, match } = { ...this.props };
+        const { dispatch, document, folder, match } = { ...this.props };
         const { Count } = { ...document };
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
-        const projectId = match.params.projectId;
         let tagCount = 0;
 
         return (
@@ -280,7 +253,6 @@ class DocumentList extends React.Component {
                             <table class="table-document mb40">
                                 <thead>
                                     <tr>
-                                        {/* <th scope="col" style={{ width: '5%' }}></th> */}
                                         <th scope="col" class="td-left" >File Name</th>
                                         <th scope="col">Uploaded By</th>
                                         <th scope="col">Upload Date</th>
@@ -297,15 +269,11 @@ class DocumentList extends React.Component {
                                             return (
                                                 <tr key={index}>
                                                     <td class="document-name">
-                                                        {/* {data.type === "document" ?
-                                                            <Link to={`/projects/${projectId}/files/${data.id}`}><span class={data.isRead ? 'read' : 'unread'}>{documentName}</span></Link>
-                                                            : */}
                                                         <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
                                                             {data.type === "folder" && <span class="fa fa-folder fa-lg read mr10"></span>}
                                                             {data.type === "folder" && <span class="read">{documentName}</span>}
                                                             {data.type === "document" && < span class={data.isRead ? 'read' : 'unread'}>{documentName}</span>}
                                                         </a>
-                                                        {/* } */}
                                                     </td>
                                                     <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`} /></td>
                                                     <td>{displayDateMD(data.dateAdded)}</td>
@@ -320,8 +288,12 @@ class DocumentList extends React.Component {
                                                     }
                                                     </td>
                                                     <td>{data.isRead ? displayDateMD(data.document_read[0].dateUpdated) : '--'}</td>
+                                                    <td>
+                                                        <span class="document-action document-active" title="Download" onClick={() => this.downloadDocument(data)}><i class="fa fa-download fa-lg"></i></span>
+                                                        {document.Filter.status === 'active' && <span class={`document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="Archive"><i class="fa fa-archive fa-lg"></i></span>}
+                                                        <span class="document-action document-active" title="Delete" data-toggle="modal" data-target="#deleteModal" onClick={() => dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data })}><i class="fa fa-trash fa-lg"></i></span>
+                                                    </td>
                                                 </tr>
-
                                             )
                                         })
                                     }
@@ -337,12 +309,6 @@ class DocumentList extends React.Component {
                         {
                             ((_.isEmpty(Count) === false) && document.Loading === "RETRIEVING") && <Loading />
                         }
-                        {/* {
-                            (_.isEmpty(folder.Selected) === false) &&
-                            <div class="create-folder">
-                                <p class="mb0 text-center" onClick={() => this.createFolder()}><strong>Create Folder</strong></p>
-                            </div>
-                        } */}
                         {
                             (document.List.length === 0 && document.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                         }

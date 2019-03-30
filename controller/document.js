@@ -804,6 +804,7 @@ exports.put = {
                                             }]
                                         })
                                         .then((findRes) => {
+                                            console.log(id,findRes)
                                             let resToReturn = {
                                                 ...findRes.document.toJSON(),
                                                 tagWorkstream: findRes.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),

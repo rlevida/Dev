@@ -133,7 +133,7 @@ export default function reducer(state = {
            
         }
         case "REMOVE_DELETED_DOCUMENT_LIST": {
-            return { ...state, [action.DocumentType]: _.filter(state[action.DocumentType], (e) => { return e.id !== action.Id }) }
+            return { ...state, List: _.filter(state.List, (e) => { return e.id !== action.Id }) }
         }
         default:
             return state;
