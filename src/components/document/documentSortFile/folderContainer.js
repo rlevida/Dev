@@ -143,18 +143,27 @@ class FieldContainer extends React.Component {
                     })
 
                     dispatch({ type: 'SET_FOLDER_LIST', list: newList })
-                    dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
-                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList });
+                    const isAlreadyInList = folder.SelectedFolderName.indexOf(data) > -1 ? true : false
+                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: isAlreadyInList ? folderList : folder.SelectedFolderName.concat([data]) });
                 }
+                dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
             });
         }
     }
 
     renderFolder(data) {
-        const { moveTo, document, hovered } = { ...this.props }
+        const { moveTo, document, hovered, folder } = { ...this.props }
+        const isSelected = folder.Selected.id === data.id ? true : false
         return (
             <div class="folder-accordion" id={data.id} style={{ backgroundColor: hovered ? '#e4e4e4' : '' }}>
-                <a href="javascript:void(0)" class="accordion-toggle collapsed" data-toggle="collapse" href={`#collapseExample${data.id}`} role="button" aria-expanded="false" aria-controls={`collapseExample${data.id}`} onClick={() => this.fetchFolder(data)}>
+                <a href="javascript:void(0)"
+                    class={`accordion-toggle collapsed`}
+                    id={`${isSelected ? 'isSelected' : ''}`}
+                    data-toggle="collapse" href={`#collapseExample${data.id}`}
+                    role="button"
+                    aria-expanded="false"
+                    aria-controls={`collapseExample${data.id}`}
+                    onClick={() => this.fetchFolder(data)}>
                     <i class="fa-chevron fa fa-chevron-down"></i>
                     <i class="fa fa-fw fa-folder"></i>
                     {data.origin}
@@ -166,17 +175,12 @@ class FieldContainer extends React.Component {
                         }
                     </div>
                 </div>
-            </div>
+            </div >
         )
     }
 
     render() {
-        const { document, dispatch, loggedUser, data, key, moveTo, match } = this.props
-        const projectId = match.params.projectId;
-        const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
-        const opacity = isDragging ? 0 : 1;
-        const backgroundColor = hovered ? 'lightblue' : '';
-
+        const { data, key, connectDropTarget } = this.props
         return (
             connectDropTarget(
                 <div key={key}>

@@ -222,9 +222,9 @@ exports.get = {
                                 as: 'document',
                                 where: documentWhereObj,
                                 include: associationFindAllStack,
-                               
-                                hierarchy: true 
-                            
+
+                                hierarchy: true
+
                             },
                         ],
                     })
@@ -631,7 +631,7 @@ exports.post = {
                 var date = new Date();
                 var Id = func.generatePassword(date.getTime() + file.name, "attachment");
                 var filename = Id + (file.name.replace(/[^\w.]|_/g, "_"));
-                
+
                 filenameList.push({
                     filename: filename,
                     origin: file.name,
@@ -804,7 +804,6 @@ exports.put = {
                                             }]
                                         })
                                         .then((findRes) => {
-                                            console.log(id,findRes)
                                             let resToReturn = {
                                                 ...findRes.document.toJSON(),
                                                 tagWorkstream: findRes.document.tagDocumentWorkstream.map((e) => { return { value: e.tagWorkstream.id, label: e.tagWorkstream.workstream } }),

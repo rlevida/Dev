@@ -108,7 +108,7 @@ class DocumentList extends React.Component {
                         hasFolder = false;
                     }
                 }
-
+                console.log(folderList)
                 dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count })
                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
                 dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList });
@@ -295,13 +295,29 @@ class DocumentList extends React.Component {
                                                     </td>
                                                 </tr>
                                             )
+
                                         })
                                     }
 
                                 </tbody>
+
                             </table>
                         }
                         <div class="text-center">
+                            {/* {_.isEmpty(folder.Selected) === false && document.List.length === 0 &&
+                                <div class="d-block mb20">
+                                    <a class="btn btn-default mr10" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>
+                                        New File
+                                    </a>
+                                </div>
+                            }
+                            {(document.Filter.status !== 'active' && _.isEmpty(folder.Selected) === false) &&
+                                <div class="d-block mb20">
+                                    <button class="btn btn-default" data-toggle="modal" data-target="#folderModal">
+                                        Create New Folder Here
+                                 </button>
+                                </div>
+                            } */}
                             {
                                 ((currentPage != lastPage) && document.List.length > 0 && document.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
                             }

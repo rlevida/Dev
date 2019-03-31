@@ -27,16 +27,14 @@ class List extends React.Component {
             <div>
                 <div class="row">
                     <div class="col-lg-12">
-                        <div class="card mb20">
-                            <div class="card-header">
+                        <div class="card mb20 ">
+                            <div class="card-header bb">
                                 <DocumentFilter />
                             </div>
-                            <div class="card-body">
-                                <div class={_.isEmpty(Count) ? "linear-background" : ""}>
-                                    <div style={{ padding: "20px" }}>
-                                        <div class="row">
-                                            <DocumentList />
-                                        </div>
+                            <div class={_.isEmpty(Count) ? "linear-background" : ""}>
+                                <div style={document.Filter.status !== "sort" ? { padding: "20px" } : { paddingLeft: '20px', paddingRight: '20x' }}>
+                                    <div class="row">
+                                        <DocumentList />
                                     </div>
                                 </div>
                             </div>
@@ -47,7 +45,7 @@ class List extends React.Component {
                 <EditModal />
                 <FolderModal />
                 <DeleteModal />
-                <DocumentViewerModal/>
+                <DocumentViewerModal />
             </div>
         )
     }

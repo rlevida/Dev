@@ -49,8 +49,8 @@ class FolderModal extends React.Component {
         const dataToSubmit =
         {
             DocumentToSave: [{
-                name: folder.Selected.name,
-                origin: folder.Selected.name,
+                name: folder.New.name,
+                origin: folder.New.name,
                 createdBy: loggedUser.data.id,
                 type: "folder",
                 project: projectId,
@@ -64,7 +64,7 @@ class FolderModal extends React.Component {
             postData(`/api/document`, dataToSubmit, (c) => {
                 const { result } = { ...c.data }
                 dispatch({ type: "ADD_DOCUMENT_LIST", List: result });
-                dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} })
+                dispatch({ type: 'SET_NEW_FOLDER', New: {} })
                 showToast("success", "Successfully Added.")
             })
         } else {
@@ -74,8 +74,8 @@ class FolderModal extends React.Component {
 
     onChange(e) {
         const { dispatch, folder } = this.props;
-        const selectedObj = { ...folder.Selected, [e.target.name]: e.target.value };
-        dispatch({ type: 'SET_FOLDER_SELECTED', Selected: selectedObj, Type: 'Selected' })
+        const selectedObj = { ...folder.New, [e.target.name]: e.target.value };
+        dispatch({ type: 'SET_NEW_FOLDER', New: selectedObj })
     }
 
     render() {
@@ -96,7 +96,7 @@ class FolderModal extends React.Component {
                                         type="text"
                                         id="inputFolder"
                                         placeholder="Folder Name"
-                                        value={folder.Selected.name || ""}
+                                        value={folder.New.name || ""}
                                         name="name"
                                         onChange={(e) => this.onChange(e)}
                                         autoComplete="off"
@@ -106,7 +106,7 @@ class FolderModal extends React.Component {
                         </div>
                         <div class="modal-footer">
                             {
-                                (folder.Selected.name) &&
+                                (folder.New.name) &&
                                 <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={() => this.submit()}>Submit</button>
                             }
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

@@ -130,6 +130,9 @@ class DocumentFilter extends React.Component {
         if (!_.isEmpty(folder.SelectedLibraryFolderName) || !_.isEmpty(folder.SelectedNewFolderName)) {
             dispatch({ type: 'CLEAR_FOLDER' })
         }
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+        dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
+        dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
         dispatch({ type: "SET_DOCUMENT_FILTER", filter: { [name]: e }, name: name });
     }
 

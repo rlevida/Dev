@@ -2794,7 +2794,7 @@ textarea::-webkit-scrollbar-thumb {
 }
 
 .selected-folder{
-  padding: 22px;
+  padding: 0px 10px 10px 22px;
 }
 .selected-folder a{
   color:#4F4F4F;
@@ -2811,6 +2811,7 @@ textarea::-webkit-scrollbar-thumb {
   color:#4F4F4F;
   font-size:16px;
   font-weight: bolder;
+  padding-left: 7px;
 }
 .create-folder{
   margin:30px
@@ -2835,8 +2836,15 @@ textarea::-webkit-scrollbar-thumb {
 .folder-accordion a {
   color:#4F4F4F;
   font-size: 16px;
+  padding:5px
 }
 .folder-accordion > a:focus,.folder-accordion>a:active, .folder-accordion>a:hover{
   text-decoration: none;
   color:#4F4F4F
+}
+
+#isSelected{
+  background-color:   #e4e4e4;
+  display: block;
+  border-radius: 3px
 }
