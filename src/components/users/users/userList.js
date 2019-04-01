@@ -73,7 +73,8 @@ export default class UserList extends React.Component {
         }
 
         getData(fetchUrl, {}, (c) => {
-            dispatch({ type: 'SET_USER_LIST', list: users.List.concat(c.data.result), Count: c.data.count });
+            const userList = (page == 1) ? c.data.result : users.List.concat(c.data.result);
+            dispatch({ type: 'SET_USER_LIST', list: userList, Count: c.data.count });
             dispatch({ type: 'SET_USER_LOADING', Loading: '' });
             showToast("success", "Users successfully retrieved.");
         });
