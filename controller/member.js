@@ -49,6 +49,20 @@ exports.get = {
             ...(typeof queryString.userTypeLinkId != "undefined" && queryString.userTypeLinkId != "") ? { userTypeLinkId: queryString.userTypeLinkId } : {},
             ...(typeof queryString.memberType != "undefined" && queryString.memberType != "") ? { memberType: queryString.memberType } : {},
             ...(typeof queryString.usersType != "undefined" && queryString.usersType != "") ? { usersType: queryString.usersType } : {},
+            ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? {
+                [Sequelize.Op.or]: [
+                    {
+                        memberType: 'project manager',
+                        linkId: queryString.projectId,
+                        linkType: 'project'
+                    },
+                    {
+                        memberType: 'assignedTo',
+                        linkId: queryString.projectId,
+                        linkType: 'project'
+                    }
+                ]
+            } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? {
                 [Sequelize.Op.or]: [
                     {

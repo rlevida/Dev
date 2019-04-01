@@ -107,6 +107,7 @@ export default class TaskForm extends React.Component {
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
         }
+        
         getData(fetchUrl, {}, (c) => {
             const usersOptions = _(c.data)
                 .map((o) => { return { id: o.id, name: o.firstName + " " + o.lastName } })

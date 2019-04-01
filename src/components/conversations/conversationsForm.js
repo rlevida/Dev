@@ -61,14 +61,15 @@ export default class ConversationForm extends React.Component {
     };
 
     fetchUsers(options) {
-        const { dispatch } = this.props;
-        let fetchUrl = "/api/user?page=1";
+        const { dispatch, projectId } = this.props;
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project`;
 
         if (typeof options != "undefined" && options != "") {
-            fetchUrl += `&name=${options}`;
+            fetchUrl += `&memberName=${options}`;
         }
+
         getData(fetchUrl, {}, (c) => {
-            const taskMemberOptions = _(c.data.result)
+            const taskMemberOptions = _(c.data)
                 .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
                 .value();
             dispatch({ type: "SET_TEAM_MEMBER_SELECT_LIST", List: taskMemberOptions });
