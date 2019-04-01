@@ -137,6 +137,7 @@ exports.get = {
         }
         const whereObj = {
             ...(typeof queryString.projectId !== 'undefined' && queryString.projectId !== '') ? { projectId: queryString.projectId } : {},
+            ...(typeof queryString.workstreamId !== 'undefined' && queryString.workstreamId !== '') ? { workstreamId: queryString.workstreamId } : {},
             ...(typeof queryString.title != "undefined" && queryString.title != "") ? {
                 [Op.and]: [
                     Sequelize.where(Sequelize.fn('lower', Sequelize.col('notes.note')),

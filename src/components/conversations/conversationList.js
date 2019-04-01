@@ -41,11 +41,17 @@ export default class ConversationList extends React.Component {
     }
 
     fetchNotes(page) {
-        const { projectId, dispatch, notes, loggedUser } = { ...this.props };
+        const { projectId, dispatch, notes, loggedUser, workstreamId } = { ...this.props };
         const { List, Filter } = notes;
 
-        let requestUrl = `/api/conversation/conversationNotes?page=${page}&projectId=${projectId}&starredUser=${loggedUser.data.id}&userId=${loggedUser.data.id}`;
+        let requestUrl = `/api/conversation/conversationNotes?page=${page}&starredUser=${loggedUser.data.id}&userId=${loggedUser.data.id}`;
 
+        if (workstreamId != "") {
+            requestUrl += `&workstreamId=${workstreamId}`;
+        }
+        if (projectId != "") {
+            requestUrl += `&projectId=${projectId}`;
+        }
         if (Filter.title != "") {
             requestUrl += `&title=${Filter.title}`;
         }

@@ -101,7 +101,7 @@ export default class ConversationForm extends React.Component {
     }
 
     handleSubmit() {
-        const { dispatch, notes, loggedUser, projectId } = { ...this.props };
+        const { dispatch, notes, loggedUser, projectId, workstreamId } = { ...this.props };
         const { Selected, List } = notes;
         let data = new FormData();
 
@@ -109,6 +109,7 @@ export default class ConversationForm extends React.Component {
             const messageObj = {
                 comment: Selected.message,
                 usersId: loggedUser.data.id,
+                workstreamId: (workstreamId != "") ? workstreamId : Selected.workstreamId,
                 linkType: "notes",
                 linkId: Selected.id,
                 users: Selected.users
@@ -154,7 +155,13 @@ export default class ConversationForm extends React.Component {
                     data.append("file", file);
                 });
             }
-            data.append("body", JSON.stringify({ ...Selected, projectId, userId: loggedUser.data.id }));
+            data.append("body", JSON.stringify({
+                ...Selected,
+                projectId,
+                userId: loggedUser.data.id,
+                workstreamId: (workstreamId != "") ? workstreamId : Selected.workstreamId
+            })
+            );
             dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
             postData(`/api/conversation/message`, data, (c) => {
                 const selectedNote = c.data[0];
@@ -275,7 +282,7 @@ export default class ConversationForm extends React.Component {
     }
 
     render() {
-        const { teams, workstream, notes, conversation, loggedUser } = this.props;
+        const { teams, workstream, notes, conversation, loggedUser, workstreamId } = this.props;
         const workstreamList = workstream.SelectList;
         const userList = [...teams.MemberList, ..._.map(notes.Selected.users, ({ value, label }) => { return { id: value, name: label } })];
         const conversationList = (typeof notes.Selected.id != "undefined" && notes.Selected.id != "") ? _(conversation.List)
@@ -292,6 +299,7 @@ export default class ConversationForm extends React.Component {
                 name: notes.Selected.workstream.workstream
             });
         }
+
         return (
             <div>
                 <form id="conversation-form" class="full-form">
@@ -341,10 +349,11 @@ export default class ConversationForm extends React.Component {
                                 required={true}
                                 options={_.uniqBy(workstreamList, 'id')}
                                 onInputChange={this.setWorkstreamList}
-                                selected={(typeof notes.Selected.workstreamId == "undefined") ? "" : notes.Selected.workstreamId}
+                                selected={(typeof notes.Selected.workstreamId == "undefined" && workstreamId == "") ? "" : (workstreamId != "") ? workstreamId : notes.Selected.workstreamId}
                                 onChange={(e) => {
                                     this.setDropDown("workstreamId", (e == null) ? "" : e.value);
                                 }}
+                                disabled={(workstreamId != "")}
                                 placeholder={'Select workstream'}
                             />
                         </div>
@@ -463,7 +472,10 @@ export default class ConversationForm extends React.Component {
                         {
                             (
                                 (typeof notes.Selected.title != "undefined" && notes.Selected.title != "") &&
-                                (typeof notes.Selected.workstreamId != "undefined" && notes.Selected.workstreamId != "") &&
+                                (
+                                    (typeof notes.Selected.workstreamId != "undefined" && notes.Selected.workstreamId != "") ||
+                                    workstreamId != ""
+                                ) &&
                                 (typeof notes.Selected.message != "undefined" && notes.Selected.message != null && notes.Selected.message != "") &&
                                 (typeof notes.Selected.users != "undefined" && (notes.Selected.users).length > 0) && <a disabled={(conversation.Loading == "SUBMITTING")} class="btn btn-violet mt10" onClick={this.handleSubmit}>
 

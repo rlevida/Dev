@@ -99,7 +99,7 @@ export default class Component extends React.Component {
 
         return (
             <div>
-                <h5 class="mb20 mt0"><strong>{`${label}`}</strong></h5>
+                <h5 class="mt0"><strong>{`${label}`}</strong></h5>
                 <div class={((starred.Loading[type] == "RETRIEVING" || _.isEmpty(starred.Loading)) && starredList.length == 0) ? "linear-background" : ""}>
                     {
                         _.map(starredList, (o, index) => {

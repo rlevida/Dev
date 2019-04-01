@@ -23,16 +23,23 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
     }
     render() {
-        const { match, dispatch, notes } = { ...this.props };
-        const projectId = match.params.projectId;
+        const { match = "", dispatch, notes, workstream_id = "" } = { ...this.props };
+        const projectId = (match != "") ? match.params.projectId : "";
 
         return (
-            <div class="card">
-                <div class="mb20 bb">
-                    <div class="container-fluid filter mb20">
+            <div class={(workstream_id == "") ? "card" : ""}>
+                <div class={`mb20 ${(workstream_id == "") ? "bb" : ""}`}>
+                    <div class={`mb20 ${(workstream_id == "") ? "container-fluid mb20" : ""}`}>
                         <div class="row content-row">
                             <div class="col-md-6 col-sm-12">
-                                <h3 class="title m0">Messages</h3>
+                                {
+                                    (workstream_id != "") && <div class="card-header">
+                                        <h4 class="title m0">Messages</h4>
+                                    </div>
+                                }
+                                {
+                                    (workstream_id == "") && <h3 class="title m0">Messages</h3>
+                                }
                             </div>
                             <div class="col-md-6 col-sm-12 col-xs-12 pd0" >
                                 {
@@ -56,10 +63,10 @@ export default class Component extends React.Component {
                 </div>
                 <div class="row content-row row-eq-height">
                     <div class="col-md-4 col-sm-12">
-                        <ConversationList projectId={projectId} />
+                        <ConversationList projectId={projectId} workstreamId={workstream_id} />
                     </div>
                     <div class="col-md-8 col-sm-12">
-                        <ConversationForm projectId={projectId} />
+                        <ConversationForm projectId={projectId} workstreamId={workstream_id} />
                     </div>
                 </div>
             </div>

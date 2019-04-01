@@ -7,7 +7,6 @@ import Workstream from "../workstream";
 import TaskCalendar from "../task/taskCalendar";
 import Files from "../document";
 import Conversations from "../conversations";
-import DocumentViewer from "../document/documentViewer";
 
 @connect((store) => {
     return {

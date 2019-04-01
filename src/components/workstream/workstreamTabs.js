@@ -7,6 +7,7 @@ import WorkstreamDocument from "./workstreamDocument";
 
 import TaskListCategory from "../task/taskListCategory";
 import WorkstreamMembers from "./workstreamMembers";
+import Conversations from "../conversations";
 
 @connect((store) => {
     return {
@@ -94,10 +95,12 @@ export default class WorkstreamTabs extends React.Component {
                                 </div>
                             </TabPanel>
                             <TabPanel class="bt">
-                                <h2>Messages</h2>
+                                <div class="mt20">
+                                    <Conversations workstream_id={workstream_id} />
+                                </div>
                             </TabPanel>
                             <TabPanel class="bt">
-                                <WorkstreamMembers workstream_id={workstream_id}/>
+                                <WorkstreamMembers workstream_id={workstream_id} />
                             </TabPanel>
                         </Tabs>
                     </div>
