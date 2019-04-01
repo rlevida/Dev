@@ -415,6 +415,11 @@ exports.get = {
                                     {
                                         [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.memberName}%`)
                                     }
+                                ),
+                                Sequelize.where(Sequelize.fn('lower', Sequelize.col('users.username')),
+                                    {
+                                        [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.memberName}%`)
+                                    }
                                 )
                             ]
                         } : {},

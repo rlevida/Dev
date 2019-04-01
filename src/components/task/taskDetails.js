@@ -263,7 +263,7 @@ export default class TaskDetails extends React.Component {
             }
             getData(fetchUrl, {}, (c) => {
                 const projectMemberOptions = _(c.data)
-                    .map((o) => { return { id: o.id, display: o.firstName + " " + o.lastName } })
+                    .map((o) => { return { id: o.id, display: o.firstName + " " + o.lastName + ' - ' + o.username } })
                     .value();
                 callback(projectMemberOptions);
             });
@@ -344,6 +344,7 @@ export default class TaskDetails extends React.Component {
             .map((o) => { return { name: o.document.origin, type: "Task Document", dateAdded: o.document.dateAdded }; })
             .value();
         const documentList = [...checklistDocuments, ...taskDocuments];
+
         return (
             <div>
                 <div class="modal right fade" id="task-details" data-backdrop="static" data-keyboard="false">
@@ -423,7 +424,7 @@ export default class TaskDetails extends React.Component {
                                 <div class={(Loading == "RETRIEVING") ? "linear-background" : ""}>
                                     {
                                         (typeof id != "undefined") && <div>
-                                            <h2 class={`mt20 mb20 ${(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}`}>{task}</h2>
+                                            <h2 class="mt20 mb20">{task}</h2>
                                             <div class="row mb20">
                                                 <div class="col-md-6">
                                                     <div class="label-div">
@@ -447,12 +448,12 @@ export default class TaskDetails extends React.Component {
                                                     <div class="label-div">
                                                         <label>Project:</label>
                                                         <p class="m0" style={{ color: workstream.project.color }}>
-                                                            <strong>{workstream.project.project}</strong>
+                                                           {workstream.project.project}
                                                         </p>
                                                     </div>
                                                     <div class="label-div">
                                                         <label>Workstream:</label>
-                                                        <p class="m0">
+                                                        <p class="m0" style={{ color: workstream.color }}>
                                                             {workstream.workstream}
                                                         </p>
                                                     </div>
@@ -496,19 +497,26 @@ export default class TaskDetails extends React.Component {
                                                     </div>
                                                     <div class="label-div">
                                                         <label>Due Date:</label>
-                                                        <p class={`m0 ${(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}`}>
-                                                            {
-                                                                (dueDate != null) ? moment(dueDate).format("MMMM DD, YYYY") : "N/A"
-                                                            }
-                                                        </p>
+                                                        <div>
+                                                            <p class={`${(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}`}>
+                                                                {
+                                                                    (dueDate != null) ? moment(dueDate).format("MMMM DD, YYYY") : "N/A"
+                                                                }
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                     <div class="label-div">
                                                         <label>Status:</label>
-                                                        <p class={`m0 ${(status == "Completed") ? "text-green" : (status == "For Approval") ? "text-orange" : ""}`}>
+                                                        <div>
+                                                            <p class={`m0 ${(status == "Completed") ? "text-green" : (status == "For Approval") ? "text-orange" : ""}`}>
+                                                                {
+                                                                    status
+                                                                }
+                                                            </p>
                                                             {
-                                                                status
+                                                                (daysRemaining < 0 && status != "Completed") && <p class="note text-red m0">Delayed</p>
                                                             }
-                                                        </p>
+                                                        </div>
                                                     </div>
                                                     <div>
                                                         <label>Dependency:</label>

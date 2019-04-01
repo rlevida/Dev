@@ -587,6 +587,9 @@ exports.get = {
                                 dueDate: {
                                     [Op.lt]: currentDate
                                 },
+                                status: {
+                                    [Op.ne]: 'Completed'
+                                },
                                 projectId
                             }
                         }).then(({ count }) => {
