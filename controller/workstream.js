@@ -119,8 +119,8 @@ exports.get = {
 
         if (typeof queryString.dueDate != "undefined" && queryString.dueDate != "") {
             const dueDate = queryString.dueDate || new Date();
-            const startMonth = moment(queryString.dueDate, 'YYYY-MM-DD').startOf('month').utc().format("YYYY-MM-DD HH:mm");
-            const endMonth = moment(queryString.dueDate, 'YYYY-MM-DD').endOf('month').utc().format("YYYY-MM-DD HH:mm");
+            const startMonth = moment(dueDate, 'YYYY-MM-DD').startOf('year').utc().format("YYYY-MM-DD HH:mm");
+            const endMonth = moment(dueDate, 'YYYY-MM-DD').endOf('month').utc().format("YYYY-MM-DD HH:mm");
 
             _.find(includeStack, { as: 'task' }).where = {
                 dueDate: {
