@@ -37,7 +37,13 @@ exports.get = {
                         where: {
                             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {}
                         },
-                        as: 'notes'
+                        as: 'notes',
+                        include: [
+                            {
+                                model: Workstream,
+                                as: 'noteWorkstream'
+                            }
+                        ]
                     });
                     break;
                 case "document":
@@ -109,7 +115,7 @@ exports.get = {
                         }
 
                         if (typeof responseObj.notes != "undefined") {
-                            responseObj = { ...responseObj, title: responseObj.notes.note, type: "notes" }
+                            responseObj = { ...responseObj, title: responseObj.notes.note, type: "notes", workstream: responseObj.notes.noteWorkstream.workstream  }
                         }
 
                         if (typeof responseObj.document != "undefined") {

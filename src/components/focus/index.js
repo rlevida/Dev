@@ -37,7 +37,7 @@ export default class Component extends React.Component {
     }
     fetchData({ page, type }) {
         const { loggedUser, dispatch, starred, project_id = "" } = { ...this.props };
-        const { List, Count } = starred;
+        const { Count } = starred;
         const reqUrl = `/api/starred?page=${page}&userId=${loggedUser.data.id}&isActive=1&type=${type}&projectId=${project_id}`;
 
         dispatch({ type: "SET_STARRED_LOADING", Loading: { [type]: "RETRIEVING" } });
@@ -80,7 +80,7 @@ export default class Component extends React.Component {
                             {title}
                         </p>
                         {
-                            (workstream != "") && <p class="ml20">{workstream}</p>
+                            (workstream != "") && <p class="m0 note">{workstream}</p>
                         }
                     </div>
                 </div>
