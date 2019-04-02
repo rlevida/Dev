@@ -29,7 +29,7 @@ const ChecklistDocuments = require('./checklist_documents')(sequelize, Sequelize
 const Conversation = require('./conversation')(sequelize, Sequelize.DataTypes);
 const Document = require('./document')(sequelize, Sequelize.DataTypes);
 const DocumentLink = require('./document_link')(sequelize, Sequelize.DataTypes);
-const DocumentRead = require('./document_read')(sequelize,Sequelize.DataTypes);
+const DocumentRead = require('./document_read')(sequelize, Sequelize.DataTypes);
 const IpBlock = require('./ip_block')(sequelize, Sequelize.DataTypes);
 const Folder = require('./folder')(sequelize, Sequelize.DataTypes);
 const Members = require('./members')(sequelize, Sequelize.DataTypes);
@@ -55,6 +55,7 @@ const TaskMemberReminder = require('./task_member_reminder')(sequelize, Sequeliz
 const Type = require('./type')(sequelize, Sequelize.DataTypes);
 const Session = require('./session')(sequelize, Sequelize.DataTypes);
 const Starred = require('./starred')(sequelize, Sequelize.DataTypes);
+const UsersNotificationSetting = require('./users_notification_setting')(sequelize, Sequelize.DataTypes);
 
 const models = {
     ActivityLogs,
@@ -88,7 +89,8 @@ const models = {
     UsersTeam,
     UserForgotPassword,
     Session,
-    Starred
+    Starred,
+    UsersNotificationSetting
 };
 
 Object.keys(models).forEach((modelName) => {

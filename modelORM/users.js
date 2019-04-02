@@ -114,6 +114,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'task_member_reminder',
       foreignKey: 'usersId'
     })
+    Users.hasOne(models.UsersNotificationSetting, {
+      as: 'notification_setting',
+      foreignKey: 'usersId'
+    })
   };
 
   return Users;

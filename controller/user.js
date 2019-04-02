@@ -4,6 +4,7 @@ const models = require('../modelORM');
 const dbName = "users";
 const {
     Users,
+    UsersNotificationSetting,
     UsersRole,
     UsersTeam,
     Roles,
@@ -255,6 +256,13 @@ exports.post = {
             }
         }).then((nextThen, result) => {
             async.parallel({
+                usersNotificationSetting: (parallelCallback) => {
+                    UsersNotificationSetting
+                        .create({ usersId: result.id })
+                        .then((res) => {
+                            parallelCallback(null, res)
+                        })
+                },
                 teams: (parallelCallback) => {
                     if (typeof teams != 'undefined') {
                         UsersTeam
@@ -631,6 +639,26 @@ exports.put = {
         } catch (err) {
             cb({ status: false, error: err })
         }
+    },
+    notificationSetting: (req, cb) => {
+        const body = req.body;
+        const id = req.params.id;
+        console.log(id)
+        console.log(body)
+        try {
+            UsersNotificationSetting
+                .update(body, { where: { usersId: id } })
+                .then((res) => {
+                    UsersNotificationSetting
+                        .findOne({ where: { id: res } })
+                        .then((findRes) => {
+                            cb({ status: true, data: findRes })
+                        })
+                })
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
+
     }
 }
 

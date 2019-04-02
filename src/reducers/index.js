@@ -27,6 +27,7 @@ import activityLog from "./activityLog"
 import taskDependency from "./taskDependency"
 import tasktimeLog from "./tasktimeLog"
 import activityLogDocument from "./activityLogDocument"
+import notification from "./notification"
 
 export default combineReducers({
     socket,
@@ -57,5 +58,6 @@ export default combineReducers({
     activityLog,
     taskDependency,
     activityLogDocument,
-    tasktimeLog
+    tasktimeLog,
+    notification
 })
