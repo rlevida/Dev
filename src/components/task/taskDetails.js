@@ -304,10 +304,17 @@ export default class TaskDetails extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch } = { ...this.props };
-  
-        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
-        $(`#documentViewerModal`).modal('show')
+        const { dispatch, loggedUser } = { ...this.props };
+        if (data.isRead) {
+            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
+            $(`#documentViewerModal`).modal('show')
+        } else {
+            const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
+            postData(`/api/document/read`, dataToSubmit, (ret) => {
+                dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
+                $(`#documentViewerModal`).modal('show')
+            });
+        }
     }
 
     render() {
@@ -342,6 +349,7 @@ export default class TaskDetails extends React.Component {
                         name: o.document.origin,
                         type: "Subtask Document",
                         dateAdded: o.document.dateAdded,
+                        isRead: o.document.document_read.length,
                         child: _(checklist)
                             .filter((check) => { return check.id == o.checklistId })
                             .map((o) => { return o.description })
@@ -352,7 +360,7 @@ export default class TaskDetails extends React.Component {
             .value();
         const taskDocuments = _(tag_task)
             .filter((o) => { return o.tagType == "document" })
-            .map((o) => { return { id: o.document.id, origin: o.document.name, name: o.document.origin, type: "Task Document", dateAdded: o.document.dateAdded, origin: o.document.origin }; })
+            .map((o) => { return { id: o.document.id, origin: o.document.name, name: o.document.origin, type: "Task Document", dateAdded: o.document.dateAdded, isRead: o.document.document_read.length } })
             .value();
         const documentList = [...checklistDocuments, ...taskDocuments];
 
@@ -561,13 +569,13 @@ export default class TaskDetails extends React.Component {
                                                         </h3>
                                                         <div class="ml20">
                                                             {
-                                                                _.map(documentList, ({ id, origin, name, child = [] }, index) => {
+                                                                _.map(documentList, ({ id, origin, name, child = [], isRead }, index) => {
                                                                     return (
                                                                         <div key={index}>
                                                                             <div class="display-flex vh-center mb10 attachment">
                                                                                 <i title={(child.length > 0) ? "Subtask Document" : "Task Document"} class={`fa ${(child.length > 0) ? "fa-file-text" : "fa-file"} mr10`} aria-hidden="true"></i>
                                                                                 <p class="m0">
-                                                                                    <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: origin, origin: name })}>
+                                                                                    <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: origin, origin: name, isRead })}>
                                                                                         {name.substring(0, 50)}{(name.length > 50) ? "..." : ""}
                                                                                     </a>
                                                                                 </p>
