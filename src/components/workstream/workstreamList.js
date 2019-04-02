@@ -129,7 +129,13 @@ export default class WorkstreamList extends React.Component {
                                                         <Link to={`/projects/${project.Selected.id}/workstreams/${data.id}`}>{data.workstream}</Link>
                                                     </p>
                                                 </td>
-                                                <td data-label="Completion">{(data.completion_rate.completed.value).toFixed(2) + "%"}</td>
+                                                <td data-label="Completion">
+                                                    {
+                                                        (data.completion_rate.completed.value > 0) && <p class="m0">
+                                                            {(data.completion_rate.completed.value).toFixed(2) + "%"}
+                                                        </p>
+                                                    }
+                                                </td>
                                                 <td data-label="For Approval">
                                                     {(data.completion_rate.tasks_for_approval.count > 0) && <p class="text-orange m0">{data.completion_rate.tasks_for_approval.count} task(s)</p>}
                                                 </td>

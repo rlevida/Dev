@@ -88,6 +88,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'project_members',
       foreignKey: 'linkId'
     });
+    Projects.hasMany(models.Notes, {
+      as: 'project_notes',
+      foreignKey: 'projectId'
+    });
     Projects.belongsTo(models.Status, {
       as: 'status',
       foreignKey: 'statusId',
@@ -105,6 +109,11 @@ module.exports = (sequelize, DataTypes) => {
 
     Projects.hasMany(models.Members, {
       as: 'members',
+      foreignKey: 'linkId'
+    })
+    
+    Projects.hasMany(models.Members, {
+      as: 'team',
       foreignKey: 'linkId'
     })
 

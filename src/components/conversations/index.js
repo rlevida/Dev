@@ -23,8 +23,8 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
     }
     render() {
-        const { match = "", dispatch, notes, workstream_id = "" } = { ...this.props };
-        const projectId = (match != "") ? match.params.projectId : "";
+        const { match = "", dispatch, notes, workstream_id = "", project_id } = { ...this.props };
+        const projectId = (match != "") ? match.params.projectId : project_id;
 
         return (
             <div class={(workstream_id == "") ? "card" : ""}>
@@ -41,7 +41,7 @@ export default class Component extends React.Component {
                                     (workstream_id == "") && <h3 class="title m0">Messages</h3>
                                 }
                             </div>
-                            <div class="col-md-6 col-sm-12 col-xs-12 pd0" >
+                            <div class="col-md-6 col-sm-12 col-xs-12" >
                                 {
                                     (typeof notes.Selected.id != "undefined" && notes.Selected.id != "") && <div class="button-action">
                                         <a class="btn btn-default"

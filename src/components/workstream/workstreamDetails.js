@@ -40,6 +40,7 @@ export default class WorkstreamDetails extends React.Component {
 
     render() {
         const { match, workstream, history } = { ...this.props };
+        const projectId = match.params.projectId;
         const workstreamId = match.params.workstreamId;
         const workstreamTitle = (typeof workstream.Selected.workstream != "undefined") ? workstream.Selected.workstream : "";
 
@@ -55,7 +56,10 @@ export default class WorkstreamDetails extends React.Component {
                     <TaskTimeline workstream_id={workstreamId} />
                 </div>
                 <div>
-                    <WorkstreamTabs workstream_id={workstreamId} />
+                    <WorkstreamTabs
+                        project_id={projectId}
+                        workstream_id={workstreamId}
+                    />
                 </div>
             </div>
         )

@@ -8,7 +8,7 @@ const dbName = "project";
 const Op = Sequelize.Op;
 const models = require('../modelORM');
 
-const { Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, sequelize } = models;
+const { Conversation, Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, sequelize, Notes } = models;
 const associationFindAllStack = [
     {
         model: DocumentLink,
@@ -20,7 +20,10 @@ const associationFindAllStack = [
         include: [{
             model: Document,
             as: 'document',
-            where: { status: 'new', isDeleted: 0 },
+            where: {
+                folderId: null,
+                isDeleted: 0
+            },
             required: false
         }]
     },
@@ -46,13 +49,28 @@ const associationFindAllStack = [
     {
         model: Members,
         as: 'members',
+        where: {
+            usersType: 'users'
+        },
         required: false,
     },
     {
-        model: Tasks,
-        as: 'taskActive',
-        attributes: [],
-        required: false
+        model: Members,
+        as: 'team',
+        where: {
+            usersType: 'team'
+        },
+        required: false,
+        include: [{
+            model: Teams,
+            as: 'team',
+            required: false,
+            include: [{
+                model: UsersTeam,
+                as: 'users_team',
+                required: false
+            }]
+        }]
     },
     {
         model: Workstream,
@@ -92,11 +110,11 @@ const associationFindAllStack = [
 
 exports.get = {
     index: async (req, cb) => {
+        const associationArray = _.cloneDeep(associationFindAllStack);
         const queryString = req.query;
-
         const limit = 10;
         const options = {
-            include: associationFindAllStack,
+            include: associationArray,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
         };
 
@@ -222,15 +240,128 @@ exports.get = {
                             ...options,
                             where: whereObj
                         })
-                        .map((res) => {
-                            let documentCount = res.dataValues.document_link.filter((e) => { return e.document != null }).length
-                            let resToReturn = {
+                        .map(async (res) => {
+                            const responseObj = res.toJSON();
+                            const documentCount = _.filter((responseObj.document_link), ({ document }) => { return document != null }).length;
+                            const projectUserMembers = _.map(responseObj.members, (o) => { return o.userTypeLinkId });
+                            const projectTeamMembers = _.flatten(_.map(responseObj.team, (o) => { return o.team.users_team }), ({ usersId }) => { return usersId });
+                            const projectMembers = [...projectUserMembers, ..._.map(projectTeamMembers, ({ usersId }) => { return usersId })];
+                            const memberList = await Users.findAll({
+                                where: {
+                                    id: projectMembers
+                                },
+                                attributes: ['id', 'firstName', 'lastName', 'avatar']
+                            }).map((o) => { return o.toJSON() })
+                            const resToReturn = {
                                 ...res.dataValues,
                                 projectManagerId: ((res.projectManager).length > 0) ? res.projectManager[0].userTypeLinkId : "",
-                                newDocuments: documentCount
+                                newDocuments: documentCount,
+                                members: memberList
+                            };
+
+                            if (typeof queryString.userId != "undefined" && queryString.userId != "") {
+                                const conversationCount = new Promise((resolve) => {
+                                    Conversation.findAndCountAll({
+                                        where: {
+                                            linkType: 'notes',
+                                            id: {
+                                                [Op.notIn]: sequelize.literal(`(SELECT DISTINCT linkId FROM notes_last_seen)`)
+                                            },
+                                            linkId: {
+                                                [Op.in]: sequelize.literal(`(SELECT DISTINCT notes.id FROM notes LEFT JOIN tag ON tag.tagTypeId = notes.id WHERE notes.projectId = ${responseObj.id} AND tag.tagType = "notes" and tag.linkType = "user" and tag.linkId=${queryString.userId})`)
+                                            }
+                                        },
+                                        include: [{
+                                            model: Users,
+                                            as: 'users',
+                                            required: true,
+                                            attributes: ['id', 'firstName', 'lastName', 'avatar']
+                                        }],
+                                        distinct: true
+                                    }).then(({ count, rows }) => {
+                                        const resultRows = _.map(rows, (o) => {
+                                            const responseObj = o.toJSON();
+                                            return {
+                                                type: 'New Messages',
+                                                title: responseObj.users.firstName + " " + responseObj.users.lastName,
+                                                sub_title: responseObj.comment,
+                                                image: responseObj.users.avatar,
+                                                date: responseObj.dateAdded
+                                            }
+                                        });
+                                        resolve({ count, result: resultRows });
+                                    })
+                                });
+                                const documentCount = new Promise((resolve) => {
+                                    Document.findAndCountAll({
+                                        where: {
+                                            folderId: null,
+                                            id: {
+                                                [Op.in]: sequelize.literal(`(SELECT DISTINCT documentId FROM document_link WHERE linkType="project" AND linkid=${responseObj.id})`)
+                                            }
+                                        }
+                                    }).then(({ count, rows }) => {
+                                        const resultRows = _.map(rows, (o) => {
+                                            const responseObj = o.toJSON();
+                                            return {
+                                                type: 'New Files',
+                                                title: responseObj.origin
+                                            }
+                                        });
+                                        resolve({ count, result: resultRows });
+                                    })
+                                });
+                                const taskCount = new Promise((resolve) => {
+                                    Tasks.findAndCountAll({
+                                        where: {
+                                            status: 'For Approval',
+                                            projectId: responseObj.id,
+                                            approverId: queryString.userId
+                                        },
+                                        include: [{
+                                            model: Members,
+                                            as: 'task_members',
+                                            required: false,
+                                            where: { linkType: 'task', isDeleted: 0 },
+                                            include: [
+                                                {
+                                                    model: Users,
+                                                    as: 'user'
+                                                }
+                                            ],
+                                        }],
+                                        distinct: true
+                                    }).then(({ count, rows }) => {
+                                        const resultRows = _.map(rows, (o) => {
+                                            const responseObj = o.toJSON();
+                                            const assigned = _.find(responseObj.task_members, (o) => { return o.memberType == "assignedTo" });
+                                            
+                                            return {
+                                                type: 'Task For Approval',
+                                                title: responseObj.task,
+                                                image: assigned.user.avatar,
+                                                date: responseObj.dueDate
+                                            }
+                                        });
+                                        resolve({ count, result: resultRows });
+                                    })
+                                })
+                                const updateCount = await Promise.all([
+                                    conversationCount,
+                                    documentCount,
+                                    taskCount
+                                ]);
+                                return _.omit({
+                                    ...resToReturn, updates: {
+                                        count: _.sumBy(updateCount, 'count'),
+                                        list: _.flatten(_.map(updateCount, ({ result }) => { return result }))
+                                    }
+                                }, "projectManager", "document_link")
+
+                            } else {
+                                return _.omit(resToReturn, "projectManager", "document_link");
                             }
 
-                            return _.omit(resToReturn, "projectManager", "document_link")
                         })
                         .then((res) => {
                             callback(null, res)
@@ -250,14 +381,16 @@ exports.get = {
                 const endMonth = moment(dueDate, 'YYYY-MM-DD').endOf('month').utc().format("YYYY-MM-DD HH:mm");
 
                 try {
-                    const projectTask = await Tasks.findAll({
+                    const projectCompletionStack = await Tasks.findAll({
                         group: ['projectId'],
                         where: {
                             isDeleted: 0,
                             projectId: projectIds,
-                            dueDate: {
-                                [Op.between]: [startMonth, endMonth]
-                            }
+                            ...(typeof queryString.dueDate != "undefined" && queryString.dueDate != "") ? {
+                                dueDate: {
+                                    [Op.between]: [startMonth, endMonth]
+                                }
+                            } : {}
                         },
                         attributes: [
                             'projectId',
@@ -270,10 +403,10 @@ exports.get = {
                     }).map((response) => {
                         return response.toJSON();
                     });
-                    const projectStack = _.map(projectResults, function (obj) {
-                        const completionRate = _.find(projectTask, { projectId: obj.id });
+                    const projectStack = _.map(projectResults, (obj) => {
+                        const completionRate = _.find(projectCompletionStack, { projectId: obj.id });
                         return {
-                            ...obj,
+                            ..._.omit(obj, ['team']),
                             numberOfTasks: (typeof completionRate != "undefined") ? completionRate.total_tasks : 0,
                             completion_rate: {
                                 tasks_due_today: {
@@ -298,7 +431,6 @@ exports.get = {
                                 },
                             }
                         }
-
                     });
                     cb({ status: true, data: { ...results, result: projectStack } })
                 } catch (err) {
@@ -306,7 +438,6 @@ exports.get = {
                 }
             }
         })
-
     },
     getById: (req, cb) => {
         const id = req.params.id;

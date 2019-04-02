@@ -4,6 +4,7 @@ import moment from 'moment';
 import _ from 'lodash';
 import { connect } from "react-redux";
 import { Link } from 'react-router-dom';
+import ReactTooltip from 'react-tooltip';
 
 import { Loading } from "../../globalComponents";
 import { showToast, getData } from "../../globalFunction";
@@ -41,7 +42,7 @@ export default class ProjectList extends React.Component {
         const { dispatch, loggedUser } = this.props;
         parallel({
             projects: (parallelCallback) => {
-                let requestUrl = `/api/project?page=${1}`;
+                let requestUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}`;
                 if (loggedUser.data.userRole >= 4) {
                     requestUrl += `&id=${loggedUser.data.projectId}`
                 }
@@ -161,9 +162,10 @@ export default class ProjectList extends React.Component {
                                             <thead>
                                                 <tr>
                                                     <th scope="col" class="td-left">Project Name</th>
-                                                    <th scope="col">Type</th>
                                                     <th scope="col">Status</th>
+                                                    <th scope="col">Updates</th>
                                                     <th scope="col">Workstreams</th>
+                                                    <th scope="col">Completion</th>
                                                     <th scope="col">Members</th>
                                                     <th scope="col">Actions</th>
                                                 </tr>
@@ -171,7 +173,7 @@ export default class ProjectList extends React.Component {
                                             <tbody>
                                                 {
                                                     _.map(project.List, (projectElem, index) => {
-                                                        const { id, project, workstream, members, type } = { ...projectElem };
+                                                        const { id, project, workstream, members, updates, numberOfTasks, completion_rate } = { ...projectElem };
                                                         let lateWorkstream = 0;
                                                         let workstreamTaskDueToday = 0;
 
@@ -183,7 +185,7 @@ export default class ProjectList extends React.Component {
                                                                 workstreamTaskDueToday++;
                                                             }
                                                         });
-
+                                                        const completionRate = (completion_rate.completed.count / numberOfTasks) * 100;
                                                         return (
                                                             <tr key={index}>
                                                                 <td data-label="Project Name" class="td-left">
@@ -192,21 +194,95 @@ export default class ProjectList extends React.Component {
                                                                         <Link to={`/projects/${id}`}>{project}</Link>
                                                                     </p>
                                                                 </td>
-                                                                <td data-label="Type">
-                                                                    <p class="mb0">
-                                                                        <span title={type.type}>
-                                                                            <i class={(type.type == "Client") ? "fa fa-users" : (type.type == "Private") ? "fa fa-lock" : "fa fa-cloud"}></i>
-                                                                        </span>
-                                                                    </p>
-                                                                </td>
                                                                 <td data-label="Status">
                                                                     {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "text" })}
+                                                                </td>
+                                                                <td data-label="Type">
+                                                                    {
+                                                                        (updates.count > 0) && <a data-tip data-for={`update-${index}`}>
+                                                                            <p class="mb0 text-blue">
+                                                                                {updates.count} update(s)
+                                                                            </p>
+                                                                        </a>
+                                                                    }
+                                                                    <ReactTooltip id={`update-${index}`} aria-haspopup='true' type={'light'} class="updates-tooltip">
+                                                                        <div class="wrapper">
+                                                                            {
+                                                                                _.map(_.groupBy(updates.list, ({ type }) => { return type }), (o, key) => {
+                                                                                    return (
+                                                                                        <div key={key}>
+                                                                                            <div class="header">
+                                                                                                <p class="text-left m0"><strong>{key}</strong></p>
+                                                                                            </div>
+                                                                                            <div class="list">
+                                                                                                {
+                                                                                                    _.map(o, ({ title, sub_title = "", image = "", date = "" }, key) => {
+                                                                                                        return (
+                                                                                                            <div class="tooltip-details display-flex vh-center" key={key}>
+                                                                                                                {
+                                                                                                                    (image != "") && <div class="thumbnail-profile mr5" key={index}>
+                                                                                                                        <img src={image} alt="Profile Picture" class="img-responsive" />
+                                                                                                                    </div>
+                                                                                                                }
+                                                                                                                <div>
+                                                                                                                    <p class="m0 text-left title">{title.substring(0, 30)}{(title.length > 30) ? "..." : ""}</p>
+                                                                                                                    {
+                                                                                                                        (sub_title != "") && <p class="m0 text-left sub-title">{sub_title}</p>
+                                                                                                                    }
+                                                                                                                </div>
+                                                                                                                {
+                                                                                                                    (date != "") && <p class="m0 flex-right note">{moment(date).format("MMM DD, YYYY")}</p>
+                                                                                                                }
+                                                                                                            </div>
+                                                                                                        )
+                                                                                                    })
+                                                                                                }
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )
+                                                                                })
+                                                                            }
+                                                                        </div>
+                                                                    </ReactTooltip>
                                                                 </td>
                                                                 <td data-label="Workstreams">
                                                                     {workstream.length}
                                                                 </td>
+                                                                <td data-label="Completion">
+                                                                    {
+                                                                        (completionRate > 0) && <p class="m0">
+                                                                            {(completionRate).toFixed(2) + "%"}
+                                                                        </p>
+                                                                    }
+                                                                </td>
                                                                 <td data-label="Members">
-                                                                    {members.length}
+                                                                    <div class="display-flex flex-center">
+                                                                        {
+                                                                            _.map(_.take(members, 2), ({ firstName, lastName, avatar }, index) => {
+                                                                                return (
+                                                                                    <div class="thumbnail-profile" key={index}>
+                                                                                        <span title={firstName + " " + lastName}>
+                                                                                            <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                                                                        </span>
+                                                                                    </div>
+                                                                                )
+                                                                            })
+                                                                        }
+                                                                        {
+                                                                            (members.length > 2) && <span
+                                                                                class="thumbnail-count"
+                                                                                title={
+                                                                                    _(members)
+                                                                                        .filter((o, index) => { return index > 1 })
+                                                                                        .map(({ firstName, lastName }) => { return firstName + " " + lastName })
+                                                                                        .value()
+                                                                                        .join("\r\n")
+                                                                                }
+                                                                            >
+                                                                                +{members.length - 2}
+                                                                            </span>
+                                                                        }
+                                                                    </div>
                                                                 </td>
                                                                 <td data-label="Actions" class={(loggedUser.data.userRole <= 3) ? "" : "hide"}>
                                                                     <a href="javascript:void(0);"

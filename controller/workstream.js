@@ -66,18 +66,9 @@ const associationStack = [
         ]
     },
     {
-        model: Tag,
-        as: 'tag_notes',
+        model: Notes,
+        as: 'workstreamNotes',
         required: false,
-        where: { linkType: 'workstream', tagType: 'notes' },
-        include: [
-            {
-                required: false,
-                model: Notes,
-                as: 'TagNotes',
-                where: { isDeleted: 0 },
-            }
-        ]
     }
 ];
 exports.get = {
@@ -236,6 +227,7 @@ exports.get = {
                             .value()
                         ];
                         const responsible = _.filter(members, (member) => { return member.memberType == "responsible" });
+                       
                         return {
                             ...resultObj,
                             pending: pendingTasks,
@@ -267,7 +259,7 @@ exports.get = {
                                 },
                             },
                             members,
-                            messages: (resultObj.tag_notes).length,
+                            messages: (resultObj.workstreamNotes).length,
                             responsible: ((responsible).length > 0) ? responsible[0].userTypeLinkId : ""
                         }
                     }).then((resultArray) => {

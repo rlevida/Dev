@@ -442,17 +442,6 @@ exports.post = {
                 }
             ];
             async.parallel({
-                notesLastSeen: (parallelCallback) => {
-                    NotesLastSeen
-                        .create({
-                            userId: body.userId,
-                            linkType: 'notes',
-                            linkId: noteResult.id
-                        })
-                        .then((res) => {
-                            parallelCallback(null, res.toJSON())
-                        });
-                },
                 conversations: (parallelCallback) => {
                     Conversation
                         .create({
@@ -462,49 +451,57 @@ exports.post = {
                             linkId: noteResult.id
                         }).then((res) => {
                             const responseObj = res.toJSON();
-
-                            if (filesStack.length > 0) {
-                                async.map(filesStack, (fileObj, mapCallback) => {
-                                    func.uploadFile(_.omit(fileObj, ['id']), response => {
-                                        if (response.Message == 'Success') {
-                                            mapCallback(null, {
-                                                filename: fileObj.filename,
-                                                origin: fileObj.file.name,
-                                                Id: fileObj.id,
-                                                userId: body.userId
-                                            })
-                                        } else {
-                                            mapCallback(esponse.Message)
-                                        }
-                                    });
-                                }, async (err, results) => {
-                                    const newDocs = _.map(results, ({ filename, origin, userId }) => {
-                                        return {
-                                            name: filename,
-                                            origin,
-                                            uploadedBy: userId,
-                                            type: 'document',
-                                            status: 'new'
-                                        };
-                                    });
-                                    const documentUpload = await Document.bulkCreate(newDocs).map((o) => { return o.toJSON() });
-                                    const conversationTag = _(documentUpload)
-                                        .map(({ id }) => {
-                                            return {
-                                                linkType: "conversation",
-                                                linkId: responseObj.id,
-                                                tagType: "document",
-                                                tagTypeId: id
-                                            }
-                                        })
-                                        .value();
-                                    Tag.bulkCreate(conversationTag).then((o) => {
+                            NotesLastSeen
+                                .create({
+                                    projectId: body.projectId,
+                                    userId: body.userId,
+                                    linkType: 'conversation',
+                                    linkId: responseObj.id
+                                })
+                                .then((res) => {
+                                    if (filesStack.length > 0) {
+                                        async.map(filesStack, (fileObj, mapCallback) => {
+                                            func.uploadFile(_.omit(fileObj, ['id']), response => {
+                                                if (response.Message == 'Success') {
+                                                    mapCallback(null, {
+                                                        filename: fileObj.filename,
+                                                        origin: fileObj.file.name,
+                                                        Id: fileObj.id,
+                                                        userId: body.userId
+                                                    })
+                                                } else {
+                                                    mapCallback(esponse.Message)
+                                                }
+                                            });
+                                        }, async (err, results) => {
+                                            const newDocs = _.map(results, ({ filename, origin, userId }) => {
+                                                return {
+                                                    name: filename,
+                                                    origin,
+                                                    uploadedBy: userId,
+                                                    type: 'document',
+                                                    status: 'new'
+                                                };
+                                            });
+                                            const documentUpload = await Document.bulkCreate(newDocs).map((o) => { return o.toJSON() });
+                                            const conversationTag = _(documentUpload)
+                                                .map(({ id }) => {
+                                                    return {
+                                                        linkType: "conversation",
+                                                        linkId: responseObj.id,
+                                                        tagType: "document",
+                                                        tagTypeId: id
+                                                    }
+                                                })
+                                                .value();
+                                            Tag.bulkCreate(conversationTag).then((o) => {
+                                                parallelCallback(null, responseObj)
+                                            });
+                                        });
+                                    } else {
                                         parallelCallback(null, responseObj)
-                                    });
+                                    }
                                 });
-                            } else {
-                                parallelCallback(null, responseObj)
-                            }
                         });
                 },
                 tags: (parallelCallback) => {

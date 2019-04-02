@@ -498,7 +498,7 @@ export default class TaskDetails extends React.Component {
                                                     <div class="label-div">
                                                         <label>Due Date:</label>
                                                         <div>
-                                                            <p class={`${(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}`}>
+                                                            <p class={`${(daysRemaining < 0 && status != "Completed") ? "text-red mb0" : "mb0"}`}>
                                                                 {
                                                                     (dueDate != null) ? moment(dueDate).format("MMMM DD, YYYY") : "N/A"
                                                                 }

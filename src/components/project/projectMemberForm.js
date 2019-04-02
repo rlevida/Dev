@@ -115,7 +115,6 @@ export default class ProjectMemberForm extends React.Component {
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
         }
-        console.log(fetchUrl)
 
         getData(fetchUrl, {}, (c) => {
             const memberOptions = _.map(c.data.result, (o) => {

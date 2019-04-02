@@ -14,6 +14,6 @@ CREATE TABLE `role` (
 INSERT INTO `cloud_cfo`.`role`(`roleType`,`role`,`dateAdded`) VALUES ('Internal','Master Admin',NOW());
 INSERT INTO `cloud_cfo`.`role`(`roleType`,`role`,`dateAdded`) VALUES ('Internal','Admin',NOW());
 INSERT INTO `cloud_cfo`.`role`(`roleType`,`role`,`dateAdded`) VALUES ('Internal','Manager',NOW());
-INSERT INTO `cloud_cfo`.`role`(`roleType`,`role`,`dateAdded`) VALUES ('Internal','Standard User',NOW());
+INSERT INTO `cloud_cfo`.`role`(`roleType`,`role`,`dateAdded`) VALUES ('Internal','Staff',NOW());
 INSERT INTO `cloud_cfo`.`role`(`roleType`,`role`,`dateAdded`) VALUES ('External','Manager Guest',NOW());
 INSERT INTO `cloud_cfo`.`role`(`roleType`,`role`,`dateAdded`) VALUES ('External','User Guest',NOW());

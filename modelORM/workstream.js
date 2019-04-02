@@ -79,10 +79,6 @@ module.exports = function (sequelize, DataTypes) {
       foreignKey: 'linkId',
       as: "tag"
     });
-    Workstream.hasMany(models.Tag, {
-      foreignKey: 'linkId',
-      as: "tag_notes"
-    });
     Workstream.hasMany(models.Members, {
       foreignKey: 'linkId',
       as: "responsible"
@@ -106,6 +102,11 @@ module.exports = function (sequelize, DataTypes) {
     Workstream.belongsTo(models.Type, {
       foreignKey: 'typeId',
       as: 'type'
+    });
+
+    Workstream.hasMany(models.Notes, {
+      foreignKey: 'workstreamId',
+      as: 'workstreamNotes'
     });
   };
 

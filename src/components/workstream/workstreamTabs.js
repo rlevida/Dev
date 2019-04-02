@@ -43,7 +43,7 @@ export default class WorkstreamTabs extends React.Component {
         }
     }
     render() {
-        const { workstream_id, dispatch } = { ...this.props };
+        const { project_id, workstream_id, dispatch } = { ...this.props };
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -96,7 +96,7 @@ export default class WorkstreamTabs extends React.Component {
                             </TabPanel>
                             <TabPanel class="bt">
                                 <div class="mt20">
-                                    <Conversations workstream_id={workstream_id} />
+                                    <Conversations workstream_id={workstream_id} project_id={project_id} />
                                 </div>
                             </TabPanel>
                             <TabPanel class="bt">
