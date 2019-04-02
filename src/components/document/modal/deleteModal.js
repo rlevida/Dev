@@ -25,7 +25,6 @@ class ArchiveModal extends React.Component {
     deleteDocument() {
         const { document, dispatch, loggedUser, match } = this.props;
         const projectId = match.params.projectId;
-
         putData(`/api/document/${document.Selected.id}`, {
             isDeleted: 1, usersId: loggedUser.data.id,
             oldDocument: document.Selected.origin,
@@ -33,9 +32,8 @@ class ArchiveModal extends React.Component {
             actionType: "deleted", title: 'Document deleted'
         }, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", DocumentType: document.Selected.status === 'new' ? 'New' : 'Library', Id: document.Selected.id });
+                dispatch({ type: "REMOVE_DELETED_DOCUMENT_LIST", Id: document.Selected.id });
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
-                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs })
                 showToast("success", "Successfully Deleted.");
             } else {
                 showToast("error", "Delete failed. Please try again later.");

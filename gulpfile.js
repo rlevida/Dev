@@ -25,7 +25,8 @@ var fileSources = {
             "node_modules/font-awesome/css/font-awesome.min.css",
             "node_modules/react-big-calendar/lib/css/react-big-calendar.css",
             "public/stylesheets/picker.css",
-            "node_modules/rc-editor-mention/assets/index.css"
+            "node_modules/rc-editor-mention/assets/index.css",
+            "node_modules/rc-collapse/assets/index.css"
         ]
     },
     vendorFonts: {
