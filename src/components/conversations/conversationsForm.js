@@ -6,6 +6,8 @@ import { connect } from "react-redux";
 import { DropDown, Loading } from "../../globalComponents";
 import { getData, postData, putData, showToast } from "../../globalFunction";
 
+import DocumentViewerModal from "../document/modal/documentViewerModal";
+
 let keyTimer = "";
 
 @connect((store) => {
@@ -122,7 +124,7 @@ export default class ConversationForm extends React.Component {
             }
             data.append("body", JSON.stringify(messageObj));
             dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
-            postData(`/api/conversation`, data, (c) => {
+            postData(`/api/conversation?projectId=${projectId}`, data, (c) => {
                 const conversationNotes = c.data.conversationNotes;
                 const { note, id, noteWorkstream, notesTagTask, createdBy } = conversationNotes;
                 const noteIndex = _.findIndex(notes.List, { id: conversationNotes.id });
@@ -282,6 +284,20 @@ export default class ConversationForm extends React.Component {
         });
     }
 
+    viewDocument(data) {
+        const { dispatch, loggedUser } = { ...this.props };
+        if (data.document_read.length === 0) {
+            const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
+            postData(`/api/document/read`, dataToSubmit, (ret) => {
+                dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
+                $(`#documentViewerModal`).modal('show')
+            });
+        } else {
+            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
+            $(`#documentViewerModal`).modal('show')
+        }
+    }
+
     render() {
         const { teams, workstream, notes, conversation, loggedUser, workstreamId } = this.props;
         const workstreamList = workstream.SelectList;
@@ -387,8 +403,9 @@ export default class ConversationForm extends React.Component {
                                                             (conversationDocuments.length > 0) && _.map(conversationDocuments, ({ document }, index) => {
                                                                 return (
                                                                     <p class="ml10" key={index}>
+                                                                    test123123123123
                                                                         <i class="fa fa-file mr5" aria-hidden="true"></i>
-                                                                        {document.origin}
+                                                                        <a href="javascript:void(0)" onClick={() => this.viewDocument(document)}>{document.origin}</a>
                                                                     </p>
                                                                 )
                                                             })
@@ -490,6 +507,7 @@ export default class ConversationForm extends React.Component {
                         }
                     </div>
                 </form>
+                <DocumentViewerModal />
             </div>
         )
     }

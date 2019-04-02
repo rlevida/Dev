@@ -56,7 +56,8 @@ export default class myTaskStatus extends React.Component {
         const teamIssues = this.sumBy("team", "issues");
 
         return (
-            <div class={(_.isEmpty(StatusCount)) ? "linear-background" : ""}>
+
+            <div class={(_.isEmpty(StatusCount)) ? 'linear-background' : ''}>
                 {
                     (_.isEmpty(StatusCount) == false) && <div class="row content-row status-count">
                         <div class="col-lg-4 text-center">

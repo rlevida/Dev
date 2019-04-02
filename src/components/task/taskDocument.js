@@ -12,7 +12,8 @@ let keyTimer = "";
     return {
         task: store.task,
         loggedUser: store.loggedUser,
-        document: store.document
+        document: store.document,
+        project: store.project
     }
 })
 
@@ -31,7 +32,7 @@ export default class TaskDocument extends React.Component {
     }
 
     handleSubmit() {
-        const { document, loggedUser, task, dispatch } = { ...this.props };
+        const { document, loggedUser, task, dispatch, project } = { ...this.props };
         let data = new FormData();
 
         dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING", LoadingType: 'Loading' });
@@ -43,7 +44,7 @@ export default class TaskDocument extends React.Component {
             data.append('tagged', JSON.stringify(checklist));
         });
 
-        postData(`/api/task/document`, data, (c) => {
+        postData(`/api/task/document?projectId=${project.Selected.id}`, data, (c) => {
             if (c.data.type == "checklist") {
                 const currentChecklist = task.Selected.checklist;
                 dispatch({

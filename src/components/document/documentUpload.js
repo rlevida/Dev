@@ -2,7 +2,7 @@ import React from "react";
 import Dropzone from 'react-dropzone';
 import { connect } from "react-redux"
 
-import { DropDown, Loading } from "../../globalComponents";
+import { DropDown } from "../../globalComponents";
 import { showToast, postData, getData } from '../../globalFunction';
 import _ from "lodash";
 import { withRouter } from "react-router";
@@ -53,7 +53,11 @@ class DocumentUpload extends React.Component {
         this.getWorkstreamList();
         this.fetchFolderList();
     }
-
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_WORKSTREAM_SELECT_LIST", List: [] });
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+    }
     fetchProjectList(options) {
         const { dispatch } = { ...this.props };
         let fetchUrl = "/api/project?page=1";
@@ -166,9 +170,9 @@ class DocumentUpload extends React.Component {
                     }
                 }).filter((e) => { return e }).value();
 
-                dispatch({ type: "ADD_DOCUMENT_LIST", List: list, DocumentType: 'New' });
-                dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs });
-                dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'new', count: document.NewUploadCount + 1 });
+                dispatch({ type: "ADD_DOCUMENT_LIST", List: list});
+                // dispatch({ type: "ADD_ACTIVITYLOG_DOCUMENT", activity_log_document: c.data.activityLogs });
+                // dispatch({ type: "SET_DOCUMENT_STATUS_COUNT", status: 'new', count: document.NewUploadCount + 1 });
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
                 dispatch({ type: 'SET_DOCUMENT_FILES', Files: [] });
                 dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'List' });
@@ -180,15 +184,20 @@ class DocumentUpload extends React.Component {
         })
     }
 
-    async onDrop(files) {
+    onDrop(file) {
+        const { dispatch, document } = this.props;
+        dispatch({ type: 'SET_DOCUMENT_FILES', Files: [...document.Files, ...file] });
+    }
+
+    async uploadFile() {
         const { loggedUser, folder, dispatch, document, match } = { ...this.props };
         const projectId = match.params.projectId;
         const selectedObj = { ...document.Selected };
         let data = new FormData();
 
-        await dispatch({ type: "SET_DOCUMENT_UPLOAD_LOADING", Loading: true });
+        await dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING" });
 
-        await files.map(e => {
+        await document.Files.map(e => {
             data.append("file", e)
         })
 
@@ -201,15 +210,24 @@ class DocumentUpload extends React.Component {
                 return e
             })
             selectedObj.DocumentToSave = documentToSave
-            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj });
-            dispatch({ type: 'SET_DOCUMENT_UPLOAD_LOADING', Loading: false });
+            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
+            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
         })
     }
 
-    render() {
-        const { dispatch, project, workstream, document, folder, match } = { ...this.props };
-        const projectId = match.params.projectId;
+    removefile(selecindextedId) {
+        const { dispatch, document } = { ...this.props };
+        const { Files } = document;
+        (Files).splice(selecindextedId, 1);
+        dispatch({ type: "SET_DOCUMENT_FILES", Files: Files });
+    }
 
+    render() {
+        const { dispatch, project, workstream, folder, match, document } = { ...this.props };
+        const projectId = match.params.projectId;
+        const { Files = [], Selected, Loading } = { ...document };
+        const { DocumentToSave = [] } = { ...Selected }
+        const fileExtention = (Files.length == 1) ? (Files[0].type).split("/")[1] : (Files.length > 1) ? "" : "";
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -237,6 +255,7 @@ class DocumentUpload extends React.Component {
                                             multiple={false}
                                             options={project.SelectList}
                                             selected={projectId}
+                                            loading={true}
                                             onChange={(e) => {
                                                 this.setDropDown("projectId", (e == null) ? "" : e.value);
                                             }}
@@ -258,7 +277,7 @@ class DocumentUpload extends React.Component {
                                                 this.setDropDown("tagWorkstream", (e == null) ? "" : e);
                                             }}
                                             required={true}
-                                            disabled={document.DocumentUploadLoading ? true : false}
+                                            disabled={Loading === "SUBMITTING" ? true : false}
                                         />
                                         <div>
                                             {
@@ -278,33 +297,56 @@ class DocumentUpload extends React.Component {
                                             onChange={(e) => {
                                                 this.setDropDown("folderId", (e == null) ? "" : e.value);
                                             }}
-                                            disabled={document.DocumentUploadLoading ? true : false}
+                                            disabled={Loading === "SUBMITTING" ? true : false}
                                         />
                                     </div>
-                                    <div class="form-group">
-                                        {(!document.DocumentUploadLoading && typeof document.Selected.DocumentToSave === 'undefined') &&
-                                            <Dropzone onDrop={this.onDrop.bind(this)}
-                                                class="document-file-upload"
-                                            >
-                                                <div style={{ textAlign: "center", height: "100%", padding: "60px" }}>
-                                                    <div>
-                                                        {(this.state.upload && !this.state.loading) ?
-                                                            <span style={{ fontSize: "75px" }} class="glyphicon glyphicon-file"></span> :
-                                                            <p>Drop some files here, or click to select files to upload.</p>
-                                                        }
+                                    {DocumentToSave.length === 0 && <div class="form-group">
+                                        <Dropzone
+                                            accept=".jpg,.png,.pdf,.doc,.docx,.xlsx"
+                                            onDrop={this.onDrop}
+                                            class="document-file-upload mb10"
+                                            id="task-document"
+                                            disabled={(Loading == "SUBMITTING")}
+                                        >
+                                            <div class="dropzone-wrapper">
+                                                {
+                                                    Loading === "SUBMITTING" ?
+                                                        <i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>
+                                                        :
+                                                        <div class="upload-wrapper">
+                                                            {
+                                                                (Files.length > 0) ?
+                                                                    <div class="img-wrapper">
+                                                                        {
+                                                                            (fileExtention == "png" || fileExtention == "jpg" || fileExtention == "jpeg") ?
+                                                                                <img src={Files[0].preview} alt="Task Document" class="img-responsive" /> :
+                                                                                <i class={`fa ${(Files.length > 1) ? "fa-files-o" : "fa-file"}`} aria-hidden="true"></i>
+                                                                        }
+
+                                                                    </div>
+                                                                    : <p class="m0">Drop task document</p>
+                                                            }
+                                                        </div>
+                                                }
+                                            </div>
+                                        </Dropzone>
+                                        {(Loading !== "SUBMITTING") &&
+                                            _.map(Files, ({ name, id }, index) => {
+                                                return (
+                                                    <div class="file-div" key={index}>
+                                                        <p class="m0"><strong>{name.substring(0, 30)}{(name.length > 30) ? "..." : ""}</strong></p>
+                                                        <a onClick={() => this.removefile(index)}><i class="fa fa-times ml10" aria-hidden="true"></i></a>
                                                     </div>
-                                                </div>
-                                            </Dropzone>
+                                                )
+                                            })
                                         }
                                     </div>
+                                    }
                                     <div class="form-group">
-                                        {(!document.DocumentUploadLoading && document.Files.length > 0 && typeof document.Selected.DocumentToSave === 'undefined') &&
+                                        {(Loading === "" && document.Files.length > 0 && typeof document.Selected.DocumentToSave === 'undefined') &&
                                             <div class="form-group">
-                                                <button class="btn btn-success" onClick={() => this.uploadFile()}> Upload</button>
+                                                <button class="btn btn-success" type="button" onClick={() => this.uploadFile()}> Upload</button>
                                             </div>
-                                        }
-                                        {(document.DocumentUploadLoading) &&
-                                            <Loading />
                                         }
                                         <table id="dataTable" class="table responsive-table" >
                                             <tbody>
@@ -324,7 +366,7 @@ class DocumentUpload extends React.Component {
                                     {(document.Selected.DocumentToSave && document.Selected.DocumentToSave.length > 0) &&
                                         <a class="btn btn-primary mr5" data-dismiss="modal" onClick={() => this.saveDocument()}>Save</a>
                                     }
-                                    {!document.DocumentUploadLoading &&
+                                    {Loading === "" &&
                                         <a class="btn btn-default"
                                             onClick={(e) => {
                                                 dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" });

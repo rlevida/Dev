@@ -786,6 +786,7 @@ exports.post = {
     document: (req, cb) => {
         const formidable = global.initRequire("formidable");
         const func = global.initFunc();
+        const projectId = req.query.projectId;
         let form = new formidable.IncomingForm();
         let files = [];
         let type = "upload";
@@ -842,6 +843,8 @@ exports.post = {
                 });
 
                 const documentUpload = await Document.bulkCreate(newDocs).map((o) => { return o.toJSON() });
+                const documentUploadResult = await _.map((documentUpload), ({ id }) => { return { documentId: id, linkType: 'project', linkId: projectId } });
+                DocumentLink.bulkCreate(documentUploadResult).map((o) => { return o.toJSON() })
 
                 if (checklistStack.length > 0) {
                     const checklistTag = _(documentUpload)
