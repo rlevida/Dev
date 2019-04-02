@@ -121,12 +121,14 @@ exports.get = {
 
             const teamIds = [...teamLeader, ...teamMembers];
 
-            whereObj = {
-                ...whereObj,
-                id: {
-                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT users_team.usersId FROM users_team WHERE teamId IN (${teamIds.join(",")}))`)
-                }
-            };
+            if (teamIds.length > 0) {
+                whereObj = {
+                    ...whereObj,
+                    id: {
+                        [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT users_team.usersId FROM users_team WHERE teamId IN (${teamIds.join(",")}))`)
+                    }
+                };
+            }
         }
 
         const options = {
