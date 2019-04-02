@@ -108,7 +108,6 @@ class DocumentList extends React.Component {
                         hasFolder = false;
                     }
                 }
-                console.log(folderList)
                 dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count })
                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
                 dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList });

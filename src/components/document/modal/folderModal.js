@@ -29,8 +29,30 @@ class FolderModal extends React.Component {
         dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} })
     }
 
+    getNestedChildren(arr, parent, dataObj) {
+        var out = []
+        for (var i in arr) {
+            if (arr[i].id == parent) {
+                if (typeof arr[i].childFolder === 'undefined') {
+                    arr[i].childFolder = []
+                }
+                arr[i].childFolder.push(dataObj)
+                out.push(arr[i])
+            } else {
+                if (typeof arr[i].childFolder === "undefined") {
+                    arr[i].childFolder = []
+                }
+                if (arr[i].childFolder.length > 0) {
+                    this.getNestedChildren(arr[i].childFolder, parent, dataObj)
+                }
+                out.push(arr[i])
+            }
+        }
+        return out
+    }
+
     submit() {
-        const { loggedUser, folder, dispatch, match } = this.props;
+        const { loggedUser, folder, dispatch, match, document } = this.props;
         const projectId = match.params.projectId;
         let result = true;
 
@@ -60,10 +82,16 @@ class FolderModal extends React.Component {
             projectId: projectId,
             folderId: folder.Selected.id,
         };
+
         if (folder.SelectedFolderName.length <= 3) {
             postData(`/api/document`, dataToSubmit, (c) => {
                 const { result } = { ...c.data }
-                dispatch({ type: "ADD_DOCUMENT_LIST", List: result });
+                if (document.Filter.status === 'sort') {
+                    let newList = this.getNestedChildren(folder.List, folder.Selected.id, result[0])
+                    dispatch({ type: "SET_FOLDER_LIST", list: newList });
+                } else {
+                    dispatch({ type: "ADD_DOCUMENT_LIST", List: result });
+                }
                 dispatch({ type: 'SET_NEW_FOLDER', New: {} })
                 showToast("success", "Successfully Added.")
             })

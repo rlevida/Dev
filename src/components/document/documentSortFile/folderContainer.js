@@ -88,8 +88,7 @@ class FieldContainer extends React.Component {
                     }
 
                     let newList = []
-                    newList = folder.List.map((x) => {
-                        let a = Object.assign({}, x)
+                    newList = folder.List.map((a) => {
                         if (a.id === data.id) {
                             if (typeof a.childFolder === 'undefined') {
                                 a.childFolder = []
@@ -141,11 +140,11 @@ class FieldContainer extends React.Component {
                         }
                         return a
                     })
-
                     dispatch({ type: 'SET_FOLDER_LIST', list: newList })
-                    const isAlreadyInList = folder.SelectedFolderName.indexOf(data) > -1 ? true : false
-                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: isAlreadyInList ? folderList : folder.SelectedFolderName.concat([data]) });
                 }
+
+                const isAlreadyInList = folder.SelectedFolderName.indexOf(data) > -1 ? true : false
+                dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: isAlreadyInList ? folderList : folder.SelectedFolderName.concat([data]) });
                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
             });
         }
@@ -153,22 +152,22 @@ class FieldContainer extends React.Component {
 
     renderFolder(data) {
         const { moveTo, document, hovered, folder } = { ...this.props }
-        const isSelected = folder.Selected.id === data.id ? true : false
+        // const isSelected = folder.Selected.id === data.id ? true : false
         return (
             <div class="folder-accordion" id={data.id} style={{ backgroundColor: hovered ? '#e4e4e4' : '' }}>
                 <a href="javascript:void(0)"
                     class={`accordion-toggle collapsed`}
-                    id={`${isSelected ? 'isSelected' : ''}`}
-                    data-toggle="collapse" href={`#collapseExample${data.id}`}
+                    // id={`${isSelected ? 'isSelected' : ''}`}
+                    data-toggle="collapse" href={`#collapse${data.id}`}
                     role="button"
                     aria-expanded="false"
-                    aria-controls={`collapseExample${data.id}`}
+                    aria-controls={`collapse${data.id}`}
                     onClick={() => this.fetchFolder(data)}>
                     <i class="fa-chevron fa fa-chevron-down"></i>
                     <i class="fa fa-fw fa-folder"></i>
                     {data.origin}
                 </a>
-                <div class="collapse" id={`collapseExample${data.id}`}>
+                <div class="collapse" id={`collapse${data.id}`}>
                     <div class="collapse-folder-child">
                         {typeof data.childFolder !== "undefined" && data.childFolder.length > 0 &&
                             data.childFolder.map((e, index) => { return <Container data={e} moveTo={moveTo} key={index}></Container> })
