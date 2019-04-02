@@ -22,6 +22,18 @@ class DocumentNew extends React.Component {
         }
     }
 
+    componentDidMount() {
+        const self = this;
+        window.addEventListener('click', function (e) {
+            const { dispatch, folder } = { ...self.props }
+            if (!document.getElementById('library').contains(e.target)) {
+                if (typeof folder.Selected !== "undefined") {
+                    dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} })
+                }
+            }
+        });
+    }
+
     async fetchFolder(data) {
         const { dispatch, loggedUser, folder, history, match } = this.props;
         const projectId = match.params.projectId;

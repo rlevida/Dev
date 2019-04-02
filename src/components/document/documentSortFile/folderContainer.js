@@ -58,12 +58,14 @@ class FieldContainer extends React.Component {
         }
     }
     componentDidMount() {
+      
     }
 
     async fetchFolder(data) {
         const { dispatch, loggedUser, folder, history, match } = this.props;
         const projectId = match.params.projectId;
         let folderList = folder.SelectedFolderName;
+
         if (data === "") {
             dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
             await dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
@@ -147,17 +149,19 @@ class FieldContainer extends React.Component {
                 dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: isAlreadyInList ? folderList : folder.SelectedFolderName.concat([data]) });
                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
             });
+        } else if (folder.Selected.id === data.id) {
+            dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
         }
     }
 
     renderFolder(data) {
         const { moveTo, document, hovered, folder } = { ...this.props }
-        // const isSelected = folder.Selected.id === data.id ? true : false
+        const isSelected = folder.Selected.id === data.id ? true : false
         return (
             <div class="folder-accordion" id={data.id} style={{ backgroundColor: hovered ? '#e4e4e4' : '' }}>
                 <a href="javascript:void(0)"
                     class={`accordion-toggle collapsed`}
-                    // id={`${isSelected ? 'isSelected' : ''}`}
+                    id={`${isSelected ? 'isSelected' : ''}`}
                     data-toggle="collapse" href={`#collapse${data.id}`}
                     role="button"
                     aria-expanded="false"

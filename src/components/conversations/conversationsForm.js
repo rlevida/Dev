@@ -124,7 +124,7 @@ export default class ConversationForm extends React.Component {
             }
             data.append("body", JSON.stringify(messageObj));
             dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
-            postData(`/api/conversation`, data, (c) => {
+            postData(`/api/conversation?projectId=${projectId}`, data, (c) => {
                 const conversationNotes = c.data.conversationNotes;
                 const { note, id, noteWorkstream, notesTagTask, createdBy } = conversationNotes;
                 const noteIndex = _.findIndex(notes.List, { id: conversationNotes.id });
