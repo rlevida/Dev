@@ -9,6 +9,8 @@ import { putData, postData, deleteData, getData, showToast } from "../../globalF
 import { DeleteModal, MentionConvert } from "../../globalComponents";
 import defaultStyle from "../global/react-mention-style";
 
+import DocumentViewerModal from "../document/modal/documentViewerModal";
+
 let keyTimer = "";
 
 @connect((store) => {
@@ -301,6 +303,13 @@ export default class TaskDetails extends React.Component {
         });
     }
 
+    viewDocument(data) {
+        const { dispatch } = { ...this.props };
+  
+        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
+        $(`#documentViewerModal`).modal('show')
+    }
+
     render() {
         const { task: taskObj, loggedUser, activityLog, conversation } = { ...this.props };
         const { Loading, Selected } = taskObj;
@@ -328,6 +337,8 @@ export default class TaskDetails extends React.Component {
             .flatMap((o) => {
                 return _.map(o.tagDocuments, function (o) {
                     return {
+                        id: o.document.id,
+                        origin: o.document.name,
                         name: o.document.origin,
                         type: "Subtask Document",
                         dateAdded: o.document.dateAdded,
@@ -341,7 +352,7 @@ export default class TaskDetails extends React.Component {
             .value();
         const taskDocuments = _(tag_task)
             .filter((o) => { return o.tagType == "document" })
-            .map((o) => { return { name: o.document.origin, type: "Task Document", dateAdded: o.document.dateAdded }; })
+            .map((o) => { return { id: o.document.id, origin: o.document.name, name: o.document.origin, type: "Task Document", dateAdded: o.document.dateAdded, origin: o.document.origin }; })
             .value();
         const documentList = [...checklistDocuments, ...taskDocuments];
 
@@ -448,7 +459,7 @@ export default class TaskDetails extends React.Component {
                                                     <div class="label-div">
                                                         <label>Project:</label>
                                                         <p class="m0" style={{ color: workstream.project.color }}>
-                                                           {workstream.project.project}
+                                                            {workstream.project.project}
                                                         </p>
                                                     </div>
                                                     <div class="label-div">
@@ -550,13 +561,13 @@ export default class TaskDetails extends React.Component {
                                                         </h3>
                                                         <div class="ml20">
                                                             {
-                                                                _.map(documentList, ({ name, child = [] }, index) => {
+                                                                _.map(documentList, ({ id, origin, name, child = [] }, index) => {
                                                                     return (
                                                                         <div key={index}>
                                                                             <div class="display-flex vh-center mb10 attachment">
                                                                                 <i title={(child.length > 0) ? "Subtask Document" : "Task Document"} class={`fa ${(child.length > 0) ? "fa-file-text" : "fa-file"} mr10`} aria-hidden="true"></i>
                                                                                 <p class="m0">
-                                                                                    <a data-tip data-for={`attachment-${index}`}>
+                                                                                    <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: origin, origin: name })}>
                                                                                         {name.substring(0, 50)}{(name.length > 50) ? "..." : ""}
                                                                                     </a>
                                                                                 </p>
@@ -698,6 +709,7 @@ export default class TaskDetails extends React.Component {
                     type_value={typeValue}
                     delete_function={this.confirmDelete}
                 />
+                <DocumentViewerModal />
             </div>
         )
     }

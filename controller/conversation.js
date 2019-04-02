@@ -11,6 +11,7 @@ const {
     Conversation,
     Users,
     Document,
+    DocumentRead,
     Reminder,
     Projects,
     Starred,
@@ -246,6 +247,11 @@ exports.get = {
                     include: [{
                         model: Document,
                         as: 'document',
+                        include: [{
+                            model: DocumentRead,
+                            as: 'document_read',
+                            required: false
+                        }],
                         where: {
                             isDeleted: 0
                         },
