@@ -87,8 +87,12 @@ class FolderModal extends React.Component {
             postData(`/api/document`, dataToSubmit, (c) => {
                 const { result } = { ...c.data }
                 if (document.Filter.status === 'sort') {
-                    let newList = this.getNestedChildren(folder.List, folder.Selected.id, result[0])
-                    dispatch({ type: "SET_FOLDER_LIST", list: newList });
+                    if (_.isEmpty(folder.SelectedFolderName)) {
+                        dispatch({ type: "ADD_FOLDER_LIST", list: result });
+                    } else {
+                        let newList = this.getNestedChildren(folder.List, folder.Selected.id, result[0])
+                        dispatch({ type: "SET_FOLDER_LIST", list: newList });
+                    }
                 } else {
                     dispatch({ type: "ADD_DOCUMENT_LIST", List: result });
                 }

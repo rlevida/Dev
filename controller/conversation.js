@@ -12,6 +12,7 @@ const {
     Users,
     Document,
     DocumentRead,
+    DocumentLink,
     Reminder,
     Projects,
     Starred,
@@ -412,6 +413,11 @@ exports.post = {
                             include: [{
                                 model: Document,
                                 as: 'document',
+                                include: [{
+                                    model: DocumentRead,
+                                    as: 'document_read',
+                                    required: false
+                                }],
                                 where: {
                                     isDeleted: 0
                                 },
@@ -494,6 +500,9 @@ exports.post = {
                                         };
                                     });
                                     const documentUpload = await Document.bulkCreate(newDocs).map((o) => { return o.toJSON() });
+                                    const documentUploadResult = await _.map((documentUpload), ({ id }) => { return { documentId: id, linkType: 'project', linkId: body.projectId } });
+                                    DocumentLink.bulkCreate(documentUploadResult).map((o) => { return o.toJSON() });
+
                                     const conversationTag = _(documentUpload)
                                         .map(({ id }) => {
                                             return {
@@ -744,6 +753,7 @@ exports.post = {
     index: async (req, cb) => {
         const formidable = global.initRequire("formidable");
         const func = global.initFunc();
+        const projectId = req.query.projectId;
         const filesStack = [];
         let form = new formidable.IncomingForm();
         let type = "upload";
@@ -781,7 +791,7 @@ exports.post = {
                                                     filename: fileObj.filename,
                                                     origin: fileObj.file.name,
                                                     Id: fileObj.id,
-                                                    userId: body.userId
+                                                    userId: body.usersId
                                                 })
                                             } else {
                                                 mapCallback(esponse.Message)
@@ -798,6 +808,9 @@ exports.post = {
                                             };
                                         });
                                         const documentUpload = await Document.bulkCreate(newDocs).map((o) => { return o.toJSON() });
+                                        const documentUploadResult = await _.map((documentUpload), ({ id }) => { return { documentId: id, linkType: 'project', linkId: projectId } });
+                                        DocumentLink.bulkCreate(documentUploadResult).map((o) => { return o.toJSON() });
+
                                         const conversationTag = _(documentUpload)
                                             .map(({ id }) => {
                                                 return {
@@ -904,6 +917,11 @@ exports.post = {
                                 include: [{
                                     model: Document,
                                     as: 'document',
+                                    include: [{
+                                        model: DocumentRead,
+                                        as: 'document_read',
+                                        required: false
+                                    }],
                                     where: {
                                         isDeleted: 0
                                     },
