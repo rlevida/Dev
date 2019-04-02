@@ -13,7 +13,7 @@ let keyTimer = "";
         task: store.task,
         loggedUser: store.loggedUser,
         document: store.document,
-        project: store.project
+        project: store.project,
     }
 })
 
@@ -44,7 +44,7 @@ export default class TaskDocument extends React.Component {
             data.append('tagged', JSON.stringify(checklist));
         });
 
-        postData(`/api/task/document?projectId=${project.Selected.id}`, data, (c) => {
+        postData(`/api/task/document?projectId=${project.Selected.id}&workstreamId=${task.Selected.workstreamId}`, data, (c) => {
             if (c.data.type == "checklist") {
                 const currentChecklist = task.Selected.checklist;
                 dispatch({

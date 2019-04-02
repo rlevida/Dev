@@ -251,6 +251,7 @@ exports.get = {
                         include: [{
                             model: DocumentRead,
                             as: 'document_read',
+                            attributes: ['id'],
                             required: false
                         }],
                         where: {
@@ -416,6 +417,7 @@ exports.post = {
                                 include: [{
                                     model: DocumentRead,
                                     as: 'document_read',
+                                    attributes: ['id'],
                                     required: false
                                 }],
                                 where: {
@@ -498,6 +500,18 @@ exports.post = {
                                             const documentUpload = await Document.bulkCreate(newDocs).map((o) => { return o.toJSON() });
                                             const documentUploadResult = await _.map((documentUpload), ({ id }) => { return { documentId: id, linkType: 'project', linkId: body.projectId } });
                                             DocumentLink.bulkCreate(documentUploadResult).map((o) => { return o.toJSON() });
+
+                                            const workstreamTag = _(documentUpload)
+                                                .map(({ id }) => {
+                                                    return {
+                                                        linkType: "workstream",
+                                                        linkId: body.workstreamId,
+                                                        tagType: "document",
+                                                        tagTypeId: id
+                                                    }
+                                                })
+                                                .value();
+
                                             const conversationTag = _(documentUpload)
                                                 .map(({ id }) => {
                                                     return {
@@ -508,7 +522,8 @@ exports.post = {
                                                     }
                                                 })
                                                 .value();
-                                            Tag.bulkCreate(conversationTag).then((o) => {
+
+                                            Tag.bulkCreate([...conversationTag, ...workstreamTag]).then((o) => {
                                                 parallelCallback(null, responseObj)
                                             });
                                         });
@@ -807,6 +822,17 @@ exports.post = {
                                         const documentUploadResult = await _.map((documentUpload), ({ id }) => { return { documentId: id, linkType: 'project', linkId: projectId } });
                                         DocumentLink.bulkCreate(documentUploadResult).map((o) => { return o.toJSON() });
 
+                                        const workstreamTag = _(documentUpload)
+                                            .map(({ id }) => {
+                                                return {
+                                                    linkType: "workstream",
+                                                    linkId: body.workstreamId,
+                                                    tagType: "document",
+                                                    tagTypeId: id
+                                                }
+                                            })
+                                            .value();
+
                                         const conversationTag = _(documentUpload)
                                             .map(({ id }) => {
                                                 return {
@@ -817,7 +843,8 @@ exports.post = {
                                                 }
                                             })
                                             .value();
-                                        Tag.bulkCreate(conversationTag).then((o) => {
+
+                                        Tag.bulkCreate([...conversationTag, ...workstreamTag]).then((o) => {
                                             parallelCallback(null, responseObj)
                                         });
                                     });
@@ -916,6 +943,7 @@ exports.post = {
                                     include: [{
                                         model: DocumentRead,
                                         as: 'document_read',
+                                        attributes: ['id'],
                                         required: false
                                     }],
                                     where: {
