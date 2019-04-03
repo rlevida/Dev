@@ -557,7 +557,7 @@ exports.get = {
     projectTaskStatus: (req, cb) => {
         const queryString = req.query;
         const { projectId } = queryString;
-        const currentDate = moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm");
+        const currentDate = moment(queryString.date, 'YYYY-MM-DD').format("YYYY-MM-DD HH:mm");
         async.parallel({
             task_due: (parallelCallback) => {
                 try {

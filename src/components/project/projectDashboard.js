@@ -126,10 +126,10 @@ export default class ProjectDashboard extends React.Component {
         const workstreamCurrentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
         const workstreamLastPage = (typeof workstream.Count.last_page != "undefined") ? workstream.Count.last_page : 1;
         const statusToBeDisplayed = [
-            { label: "Tasks Due Today", count: task_due, class_color: "text-orange" },
-            { label: "Tasks For Approval", count: task_for_approval, class_color: "text-dark-yellow" },
+            { label: "Tasks Due Today", count: task_due, class_color: "text-yellow" },
+            { label: "Tasks For Approval", count: task_for_approval, class_color: "text-orange" },
             { label: "New Files Uploaded", count: new_files, class_color: "text-blue" },
-            { label: "Delayed Tasks", count: delayed_task, class_color: "text-pink" }
+            { label: "Delayed Tasks", count: delayed_task, class_color: "text-red" }
         ];
         const projectId = this.props.match.params.projectId;
         const chartData = _.map(workstream.List, ({ id, issues, dueToday, completed, task, workstream, completion_rate }) => {
