@@ -288,7 +288,7 @@ class DocumentList extends React.Component {
                                                                         tagCount += t.label.length
                                                                         let tempCount = tagCount;
                                                                         if (tagCount > 16) { tagCount = 0 }
-                                                                        return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
+                                                                        return <p class="m0">{t.label}{tempCount > 16 && <br />}</p>
                                                                     })
                                                                 }
                                                                 </td>
