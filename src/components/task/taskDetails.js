@@ -48,8 +48,8 @@ export default class TaskDetails extends React.Component {
         const { dueDate, startDate } = task.Selected;
         const toBeUpdatedObject = {
             ...task.Selected,
-            dueDate: (dueDate != null) ? moment(dueDate).format("YYYY MMM DD") : null,
-            startDate: (startDate != null) ? moment(startDate).format("YYYY MMM DD") : null
+            dueDate: (dueDate != null) ? moment(dueDate) : null,
+            startDate: (startDate != null) ? moment(startDate) : null
         };
 
         dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });

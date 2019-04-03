@@ -1723,7 +1723,9 @@ form .underlined{
     flex-wrap: wrap;
     align-items: center;
     margin-bottom: 0;
-    width: 135px;
+    width: 100%;
+    max-width: 95px;
+    margin-right: 10px;
 }
 
 .form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control{
@@ -2336,6 +2338,10 @@ td .display-flex{
 
 #documentImage img{
   margin: 0 auto;
+}
+
+.react-datepicker__input-container input {
+  background-color: transparent;
 }
 
 @media screen and (max-width: 600px) {

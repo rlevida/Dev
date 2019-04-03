@@ -9,6 +9,9 @@ import TaskDependency from "./taskDependency";
 import TaskChecklist from "./taskChecklist";
 import TaskDocument from "./taskDocument";
 
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 let keyTimer = "";
 
 @connect((store) => {
@@ -50,7 +53,8 @@ export default class TaskForm extends React.Component {
             "generateDueDate",
             "deleteDocument",
             "renderArrayTd",
-            "confirmDeleteDocument"
+            "confirmDeleteDocument",
+            "onChangeRaw"
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
     componentDidMount() {
@@ -64,11 +68,6 @@ export default class TaskForm extends React.Component {
             this.fetchProjectMembers();
             this.getTaskDetails();
         }
-    }
-
-    componentDidUpdate() {
-        setDatePicker(this.handleDate, "startDate", new Date(2019, 3, 20));
-        setDatePicker(this.handleDate, "dueDate", new Date(2019, 3, 20));
     }
 
     setAssignMemberList(options) {
@@ -107,7 +106,7 @@ export default class TaskForm extends React.Component {
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
         }
-        
+
         getData(fetchUrl, {}, (c) => {
             const usersOptions = _(c.data)
                 .map((o) => { return { id: o.id, name: o.firstName + " " + o.lastName } })
@@ -189,29 +188,28 @@ export default class TaskForm extends React.Component {
 
     }
 
-    handleDate(e) {
+    handleDate(value, name) {
         const { dispatch, task } = this.props;
-        const selectedDate = (e.target.value != '') ? moment(new Date(e.target.value)).format('YYYY MMM DD') : '';
+        const selectedDate = (value != '') ? moment(new Date(value)) : '';
         let selectedObj = Object.assign({}, { ...task.Selected })
-
         if (
-            (e.target.name == "startDate" && (typeof selectedObj.dueDate != "undefined" && selectedObj.dueDate != "")) ||
-            (e.target.name == "dueDate" && (typeof selectedObj.startDate != "undefined" && selectedObj.startDate != ""))
+            (name == "startDate" && (typeof selectedObj.dueDate != "undefined" && selectedObj.dueDate != "")) ||
+            (name == "dueDate" && (typeof selectedObj.startDate != "undefined" && selectedObj.startDate != ""))
         ) {
             const startDate = moment(selectedObj.startDate);
             const dueDate = moment(selectedObj.dueDate);
-            const comparison = (e.target.name == "startDate") ? moment(dueDate).diff(e.target.value, 'days') : moment(e.target.value).diff(startDate, 'days');
+            const comparison = (name == "startDate") ? moment(dueDate).diff(value, 'days') : moment(value).diff(startDate, 'days');
 
             if (comparison < 0) {
                 showToast("error", "Due date must be after the start date.");
-                selectedObj[e.target.name] = undefined;
+                selectedObj[name] = undefined;
             } else {
-                selectedObj[e.target.name] = selectedDate;
+                selectedObj[name] = selectedDate;
             }
         } else {
-            selectedObj[e.target.name] = selectedDate;
+            selectedObj[name] = selectedDate;
         }
-        if (e.target.name == "startDate" && task.Selected.periodic == 1) {
+        if (name == "startDate" && task.Selected.periodic == 1) {
             setTimeout(() => { this.generateDueDate() }, 500);
         }
 
@@ -291,6 +289,7 @@ export default class TaskForm extends React.Component {
                 periodInstance: (typeof task.Selected.periodic != "undefined" && task.Selected.periodic == 1) ? 3 : 0,
                 status: (task.Selected.approvalRequired == 1 && (typeof task.Selected.status == "undefined" || task.Selected.status == null || task.Selected.status == "For Approval")) ? "For Approval" : (task.Selected.status == null || task.Selected.status == "") ? "In Progress" : task.Selected.status,
                 dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD HH:mm:ss') : null,
+                startDate: (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "" && task.Selected.startDate != null) ? moment(task.Selected.startDate).format('YYYY-MM-DD HH:mm:ss') : null,
                 dateUpdated: moment().format('YYYY-MM-DD HH:mm:ss')
             };
 
@@ -314,6 +313,7 @@ export default class TaskForm extends React.Component {
                             approvalRequired,
                             approverId,
                             dueDate,
+                            startDate,
                             periodic,
                             period,
                             periodInstance,
@@ -331,7 +331,8 @@ export default class TaskForm extends React.Component {
                                 approvalRequired,
                                 approverId,
                                 ...(task_members.length > 0) ? { assignedTo: task_members[0].userTypeLinkId } : {},
-                                dueDate: (dueDate != null) ? moment(dueDate).format("YYYY MMM DD") : "",
+                                dueDate: (dueDate != null) ? moment(dueDate) : null,
+                                startDate: (startDate != null) ? moment(startDate) : null,
                                 description,
                                 periodic,
                                 period,
@@ -426,6 +427,21 @@ export default class TaskForm extends React.Component {
             showToast("success", "Task Document successfully deleted.");
             $('#delete-document').modal("hide");
         });
+    }
+
+    onChangeRaw(e) {
+        const { dispatch, task } = this.props;
+        let Selected = Object.assign({}, task.Selected);
+
+        if (moment(e.target.value, 'MMMM DD, YYYY', true).isValid() == false) {
+            let { dispatch, task } = this.props
+            let Selected = Object.assign({}, task.Selected)
+
+            Selected[e.target.name] = null;
+
+            dispatch({ type: "SET_TASK_SELECTED", Selected: Selected });
+        }
+
     }
 
     render() {
@@ -568,35 +584,56 @@ export default class TaskForm extends React.Component {
                                             <div class="mt10 row">
                                                 <div class="col-lg-6 col-sm-6">
                                                     <div class="form-group input-inline">
-                                                        <label>
-                                                            Start Date:
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            id="startDate"
-                                                            class="form-control datepicker"
-                                                            name="startDate"
-                                                            value={(typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != '') ? displayDate(task.Selected.startDate) : ""}
-                                                            placeholder="Select valid start date"
-                                                            onChange={() => { }}
-                                                        />
+                                                        <div>
+                                                            <label>
+                                                                Start Date:
+                                                            </label>
+                                                            {
+                                                                (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != '') && <p class="m0 note"><a onClick={() => this.handleDate("", 'startDate')}>Clear</a></p>
+                                                            }
+                                                        </div>
+                                                        <div>
+                                                            <DatePicker
+                                                                name="startDate"
+                                                                dateFormat="MMMM DD, YYYY"
+                                                                onChange={date => {
+                                                                    this.handleDate(date, 'startDate');
+                                                                }}
+                                                                value={(moment(task.Selected.startDate, 'MMMM DD, YYYY', true).isValid()) ? task.Selected.startDate : ""}
+                                                                placeholderText="Select valid start date"
+                                                                class="form-control"
+                                                                onBlur={this.onChangeRaw}
+                                                                ref="startDate"
+                                                                selected={(typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != '') ? task.Selected.startDate : null}
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div class="col-lg-6 col-sm-6">
                                                     <div class={`form-group input-inline ${(typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != '' && task.Selected.periodic == 1) ? "pointer-none" : ""}`}>
-                                                        <label>
-                                                            Due Date: <span class="text-red">*</span>
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            required
-                                                            id="dueDate"
-                                                            class="form-control datepicker"
+                                                        <div>
+                                                            <label>
+                                                                Due Date: <span class="text-red">*</span>
+                                                            </label>
+
+                                                            {
+                                                                (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != null && task.Selected.dueDate != '') && <p class="m0 note"><a onClick={() => this.handleDate("", 'dueDate')}>Clear</a></p>
+                                                            }
+                                                        </div>
+                                                        <DatePicker
                                                             name="dueDate"
-                                                            value={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != null && task.Selected.dueDate != '') ? displayDate(task.Selected.dueDate) : ""}
-                                                            placeholder="Select valid due date"
-                                                            onChange={() => { }}
+                                                            dateFormat="MMMM DD, YYYY"
+                                                            onChange={date => {
+                                                                this.handleDate(date, 'dueDate');
+                                                            }}
+                                                            value={(moment(task.Selected.dueDate, 'MMMM DD, YYYY', true).isValid()) ? task.Selected.dueDate : ""}
+                                                            onBlur={this.onChangeRaw}
+                                                            required={true}
+                                                            placeholderText="Select valid start date"
+                                                            class="form-control"
+                                                            selected={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != null && task.Selected.dueDate != '') ? task.Selected.dueDate : null}
                                                         />
+
                                                     </div>
                                                 </div>
                                             </div>
