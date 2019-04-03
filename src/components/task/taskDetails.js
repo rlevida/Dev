@@ -320,7 +320,7 @@ export default class TaskDetails extends React.Component {
     render() {
         const { task: taskObj, loggedUser, activityLog, conversation } = { ...this.props };
         const { Loading, Selected } = taskObj;
-        const { id, task, task_members, dueDate, workstream, status, description, checklist, task_dependency, tag_task } = Selected;
+        const { id, task, task_members, dueDate, startDate, workstream, status, description, checklist, task_dependency, tag_task, projectId, workstreamId } = Selected;
         const assigned = _.filter(task_members, (o) => { return o.memberType == "assignedTo" });
         const isAssignedToMe = _.find(task_members, (o) => { return o.memberType == "assignedTo" && o.user.id == loggedUser.data.id });
         const approver = _.filter(task_members, (o) => { return o.memberType == "approver" });
@@ -350,6 +350,7 @@ export default class TaskDetails extends React.Component {
                         type: "Subtask Document",
                         dateAdded: o.document.dateAdded,
                         isRead: o.document.document_read.length,
+                        user: o.document.user,
                         child: _(checklist)
                             .filter((check) => { return check.id == o.checklistId })
                             .map((o) => { return o.description })
@@ -360,10 +361,19 @@ export default class TaskDetails extends React.Component {
             .value();
         const taskDocuments = _(tag_task)
             .filter((o) => { return o.tagType == "document" })
-            .map((o) => { return { id: o.document.id, origin: o.document.name, name: o.document.origin, type: "Task Document", dateAdded: o.document.dateAdded, isRead: o.document.document_read.length } })
+            .map((o) => {
+                return {
+                    id: o.document.id,
+                    origin: o.document.name,
+                    name: o.document.origin,
+                    type: "Task Document",
+                    dateAdded: o.document.dateAdded,
+                    isRead: o.document.document_read.length,
+                    user: o.document.user
+                }
+            })
             .value();
         const documentList = [...checklistDocuments, ...taskDocuments];
-
         return (
             <div>
                 <div class="modal right fade" id="task-details" data-backdrop="static" data-keyboard="false">
@@ -443,7 +453,15 @@ export default class TaskDetails extends React.Component {
                                 <div class={(Loading == "RETRIEVING") ? "linear-background" : ""}>
                                     {
                                         (typeof id != "undefined") && <div>
-                                            <h2 class="mt20 mb20">{task}</h2>
+                                            <div class="mt20 mb20">
+                                                <h2 class="m0">{task}</h2>
+                                                <p class="m0">
+                                                    <a target="_blank"
+                                                        href={window.location.origin + `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${id}`}>
+                                                        {window.location.origin + `/account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${id}`}
+                                                    </a>
+                                                </p>
+                                            </div>
                                             <div class="row mb20">
                                                 <div class="col-md-6">
                                                     <div class="label-div">
@@ -465,6 +483,16 @@ export default class TaskDetails extends React.Component {
                                                         }
                                                     </div>
                                                     <div class="label-div">
+                                                        <label>Start Date:</label>
+                                                        <div>
+                                                            <p class="mb0">
+                                                                {
+                                                                    (startDate != null) ? moment(startDate).format("MMMM DD, YYYY") : "N/A"
+                                                                }
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="label-div">
                                                         <label>Project:</label>
                                                         <p class="m0" style={{ color: workstream.project.color }}>
                                                             {workstream.project.project}
@@ -478,18 +506,35 @@ export default class TaskDetails extends React.Component {
                                                     </div>
                                                     <div>
                                                         <label>Follower/s:</label>
-                                                        <div class="ml20">
+                                                        <div class="display-flex">
                                                             {
-                                                                _.map(followers, ({ user }, index) => {
+                                                                _.map(_.take(followers, 5), ({ user }, index) => {
                                                                     return (
                                                                         <div key={index} class="profile-div">
-                                                                            <div class="thumbnail-profile">
-                                                                                <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                            <div class="thumbnail-profile" key={index}>
+                                                                                <span title={user.firstName + " " + user.lastName}>
+                                                                                    <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                                </span>
                                                                             </div>
-                                                                            <p class="m0">{user.firstName + " " + user.lastName}</p>
                                                                         </div>
                                                                     )
                                                                 })
+                                                            }
+                                                            {
+                                                                (followers.length > 5) && <span
+                                                                    class="thumbnail-count"
+                                                                    title={
+                                                                        _(followers)
+                                                                            .filter((o, index) => { return index > 4 })
+                                                                            .map(({ user }) => {
+                                                                                return user.firstName + " " + user.lastName
+                                                                            })
+                                                                            .value()
+                                                                            .join("\r\n")
+                                                                    }
+                                                                >
+                                                                    +{followers.length - 1}
+                                                                </span>
                                                             }
                                                         </div>
                                                     </div>
@@ -569,13 +614,13 @@ export default class TaskDetails extends React.Component {
                                                         </h3>
                                                         <div class="ml20">
                                                             {
-                                                                _.map(documentList, ({ id, origin, name, child = [], isRead }, index) => {
+                                                                _.map(documentList, ({ id, origin, name, child = [], isRead, user }, index) => {
                                                                     return (
                                                                         <div key={index}>
                                                                             <div class="display-flex vh-center mb10 attachment">
                                                                                 <i title={(child.length > 0) ? "Subtask Document" : "Task Document"} class={`fa ${(child.length > 0) ? "fa-file-text" : "fa-file"} mr10`} aria-hidden="true"></i>
                                                                                 <p class="m0">
-                                                                                    <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: origin, origin: name, isRead })}>
+                                                                                    <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: origin, origin: name, isRead, user })}>
                                                                                         {name.substring(0, 50)}{(name.length > 50) ? "..." : ""}
                                                                                     </a>
                                                                                 </p>

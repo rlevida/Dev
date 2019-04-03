@@ -131,7 +131,7 @@ class DocumentViewerComponent extends React.Component {
             }
         }
         return (
-            <div class="modal right fade" id="documentViewerModal" tabIndex="-1" role="dialog" aria-labelledby="documentViewerModal" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+            <div class="modal fade" id="documentViewerModal" tabIndex="-1" role="dialog" aria-labelledby="documentViewerModal" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                 <div class="modal-lg modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -162,7 +162,7 @@ class DocumentViewerComponent extends React.Component {
                                     }
                                     {((document.Selected.origin).length > 40) ? "..." : ""}
                                 </h2>
-                                <div class="row mb20">
+                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="label-div">
                                             <label>Uploaded By:</label>
@@ -175,15 +175,16 @@ class DocumentViewerComponent extends React.Component {
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6">
                                         <div class="label-div">
                                             <label>Upload Date:</label>
                                             <p class="m0">{moment(document.Selected.dateAdded).format('MMMM DD, YYYY')}</p>
                                         </div>
                                     </div>
                                 </div>
-                                <div id="documentImage">
+                                <div id="documentImage" class="mt20">
+                                    <div class="label-div">
+                                        <label>File Preview:</label>
+                                    </div>
                                     {
                                         (isDocument == true) &&
                                         <iframe

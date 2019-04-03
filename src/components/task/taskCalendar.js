@@ -61,7 +61,7 @@ export default class TaskCalendar extends React.Component {
         const projectId = (match != "") ? match.params.projectId : "";
         const fromDate = moment(selectedMonth).subtract(1, 'week').format("YYYY-MM-DD");
         const toDate = moment(selectedMonth).add(1, 'week').endOf('month').format("YYYY-MM-DD");
-        let fetchUrl = `/api/task?dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
+        let fetchUrl = `/api/task?dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}&view=calendar`;
 
         if (projectId != "") {
             fetchUrl += `&projectId=${projectId}`

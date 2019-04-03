@@ -25,6 +25,11 @@ const associationStack = [
                     as: 'document_read',
                     attributes: ['id'],
                     required: false
+                },
+                {
+                    model: Users,
+                    as: 'user',
+                    attributes: ['id', 'username', 'firstName', 'lastName', 'avatar']
                 }]
             }
         ]
@@ -91,6 +96,11 @@ const associationStack = [
                             as: 'document_read',
                             attributes: ['id'],
                             required: false
+                        },
+                        {
+                            model: Users,
+                            as: 'user',
+                            attributes: ['id', 'username', 'firstName', 'lastName', 'avatar']
                         }]
                     }
                 ]
@@ -153,7 +163,7 @@ exports.get = {
         const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
         let dueDate = "";
 
-        if (typeof queryString.dueDate != "undefined" && queryString != "") {
+        if (typeof queryString.dueDate != "undefined" && queryString.dueDate != "") {
             if (Array.isArray(queryString.dueDate)) {
                 dueDate = _.reduce(queryString.dueDate, function (obj, values) {
                     const arrValues = JSON.parse(values);
@@ -164,8 +174,6 @@ exports.get = {
                 dueDate = JSON.parse(queryString.dueDate);
             }
         }
-
-        (typeof queryString.dueDate != "undefined") ? (Array.isArray(queryString.dueDate)) ? _.map(queryString.dueDate, (o) => { return JSON.parse(o) }) : JSON.parse(queryString.dueDate) : "";
         const whereObj = {
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
@@ -193,7 +201,7 @@ exports.get = {
                         }
                 }
             } : {},
-            ...(dueDate != "") ? {
+            ...(dueDate != "" && typeof queryString.view == "undefined") ? {
                 dueDate: (queryString.dueDate == "null") ? null :
                     {
                         ...(dueDate != "" && Array.isArray(dueDate)) ? {
@@ -204,10 +212,19 @@ exports.get = {
                         [Sequelize.Op.not]: null
                     }
             } : {},
-            ...(typeof queryString.listType != "undefined" && queryString.listType == "timeline") ? {
-                dueDate: {
-                    [Sequelize.Op.not]: null
-                }
+            ...(typeof queryString.view != "undefined" && queryString.view == "calendar") ? {
+                [Sequelize.Op.or]: [
+                    {
+                        dueDate: {
+                            [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, (o) => { return moment(o, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") })
+                        }
+                    },
+                    {
+                        startDate: {
+                            [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, (o) => { return moment(o, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") })
+                        }
+                    }
+                ]
             } : {},
             ...(typeof queryString.isActive != "undefined" && queryString.isActive != '') ? { isActive: queryString.isActive } : {}
 
@@ -310,6 +327,7 @@ exports.get = {
                 try {
                     Tasks.findAll({
                         where: whereObj,
+                        logging: true,
                         ...options
                     }).map((mapObject) => {
                         const responseData = mapObject.toJSON();
