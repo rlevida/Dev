@@ -599,7 +599,7 @@ export default class TaskForm extends React.Component {
                                                                 onChange={date => {
                                                                     this.handleDate(date, 'startDate');
                                                                 }}
-                                                                value={(moment(task.Selected.startDate, 'MMMM DD, YYYY', true).isValid()) ? task.Selected.startDate : ""}
+                                                                value={(moment(task.Selected.startDate, 'MMMM DD, YYYY', true).isValid()) ? moment(task.Selected.startDate).format('MMMM DD, YYYY') : ""}
                                                                 placeholderText="Select valid start date"
                                                                 class="form-control"
                                                                 onBlur={this.onChangeRaw}
@@ -626,7 +626,7 @@ export default class TaskForm extends React.Component {
                                                             onChange={date => {
                                                                 this.handleDate(date, 'dueDate');
                                                             }}
-                                                            value={(moment(task.Selected.dueDate, 'MMMM DD, YYYY', true).isValid()) ? task.Selected.dueDate : ""}
+                                                            value={(moment(task.Selected.dueDate, 'MMMM DD, YYYY', true).isValid()) ? moment(task.Selected.dueDate).format('MMMM DD, YYYY') : ""}
                                                             onBlur={this.onChangeRaw}
                                                             required={true}
                                                             placeholderText="Select valid start date"

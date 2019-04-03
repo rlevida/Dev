@@ -125,7 +125,7 @@ export default class ProjectList extends React.Component {
         const color = (lateWorkstream > 0) ? "text-red" : (workstreamTaskDueToday > 0) ? "text-yellow" : "text-green";
         const component = (render_type == "text") ? <p class={`mb0 ${color}`}>
             {status}
-        </p> : <span class={`fa fa-circle mb0 mr5 ${color}`}></span>
+        </p> : <i class={`fa fa-circle mb0 mr5 ${color}`}></i>
         return (component);
     }
 
@@ -190,12 +190,21 @@ export default class ProjectList extends React.Component {
                                                             <tr key={index}>
                                                                 <td data-label="Project Name" class="td-left">
                                                                     <p class="mb0">
-                                                                        {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "icon" })}
+                                                                        {
+                                                                            (numberOfTasks > 0) && <span>
+                                                                                {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "icon" })}
+                                                                            </span>
+                                                                        }
                                                                         <Link to={`/projects/${id}`}>{project}</Link>
                                                                     </p>
                                                                 </td>
                                                                 <td data-label="Status">
-                                                                    {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "text" })}
+                                                                    {
+                                                                        (numberOfTasks > 0) && <div>
+                                                                            {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "text" })}
+                                                                        </div>
+                                                                    }
+
                                                                 </td>
                                                                 <td data-label="Type">
                                                                     {
