@@ -5,6 +5,7 @@ import { DragSource, DropTarget, DragPreviewImage } from 'react-dnd';
 import { connect } from "react-redux";
 import { withRouter } from "react-router";
 import { getEmptyImage } from 'react-dnd-html5-backend'
+import moment from "moment";
 
 const itemSource = {
     beginDrag(props) {
@@ -253,8 +254,8 @@ class FieldContainer extends React.Component {
                             </a>
                         }
                     </td>
-                    <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`} /></td>
-                    <td>{displayDateMD(data.dateAdded)}</td>
+                    <td><p class="m0">{data.user.firstName + " " + data.user.lastName}</p></td>
+                    <td>{moment(data.dateAdded).format("MMMM DD, YYYY")}</td>
                     <td>{
                         data.tagWorkstream.length > 0 &&
                         data.tagWorkstream.map((t, tIndex) => {

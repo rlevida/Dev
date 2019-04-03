@@ -27,17 +27,11 @@ class List extends React.Component {
             <div>
                 <div class="row">
                     <div class="col-lg-12">
-                        <div class="card mb20 ">
-                            <div class="card-header bb">
+                        <div class="card">
+                            <div class="mb20 bb">
                                 <DocumentFilter />
                             </div>
-                            <div class={_.isEmpty(Count) ? "linear-background" : ""}>
-                                <div style={document.Filter.status !== "sort" ? { padding: "20px" } : { paddingLeft: '20px', paddingRight: '20x' }}>
-                                    <div class="row">
-                                        <DocumentList />
-                                    </div>
-                                </div>
-                            </div>
+                            <DocumentList />
                         </div>
                     </div>
                 </div>

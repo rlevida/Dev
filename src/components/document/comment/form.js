@@ -98,17 +98,17 @@ class Form extends React.Component {
                                 style={{ backgroundColor: '#ecf0f1', padding: 1 }}
                             />
                         </MentionsInput>
-
+                        {
+                            (typeof conversation.Selected.comment != "undefined" && conversation.Selected.comment != "") &&
+                             <div>
+                                <a href="javascript:void(0);" class="btn btn-violet mt10" title="Add"
+                                    onClick={this.handleSubmit}
+                                >
+                                    <span>Submit Comment</span>
+                                </a>
+                            </div>
+                        }
                     </div>
-                    {
-                        (typeof conversation.Selected.comment != "undefined" && conversation.Selected.comment != "") && <div>
-                            <a href="javascript:void(0);" class="btn btn-primary mt5" title="Add"
-                                onClick={this.handleSubmit}
-                            >
-                                Add
-                            </a>
-                        </div>
-                    }
                 </div>
             </div >
         )

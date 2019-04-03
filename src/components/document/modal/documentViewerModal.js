@@ -31,52 +31,12 @@ class DocumentViewerComponent extends React.Component {
             reminderList: []
         }
         this.handleOnChange = this.handleOnChange.bind(this)
+        this.downloadDocument = this.downloadDocument.bind(this)
     }
-
-    componentDidMount() {
-        const { dispatch, match, loggedUser } = this.props
-
-        // getData(`/api/document/detail/${match.params.documentId}`, {}, (c) => {
-        //     dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: c.data })
-        //     if (c.data.document_read.length === 0) {
-        //         const dataToSubmit = { usersId: loggedUser.data.id, documentId: c.data.id, isDeleted: 0 }
-        //         postData(`/api/document/read`, dataToSubmit, (ret) => { })
-        //     }
-        // })
-    }
-
-    componentWillMount() {
-        // const { document, match } = this.props
-        // if (match.params.documentId) {
-        //     this.fetchData(1)
-        // }
-    }
-
     componentWillUnmount() {
         const { dispatch } = this.props;
         dispatch({ type: "SET_COMMENT_SELECTED", Selected: "" })
     }
-
-    componentDidUpdate(prevProps) {
-        const { dispatch, document } = this.props;
-
-        if (_.isEqual(prevProps.conversation.Filter, this.props.conversation.Filter) == false) {
-            clearTimeout(delayTimer);
-            const { search } = this.props.conversation.Filter;
-            let requestUrl = `/api/conversation/getConversationList?linkType=document&linkId=${document.Selected.id}`;
-
-            delayTimer = setTimeout(() => {
-                if (typeof search !== 'undefined' && search !== '') {
-                    requestUrl += `&search=${search}`
-                }
-                getData(requestUrl, {}, (c) => {
-                    dispatch({ type: 'SET_COMMENT_LIST', list: c.data })
-                })
-            }, 1000);
-        }
-
-    }
-
     fetchData(page) {
         const { dispatch, match } = this.props;
         getData(`/api/conversation/getConversationList?linkType=document&linkId=${match.params.documentId}`, {}, (c) => {
@@ -151,8 +111,8 @@ class DocumentViewerComponent extends React.Component {
         });
     }
 
-    back() {
-
+    downloadDocument(document) {
+        window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
     }
 
     render() {
@@ -161,38 +121,93 @@ class DocumentViewerComponent extends React.Component {
 
         if (typeof document.Selected.id !== 'undefined') {
             ext = getFilePathExtension(document.Selected.name).toLowerCase();
-            documentContentType = mime.contentType(document.Selected.name)
-            if (ext == "pdf" || ext == "jpeg" || ext == "png") {
-                isDocument = false;
+            documentContentType = mime.contentType(document.Selected.name);
+
+            if (ext == "jpeg" || ext == "png" || ext == "jpg") {
+                isDocument = "image";
+            }
+            if (ext == "pdf") {
+                isDocument = "pdf";
             }
         }
         return (
-
-            <div class="modal fade" id="documentViewerModal" tabIndex="-1" role="dialog" aria-labelledby="documentViewerModal" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-                <div class="modal-dialog modal-lg" role="document">
+            <div class="modal right fade" id="documentViewerModal" tabIndex="-1" role="dialog" aria-labelledby="documentViewerModal" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                <div class="modal-lg modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h4 class="modal-title">{document.Selected.origin}
-                                <button type="button" class="close pull-right" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </h4>
+                            <div class="row display-flex vh-center">
+                                <div class="col-md-6 display-flex">
+                                    <a class="text-grey" data-dismiss="modal" aria-label="Close">
+                                        <span>
+                                            <i class="fa fa-chevron-left mr10" aria-hidden="true"></i>
+                                            <strong>Back</strong>
+                                        </span>
+                                    </a>
+                                </div>
+                                <div class="col-md-6 modal-action">
+                                    <div class="button-action">
+                                        <a class="logo-action text-grey" onClick={() => this.downloadDocument(document.Selected)}>
+                                            <i title="DOWNLOAD" class="fa fa-download" aria-hidden="true"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="modal-body text-center" >
-                            {isDocument ?
-                                <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${settings.imageUrl}/upload/${document.Selected.name}`}
-                                    width='100%' height="500" frameBorder='0'>This is an embedded <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>.
+                        {
+                            (typeof document.Selected.id !== 'undefined') &&
+                            <div class="modal-body">
+                                <h2 class="mt20 mb20">
+                                    {
+                                        (document.Selected.origin).substring(0, 40)
+                                    }
+                                    {((document.Selected.origin).length > 40) ? "..." : ""}
+                                </h2>
+                                <div class="row mb20">
+                                    <div class="col-md-6">
+                                        <div class="label-div">
+                                            <label>Uploaded By:</label>
+                                            <div>
+                                                <div class="profile-div">
+                                                    <div class="thumbnail-profile">
+                                                        <img src={document.Selected.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                    </div>
+                                                    <p class="m0">{document.Selected.user.firstName + " " + document.Selected.user.lastName}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="label-div">
+                                            <label>Upload Date:</label>
+                                            <p class="m0">{moment(document.Selected.dateAdded).format('MMMM DD, YYYY')}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="documentImage">
+                                    {
+                                        (isDocument == true) &&
+                                        <iframe
+                                            src={`https://view.officeapps.live.com/op/embed.aspx?src=${settings.imageUrl}/upload/${document.Selected.name}`}
+                                            width='100%' height='623px' frameBorder='0'>
+                                            This is an embedded
+                                            <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>
                                         </iframe>
-                                :
-                                <embed src={`${settings.imageUrl}/upload/${document.Selected.name}`} type={documentContentType} ></embed>
-                            }
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-violet" data-dismiss="modal">Close</button>
-                        </div>
+                                    }
+                                    {
+                                        (isDocument == "image") && <div>
+                                            <img class="img-responsive" src={`${settings.imageUrl}/upload/${document.Selected.name}`} />
+                                        </div>
+
+                                    }
+                                    {
+                                        (isDocument == "pdf") && <embed src={`${settings.imageUrl}/upload/${document.Selected.name}`} type={documentContentType} width='100%' height='623px'></embed>
+                                    }
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
-            </div >
+            </div>
         )
     }
 }

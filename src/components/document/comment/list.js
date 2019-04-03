@@ -19,17 +19,19 @@ export default class List extends React.Component {
         const { conversation } = { ...this.props };
 
         return (
-            <div class="row mt20">
+            <div>
                 {
                     (conversation.List.length > 0) &&
                     _.map(conversation.List, (o, index) => {
+                        const date = moment(o.dateAdded).from(new Date());
                         return (
-                            <div class="col-md-12" key={index} >
-                                <div class="ml15">
+                            <div key={index} class="comment bg-white">
+                                <div class="thumbnail-profile">
+                                    <img src={o.users.avatar} alt="Profile Picture" class="img-responsive" />
+                                </div>
+                                <div>
                                     <MentionConvert string={o.comment} />
-                                    <p style={{ marginTop: 5, fontSize: 10 }}>
-                                        By: {o.users.firstName + ' ' + o.users.lastName + " - " + moment(o.dateAdded).format("MMM DD, YYYY")}
-                                    </p>
+                                    <p class="note m0">Posted {date} by {o.users.firstName + " " + o.users.lastName}.</p>
                                 </div>
                             </div>
                         )

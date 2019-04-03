@@ -123,17 +123,21 @@ class DocumentFilter extends React.Component {
     }
 
     setDropDown(name, e) {
-        const { dispatch, history, match, folder } = this.props;
+        const { dispatch, history, match, folder, document } = this.props;
         const projectId = match.params.projectId;
 
         history.push(`/projects/${projectId}/files`);
+        
         if (!_.isEmpty(folder.SelectedLibraryFolderName) || !_.isEmpty(folder.SelectedNewFolderName)) {
             dispatch({ type: 'CLEAR_FOLDER' })
         }
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
-        dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
-        dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
-        dispatch({ type: "SET_DOCUMENT_FILTER", filter: { [name]: e }, name: name });
+        if(e != document.Filter.status){
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+            dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: {} })
+            dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
+            dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
+            dispatch({ type: "SET_DOCUMENT_FILTER", filter: { [name]: e }, name: name });
+        }
     }
 
     handleOnChange(e) {
@@ -150,30 +154,29 @@ class DocumentFilter extends React.Component {
                         <div class="flex-row tab-row mb0">
                             <div class="flex-col">
                                 <a class={document.Filter.status === 'active' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'active')}>Active Files</a>
+                            </div>
+                            <div class="flex-col">
                                 <a class={document.Filter.status === 'library' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'library')}>Library</a>
+                            </div>
+                            <div class="flex-col">
                                 <a class={document.Filter.status === 'sort' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'sort')}>Sort Files</a>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="button-action">
-                            <a class="btn btn-default mr10" data-toggle="modal" data-target="#">
-                                <span>
-                                    <i class="fa fa-search fa-lg"></i>
-                                </span>
-                            </a>
                             <a class="btn btn-default mr10" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>
                                 <span>
                                     <i class="fa fa-plus mr10" aria-hidden="true"></i>
-                                    New File
+                                    Add New File
                                 </span>
                             </a>
                             {
                                 (document.Filter.status !== 'active') &&
                                 <a class="btn btn-default" data-toggle="modal" data-target="#folderModal">
                                     <span>
-                                        <i class="fa fa-folder fa-lg mr5"></i>
-                                        New Folder
+                                        <i class="fa fa-folder fa-lg mr10"></i>
+                                        Add New Folder
                                     </span>
                                 </a>
                             }

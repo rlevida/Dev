@@ -305,7 +305,7 @@ export default class TaskDetails extends React.Component {
 
     viewDocument(data) {
         const { dispatch } = { ...this.props };
-  
+
         dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
         $(`#documentViewerModal`).modal('show')
     }
@@ -684,13 +684,15 @@ export default class TaskDetails extends React.Component {
                                                                         style={{ backgroundColor: '#ecf0f1', padding: 1 }}
                                                                     />
                                                                 </MentionsInput>
-                                                                <a
-                                                                    class="btn btn-violet mt10"
-                                                                    onClick={this.addComment}
-                                                                    disabled={(conversation.Loading == "SUBMITTING")}
-                                                                ><span>{
-                                                                    (conversation.Loading == "SUBMITTING") ? "Sending ..." : "Submit Comment"
-                                                                }</span></a>
+                                                                {
+                                                                    (commentText != "") && <a
+                                                                        class="btn btn-violet mt10"
+                                                                        onClick={this.addComment}
+                                                                        disabled={(conversation.Loading == "SUBMITTING")}
+                                                                    ><span>{
+                                                                        (conversation.Loading == "SUBMITTING") ? "Sending ..." : "Submit Comment"
+                                                                    }</span></a>
+                                                                }
                                                             </div>
                                                         </div>
                                                     </div>

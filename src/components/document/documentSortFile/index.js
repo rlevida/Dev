@@ -139,55 +139,74 @@ class DocumentNew extends React.Component {
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
 
         return (
-            <div class="mb20">
-                <div class="col-lg-6 col-md-6">
-                    <label class="sort-file-label" htmlFor="activeFiles">Active Files</label>
-                    <table class="table-document mb40" id="activeFiles">
-                        <thead>
-                            <tr>
-                                <th scope="col" class="td-left" >File Name</th>
-                                <th scope="col">Uploaded By</th>
-                                <th scope="col">Upload Date</th>
-                                <th scope="col">Workstream</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {document.Loading === "" &&
-                                _.orderBy(document.List, ['dateAdded'], ['desc']).map((data, index) => {
-                                    return (
-                                        <DocumentContainer
-                                            data={data}
-                                            index={index}
-                                            key={index}
-                                            moveTo={(folderData, documentData) => this.moveTo(folderData, documentData)}
-                                        />
-                                    )
-                                })
+            <div class={(document.Loading == "RETRIEVING" && (document.List).length == 0) ? "linear-background" : ""}>
+                <div class="row">
+                    <div class="col-lg-8 col-md-6">
+                        <div class="card-header">
+                            {
+                                (document.Loading === "") && <h4>Active Files</h4>
                             }
-                        </tbody>
-                    </table>
-                    <div class="text-center">
-                        {
-                            ((currentPage != lastPage) && document.List.length > 0 && document.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
-                        }
+                        </div>
+                        <div class="card-body m0">
+                            {
+                                ((document.List).length > 0) && <div>
+                                    <table class="table-document" id="activeFiles">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" class="td-left" >File Name</th>
+                                                <th scope="col">Uploaded By</th>
+                                                <th scope="col">Upload Date</th>
+                                                <th scope="col">Workstream</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {document.Loading === "" &&
+                                                _.orderBy(document.List, ['dateAdded'], ['desc']).map((data, index) => {
+                                                    return (
+                                                        <DocumentContainer
+                                                            data={data}
+                                                            index={index}
+                                                            key={index}
+                                                            moveTo={(folderData, documentData) => this.moveTo(folderData, documentData)}
+                                                        />
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
+                                    {
+                                        ((currentPage != lastPage) && document.List.length > 0 && document.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNextResult()}>Load More Documents</a></p>
+                                    }
+                                    {
+                                        ((_.isEmpty(Count) === false) && document.Loading === "RETRIEVING") && <Loading />
+                                    }
+                                    {
+                                        (document.List.length === 0 && document.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                    }
+                                </div>
+                            }
+                        </div>
                     </div>
-                    {
-                        ((_.isEmpty(Count) === false) && document.Loading === "RETRIEVING") && <Loading />
-                    }
-                    {
-                        (document.List.length === 0 && document.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
-                    }
-                </div>
-                <div class="col-lg-6 col-md-6">
-                    <label class="sort-file-label" htmlFor="library">Library</label>
-                    <div id="library">
-                        {_.orderBy(folder.List, ['dateAdded'], ['desc']).map((data, index) => {
-                            return (
-                                <FolderContainer data={data} moveTo={(folderObj, documentObj) => this.moveTo(folderObj, documentObj)} key={index} />
-                            )
-                        })}
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card-header">
+                            {
+                                (document.Loading === "") && <h4>Library</h4>
+                            }
+                        </div>
+                        <div class="card-body m0">
+                            <div id="library">
+                                {
+                                    ((document.List).length > 0) && <div>
+                                        {_.orderBy(folder.List, ['dateAdded'], ['desc']).map((data, index) => {
+                                            return (
+                                                <FolderContainer data={data} moveTo={(folderObj, documentObj) => this.moveTo(folderObj, documentObj)} key={index} />
+                                            )
+                                        })}
+                                    </div>
+                                }
+                            </div>
+                        </div>
                     </div>
-
                 </div>
             </div>
         )

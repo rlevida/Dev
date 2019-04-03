@@ -6,6 +6,7 @@ import { connect } from "react-redux"
 import { withRouter } from "react-router";
 
 import DocumentSortFile from "./documentSortFile"
+import moment from "moment";
 
 @connect((store) => {
     return {
@@ -235,102 +236,106 @@ class DocumentList extends React.Component {
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
         let tagCount = 0;
-
         return (
-            <div class="mb20">
-                {document.Filter.status === 'library' &&
-                    <div class='selected-folder'>
-                        <a href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>All Files</a>
-                        {(folder.SelectedFolderName.length > 0) &&
-                            folder.SelectedFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })
-                        }
-                    </div>
-                }
-                {document.Filter.status !== 'sort' ?
-                    <div class="col-lg-12 col-md-12">
-                        {(_.isEmpty(Count) === false) &&
-                            <table class="table-document mb40">
-                                <thead>
-                                    <tr>
-                                        <th scope="col" class="td-left" >File Name</th>
-                                        <th scope="col">Uploaded By</th>
-                                        <th scope="col">Upload Date</th>
-                                        <th scope="col">Workstream</th>
-                                        <th scope="col">Read On</th>
-                                        <th scope="col">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {document.Loading === "" &&
-                                        _.orderBy(document.List, ['dateAdded'], ['desc']).map((data, index) => {
-                                            const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
-
-                                            return (
-                                                <tr key={index}>
-                                                    <td class="document-name">
-                                                        <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
-                                                            {data.type === "folder" && <span class="fa fa-folder fa-lg read mr10"></span>}
-                                                            {data.type === "folder" && <span class="read">{documentName}</span>}
-                                                            {data.type === "document" && < span class={data.isRead ? 'read' : 'unread'}>{documentName}</span>}
-                                                        </a>
-                                                    </td>
-                                                    <td class="avatar"><img src="/images/user.png" title={`${data.user.emailAddress}`} /></td>
-                                                    <td>{displayDateMD(data.dateAdded)}</td>
-                                                    <td>{
-                                                        data.tagWorkstream.length > 0 &&
-                                                        data.tagWorkstream.map((t, tIndex) => {
-                                                            tagCount += t.label.length
-                                                            let tempCount = tagCount;
-                                                            if (tagCount > 16) { tagCount = 0 }
-                                                            return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
-                                                        })
-                                                    }
-                                                    </td>
-                                                    <td>{data.isRead ? displayDateMD(data.document_read[0].dateUpdated) : '--'}</td>
-                                                    <td>
-                                                        <span class="document-action document-active" title="Download" onClick={() => this.downloadDocument(data)}><i class="fa fa-download fa-lg"></i></span>
-                                                        {document.Filter.status === 'active' && <span class={`document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="Archive"><i class="fa fa-archive fa-lg"></i></span>}
-                                                        <span class="document-action document-active" title="Delete" data-toggle="modal" data-target="#deleteModal" onClick={() => dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data })}><i class="fa fa-trash fa-lg"></i></span>
-                                                    </td>
-                                                </tr>
-                                            )
-
-                                        })
+            <div>
+                {(document.Filter.status) !== 'sort' &&
+                    <div>
+                        <div class="card-header">
+                            {(document.Filter.status === 'library' && document.Loading === "") &&
+                                <div class='mt20'>
+                                    <h4><a href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>All Files</a></h4>
+                                    {(folder.SelectedFolderName.length > 0) &&
+                                        folder.SelectedFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })
                                     }
-
-                                </tbody>
-
-                            </table>
-                        }
-                        <div class="text-center">
-                            {/* {_.isEmpty(folder.Selected) === false && document.List.length === 0 &&
-                                <div class="d-block mb20">
-                                    <a class="btn btn-default mr10" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>
-                                        New File
-                                    </a>
                                 </div>
-                            }
-                            {(document.Filter.status !== 'active' && _.isEmpty(folder.Selected) === false) &&
-                                <div class="d-block mb20">
-                                    <button class="btn btn-default" data-toggle="modal" data-target="#folderModal">
-                                        Create New Folder Here
-                                 </button>
-                                </div>
-                            } */}
-                            {
-                                ((currentPage != lastPage) && document.List.length > 0 && document.Loading != "RETRIEVING") && <a onClick={() => this.getNextResult()}>Load More Documents</a>
                             }
                         </div>
-                        {
-                            ((_.isEmpty(Count) === false) && document.Loading === "RETRIEVING") && <Loading />
-                        }
-                        {
-                            (document.List.length === 0 && document.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
-                        }
+                        <div class={(document.Loading == "RETRIEVING" && (document.List).length == 0) ? "linear-background" : ""}>
+                            <div class="card-body m0">
+                                <div>
+                                    {
+                                        ((document.List).length > 0) && <table class="table-document">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col" class="td-left" >File Name</th>
+                                                    <th scope="col">Uploaded By</th>
+                                                    <th scope="col">Upload Date</th>
+                                                    <th scope="col">Workstream</th>
+                                                    <th scope="col">Read On</th>
+                                                    <th scope="col">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {document.Loading === "" &&
+                                                    _.orderBy(document.List, ['dateAdded'], ['desc']).map((data, index) => {
+                                                        const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
 
+                                                        return (
+                                                            <tr key={index}>
+                                                                <td class="document-name">
+                                                                    <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
+                                                                        {data.type === "folder" && <span class="fa fa-folder fa-lg read mr10"></span>}
+                                                                        {data.type === "folder" && <span class="read">{documentName}</span>}
+                                                                        {data.type === "document" && < span class={data.isRead ? 'read' : 'unread'}>{documentName}</span>}
+                                                                    </a>
+                                                                </td>
+                                                                <td><p class="m0">{data.user.firstName + " " + data.user.lastName}</p></td>
+                                                                <td>{moment(data.dateAdded).format("MMMM DD, YYYY")}</td>
+                                                                <td>{
+                                                                    data.tagWorkstream.length > 0 &&
+                                                                    data.tagWorkstream.map((t, tIndex) => {
+                                                                        tagCount += t.label.length
+                                                                        let tempCount = tagCount;
+                                                                        if (tagCount > 16) { tagCount = 0 }
+                                                                        return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
+                                                                    })
+                                                                }
+                                                                </td>
+                                                                <td>{data.isRead ? moment(data.document_read[0].dateUpdated).format("MMMM DD, YYYY") : ''}</td>
+                                                                <td>
+                                                                    <a href="javascript:void(0);"
+                                                                        onClick={() => this.downloadDocument(data)}
+                                                                        class="btn btn-action">
+                                                                        <span class="fa fa-download" title="DOWNLOAD"></span>
+                                                                    </a>
+                                                                    {
+                                                                        (document.Filter.status === 'active') && <a href="javascript:void(0);"
+                                                                            onClick={() => this.downloadDocument(data)}
+                                                                            class="btn btn-action">
+                                                                            <span class={`fa fa-archive document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="ARCHIVED"></span>
+                                                                        </a>
+                                                                    }
+                                                                    <a href="javascript:void(0);"
+                                                                        data-toggle="modal" 
+                                                                        data-target="#deleteModal" 
+                                                                        onClick={() => dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data })}
+                                                                        class="btn btn-action">
+                                                                        <span class="fa fa-trash" title="DELETE"></span></a>
+                                                                </td>
+                                                            </tr>
+                                                        )
+
+                                                    })
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                    {
+                                        ((currentPage != lastPage) && document.List.length > 0 && document.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNextResult()}>Load More Documents</a></p>
+                                    }
+                                    {
+                                        (document.Loading == "RETRIEVING" && (document.List).length > 0) && <Loading />
+                                    }
+                                    {
+                                        (document.List.length === 0 && document.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    :
-                    <DocumentSortFile />
+                }
+                {
+                    (document.Filter.status) === 'sort' && <div><DocumentSortFile /></div>
                 }
             </div>
         )

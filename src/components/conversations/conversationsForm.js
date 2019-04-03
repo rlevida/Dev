@@ -403,9 +403,8 @@ export default class ConversationForm extends React.Component {
                                                             (conversationDocuments.length > 0) && _.map(conversationDocuments, ({ document }, index) => {
                                                                 return (
                                                                     <p class="ml10" key={index}>
-                                                                    test123123123123
                                                                         <i class="fa fa-file mr5" aria-hidden="true"></i>
-                                                                        <a href="javascript:void(0)" onClick={() => this.viewDocument(document)}>{document.origin}</a>
+                                                                        <a href="javascript:void(0)" onClick={() => this.viewDocument(document)}>{(document.origin).substring(0, 50)}{((document.origin).length > 50) ? "..." : ""}</a>
                                                                     </p>
                                                                 )
                                                             })
@@ -419,7 +418,14 @@ export default class ConversationForm extends React.Component {
                             }
                         </div>
                         <div>
-                            <input type="file" id="message-file" ref="fileUploader" style={{ display: "none" }} multiple onChange={this.handleFile} />
+                            <input accept=".jpg,.png,.pdf,.doc,.docx,.xlsx"
+                                type="file"
+                                id="message-file"
+                                ref="fileUploader"
+                                style={{ display: "none" }}
+                                multiple
+                                onChange={this.handleFile}
+                            />
                         </div>
                         <div class="form-group" id="message-div">
                             <textarea

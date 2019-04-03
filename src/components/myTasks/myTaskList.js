@@ -15,16 +15,16 @@ export default class MyTaskList extends React.Component {
         const { loggedUser } = this.props;
         return (
             <div>
-                <div class="mt40 mb40">
+                <div class="mt20 mb20">
                     <TaskListCategory date="Today" user_id={loggedUser.data.id} />
                 </div>
-                <div class="mb40">
+                <div class="mb20">
                     <TaskListCategory date="This week" user_id={loggedUser.data.id} />
                 </div>
-                <div class="mb40">
+                <div class="mb20">
                     <TaskListCategory date="This month" user_id={loggedUser.data.id} />
                 </div>
-                <div class="mb40">
+                <div class="mb20">
                     <TaskListCategory date="Succeeding month" user_id={loggedUser.data.id} />
                 </div>
             </div>

@@ -3,6 +3,10 @@ html, body {
   color: #818181;
 }
 
+h2 {
+  font-size: 23px!important;
+}
+
 p, label, table td {
   color: #818181;
 }
@@ -1389,7 +1393,14 @@ input:checked + .slider:before {
 }
 
 .btn-action{
-  color: #c4c4c4;
+  color: #818181 !important;
+  font-size: 15px !important;
+  font-weight: 900!important;
+  padding: 10px!important;  
+}
+
+.btn-action:not(:last-child){
+  margin-right: 5px;
 }
 
 .delete-modal .fa-exclamation-circle{
@@ -1660,8 +1671,16 @@ table ul.dropdown-menu{
   max-width:160px;
 }
 
-#user-list .actions {
+#user-list .actions div {
   position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+#user-list .actions .switch {
+  margin: 0px;
+  margin-right: 10px;
 }
 .td-oblong {
   border: 1px #f6f6f6 solid;
@@ -1816,6 +1835,7 @@ textarea::-webkit-scrollbar-thumb {
   display: flex;
   align-items: center;
   margin-bottom: 5px;
+  min-height: 35px;
 }
 
 .label-div label{
@@ -2035,7 +2055,8 @@ textarea::-webkit-scrollbar-thumb {
   font-weight: 600
 }
 
-#project-info label{
+#project-info label,
+#file-info label{
   font-size: 12px;
   margin: 0px;
 }
@@ -2175,10 +2196,9 @@ textarea::-webkit-scrollbar-thumb {
   background-color: #f5f5f5;
   display: flex;
   align-items: center;
-}
-
-.file-div{
+  max-width: 360px;
   margin-bottom: 5px;
+
 }
 
 .file-div p{
@@ -2304,6 +2324,18 @@ textarea::-webkit-scrollbar-thumb {
   margin-bottom: 10px;
 }
 
+td .display-flex{
+  justify-content: center;
+}
+
+.open{
+  position: relative;
+}
+
+#documentImage img{
+  margin: 0 auto;
+}
+
 @media screen and (max-width: 600px) {
   table {
     border: 0;
@@ -2356,6 +2388,9 @@ textarea::-webkit-scrollbar-thumb {
 /* Extra Small */
 
 @media(max-width:767px) {
+  #user-list .actions div{
+    justify-content: flex-end;
+  }
   .status-multiple  {
     display: block;
   }
@@ -2522,6 +2557,10 @@ textarea::-webkit-scrollbar-thumb {
   #chat-area{
     padding-left: 5px;
     padding-right: 5px;
+  }
+
+  td .display-flex{
+    justify-content: flex-end;
   }
 }
 
@@ -2722,16 +2761,6 @@ textarea::-webkit-scrollbar-thumb {
   height: 26px;
   width: 32px;
 }
-
-.table-document .document-action{
-  padding: 6px;
-  cursor: pointer;
-}
-.table-document .document-action:hover{
-  background-color: #c1c0c0;
-  border-radius: 2px;
-}
-
 .document-active{
   color:grey;
 }
@@ -2749,10 +2778,6 @@ textarea::-webkit-scrollbar-thumb {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.document-name a .read{
-  color:#4F4F4F;
-}
-
 .document-name a .unread{
   color:#5bc0de!important;
 }

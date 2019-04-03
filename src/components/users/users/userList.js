@@ -168,12 +168,14 @@ export default class UserList extends React.Component {
                                             <td data-label="Type">{user.userType}</td>
                                             <td data-label="Roles">{this.renderArrayTd(_.map(user.user_role, (el) => { return el.role.role }))}</td>
                                             <td data-label="Actions" class="actions">
-                                                <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />
-                                                <a href="javascript:void(0);" class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown"><span class="fa fa-ellipsis-v" title="MORE"></span></a>
-                                                <ul class="dropdown-menu">
-                                                    <li><a onClick={() => this.handleEdit(user)}>Edit</a></li>
-                                                    <li><a onClick={() => this.deleteData(user)}>Delete</a></li>
-                                                </ul>
+                                                <div>
+                                                    <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />
+                                                    <a href="javascript:void(0);" class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown"><span class="fa fa-ellipsis-v" title="MORE"></span></a>
+                                                    <ul class="dropdown-menu">
+                                                        <li><a onClick={() => this.handleEdit(user)}>Edit</a></li>
+                                                        <li><a onClick={() => this.deleteData(user)}>Delete</a></li>
+                                                    </ul>
+                                                </div>
                                             </td>
                                         </tr>
                                     )

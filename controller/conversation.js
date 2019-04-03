@@ -245,19 +245,26 @@ exports.get = {
                         isDeleted: 0
                     },
                     required: false,
-                    include: [{
-                        model: Document,
-                        as: 'document',
-                        include: [{
-                            model: DocumentRead,
-                            as: 'document_read',
+                    include: [
+                        {
+                            model: Document,
+                            as: 'document',
+                            include: [{
+                                model: DocumentRead,
+                                as: 'document_read',
+                                required: false
+                            },
+                            {
+                                model: Users,
+                                as: 'user',
+                                attributes: ['id', 'username', 'firstName', 'lastName', 'avatar']
+                            }],
+                            where: {
+                                isDeleted: 0
+                            },
                             required: false
-                        }],
-                        where: {
-                            isDeleted: 0
-                        },
-                        required: false
-                    }]
+                        }
+                    ]
                 },
                 {
                     model: Users,
@@ -417,6 +424,11 @@ exports.post = {
                                     model: DocumentRead,
                                     as: 'document_read',
                                     required: false
+                                },
+                                {
+                                    model: Users,
+                                    as: 'user',
+                                    attributes: ['id', 'username', 'firstName', 'lastName', 'avatar']
                                 }],
                                 where: {
                                     isDeleted: 0
@@ -917,6 +929,11 @@ exports.post = {
                                         model: DocumentRead,
                                         as: 'document_read',
                                         required: false
+                                    },
+                                    {
+                                        model: Users,
+                                        as: 'user',
+                                        attributes: ['id', 'username', 'firstName', 'lastName', 'avatar']
                                     }],
                                     where: {
                                         isDeleted: 0

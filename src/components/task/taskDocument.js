@@ -31,6 +31,11 @@ export default class TaskDocument extends React.Component {
         });
     }
 
+    componentWillMount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+    }
+
     handleSubmit() {
         const { document, loggedUser, task, dispatch, project } = { ...this.props };
         let data = new FormData();
@@ -97,57 +102,55 @@ export default class TaskDocument extends React.Component {
 
         return (
             <form id="task-document-form">
-                <div class="mt10 row">
-                    <div class="col-lg-8 col-sm-12">
-                        <div class="form-group">
-                            <label for="email">Document:<span class="text-red">*</span></label>
-                            <Dropzone
-                                accept=".jpg,.png,.pdf,.doc,.docx,.xlsx"
-                                onDrop={this.onDrop}
-                                class="document-file-upload mb10"
-                                id="task-document"
-                                disabled={(Loading == "SUBMITTING")}
-                            >
-                                <div class="dropzone-wrapper">
-                                    <div class="upload-wrapper">
-                                        {
-                                            (Files.length > 0) ?
-                                                <div class="img-wrapper">
-                                                    {
-                                                        (fileExtention == "png" || fileExtention == "jpg" || fileExtention == "jpeg") ?
-                                                            <img src={Files[0].preview} alt="Task Document" class="img-responsive" /> :
-                                                            <i class={`fa ${(Files.length > 1) ? "fa-files-o" : "fa-file"}`} aria-hidden="true"></i>
-                                                    }
+                <div class="mt10">
+                    <div class="form-group">
+                        <label for="email">Document:<span class="text-red">*</span></label>
+                        <Dropzone
+                            accept=".jpg,.png,.pdf,.doc,.docx,.xlsx"
+                            onDrop={this.onDrop}
+                            class="document-file-upload mb10"
+                            id="task-document"
+                            disabled={(Loading == "SUBMITTING")}
+                        >
+                            <div class="dropzone-wrapper">
+                                <div class="upload-wrapper">
+                                    {
+                                        (Files.length > 0) ?
+                                            <div class="img-wrapper">
+                                                {
+                                                    (fileExtention == "png" || fileExtention == "jpg" || fileExtention == "jpeg") ?
+                                                        <img src={Files[0].preview} alt="Task Document" class="img-responsive" /> :
+                                                        <i class={`fa ${(Files.length > 1) ? "fa-files-o" : "fa-file"}`} aria-hidden="true"></i>
+                                                }
 
-                                                </div>
-                                                : <p class="m0">Drop task document</p>
-                                        }
-                                    </div>
+                                            </div>
+                                            : <p class="m0">Drop task document</p>
+                                    }
                                 </div>
-                            </Dropzone>
-                            {
-                                _.map(Files, ({ name, id }, index) => {
-                                    return (
-                                        <div class="file-div" key={index}>
-                                            <p class="m0"><strong>{name.substring(0, 30)}{(name.length > 30) ? "..." : ""}</strong></p>
-                                            <a onClick={() => this.removefile(index)}><i class="fa fa-times ml10" aria-hidden="true"></i></a>
-                                        </div>
-                                    )
-                                })
-                            }
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Tag Checklist:</label>
-                            <DropDown multiple={true}
-                                required={false}
-                                options={_.map(_.filter(checklist, (o) => { return o.isDocument == 1 }), ({ id, description }) => { return { id, name: description } })}
-                                selected={(typeof Selected.tagged == "undefined") ? [] : Selected.tagged}
-                                onChange={(e) => this.setDropDownMultiple("tagged", e)}
-                                placeholder={"Search or select task"}
-                                isClearable={(checklist.length > 0)}
-                                disabled={(Loading == "SUBMITTING")}
-                            />
-                        </div>
+                            </div>
+                        </Dropzone>
+                        {
+                            _.map(Files, ({ name, id }, index) => {
+                                return (
+                                    <div class="file-div" key={index}>
+                                        <p class="m0"><strong>{name.substring(0, 30)}{(name.length > 30) ? "..." : ""}</strong></p>
+                                        <a onClick={() => this.removefile(index)}><i class="fa fa-times ml10" aria-hidden="true"></i></a>
+                                    </div>
+                                )
+                            })
+                        }
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Tag Checklist:</label>
+                        <DropDown multiple={true}
+                            required={false}
+                            options={_.map(_.filter(checklist, (o) => { return o.isDocument == 1 }), ({ id, description }) => { return { id, name: description } })}
+                            selected={(typeof Selected.tagged == "undefined") ? [] : Selected.tagged}
+                            onChange={(e) => this.setDropDownMultiple("tagged", e)}
+                            placeholder={"Search or select task"}
+                            isClearable={(checklist.length > 0)}
+                            disabled={(Loading == "SUBMITTING")}
+                        />
                     </div>
                 </div>
                 {

@@ -187,52 +187,57 @@ class DocumentViewerComponent extends React.Component {
                         </div>
                         <div class="card-body">
                             <div class="mb20">
-                                <div class="row">
-                                    <div class="col-lg-8 col-md-8 col-xs-8" style={{ height: "100%" }}>
+                                <div class="row content-row">
+                                    <div class="col-md-7 col-sm-12" style={{ height: "100%" }}>
                                         <div id="documentImage" style={{ textAlign: "center", height: "100%" }}>
-                                            {isDocument ?
+                                            {(isDocument) ?
                                                 <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${settings.imageUrl}/upload/${document.Selected.name}`}
                                                     width='100%' height='623px' frameBorder='0'>This is an embedded <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>.
-                                        </iframe>
+                                                </iframe>
                                                 :
                                                 <embed src={`${settings.imageUrl}/upload/${document.Selected.name}`} type={documentContentType} width={(ext == 'pdf' || ext == 'png') ? '100%' : "auto"} height={ext == 'pdf' ? '100%' : "auto"}></embed>
                                             }
                                         </div>
                                     </div>
-                                    <div class="col-lg-4 col-md-4 col-xs-12">
-                                        <div class="row  m10 mb40">
-                                            <div class="col-lg-10 col-md-10 col-xs-10">
-                                                <input class="form-control" type="text" placeholder="Search" name='search' aria-label="Search" value={(typeof conversation.Filter.search !== 'undefined') ? conversation.Filter.search : ''} onChange={(e) => this.handleOnChange(e)} />
-                                            </div>
-                                            <div class="col-lg-2 col-md-2 col-xs-2">
-                                                <div class="dropdown">
-                                                    <button class="btn btn-default dropdown-toggle" type="button" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">&#8226;&#8226;&#8226;</button>
-                                                    <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
-                                                        <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(document.Selected)}>Download</a></li>
-                                                        <li>
-                                                            <a onClick={() => this.starredDocument({ isStarred: document.Selected.isStarred, id: document.Selected.id, origin: document.Selected.origin })}>
-                                                                {document.Selected.isStarred ? 'Unstarred' : 'Star'}
-                                                            </a>
-                                                        </li>
-                                                        {/* <li><a href="javascript:void(0);" data-tip="Delete" onClick={e => this.deleteDocument(document.Selected.id)}>Delete</a></li> */}
-                                                    </ul>
+                                    <div class="col-md-5 col-sm-12">
+                                        <div class="mb20 display-flex">
+                                            <input class="form-control" type="text" placeholder="Search" name='search' aria-label="Search" value={(typeof conversation.Filter.search !== 'undefined') ? conversation.Filter.search : ''} onChange={(e) => this.handleOnChange(e)} />
+                                            <a class="logo-action text-grey dropdown-toggle" id="documentViewerActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <i class="fa fa-ellipsis-v ml20" aria-hidden="true"></i>
+                                            </a>
+                                            <ul class="dropdown-menu  pull-right" aria-labelledby="documentViewerActions">
+                                                <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.downloadDocument(document.Selected)}>Download</a></li>
+                                                <li>
+                                                    <a onClick={() => this.starredDocument({ isStarred: document.Selected.isStarred, id: document.Selected.id, origin: document.Selected.origin })}>
+                                                        {document.Selected.isStarred ? 'Unstarred' : 'Star'}
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        {
+                                            (typeof document.Selected.id !== 'undefined') && <div id="file-info" class="mb20">
+                                                <h4>File Details</h4>
+                                                <div>
+                                                    <label class="m0">File Name:</label>
+                                                    <p>{document.Selected.origin}</p>
+                                                </div>
+                                                <div class="mb10">
+                                                    <label class="m0">Uploaded by:</label>
+                                                    <div class="profile-div">
+                                                        <div class="thumbnail-profile">
+                                                            <img src={document.Selected.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                        </div>
+                                                        <p>{document.Selected.user.firstName+" "+document.Selected.user.lastName}</p>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label class="m0">Uploaded Date:</label>
+                                                    <p>{moment(document.Selected.dateAdded).format('MMMM DD, YYYY')}</p>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row  m10">
-                                            <div class="col-lg-12 col-md-12 col-xs-12">
-                                                <span class="glyphicon glyphicon-file"></span>
-                                                {typeof document.Selected.id !== 'undefined' && document.Selected.origin}
-                                                <br />
-                                                Uploaded by {typeof document.Selected.id !== 'undefined' && document.Selected.user.emailAddress}
-                                                <br />
-                                                {typeof document.Selected.id !== 'undefined' && moment(document.Selected.dateAdded).format('L')}
-                                                <br />
-                                                <h4>Comments</h4>
-                                                <hr />
-                                                <DocumentComment />
-                                            </div>
-                                        </div>
+                                        }
+                                        <h4>Comments</h4>
+                                        <DocumentComment />
                                     </div>
                                 </div>
                             </div>

@@ -256,7 +256,7 @@ export default class ProjectList extends React.Component {
                                                                     }
                                                                 </td>
                                                                 <td data-label="Members">
-                                                                    <div class="display-flex flex-center">
+                                                                    <div class="display-flex">
                                                                         {
                                                                             _.map(_.take(members, 2), ({ firstName, lastName, avatar }, index) => {
                                                                                 return (
@@ -293,7 +293,7 @@ export default class ProjectList extends React.Component {
                                                                     <a href="javascript:void(0);"
                                                                         onClick={(e) => this.handleArchive(projectElem)}
                                                                         class={projectElem.allowedDelete == 0 ? 'hide' : 'btn btn-action'}>
-                                                                        <span class="fa fa-trash"></span></a>
+                                                                        <span class="fa fa-trash" title="DELETE"></span></a>
                                                                 </td>
                                                             </tr>
                                                         )
