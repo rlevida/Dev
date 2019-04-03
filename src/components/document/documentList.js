@@ -175,6 +175,7 @@ class DocumentList extends React.Component {
                     $(`#documentViewerModal`).modal('show')
                 });
             } else {
+                console.log(data)
                 dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
                 $(`#documentViewerModal`).modal('show')
             }

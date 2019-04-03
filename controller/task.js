@@ -4,7 +4,7 @@ const moment = require("moment");
 
 const { defaultDelete } = require("./");
 const models = require('../modelORM');
-const { ChecklistDocuments, Document, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, Type, UsersTeam, Teams, Tag, sequelize } = models;
+const { ChecklistDocuments, Document, DocumentRead, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, Type, UsersTeam, Teams, Tag, sequelize } = models;
 
 const dbName = "task";
 const func = global.initFunc();
@@ -19,7 +19,13 @@ const associationStack = [
         include: [
             {
                 model: Document,
-                as: 'document'
+                as: 'document',
+                include: [{
+                    model: DocumentRead,
+                    as: 'document_read',
+                    attributes: ['id'],
+                    required: false
+                }]
             }
         ]
     },
@@ -79,7 +85,13 @@ const associationStack = [
                 include: [
                     {
                         model: Document,
-                        as: 'document'
+                        as: 'document',
+                        include: [{
+                            model: DocumentRead,
+                            as: 'document_read',
+                            attributes: ['id'],
+                            required: false
+                        }]
                     }
                 ]
             }
@@ -786,7 +798,7 @@ exports.post = {
     document: (req, cb) => {
         const formidable = global.initRequire("formidable");
         const func = global.initFunc();
-        const projectId = req.query.projectId;
+        const { projectId, workstreamId } = { ...req.query };
         let form = new formidable.IncomingForm();
         let files = [];
         let type = "upload";
@@ -846,6 +858,17 @@ exports.post = {
                 const documentUploadResult = await _.map((documentUpload), ({ id }) => { return { documentId: id, linkType: 'project', linkId: projectId } });
                 DocumentLink.bulkCreate(documentUploadResult).map((o) => { return o.toJSON() })
 
+                const workstreamTag = _.map(documentUpload, ({ id }) => {
+                    return {
+                        linkType: "workstream",
+                        linkId: workstreamId,
+                        tagType: "document",
+                        tagTypeId: id
+                    }
+                });
+
+                Tag.bulkCreate(workstreamTag);
+
                 if (checklistStack.length > 0) {
                     const checklistTag = _(documentUpload)
                         .map(({ id }) => {
@@ -898,6 +921,7 @@ exports.post = {
                             tagTypeId: id
                         }
                     });
+
                     Tag.bulkCreate(taskTag)
                         .map((o) => { return o.toJSON() })
                         .then((o) => {
@@ -912,7 +936,13 @@ exports.post = {
                                     include: [
                                         {
                                             model: Document,
-                                            as: 'document'
+                                            as: 'document',
+                                            include: [{
+                                                model: DocumentRead,
+                                                as: 'document_read',
+                                                attributes: ['id'],
+                                                required: false
+                                            }]
                                         }
                                     ]
                                 }
