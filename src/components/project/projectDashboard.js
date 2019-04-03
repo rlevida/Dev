@@ -139,7 +139,7 @@ export default class ProjectDashboard extends React.Component {
                     ["Completed", completed.length],
                     ["Due Today", dueToday],
                     ["Delayed", issues],
-                    ["In Progress", task.length]
+                    ["In Progress", task.length - (completed.length + dueToday + issues)]
                 ],
                 title: workstream,
                 total: (completion_rate.completed.value).toFixed(2),
