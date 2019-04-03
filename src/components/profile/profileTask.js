@@ -74,8 +74,7 @@ export default class ProfileTask extends React.Component {
                                         const current = moment().startOf('day');
                                         let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
 
-                                        const colorClass = (daysRemaining < 0 && status != "Completed") ? "text-red" :
-                                            (status == "For Approval") ? "text-orange" : (daysRemaining == 0 && status != "Completed") ? "text-yellow" : (status == "Completed") ? "text-green" : "";
+                                        const colorClass = (daysRemaining < 0 && status != "Completed") ? "text-red" :(daysRemaining == 0 && status != "Completed") ? "text-yellow" : (status == "Completed") ? "text-green" : "";
 
                                         return (
                                             <tr key={index}>
