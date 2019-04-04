@@ -6,6 +6,8 @@ import { connect } from "react-redux";
 import { Loading } from "../../globalComponents";
 import { showToast, getData, postData } from "../../globalFunction";
 
+let keyTimer = "";
+
 @connect(store => {
     return {
         notes: store.notes,
@@ -108,11 +110,10 @@ export default class ConversationList extends React.Component {
     }
 
     openMessage({ note, id, noteWorkstream, notesTagTask, privacyType, createdBy }) {
-        const { dispatch, notes } = { ...this.props };
+        const { dispatch, notes, loggedUser } = { ...this.props };
         const { id: noteId = 0 } = notes.Selected;
 
         if (id != noteId) {
-            let requestUrl = `/api/conversation/getConversationList?page=1&linkType=notes&linkId=${id}`;
             dispatch({ type: "SET_COMMENT_LOADING", Loading: "RETRIEVING" });
             dispatch({
                 type: "SET_NOTES_SELECTED", Selected: {
@@ -129,10 +130,22 @@ export default class ConversationList extends React.Component {
                 }
             });
 
-            getData(requestUrl, {}, (c) => {
+            getData(`/api/conversation/getConversationList?page=1&linkType=notes&linkId=${id}`, {}, (c) => {
                 dispatch({ type: "SET_COMMENT_LIST", list: c.data.result, count: c.data.count });
                 dispatch({ type: "SET_COMMENT_LOADING", Loading: "" });
             });
+
+            keyTimer && clearTimeout(keyTimer);
+            keyTimer = setTimeout(() => {
+                postData(`/api/conversation/seen`, {
+                    noteId: id,
+                    projectId:noteWorkstream.project.id,
+                    usersId: loggedUser.data.id
+                }, (c) => {
+                   
+                });
+            }, 1500);
+
         }
     }
 

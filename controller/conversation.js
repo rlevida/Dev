@@ -82,17 +82,6 @@ const NotesInclude = [
     }
 ];
 
-
-const io = require('socket.io-client');
-const socketIo = io(((global.environment == "production") ? "https:" : "http:") + global.site_url, {
-    transports: ['websocket'],
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    reconnectionAttempts: 99999
-});
-
-
 exports.get = {
     conversationNotes: async (req, cb) => {
         const queryString = req.query;
@@ -628,11 +617,9 @@ exports.post = {
                                 }
                             }).map((mapObject) => {
                                 const responseObj = mapObject.toJSON();
-                                socketIo.emit("BROADCAST_SOCKET", {
-                                    type: "FRONT_NEW_NOTE", data: {
-                                        ...responseObj,
-                                        isStarred: 0
-                                    }
+                                req.app.parent.io.emit('FRONT_NEW_NOTE', {
+                                    ...responseObj,
+                                    isStarred: 0
                                 });
                                 return {
                                     ...responseObj,
@@ -1053,16 +1040,12 @@ exports.post = {
                                     global.emailtransport(mailOptions);
                                     mapCallback(null);
                                 }, (err, result) => {
-                                    socketIo.emit("BROADCAST_SOCKET", {
-                                        type: "FRONT_COMMENT_LIST", data: { result: responseObj, members: memberUser }
-                                    });
+                                    req.app.parent.io.emit('FRONT_COMMENT_LIST', { result: responseObj, members: memberUser });
                                     cb({ status: true, data: responseObj });
                                 });
                             });
                         } else {
-                            socketIo.emit("BROADCAST_SOCKET", {
-                                type: "FRONT_COMMENT_LIST", data: { result: responseObj, members: memberUser }
-                            });
+                            req.app.parent.io.emit('FRONT_COMMENT_LIST', { result: responseObj, members: memberUser });
                             cb({ status: true, data: responseObj });
                         }
 
@@ -1073,6 +1056,40 @@ exports.post = {
         });
 
         form.parse(req);
+    },
+    seen: async (req, cb) => {
+        const body = req.body;
+        const conversationList = await Conversation
+            .findAll({
+                where: {
+                    linkType: 'notes',
+                    linkId: body.noteId,
+                    id: {
+                        [Op.notIn]: sequelize.literal(`(SELECT DISTINCT linkId FROM notes_last_seen WHERE userId=${body.usersId})`)
+                    }
+                }
+            }).map((mapObject) => {
+                return mapObject.toJSON();
+            });
+        if (conversationList.length > 0) {
+            const seenStack = _.map(conversationList, ({ id }) => {
+                return {
+                    projectId: body.projectId,
+                    linkType: "conversation",
+                    linkId: id,
+                    userId: body.usersId
+                }
+            });
+
+            NotesLastSeen.bulkCreate(seenStack).map((o) => {
+                return o.toJSON();
+            }).then((o) => {
+                cb({ status: true, data: o });
+            });
+
+        } else {
+            cb({ status: true, data: [] });
+        }
     }
 }
 

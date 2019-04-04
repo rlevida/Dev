@@ -87,14 +87,14 @@ export default class UserForm extends React.Component {
         if (typeof dataToBeSubmitted.id == 'undefined') {
             postData(`/api/user`, dataToBeSubmitted, (c) => {
                 if (c.data.error) {
-                    showToast(`error`, c.data.message)
+                    showToast(`error`, c.data.message);
                 } else {
                     dispatch({ type: 'ADD_USER_LIST', List: c.data });
+                    dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" });
                     showToast('success', 'User successfully added.');
                 }
 
                 $("#user-form").validator('destroy');
-                dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" });
             });
         } else {
             let dataToSubmit = (profileEdit == false) ? users.Selected : _.pick(users.Selected, ['id', 'firstName', 'lastName', 'phoneNumber', 'emailAddress', 'username']);
@@ -203,7 +203,7 @@ export default class UserForm extends React.Component {
                     }
                 })
                 .value();
-                
+
             const teamSelectList = (profileEdit == false) ? _.uniqBy([...teamOptions, ..._.map(users.Selected.team, (o) => {
                 return {
                     id: o.value,

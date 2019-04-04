@@ -46,7 +46,7 @@ export default class ResetPassword extends React.Component {
         } else {
             let url = window.location;
             let hash = getParameterByName('hash', url);
-
+            
             putData(`/auth/forgotPassword`, { newPassword: this.state.newPassword, hash: hash }, (c) => {
                 if (c.data) {
                     showToast('success', "Password successfully change. You'll be redirect to login page.")

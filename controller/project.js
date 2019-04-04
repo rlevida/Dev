@@ -265,7 +265,7 @@ exports.get = {
                                         where: {
                                             linkType: 'notes',
                                             id: {
-                                                [Op.notIn]: sequelize.literal(`(SELECT DISTINCT linkId FROM notes_last_seen)`)
+                                                [Op.notIn]: sequelize.literal(`(SELECT DISTINCT linkId FROM notes_last_seen WHERE userId=${queryString.userId})`)
                                             },
                                             linkId: {
                                                 [Op.in]: sequelize.literal(`(SELECT DISTINCT notes.id FROM notes LEFT JOIN tag ON tag.tagTypeId = notes.id WHERE notes.projectId = ${responseObj.id} AND tag.tagType = "notes" and tag.linkType = "user" and tag.linkId=${queryString.userId})`)
@@ -335,7 +335,7 @@ exports.get = {
                                         const resultRows = _.map(rows, (o) => {
                                             const responseObj = o.toJSON();
                                             const assigned = _.find(responseObj.task_members, (o) => { return o.memberType == "assignedTo" });
-                                            
+
                                             return {
                                                 type: 'Task For Approval',
                                                 title: responseObj.task,

@@ -1,7 +1,4 @@
 import React from "react"
-import ReactDOM from "react-dom"
-
-import { showToast } from '../../globalFunction'
 
 import { connect } from "react-redux"
 @connect((store) => {
@@ -17,7 +14,7 @@ export default class Socket extends React.Component {
     }
 
     componentWillMount() {
-        const { socket, dispatch, notes, loggedUser } = this.props;
+        const { socket, dispatch, loggedUser } = this.props;
         socket.on("FRONT_NEW_NOTE", (data) => {
             if (loggedUser.data.id !== data.createdBy) {
                 dispatch({ type: "UPDATE_DATA_NOTES_LIST", list: [data] });
@@ -25,9 +22,7 @@ export default class Socket extends React.Component {
         });
         socket.on("FRONT_COMMENT_LIST", ({ result, members }) => {
             const removedMember = _.find(members, ({ linkId }) => { return linkId == loggedUser.data.id });
-
             if (loggedUser.data.id !== result.usersId) {
-                const conversationNotes = result.conversationNotes;
                 dispatch({ type: "ADD_COMMENT_LIST", list: result });
             }
 
