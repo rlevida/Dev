@@ -90,11 +90,11 @@ class FolderModal extends React.Component {
                     if (_.isEmpty(folder.SelectedFolderName)) {
                         dispatch({ type: "ADD_FOLDER_LIST", list: result });
                     } else {
-                        let newList = this.getNestedChildren(folder.List, folder.Selected.id, result[0])
+                        const newList = this.getNestedChildren(folder.List, folder.Selected.id, result[0])
                         dispatch({ type: "SET_FOLDER_LIST", list: newList });
                     }
                 } else {
-                    dispatch({ type: "ADD_DOCUMENT_LIST", List: result });
+                    dispatch({ type: "ADD_DOCUMENT_LIST", list: result });
                 }
                 dispatch({ type: 'SET_NEW_FOLDER', New: {} })
                 showToast("success", "Successfully Added.")

@@ -122,9 +122,8 @@ class DocumentFilter extends React.Component {
 
     setDropDown(name, e) {
         const { dispatch, history, match, folder, document } = this.props;
-        const projectId = match.params.projectId;
-
-        history.push(`/projects/${projectId}/files`);
+        // const projectId = match.params.projectId;
+        // history.push(`/projects/${projectId}/files`);
         
         if (!_.isEmpty(folder.SelectedLibraryFolderName) || !_.isEmpty(folder.SelectedNewFolderName)) {
             dispatch({ type: 'CLEAR_FOLDER' })
