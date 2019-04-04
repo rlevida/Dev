@@ -150,26 +150,28 @@ class DocumentNew extends React.Component {
                             }
                         </div>
                     </div>
-                    <div class="col-lg-4 col-md-6">
-                        <div class="card-header">
-                            {
-                                (document.Loading === "") && <h4>Library</h4>
-                            }
-                        </div>
-                        <div class="card-body m0">
-                            <div id="library">
-                                {
-                                    ((document.List).length > 0) && <div>
-                                        {_.orderBy(folder.List, ['dateAdded'], ['desc']).map((data, index) => {
-                                            return (
-                                                <FolderContainer data={data} moveTo={(folderObj, documentObj) => this.moveTo(folderObj, documentObj)} key={index} />
-                                            )
-                                        })}
+                    {
+                        (document.Loading === "") &&
+                            <div class="col-lg-4 col-md-6">
+                                <div class="card-header">
+                                    <h4>Library</h4>
+                                </div>
+                                <div class="card-body m0">
+                                    <div id="library">
+                                        {
+                                            ((folder.List).length > 0) && <div>
+                                                {_.orderBy(folder.List, ['dateAdded'], ['desc']).map((data, index) => {
+                                                    return (
+                                                        <FolderContainer data={data} moveTo={(folderObj, documentObj) => this.moveTo(folderObj, documentObj)} key={index} />
+                                                    )
+                                                })}
+                                            </div>
+                                        }
                                     </div>
-                                }
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                    }
+
                 </div>
                 <DocumentViewerModal />
             </div>
