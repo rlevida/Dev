@@ -58,7 +58,7 @@ class FieldContainer extends React.Component {
         }
     }
     componentDidMount() {
-      
+
     }
 
     async fetchFolder(data) {
@@ -150,6 +150,14 @@ class FieldContainer extends React.Component {
                 dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
             });
         } else if (folder.Selected.id === data.id) {
+            // let returnObj = true;
+            // const removeSelected = folder.SelectedFolderName.filter((e) => {
+            //     if (returnObj && data.id !== e.id) {
+            //         return e
+            //     } else {
+            //         returnObj = false
+            //     }
+            // })
             dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
         }
     }
@@ -161,7 +169,7 @@ class FieldContainer extends React.Component {
             <div class="folder-accordion" id={data.id} style={{ backgroundColor: hovered ? '#e4e4e4' : '' }}>
                 <a href="javascript:void(0)"
                     class={`accordion-toggle collapsed`}
-                    id={`${isSelected ? 'isSelected' : ''}`}
+                    // id={`${isSelected ? 'isSelected' : ''}`}
                     data-toggle="collapse" href={`#collapse${data.id}`}
                     role="button"
                     aria-expanded="false"

@@ -1097,7 +1097,6 @@ exports.put = {
                 .update(_.omit(dataToSubmit, ['updatedBy']),
                     {
                         where: { id: id },
-                        logging: true
                     })
                 .then((res) => {
                     nextThen(res);
