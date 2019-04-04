@@ -39,7 +39,6 @@ export default class TaskDocument extends React.Component {
     handleSubmit() {
         const { document, loggedUser, task, dispatch, project } = { ...this.props };
         let data = new FormData();
-
         dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING", LoadingType: 'Loading' });
         _.map(document.Files, (file) => {
             const checklist = (typeof document.Selected.tagged != "undefined") ? document.Selected.tagged : [];
@@ -73,7 +72,7 @@ export default class TaskDocument extends React.Component {
                 });
             }
 
-            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'Loading' });
+            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
             dispatch({ type: 'SET_DOCUMENT_FILES', Files: "" });
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
             showToast("success", "Task Document successfully updated.");

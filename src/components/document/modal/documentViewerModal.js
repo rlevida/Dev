@@ -115,6 +115,30 @@ class DocumentViewerComponent extends React.Component {
         window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
     }
 
+    starredDocument({ id, isStarred, origin }) {
+        const { document, loggedUser, dispatch, match } = this.props;
+        const projectId = match.params.projectId;
+        const isStarredValue = (isStarred > 0) ? 0 : 1;
+
+        postData(`/api/starred?projectId=${projectId}&document=${origin}`, {
+            linkType: "document",
+            linkId: id,
+            usersId: loggedUser.data.id
+        }, (c) => {
+            if (c.status == 200) {
+                const updatedDocumentList = _.map([...document.List], (documentObj, index) => {
+                    if (id == documentObj.id) {
+                        documentObj["isStarred"] = isStarredValue;
+                    }
+                    return documentObj;
+                });
+                dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList, count: document.Count });
+                showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
+    }
     render() {
         const { dispatch, document, settings, conversation, history, project } = this.props;
         let isDocument = true, ext = "", documentContentType = "";
@@ -146,6 +170,9 @@ class DocumentViewerComponent extends React.Component {
                                 </div>
                                 <div class="col-md-6 modal-action">
                                     <div class="button-action">
+                                        <a class="logo-action text-gold" onClick={() => this.starredDocument({ isStarred: document.Selected.isStarred, id: document.Selected.id, origin: document.Selected.origin })}>
+                                            <i class={`fa ${document.Selected.isStarred ? "fa-star" : "fa-star-o"}`} title="STARRED" aria-hidden="true" />
+                                        </a>
                                         <a class="logo-action text-grey" onClick={() => this.downloadDocument(document.Selected)}>
                                             <i title="DOWNLOAD" class="fa fa-download" aria-hidden="true"></i>
                                         </a>

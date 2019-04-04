@@ -6,6 +6,8 @@ import { connect } from "react-redux"
 import { withRouter } from "react-router";
 
 import DocumentSortFile from "./documentSortFile"
+import DocumentViewerModal from "./modal/documentViewerModal"
+
 import moment from "moment";
 
 @connect((store) => {
@@ -23,7 +25,10 @@ class DocumentList extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchData(1)
+        const { match } = { ...this.props }
+        if (match.url === "/projects/1/files") {
+            this.fetchData(1)
+        }
     }
 
     componentWillUnmount() {
@@ -75,10 +80,9 @@ class DocumentList extends React.Component {
         // if (typeof uploadTo !== 'undefiend' && uploadTo !== '') {
         //     requestUrl += `&uploadTo=${uploadTo}`
         // }
-
         getData(requestUrl, {}, (c) => {
             const { count, result } = { ...c.data }
-            dispatch({ type: 'SET_DOCUMENT_LIST', list: result, count: count });
+            dispatch({ type: 'SET_DOCUMENT_LIST', list: document.List.concat(result), count: count });
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' });
         });
     }
@@ -117,8 +121,12 @@ class DocumentList extends React.Component {
     }
 
     getNextResult() {
-        const { document } = this.props;
-        this.fetchData(document.NewCount.Count.current_page + 1)
+        const { document, fetchWorkstreamDocument, match } = this.props;
+        if (match.url === "/projects/1/files") {
+            this.fetchData(document.Count.current_page + 1)
+        } else {
+            fetchWorkstreamDocument(document.Count.current_page + 1)
+        }
     }
 
     moveTo(folderData, documentData) {
@@ -175,7 +183,6 @@ class DocumentList extends React.Component {
                     $(`#documentViewerModal`).modal('show')
                 });
             } else {
-                console.log(data)
                 dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
                 $(`#documentViewerModal`).modal('show')
             }
@@ -237,6 +244,7 @@ class DocumentList extends React.Component {
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
         let tagCount = 0;
+
         return (
             <div>
                 {(document.Filter.status) !== 'sort' &&
@@ -288,7 +296,7 @@ class DocumentList extends React.Component {
                                                                         tagCount += t.label.length
                                                                         let tempCount = tagCount;
                                                                         if (tagCount > 16) { tagCount = 0 }
-                                                                        return <p class="m0">{t.label}{tempCount > 16 && <br />}</p>
+                                                                        return <span class="m0" key={tIndex}>{t.label}{tempCount > 16 && <br />}</span>
                                                                     })
                                                                 }
                                                                 </td>
@@ -307,8 +315,8 @@ class DocumentList extends React.Component {
                                                                         </a>
                                                                     }
                                                                     <a href="javascript:void(0);"
-                                                                        data-toggle="modal" 
-                                                                        data-target="#deleteModal" 
+                                                                        data-toggle="modal"
+                                                                        data-target="#deleteModal"
                                                                         onClick={() => dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data })}
                                                                         class="btn btn-action">
                                                                         <span class="fa fa-trash" title="DELETE"></span></a>
@@ -338,6 +346,7 @@ class DocumentList extends React.Component {
                 {
                     (document.Filter.status) === 'sort' && <div><DocumentSortFile /></div>
                 }
+                <DocumentViewerModal />
             </div>
         )
     }

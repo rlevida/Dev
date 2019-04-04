@@ -1,10 +1,11 @@
 import React from "react";
 import { Loading } from "../../../globalComponents";
-import { getData, postData, putData, showToast, getParameterByName } from '../../../globalFunction';
+import { getData, putData, showToast } from '../../../globalFunction';
 import DocumentContainer from './documentContainer';
 import FolderContainer from './folderContainer';
 import { connect } from "react-redux"
 import { withRouter } from "react-router";
+import DocumentViewerModal from "../modal/documentViewerModal"
 
 @connect((store) => {
     return {
@@ -19,77 +20,6 @@ class DocumentNew extends React.Component {
         super(props)
         this.state = {
             order: 'asc',
-        }
-    }
-
-    componentDidMount() {
-        const self = this;
-        window.addEventListener('click', function (e) {
-            const { dispatch, folder } = { ...self.props }
-            if (!document.getElementById('library').contains(e.target)) {
-                if (typeof folder.Selected !== "undefined") {
-                    dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} })
-                }
-            }
-        });
-    }
-
-    async fetchFolder(data) {
-        const { dispatch, loggedUser, folder, history, match } = this.props;
-        const projectId = match.params.projectId;
-        let folderList = folder.SelectedFolderName;
-        if (data === "") {
-            dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
-            await dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
-            await dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
-            await this.fetchData(1);
-            await history.push(`/projects/${projectId}/files`);
-        } else if (folder.Selected.id !== data.id) {
-            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&type=folder&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-                const { result, count } = { ...c.data }
-
-                let hasFolder = true;
-                let parentFolderId = data.id;
-
-                while (hasFolder) {
-                    let parentFolder = folderList.filter((e) => { return e.folderId == parentFolderId });
-                    if (parentFolder.length > 0) {
-                        folderList = folderList.filter((e) => { return e.folderId != parentFolderId });
-                        parentFolderId = parentFolder[0].id;
-                    } else {
-                        hasFolder = false;
-                    }
-                }
-
-                let isSelectedFolder = true;
-                let newList = []
-                while (isSelectedFolder) {
-                    newList = folder.List.map((a) => {
-                        if (a.id === data.id) {
-                            if (typeof a.childFolder === 'undefined') {
-                                a.childFolder = []
-                                a.childFolder = result;
-                                isSelectedFolder = false;
-                            } else {
-                                a.childFolder.map((b) => {
-                                    if (b.id === data.id) {
-                                        if (typeof b.childFolder === 'undefined') {
-                                            b.childFolder = []
-                                            b.childFolder = result
-                                            isSelectedFolder = false;
-                                        }
-                                    }
-                                    return b
-                                })
-                            }
-                        }
-                        return a
-                    })
-                }
-                dispatch({ type: 'SET_FOLDER_LIST', list: newList })
-                dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
-                dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folderList });
-            });
         }
     }
 
@@ -111,29 +41,62 @@ class DocumentNew extends React.Component {
         })
     }
 
-    renderFolder(data) {
+    fetchData(page) {
+        const { dispatch, loggedUser, document, folder, match } = this.props;
+        const projectId = match.params.projectId;
+        const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, status } = document.Filter;
 
-        return (
-            <div id={data.id}>
-                <p>
-                    <a class="btn btn-primary" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample" onClick={() => this.fetchFolder(data)}>
-                        {data.origin}
-                    </a>
-                </p>
-                <div class="collapse" id="collapseExample">
-                    <div class="collapse-folder-child">
-                        {typeof data.childFolder !== "undefined" && data.childFolder.length > 0 &&
-                            data.childFolder.map(e => { return this.renderFolder(e) })
-                        }
-                    </div>
-                </div>
+        let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=document`;
+        if (status === 'active' || status === 'sort') {
+            requestUrl += `&folderId=null&type=document`
+        }
 
-            </div>
-        )
+        if (status === 'library') {
+            requestUrl += `&folderId=null&type=folder`
+        }
+        // if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
+        //     requestUrl += `&isCompleted=${isCompleted}`
+        // }
+        // if (typeof search !== 'undefined' && search !== '') {
+        //     requestUrl += `&search=${search}`
+        // }
+        // if (typeof tags !== 'undefined') {
+        //     _.filter(tags, (t) => {
+        //         const tagType = t.value.split('-')[0];
+        //         const tagId = t.value.split('-')[1];
+        //         if (tagType === 'workstream') {
+        //             requestUrl += `&workstream=${tagId}`
+        //         }
+        //     })
+        // }
+        // if (typeof uploadedBy !== 'undefined' && uploadedBy !== '') {
+        //     requestUrl += `&uploadedBy=${uploadedBy}`
+        // }
+        // if (typeof members !== 'undefined' && members !== '') {
+        //     _.map(members, (e) => {
+        //         requestUrl += `&members=${e.value}`
+        //     })
+        // }
+        // if (typeof uploadFrom !== 'undefiend' && uploadFrom !== '') {
+        //     requestUrl += `&uploadFrom=${uploadFrom}`
+        // }
+        // if (typeof uploadTo !== 'undefiend' && uploadTo !== '') {
+        //     requestUrl += `&uploadTo=${uploadTo}`
+        // }
+        getData(requestUrl, {}, (c) => {
+            const { count, result } = { ...c.data }
+            dispatch({ type: 'SET_DOCUMENT_LIST', list: document.List.concat(result), count: count });
+            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' });
+        });
+    }
+
+    getNextResult() {
+        const { document } = this.props;
+        this.fetchData(document.Count.current_page + 1)
     }
 
     render() {
-        const { document, folder, match } = { ...this.props };
+        const { document, folder } = { ...this.props };
         const { Count } = { ...document };
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
@@ -208,6 +171,7 @@ class DocumentNew extends React.Component {
                         </div>
                     </div>
                 </div>
+                <DocumentViewerModal />
             </div>
         )
     }
