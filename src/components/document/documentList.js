@@ -182,6 +182,7 @@ class DocumentList extends React.Component {
                     dispatch({ type: 'UPDATE_DATA_DOCUMENT_LIST', UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } })
                     $(`#documentViewerModal`).modal('show')
                 });
+                dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
             } else {
                 dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
                 $(`#documentViewerModal`).modal('show')

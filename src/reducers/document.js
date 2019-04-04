@@ -34,7 +34,11 @@ export default function reducer(state = {
 }, action) {
     switch (action.type) {
         case "ADD_DOCUMENT_LIST": {
-            return { ...state, List: state.List.concat(action.List) }
+            let List = state.List;
+            action.list.map(e => {
+                List.push(e)
+            })
+            return { ...state, List: List }
         }
         case "MOVE_DOCUMENT_TO_LIBRARY": {
             let { Library } = { ...state };

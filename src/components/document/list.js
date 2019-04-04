@@ -7,7 +7,6 @@ import EditModal from "../document/modal/editModal";
 import FolderModal from "../document/modal/folderModal";
 import DeleteModal from "../document/modal/deleteModal";
 import DocumentList from "../document/documentList";
-import DocumentViewerModal from "./modal/documentViewerModal"
 import _ from "lodash";
 
 import { connect } from "react-redux";
@@ -39,7 +38,6 @@ class List extends React.Component {
                 <EditModal />
                 <FolderModal />
                 <DeleteModal />
-                <DocumentViewerModal />
             </div>
         )
     }

@@ -91,7 +91,6 @@ class WorkstreamDocument extends React.Component {
     }
 
     render() {
-        const { document, project, } = { ...this.props };
         return (
             <div>
                 <DocumentList fetchWorkstreamDocument={(e) => this.fetchData(e)} />
