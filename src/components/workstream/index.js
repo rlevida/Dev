@@ -19,6 +19,7 @@ export default class Component extends React.Component {
         const { dispatch } = { ...this.props };
         
         dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
+        dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
         dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
     }
 

@@ -22,11 +22,21 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: {} });
         dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
-        dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: "" })
+        dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: "" });
+        this.unlisten();
+    }
+
+    componentWillMount() {
+        const { dispatch } = { ...this.props };
+        this.unlisten = this.props.history.listen(() => {
+            dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
+            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+        });
     }
 
     componentDidMount() {
         const { loggedUser, history } = { ...this.props };
+
         if (loggedUser.data.userRole >= 4 && loggedUser.data.projectId.length === 1) {
             history.push(`/projects/${loggedUser.data.projectId[0]}`);
         }
