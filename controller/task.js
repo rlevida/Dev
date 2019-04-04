@@ -327,7 +327,6 @@ exports.get = {
                 try {
                     Tasks.findAll({
                         where: whereObj,
-                        logging: true,
                         ...options
                     }).map((mapObject) => {
                         const responseData = mapObject.toJSON();
@@ -918,7 +917,13 @@ exports.post = {
                                         include: [
                                             {
                                                 model: Document,
-                                                as: 'document'
+                                                as: 'document',
+                                                include: [{
+                                                    model: DocumentRead,
+                                                    as: 'document_read',
+                                                    attributes: ['id'],
+                                                    required: false
+                                                }]
                                             }
                                         ]
                                     }
@@ -927,6 +932,7 @@ exports.post = {
                         ).map((mapObject) => {
                             return mapObject.toJSON();
                         }).then((o) => {
+                            console.log(`cb1`)
                             cb({ status: true, data: { result: o, type: "checklist" } });
                         })
                     });
@@ -965,12 +971,14 @@ exports.post = {
                                     ]
                                 }
                             ).then((o) => {
+                                console.log(`cb2`)
                                 cb({ status: true, data: { result: o, type: "document" } });
                             })
                         });
                 }
             });
         }).on('error', function (err) {
+            console.log(`cb3`)
             cb({ status: false, error: "Upload error. Please try again later." });
         });
 

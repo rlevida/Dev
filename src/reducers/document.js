@@ -130,10 +130,13 @@ export default function reducer(state = {
         case "REMOVE_DOCUMENT_FROM_LIST": {
             let tempList = state.List.filter((e) => { return e.id !== action.UpdatedData.id })
             return { ...state, List: tempList }
-           
+
         }
         case "REMOVE_DELETED_DOCUMENT_LIST": {
             return { ...state, List: _.filter(state.List, (e) => { return e.id !== action.Id }) }
+        }
+        case "CLEAR_DOCUMENT": {
+            return { ...state, List: [], Selected: {} }
         }
         default:
             return state;

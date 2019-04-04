@@ -59,7 +59,7 @@ class FieldContainer extends React.Component {
         img.height = 50
         img.src = '/images/document-icon.png';
         img.onload = () => this.props.connectDragPreview(img);
-        
+
     }
     archiveDocument(data) {
         const { dispatch, loggedUser, match } = this.props;
@@ -193,24 +193,17 @@ class FieldContainer extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch, loggedUser, folder, match } = this.props;
-        const projectId = match.params.projectId;
-
-        if (data.type !== 'folder') {
-            dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "DocumentViewer" });
-            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: data });
-        } else {
-            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING', LoadingType: 'NewDocumentLoading' });
-            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&status=new&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-                if (c.status == 200) {
-                    dispatch({ type: "SET_DOCUMENT_LIST", list: c.data.result, DocumentType: 'New', Count: { Count: c.data.count }, CountType: 'NewCount' });
-                    dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '', LoadingType: 'NewDocumentLoading' });
-                    dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data, Type: 'SelectedNewFolder' });
-                    dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: folder.SelectedNewFolderName.concat([data]), Type: 'SelectedNewFolderName' });
-                    showToast('success', 'Documents successfully retrieved.');
-                }
+        const { dispatch, loggedUser } = this.props;
+        if (data.document_read.length === 0) {
+            const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
+            postData(`/api/document/read`, dataToSubmit, (ret) => {
+                dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
+                dispatch({ type: 'UPDATE_DATA_DOCUMENT_LIST', UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } })
+                $(`#documentViewerModal`).modal('show')
             });
+        } else {
+            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
+            $(`#documentViewerModal`).modal('show')
         }
     }
 
@@ -245,14 +238,9 @@ class FieldContainer extends React.Component {
             connectDropTarget(
                 <tr class="item" key={index} style={{ opacity, background: backgroundColor }}>
                     <td class="document-name">
-                        {data.type === "document" ?
-                            <Link to={`/projects/${projectId}/files/${data.id}`}><span class={data.isRead ? 'read' : 'unread'}>{documentName}</span></Link>
-                            :
-                            <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
-                                <span class="fa fa-folder fa-lg read mr10"></span>
-                                <span class="read">{documentName}</span>
-                            </a>
-                        }
+                        <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
+                            < span class={data.isRead ? 'read' : 'unread'}>{documentName}</span>
+                        </a>
                     </td>
                     <td><p class="m0">{data.user.firstName + " " + data.user.lastName}</p></td>
                     <td>{moment(data.dateAdded).format("MMMM DD, YYYY")}</td>
@@ -262,7 +250,7 @@ class FieldContainer extends React.Component {
                             tagCount += t.label.length
                             let tempCount = tagCount;
                             if (tagCount > 16) { tagCount = 0 }
-                            return <span key={tIndex} ><label class="label label-primary" style={{ margin: "5px" }}>{t.label}</label>{tempCount > 16 && <br />}</span>
+                            return <span key={tIndex} >{t.label}{tempCount > 16 && <br />}</span>
                         })
                     }
                     </td>
