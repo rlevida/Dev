@@ -25,7 +25,6 @@ router.get('/', function (req, res, next) {
     res.render('auth', {
         title: global.site_name,
         global: global,
-        body: "./template/auth",
         page: "auth"
     });
 });

@@ -8,4 +8,7 @@ switch (page) {
     case "projectNotAvailable":
         require('./container/projectNotAvailable')
         break;
+    case "forgotPassword":
+        require('./container/resetPassword');
+        break;
 }

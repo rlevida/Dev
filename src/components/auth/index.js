@@ -1,6 +1,6 @@
 import React from "react"
 import { showToast, getData, postData } from '../../globalFunction'
-import ForgotPassword from "../global/forgotPassword"
+import ForgotPassword from "../forgotPassword";
 import Captcha from 'react-captcha';
 
 import { connect } from "react-redux"

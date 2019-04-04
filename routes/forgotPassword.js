@@ -11,12 +11,11 @@ router.get('/', function (req, res, next) {
         UserForgotPassword
             .findOne({ where: { hash: hash } })
             .then((ret) => {
-                if (ret) {
-                    res.render('index', {
+                if (ret != null) {
+                    res.render('auth', {
                         title: global.site_name + ' - Forgot Password',
                         global: global,
-                        body: './template/index',
-                        page: 'forgotPassword',
+                        page: 'forgotPassword'
                     });
                 } else {
                     res.render('error', {
