@@ -379,6 +379,16 @@ exports.get = {
             } : {},
         }
 
+        if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
+            console.log(`here`)
+            _.find(associationFindAllStack, { as: 'document_starred' }).where = {
+                linkType: 'document',
+                isActive: 1,
+                isDeleted: 0,
+                usersId: queryString.starredUser
+            };
+        }
+
         sequence.create().then((nextThen) => {
             Tag
                 .findAll({
@@ -425,7 +435,8 @@ exports.get = {
                                     tagNote: res.tagDocumentNotes.map((e) => { return { value: e.TagNotes.id, label: e.TagNotes.note } }),
                                     members: res.share.map((e) => { return e.user }),
                                     share: JSON.stringify(res.share.map((e) => { return { value: e.user.id, label: e.user.firstName } })),
-                                    isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (res.document_starred).length > 0) ? res.document_starred[0].isActive : 0
+                                    isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (res.document_starred).length > 0) ? res.document_starred[0].isActive : 0,
+                                    isRead: res.document_read.length > 0 ? 1 : 0
                                 }
                                 return _.omit(resToReturn, "tagDocumentWorkstream", "tagDocumentTask")
                             })
