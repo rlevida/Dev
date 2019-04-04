@@ -19,6 +19,7 @@ const {
     Tasks,
     Tag,
     Users,
+    UsersNotificationSetting,
     UsersRole,
     Workstream,
     Notes,
@@ -586,12 +587,203 @@ exports.post = {
                                 }
                             },
                             notification: (parallelCallback) => {
-                                let notificationData = {
-                                    createdBy: body.usersId
-                                }
-                                parallelCallback(null, "")
-                                // Notification
-                                // .create()
+                                const workstreamIds = data.tagWorkstream.map((e) => { return e.value });
+                                const workstreamWhereObj = { linkId: workstreamIds, linkType: 'workstream' };
+                                const taskWhereObj = { workstreamId: workstreamIds };
+
+                                async.parallel({
+                                    TaskMembers: (notificationParallel) => {
+                                        Tasks
+                                            .findAll({
+                                                where: taskWhereObj,
+                                                include: [{
+                                                    model: Members,
+                                                    as: 'task_members',
+                                                    where: { linkType: 'task' },
+                                                    required: false,
+                                                    include:
+                                                        [{
+                                                            model: Users,
+                                                            as: 'user',
+                                                            required: false,
+                                                            include: [{
+                                                                model: UsersNotificationSetting,
+                                                                as: 'notification_setting',
+                                                                required: false
+                                                            }]
+                                                        }]
+                                                }]
+                                            })
+                                            .map((resTask) => {
+                                                return resTask
+                                                    .toJSON().task_members
+                                                    .filter((r) => { return r.user.notification_setting.fileNewUpload === 1 })
+                                                    .map((r) => {
+                                                        return {
+                                                            usersId: r.user.id,
+                                                            type: 'fileNewUpload',
+                                                            workstreamId: r.workstreamId,
+                                                            projectId: data.projectId,
+                                                            taskId: r.id,
+                                                            documentId: res.dataValues.id,
+                                                            message: 'upload a new file',
+                                                            createdBy: data.usersId
+                                                        }
+                                                    })
+                                            })
+                                            .then((resTask) => {
+                                                notificationParallel(null, _.flattenDeep(resTask))
+                                            })
+                                    },
+                                    WorkstreamMembers: (notificationParallel) => {
+                                        Members
+                                            .findAll({
+                                                where: workstreamWhereObj,
+                                                include: [{
+                                                    model: Users,
+                                                    as: 'user',
+                                                    required: false,
+                                                    include: [{
+                                                        model: UsersNotificationSetting,
+                                                        as: 'notification_setting',
+                                                        required: false
+                                                    }]
+                                                }],
+                                            }).map((resMembers) => {
+                                                return resMembers.toJSON()
+                                            })
+                                            .then((resMembers) => {
+                                                const resResult = resMembers.filter((r) => {
+                                                    return r.user.notification_setting.fileNewUpload === 1
+                                                }).map((r) => {
+                                                    return {
+                                                        usersId: r.user.id,
+                                                        type: 'fileNewUpload',
+                                                        createdBy: data.usersId,
+                                                        workstreamId: r.linkId,
+                                                        projectId: data.projectId,
+                                                        documentId: res.dataValues.id,
+                                                        message: "upload a new file"
+                                                    }
+                                                })
+                                                notificationParallel(null, resResult)
+                                            })
+                                    }
+                                }, (err, { WorkstreamMembers, TaskMembers }) => {
+                                    const notificationData = _.uniqBy([...WorkstreamMembers, ...TaskMembers], 'usersId')
+                                    Notification
+                                        .bulkCreate(notificationData)
+                                        .then((resNotification) => {
+                                            parallelCallback(null, resNotification)
+                                        })
+                                })
+                            },
+                            emailNotification: (parallelCallback) => {
+                                const workstreamIds = data.tagWorkstream.map((e) => { return e.value });
+                                const workstreamWhereObj = { linkId: workstreamIds, linkType: 'workstream' };
+                                const taskWhereObj = { workstreamId: workstreamIds };
+
+                                async.parallel({
+                                    TaskMembers: (notificationParallel) => {
+                                        Tasks
+                                            .findAll({
+                                                where: taskWhereObj,
+                                                include: [{
+                                                    model: Members,
+                                                    as: 'task_members',
+                                                    where: { linkType: 'task' },
+                                                    required: false,
+                                                    include:
+                                                        [{
+                                                            model: Users,
+                                                            as: 'user',
+                                                            required: false,
+                                                            include: [{
+                                                                model: UsersNotificationSetting,
+                                                                as: 'notification_setting',
+                                                                required: false
+                                                            }]
+                                                        }]
+                                                }]
+                                            })
+                                            .map((resTask) => {
+                                                return resTask
+                                                    .toJSON().task_members
+                                                    .filter((r) => { return r.user.notification_setting.receiveEmail === 1 })
+                                                    .map((r) => {
+                                                        return {
+                                                            usersId: r.user.id,
+                                                            emailAddress: r.user.emailAddress,
+                                                            type: 'fileNewUpload',
+                                                            workstreamId: r.workstreamId,
+                                                            projectId: data.projectId,
+                                                            taskId: r.id,
+                                                            documentId: res.dataValues.id,
+                                                            message: 'upload a new file',
+                                                            createdBy: data.usersId
+                                                        }
+                                                    })
+                                            })
+                                            .then((resTask) => {
+                                                notificationParallel(null, _.flattenDeep(resTask))
+                                            })
+                                    },
+                                    WorkstreamMembers: (notificationParallel) => {
+                                        Members
+                                            .findAll({
+                                                where: workstreamWhereObj,
+                                                include: [{
+                                                    model: Users,
+                                                    as: 'user',
+                                                    required: false,
+                                                    include: [{
+                                                        model: UsersNotificationSetting,
+                                                        as: 'notification_setting',
+                                                        required: false
+                                                    }]
+                                                }],
+                                            }).map((resMembers) => {
+                                                return resMembers.toJSON()
+                                            })
+                                            .then((resMembers) => {
+                                                const resResult = resMembers.filter((r) => {
+                                                    return r.user.notification_setting.receiveEmail === 1
+                                                }).map((r) => {
+                                                    return {
+                                                        usersId: r.user.id,
+                                                        emailAddress: r.user.emailAddress,
+                                                        type: 'fileNewUpload',
+                                                        createdBy: data.usersId,
+                                                        workstreamId: r.linkId,
+                                                        projectId: data.projectId,
+                                                        documentId: res.dataValues.id,
+                                                        message: "upload a new file"
+                                                    }
+                                                })
+                                                notificationParallel(null, resResult)
+                                            })
+                                    }
+                                }, (err, { WorkstreamMembers, TaskMembers }) => {
+                                    const notificationData = _.uniqBy([...WorkstreamMembers, ...TaskMembers], 'usersId')
+                                    async.map(notificationData, ({ emailAddress, message }, mapCallback) => {
+                                        let html = '<p>' + message + '</p>';
+                                        html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                        // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                        html += '<p>Message:<br>' + message + '</p>';
+
+                                        const mailOptions = {
+                                            from: '"no-reply" <no-reply@c_cfo.com>',
+                                            to: `${emailAddress}`,
+                                            subject: '[CLOUD-CFO]',
+                                            html: html
+                                        };
+
+                                        global.emailtransport(mailOptions);
+                                        mapCallback(null);
+                                    }, (err, result) => {
+                                        parallelCallback(null)
+                                    });
+                                })
                             }
                         }, (err, { documentLink, activityLogsDocument }) => {
                             if (err != null) {

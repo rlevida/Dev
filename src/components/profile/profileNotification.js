@@ -33,7 +33,6 @@ export default class ProfileNotification extends React.Component {
         putData(`/api/user/notificationSetting/${loggedUser.data.id}`, { ...users.NotificationSetting }, (c) => {
             const { status, data } = { ...c };
             if (status === 200) {
-                console.log(data)
                 dispatch({ type: "SET_USER_NOTIFICATION_SELECTED", Setting: data });
                 showToast('success', 'Successfully Updated.');
             } else {
@@ -44,144 +43,144 @@ export default class ProfileNotification extends React.Component {
 
     render() {
         const { users, loggedUser } = { ...this.props };
-        const { taskAssigned, taskTagged, fileNewUpload, messageSend, commentReplies, taskDeadline, taskMemberCompleted, taskFollowingCompleted, taskTeamDeadline, taskFollowingDeadline } = { ...users.NotificationSetting }
-        console.log(users)
+        const { taskAssigned, taskTagged, fileNewUpload, messageSend, commentReplies, taskDeadline, taskMemberCompleted, taskFollowingCompleted, taskTeamDeadline, taskFollowingDeadline, receiveEmail } = { ...users.NotificationSetting }
         return (
             <div>
                 <h4><strong>Send Notification when:</strong></h4>
                 <form>
                     <div class="form-group">
-                        <div class="form-check">
-                            <input class="form-check-input mr10"
+                        <label class="custom-checkbox">
+                            I have been assigned to do a task
+                            <input
                                 type="checkbox"
-                                id="taskAssigned"
                                 checked={taskAssigned ? 1 : 0}
+                                onChange={() => { }}
                                 onClick={() => this.handleChange('taskAssigned', taskAssigned ? 0 : 1)}
                             />
-                            <label class="form-check-label" for="taskAssigned">
-                                I have been assigned to do a task
+                            <span class="checkmark"></span>
                         </label>
-                        </div>
                     </div>
                     <div class="form-group">
-                        <div class="form-check">
-                            <input class="form-check-input mr10"
+                        <label class="custom-checkbox">
+                            I was tagged under a task description or comment
+                            <input
                                 type="checkbox"
-                                id="taskTagged"
                                 checked={taskTagged ? 1 : 0}
+                                onChange={() => { }}
                                 onClick={() => this.handleChange('taskTagged', taskTagged ? 0 : 1)}
                             />
-                            <label class="form-check-label" for="taskTagged">
-                                I was tagged under a task description or comment
+                            <span class="checkmark"></span>
                         </label>
-                        </div>
                     </div>
                     <div class="form-group">
-                        <div class="form-check">
-                            <input class="form-check-input mr10"
+                        <label class="custom-checkbox">
+                            A new file has been uploaded
+                            <input
                                 type="checkbox"
-                                id="fileNewUpload"
                                 checked={fileNewUpload ? 1 : 0}
+                                onChange={() => { }}
                                 onClick={() => this.handleChange('fileNewUpload', fileNewUpload ? 0 : 1)}
                             />
-                            <label class="form-check-label" for="fileNewUpload">
-                                A new file has been uploaded
+                            <span class="checkmark"></span>
                         </label>
-                        </div>
                     </div>
                     <div class="form-group">
-                        <div class="form-check">
-                            <input class="form-check-input mr10"
+                        <label class="custom-checkbox">
+                            Someone sends me a message
+                            <input
                                 type="checkbox"
-                                id="messageSend"
                                 checked={messageSend ? 1 : 0}
+                                onChange={() => { }}
                                 onClick={() => this.handleChange('messageSend', messageSend ? 0 : 1)}
                             />
-                            <label class="form-check-label" for="messageSend">
-                                Someone sends me a message
+                            <span class="checkmark"></span>
                         </label>
-                        </div>
                     </div>
                     <div class="form-group">
-                        <div class="form-check">
-                            <input class="form-check-input mr10"
+                        <label class="custom-checkbox">
+                            Someone replies to a comment I posted
+                            <input
                                 type="checkbox"
-                                id="defaultCheck2"
                                 checked={commentReplies ? 1 : 0}
+                                onChange={() => { }}
                                 onClick={() => this.handleChange('commentReplies', commentReplies ? 0 : 1)}
                             />
-                            <label class="form-check-label" for="defaultCheck2">
-                                Someone replies to a comment I posted
+                            <span class="checkmark"></span>
                         </label>
-                        </div>
                     </div>
                     <div class="form-group">
-                        <div class="form-check">
-                            <input class="form-check-input mr10"
+                        <label class="custom-checkbox">
+                            I go beyond the deadline
+                            <input
                                 type="checkbox"
-                                id="taskDeadline"
                                 checked={taskDeadline ? 1 : 0}
+                                onChange={() => { }}
                                 onClick={() => this.handleChange('taskDeadline', taskDeadline ? 0 : 1)}
                             />
-                            <label class="form-check-label" for="taskDeadline">
-                                I go beyond the deadline
+                            <span class="checkmark"></span>
                         </label>
-                        </div>
                     </div>
                     <div class="form-group">
-                        <div class="form-check">
-                            <input class="form-check-input mr10"
+                        <label class="custom-checkbox">
+                            Members under my team were able to complete a task
+                            <input
                                 type="checkbox"
-                                id="taskMemberCompleted"
+                                checked={taskDeadline ? 1 : 0}
+                                onChange={() => { }}
                                 checked={taskMemberCompleted ? 1 : 0}
                                 onClick={() => this.handleChange('taskMemberCompleted', taskMemberCompleted ? 0 : 1)}
                             />
-                            <label class="form-check-label" for="taskMemberCompleted">
-                                Members under my team were able to complete a task
+                            <span class="checkmark"></span>
                         </label>
-                        </div>
                     </div>
                     <div class="form-group">
-                        <div class="form-check">
-                            <input class="form-check-input mr10"
+                        <label class="custom-checkbox">
+                            A task I'm following was completed
+                            <input
                                 type="checkbox"
-                                id="taskFollowingCompleted"
+                                checked={taskDeadline ? 1 : 0}
+                                onChange={() => { }}
                                 checked={taskFollowingCompleted ? 1 : 0}
                                 onClick={() => this.handleChange('taskFollowingCompleted', taskFollowingCompleted ? 0 : 1)}
                             />
-                            <label class="form-check-label" for="taskFollowingCompleted">
-                                A task I'm following was completed
+                            <span class="checkmark"></span>
                         </label>
-                        </div>
                     </div>
                     <div class="form-group">
-                        <div class="form-check">
-                            <input class="form-check-input mr10"
+                        <label class="custom-checkbox">
+                            A task goes beyond the deadline under my team
+                            <input
                                 type="checkbox"
-                                id="taskTeamDeadline"
+                                checked={taskDeadline ? 1 : 0}
+                                onChange={() => { }}
                                 checked={taskTeamDeadline ? 1 : 0}
                                 onClick={() => this.handleChange('taskTeamDeadline', taskTeamDeadline ? 0 : 1)}
                             />
-                            <label class="form-check-label" for="taskTeamDeadline">
-                                A task goes beyond the deadline under my team
+                            <span class="checkmark"></span>
                         </label>
-                        </div>
                     </div>
                     <div class="form-group">
-                        <div class="form-check">
-                            <input class="form-check-input mr10"
+                        <label class="custom-checkbox">
+                            A task goes beyond the deadline under the task I'm following
+                            <input
                                 type="checkbox"
-                                id="taskFollowingDeadline"
+                                checked={taskDeadline ? 1 : 0}
+                                onChange={() => { }}
                                 checked={taskFollowingDeadline ? 1 : 0}
                                 onClick={() => this.handleChange('taskFollowingDeadline', taskFollowingDeadline ? 0 : 1)}
                             />
-                            <label class="form-check-label" for="taskFollowingDeadline">
-                                A task goes beyond the deadline under the task I'm following
+                            <span class="checkmark"></span>
                         </label>
-                        </div>
                     </div>
+
+                    <h4><strong>Do you want to receive email notification as well?</strong></h4>
+                    <div class="mb20">
+                        <button class={`btn ${receiveEmail ? 'btn-cyan' : 'btn-default'} mr20`} type="button" onClick={() => this.handleChange('receiveEmail', 1)}>Yes</button>
+                        <button class={`btn ${!receiveEmail ? 'btn-cyan' : 'btn-default'}`} type="button" onClick={() => this.handleChange('receiveEmail', 0)}>No</button>
+                    </div>
+
                     <button class="btn btn-violet" type="button" onClick={this.handleSubmit}>Save Changes</button>
-                </form>
+                </form >
             </div >
         )
     }

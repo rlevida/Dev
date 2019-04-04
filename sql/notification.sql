@@ -8,6 +8,7 @@ CREATE TABLE `notification` (
     `documentId` BIGINT,
     `message` VARCHAR(255),
     `isActive` TINYINT DEFAULT '1',
+    `isRead` TINYINT DEFAULT '0',
     `type` ENUM("taskAssigned","taskTagged","fileNewUpload","messageSend","commentReplies","taskDeadline","taskMemberCompleted","taskFollowingCompleted","taskTeamDeadline","taskFollowingDeadline"),
     `createdBy` BIGINT,
     `isDeleted` TINYINT DEFAULT '0',

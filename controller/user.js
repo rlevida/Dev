@@ -640,21 +640,14 @@ exports.put = {
             cb({ status: false, error: err })
         }
     },
-    notificationSetting: (req, cb) => {
+    notificationSetting: async (req, cb) => {
         const body = req.body;
         const id = req.params.id;
-        console.log(id)
-        console.log(body)
+
         try {
-            UsersNotificationSetting
-                .update(body, { where: { usersId: id } })
-                .then((res) => {
-                    UsersNotificationSetting
-                        .findOne({ where: { id: res } })
-                        .then((findRes) => {
-                            cb({ status: true, data: findRes })
-                        })
-                })
+            await UsersNotificationSetting.update(body, { where: { usersId: id } });
+            const findResult = await UsersNotificationSetting.findOne({ where: { usersId: id } });
+            await cb({ status: true, data: findResult });
         } catch (err) {
             cb({ status: false, error: err })
         }
