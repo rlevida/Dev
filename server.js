@@ -97,5 +97,7 @@ if (process.env.NODE_ENV == "production") {
 }
 
 var server = http.createServer(app);
-require("./serverSocket").socketIo(server);
+var io = require('socket.io')(server);
+app.io = io;
+require("./serverSocket")(io);
 server.listen(app.get('port'), server_ip_address);
