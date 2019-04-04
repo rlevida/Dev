@@ -157,7 +157,6 @@ export default class UserList extends React.Component {
                         <tbody>
                             {
                                 _.map(userList, (user, index) => {
-                                    console.log(user.user_role)
                                     return (
                                         <tr key={index}>
                                             <td data-label="User ID">
@@ -168,8 +167,8 @@ export default class UserList extends React.Component {
                                             <td data-label="Email Address">{user.emailAddress}</td>
                                             <td data-label="Type">{user.userType}</td>
                                             <td data-label="Roles">{
-                                                // this.renderArrayTd(_.map(user.user_role, (el) => { return el.role.role }))
-                                                }</td>
+                                                this.renderArrayTd(_.map(user.user_role, (el) => { return el.role.role }))
+                                            }</td>
                                             <td data-label="Actions" class="actions">
                                                 <div>
                                                     <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />
