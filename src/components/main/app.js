@@ -12,6 +12,7 @@ import MyTasks from "../myTasks";
 import Users from "../users";
 import Profile from "../profile";
 import notAvailable from "../notAvailable";
+import Notification from "../notification";
 
 @connect((store) => {
     return {
@@ -136,8 +137,12 @@ class Main extends React.Component {
                 label: "",
                 path_name: "not-found",
                 component: notAvailable,
+            },{
+                label: "Notification",
+                path_name: "notification",
+                component: Notification,
                 show_menu: false
-            }
+            },
         ];
 
         if (loggedUser.data.userType === "External") {
@@ -212,7 +217,7 @@ class Main extends React.Component {
                                 }
                                 <div class="action item">
                                     <div class="hidden-sm hidden-xs text-center display-flex action-link">
-                                        <a class="dropdown-toggle" href={`/reminder`}>
+                                        <a class="dropdown-toggle" href={`/account/notification`}>
                                             <span class="fa fa-bell"></span>
                                         </a>
                                         <Link to={"/profile"}>

@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function (sequelize, DataTypes) {
-    const UsersNotificationSetting = sequelize.define('users_notification_setting', {
+    const Notification = sequelize.define('notification', {
         id: {
             type: DataTypes.BIGINT,
             allowNull: false,
@@ -12,47 +12,39 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.BIGINT,
             allowNull: true
         },
-        taskAssigned: {
+        projectId: {
             type: DataTypes.BIGINT,
             allowNull: true
         },
-        taskTagged: {
+        workstreamId: {
             type: DataTypes.BIGINT,
             allowNull: true
         },
-        fileNewUpload: {
+        taskId: {
             type: DataTypes.BIGINT,
             allowNull: true
         },
-        messageSend: {
+        documentId: {
             type: DataTypes.BIGINT,
             allowNull: true
         },
-        commentReplies: {
+        message: {
+            type: DataTypes.STRING(50),
+            allowNull: true
+        },
+        type: {
+            type: DataTypes.ENUM('taskAssigned', 'taskTagged', 'fileNewUpload','messageSend', 'commentReplies', 'taskDeadline','taskMemberCompleted', 'taskFollowingCompleted', 'taskTeamDeadline','taskFollowingDeadline'),
+            allowNull: true
+        },
+        isActive: {
             type: DataTypes.BIGINT,
             allowNull: true
         },
-        taskDeadline: {
+        createdBy: {
             type: DataTypes.BIGINT,
             allowNull: true
         },
-        taskMemberCompleted: {
-            type: DataTypes.BIGINT,
-            allowNull: true
-        },
-        taskFollowingCompleted: {
-            type: DataTypes.BIGINT,
-            allowNull: true
-        },
-        taskTeamDeadline: {
-            type: DataTypes.BIGINT,
-            allowNull: true
-        },
-        taskFollowingDeadline: {
-            type: DataTypes.BIGINT,
-            allowNull: true
-        },
-        receiveEmail: {
+        isDeleted: {
             type: DataTypes.BIGINT,
             allowNull: true
         },
@@ -66,16 +58,9 @@ module.exports = function (sequelize, DataTypes) {
             defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
         },
     }, {
-            tableName: 'users_notification_setting',
+            tableName: 'notification',
             timestamps: false
         });
 
-    UsersNotificationSetting.associate = (models) => {
-        UsersNotificationSetting.hasOne(models.Users, {
-            as: 'notification_setting',
-            foreignKey: 'id'
-        })
-    }
-
-    return UsersNotificationSetting;
+    return Notification;
 };

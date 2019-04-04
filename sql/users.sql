@@ -22,3 +22,4 @@ CREATE TABLE `users` (
 /* password : volenday */
 INSERT INTO users (`username`,`firstName`,`lastName`,`password`,`emailAddress`,`salt`,`userType`,`avatar`,`dateAdded`)
 values('admin','John Aldrin','Tapia','c08f94cdbfd13e47333a2d6e18c5ab8b6d2c3fbf','johnaldrin.tapia@volenday.com','4qVnChLYBUpVWuLXQsZBKQJcYiq5ZVRn',"Internal","https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/profile_pictures/default.png",NOW());
+INSERT INTO users_notification_setting (`usersId`) values (1);

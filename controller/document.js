@@ -21,7 +21,8 @@ const {
     Users,
     UsersRole,
     Workstream,
-    Notes
+    Notes,
+    Notification
 } = models;
 
 const associationFindAllStack = [
@@ -583,6 +584,14 @@ exports.post = {
 
                                     parallelCallback(err)
                                 }
+                            },
+                            notification: (parallelCallback) => {
+                                let notificationData = {
+                                    createdBy: body.usersId
+                                }
+                                parallelCallback(null, "")
+                                // Notification
+                                // .create()
                             }
                         }, (err, { documentLink, activityLogsDocument }) => {
                             if (err != null) {

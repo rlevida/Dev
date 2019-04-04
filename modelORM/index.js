@@ -56,6 +56,7 @@ const Type = require('./type')(sequelize, Sequelize.DataTypes);
 const Session = require('./session')(sequelize, Sequelize.DataTypes);
 const Starred = require('./starred')(sequelize, Sequelize.DataTypes);
 const UsersNotificationSetting = require('./users_notification_setting')(sequelize, Sequelize.DataTypes);
+const Notification = require('./notification.js')(sequelize, Sequelize.DataTypes);
 
 const models = {
     ActivityLogs,
@@ -90,7 +91,8 @@ const models = {
     UserForgotPassword,
     Session,
     Starred,
-    UsersNotificationSetting
+    UsersNotificationSetting,
+    Notification
 };
 
 Object.keys(models).forEach((modelName) => {
