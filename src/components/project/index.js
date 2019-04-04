@@ -11,7 +11,8 @@ import TaskDetails from "../task/taskDetails";
 @connect((store) => {
     return {
         project: store.project,
-        task: store.task
+        task: store.task,
+        loggedUser: store.loggedUser
     }
 })
 export default class Component extends React.Component {
@@ -22,6 +23,13 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
         dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: "" })
+    }
+
+    componentDidMount() {
+        const { loggedUser, history } = { ...this.props };
+        if (loggedUser.data.userRole >= 4 && loggedUser.data.projectId.length === 1) {
+            history.push(`/projects/${loggedUser.data.projectId[0]}`);
+        }
     }
 
     render() {

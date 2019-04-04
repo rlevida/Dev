@@ -28,13 +28,10 @@ export default class ProjectDashboard extends React.Component {
     componentDidMount() {
         const { workstream } = { ...this.props };
         const { loggedUser, history } = { ...this.props };
-        if (loggedUser.data.userRole >= 4 && loggedUser.data.projectId.length === 1) {
-            history.push(`/projects/${loggedUser.data.projectId[0]}`)
-        } else {
-            this.fetchProjectStatus();
-            if (_.isEmpty(workstream.Count)) {
-                this.fetchCompletionRate(1);
-            }
+        this.fetchProjectStatus();
+        
+        if (_.isEmpty(workstream.Count)) {
+            this.fetchCompletionRate(1);
         }
     }
 

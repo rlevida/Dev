@@ -585,7 +585,10 @@ exports.get = {
                                 dueDate: {
                                     [Op.eq]: currentDate
                                 },
-                                projectId
+                                projectId,
+                                status: {
+                                    [Op.ne]: 'Completed'
+                                }
                             }
                         }).then(({ count }) => {
                             parallelCallback(null, count)
