@@ -173,7 +173,6 @@ class DocumentList extends React.Component {
     async viewDocument(data) {
         const { dispatch, loggedUser, folder, match } = this.props;
         const projectId = match.params.projectId;
-
         if (data.type !== 'folder') {
             if (data.document_read.length === 0) {
                 const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
@@ -239,7 +238,7 @@ class DocumentList extends React.Component {
     }
 
     render() {
-        const { dispatch, document, folder, match } = { ...this.props };
+        const { dispatch, document, folder } = { ...this.props };
         const { Count } = { ...document };
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
@@ -309,7 +308,6 @@ class DocumentList extends React.Component {
                                                                     </a>
                                                                     {
                                                                         (document.Filter.status === 'active') && <a href="javascript:void(0);"
-                                                                            onClick={() => this.downloadDocument(data)}
                                                                             class="btn btn-action">
                                                                             <span class={`fa fa-archive document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="ARCHIVED"></span>
                                                                         </a>

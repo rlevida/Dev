@@ -33,6 +33,12 @@ class DocumentViewerComponent extends React.Component {
         this.handleOnChange = this.handleOnChange.bind(this)
         this.downloadDocument = this.downloadDocument.bind(this)
     }
+    componentDidMount() {
+        const { dispatch } = { ...this.props };
+        $('#documentViewerModal').on('hidden.bs.modal', function () {
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+        })
+    }
     componentWillUnmount() {
         const { dispatch } = this.props;
         dispatch({ type: "SET_COMMENT_SELECTED", Selected: "" })
@@ -126,12 +132,15 @@ class DocumentViewerComponent extends React.Component {
             usersId: loggedUser.data.id
         }, (c) => {
             if (c.status == 200) {
-                const updatedDocumentList = _.map([...document.List], (documentObj, index) => {
+                let selectedObj = {};
+                const updatedDocumentList = _.map(document.List, (documentObj, index) => {
                     if (id == documentObj.id) {
                         documentObj["isStarred"] = isStarredValue;
+                        selectedObj = documentObj
                     }
                     return documentObj;
                 });
+                dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj })
                 dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList, count: document.Count });
                 showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
             } else {
@@ -140,7 +149,7 @@ class DocumentViewerComponent extends React.Component {
         });
     }
     render() {
-        const { dispatch, document, settings, conversation, history, project } = this.props;
+        const { document, settings } = this.props;
         let isDocument = true, ext = "", documentContentType = "";
 
         if (typeof document.Selected.id !== 'undefined') {
@@ -170,7 +179,7 @@ class DocumentViewerComponent extends React.Component {
                                 </div>
                                 <div class="col-md-6 modal-action">
                                     <div class="button-action">
-                                        <a class="logo-action text-gold" onClick={() => this.starredDocument({ isStarred: document.Selected.isStarred, id: document.Selected.id, origin: document.Selected.origin })}>
+                                        <a class="logo-action text-yellow" onClick={() => this.starredDocument({ isStarred: document.Selected.isStarred, id: document.Selected.id, origin: document.Selected.origin })}>
                                             <i class={`fa ${document.Selected.isStarred ? "fa-star" : "fa-star-o"}`} title="STARRED" aria-hidden="true" />
                                         </a>
                                         <a class="logo-action text-grey" onClick={() => this.downloadDocument(document.Selected)}>

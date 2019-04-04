@@ -30,11 +30,9 @@ class DocumentFilter extends React.Component {
         const { dispatch, loggedUser, folder, document, match } = this.props;
         const projectId = match.params.projectId;
 
-
-
         if (_.isEqual(prevProps.document.Filter, this.props.document.Filter) == false) {
             clearTimeout(delayTimer);
-
+        
             if (_.isEmpty(folder.Selected) === false) {
                 dispatch({ type: "SET_SELECTED_FOLDER", Selected: {} })
                 dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] })
@@ -124,9 +122,8 @@ class DocumentFilter extends React.Component {
 
     setDropDown(name, e) {
         const { dispatch, history, match, folder, document } = this.props;
-        const projectId = match.params.projectId;
-
-        history.push(`/projects/${projectId}/files`);
+        // const projectId = match.params.projectId;
+        // history.push(`/projects/${projectId}/files`);
         
         if (!_.isEmpty(folder.SelectedLibraryFolderName) || !_.isEmpty(folder.SelectedNewFolderName)) {
             dispatch({ type: 'CLEAR_FOLDER' })
