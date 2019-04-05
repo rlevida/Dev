@@ -1344,7 +1344,8 @@ input:checked + .slider:before {
   font-weight: 900;
 }
 
-.tab-row .flex-col:not(:last-child){
+.tab-row .flex-col:not(:last-child),
+.filter-row [class*=col-]:not(:last-child){
   margin-right: 5px;
 }
 
@@ -1382,7 +1383,7 @@ input:checked + .slider:before {
 }
 
 .react-tabs [role=tablist]{
-  margin-bottom: 20px!important;
+  margin-bottom: 10px!important;
   border-bottom: 0px;
 }
 
@@ -2409,6 +2410,9 @@ td .display-flex{
 /* Extra Small */
 
 @media(max-width:767px) {
+  .filter-row [class*=col-]:not(:last-child){
+    margin-right: 0px;
+  }
   #user-list .actions div{
     justify-content: flex-end;
   }

@@ -230,10 +230,18 @@ exports.get = {
 
         };
 
+        if (typeof queryString.type == "undefined" && (typeof queryString.assigned != "undefined" && queryString.assigned != "")) {
+            whereObj[Sequelize.Op.and] = {
+                id: {
+                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${queryString.assigned} AND members.isDeleted = 0)`)
+                }
+            };
+        }
+
         if (typeof queryString.userId != "undefined" && queryString.userId != "") {
             let queryUserIds = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;
             let opOrArray = [];
-
+            
             if (typeof queryString.type != "undefined") {
                 const compareOpt = (Array.isArray(queryString.userId)) ? "IN" : "=";
                 const ids = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;
@@ -264,13 +272,15 @@ exports.get = {
                                 return id;
                             });
                         const teamIds = _.uniq([...userTeams, ...teams]);
-                        const allTeams = await UsersTeam
-                            .findAll({ where: { teamId: teamIds, isDeleted: 0 } })
-                            .map((mapObject) => {
-                                const { usersId } = mapObject.toJSON();
-                                return usersId;
-                            })
-                            .filter((o) => { return o != queryString.userId });
+                        const allTeams = (typeof queryString.assigned != "undefined" && queryString.assigned != "") ?
+                            [queryString.assigned]
+                            : await UsersTeam
+                                .findAll({ where: { teamId: teamIds, isDeleted: 0 } })
+                                .map((mapObject) => {
+                                    const { usersId } = mapObject.toJSON();
+                                    return usersId;
+                                })
+                                .filter((o) => { return o != queryString.userId });
                         if (allTeams.length > 0) {
                             opOrArray.push(
                                 {
@@ -282,10 +292,25 @@ exports.get = {
                         }
                         break;
                     case "following":
+                        let followingQuery = "(";
+                        followingQuery += `SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids} AND members.memberType = "follower" AND members.isDeleted=0`
+
+                        if (typeof queryString.assigned != "undefined" && queryString.assigned != "") {
+                            followingQuery += ` AND task.id IN(
+                                SELECT DISTINCT
+                                    task.id
+                                FROM
+                                    task
+                                LEFT JOIN members ON task.id = members.linkId
+                                WHERE
+                                    members.linkType = "task" AND members.userTypeLinkId = ${queryString.assigned} AND members.memberType = "assignedTo")`;
+                        }
+
+                        followingQuery += ")";
                         opOrArray.push(
                             {
                                 id: {
-                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId ${compareOpt} ${ids} AND members.memberType = "follower" AND members.isDeleted=0)`)
+                                    [Sequelize.Op.in]: Sequelize.literal(followingQuery)
                                 }
                             }
                         );
@@ -293,8 +318,10 @@ exports.get = {
                     default:
                 }
             }
+
             whereObj[Sequelize.Op.or] = opOrArray;
         }
+
         if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
             _.find(associationArray, { as: 'task_starred' }).where = {
                 linkType: 'task',
@@ -303,6 +330,7 @@ exports.get = {
                 isDeleted: 0
             };
         }
+
         const options = {
             include: associationArray,
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},

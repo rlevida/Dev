@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 
 import MyTaskList from "./myTaskList";
-import MyTaskFilters from "./myTaskFilters";
+import TaskFilters from "../task/taskFilter";
 import TaskForm from "../task/taskForm";
 import TaskDetails from "../task/taskDetails";
 import TaskCalendar from "../task/taskCalendar";
@@ -37,7 +37,7 @@ export default class Component extends React.Component {
                         <div class="col-lg-12">
                             <div class="card">
                                 <div class="mb20 bb">
-                                    <MyTaskFilters />
+                                    <TaskFilters />
                                 </div>
                                 {
                                     (task.FormActive == "List") && <MyTaskList />

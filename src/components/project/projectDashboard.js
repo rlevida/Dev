@@ -29,7 +29,7 @@ export default class ProjectDashboard extends React.Component {
         const { workstream } = { ...this.props };
         const { loggedUser, history } = { ...this.props };
         this.fetchProjectStatus();
-        
+
         if (_.isEmpty(workstream.Count)) {
             this.fetchCompletionRate(1);
         }
@@ -185,34 +185,36 @@ export default class ProjectDashboard extends React.Component {
                         <div class="card-body">
                             <div class="container-fluid">
                                 {
-                                    ((workstream.List).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                    ((workstream.List).length == 0 && workstream.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                                 }
-                                {
-                                    ((workstream.List).length > 0) && <div class="row content-row">
-                                        {
-                                            _.map(chartData, (o, index) => {
-                                                return (
-                                                    <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12" key={index}>
-                                                        <div class="chart-wrapper">
-                                                            <Chart
-                                                                chartType="PieChart"
-                                                                width="100%"
-                                                                height="auto"
-                                                                data={o.data}
-                                                                options={options}
-                                                                loader={<Loading />}
-                                                            />
-                                                            <p class="total">{o.total}%</p>
+                                <div class={(workstream.Loading == "RETRIEVING" && (workstream.List).length == 0) ? "linear-background" : ""}>
+                                    {
+                                        ((workstream.List).length > 0) && <div class="row content-row">
+                                            {
+                                                _.map(chartData, (o, index) => {
+                                                    return (
+                                                        <div class="col-lg-3 col-md-4 col-sm-12 col-xs-12" key={index}>
+                                                            <div class="chart-wrapper">
+                                                                <Chart
+                                                                    chartType="PieChart"
+                                                                    width="100%"
+                                                                    height="auto"
+                                                                    data={o.data}
+                                                                    options={options}
+                                                                    loader={<Loading />}
+                                                                />
+                                                                <p class="total">{o.total}%</p>
+                                                            </div>
+                                                            <Link to={`${this.props.match.url}/workstreams/${o.id}`}>
+                                                                <h5 class="text-center title mt0">{o.title}</h5>
+                                                            </Link>
                                                         </div>
-                                                        <Link to={`${this.props.match.url}/workstreams/${o.id}`}>
-                                                            <h5 class="text-center title mt0">{o.title}</h5>
-                                                        </Link>
-                                                    </div>
-                                                )
-                                            })
-                                        }
-                                    </div>
-                                }
+                                                    )
+                                                })
+                                            }
+                                        </div>
+                                    }
+                                </div>
                                 {
                                     (workstream.Loading == "RETRIEVING" && (workstream.List).length > 0) && <Loading />
                                 }

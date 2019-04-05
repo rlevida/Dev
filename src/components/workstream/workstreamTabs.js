@@ -5,14 +5,17 @@ import { Searchbar } from "../../globalComponents";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import WorkstreamDocument from "./workstreamDocument";
 
+import TaskFilters from "../task/taskFilter";
 import TaskListCategory from "../task/taskListCategory";
 import WorkstreamMembers from "./workstreamMembers";
-import Conversations from "../conversations";
+import ConversationForm from "../conversations/conversationsForm";
+import ConversationList from "../conversations/conversationList";
 
 @connect((store) => {
     return {
         workstream: store.workstream,
-        task: store.task
+        task: store.task,
+        notes: store.notes
     }
 })
 export default class WorkstreamTabs extends React.Component {
@@ -33,17 +36,25 @@ export default class WorkstreamTabs extends React.Component {
         }
     }
     handleTab(o) {
-        const { buttonAction = "" } = { ...this.refs };
-        const buttonActionClassList = (buttonAction != "") ? buttonAction.classList : "";
+        const { taskAction = "", messageAction = "" } = { ...this.refs };
+        const taskActionClassList = (taskAction != "") ? taskAction.classList : "";
+        const messageActionClassList = (messageAction != "") ? messageAction.classList : "";
 
-        if (o > 0) {
-            (buttonActionClassList).add('hide');
+        if (o != 0) {
+            (taskActionClassList).add('hide');
         } else {
-            (buttonActionClassList).remove('hide');
+            (taskActionClassList).remove('hide');
         }
+
+        if (o != 2) {
+            (messageActionClassList).add('hide');
+        } else {
+            (messageActionClassList).remove('hide');
+        }
+
     }
     render() {
-        const { project_id, workstream_id, dispatch } = { ...this.props };
+        const { project_id, workstream_id, dispatch, notes } = { ...this.props };
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -54,7 +65,7 @@ export default class WorkstreamTabs extends React.Component {
                                 <Tab>Active Files</Tab>
                                 <Tab>Messages</Tab>
                                 <Tab>Members</Tab>
-                                <div class="button-action" ref="buttonAction">
+                                <div class="button-action" ref="taskAction">
                                     <Searchbar
                                         handleChange={this.handleChange}
                                         handleCancel={() => {
@@ -74,32 +85,61 @@ export default class WorkstreamTabs extends React.Component {
                                              </span>
                                     </a>
                                 </div>
+                                <div class="button-action hide" ref="messageAction">
+                                    {
+                                        (typeof notes.Selected.id != "undefined" && notes.Selected.id != "") &&
+                                        <a class="btn btn-default"
+                                            onClick={(e) => {
+                                                dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
+                                                dispatch({ type: "SET_COMMENT_LIST", list: [], count: {} });
+                                            }}
+                                        >
+                                            <span>
+                                                <i class="fa fa-plus mr10" aria-hidden="true"></i>
+                                                New Message
+                                         </span>
+                                        </a>
+                                    }
+                                </div>
                             </TabList>
-                            <TabPanel class="bt">
-                                <div class="mt20 mb40">
-                                    <TaskListCategory date="Today" workstream_id={workstream_id} />
-                                </div>
-                                <div class="mb40">
-                                    <TaskListCategory date="This week" workstream_id={workstream_id} />
-                                </div>
-                                <div class="mb40">
-                                    <TaskListCategory date="This month" workstream_id={workstream_id} />
-                                </div>
-                                <div class="mb40">
-                                    <TaskListCategory date="Succeeding month" workstream_id={workstream_id} />
+                            <TabPanel>
+                                <TaskFilters
+                                    show_tab={false}
+                                    show_action={false}
+                                />
+                                <div class="bt">
+                                    <div class="mt20 mb40">
+                                        <TaskListCategory date="Today" workstream_id={workstream_id} />
+                                    </div>
+                                    <div class="mb40">
+                                        <TaskListCategory date="This week" workstream_id={workstream_id} />
+                                    </div>
+                                    <div class="mb40">
+                                        <TaskListCategory date="This month" workstream_id={workstream_id} />
+                                    </div>
+                                    <div class="mb40">
+                                        <TaskListCategory date="Succeeding month" workstream_id={workstream_id} />
+                                    </div>
                                 </div>
                             </TabPanel>
-                            <TabPanel class="bt">
+                            <TabPanel class="bt mt20">
                                 <div class="mt20">
                                     <WorkstreamDocument workstream_id={workstream_id} />
                                 </div>
                             </TabPanel>
-                            <TabPanel class="bt">
+                            <TabPanel class="bt mt20">
                                 <div class="mt20">
-                                    <Conversations workstream_id={workstream_id} project_id={project_id} />
+                                    <div class="row content-row row-eq-height">
+                                        <div class="col-md-4 col-sm-12">
+                                            <ConversationList projectId={project_id} workstreamId={workstream_id} />
+                                        </div>
+                                        <div class="col-md-8 col-sm-12">
+                                            <ConversationForm projectId={project_id} workstreamId={workstream_id} />
+                                        </div>
+                                    </div>
                                 </div>
                             </TabPanel>
-                            <TabPanel class="bt">
+                            <TabPanel class="bt mt20">
                                 <WorkstreamMembers workstream_id={workstream_id} />
                             </TabPanel>
                         </Tabs>

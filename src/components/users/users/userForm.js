@@ -282,19 +282,22 @@ export default class UserForm extends React.Component {
                                 onChange={this.handleChange} />
 
                         </div>
-                        <div class="form-group">
-                            <label>Email Address: <span class="text-red">*</span></label>
-                            <input
-                                type="email"
-                                name="emailAddress"
-                                required
-                                value={(typeof users.Selected.emailAddress == "undefined") ? "" : users.Selected.emailAddress}
-                                class="form-control"
-                                placeholder="Enter valid email address"
-                                onChange={this.handleChange}
-                            />
+                        {
+                            (profileEdit == false) &&
+                            <div class="form-group">
+                                <label>Email Address: <span class="text-red">*</span></label>
+                                <input
+                                    type="email"
+                                    name="emailAddress"
+                                    required
+                                    value={(typeof users.Selected.emailAddress == "undefined") ? "" : users.Selected.emailAddress}
+                                    class="form-control"
+                                    placeholder="Enter valid email address"
+                                    onChange={this.handleChange}
+                                />
 
-                        </div>
+                            </div>
+                        }
                         <div class="form-group">
                             <label>First name: <span class="text-red">*</span></label>
                             <input type="text"

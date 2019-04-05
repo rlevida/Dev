@@ -119,6 +119,19 @@ export default class TaskListCategory extends React.Component {
         if (Filter.type != "") {
             fetchUrl += `&type=${Filter.type}`
         }
+        
+        if (Filter.taskStatus != "") {
+            if (Filter.taskStatus === 'Active') {
+                fetchUrl += `&status=${JSON.stringify({ opt: "not", value: 'Completed' })}&isActive=1`
+            } else {
+                fetchUrl += `&status=${JSON.stringify({ opt: "eq", value: Filter.taskStatus })}`
+            }
+        }
+        if (Filter.taskAssigned != "") {
+            fetchUrl += `&assigned=${Filter.taskAssigned}`
+        }
+
+
         getData(fetchUrl, {}, (c) => {
             this.setState({ count: c.data.count, loading: "" }, () => dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result }));
             showToast("success", "Task successfully retrieved.");
@@ -183,7 +196,6 @@ export default class TaskListCategory extends React.Component {
                         }
                         <a
                             onClick={() => this.openTaskDetails(id)}
-                            class={(daysRemaining < 0 && status != "Completed") ? "text-red" : ""}
                         >
                             {task_name}
                             {(periodic == 1) && <i class="fa fa-refresh ml10" aria-hidden="true"></i>}

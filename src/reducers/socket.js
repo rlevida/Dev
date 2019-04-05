@@ -1,6 +1,6 @@
 
 import io from 'socket.io-client';
-const socket = io('ws://ui-cloudcfo.volenday.com', {transports: ['websocket']});
+const socket = io();
 
 export default function reducer(state={
         container : socket
