@@ -100,6 +100,7 @@ export default class TeamList extends React.Component {
                                 <th scope="col">Team Leader</th>
                                 <th scope="col">Members</th>
                                 <th scope="col">Projects</th>
+                                <th scope="col">Workstreams</th>
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
@@ -151,7 +152,20 @@ export default class TeamList extends React.Component {
                                                 </div>
                                             </td>
                                             <td data-label="Projects">
-                                                {this.renderArrayTd(_.map(team.teamProjects, ({memberProject}) => { return memberProject.project }))}
+                                                {
+                                                    ((team.teamProjects).length > 0) && <div>
+                                                        {this.renderArrayTd(_.map(team.teamProjects, ({ memberProject }) => { return memberProject.project }))}
+                                                    </div>
+                                                }
+                                            </td>
+                                            <td data-label="Workstreams">
+                                                {
+                                                    ((_.flatten(_.map(team.teamProjects, (o) => { return o.memberProject.workstream }))).length > 0) && <div>
+                                                        {
+                                                            (_.flatten(_.map(team.teamProjects, (o) => { return o.memberProject.workstream }))).length
+                                                        }
+                                                    </div>
+                                                }
                                             </td>
                                             <td data-label="Actions">
                                                 <a href="javascript:void(0);"

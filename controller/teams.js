@@ -8,6 +8,7 @@ const models = require('../modelORM');
 const {
     Members,
     Projects,
+    Workstream,
     Teams,
     Users,
     UsersTeam,
@@ -40,7 +41,12 @@ const associationStack = [
         as: 'teamProjects',
         include: [{
             model: Projects,
-            as: 'memberProject'
+            as: 'memberProject',
+            include: [
+                {
+                    model: Workstream,
+                    as: 'workstream'
+                }]
         }],
         where: { usersType: 'team', linkType: 'project' },
         required: false,

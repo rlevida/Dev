@@ -78,29 +78,41 @@ export default class Component extends React.Component {
                                 <Tab>Account Settings</Tab>
                                 <Tab>Notifications</Tab>
                             </TabList>
-                            <TabPanel class="bt">
-                                <div class="row content-row mb20" id="profile">
-                                    <div class="col-md-5">
-                                        <ProfileDetails />
-                                    </div>
-                                    <div class="col-md-7" id="performance">
-                                        <ProfilePerformance />
-                                    </div>
-                                </div>
-                                <div class="row content-row">
-                                    <div class="col-md-3">
-                                        <ProfileProject />
-                                    </div>
-                                    <div class="col-md-9">
-                                        <ProfileTask />
+                            <TabPanel>
+                                <div class="mt20">
+                                    <div class="bt">
+                                        <div class="row content-row mb20" id="profile">
+                                            <div class="col-md-5">
+                                                <ProfileDetails />
+                                            </div>
+                                            <div class="col-md-7" id="performance">
+                                                <ProfilePerformance />
+                                            </div>
+                                        </div>
+                                        <div class="row content-row">
+                                            <div class="col-md-3">
+                                                <ProfileProject />
+                                            </div>
+                                            <div class="col-md-9">
+                                                <ProfileTask />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </TabPanel>
-                            <TabPanel class="bt">
-                                <UserForm profileEdit={true} />
+                            <TabPanel>
+                                <div class="mt20">
+                                    <div class="bt">
+                                        <UserForm profileEdit={true} />
+                                    </div>
+                                </div>
                             </TabPanel>
-                            <TabPanel class="bt">
-                                <h2>Notifications</h2>
+                            <TabPanel>
+                                <div class="mt20">
+                                    <div class="bt">
+                                        <h2>Notifications</h2>
+                                    </div>
+                                </div>
                             </TabPanel>
                         </Tabs>
                     </div>

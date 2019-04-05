@@ -29,13 +29,15 @@ export default class ProfileTask extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch } = { ...this.props };
         this.getList(1);
     }
 
     getList(page) {
         const { dispatch, loggedUser } = { ...this.props };
-        let fetchUrl = `/api/task?page=${page}&userId=${loggedUser.data.id}&type=assignedToMe`;
+        const fromDate = moment().startOf('month').format("YYYY-MM-DD");
+        const toDate = moment().endOf('month').endOf('month').format("YYYY-MM-DD");
+        let fetchUrl = `/api/task?page=${page}&userId=${loggedUser.data.id}&type=assignedToMe&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
+
         getData(fetchUrl, {}, (c) => {
             dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.result, Count: c.data.count });
         });
@@ -74,7 +76,7 @@ export default class ProfileTask extends React.Component {
                                         const current = moment().startOf('day');
                                         let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
 
-                                        const colorClass = (daysRemaining < 0 && status != "Completed") ? "text-red" :(daysRemaining == 0 && status != "Completed") ? "text-yellow" : (status == "Completed") ? "text-green" : "";
+                                        const colorClass = (daysRemaining < 0 && status != "Completed") ? "text-red" : (daysRemaining == 0 && status != "Completed") ? "text-yellow" : (status == "Completed") ? "text-green" : "";
 
                                         return (
                                             <tr key={index}>
