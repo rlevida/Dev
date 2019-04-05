@@ -217,8 +217,9 @@ class Main extends React.Component {
                                 }
                                 <div class="action item">
                                     <div class="hidden-sm hidden-xs text-center display-flex action-link">
-                                        <a class="dropdown-toggle" href={`/account/notification`}>
-                                            <span class="fa fa-bell"></span>
+                                        <a class="dropdown-toggle" href={`/account#/notification`}>
+                                            <span class="fa fa-bell"> </span>
+                                            <span class="n-count">3</span>
                                         </a>
                                         <Link to={"/profile"}>
                                             <div class="menu-profile">

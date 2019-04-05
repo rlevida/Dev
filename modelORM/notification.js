@@ -33,7 +33,7 @@ module.exports = function (sequelize, DataTypes) {
             allowNull: true
         },
         type: {
-            type: DataTypes.ENUM('taskAssigned', 'taskTagged', 'fileNewUpload','messageSend', 'commentReplies', 'taskDeadline','taskMemberCompleted', 'taskFollowingCompleted', 'taskTeamDeadline','taskFollowingDeadline'),
+            type: DataTypes.ENUM('taskAssigned', 'taskTagged', 'fileNewUpload', 'messageSend', 'commentReplies', 'taskDeadline', 'taskMemberCompleted', 'taskFollowingCompleted', 'taskTeamDeadline', 'taskFollowingDeadline'),
             allowNull: true
         },
         isActive: {
@@ -45,6 +45,10 @@ module.exports = function (sequelize, DataTypes) {
             allowNull: true
         },
         isDeleted: {
+            type: DataTypes.BIGINT,
+            allowNull: true
+        },
+        isRead: {
             type: DataTypes.BIGINT,
             allowNull: true
         },
@@ -61,6 +65,27 @@ module.exports = function (sequelize, DataTypes) {
             tableName: 'notification',
             timestamps: false
         });
-
+    Notification.associate = (models) => {
+        Notification.belongsTo(models.Users, {
+            as: 'from',
+            foreignKey: 'createdBy'
+        })
+        Notification.belongsTo(models.Users, {
+            as: 'to',
+            foreignKey: 'usersId'
+        })
+        Notification.belongsTo(models.Tasks, {
+            as: 'task_notification',
+            foreignKey: 'taskId'
+        })
+        Notification.belongsTo(models.Document, {
+            as: 'document_notification',
+            foreignKey: 'documentId'
+        })
+        Notification.belongsTo(models.Workstream, {
+            foreignKey: 'workstreamId',
+            as: 'workstream_notification'
+          });
+    }
     return Notification;
 };

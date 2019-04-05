@@ -109,9 +109,6 @@ export default class Component extends React.Component {
                                 </div>
                             </TabPanel>
                             <TabPanel class="bt">
-                                <UserForm profileEdit={true} />
-                            </TabPanel>
-                            <TabPanel class="bt">
                                 <ProfileNotification/>
                             </TabPanel>
                         </Tabs>

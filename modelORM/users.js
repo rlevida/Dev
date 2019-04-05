@@ -118,6 +118,14 @@ module.exports = (sequelize, DataTypes) => {
       as: 'notification_setting',
       foreignKey: 'usersId'
     })
+    Users.hasOne(models.Notification, {
+      as: 'from',
+      foreignKey: 'createdBy'
+    })
+    Users.hasOne(models.Notification, {
+      as: 'to',
+      foreignKey: 'usersId'
+    })
   };
 
   return Users;

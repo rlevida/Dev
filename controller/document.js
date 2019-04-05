@@ -590,7 +590,6 @@ exports.post = {
                                 const workstreamIds = data.tagWorkstream.map((e) => { return e.value });
                                 const workstreamWhereObj = { linkId: workstreamIds, linkType: 'workstream' };
                                 const taskWhereObj = { workstreamId: workstreamIds };
-
                                 async.parallel({
                                     TaskMembers: (notificationParallel) => {
                                         Tasks
@@ -615,6 +614,8 @@ exports.post = {
                                                 }]
                                             })
                                             .map((resTask) => {
+                                                // console.log(resTask.toJSON())
+                                                const workstreamId = resTask.toJSON().workstreamId
                                                 return resTask
                                                     .toJSON().task_members
                                                     .filter((r) => { return r.user.notification_setting.fileNewUpload === 1 })
@@ -622,16 +623,17 @@ exports.post = {
                                                         return {
                                                             usersId: r.user.id,
                                                             type: 'fileNewUpload',
-                                                            workstreamId: r.workstreamId,
                                                             projectId: data.projectId,
                                                             taskId: r.id,
                                                             documentId: res.dataValues.id,
                                                             message: 'upload a new file',
-                                                            createdBy: data.usersId
+                                                            createdBy: data.usersId,
+                                                            workstreamId: workstreamId
                                                         }
                                                     })
                                             })
                                             .then((resTask) => {
+                                                console.log(_.flattenDeep(resTask))
                                                 notificationParallel(null, _.flattenDeep(resTask))
                                             })
                                     },
@@ -656,6 +658,7 @@ exports.post = {
                                                 const resResult = resMembers.filter((r) => {
                                                     return r.user.notification_setting.fileNewUpload === 1
                                                 }).map((r) => {
+                                                    console.log(r)
                                                     return {
                                                         usersId: r.user.id,
                                                         type: 'fileNewUpload',
@@ -670,7 +673,7 @@ exports.post = {
                                             })
                                     }
                                 }, (err, { WorkstreamMembers, TaskMembers }) => {
-                                    const notificationData = _.uniqBy([...WorkstreamMembers, ...TaskMembers], 'usersId')
+                                    const notificationData = [...WorkstreamMembers, ...TaskMembers]
                                     Notification
                                         .bulkCreate(notificationData)
                                         .then((resNotification) => {
@@ -764,7 +767,7 @@ exports.post = {
                                             })
                                     }
                                 }, (err, { WorkstreamMembers, TaskMembers }) => {
-                                    const notificationData = _.uniqBy([...WorkstreamMembers, ...TaskMembers], 'usersId')
+                                    const notificationData = [...WorkstreamMembers, ...TaskMembers]
                                     async.map(notificationData, ({ emailAddress, message }, mapCallback) => {
                                         let html = '<p>' + message + '</p>';
                                         html += '<p style="margin-bottom:0">Title: ' + message + '</p>';

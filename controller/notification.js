@@ -4,32 +4,56 @@ const {
     Notification,
     Users,
     Workstream,
-    Tasks
+    Tasks,
+    Document
 } = models;
 
 exports.get = {
     index: (req, cb) => {
         const queryString = req.query
         const whereObj = {
-            ...(typeof queryString.usersId != "undefined" && queryString.usersId != "") ? { usersId: queryString.usersId } : {},
+            ...(typeof queryString.usersId != "undefined" && queryString.usersId != "") ? { usersId: parseInt(queryString.usersId) } : {},
         };
+
         try {
             Notification
                 .findAll({
                     where: whereObj,
+                    logging:true,
                     include: [
                         {
                             model: Users,
-                            as: 'user'
+                            as: 'to',
+                            required: false,
+                            attributes: ["emailAddress", "firstName", "lastName"]
+                        },
+                        {
+                            model: Users,
+                            as: 'from',
+                            required: false,
+                            attributes: ["emailAddress", "firstName", "lastName"]
+                        },
+                        {
+                            model: Document,
+                            as: 'document_notification',
+                            required: false,
+                            attributes: ["origin"]
+                        },
+                        {
+                            model: Workstream,
+                            as: 'workstream_notification',
+                            required: false,
+                            attributes: ["workstream"]
                         },
                         {
                             model: Tasks,
-                            as: 'task'
+                            as: 'task_notification',
+                            required: false,
+                            attributes: ["task"]
+
                         },
+
                     ]
-                })
-                .map((res) => {
-                    res.toJSON();
                 })
                 .then((res) => {
                     cb({ status: true, data: res })

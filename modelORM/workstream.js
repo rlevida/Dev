@@ -108,6 +108,10 @@ module.exports = function (sequelize, DataTypes) {
       foreignKey: 'workstreamId',
       as: 'workstreamNotes'
     });
+    Workstream.hasOne(models.Notification, {
+      foreignKey: 'workstreamId',
+      as: 'workstream_notification'
+    });
   };
 
   return Workstream;
