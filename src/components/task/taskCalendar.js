@@ -75,6 +75,18 @@ export default class TaskCalendar extends React.Component {
             fetchUrl += `&task=${task.Filter.task}`
         }
 
+        if (task.Filter.taskStatus != "") {
+            if (task.Filter.taskStatus === 'Active') {
+                fetchUrl += `&status=${JSON.stringify({ opt: "not", value: 'Completed' })}&isActive=1`
+            } else {
+                fetchUrl += `&status=${JSON.stringify({ opt: "eq", value: task.Filter.taskStatus })}`
+            }
+        }
+
+        if (task.Filter.taskAssigned != "") {
+            fetchUrl += `&assigned=${task.Filter.taskAssigned}`
+        }
+
         getData(fetchUrl, {}, (c) => {
             dispatch({ type: "SET_TASK_LIST", list: c.data.result });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
@@ -125,7 +137,6 @@ export default class TaskCalendar extends React.Component {
                 dispatch({ type: "SET_COMMENT_LIST", list: data.result, count: data.count });
             }
         });
-
     }
 
     renderCalendar() {
@@ -136,9 +147,12 @@ export default class TaskCalendar extends React.Component {
                 return o.dueDate != null && o.dueDate != "";
             })
             .map((o) => {
+                const assigned = _.find(o.task_members, (o) => { return o.memberType == "assignedTo" });
+                const title = (typeof assigned != "undefined") ? <span title=""><div class="display-flex"><div class="profile-div"><div class="thumbnail-profile"><img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" /></div></div>{o.task}</div></span>
+                    : o.task
                 return {
                     id: o.id,
-                    title: o.task,
+                    title: title,
                     start: (typeof o.startDate != "undefined" && o.startDate != null) ? moment(o.startDate).toDate() : moment(o.dueDate).toDate(),
                     end: moment(o.dueDate).endOf('day').toDate(),
                     allday: true,
@@ -162,24 +176,23 @@ export default class TaskCalendar extends React.Component {
     }
 
     render() {
-        const { task, is_card = true } = { ...this.props };
-        const { Loading, List } = task;
+        const { is_card = true } = { ...this.props };
 
         return (
             <div class="row">
                 <div class="col-lg-12">
                     {
                         (is_card) ? <div class="card">
-                            <div class={(Loading == "RETRIEVING" && (List).length == 0) ? "linear-background" : ""}>
-                                {
-                                    (Loading != "RETRIEVING") && this.renderCalendar()
-                                }
+                            <div>
+                               {
+                                   this.renderCalendar()
+                               } 
                             </div>
                         </div>
                             : <div>
                                 {
-                                    (Loading != "RETRIEVING") && this.renderCalendar()
-                                }
+                                   this.renderCalendar()
+                                } 
                             </div>
                     }
                 </div>

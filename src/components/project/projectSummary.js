@@ -199,7 +199,7 @@ export default class List extends React.Component {
                     </p>
                 </td>
                 <td data-label="Active Month Completion Rate">
-                    <a data-tip data-for={`task-${index}`} onClick={() => this.getLateTasks({ id, type: entity_type })}>
+                    <a data-tip data-for={`task-${index}`}>
                         <ProgressBar data={completionRate} />
                         <p class={`m0 ${(entity_type == "workstream") ? "text-italic" : ""}`}>{completionValue}%</p>
                     </a>

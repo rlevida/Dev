@@ -188,7 +188,7 @@ export default class ProjectList extends React.Component {
                                                         const completionRate = (completion_rate.completed.count / numberOfTasks) * 100;
                                                         return (
                                                             <tr key={index}>
-                                                                <td data-label="Project Name" class="td-left">
+                                                                <td data-label="Project Name" class="td-left table-name">
                                                                     <p class="mb0">
                                                                         {
                                                                             (numberOfTasks > 0) && <span>

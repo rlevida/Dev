@@ -884,6 +884,12 @@ ul.dropdown-menu {
   }
 }
 
+.rbc-event-content .profile-div .thumbnail-profile img,
+.rbc-event-content .profile-div .thumbnail-profile{
+  width: 15px;
+  height: 15px;
+}
+
 .commentListItemContainer {
     background-color: #fff;
     border-radius: 3px;
@@ -2794,7 +2800,8 @@ td .display-flex{
   color:#00CDAE;
 }
 
-.document-name a{
+.document-name a,
+.table-name a{
   text-decoration: none!important;
   text-align: left;
   float: left;
@@ -2807,10 +2814,16 @@ td .display-flex{
   color:#5bc0de!important;
 }
 
-.document-name a:hover{
+.table-name p {
+  display: flex;
+  align-items: center;
+}
+.document-name a:hover,
+.table-name a:hover{
   color:#2a7c95!important;
   background-color: white;
   overflow: visible;
+  width: 100%;
   position:relative
 }
 .document-name  a:hover span{

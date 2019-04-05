@@ -123,7 +123,7 @@ export default class WorkstreamList extends React.Component {
                                             <tr
                                                 key={index}
                                             >
-                                                <td data-label="Workstream Name" class="td-left">
+                                                <td data-label="Workstream Name" class="td-left table-name">
                                                     <p class="m0">
                                                         {((data.task).length > 0) ? this.renderStatus(data) : ""}
                                                         <Link to={`/projects/${project.Selected.id}/workstreams/${data.id}`}>{data.workstream}</Link>
