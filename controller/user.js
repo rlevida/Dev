@@ -69,7 +69,7 @@ const associationStack = [
         as: 'user_projects',
         where: { usersType: 'users', linkType: 'project' },
         required: false,
-    },
+    }
 ]
 
 exports.get = {

@@ -57,6 +57,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'user',
       foreignKey: 'userTypeLinkId'
     });
+    Members.belongsTo(models.Projects, {
+      as: 'memberProject',
+      foreignKey: 'linkId',
+    });
     Members.belongsTo(models.UsersRole, {
       as: 'role',
       foreignKey: 'userTypeLinkId'

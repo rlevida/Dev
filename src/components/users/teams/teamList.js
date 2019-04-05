@@ -56,7 +56,7 @@ export default class TeamList extends React.Component {
 
     getList(page) {
         const { dispatch, teams, loggedUser } = this.props;
-        
+
         getData(`/api/teams?page=${page}&isDeleted=0&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`, {}, (c) => {
             dispatch({ type: 'SET_TEAM_LIST', list: teams.List.concat(c.data.result), Count: c.data.count });
             dispatch({ type: 'SET_TEAM_LOADING', Loading: '' });
@@ -99,13 +99,13 @@ export default class TeamList extends React.Component {
                                 <th scope="col">Team Name</th>
                                 <th scope="col">Team Leader</th>
                                 <th scope="col">Members</th>
+                                <th scope="col">Projects</th>
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {
                                 _.map(teamList, (team, index) => {
-
                                     return (
                                         <tr key={index}>
                                             <td data-label="Team ID">
@@ -118,7 +118,40 @@ export default class TeamList extends React.Component {
                                                 {team.teamLeader.firstName + " " + team.teamLeader.lastName}
                                             </td>
                                             <td data-label="Members">
-                                                {this.renderArrayTd(_.map(team.users_team, (o) => { return o.user.firstName + " " + o.user.lastName }))}
+                                                <div class="display-flex">
+                                                    {
+                                                        _.map(_.take(team.users_team, 2), (o, index) => {
+                                                            const { firstName, lastName, avatar } = o.user;
+                                                            return (
+                                                                <div class="thumbnail-profile" key={index}>
+                                                                    <span title={firstName + " " + lastName}>
+                                                                        <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                                                    </span>
+                                                                </div>
+                                                            )
+                                                        })
+                                                    }
+                                                    {
+                                                        ((team.users_team).length > 2) && <span
+                                                            class="thumbnail-count"
+                                                            title={
+                                                                _(team.users_team)
+                                                                    .filter((o, index) => { return index > 1 })
+                                                                    .map((o) => {
+                                                                        const { firstName, lastName, avatar } = o.user;
+                                                                        return firstName + " " + lastName
+                                                                    })
+                                                                    .value()
+                                                                    .join("\r\n")
+                                                            }
+                                                        >
+                                                            +{(team.users_team).length - 2}
+                                                        </span>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td data-label="Projects">
+                                                {this.renderArrayTd(_.map(team.teamProjects, ({memberProject}) => { return memberProject.project }))}
                                             </td>
                                             <td data-label="Actions">
                                                 <a href="javascript:void(0);"

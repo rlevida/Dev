@@ -7,7 +7,7 @@ const models = require('../modelORM');
 
 const {
     Members,
-    Project,
+    Projects,
     Teams,
     Users,
     UsersTeam,
@@ -34,6 +34,16 @@ const associationStack = [
         }],
         where: { isDeleted: 0 },
         required: false
+    },
+    {
+        model: Members,
+        as: 'teamProjects',
+        include: [{
+            model: Projects,
+            as: 'memberProject'
+        }],
+        where: { usersType: 'team', linkType: 'project' },
+        required: false,
     }
 ]
 const usersAssociationStack = [
