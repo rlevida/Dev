@@ -804,7 +804,8 @@ exports.post = {
             const workstreamData = {
                 projectId: result.dataValues.id,
                 workstream: "Default Workstream",
-                typeId: 4
+                typeId: 4,
+                color: "#7ed321"
             };
 
             Workstream
