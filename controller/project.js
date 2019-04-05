@@ -164,10 +164,17 @@ exports.get = {
                 return res.toJSON();
             });
 
-            whereObj["id"] = _(projectMembers)
-                .uniqBy("linkId")
-                .map((o) => { return o.linkId })
-                .value();
+            whereObj[Sequelize.Op.or] = [
+                {
+                    id: _(projectMembers)
+                        .uniqBy("linkId")
+                        .map((o) => { return o.linkId })
+                        .value()
+                },
+                {
+                    createdBy: queryString.userId
+                }
+            ]
         }
 
         if (typeof queryString.projectStatus != "undefined" && queryString.projectStatus != "") {

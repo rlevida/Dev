@@ -179,8 +179,8 @@ class DocumentViewerComponent extends React.Component {
                                 </div>
                                 <div class="col-md-6 modal-action">
                                     <div class="button-action">
-                                        <a class="logo-action text-yellow" onClick={() => this.starredDocument({ isStarred: document.Selected.isStarred, id: document.Selected.id, origin: document.Selected.origin })}>
-                                            <i class={`fa ${document.Selected.isStarred ? "fa-star" : "fa-star-o"}`} title="STARRED" aria-hidden="true" />
+                                        <a class="logo-action text-grey" onClick={() => this.starredDocument({ isStarred: document.Selected.isStarred, id: document.Selected.id, origin: document.Selected.origin })}>
+                                            <i class={`fa ${document.Selected.isStarred ? "fa-star text-yellow" : "fa-star-o"}`} title="STARRED" aria-hidden="true" />
                                         </a>
                                         <a class="logo-action text-grey" onClick={() => this.downloadDocument(document.Selected)}>
                                             <i title="DOWNLOAD" class="fa fa-download" aria-hidden="true"></i>

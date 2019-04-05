@@ -45,7 +45,6 @@ class DocumentNew extends React.Component {
         const { dispatch, loggedUser, document, folder, match } = this.props;
         const projectId = match.params.projectId;
         const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, status } = document.Filter;
-
         let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=document`;
         if (status === 'active' || status === 'sort') {
             requestUrl += `&folderId=null&type=document`

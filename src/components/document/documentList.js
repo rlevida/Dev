@@ -25,10 +25,7 @@ class DocumentList extends React.Component {
     }
 
     componentDidMount() {
-        const { match } = { ...this.props }
-        if (match.url === "/projects/1/files") {
-            this.fetchData(1)
-        }
+        this.fetchData(1)
     }
 
     componentWillUnmount() {
