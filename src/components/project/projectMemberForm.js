@@ -160,10 +160,11 @@ export default class ProjectMemberForm extends React.Component {
         const { users, members, teams, dispatch } = this.props;
         const { showAllUsers } = this.state
         return (
-            <form id="#project-member-form">
+            <form id="project-member-form">
                 <div class="form-group">
                     <label for="tin">Member Type: <span class="text-red">*</span></label>
-                    <DropDown multiple={false}
+                    <DropDown
+                        multiple={false}
                         required={true}
                         options={[
                             { id: 'users', name: 'User' },
@@ -182,7 +183,7 @@ export default class ProjectMemberForm extends React.Component {
                     <div class={`display-flex ${(users.Loading == "RETRIEVING" && typeof members.Selected.type != "undefined") ? "pointer-none" : ""}`}>
                         <DropDown
                             required={true}
-                            options={(members.Selected.type == "users") ? users.SelectList : teams.SelectList}
+                            options={(members.Selected.type == "users") ? users.SelectList : (members.Selected.type == "team") ? teams.SelectList : []}
                             onInputChange={
                                 (members.Selected.type == "users") ? this.setAssignMemberUserList : this.setAssignMemberTeamList
 
@@ -196,7 +197,7 @@ export default class ProjectMemberForm extends React.Component {
                                 (members.Selected.type == "users") ? this.setAssignMemberUserList : this.setAssignMemberTeamList
                             }
                         />
-                        <div class="loading">
+                        <div class="loading diplay-flex vh-center">
                             {
                                 (users.Loading == "RETRIEVING" && typeof members.Selected.type != "undefined") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
                             }
