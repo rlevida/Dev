@@ -82,6 +82,7 @@ export default class TaskDetails extends React.Component {
                         ...task.Selected,
                         checklist
                     };
+                    dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [toBeUpdatedObject] });
                     dispatch({ type: "SET_TASK_SELECTED", Selected: toBeUpdatedObject });
                     dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                     showToast("success", "Checklist successfully updated.");
@@ -203,7 +204,9 @@ export default class TaskDetails extends React.Component {
     }
 
     renderActivityLogs({ comment = "", linkType = "", actionType = "", type, user, users, dateAdded }) {
-        const date = moment(dateAdded).from(new Date());
+        const duration = moment.duration(moment().diff(moment(dateAdded)));
+        const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+
         if (type == "conversation") {
             return (
                 <div key={users.id} class="comment">
@@ -219,7 +222,7 @@ export default class TaskDetails extends React.Component {
         } else {
             const linkTypeName = (linkType == "checklist") ? "subtask" : linkType;
             return (
-                <p class="ml20 mt10"><strong>{user.firstName + " " + user.lastName}</strong> {actionType + " " + linkTypeName}. {date}</p>
+                <p class="ml20 mt10"><strong>{user.firstName + " " + user.lastName}</strong> {actionType + ` ${(linkTypeName == "task") ? "the" : "a"} ` + linkTypeName}. {date}</p>
             )
         }
     }
@@ -374,6 +377,7 @@ export default class TaskDetails extends React.Component {
             })
             .value();
         const documentList = [...checklistDocuments, ...taskDocuments];
+
         return (
             <div>
                 <div class="modal right fade" id="task-details" data-backdrop="static" data-keyboard="false">
@@ -397,14 +401,23 @@ export default class TaskDetails extends React.Component {
                                             <div>
                                                 {
                                                     (
-                                                        ((Selected.approverId == loggedUser.data.id && Selected.status == "For Approval") ||
-                                                            (typeof isAssignedToMe != "undefined" && Selected.status != "For Approval")) &&
-                                                        (Selected.status == "For Approval" || Selected.status == "In Progress")
-                                                    ) &&
-                                                    <a class="btn btn-default mr5" onClick={() => this.completeTask((Selected.status == "For Approval") ? "In Progress" : "Completed")}>
+                                                        typeof checklist != "undefined" &&
+                                                        (checklist.length == 0 || _.filter(checklist, ({ isCompleted }) => { return isCompleted == 1 }).length == checklist.length) &&
+                                                        Selected.status == "In Progress" &&
+                                                        typeof isAssignedToMe != "undefined"
+                                                    ) && <a class="btn btn-default" onClick={() => this.completeTask("Completed")}>
                                                         <span>
-                                                            <i class={`fa mr10 ${(Selected.status != "Completed") ? "fa-check" : "fa-ban"}`} aria-hidden="true"></i>
-                                                            {`${(Selected.status == "For Approval") ? "Approve" : (Selected.status == "Completed") ? "Uncomplete" : "Complete"}`}
+                                                            <i class="fa mr10 fa-check" aria-hidden="true"></i>
+                                                            Complete
+                                                    </span>
+                                                    </a>
+                                                }
+                                                {
+                                                    (Selected.approverId == loggedUser.data.id && Selected.status == "For Approval") &&
+                                                    <a class="btn btn-default mr5" onClick={() => this.completeTask("In Progress")}>
+                                                        <span>
+                                                            <i class="fa mr10 fa-check" aria-hidden="true"></i>
+                                                            Approve
                                                         </span>
                                                     </a>
                                                 }
@@ -417,7 +430,7 @@ export default class TaskDetails extends React.Component {
                                                     </a>
                                                 }
                                                 {
-                                                    (Selected.approverId == loggedUser.data.id && (Selected.status == "For Approval" || Selected.status == "In Progress")) && <a class="btn btn-default" onClick={() => this.completeTask("Rejected")}>
+                                                    (Selected.approverId == loggedUser.data.id && (Selected.status == "For Approval")) && <a class="btn btn-default" onClick={() => this.completeTask("Rejected")}>
                                                         <span>
                                                             <i class="fa mr10 fa-ban" aria-hidden="true"></i>
                                                             Reject
@@ -672,12 +685,16 @@ export default class TaskDetails extends React.Component {
                                                                                 {
                                                                                     (isDocument == 1) && <span class="label label-success ml10">Document</span>
                                                                                 }
-                                                                                <input type="checkbox"
-                                                                                    checked={isCompleted ? true : false}
-                                                                                    onChange={() => { }}
-                                                                                    onClick={() => this.completeChecklist(id)}
-                                                                                />
-                                                                                <span class="checkmark"></span>
+                                                                                {
+                                                                                    (status != "Completed") && <div>
+                                                                                        <input type="checkbox"
+                                                                                            checked={isCompleted ? true : false}
+                                                                                            onChange={() => { }}
+                                                                                            onClick={() => this.completeChecklist(id)}
+                                                                                        />
+                                                                                        <span class="checkmark"></span>
+                                                                                    </div>
+                                                                                }
                                                                             </label>
                                                                         </div>
                                                                     )

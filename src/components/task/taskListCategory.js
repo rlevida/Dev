@@ -172,7 +172,7 @@ export default class TaskListCategory extends React.Component {
         });
     }
 
-    renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted }) {
+    renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted, checklist }) {
         const { task, workstream_id = "", loggedUser } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate, "YYYY-MM-DD");
@@ -184,13 +184,18 @@ export default class TaskListCategory extends React.Component {
             .filter((o) => { return o.memberType == "assignedTo" })
             .map((o) => { return o.user.firstName + " " + o.user.lastName })
             .value();
-
+        console.log(checklist)
         return (
             <tr key={index}>
                 <td data-label="Task Name" class="td-left">
                     <div class="action-td">
                         {
-                            (status != "For Approval" && status != "Rejected" && typeof isAssignedToMe != "undefined") && <a onClick={() => this.completeTask({ id, status, periodic, periodTask })}>
+                            (
+                                status != "For Approval" && 
+                                status != "Rejected" && 
+                                typeof isAssignedToMe != "undefined" &&
+                                (checklist.length == 0 || _.filter(checklist, ({ isCompleted }) => { return isCompleted == 1 }).length == checklist.length)
+                            ) && <a onClick={() => this.completeTask({ id, status, periodic, periodTask })}>
                                 <span class={`fa mr10 ${(status != "Completed") ? "fa-circle-thin" : "fa-check-circle text-green"}`} title="Complete"></span>
                             </a>
                         }

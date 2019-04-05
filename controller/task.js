@@ -241,7 +241,7 @@ exports.get = {
         if (typeof queryString.userId != "undefined" && queryString.userId != "") {
             let queryUserIds = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;
             let opOrArray = [];
-            
+
             if (typeof queryString.type != "undefined") {
                 const compareOpt = (Array.isArray(queryString.userId)) ? "IN" : "=";
                 const ids = (Array.isArray(queryString.userId)) ? `(${(queryString.userId).join(",")})` : queryString.userId;
@@ -1452,7 +1452,7 @@ exports.put = {
                                         usersId: body.userId,
                                         linkType: "task",
                                         linkId: body.id,
-                                        actionType: "modified",
+                                        actionType: (body.status == "Completed") ? "completed" : "modified",
                                         old: JSON.stringify({ "task_status": _.pick(currentTask, objectKeys) }),
                                         new: JSON.stringify({ "task_status": newObject }),
                                         title: updatedResponse.task,

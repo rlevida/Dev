@@ -390,7 +390,8 @@ export default class ConversationForm extends React.Component {
                                 (conversationList.length > 0) && <div>
                                     {
                                         _.map(conversationList, ({ comment, users, dateAdded, conversationDocuments }, index) => {
-                                            const date = moment(dateAdded).from(new Date());
+                                            const duration = moment.duration(moment().diff(moment(dateAdded)));
+                                            const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
                                             return (
                                                 <div class="thread" key={index} ref={(ref) => this.newData = ref}  >
                                                     <div class="thumbnail-profile">
