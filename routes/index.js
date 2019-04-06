@@ -102,7 +102,7 @@ router.use(function (req, res, next) {
                     } else {
                         res.render('index', {
                             title: global.site_name,
-                            page: 'projectNotAvailable',
+                            page: 'notAvailable',
                             body: "./template/index",
                             user: JSON.stringify(req.loggedData)
                         });

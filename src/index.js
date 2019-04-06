@@ -5,8 +5,8 @@ switch (page) {
     case "account":
         require('./container/home');
         break;
-    case "projectNotAvailable":
-        require('./container/projectNotAvailable')
+    case "notAvailable":
+        require('./container/notAvailable')
         break;
     case "forgotPassword":
         require('./container/resetPassword');

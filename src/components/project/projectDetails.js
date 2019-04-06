@@ -16,43 +16,11 @@ import Conversations from "../conversations";
     }
 })
 export default class ProjectDetails extends React.Component {
-    componentWillUnmount() {
-        const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: "" })       
-    }
-
     componentDidMount() {
-        const { dispatch, loggedUser, history } = { ...this.props };
+        const { dispatch } = { ...this.props };
         const projectId = this.props.match.params.projectId;
-        if (loggedUser.data.userRole >= 4) {
-            const isAssignedToProject = _.filter(loggedUser.data.projectId, (e) => e === parseInt(projectId)).length
-            if (isAssignedToProject) {
-                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: projectId } });
-            } else {
-                history.push('/projectNotAvailable')
-            }
-        } else {
-            dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: projectId } });
-        }
+        dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: projectId } });
     }
-
-    componentDidUpdate(prevProps) {
-        const { dispatch, loggedUser, history } = { ...this.props };
-        if (prevProps.match.params.projectId !== this.props.match.params.projectId) {
-            if (loggedUser.data.userRole >= 4) {
-                const isAssignedToProject = _.filter(loggedUser.data.projectId, (e) => e === parseInt(this.props.match.params.projectId)).length
-                if (isAssignedToProject) {
-                    dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: this.props.match.params.projectId } });
-                } else {
-                    history.push('/projectNotAvailable')
-                }
-
-            } else {
-                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: this.props.match.params.projectId } });
-            }
-        }
-    }
-
     render() {
         return (
             <div>

@@ -41,13 +41,7 @@ class Component extends React.Component {
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
                     <div class="no-project">
-                        <span>Project Not Available</span>
-                        {location.pathname !== "/projectNotAvailable" &&
-                            <a class="" onClick={this.handleLogout}>
-                                <i class="fa mr10 fa-power-off" aria-hidden="true"></i>
-                                Logout
-                        </a>
-                        }
+                        <span>Page Not Available</span>
                     </div>
                 </div>
             </div>

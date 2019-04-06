@@ -122,9 +122,10 @@ export default class ProjectForm extends React.Component {
             if (!project.Selected.id) {
                 project.Selected.createdBy = loggedUser.data.id;
                 postData(`/api/project`, { ...project.Selected }, (c) => {
+                    console.log(c)
                     showToast("success", "Project successfully added.");
                     dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project });
-                    dispatch({ type: "SET_MEMBERS_LIST", list: c.data.members });
+                    dispatch({ type: "SET_MEMBERS_LIST", list: _.map(c.data.members, ({ user }) => { return user }) });
                 });
             } else {
                 const dataToSubmit = {
@@ -228,7 +229,7 @@ export default class ProjectForm extends React.Component {
                 return { id: e.id, name: `${e.firstName} ${e.lastName}` }
             }).value()
             : [];
-            
+
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -314,28 +315,6 @@ export default class ProjectForm extends React.Component {
                                             placeholder={"Select Project Color"}
                                             required={true}
                                         />
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="custom-checkbox">
-                                            <input type="checkbox"
-                                                checked={project.Selected.remindOnDuedate ? true : false}
-                                                onChange={() => { }}
-                                                onClick={(f) => { this.handleCheckbox("remindOnDuedate", (project.Selected.remindOnDuedate) ? 0 : 1) }}
-                                            />
-                                            <span class="checkmark"></span>
-                                            Remind on due date
-                                        </label>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="custom-checkbox">
-                                            <input type="checkbox"
-                                                checked={project.Selected.remindBeforeDuedate ? true : false}
-                                                onChange={() => { }}
-                                                onClick={(f) => { this.handleCheckbox("remindBeforeDuedate", (project.Selected.remindBeforeDuedate) ? 0 : 1) }}
-                                            />
-                                            <span class="checkmark"></span>
-                                            Remind before due date
-                                        </label>
                                     </div>
                                     <a class="btn btn-violet mr5" onClick={this.handleSubmit}>
                                         <span>{`${(typeof project.Selected.id != "undefined" && project.Selected.id != "") ? "Edit" : "Add"} Project`}</span>

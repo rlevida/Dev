@@ -27,7 +27,6 @@ export default class ProjectDashboard extends React.Component {
 
     componentDidMount() {
         const { workstream } = { ...this.props };
-        const { loggedUser, history } = { ...this.props };
         this.fetchProjectStatus();
 
         if (_.isEmpty(workstream.Count)) {

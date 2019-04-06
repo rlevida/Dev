@@ -394,11 +394,6 @@ body:not(.sidebar-left-mini) #menu .nav-header {
   border: 0 !important;
   clip: rect(1px, 1px, 1px, 1px) !important;
 }
-#menu .fa-caret-down {
-  float: right;
-  padding-top: 3px;
-  margin-right: 15px;
-}
 #menu .fa.down:before {
   content: "\f104";
 }

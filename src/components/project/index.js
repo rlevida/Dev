@@ -7,6 +7,7 @@ import ProjectForm from "./projectForm";
 import ProjectDetails from "./projectDetails";
 import TaskForm from "../task/taskForm";
 import TaskDetails from "../task/taskDetails";
+import NotAvailable from "../notAvailable";
 
 @connect((store) => {
     return {
@@ -43,14 +44,15 @@ export default class Component extends React.Component {
     }
 
     render() {
-        const { project, task, history } = { ...this.props };
-
+        const { project, task, history, loggedUser } = { ...this.props };
+        const projectId = (history.location.pathname).split('/')[2];
+        const isProjectMember = _.filter(loggedUser.data.projectId, (e) => e === parseInt(projectId)).length;
         return (
             <div>
                 {
                     (project.FormActive != "Form" && task.FormActive != "Form") && <Switch>
                         <Route exact={true} path="/projects" component={ProjectList} />
-                        <Route path={`${this.props.match.path}/:projectId`} component={ProjectDetails} />
+                        <Route path={`${this.props.match.path}/:projectId`} component={(isProjectMember > 0) ? ProjectDetails : NotAvailable } />
                     </Switch>
                 }
                 {

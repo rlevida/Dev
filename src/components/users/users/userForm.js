@@ -318,7 +318,7 @@ export default class UserForm extends React.Component {
                                 required
                                 value={(typeof users.Selected.lastName != "undefined" && users.Selected.lastName) ? users.Selected.lastName : ""}
                                 class="form-control"
-                                placeholder="Enter last Name"
+                                placeholder="Enter last name"
                                 onChange={this.handleChange}
                             />
 

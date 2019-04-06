@@ -11,8 +11,7 @@ import Projects from "../project";
 import MyTasks from "../myTasks";
 import Users from "../users";
 import Profile from "../profile";
-import Conversations from "../conversations";
-import projectNotAvailable from "../projectNotAvailable";
+import notAvailable from "../notAvailable";
 
 @connect((store) => {
     return {
@@ -140,15 +139,15 @@ class Main extends React.Component {
                 show_menu: false
             },
             {
-                label: "Project not available",
-                path_name: "projectNotAvailable",
-                component: projectNotAvailable,
+                label: "",
+                path_name: "not-found",
+                component: notAvailable,
                 show_menu: false
             }
         ];
 
         if (loggedUser.data.userType === "External") {
-            pages = _.filter(pages, (e) => e.path_name === 'my-tasks' || e.path_name === 'projects' || e.path_name === '' || e.path_name === 'projectNotAvailable' || e.path_name === 'profile')
+            pages = _.filter(pages, (e) => e.path_name === 'my-tasks' || e.path_name === 'projects' || e.path_name === '' || e.path_name === 'not-found' || e.path_name === 'profile')
         }
 
         const currentPath = this.props.location.pathname;
