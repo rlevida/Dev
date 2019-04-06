@@ -9,7 +9,8 @@ import { Loading } from "../../globalComponents";
     return {
         project: store.project,
         loggedUser: store.loggedUser,
-        workstream: store.workstream
+        workstream: store.workstream,
+        members: store.members
     }
 })
 export default class ProjectInfo extends React.Component {
@@ -21,21 +22,32 @@ export default class ProjectInfo extends React.Component {
             "fetchWorkstreams",
             "getNextWorkstreams",
             "renderArrayTd",
-            "handleEdit"
+            "handleEdit",
+            "getMembers"
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
     componentWillUnmount() {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
     }
+
     componentDidMount() {
         const { workstream } = { ...this.props };
         this.fetchProjectDetails();
+        this.getMembers();
         this.getProjectFormSelectList();
 
         if (_.isEmpty(workstream.Count)) {
             this.fetchWorkstreams(1);
         }
+    }
+
+    getMembers() {
+        const { match, dispatch } = { ...this.props };
+        const projectId = match.params.projectId;
+        getData(`/api/project/getProjectMembers?linkId=${projectId}&linkType=project`, {}, (c) => {
+            dispatch({ type: "SET_MEMBERS_LIST", list: c.data });
+        });
     }
 
     getProjectFormSelectList() {
@@ -103,7 +115,7 @@ export default class ProjectInfo extends React.Component {
         dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
     }
     render() {
-        const { project, workstream } = { ...this.props };
+        const { project, workstream, members } = { ...this.props };
         const { Selected } = project;
         const { project: projectName = "", workstream: workstreamList = [], type, color, projectManager = [] } = Selected;
         const workstreamCurrentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
@@ -118,7 +130,6 @@ export default class ProjectInfo extends React.Component {
                 workstreamTaskDueToday++;
             }
         });
-
         return (
             <div class="row content-row">
                 <div class="col-lg-12">
@@ -167,6 +178,40 @@ export default class ProjectInfo extends React.Component {
                                                                     : "N/A"
                                                             }
                                                         </div>
+                                                        <div class="mt10">
+                                                            <label>Project Members:</label>
+                                                            <div class="display-flex">
+                                                                {
+                                                                    (members.List.length > 0) ?
+                                                                        _.map(_.take(members.List, 2), ({ firstName, lastName, avatar }, index) => {
+                                                                            return (
+                                                                                <div class="thumbnail-profile" key={index}>
+                                                                                    <span title={firstName + " " + lastName}>
+                                                                                        <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                                                                    </span>
+                                                                                </div>
+                                                                            )
+                                                                        })
+                                                                        : "N/A"
+                                                                }
+                                                                {
+                                                                    ((members.List).length > 2) && <span
+                                                                        class="thumbnail-count"
+                                                                        title={
+                                                                            _(members.List)
+                                                                                .filter((o, index) => { return index > 1 })
+                                                                                .map(({ firstName, lastName, avatar }) => {
+                                                                                    return firstName + " " + lastName
+                                                                                })
+                                                                                .value()
+                                                                                .join("\r\n")
+                                                                        }
+                                                                    >
+                                                                        +{(members.List).length - 2}
+                                                                    </span>
+                                                                }
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div>
@@ -199,6 +244,10 @@ export default class ProjectInfo extends React.Component {
                                                             _.map(workstream.List, (data, index) => {
                                                                 const { workstream, color, members } = data;
                                                                 const workstreamLead = _.find(members, (member) => { return member.memberType == "responsible" })
+                                                                const workstreamMembers = _(members)
+                                                                    .filter((member) => { return member.memberType != "responsible" })
+                                                                    .map((member) => { return member.user })
+                                                                    .value();
 
                                                                 return (
                                                                     <tr
@@ -223,16 +272,37 @@ export default class ProjectInfo extends React.Component {
                                                                             </p>
                                                                         </td>
                                                                         <td data-label="Members">
-                                                                            <p class="m0">
+                                                                            <div class="display-flex">
                                                                                 {
-                                                                                    this.renderArrayTd(
-                                                                                        _(members)
-                                                                                            .filter((member) => { return member.memberType != "responsible" })
-                                                                                            .map((member) => { return member.user.firstName + " " + member.user.lastName })
-                                                                                            .value()
-                                                                                    )
+                                                                                    _.map(_.take(workstreamMembers, 2), (member, index) => {
+                                                                                        const { firstName, lastName, avatar } = member
+                                                                                        return (
+                                                                                            <div class="thumbnail-profile" key={index}>
+                                                                                                <span title={firstName + " " + lastName}>
+                                                                                                    <img src={avatar} alt="Profile Picture" class="img-responsive" />
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )
+                                                                                    })
                                                                                 }
-                                                                            </p>
+                                                                                {
+                                                                                    (workstreamMembers.length > 2) && <span
+                                                                                        class="thumbnail-count"
+                                                                                        title={
+                                                                                            _(workstreamMembers)
+                                                                                                .filter((o, index) => { return index > 1 })
+                                                                                                .map((member) => {
+                                                                                                    const { firstName, lastName } = member;
+                                                                                                    return firstName + " " + lastName
+                                                                                                })
+                                                                                                .value()
+                                                                                                .join("\r\n")
+                                                                                        }
+                                                                                    >
+                                                                                        +{members.length - 2}
+                                                                                    </span>
+                                                                                }
+                                                                            </div>
                                                                         </td>
                                                                     </tr>
                                                                 )

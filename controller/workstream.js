@@ -31,7 +31,7 @@ const associationStack = [
                 {
                     model: Users,
                     as: 'user',
-                    attributes: ['id', 'firstName', 'lastName']
+                    attributes: ['id', 'firstName', 'lastName', 'avatar']
                 }
             ]
         }]
@@ -47,7 +47,7 @@ const associationStack = [
             {
                 model: Users,
                 as: 'user',
-                attributes: ['id', 'firstName', 'lastName']
+                attributes: ['id', 'firstName', 'lastName', 'avatar']
             }
         ]
     },
