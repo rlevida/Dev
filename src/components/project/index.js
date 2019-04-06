@@ -62,7 +62,7 @@ export default class Component extends React.Component {
                                 (loggedUser.data.userRole > 3 && loggedUser.data.projectId.length > 1)
                             ) ? ProjectList : NotAvailable
                         } />
-                        <Route path={`${this.props.match.path}/:projectId`} component={(isProjectMember > 0 || loggedUser.data.userRole < 3) ? ProjectDetails : NotAvailable} />
+                        <Route path={`${this.props.match.path}/:projectId`} component={(isProjectMember > 0 || loggedUser.data.userRole <= 3) ? ProjectDetails : NotAvailable} />
                     </Switch>
                 }
                 {

@@ -1430,6 +1430,8 @@ exports.put = {
                             async.parallel({
                                 reminder: (statusParallelCallback) => {
                                     async.map(membersToRemind, (e, mapCallback) => {
+                                        const creator = _.find(taskMembers.concat(workstreamResponsible), ({ id }) => { return id == body.userId });
+                                        const action = (body.status == "Completed") ? "completed" : (body.status == "Rejected") ? "rejected" : (body.status == "In Progress" && currentTask.status == "For Approval") ? "approved" : "modified";
                                         const reminderDetails = {
                                             createdBy: body.userId,
                                             linkId: body.id,
@@ -1438,7 +1440,7 @@ exports.put = {
                                             seen: 0,
                                             type: `Task ${body.status}`,
                                             usersId: e.id,
-                                            detail: `${body.username} updated the task ${updatedResponse.task} on ${updatedResponse.workstream.workstream} to ${body.status}`
+                                            detail: `${creator.firstName + " " + creator.lastName} ${action} the task ${updatedResponse.task} on ${updatedResponse.workstream.workstream}`
                                         }
                                         Reminder.create(reminderDetails).then((res) => {
                                             mapCallback(null, res)
