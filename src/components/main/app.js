@@ -33,12 +33,6 @@ class Main extends React.Component {
         this.showLeft = this.showLeft.bind(this)
         this.showRight = this.showRight.bind(this)
     }
-    componentDidMount() {
-        const { loggedUser, history } = { ...this.props };
-        if (loggedUser.data.userRole >= 4 && loggedUser.data.projectId.length === 1) {
-            history.push(`/projects/${loggedUser.data.projectId[0]}`)
-        }
-    }
 
     showLeft() {
         const { showLeft, showRight } = { ...this.state };
@@ -260,6 +254,7 @@ class Main extends React.Component {
                                         )
                                     })
                                 }
+                                <Route component={notAvailable} />
                             </Switch>
                         </div>
                     </div>

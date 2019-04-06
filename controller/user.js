@@ -76,6 +76,7 @@ exports.get = {
     index: async (req, cb) => {
         const queryString = req.query;
         const limit = 10;
+
         let whereObj = {
             ...(typeof queryString.isDeleted !== 'undefined' && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 },
             ...(typeof queryString.name != "undefined" && queryString.name != "") ? {
@@ -129,6 +130,17 @@ exports.get = {
                     }
                 };
             }
+        }
+
+        if (
+            (typeof queryString.userRole != "undefined" && queryString.userRole != "")
+        ) {
+            whereObj = {
+                ...whereObj,
+                id: {
+                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT users_role.usersId FROM users_role WHERE roleId > ${queryString.userRole})`)
+                }
+            };
         }
 
         const options = {

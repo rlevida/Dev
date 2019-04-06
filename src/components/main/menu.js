@@ -57,7 +57,7 @@ class Component extends React.Component {
     componentDidMount() {
         const { dispatch, loggedUser } = this.props;
         let requesUrl = `/api/project`
-        
+
         if (loggedUser.data.userRole >= 3) {
             requesUrl += `?id=${loggedUser.data.projectId}&`
         } else {
@@ -87,7 +87,7 @@ class Component extends React.Component {
     }
 
     render() {
-        const { pages, current_page = "", project } = { ...this.props };
+        const { pages, current_page = "", project, loggedUser } = { ...this.props };
         return (
             <div>
                 <ul id="menu">
@@ -101,7 +101,12 @@ class Component extends React.Component {
                                         ${page.path_name == "projects" ? '' : ''}
                                         `
                                     }>
-                                    <Link to={`/${page.path_name}`} class="menu-list">
+                                    <Link to={`/${page.path_name}`} class={`menu-list ${
+                                        (
+                                            page.path_name == "projects" &&
+                                            (loggedUser.data.userRole > 3 && loggedUser.data.projectId.length == 1)
+                                        ) ? "un-clickable" : ""
+                                        }`}>
                                         <i class={`fa mr10 ${page.icon}`} aria-hidden="true"></i>
                                         <span class="link-title">{page.label}</span>
                                     </Link>

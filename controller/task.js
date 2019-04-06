@@ -1452,7 +1452,7 @@ exports.put = {
                                         usersId: body.userId,
                                         linkType: "task",
                                         linkId: body.id,
-                                        actionType: (body.status == "Completed") ? "completed" : "modified",
+                                        actionType: (body.status == "Completed") ? "completed" : (body.status == "Rejected") ? "rejected" : (body.status == "In Progress" && currentTask.status == "For Approval") ? "approved" : "modified",
                                         old: JSON.stringify({ "task_status": _.pick(currentTask, objectKeys) }),
                                         new: JSON.stringify({ "task_status": newObject }),
                                         title: updatedResponse.task,

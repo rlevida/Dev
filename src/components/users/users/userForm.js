@@ -71,7 +71,8 @@ export default class UserForm extends React.Component {
             ...users.Selected,
             ...(typeof users.Selected.firstName != "undefined" && typeof users.Selected.lastName != "undefined") ? {
                 firstName: users.Selected.firstName.trim(),
-                lastName: users.Selected.lastName.trim()
+                lastName: users.Selected.lastName.trim(),
+                dateAdded: moment().format('YYYY-MM-DD HH:mm:ss')
             } : {}
         };
 

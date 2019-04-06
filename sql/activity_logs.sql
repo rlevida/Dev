@@ -4,7 +4,7 @@ CREATE TABLE `activity_logs` (
     `usersId` BIGINT,
     `linkType` ENUM("project","workstream","task", "checklist", "document", "member"),
     `linkId` BIGINT,
-    `actionType` ENUM("created","modified","deleted", "added", "completed"),
+    `actionType` ENUM("created","modified","deleted", "added", "completed", "approved", "rejected"),
     `old` TEXT,
     `new` TEXT,
     `title` TEXT,

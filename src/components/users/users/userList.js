@@ -66,8 +66,8 @@ export default class UserList extends React.Component {
     }
 
     fetchData(page) {
-        const { dispatch, users } = this.props;
-        let fetchUrl = `/api/user?page=${page}&isDeleted=0`;
+        const { dispatch, users, loggedUser } = this.props;
+        let fetchUrl = `/api/user?page=${page}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
         if (users.Filter.name != "") {
             fetchUrl += `&name=${users.Filter.name}`;
         }
@@ -123,20 +123,11 @@ export default class UserList extends React.Component {
     }
 
     render() {
-        const { users, loggedUser } = this.props;
+        const { users } = this.props;
         const currentPage = (typeof users.Count != "undefined" && _.isEmpty(users.Count) == false) ? users.Count.current_page : 1;
         const lastPage = (typeof users.Count != "undefined" && _.isEmpty(users.Count) == false) ? users.Count.last_page : 1;
         const typeValue = (typeof users.Selected.firstName != "undefined" && _.isEmpty(users.Selected) == false) ? users.Selected.firstName + " " + users.Selected.lastName : "";
-
-        let userList = _.filter(users.List, (o) => {
-            if (loggedUser.data.userRole == 1) {
-                return o.id > 0;
-            } else if (loggedUser.data.userRole == 2) {
-                return _.filter(o.user_role, (r) => { return r.roleId > 1 }).length > 0;
-            } else if (loggedUser.data.userRole == 3) {
-                return _.filter(o.user_role, (r) => { return r.roleId > 2 }).length > 0
-            }
-        });
+        const userList = users.List;
 
         return (
             <div>
@@ -159,8 +150,13 @@ export default class UserList extends React.Component {
                                 _.map(userList, (user, index) => {
                                     return (
                                         <tr key={index}>
-                                            <td data-label="User ID">
-                                                {user.username}
+                                            <td data-label="Username">
+                                                <div class="profile-div">
+                                                    <div class="thumbnail-profile">
+                                                        <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                    </div>
+                                                    <p class="m0">{user.username}</p>
+                                                </div>
                                             </td>
                                             <td data-label="First Name">{user.firstName}</td>
                                             <td data-label="Last Name">{user.lastName}</td>
