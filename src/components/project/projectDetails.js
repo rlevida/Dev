@@ -16,7 +16,19 @@ import Conversations from "../conversations";
     }
 })
 export default class ProjectDetails extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleSelectedProject = this.handleSelectedProject.bind(this);
+    }
+    componentDidUpdate(prevProps) {
+        if (prevProps.match.params.projectId != this.props.match.params.projectId) {
+            this.handleSelectedProject();
+        }
+    }
     componentDidMount() {
+        this.handleSelectedProject();
+    }
+    handleSelectedProject() {
         const { dispatch } = { ...this.props };
         const projectId = this.props.match.params.projectId;
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: projectId } });
