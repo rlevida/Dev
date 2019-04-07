@@ -167,13 +167,13 @@ export default class ProjectList extends React.Component {
                                                     <th scope="col">Workstreams</th>
                                                     <th scope="col">Completion</th>
                                                     <th scope="col">Members</th>
-                                                    <th scope="col" class={(loggedUser.data.userRole <= 3) ? "" : "hide"}>Actions</th>
+                                                    <th scope="col">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {
                                                     _.map(project.List, (projectElem, index) => {
-                                                        const { id, project, workstream, members, updates, numberOfTasks, completion_rate } = { ...projectElem };
+                                                        const { id, project, workstream, members, updates, numberOfTasks, completion_rate, type } = { ...projectElem };
                                                         let lateWorkstream = 0;
                                                         let workstreamTaskDueToday = 0;
 
@@ -293,16 +293,20 @@ export default class ProjectList extends React.Component {
                                                                         }
                                                                     </div>
                                                                 </td>
-                                                                <td data-label="Actions" class={(loggedUser.data.userRole <= 3) ? "" : "hide"}>
-                                                                    <a href="javascript:void(0);"
-                                                                        onClick={() => this.handleEdit(projectElem)}
-                                                                        class="btn btn-action">
-                                                                        <span class="glyphicon glyphicon-pencil" title="EDIT"></span>
-                                                                    </a>
-                                                                    <a href="javascript:void(0);"
-                                                                        onClick={(e) => this.handleArchive(projectElem)}
-                                                                        class={projectElem.allowedDelete == 0 ? 'hide' : 'btn btn-action'}>
-                                                                        <span class="fa fa-trash" title="DELETE"></span></a>
+                                                                <td data-label="Actions">
+                                                                    {
+                                                                        (loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && type.type == "Private")) && <div>
+                                                                            <a href="javascript:void(0);"
+                                                                                onClick={() => this.handleEdit(projectElem)}
+                                                                                class="btn btn-action">
+                                                                                <span class="glyphicon glyphicon-pencil" title="EDIT"></span>
+                                                                            </a>
+                                                                            <a href="javascript:void(0);"
+                                                                                onClick={(e) => this.handleArchive(projectElem)}
+                                                                                class={projectElem.allowedDelete == 0 ? 'hide' : 'btn btn-action'}>
+                                                                                <span class="fa fa-trash" title="DELETE"></span></a>
+                                                                        </div>
+                                                                    }
                                                                 </td>
                                                             </tr>
                                                         )

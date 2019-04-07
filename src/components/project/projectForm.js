@@ -206,18 +206,20 @@ export default class ProjectForm extends React.Component {
         let statusList = [], typeList = [];
 
         status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
-        type.List.map((e, i) => {
-            if (e.linkType == "project") {
-                let dontShowType = false;
-                if (e.id == 1 && loggedUser.data.userRole != 1 && loggedUser.data.userRole != 2 && loggedUser.data.userRole != 3) {
-                    dontShowType = true;
+
+        typeList = _(type.List)
+            .filter(({ linkType, type }) => {
+                if (loggedUser.data.userRole == 4) {
+                    return type == "Private" 
+                } else {
+                    return linkType == "project"
                 }
 
-                if (!dontShowType) {
-                    typeList.push({ id: e.id, name: e.type })
-                }
-            }
-        });
+            })
+            .map(({ id, type }) => {
+                return { id: id, name: type }
+            })
+            .value();
 
         const projectManagerOptions = (typeof global.SelectList.usersList !== 'undefined') ? _(global.SelectList.usersList)
             .filter((userObj) => {
@@ -229,7 +231,6 @@ export default class ProjectForm extends React.Component {
                 return { id: e.id, name: `${e.firstName} ${e.lastName}` }
             }).value()
             : [];
-
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -331,7 +332,9 @@ export default class ProjectForm extends React.Component {
                                 </form>
                             </div>
                             {
-                                (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") && <div class="bt">
+                                (typeof project.Selected.id != 'undefined' &&
+                                    (loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && project.Selected.type.type == "Private"))
+                                ) && <div class="bt">
                                     <div class="mt20 mb20">
                                         <p class="form-header mb0">Project Members</p>
                                         <p>All with <span class="text-red">*</span> are required.</p>
@@ -412,7 +415,9 @@ export default class ProjectForm extends React.Component {
                                 </div>
                             }
                             {
-                                (typeof project.Selected.id != 'undefined' && project.Selected.typeId != "3") &&
+                                (typeof project.Selected.id != 'undefined' &&
+                                    (loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && project.Selected.type.type == "Private"))
+                                ) &&
                                 <div class="bt">
                                     <div class="mt20 mb20">
                                         <WorkstreamForm project_id={project.Selected.id} is_card={false} />

@@ -115,7 +115,7 @@ export default class ProjectInfo extends React.Component {
         dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
     }
     render() {
-        const { project, workstream, members } = { ...this.props };
+        const { project, workstream, members, loggedUser } = { ...this.props };
         const { Selected } = project;
         const { project: projectName = "", workstream: workstreamList = [], type, color, projectManager = [] } = Selected;
         const workstreamCurrentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
@@ -154,9 +154,14 @@ export default class ProjectInfo extends React.Component {
                                                         <h4 class="m0">
                                                             Project Details
                                                         </h4>
-                                                        <a class="logo-action text-grey" onClick={() => this.handleEdit()}>
-                                                            <i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i>
-                                                        </a>
+                                                        {
+                                                            (
+                                                                loggedUser.data.userRole <= 3 ||
+                                                                (loggedUser.data.userRole == 4 && type.type == "Private")
+                                                            ) && <a class="logo-action text-grey" onClick={() => this.handleEdit()}>
+                                                                <i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i>
+                                                            </a>
+                                                        }
                                                     </div>
                                                 </div>
                                                 <div class="row mt10">
