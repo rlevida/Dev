@@ -71,13 +71,9 @@ class ArchiveModal extends React.Component {
                             <div class="flex-row mt20" id="delete-action">
                                 <div class="flex-col">
                                     <div class="dropdown">
-                                        <button class="btn btn-danger dropdown-toggle" type="button" data-toggle="dropdown">
-                                            Yes Delete!
-                                            <span class="caret ml10"></span>
+                                        <button class="btn btn-danger" type="button" onClick={this.deleteDocument}>
+                                            Yes delete {Selected.type}!
                                         </button>
-                                        <ul class="dropdown-menu">
-                                            <li><a onClick={this.deleteDocument}>Delete the {Selected.type} permanently</a></li>
-                                        </ul>
                                     </div>
                                 </div>
                                 <div class="flex-col">

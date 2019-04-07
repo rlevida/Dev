@@ -341,11 +341,6 @@ class DocumentUpload extends React.Component {
                                     </div>
                                     }
                                     <div class="form-group">
-                                        {(Loading === "" && document.Files.length > 0 && typeof document.Selected.DocumentToSave === 'undefined') &&
-                                            <div class="form-group">
-                                                <button class="btn btn-success" type="button" onClick={() => this.uploadFile()}> Upload</button>
-                                            </div>
-                                        }
                                         <table id="dataTable" class="table responsive-table" >
                                             <tbody>
 
@@ -361,8 +356,11 @@ class DocumentUpload extends React.Component {
                                             </tbody>
                                         </table>
                                     </div>
+                                    {(Loading === "" && document.Files.length > 0 && typeof document.Selected.DocumentToSave === 'undefined') &&
+                                         <a class="btn btn-violet mr5" type="button" onClick={() => this.uploadFile()}> Upload Document</a>
+                                    }
                                     {(document.Selected.DocumentToSave && document.Selected.DocumentToSave.length > 0) &&
-                                        <a class="btn btn-primary mr5" data-dismiss="modal" onClick={() => this.saveDocument()}>Save</a>
+                                        <a class="btn btn-violet mr5" data-dismiss="modal" onClick={() => this.saveDocument()}>Add File</a>
                                     }
                                     {Loading === "" &&
                                         <a class="btn btn-default"

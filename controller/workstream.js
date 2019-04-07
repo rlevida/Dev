@@ -55,7 +55,7 @@ const associationStack = [
         model: Tag,
         as: 'tag',
         required: false,
-        where: { linkType: 'workstream', tagType: 'tagType' },
+        where: { linkType: 'workstream', tagType: 'document' },
         include: [
             {
                 required: false,

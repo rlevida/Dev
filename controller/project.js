@@ -50,7 +50,8 @@ const associationFindAllStack = [
         model: Members,
         as: 'members',
         where: {
-            usersType: 'users'
+            usersType: 'users',
+            linkType: 'project'
         },
         required: false,
     },
@@ -58,7 +59,8 @@ const associationFindAllStack = [
         model: Members,
         as: 'team',
         where: {
-            usersType: 'team'
+            usersType: 'team',
+            linkType: 'project'
         },
         required: false,
         include: [{
@@ -253,6 +255,7 @@ exports.get = {
                             const projectUserMembers = _.map(responseObj.members, (o) => { return o.userTypeLinkId });
                             const projectTeamMembers = _.flatten(_.map(responseObj.team, (o) => { return o.team.users_team }), ({ usersId }) => { return usersId });
                             const projectMembers = [...projectUserMembers, ..._.map(projectTeamMembers, ({ usersId }) => { return usersId })];
+                           
                             const memberList = await Users.findAll({
                                 where: {
                                     id: projectMembers

@@ -303,12 +303,6 @@ class DocumentList extends React.Component {
                                                                         class="btn btn-action">
                                                                         <span class="fa fa-download" title="DOWNLOAD"></span>
                                                                     </a>
-                                                                    {
-                                                                        (document.Filter.status === 'active') && <a href="javascript:void(0);"
-                                                                            class="btn btn-action">
-                                                                            <span class={`fa fa-archive document-action ${data.isArchived ? 'document-archived' : 'document-active'}`} title="ARCHIVED"></span>
-                                                                        </a>
-                                                                    }
                                                                     <a href="javascript:void(0);"
                                                                         data-toggle="modal"
                                                                         data-target="#deleteModal"

@@ -167,7 +167,7 @@ export default class ProjectList extends React.Component {
                                                     <th scope="col">Workstreams</th>
                                                     <th scope="col">Completion</th>
                                                     <th scope="col">Members</th>
-                                                    <th scope="col">Actions</th>
+                                                    <th scope="col" class={(loggedUser.data.userRole <= 3) ? "" : "hide"}>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
