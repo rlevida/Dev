@@ -2,7 +2,7 @@ const async = require("async");
 const sequence = require("sequence").Sequence;
 const _ = require("lodash");
 const models = require('../modelORM');
-const { Users, IpBlock, Teams, UsersTeam, Members, UsersRole, Session, Roles } = models;
+const { Users, IpBlock, Teams, UsersTeam, Members, UsersRole, Session, Roles, Projects } = models;
 const func = global.initFunc();
 
 
@@ -231,7 +231,14 @@ exports.post = {
                                 as: 'projectId',
                                 where: { usersType: 'users', linkType: 'project' },
                                 required: false,
-                                attributes: ['linkId']
+                                attributes: ['linkId'],
+                                include: [
+                                    {
+                                        model: Projects,
+                                        as: 'memberProject',
+                                        where: { isDeleted: 0 }
+                                    }
+                                ]
                             },
                             {
                                 model: Members,
@@ -266,7 +273,7 @@ exports.post = {
                             const response = res.toJSON();
                             const responseToReturn = {
                                 ...response,
-                                projectId: res.projectId.map((e) => { return e.linkId }),
+                                projectId: response.projectId.map((e) => { return e.linkId }),
                                 userRole: response.user_role[0].roleId,
                                 team: response.team_as_teamLeader.concat(response.users_team.map((e) => { return e.team }))
                             }

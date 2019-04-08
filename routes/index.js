@@ -10,7 +10,8 @@ const {
     Users,
     UsersRole,
     Teams,
-    UsersTeam
+    UsersTeam,
+    Projects
 } = models;
 
 router.use(function (req, res, next) {
@@ -43,7 +44,14 @@ router.use(function (req, res, next) {
                                             as: 'projectId',
                                             where: { usersType: 'users', linkType: 'project' },
                                             required: false,
-                                            attributes: ['linkId']
+                                            attributes: ['linkId'],
+                                            include: [
+                                                {
+                                                    model: Projects,
+                                                    as: 'memberProject',
+                                                    where: { isDeleted: 0 }
+                                                }
+                                            ]
                                         },
                                         {
                                             model: Members,
