@@ -427,7 +427,7 @@ export default class TaskForm extends React.Component {
     }
 
     onChangeRaw(e) {
-        const { dispatch, task } = this.props;
+        const { task } = this.props;
         let Selected = Object.assign({}, task.Selected);
 
         if (moment(e.target.value, 'MMMM DD, YYYY', true).isValid() == false) {
@@ -585,6 +585,14 @@ export default class TaskForm extends React.Component {
                                                                 this.setDropDown("workstreamId", (e == null) ? "" : e.value);
                                                             }}
                                                             placeholder={'Search workstream'}
+                                                            disabled={
+                                                                (
+                                                                    loggedUser.data.userRole == 4 && (
+                                                                        typeof task.Selected.workstream != "undefined" &&
+                                                                        task.Selected.workstream.project.type.type == "Client"
+                                                                    )
+                                                                )
+                                                            }
                                                         />
                                                         <div class="loading">
                                                             {

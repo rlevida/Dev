@@ -144,6 +144,10 @@ class Main extends React.Component {
             pages = _.filter(pages, (e) => e.path_name === 'my-tasks' || e.path_name === 'projects' || e.path_name === '' || e.path_name === 'not-found' || e.path_name === 'profile')
         }
 
+        if (loggedUser.data.userRole >= 4) {
+            pages = _.filter(pages, (e) => e.path_name != 'users-and-team')
+        }
+
         const currentPath = this.props.location.pathname;
         const parentPath = currentPath.split("/")[1];
         const currentPage = _.find(pages, (page) => { return page.path_name == parentPath });

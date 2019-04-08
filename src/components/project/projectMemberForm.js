@@ -157,36 +157,44 @@ export default class ProjectMemberForm extends React.Component {
     }
 
     render() {
-        const { users, members, teams, dispatch } = this.props;
-        const { showAllUsers } = this.state
+        const { users, members, teams, dispatch, loggedUser, project } = this.props;
+        const { showAllUsers } = this.state;
+        let userTypes = [
+            { id: 'users', name: 'User' },
+            { id: 'team', name: 'Team' }
+        ]
+
+        if (loggedUser.data.userRole >= 4) {
+            userTypes = _.filter(userTypes, ({ id }) => {
+                return id == "users"
+            });
+        }
+
         return (
             <form id="project-member-form">
-                <div class="form-group">
-                    <label for="tin">Member Type: <span class="text-red">*</span></label>
-                    <DropDown
-                        multiple={false}
-                        required={true}
-                        options={[
-                            { id: 'users', name: 'User' },
-                            { id: 'team', name: 'Team' }
-                        ]}
-                        selected={(typeof members.Selected.type == "undefined") ? "" : members.Selected.type}
-                        onChange={(e) => {
-                            this.setDropDown("type", e.value);
-                        }}
-                        placeholder={'Select member type'}
-                    />
-
-                </div>
+                {
+                    (loggedUser.data.userRole < 4) && <div class="form-group">
+                        <label for="tin">Member Type: <span class="text-red">*</span></label>
+                        <DropDown
+                            multiple={false}
+                            required={true}
+                            options={userTypes}
+                            selected={(typeof members.Selected.type == "undefined") ? "" : members.Selected.type}
+                            onChange={(e) => {
+                                this.setDropDown("type", e.value);
+                            }}
+                            placeholder={'Select member type'}
+                        />
+                    </div>
+                }
                 <div class="form-group">
                     <label>Member: <span class="text-red">*</span></label>
                     <div class={`display-flex ${(users.Loading == "RETRIEVING" && typeof members.Selected.type != "undefined") ? "pointer-none" : ""}`}>
                         <DropDown
                             required={true}
-                            options={(members.Selected.type == "users") ? users.SelectList : (members.Selected.type == "team") ? teams.SelectList : []}
+                            options={(members.Selected.type == "users" || loggedUser.data.userRole >= 4) ? users.SelectList : (members.Selected.type == "team") ? teams.SelectList : []}
                             onInputChange={
-                                (members.Selected.type == "users") ? this.setAssignMemberUserList : this.setAssignMemberTeamList
-
+                                (members.Selected.type == "users" || loggedUser.data.userRole >= 4) ? this.setAssignMemberUserList : (members.Selected.type == "team") ? this.setAssignMemberTeamList : ""
                             }
                             selected={(typeof members.Selected.userTypeLinkId == "undefined" || members.Selected.action == "delete") ? "" : members.Selected.userTypeLinkId}
                             onChange={(e) => {
@@ -194,7 +202,7 @@ export default class ProjectMemberForm extends React.Component {
                             }}
                             placeholder={'Search name'}
                             onFocus={
-                                (members.Selected.type == "users") ? this.setAssignMemberUserList : this.setAssignMemberTeamList
+                                (members.Selected.type == "users" || loggedUser.data.userRole >= 4) ? this.setAssignMemberUserList : (members.Selected.type == "team") ? this.setAssignMemberTeamList : ""
                             }
                         />
                         <div class="loading diplay-flex vh-center">
@@ -205,7 +213,7 @@ export default class ProjectMemberForm extends React.Component {
                     </div>
                 </div>
                 {
-                    (members.Selected.type == "users") && <div class="form-group">
+                    (members.Selected.type == "users" && loggedUser.data.userRole < 4) && <div class="form-group">
                         <label class="custom-checkbox">
                             <input type="checkbox"
                                 checked={showAllUsers}
