@@ -138,7 +138,10 @@ exports.get = {
             } : {}
         };
 
-        if (typeof queryString.userId != "undefined" && queryString.userId != "") {
+        if (
+            (typeof queryString.userId != "undefined" && queryString.userId != "") &&
+            (typeof queryString.userRole != "undefined" && queryString.userRole > 3)
+        ) {
             const userTeam = await UsersTeam.findAll({
                 where: {
                     usersId: queryString.userId
@@ -176,7 +179,7 @@ exports.get = {
                 {
                     createdBy: queryString.userId
                 }
-            ]
+            ];
         }
 
         if (typeof queryString.projectStatus != "undefined" && queryString.projectStatus != "") {
@@ -255,7 +258,7 @@ exports.get = {
                             const projectUserMembers = _.map(responseObj.members, (o) => { return o.userTypeLinkId });
                             const projectTeamMembers = _.flatten(_.map(responseObj.team, (o) => { return o.team.users_team }), ({ usersId }) => { return usersId });
                             const projectMembers = [...projectUserMembers, ..._.map(projectTeamMembers, ({ usersId }) => { return usersId })];
-                           
+
                             const memberList = await Users.findAll({
                                 where: {
                                     id: projectMembers
@@ -471,6 +474,7 @@ exports.get = {
     },
     getProjectMembers: async (req, cb) => {
         const queryString = req.query;
+
         const limit = 10;
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
@@ -540,8 +544,24 @@ exports.get = {
                         parallelCallback(null, returnStack);
                     });
                 }
-            }, (err, results) => {
-                const userMemberIds = _.uniq([...results.users, ...results.team_users]);
+            }, async (err, results) => {
+                let userMemberIds = _.uniq([...results.users, ...results.team_users]);
+
+                if (typeof queryString.project_type != "undefined" && queryString.project_type != "") {
+                    userMemberIds = await UsersRole.findAll({
+                        where: {
+                            ...(queryString.project_type == "Client") ? {
+                                roleId: {
+                                    [Op.lte]: 3
+                                }
+                            } : {},
+                            usersId: userMemberIds
+                        }
+                    }).map((o) => {
+                        const { usersId } = o.toJSON();
+                        return usersId
+                    });
+                }
                 Users.findAll({
                     where: {
                         id: userMemberIds,

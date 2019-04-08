@@ -157,7 +157,7 @@ export default class ProjectInfo extends React.Component {
                                                         {
                                                             (
                                                                 loggedUser.data.userRole <= 3 ||
-                                                                (loggedUser.data.userRole == 4 && type.type == "Private")
+                                                                (loggedUser.data.userRole == 4 && (type.type == "Private" || type.type == "Internal"))
                                                             ) && <a class="logo-action text-grey" onClick={() => this.handleEdit()}>
                                                                 <i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i>
                                                             </a>

@@ -27,7 +27,7 @@ export default class WorkstreamList extends React.Component {
             "editData",
             "confirmDelete",
             "renderStatus",
-            'renderList'
+            "renderList"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -97,9 +97,11 @@ export default class WorkstreamList extends React.Component {
     }
 
     renderList() {
-        const { workstream, project } = { ...this.props };
+        const { workstream, project, loggedUser } = { ...this.props };
         const workstreamCurrentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
         const workstreamLastPage = (typeof workstream.Count.last_page != "undefined") ? workstream.Count.last_page : 1;
+        const projectType = (typeof project.Selected.type != "undefined") ? project.Selected.type.type : "";
+
         return (
             <div>
                 <div class={(workstream.Loading == "RETRIEVING" && (workstream.List).length == 0) ? "linear-background" : ""}>
@@ -113,7 +115,10 @@ export default class WorkstreamList extends React.Component {
                                     <th scope="col">Issues</th>
                                     <th scope="col">New Docs</th>
                                     <th scope="col">Messages</th>
-                                    <th scope="col">Actions</th>
+                                    <th scope="col" class={(
+                                        loggedUser.data.userRole <= 3 ||
+                                        (loggedUser.data.userRole == 4 && (projectType == "Private" || projectType == "Internal"))
+                                    ) ? "" : "hide"}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -146,7 +151,7 @@ export default class WorkstreamList extends React.Component {
                                                 </td>
                                                 <td data-label="New Docs">
                                                     {
-                                                        (data.new_documents > 0) && <p class="text-red m0">{data.new_documents} file(s)</p>
+                                                        (data.new_documents > 0) && <p class="text-blue m0">{data.new_documents} file(s)</p>
                                                     }
                                                 </td>
                                                 <td data-label="Messages">
@@ -154,7 +159,10 @@ export default class WorkstreamList extends React.Component {
                                                         (data.messages > 0) && <p class="text-blue m0">{data.messages} message(s)</p>
                                                     }
                                                 </td>
-                                                <td data-label="Actions">
+                                                <td data-label="Actions" class={(
+                                                    loggedUser.data.userRole <= 3 ||
+                                                    (loggedUser.data.userRole == 4 && (projectType == "Private" || projectType == "Internal"))
+                                                ) ? "" : "hide"}>
                                                     <a href="javascript:void(0);"
                                                         onClick={() => this.editData(data)}
                                                         class="btn btn-action">
@@ -190,8 +198,9 @@ export default class WorkstreamList extends React.Component {
 
 
     render() {
-        const { workstream, dispatch, is_card = true } = { ...this.props };
+        const { workstream, dispatch, is_card = true, project, loggedUser } = { ...this.props };
         const typeValue = (typeof workstream.Selected.workstream != "undefined" && _.isEmpty(workstream.Selected) == false) ? workstream.Selected.workstream : "";
+        const projectType = (typeof project.Selected.type != "undefined") ? project.Selected.type.type : "";
 
         return (
             <div>
@@ -208,10 +217,15 @@ export default class WorkstreamList extends React.Component {
                                             <div class="col-md-6 col-sm-12">
                                                 <div class="button-action">
                                                     <WorkstreamFilter />
-                                                    <a class="btn btn-default" onClick={() => { dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" }) }}>
-                                                        <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>
-                                                        Add New Workstream
-                                                        </a>
+                                                    {
+                                                        (
+                                                            loggedUser.data.userRole <= 3 ||
+                                                            (loggedUser.data.userRole == 4 && projectType == "Private")
+                                                        ) && <a class="btn btn-default" onClick={() => { dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" }) }}>
+                                                            <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>
+                                                            Add New Workstream
+                                                    </a>
+                                                    }
                                                 </div>
                                             </div>
                                         </div>

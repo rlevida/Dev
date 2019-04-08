@@ -29,7 +29,7 @@ export default class ProjectActionTab extends React.Component {
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
             dispatch({ type: "SET_PROJECT_LIST", list: [] });
 
-            getData(`/api/project?page=1&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}`, {}, (c) => {
+            getData(`/api/project?page=1&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`, {}, (c) => {
                 dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
                 dispatch({ type: "SET_PROJECT_LOADING", Loading: false });
                 showToast("success", "Project successfully retrieved.");

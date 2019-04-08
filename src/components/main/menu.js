@@ -56,23 +56,19 @@ class Component extends React.Component {
 
     componentDidMount() {
         const { dispatch, loggedUser } = this.props;
-        let requesUrl = `/api/project`
+        let requestUrl = `/api/project?userId=${loggedUser.data.id}`;
 
         if (loggedUser.data.userRole >= 3) {
-            requesUrl += `?id=${loggedUser.data.projectId}&`
-        } else {
-            requesUrl += `?`
+            requestUrl += `&userRole=${loggedUser.data.userRole}`
         }
-        getData(`${requesUrl}typeId=1`, {}, (c) => {
+
+        getData(`${requestUrl}&typeId=1`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Client" })
         })
-        getData(`${requesUrl}typeId=1`, {}, (c) => {
-            dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Client" })
-        })
-        getData(`${requesUrl}typeId=2`, {}, (c) => {
+        getData(`${requestUrl}&typeId=2`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Internal" })
         })
-        getData(`${requesUrl}typeId=3`, {}, (c) => {
+        getData(`${requestUrl}&typeId=3`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Private" })
         })
     }
@@ -147,7 +143,7 @@ class Component extends React.Component {
                                                                 _.map(project.Category.Internal, (e, i) => {
                                                                     return (
                                                                         <li key={i}>
-                                                                            <a href="javascript:void(0)" class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""} onClick={() => this.onClick(e, 'Internal')}>
+                                                                            <a href="javascript:void(0)" class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active ml50" : "ml50"} onClick={() => this.onClick(e, 'Internal')}>
                                                                                 <span><i class="fa fa-square mr10" style={{ color: e.color }}></i></span>
                                                                                 {e.project}
                                                                             </a>
@@ -164,14 +160,14 @@ class Component extends React.Component {
                                                 ((project.Category.Private).length > 0) && <div class="dropdown project-menu-category">
                                                     <ul class={project.Category.Active === "Private" ? "open mb0" : "mb0"}>
                                                         <li class="dropdown-toggle" type="button" data-toggle={project.Category.Active === "Private" ? "" : "dropdown"}>
-                                                            <a href="javascript:void(0)"><i class={`fa fa-caret-${project.Category.Active === "Private" ? "down" : "right"} mr20`}></i>Private</a>
+                                                            <a href="javascript:void(0)"><i class="fa fa-caret-right mr20"></i>Private</a>
                                                         </li>
                                                         <ul class="dropdown-menu ml20">
                                                             {
                                                                 _.map(project.Category.Private, (e, i) => {
                                                                     return (
                                                                         <li key={i}>
-                                                                            <a href="javascript:void(0)" class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active" : ""} onClick={() => this.onClick(e, 'Private')}>
+                                                                            <a href="javascript:void(0)" class={project.Selected.id && e.id === parseInt(project.Selected.id) ? "active ml50" : "ml50"} onClick={() => this.onClick(e, 'Private')}>
                                                                                 <span><i class="fa fa-square mr10" style={{ color: e.color }}></i></span>
                                                                                 {e.project}
                                                                             </a>

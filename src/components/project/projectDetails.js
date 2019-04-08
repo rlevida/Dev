@@ -1,6 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
 import { Route, Switch } from 'react-router-dom';
+import _ from "lodash";
+
+import { getData } from '../../globalFunction';
 import ProjectInfo from "./projectInfo";
 import ProjectDashboard from "./projectDashboard";
 import Workstream from "../workstream";
@@ -18,20 +21,25 @@ import Conversations from "../conversations";
 export default class ProjectDetails extends React.Component {
     constructor(props) {
         super(props);
-        this.handleSelectedProject = this.handleSelectedProject.bind(this);
+        _.map([
+            "fetchProjectDetails"
+        ], (fn) => { this[fn] = this[fn].bind(this) });
     }
     componentDidUpdate(prevProps) {
         if (prevProps.match.params.projectId != this.props.match.params.projectId) {
-            this.handleSelectedProject();
+            this.fetchProjectDetails();
         }
     }
     componentDidMount() {
-        this.handleSelectedProject();
+        this.fetchProjectDetails();
     }
-    handleSelectedProject() {
-        const { dispatch } = { ...this.props };
-        const projectId = this.props.match.params.projectId;
-        dispatch({ type: "SET_PROJECT_SELECTED", Selected: { id: projectId } });
+    fetchProjectDetails() {
+        const { match, dispatch } = { ...this.props };
+        const projectId = match.params.projectId;
+
+        getData(`/api/project/detail/${projectId}`, {}, (c) => {
+            dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data });
+        });
     }
     render() {
         return (

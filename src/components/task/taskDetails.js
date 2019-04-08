@@ -398,54 +398,52 @@ export default class TaskDetails extends React.Component {
                                 <div class="row mt20 content-row">
                                     <div class="col-md-6 modal-action">
                                         <div>
-                                            <div>
-                                                {
-                                                    (
-                                                        typeof checklist != "undefined" &&
-                                                        (checklist.length == 0 || _.filter(checklist, ({ isCompleted }) => { return isCompleted == 1 }).length == checklist.length) &&
-                                                        Selected.status == "In Progress" &&
-                                                        typeof isAssignedToMe != "undefined"
-                                                    ) && <a class="btn btn-default" onClick={() => this.completeTask("Completed")}>
-                                                        <span>
-                                                            <i class="fa mr10 fa-check" aria-hidden="true"></i>
-                                                            Complete
+                                            {
+                                                (
+                                                    typeof checklist != "undefined" &&
+                                                    (checklist.length == 0 || _.filter(checklist, ({ isCompleted }) => { return isCompleted == 1 }).length == checklist.length) &&
+                                                    Selected.status == "In Progress" &&
+                                                    typeof isAssignedToMe != "undefined"
+                                                ) && <a class="btn btn-default" onClick={() => this.completeTask("Completed")}>
+                                                    <span>
+                                                        <i class="fa mr10 fa-check" aria-hidden="true"></i>
+                                                        Complete
                                                     </span>
-                                                    </a>
-                                                }
-                                                {
-                                                    (Selected.approverId == loggedUser.data.id && Selected.status == "For Approval") &&
-                                                    <a class="btn btn-default mr5" onClick={() => this.completeTask("In Progress")}>
-                                                        <span>
-                                                            <i class="fa mr10 fa-check" aria-hidden="true"></i>
-                                                            Approve
+                                                </a>
+                                            }
+                                            {
+                                                (Selected.approverId == loggedUser.data.id && Selected.status == "For Approval") &&
+                                                <a class="btn btn-default mr5" onClick={() => this.completeTask("In Progress")}>
+                                                    <span>
+                                                        <i class="fa mr10 fa-check" aria-hidden="true"></i>
+                                                        Approve
                                                         </span>
-                                                    </a>
-                                                }
-                                                {
-                                                    (typeof isAssignedToMe != "undefined" && Selected.status == "Completed") && <a class="btn btn-default" onClick={() => this.completeTask("In Progress")}>
-                                                        <span>
-                                                            <i class="fa mr10 fa-line-chart" aria-hidden="true"></i>
-                                                            In Progress
+                                                </a>
+                                            }
+                                            {
+                                                (typeof isAssignedToMe != "undefined" && Selected.status == "Completed") && <a class="btn btn-default" onClick={() => this.completeTask("In Progress")}>
+                                                    <span>
+                                                        <i class="fa mr10 fa-line-chart" aria-hidden="true"></i>
+                                                        In Progress
                                                         </span>
-                                                    </a>
-                                                }
-                                                {
-                                                    (Selected.approverId == loggedUser.data.id && (Selected.status == "For Approval")) && <a class="btn btn-default" onClick={() => this.completeTask("Rejected")}>
-                                                        <span>
-                                                            <i class="fa mr10 fa-ban" aria-hidden="true"></i>
-                                                            Reject
+                                                </a>
+                                            }
+                                            {
+                                                (Selected.approverId == loggedUser.data.id && (Selected.status == "For Approval")) && <a class="btn btn-default" onClick={() => this.completeTask("Rejected")}>
+                                                    <span>
+                                                        <i class="fa mr10 fa-ban" aria-hidden="true"></i>
+                                                        Reject
                                                         </span>
-                                                    </a>
-                                                }
-                                                {
-                                                    (Selected.approverId == loggedUser.data.id && Selected.status == "Rejected") && <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
-                                                        <span>
-                                                            <i class="fa mr10 fa-check" aria-hidden="true"></i>
-                                                            For Approval
+                                                </a>
+                                            }
+                                            {
+                                                (Selected.approverId == loggedUser.data.id && Selected.status == "Rejected") && <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
+                                                    <span>
+                                                        <i class="fa mr10 fa-check" aria-hidden="true"></i>
+                                                        For Approval
                                                         </span>
-                                                    </a>
-                                                }
-                                            </div>
+                                                </a>
+                                            }
                                         </div>
                                     </div>
                                     <div class="col-md-6">

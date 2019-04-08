@@ -210,7 +210,7 @@ export default class ProjectForm extends React.Component {
         typeList = _(type.List)
             .filter(({ linkType, type }) => {
                 if (loggedUser.data.userRole == 4) {
-                    return type == "Private" 
+                    return type == "Private" || type == "Internal"
                 } else {
                     return linkType == "project"
                 }
@@ -333,7 +333,7 @@ export default class ProjectForm extends React.Component {
                             </div>
                             {
                                 (typeof project.Selected.id != 'undefined' &&
-                                    (loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && project.Selected.type.type == "Private"))
+                                    (loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && (project.Selected.type.type == "Private" || project.Selected.type.type == "Internal")))
                                 ) && <div class="bt">
                                     <div class="mt20 mb20">
                                         <p class="form-header mb0">Project Members</p>
@@ -416,7 +416,7 @@ export default class ProjectForm extends React.Component {
                             }
                             {
                                 (typeof project.Selected.id != 'undefined' &&
-                                    (loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && project.Selected.type.type == "Private"))
+                                    (loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && (project.Selected.type.type == "Private" || project.Selected.type.type == "Internal")))
                                 ) &&
                                 <div class="bt">
                                     <div class="mt20 mb20">

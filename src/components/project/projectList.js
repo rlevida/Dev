@@ -26,7 +26,9 @@ export default class ProjectList extends React.Component {
             "getNextResult",
             "renderStatus",
             "handleEdit",
-            "handleArchive"
+            "handleArchive",
+            "fetchProject",
+            "fetchFormField"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -39,70 +41,47 @@ export default class ProjectList extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch, loggedUser } = this.props;
-        parallel({
-            projects: (parallelCallback) => {
-                let requestUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}`;
-                if (loggedUser.data.userRole >= 4) {
-                    requestUrl += `&id=${loggedUser.data.projectId}`
-                }
-                getData(requestUrl, {}, (c) => {
-                    dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count })
-                    dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
-                    showToast("success", "Project successfully retrieved.");
-                    parallelCallback(null, c.data)
-                })
-            },
-            status: (parallelCallback) => {
-                getData(`/api/status`, {}, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_STATUS_LIST", list: c.data })
-                        parallelCallback(null, c.data)
-                    } else {
-                        parallelCallback(null, "")
-                    }
-                })
-            },
-            types: (parallelCallback) => {
-                getData(`/api/type`, {}, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_TYPE_LIST", list: c.data })
-                        parallelCallback(null, c.data)
-                    } else {
-                        parallelCallback(null, "")
-                    }
-                })
-            },
-            user: (parallelCallback) => {
-                getData(`/api/user`, {}, (c) => {
-                    if (c.status == 200) {
-                        dispatch({ type: "SET_USER_LIST", list: c.data.result })
-                        parallelCallback(null, c.data)
-                    } else {
-                        parallelCallback(null, "")
-                    }
-                })
-            },
-            teams: (parallelCallback) => {
-                getData(`/api/globalORM/selectList?selectName=teamList`, {}, (c) => {
-                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'teamList' })
-                    parallelCallback(null, "")
-                })
-            },
-            roles: (parallelCallback) => {
-                getData(`/api/globalORM/selectList?selectName=roleList`, {}, (c) => {
-                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'roleList' })
-                    parallelCallback(null, "")
-                })
-            }, usersList: (parallelCallback) => {
-                getData(`/api/globalORM/selectList?selectName=usersList`, {}, (c) => {
-                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'usersList' })
-                    parallelCallback(null, "")
-                })
-            }
-        }, (error, result) => {
+        this.fetchProject();
+        this.fetchFormField();
+    }
 
+    fetchProject() {
+        const { dispatch, loggedUser } = this.props;
+        let requestUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
+
+        getData(requestUrl, {}, (c) => {
+            dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count })
+            dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
+            showToast("success", "Project successfully retrieved.");
         })
+    }
+
+    fetchFormField() {
+        const { dispatch } = this.props;
+
+        getData(`/api/type`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_TYPE_LIST", list: c.data })
+            }
+        });
+
+        getData(`/api/user`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_USER_LIST", list: c.data.result })
+            }
+        });
+
+        getData(`/api/globalORM/selectList?selectName=teamList`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'teamList' });
+        });
+
+        getData(`/api/globalORM/selectList?selectName=roleList`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'roleList' });
+        });
+
+        getData(`/api/globalORM/selectList?selectName=usersList`, {}, (c) => {
+            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'usersList' });
+        });
     }
 
     getNextResult() {
@@ -295,7 +274,7 @@ export default class ProjectList extends React.Component {
                                                                 </td>
                                                                 <td data-label="Actions">
                                                                     {
-                                                                        (loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && type.type == "Private")) && <div>
+                                                                        (loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && (type.type == "Private" || type.type == "Internal"))) && <div>
                                                                             <a href="javascript:void(0);"
                                                                                 onClick={() => this.handleEdit(projectElem)}
                                                                                 class="btn btn-action">

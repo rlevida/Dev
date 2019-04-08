@@ -47,7 +47,7 @@ export default class Component extends React.Component {
         const { project, task, history, loggedUser } = { ...this.props };
         const projectId = (history.location.pathname).split('/')[2];
         const isProjectMember = _.filter(loggedUser.data.projectId, (e) => e === parseInt(projectId)).length;
-        loggedUser.data.userRole >= 4 && loggedUser.data.projectId.length === 1
+        loggedUser.data.userRole > 4 && loggedUser.data.projectId.length === 1
 
         return (
             <div>
@@ -58,11 +58,11 @@ export default class Component extends React.Component {
                         }
                         <Route exact={true} path="/projects" component={
                             (
-                                (loggedUser.data.userRole <= 3) ||
-                                (loggedUser.data.userRole > 3 && loggedUser.data.projectId.length > 1)
+                                (loggedUser.data.userRole <= 4) ||
+                                (loggedUser.data.userRole > 4 && loggedUser.data.projectId.length > 1)
                             ) ? ProjectList : NotAvailable
                         } />
-                        <Route path={`${this.props.match.path}/:projectId`} component={(isProjectMember > 0 || loggedUser.data.userRole <= 3) ? ProjectDetails : NotAvailable} />
+                        <Route path={`${this.props.match.path}/:projectId`} component={(isProjectMember > 0 || loggedUser.data.userRole <= 4) ? ProjectDetails : NotAvailable} />
                     </Switch>
                 }
                 {
