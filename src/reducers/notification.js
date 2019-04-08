@@ -6,6 +6,7 @@ export default function reducer(state = {
     Filter: {
         status: 'active'
     },
+    NotificationCount: 0,
     Loading: "RETRIEVING"
 }, action) {
     switch (action.type) {
@@ -26,6 +27,9 @@ export default function reducer(state = {
                 return e
             })
             return { ...state, List: newList }
+        }
+        case "SET_NOTIFICATION_COUNT": {
+            return { ...state, NotificationCount: action.Count }
         }
         default:
             return state;

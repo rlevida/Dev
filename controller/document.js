@@ -587,8 +587,9 @@ exports.post = {
                                 }
                             },
                             notification: (parallelCallback) => {
+                                console.log(e.uploadedBy)
                                 const workstreamIds = data.tagWorkstream.map((e) => { return e.value });
-                                const workstreamWhereObj = { linkId: workstreamIds, linkType: 'workstream' };
+                                const workstreamWhereObj = { linkId: workstreamIds, linkType: 'workstream', userTypeLinkId: { [Op.ne]: e.uploadedBy } };
                                 const taskWhereObj = { workstreamId: workstreamIds };
                                 async.parallel({
                                     TaskMembers: (notificationParallel) => {
@@ -598,8 +599,7 @@ exports.post = {
                                                 include: [{
                                                     model: Members,
                                                     as: 'task_members',
-                                                    where: { linkType: 'task' },
-                                                    required: false,
+                                                    where: { linkType: 'task', userTypeLinkId: { [Op.ne]: e.uploadedBy } },
                                                     include:
                                                         [{
                                                             model: Users,
@@ -614,7 +614,6 @@ exports.post = {
                                                 }]
                                             })
                                             .map((resTask) => {
-                                                // console.log(resTask.toJSON())
                                                 const workstreamId = resTask.toJSON().workstreamId
                                                 return resTask
                                                     .toJSON().task_members
@@ -633,7 +632,6 @@ exports.post = {
                                                     })
                                             })
                                             .then((resTask) => {
-                                                console.log(_.flattenDeep(resTask))
                                                 notificationParallel(null, _.flattenDeep(resTask))
                                             })
                                     },
@@ -658,7 +656,6 @@ exports.post = {
                                                 const resResult = resMembers.filter((r) => {
                                                     return r.user.notification_setting.fileNewUpload === 1
                                                 }).map((r) => {
-                                                    console.log(r)
                                                     return {
                                                         usersId: r.user.id,
                                                         type: 'fileNewUpload',
@@ -676,8 +673,56 @@ exports.post = {
                                     const notificationData = [...WorkstreamMembers, ...TaskMembers]
                                     Notification
                                         .bulkCreate(notificationData)
+                                        .map((resNotification) => {
+
+                                            return resNotification.toJSON().id
+                                        })
                                         .then((resNotification) => {
-                                            parallelCallback(null, resNotification)
+                                            Notification
+                                                .findAll({
+                                                    where: { id: resNotification },
+                                                    include: [
+                                                        {
+                                                            model: Users,
+                                                            as: 'to',
+                                                            required: false,
+                                                            attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                        },
+                                                        {
+                                                            model: Users,
+                                                            as: 'from',
+                                                            required: false,
+                                                            attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                        },
+                                                        {
+                                                            model: Document,
+                                                            as: 'document_notification',
+                                                            required: false,
+                                                            attributes: ["origin"]
+                                                        },
+                                                        {
+                                                            model: Workstream,
+                                                            as: 'workstream_notification',
+                                                            required: false,
+                                                            attributes: ["workstream"]
+                                                        },
+                                                        {
+                                                            model: Tasks,
+                                                            as: 'task_notification',
+                                                            required: false,
+                                                            attributes: ["task"]
+
+                                                        },
+
+                                                    ]
+                                                }).map((findNotificationRes) => {
+                                                    req.app.parent.io.emit('FRONT_NOTIFICATION', {
+                                                        ...findNotificationRes.toJSON()
+                                                    });
+                                                    return findNotificationRes.toJSON()
+                                                }).then((findNotificationRes) => {
+                                                    parallelCallback(null, findNotificationRes)
+                                                })
                                         })
                                 })
                             },

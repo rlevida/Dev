@@ -13,25 +13,25 @@ exports.get = {
         const queryString = req.query
         const whereObj = {
             ...(typeof queryString.usersId != "undefined" && queryString.usersId != "") ? { usersId: parseInt(queryString.usersId) } : {},
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
+            ...(typeof queryString.isRead != "undefined" && queryString.isRead != "") ? { isRead: queryString.isRead } : {},
         };
-
         try {
             Notification
                 .findAll({
                     where: whereObj,
-                    logging:true,
                     include: [
                         {
                             model: Users,
                             as: 'to',
                             required: false,
-                            attributes: ["emailAddress", "firstName", "lastName"]
+                            attributes: ["emailAddress", "firstName", "lastName","avatar"]
                         },
                         {
                             model: Users,
                             as: 'from',
                             required: false,
-                            attributes: ["emailAddress", "firstName", "lastName"]
+                            attributes: ["emailAddress", "firstName", "lastName","avatar"]
                         },
                         {
                             model: Document,
@@ -57,6 +57,25 @@ exports.get = {
                 })
                 .then((res) => {
                     cb({ status: true, data: res })
+                })
+        } catch (err) {
+            cb({ status: false, error: err })
+        }
+    },
+    count: (req, cb) => {
+        const queryString = req.query
+        const whereObj = {
+            ...(typeof queryString.usersId != "undefined" && queryString.usersId != "") ? { usersId: parseInt(queryString.usersId) } : {},
+            ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
+            ...(typeof queryString.isRead != "undefined" && queryString.isRead != "") ? { isRead: queryString.isRead } : {},
+        };
+        try {
+            Notification
+                .findAndCountAll({
+                    where: whereObj,
+                })
+                .then((res) => {
+                    cb({ status: true, data: { count: res.count } })
                 })
         } catch (err) {
             cb({ status: false, error: err })

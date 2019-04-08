@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { withRouter } from "react-router";
 import { Route, Switch, Link } from 'react-router-dom';
 
-import { getData } from '../../globalFunction';
+import { getData, notificationType } from '../../globalFunction';
 
 import Menu from "./menu";
 import Home from "../home";
@@ -19,7 +19,8 @@ import Notification from "../notification";
         user: store.loggedUser.data,
         project: store.project,
         reminder: store.reminder,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        notification: store.notification
     }
 })
 class Main extends React.Component {
@@ -42,12 +43,17 @@ class Main extends React.Component {
 
     componentWillMount() {
         const { dispatch, user } = this.props;
+
         getData(`/api/reminder?usersId=${user.id}`, {}, (c) => {
             dispatch({ type: "SET_REMINDER_LIST", list: c.data })
         })
 
         getData(`/api/globalORM/settings`, {}, (c) => {
             dispatch({ type: 'UPDATE_SETTINGS', value: c.data.value, name: 'imageUrl' })
+        })
+
+        getData(`/api/notification?usersId=${user.id}&isRead=0&isDeleted=0`, {}, (c) => {
+            dispatch({ type: "SET_NOTIFICATION_LIST", List: c.data })
         })
 
         if (window.innerHeight <= 550) {
@@ -95,7 +101,7 @@ class Main extends React.Component {
 
     render() {
         const { showLeft } = { ...this.state };
-        const { project, loggedUser } = { ...this.props };
+        const { project, loggedUser, notification } = { ...this.props };
         const { avatar } = loggedUser.data;
         let pages = [
             {
@@ -137,7 +143,7 @@ class Main extends React.Component {
                 label: "",
                 path_name: "not-found",
                 component: notAvailable,
-            },{
+            }, {
                 label: "Notification",
                 path_name: "notification",
                 component: Notification,
@@ -217,10 +223,41 @@ class Main extends React.Component {
                                 }
                                 <div class="action item">
                                     <div class="hidden-sm hidden-xs text-center display-flex action-link">
-                                        <a class="dropdown-toggle" href={`/account#/notification`}>
-                                            <span class="fa fa-bell"> </span>
-                                            <span class="n-count">3</span>
-                                        </a>
+
+                                        <ul class="nav navbar-nav navbar-right">
+                                            <li class="dropdown">
+                                                <a data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                                    <span class="fa fa-bell"> </span>
+                                                    {
+                                                        notification.List.length > 0 &&
+                                                        <span class="n-count">{notification.List.length || ""}</span>
+                                                    }
+                                                </a>
+                                                <ul class="dropdown-menu notify-drop">
+                                                    <div class="drop-content">
+                                                        {notification.List.map((e) => {
+                                                            const { from, dateAdded } = { ...e }
+                                                            const duration = moment.duration(moment().diff(moment(dateAdded)));
+                                                            const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+                                                            return (
+                                                                <li>
+                                                                    <div class="col-md-3 col-sm-3 col-xs-3 n-border"><div class="notify-img"><img src={e.from.avatar} width="50" height="50" alt="" /></div></div>
+                                                                    <div class="col-md-9 col-sm-9 col-xs-9 pd-l0">
+                                                                        <a href="">{`${from.firstName} ${from.lastName}`}</a><span class="n-type">{notificationType(e.type)}</span>
+                                                                        <br/>
+                                                                        <p class="time">{date}</p>
+                                                                    </div>
+                                                                </li>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                    <div class="notify-drop-footer text-center">
+
+                                                        <a href={`/account#/notification`}>View All Notification</a>
+                                                    </div>
+                                                </ul>
+                                            </li>
+                                        </ul>
                                         <Link to={"/profile"}>
                                             <div class="menu-profile">
                                                 <img src={avatar} alt="Profile Picture" class="img-responsive" />

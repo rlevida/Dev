@@ -13,7 +13,6 @@ import NotificationlList from "./notificationList"
 })
 export default class Component extends React.Component {
     render() {
-        console.log(`here`)
         return (
             <div class="row">
                 <div class="col-lg-12">

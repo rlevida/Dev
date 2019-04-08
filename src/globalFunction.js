@@ -233,52 +233,60 @@ var getFilePathExtension = exports.getFilePathExtension = (path) => {
 
 import axios from "axios"
 
-var postData = exports.postData = function (url,data,cb) {
-    axios.post(url,data)
-    .then((res)=>{         
-        cb(res) 
-    })
-    .catch((err)=>{
-        cb(err); 
-    });
+var postData = exports.postData = function (url, data, cb) {
+    axios.post(url, data)
+        .then((res) => {
+            cb(res)
+        })
+        .catch((err) => {
+            cb(err);
+        });
 }
 
-var getData = exports.getData = function (url,data,cb){
-    axios.get(url,data)
-    .then((res)=>{ 
-        cb(res) 
-    })
-    .catch((err)=>{
-        console.error(err); 
-    });
+var getData = exports.getData = function (url, data, cb) {
+    axios.get(url, data)
+        .then((res) => {
+            cb(res)
+        })
+        .catch((err) => {
+            console.error(err);
+        });
 }
 
-var putData = exports.putData = function (url,data,cb){
-    axios.put(url,data)
-    .then((res)=>{ 
-        cb(res) 
-    })
-    .catch((err)=>{
-        console.error(err); 
-    });
+var putData = exports.putData = function (url, data, cb) {
+    axios.put(url, data)
+        .then((res) => {
+            cb(res)
+        })
+        .catch((err) => {
+            console.error(err);
+        });
 }
 
-var deleteData = exports.deleteData = function (url,data,cb){
-    axios.delete(url,data)
-    .then((res)=>{ 
-        cb(res) 
-    })
-    .catch((err)=>{
-        console.error(err); 
-    });
+var deleteData = exports.deleteData = function (url, data, cb) {
+    axios.delete(url, data)
+        .then((res) => {
+            cb(res)
+        })
+        .catch((err) => {
+            console.error(err);
+        });
 }
 
-var removeTempFile = exports.removeTempFile = function (fileToRemove,cb){
-    axios.post(`/api/document/removeTempFile`, { data : fileToRemove })
-    .then((res)=>{ 
-        cb(res) 
-    })
-    .catch((err)=>{
-        console.error(err); 
-    });
+var removeTempFile = exports.removeTempFile = function (fileToRemove, cb) {
+    axios.post(`/api/document/removeTempFile`, { data: fileToRemove })
+        .then((res) => {
+            cb(res)
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+}
+
+var notificationType = exports.notificationType = function (type) {
+    switch (type) {
+        case "fileNewUpload": {
+            return "upload a new file"
+        }
+    }
 }

@@ -43,10 +43,10 @@ class DocumentList extends React.Component {
                         {/* <div class={(document.Loading == "RETRIEVING" && (document.List).length == 0) ? "linear-background" : ""}> */}
                         <div class="card-body m0">
                             <ul class="n-list">
-                                {notification.List.map((e, i) => {
+                                {_.orderBy(notification.List, ['dateAdded'], ['desc']).map((e, i) => {
                                     switch (e.type) {
                                         case 'fileNewUpload': {
-                                            return <DocumentTemplate data={e} index={i} />
+                                            return <div key={i}><DocumentTemplate data={e} index={i} /></div>
                                         }
                                     }
                                 })}
