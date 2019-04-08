@@ -11,32 +11,11 @@ import { withRouter } from 'react-router'
     }
 })
 
-class Component extends React.Component {
+export default class Component extends React.Component {
     constructor(props) {
         super(props);
-        this.handleLogout = this.handleLogout.bind(this);
     }
-
-
-    handleLogout() {
-        const { loggedUser, dispatch } = this.props;
-        deleteData(`/api/login/${loggedUser.data.id}`, {}, (c) => {
-            setTimeout(function () {
-                window.location.replace('/');
-            }, 1000);
-            dispatch({
-                type: "SET_LOGGED_USER_DATA", data: {
-                    username: "",
-                    emailAddress: "",
-                    userType: ""
-                }
-            })
-            showToast("success", 'Successfully logout.');
-        })
-    }
-
     render() {
-        const { location } = { ...this.props };
         return (
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12">
@@ -49,5 +28,3 @@ class Component extends React.Component {
         )
     }
 }
-
-export default withRouter(Component)

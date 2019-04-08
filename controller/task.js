@@ -4,7 +4,7 @@ const moment = require("moment");
 
 const { defaultDelete } = require("./");
 const models = require('../modelORM');
-const { ChecklistDocuments, Document, DocumentRead, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, Type, UsersTeam, Teams, Tag, sequelize } = models;
+const { ChecklistDocuments, Document, DocumentRead, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, UsersRole, Roles, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, Type, UsersTeam, Teams, Tag, sequelize } = models;
 
 const dbName = "task";
 const func = global.initFunc();
@@ -42,7 +42,17 @@ const associationStack = [
         include: [
             {
                 model: Users,
-                as: 'user'
+                as: 'user',
+                include: [
+                    {
+                        model: UsersRole,
+                        as: 'user_role',
+                        include: [{
+                            model: Roles,
+                            as: 'role',
+                        }]
+                    }
+                ]
             }
         ],
     },

@@ -324,7 +324,7 @@ export default class TaskDetails extends React.Component {
         const { task: taskObj, loggedUser, activityLog, conversation } = { ...this.props };
         const { Loading, Selected } = taskObj;
         const { id, task, task_members, dueDate, startDate, workstream, status, description, checklist, task_dependency, tag_task, projectId, workstreamId } = Selected;
-        const assigned = _.filter(task_members, (o) => { return o.memberType == "assignedTo" });
+        const assigned = _.find(task_members, (o) => { return o.memberType == "assignedTo" });
         const isAssignedToMe = _.find(task_members, (o) => { return o.memberType == "assignedTo" && o.user.id == loggedUser.data.id });
         const approver = _.filter(task_members, (o) => { return o.memberType == "approver" });
         const followers = _.filter(task_members, (o) => { return o.memberType == "follower" });
@@ -377,7 +377,7 @@ export default class TaskDetails extends React.Component {
             })
             .value();
         const documentList = [...checklistDocuments, ...taskDocuments];
-
+       
         return (
             <div>
                 <div class="modal right fade" id="task-details" data-backdrop="static" data-keyboard="false">
@@ -403,7 +403,20 @@ export default class TaskDetails extends React.Component {
                                                     typeof checklist != "undefined" &&
                                                     (checklist.length == 0 || _.filter(checklist, ({ isCompleted }) => { return isCompleted == 1 }).length == checklist.length) &&
                                                     Selected.status == "In Progress" &&
-                                                    typeof isAssignedToMe != "undefined"
+                                                    (
+                                                        loggedUser.data.userRole < 4 ||
+                                                        typeof isAssignedToMe != "undefined" ||
+                                                        (
+                                                            loggedUser.data.userRole >= 4 &&
+                                                            (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Client") &&
+                                                            assigned.user.userType == "External"
+                                                        ) ||
+                                                        (
+                                                            loggedUser.data.userRole >= 4 &&
+                                                            (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") &&
+                                                            assigned.user.user_role[0].roleId == 4
+                                                        )
+                                                    )
                                                 ) && <a class="btn btn-default" onClick={() => this.completeTask("Completed")}>
                                                     <span>
                                                         <i class="fa mr10 fa-check" aria-hidden="true"></i>
@@ -480,19 +493,14 @@ export default class TaskDetails extends React.Component {
                                                     <div class="label-div">
                                                         <label>Assigned:</label>
                                                         {
-                                                            _.map(assigned, (member, index) => {
-                                                                const { user } = member;
-                                                                return (
-                                                                    <div key={index}>
-                                                                        <div class="profile-div">
-                                                                            <div class="thumbnail-profile">
-                                                                                <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
-                                                                            </div>
-                                                                            <p class="m0">{user.firstName + " " + user.lastName}</p>
-                                                                        </div>
+                                                            (typeof assigned != "undefined" && assigned != "") && <div>
+                                                                <div class="profile-div">
+                                                                    <div class="thumbnail-profile">
+                                                                        <img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" />
                                                                     </div>
-                                                                )
-                                                            })
+                                                                    <p class="m0">{assigned.user.firstName + " " + assigned.user.lastName}</p>
+                                                                </div>
+                                                            </div>
                                                         }
                                                     </div>
                                                     <div class="label-div">

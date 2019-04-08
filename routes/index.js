@@ -41,20 +41,6 @@ router.use(function (req, res, next) {
                                         },
                                         {
                                             model: Members,
-                                            as: 'projectId',
-                                            where: { usersType: 'users', linkType: 'project' },
-                                            required: false,
-                                            attributes: ['linkId'],
-                                            include: [
-                                                {
-                                                    model: Projects,
-                                                    as: 'memberProject',
-                                                    where: { isDeleted: 0 }
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            model: Members,
                                             as: 'user_projects',
                                             where: { usersType: 'users', linkType: 'project' },
                                             required: false,
@@ -63,27 +49,58 @@ router.use(function (req, res, next) {
                                             model: Teams,
                                             as: 'team_as_teamLeader',
                                             where: { isDeleted: 0 },
-                                            required: false,
+                                            required: false
                                         },
                                         {
                                             model: UsersTeam,
                                             as: 'users_team',
                                             where: { isDeleted: 0 },
-                                            required: false,
                                             include: [{
                                                 model: Teams,
-                                                as: 'team',
-                                                where: { isDeleted: 0 }
-                                            }]
+                                                as: 'team'
+                                            }],
+                                            required: false
                                         }
                                     ]
                                 })
-                                .then((res) => {
+                                .then(async (res) => {
+                                    let teamProject = [];
+                                    const response = res.toJSON();
+                                    const { users_team } = response;
+                                    teamProject = await Members
+                                        .findAll({
+                                            where: {
+                                                linkType: 'project',
+                                                usersType: 'team',
+                                                userTypeLinkId: _.map(users_team, ({ team }) => { return team.id }),
+                                                isDeleted: 0
+                                            }
+                                        })
+                                        .map((o) => {
+                                            return o.toJSON().linkId
+                                        });
+
+
+                                    const userProject = await Members
+                                        .findAll({
+                                            where: {
+                                                linkType: 'project',
+                                                usersType: 'users',
+                                                userTypeLinkId: response.id,
+                                                isDeleted: 0
+                                            }
+                                        })
+                                        .map((o) => {
+                                            return o.toJSON().linkId
+                                        });
+
+
+                                    const allUserProject = [...teamProject, ...userProject];
                                     let responseToReturn = {
-                                        ...res.dataValues,
-                                        projectId: res.projectId.map((e) => { return e.linkId }),
-                                        userRole: res.dataValues.user_role[0].roleId,
-                                        team: res.dataValues.team_as_teamLeader.concat(res.dataValues.users_team.map((e) => { return e.team }))
+                                        ...response,
+                                        projectId: _.uniq(allUserProject),
+                                        userRole: (response).user_role[0].roleId,
+                                        team: (response).team_as_teamLeader.concat((response).users_team.map((e) => { return e.team }))
                                     }
                                     req.loggedData = _.omit(responseToReturn, "team_as_teamLeader", "users_team")
                                     next();

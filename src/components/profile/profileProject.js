@@ -37,6 +37,10 @@ export default class ProfileProject extends React.Component {
 
         let fetchUrl = `/api/project?page=${page}&userId=${loggedUser.data.id}`;
 
+        if (loggedUser.data.userRole >= 3) {
+            fetchUrl += `&userRole=${loggedUser.data.userRole}`
+        }
+
         getData(fetchUrl, {}, (c) => {
             dispatch({ type: "SET_PROJECT_LIST", list: List.concat(c.data.result), count: c.data.count })
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });

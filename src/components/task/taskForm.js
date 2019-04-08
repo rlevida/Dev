@@ -474,8 +474,6 @@ export default class TaskForm extends React.Component {
             })
             .value();
         const documentList = [...checklistDocuments, ...taskDocuments];
-        console.log(task)
-        console.log(loggedUser)
         return (
             <div class="row" >
                 <div class="col-lg-12">

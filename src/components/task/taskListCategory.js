@@ -119,7 +119,7 @@ export default class TaskListCategory extends React.Component {
         if (Filter.type != "") {
             fetchUrl += `&type=${Filter.type}`
         }
-        
+
         if (Filter.taskStatus != "") {
             if (Filter.taskStatus === 'Active') {
                 fetchUrl += `&status=${JSON.stringify({ opt: "not", value: 'Completed' })}&isActive=1`
@@ -180,21 +180,31 @@ export default class TaskListCategory extends React.Component {
         const { project } = workstream;
         let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
         const isAssignedToMe = _.find(task_members, (o) => { return o.memberType == "assignedTo" && o.user.id == loggedUser.data.id });
-        const assigned = _(task_members)
-            .filter((o) => { return o.memberType == "assignedTo" })
-            .map((o) => { return o.user.firstName + " " + o.user.lastName })
-            .value();
-        console.log(checklist)
+        const assigned = _.find(task_members, (o) => { return o.memberType == "assignedTo" });
+       
         return (
             <tr key={index}>
                 <td data-label="Task Name" class="td-left">
                     <div class="action-td">
                         {
                             (
-                                status != "For Approval" && 
-                                status != "Rejected" && 
-                                typeof isAssignedToMe != "undefined" &&
-                                (checklist.length == 0 || _.filter(checklist, ({ isCompleted }) => { return isCompleted == 1 }).length == checklist.length)
+                                status != "For Approval" &&
+                                status != "Rejected" &&
+                                (checklist.length == 0 || _.filter(checklist, ({ isCompleted }) => { return isCompleted == 1 }).length == checklist.length) &&
+                                (
+                                    loggedUser.data.userRole < 4 ||
+                                    typeof isAssignedToMe != "undefined" ||
+                                    (
+                                        loggedUser.data.userRole >= 4 &&
+                                        project.type.type == "Client" &&
+                                        assigned.user.userType == "External"
+                                    ) ||
+                                    (
+                                        loggedUser.data.userRole >= 4 &&
+                                        project.type.type == "Internal" &&
+                                        assigned.user.user_role[0].roleId == 4
+                                    )
+                                )
                             ) && <a onClick={() => this.completeTask({ id, status, periodic, periodTask })}>
                                 <span class={`fa mr10 ${(status != "Completed") ? "fa-circle-thin" : "fa-check-circle text-green"}`} title="Complete"></span>
                             </a>
@@ -228,7 +238,7 @@ export default class TaskListCategory extends React.Component {
                 {
                     (Filter.type != "assignedToMe") && <td data-label="Assigned">
                         {
-                            assigned.join("\r\n")
+                            assigned.user.firstName + " " + assigned.user.lastName
                         }
                     </td>
                 }

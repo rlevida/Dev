@@ -228,20 +228,6 @@ exports.post = {
                             },
                             {
                                 model: Members,
-                                as: 'projectId',
-                                where: { usersType: 'users', linkType: 'project' },
-                                required: false,
-                                attributes: ['linkId'],
-                                include: [
-                                    {
-                                        model: Projects,
-                                        as: 'memberProject',
-                                        where: { isDeleted: 0 }
-                                    }
-                                ]
-                            },
-                            {
-                                model: Members,
                                 as: 'user_projects',
                                 where: { usersType: 'users', linkType: 'project' },
                                 required: false,
@@ -264,20 +250,57 @@ exports.post = {
                             }
                         ]
                     })
-                    .then((res) => {
+                    .then(async (res) => {
                         if (res == null) {
                             updateIpBlock(ipBlockData, body.ipAddress)
                             cb({ status: false, message: "Incorrect username/password." })
                             return;
                         } else {
+                            let teamProject = [];
                             const response = res.toJSON();
-                            const responseToReturn = {
-                                ...response,
-                                projectId: response.projectId.map((e) => { return e.linkId }),
-                                userRole: response.user_role[0].roleId,
-                                team: response.team_as_teamLeader.concat(response.users_team.map((e) => { return e.team }))
+                            const { users_team } = response;
+
+                            teamProject = await Members
+                                .findAll({
+                                    where: {
+                                        linkType: 'project',
+                                        usersType: 'team',
+                                        userTypeLinkId: _.map(users_team, ({ team }) => { return team.id }),
+                                        isDeleted: 0
+                                    }
+                                })
+                                .map((o) => {
+                                    return o.toJSON().linkId
+                                });
+
+
+                            const userProject = await Members
+                                .findAll({
+                                    where: {
+                                        linkType: 'project',
+                                        usersType: 'users',
+                                        userTypeLinkId: response.id,
+                                        isDeleted: 0
+                                    }
+                                })
+                                .map((o) => {
+                                    return o.toJSON().linkId
+                                });
+
+
+                            const allUserProject = [...teamProject, ...userProject];
+
+                            if ((allUserProject).length == 0 && response.user_role[0].roleId > 3) {
+                                cb({ status: false, message: "Your account has no assigned project. Your account's role requires a project to continue. For help, please contact the admin." })
+                            } else {
+                                const responseToReturn = {
+                                    ...response,
+                                    projectId: _.uniq(allUserProject),
+                                    userRole: response.user_role[0].roleId,
+                                    team: response.team_as_teamLeader.concat(response.users_team.map((e) => { return e.team }))
+                                }
+                                nextThen(_.omit(responseToReturn, "team_as_teamLeader", "users_team"), ipBlockData)
                             }
-                            nextThen(_.omit(responseToReturn, "team_as_teamLeader", "users_team"), ipBlockData)
                         }
                     })
             } catch (err) {

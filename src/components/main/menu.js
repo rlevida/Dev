@@ -81,7 +81,6 @@ class Component extends React.Component {
             dispatch({ type: "SET_PROJECT_ACTIVE_CATEGORY", ActiveCategory: category })
         }
     }
-
     render() {
         const { pages, current_page = "", project, loggedUser } = { ...this.props };
         return (
