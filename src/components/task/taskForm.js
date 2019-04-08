@@ -35,7 +35,7 @@ export default class TaskForm extends React.Component {
         _.map([
             "handleChange",
             "handleDate",
-            "fetchUserList",
+            "fetchAssignList",
             "setDropDown",
             "setAssignMemberList",
             "setWorkstreamList",
@@ -46,7 +46,7 @@ export default class TaskForm extends React.Component {
             "handleCheckbox",
             "handleSubmit",
             "getTaskDetails",
-            "fetchProjectMembers",
+            "fetchApproverMembers",
             "deleteSubTask",
             "confirmDeleteSubtask",
             "confirmDeleteTaskDependency",
@@ -60,12 +60,12 @@ export default class TaskForm extends React.Component {
     componentDidMount() {
         const { task } = { ...this.props };
 
-        this.fetchUserList();
+        this.fetchAssignList();
         this.fetchProjectList();
 
         if (typeof task.Selected.projectId != "undefined" && task.Selected.projectId != "") {
             this.fetchWorkstreamList();
-            this.fetchProjectMembers();
+            this.fetchApproverMembers();
             this.getTaskDetails();
         }
     }
@@ -73,7 +73,7 @@ export default class TaskForm extends React.Component {
     setAssignMemberList(options) {
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
-            this.fetchUserList(options);
+            this.fetchAssignList(options);
         }, 1500);
     }
 
@@ -94,11 +94,11 @@ export default class TaskForm extends React.Component {
     setApproverList(options) {
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
-            this.fetchProjectMembers(options);
+            this.fetchApproverMembers(options);
         }, 1500);
     }
 
-    fetchUserList(options) {
+    fetchAssignList(options) {
         const { dispatch, task } = { ...this.props };
         const { Selected } = task;
         let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${Selected.projectId}&linkType=project`;
@@ -147,19 +147,16 @@ export default class TaskForm extends React.Component {
         });
     }
 
-    fetchProjectMembers(options) {
+    fetchApproverMembers(options) {
         const { dispatch, task } = { ...this.props };
         const { Selected } = task;
-        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${Selected.projectId}&linkType=project`;
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${Selected.projectId}&linkType=project&memberType=approver`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
         }
         getData(fetchUrl, {}, (c) => {
             const getApproverSelectList = _(c.data)
-                .filter((o) => {
-                    return (_.filter(o.user_role, (role) => { return role.role.id <= 3 })).length > 0;
-                })
                 .map((o) => { return { id: o.id, name: o.firstName + " " + o.lastName } })
                 .value();
             dispatch({ type: "SET_MEMBER_SELECT_LIST", List: getApproverSelectList });
@@ -235,8 +232,8 @@ export default class TaskForm extends React.Component {
             keyTimer && clearTimeout(keyTimer);
             keyTimer = setTimeout(() => {
                 this.fetchWorkstreamList();
-                this.fetchProjectMembers();
-                this.fetchUserList();
+                this.fetchApproverMembers();
+                this.fetchAssignList();
             }, 1500);
         }
 
@@ -445,7 +442,7 @@ export default class TaskForm extends React.Component {
     }
 
     render() {
-        const { dispatch, task, users, project, workstream, checklist, taskDependency, members, document } = { ...this.props };
+        const { dispatch, task, users, project, workstream, checklist, taskDependency, members, document, loggedUser } = { ...this.props };
         const checklistTypeValue = (typeof checklist.Selected.description != "undefined" && _.isEmpty(checklist.Selected) == false) ? checklist.Selected.description : "";
         const taskDependencyValue = (typeof taskDependency.task != "undefined" && _.isEmpty(taskDependency.Selected) == false) ? taskDependency.task.task : "";
         const documentValue = (typeof document.Selected != "undefined" && _.isEmpty(document.Selected) == false) ? document.Selected.name : "";
@@ -477,6 +474,8 @@ export default class TaskForm extends React.Component {
             })
             .value();
         const documentList = [...checklistDocuments, ...taskDocuments];
+        console.log(task)
+        console.log(loggedUser)
         return (
             <div class="row" >
                 <div class="col-lg-12">
@@ -512,6 +511,14 @@ export default class TaskForm extends React.Component {
                                                 class="form-control underlined"
                                                 placeholder="Write task name"
                                                 onChange={this.handleChange}
+                                                disabled={
+                                                    (
+                                                        loggedUser.data.userRole == 4 && (
+                                                            typeof task.Selected.workstream != "undefined" &&
+                                                            task.Selected.workstream.project.type.type == "Client"
+                                                        )
+                                                    )
+                                                }
                                             />
                                         </div>
                                         <div class="mt20">
@@ -531,6 +538,14 @@ export default class TaskForm extends React.Component {
                                                                 this.setDropDown("assignedTo", (e == null) ? "" : e.value);
                                                             }}
                                                             placeholder={'Search name'}
+                                                            disabled={
+                                                                (
+                                                                    loggedUser.data.userRole == 4 && (
+                                                                        typeof task.Selected.workstream != "undefined" &&
+                                                                        task.Selected.workstream.project.type.type == "Client"
+                                                                    )
+                                                                )
+                                                            }
                                                         />
                                                         <div class="loading">
                                                             {
@@ -604,6 +619,14 @@ export default class TaskForm extends React.Component {
                                                                 class="form-control"
                                                                 onBlur={this.onChangeRaw}
                                                                 ref="startDate"
+                                                                disabled={
+                                                                    (
+                                                                        loggedUser.data.userRole == 4 && (
+                                                                            typeof task.Selected.workstream != "undefined" &&
+                                                                            task.Selected.workstream.project.type.type == "Client"
+                                                                        )
+                                                                    )
+                                                                }
                                                                 selected={(typeof task.Selected.startDate != "undefined" && task.Selected.startDate != null && task.Selected.startDate != '') ? task.Selected.startDate : null}
                                                             />
                                                         </div>
@@ -631,6 +654,14 @@ export default class TaskForm extends React.Component {
                                                             required={true}
                                                             placeholderText="Select valid start date"
                                                             class="form-control"
+                                                            disabled={
+                                                                (
+                                                                    loggedUser.data.userRole == 4 && (
+                                                                        typeof task.Selected.workstream != "undefined" &&
+                                                                        task.Selected.workstream.project.type.type == "Client"
+                                                                    )
+                                                                )
+                                                            }
                                                             selected={(typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != null && task.Selected.dueDate != '') ? task.Selected.dueDate : null}
                                                         />
 
@@ -644,6 +675,14 @@ export default class TaskForm extends React.Component {
                                                         class="form-control underlined"
                                                         placeholder="Add description..."
                                                         onChange={this.handleChange}
+                                                        disabled={
+                                                            (
+                                                                loggedUser.data.userRole == 4 && (
+                                                                    typeof task.Selected.workstream != "undefined" &&
+                                                                    task.Selected.workstream.project.type.type == "Client"
+                                                                )
+                                                            )
+                                                        }
                                                     />
                                                 </div>
                                             </div>
