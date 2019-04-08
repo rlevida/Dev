@@ -116,12 +116,17 @@ export default class TaskForm extends React.Component {
     }
 
     fetchProjectList(options) {
-        const { dispatch } = { ...this.props };
+        const { dispatch, loggedUser } = { ...this.props };
         let fetchUrl = "/api/project?page=1";
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&project=${options}`;
         }
+
+        if (loggedUser.data.userRole >= 4) {
+            fetchUrl += `&typeId=2&typeId=3`
+        }
+
         getData(fetchUrl, {}, (c) => {
             const projectOptions = _(c.data.result)
                 .map((e) => { return { id: e.id, name: e.project } })
