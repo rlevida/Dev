@@ -43,7 +43,7 @@ export default class ProjectActionTab extends React.Component {
     }
 
     render() {
-        const { type, project, dispatch } = this.props;
+        const { type, project, dispatch, loggedUser } = this.props;
         const { Filter } = { ...project }
         const projectTypes = _(type.List).filter((o) => { return o.linkType == "project" }).map((o) => { return { id: o.id, name: o.type } }).value();
         const statusList = [
@@ -75,16 +75,18 @@ export default class ProjectActionTab extends React.Component {
                                 options={statusList}
                                 selected={Filter.projectStatus}
                                 onChange={(e) => this.setDropDown("projectStatus", e.value)} />
-                            <a class="btn btn-default" onClick={(e) => {
-                                dispatch({ type: "SET_PROJECT_SELECTED", Selected: { isActive: 1 } });
-                                dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
-                            }}
-                            >
-                                <span>
-                                    <i class="fa fa-plus mr10" aria-hidden="true"></i>
-                                    Add New Project
-                                </span>
-                            </a>
+                            {
+                                (loggedUser.data.userRole <= 4) && <a class="btn btn-default" onClick={(e) => {
+                                    dispatch({ type: "SET_PROJECT_SELECTED", Selected: { isActive: 1 } });
+                                    dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "Form" });
+                                }}
+                                >
+                                    <span>
+                                        <i class="fa fa-plus mr10" aria-hidden="true"></i>
+                                        Add New Project
+                                        </span>
+                                </a>
+                            }
                         </div>
                     </div>
                 </div>

@@ -94,8 +94,21 @@ router.use(function (req, res, next) {
                                             return o.toJSON().linkId
                                         });
 
+                                    const allUserProjectIds = [...teamProject, ...userProject];
 
-                                    const allUserProject = [...teamProject, ...userProject];
+                                    const allUserProject = await Projects.findAll({
+                                        where: {
+                                            id: allUserProjectIds,
+                                            isDeleted: 0,
+                                            ...((response).user_role[0].roleId > 4) ? {
+                                                typeId: 1
+                                            } : {}
+                                        }
+                                    }).map((o) => {
+                                        const { id } = o.toJSON();
+                                        return id;
+                                    });
+
                                     let responseToReturn = {
                                         ...response,
                                         projectId: _.uniq(allUserProject),

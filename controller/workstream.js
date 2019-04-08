@@ -83,20 +83,20 @@ exports.get = {
             ...(typeof queryString.isTemplate != "undefined" && queryString.isTemplate != "") ? { isTemplate: queryString.isTemplate } : {},
             ...(typeof queryString.typeId != "undefined" && queryString.typeId != "") ? { typeId: queryString.typeId } : {},
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 },
-            ...((typeof queryString.userType != "undefined" && queryString.userType == "External") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
-                [Sequelize.Op.or]: [
-                    {
-                        id: {
-                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT workstreamId FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = ${queryString.userId})`)
-                        }
-                    },
-                    {
-                        id: {
-                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT linkId FROM members WHERE memberType="responsible" AND linkType="workstream" AND userTypeLinkId = ${queryString.userId})`)
-                        }
-                    }
-                ]
-            } : {},
+            // ...((typeof queryString.userType != "undefined" && queryString.userType == "External") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
+            //     [Sequelize.Op.or]: [
+            //         {
+            //             id: {
+            //                 [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT workstreamId FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = ${queryString.userId})`)
+            //             }
+            //         },
+            //         {
+            //             id: {
+            //                 [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT linkId FROM members WHERE memberType="responsible" AND linkType="workstream" AND userTypeLinkId = ${queryString.userId})`)
+            //             }
+            //         }
+            //     ]
+            // } : {},
             ...(typeof queryString.workstream != "undefined" && queryString.workstream != "") ? {
                 [Sequelize.Op.and]: [
                     Sequelize.where(Sequelize.fn('lower', Sequelize.col('workstream')),

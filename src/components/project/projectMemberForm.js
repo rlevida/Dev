@@ -37,8 +37,13 @@ export default class ProjectMemberForm extends React.Component {
         });
     }
 
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_MEMBERS_SELECTED", Selected: {} })
+    }
+
     handleSubmit(e) {
-        const { members, dispatch, project } = { ...this.props };
+        const { members, dispatch, project, loggedUser } = { ...this.props };
         let result = true;
 
         $('#project-member-form  *').validator('validate');
@@ -58,7 +63,7 @@ export default class ProjectMemberForm extends React.Component {
 
             const dataToSubmit = {
                 usersType: members.Selected.type,
-                userTypeLinkId: members.Selected.userTypeLinkId,
+                userTypeLinkId: (loggedUser.data.userRole < 4) ? members.Selected.userTypeLinkId : "users",
                 linkType: "project",
                 linkId: project.Selected.id,
                 memberType: 'assignedTo'
@@ -109,9 +114,9 @@ export default class ProjectMemberForm extends React.Component {
     }
 
     fetchUserList(options) {
-        const { dispatch, loggedUser } = { ...this.props };
+        const { dispatch } = { ...this.props };
         const { showAllUsers } = { ...this.state };
-        let fetchUrl = `/api/user?page=1&showAllUsers=${showAllUsers}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
+        let fetchUrl = `/api/user?page=1&showAllUsers=${showAllUsers}`;
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
         }

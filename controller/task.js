@@ -1044,6 +1044,7 @@ exports.put = {
                     try {
                         Tasks.findOne({ ...options, where: whereObj }).then((response) => {
                             const responseObj = response.toJSON();
+
                             const currentTask = _(responseObj)
                                 .omit(["workstreamId", "approvalRequired", "approverId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
                                 .mapValues((objVal, objKey) => {
@@ -1055,6 +1056,11 @@ exports.put = {
                                         return objVal;
                                     }
                                 }).value();
+
+                            if (responseObj.approvalRequired != updateBody.approvalRequired && responseObj.status != "Completed") {
+                                updateBody['status'] = (updateBody.approvalRequired == 1) ? 'For Approval' : 'In Progress';
+                            }
+
                             Tasks.update(updateBody, { where: { id: body.id } }).then((response) => {
                                 return Tasks.findOne({ ...options, where: { id: body.id } })
                             }).then((response) => {

@@ -117,17 +117,25 @@ export default class TaskForm extends React.Component {
 
     fetchProjectList(options) {
         const { dispatch, loggedUser } = { ...this.props };
-        let fetchUrl = "/api/project?page=1";
+        let requestUrl = `/api/project?userId=${loggedUser.data.id}`;
+
+        if (loggedUser.data.userRole >= 3) {
+            requestUrl += `&userRole=${loggedUser.data.userRole}`
+        }
 
         if (typeof options != "undefined" && options != "") {
-            fetchUrl += `&project=${options}`;
+            requestUrl += `&project=${options}`;
         }
 
-        if (loggedUser.data.userRole >= 4) {
-            fetchUrl += `&typeId=2&typeId=3`
+        if (loggedUser.data.userRole == 4) {
+            requestUrl += `&typeId=2&typeId=3`
         }
 
-        getData(fetchUrl, {}, (c) => {
+        if (loggedUser.data.userRole > 4) {
+            requestUrl += `&typeId=1`
+        }
+
+        getData(requestUrl, {}, (c) => {
             const projectOptions = _(c.data.result)
                 .map((e) => { return { id: e.id, name: e.project } })
                 .value();
@@ -479,6 +487,13 @@ export default class TaskForm extends React.Component {
             })
             .value();
         const documentList = [...checklistDocuments, ...taskDocuments];
+        let projectList = project.SelectList;
+
+        if (typeof task.Selected.workstream != "undefined") {
+            const { project } = task.Selected.workstream;
+            projectList.push({ id: project.id, name: project.project });
+        }
+
         return (
             <div class="row" >
                 <div class="col-lg-12">
@@ -493,7 +508,10 @@ export default class TaskForm extends React.Component {
                                 >
                                     <i class="fa fa-chevron-left" aria-hidden="true"></i>
                                 </a>
-                                Add New Task
+                                {
+                                    (typeof task.Selected.id != "undefined" && task.Selected.id != "") ? "Edit " : "Add New "
+                                }
+                                Task
                             </h4>
                         </div>
                         <div class="card-body">
@@ -516,7 +534,7 @@ export default class TaskForm extends React.Component {
                                                 onChange={this.handleChange}
                                                 disabled={
                                                     (
-                                                        loggedUser.data.userRole == 4 && (
+                                                        loggedUser.data.userRole >= 4 && (
                                                             typeof task.Selected.workstream != "undefined" &&
                                                             task.Selected.workstream.project.type.type == "Client"
                                                         )
@@ -543,7 +561,7 @@ export default class TaskForm extends React.Component {
                                                             placeholder={'Search name'}
                                                             disabled={
                                                                 (
-                                                                    loggedUser.data.userRole == 4 && (
+                                                                    loggedUser.data.userRole >= 4 && (
                                                                         typeof task.Selected.workstream != "undefined" &&
                                                                         task.Selected.workstream.project.type.type == "Client"
                                                                     )
@@ -562,7 +580,7 @@ export default class TaskForm extends React.Component {
                                                         <label for="email">Project: <span class="text-red">*</span></label>
                                                         <DropDown
                                                             required={true}
-                                                            options={project.SelectList}
+                                                            options={projectList}
                                                             onInputChange={this.setProjectList}
                                                             selected={(typeof task.Selected.projectId == "undefined") ? "" : task.Selected.projectId}
                                                             onChange={(e) => {
@@ -592,7 +610,7 @@ export default class TaskForm extends React.Component {
                                                             placeholder={'Search workstream'}
                                                             disabled={
                                                                 (
-                                                                    loggedUser.data.userRole == 4 && (
+                                                                    loggedUser.data.userRole >= 4 && (
                                                                         typeof task.Selected.workstream != "undefined" &&
                                                                         task.Selected.workstream.project.type.type == "Client"
                                                                     )
@@ -632,7 +650,7 @@ export default class TaskForm extends React.Component {
                                                                 ref="startDate"
                                                                 disabled={
                                                                     (
-                                                                        loggedUser.data.userRole == 4 && (
+                                                                        loggedUser.data.userRole >= 4 && (
                                                                             typeof task.Selected.workstream != "undefined" &&
                                                                             task.Selected.workstream.project.type.type == "Client"
                                                                         )
@@ -667,7 +685,7 @@ export default class TaskForm extends React.Component {
                                                             class="form-control"
                                                             disabled={
                                                                 (
-                                                                    loggedUser.data.userRole == 4 && (
+                                                                    loggedUser.data.userRole >= 4 && (
                                                                         typeof task.Selected.workstream != "undefined" &&
                                                                         task.Selected.workstream.project.type.type == "Client"
                                                                     )
@@ -688,7 +706,7 @@ export default class TaskForm extends React.Component {
                                                         onChange={this.handleChange}
                                                         disabled={
                                                             (
-                                                                loggedUser.data.userRole == 4 && (
+                                                                loggedUser.data.userRole >= 4 && (
                                                                     typeof task.Selected.workstream != "undefined" &&
                                                                     task.Selected.workstream.project.type.type == "Client"
                                                                 )
@@ -708,6 +726,14 @@ export default class TaskForm extends React.Component {
                                                     checked={task.Selected.approvalRequired ? true : false}
                                                     onChange={() => { }}
                                                     onClick={(f) => { this.handleCheckbox("approvalRequired", (task.Selected.approvalRequired) ? 0 : 1) }}
+                                                    disabled={
+                                                        (
+                                                            loggedUser.data.userRole > 5 && (
+                                                                typeof task.Selected.workstream != "undefined" &&
+                                                                task.Selected.workstream.project.type.type == "Client"
+                                                            )
+                                                        )
+                                                    }
                                                 />
                                                 <span class="checkmark"></span>
                                             </label>
@@ -731,6 +757,14 @@ export default class TaskForm extends React.Component {
                                                                         this.setDropDown("approverId", (e == null) ? "" : e.value);
                                                                     }}
                                                                     placeholder={'Search Approver'}
+                                                                    disabled={
+                                                                        (
+                                                                            loggedUser.data.userRole > 5 && (
+                                                                                typeof task.Selected.workstream != "undefined" &&
+                                                                                task.Selected.workstream.project.type.type == "Client"
+                                                                            )
+                                                                        )
+                                                                    }
                                                                 />
                                                                 <div class="loading">
                                                                     {
@@ -926,7 +960,7 @@ export default class TaskForm extends React.Component {
                                 </div>
                             }
                             {
-                                (typeof task.Selected.id != "undefined" && task.Selected.id != "") &&
+                                (typeof task.Selected.id != "undefined" && task.Selected.id != "" && loggedUser.data.userRole <= 4) &&
                                 <div class="bt mb20">
                                     <div class="row">
                                         <div class=" col-lg-12 md-12 col-sm-12">

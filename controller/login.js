@@ -288,7 +288,20 @@ exports.post = {
                                 });
 
 
-                            const allUserProject = [...teamProject, ...userProject];
+                            const allUserProjectIds = [...teamProject, ...userProject];
+
+                            const allUserProject = await Projects.findAll({
+                                where: {
+                                    id: allUserProjectIds,
+                                    isDeleted: 0,
+                                    ...((response).user_role[0].roleId > 4) ? {
+                                        typeId: 1
+                                    } : {}
+                                }
+                            }).map((o) => {
+                                const { id } = o.toJSON();
+                                return id;
+                            });
 
                             if ((allUserProject).length == 0 && response.user_role[0].roleId > 3) {
                                 cb({ status: false, message: "Your account has no assigned project. Your account's role requires a project to continue. For help, please contact the admin." })
@@ -371,14 +384,14 @@ exports.post = {
                     Members
                         .findAll({ where: { userTypeLinkId: userDetails.id, linkType: "project" } })
                         .then((res) => {
-                            cb({ status: true, data: res, type: userDetails.userType, message: "Successfully Login" })
+                            cb({ status: true, data: res, userDetails, type: userDetails.userType, message: "Successfully Login" })
 
                         })
                 } catch (err) {
                     cb({ status: false, error: err });
                 }
             } else {
-                cb({ status: true, message: "Successfully Login", type: userDetails.userType });
+                cb({ status: true, message: "Successfully Login", userDetails, type: userDetails.userType });
             }
         })
     }

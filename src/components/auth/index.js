@@ -55,10 +55,13 @@ export default class Component extends React.Component {
         localStorage.setItem('username', Login.username)
         localStorage.setItem('rememberMe', Login.rememberMe)
 
-        postData(`/auth/login`, { username: Login.username, password: Login.password, ipAddress: this.state.yourIp }, (c) => { 
+        postData(`/auth/login`, { username: Login.username, password: Login.password, ipAddress: this.state.yourIp }, (c) => {
             if (c.data.status) {
-                showToast('success', c.data.message)
-                window.location.replace('/');
+                if ((c.data.userDetails.projectId).length > 1 || c.data.userDetails.userRole <= 4) {
+                    window.location.replace('/');
+                } else {
+                    window.location.replace(`/account#/projects/${c.data.userDetails.projectId[0]}`);
+                }
             } else {
                 showToast('error', c.data.message, 360000)
             }

@@ -62,15 +62,22 @@ class Component extends React.Component {
             requestUrl += `&userRole=${loggedUser.data.userRole}`
         }
 
-        getData(`${requestUrl}&typeId=1`, {}, (c) => {
-            dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Client" })
-        })
-        getData(`${requestUrl}&typeId=2`, {}, (c) => {
-            dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Internal" })
-        })
-        getData(`${requestUrl}&typeId=3`, {}, (c) => {
-            dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Private" })
-        })
+        if (loggedUser.data.userRole <= 4) {
+            getData(`${requestUrl}&typeId=1`, {}, (c) => {
+                dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Client" })
+            })
+            getData(`${requestUrl}&typeId=2`, {}, (c) => {
+                dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Internal" })
+            })
+            getData(`${requestUrl}&typeId=3`, {}, (c) => {
+                dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Private" })
+            })
+        }else{
+            getData(`${requestUrl}&typeId=1`, {}, (c) => {
+                dispatch({ type: "SET_PROJECT_CATEGORY", list: c.data.result, category: "Client" })
+            })
+        }
+
     }
 
     onClick(e, category) {
@@ -99,7 +106,7 @@ class Component extends React.Component {
                                     <Link to={`/${page.path_name}`} class={`menu-list ${
                                         (
                                             page.path_name == "projects" &&
-                                            (loggedUser.data.userRole > 3 && loggedUser.data.projectId.length == 1)
+                                            (loggedUser.data.userRole > 4 && loggedUser.data.projectId.length == 1)
                                         ) ? "un-clickable" : ""
                                         }`}>
                                         <i class={`fa mr10 ${page.icon}`} aria-hidden="true"></i>

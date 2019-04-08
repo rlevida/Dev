@@ -13,6 +13,7 @@ import ConversationList from "../conversations/conversationList";
 
 @connect((store) => {
     return {
+        loggedUser: store.loggedUser,
         workstream: store.workstream,
         task: store.task,
         notes: store.notes
@@ -54,7 +55,7 @@ export default class WorkstreamTabs extends React.Component {
 
     }
     render() {
-        const { project_id, workstream_id, dispatch, notes } = { ...this.props };
+        const { project_id, workstream_id, dispatch, notes, loggedUser } = { ...this.props };
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -73,17 +74,19 @@ export default class WorkstreamTabs extends React.Component {
                                         }}
                                         name="task"
                                     />
-                                    <a class="btn btn-default"
-                                        onClick={(e) => {
-                                            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
-                                            dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
-                                        }}
-                                    >
-                                        <span>
-                                            <i class="fa fa-plus mr10" aria-hidden="true"></i>
-                                            Add New Task
-                                             </span>
-                                    </a>
+                                    {
+                                        (loggedUser.data.userRole <= 4) && <a class="btn btn-default"
+                                            onClick={(e) => {
+                                                dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
+                                                dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
+                                            }}
+                                        >
+                                            <span>
+                                                <i class="fa fa-plus mr10" aria-hidden="true"></i>
+                                                Add New Task
+                                         </span>
+                                        </a>
+                                    }
                                 </div>
                                 <div class="button-action hide" ref="messageAction">
                                     {

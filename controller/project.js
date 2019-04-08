@@ -169,17 +169,19 @@ exports.get = {
                 return res.toJSON();
             });
 
-            whereObj[Sequelize.Op.or] = [
-                {
-                    id: _(projectMembers)
-                        .uniqBy("linkId")
-                        .map((o) => { return o.linkId })
-                        .value()
-                },
-                {
-                    createdBy: queryString.userId
-                }
-            ];
+            if (queryString.userRole > 4) {
+                whereObj["typeId"] = 1;
+            }
+
+            whereObj[Sequelize.Op.or] = [{
+                id: _(projectMembers)
+                    .uniqBy("linkId")
+                    .map((o) => { return o.linkId })
+                    .value()
+            },
+            {
+                createdBy: queryString.userId
+            }];
         }
 
         if (typeof queryString.projectStatus != "undefined" && queryString.projectStatus != "") {
@@ -352,7 +354,7 @@ exports.get = {
                                             return {
                                                 type: 'Task For Approval',
                                                 title: responseObj.task,
-                                                image: assigned.user.avatar,
+                                                image: (typeof assigned != "undefined") ? assigned.user.avatar : "",
                                                 date: responseObj.dueDate
                                             }
                                         });
@@ -558,7 +560,14 @@ exports.get = {
                                 typeof queryString.memberType != "undefined" && queryString.memberType == "approver"
                             ) ? {
                                     roleId: {
-                                        [Op.lte]: 3
+                                        [Op.notIn]: [4, 6]
+                                    }
+                                } : {},
+                            ...(
+                                typeof queryString.project_type != "undefined" && queryString.project_type == "Private"
+                            ) ? {
+                                    roleId: {
+                                        [Op.lte]: 4
                                     }
                                 } : {},
                             usersId: userMemberIds
@@ -810,7 +819,6 @@ exports.post = {
         sequence.create().then((nextThen) => {
             Projects
                 .findAll({
-                    raw: true,
                     where: { project: d.project },
                     order: [["projectNameCount", "DESC"]]
                 })
@@ -840,22 +848,37 @@ exports.post = {
             Workstream
                 .create(workstreamData)
                 .then((res) => {
-                    nextThen(result)
+                    nextThen({ project_result: result.toJSON(), workstream_result: res.toJSON() })
                 });
-        }).then((nextThen, result) => {
-            let membersData = {
-                linkId: result.dataValues.id,
-                linkType: "project",
-                usersType: "users",
-                userTypeLinkId: d.projectManagerId,
-                memberType: "project manager"
-            };
+        }).then((nextThen, { project_result, workstream_result }) => {
+            let result = project_result
             Members
-                .create(membersData)
+                .bulkCreate([
+                    {
+                        linkId: result.id,
+                        linkType: "project",
+                        usersType: "users",
+                        userTypeLinkId: d.projectManagerId,
+                        memberType: "project manager"
+                    },
+                    {
+                        linkId: workstream_result.id,
+                        linkType: "workstream",
+                        usersType: "users",
+                        userTypeLinkId: d.projectManagerId,
+                        memberType: "responsible"
+                    }
+                ])
                 .then((res) => {
                     Members
                         .findAll({
-                            where: { id: res.dataValues.id },
+                            where: {
+                                linkId: result.id,
+                                linkType: "project",
+                                usersType: "users",
+                                userTypeLinkId: d.projectManagerId,
+                                memberType: "project manager"
+                            },
                             include: [{
                                 model: Users,
                                 as: 'user',
@@ -885,13 +908,11 @@ exports.post = {
         }).then((nextThen, project, members) => {
             Projects
                 .findOne({
-                    where: { id: project.dataValues.id },
-                    raw: true,
+                    where: { id: project.id },
                     include: [{
                         model: Type,
                         as: 'type',
-                        required: false,
-                        attributes: []
+                        required: false
                     },
                     {
                         model: Members,
@@ -930,20 +951,10 @@ exports.post = {
                         required: false,
                         attributes: []
                     }
-                    ],
-                    attributes: {
-                        include: [
-                            [Sequelize.fn("COUNT", Sequelize.col("taskActive.id")), "taskActive"],
-                            [Sequelize.fn("COUNT", Sequelize.col("taskOverDue.id")), "taskOverDue"],
-                            [Sequelize.fn("COUNT", Sequelize.col("taskDueToday.id")), "taskDueToday"],
-                            [Sequelize.col("projectManager.userTypeLinkId"), "projectManagerId"],
-                            [Sequelize.col("type.type"), "type"]
-                        ]
-                    },
-                    group: ['id']
+                    ]
                 })
                 .then(res => {
-                    cb({ status: true, data: { project: { ...res }, members: members } })
+                    cb({ status: true, data: { project: { ...res.toJSON() }, members: members } })
                 })
         })
     },
@@ -1179,12 +1190,10 @@ exports.put = {
             Projects
                 .findOne({
                     where: { id: id },
-                    raw: true,
                     include: [{
                         model: Type,
                         as: 'type',
-                        required: false,
-                        attributes: []
+                        required: false
                     },
                     {
                         model: Members,
@@ -1215,20 +1224,10 @@ exports.put = {
                         required: false,
                         attributes: []
                     }
-                    ],
-                    attributes: {
-                        include: [
-                            [Sequelize.fn("COUNT", Sequelize.col("taskActive.id")), "taskActive"],
-                            [Sequelize.fn("COUNT", Sequelize.col("taskOverDue.id")), "taskOverDue"],
-                            [Sequelize.fn("COUNT", Sequelize.col("taskDueToday.id")), "taskDueToday"],
-                            [Sequelize.col("projectManager.userTypeLinkId"), "projectManagerId"],
-                            [Sequelize.col("type.type"), "type"]
-                        ]
-                    },
-                    group: ['id']
+                    ]
                 })
                 .then(res => {
-                    cb({ status: true, data: { project: { ...res }, members: members } })
+                    cb({ status: true, data: { project: { ...res.toJSON() }, members: members } })
                 })
         })
     },

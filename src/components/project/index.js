@@ -34,15 +34,7 @@ export default class Component extends React.Component {
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
         });
     }
-
-    componentDidMount() {
-        const { loggedUser, history } = { ...this.props };
-
-        if (loggedUser.data.userRole > 3 && loggedUser.data.projectId.length === 1) {
-            history.push(`/projects/${loggedUser.data.projectId[0]}`);
-        }
-    }
-
+    
     render() {
         const { project, task, history, loggedUser } = { ...this.props };
         const projectId = (history.location.pathname).split('/')[2];

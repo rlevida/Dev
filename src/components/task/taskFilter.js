@@ -109,7 +109,7 @@ export default class TaskFilters extends React.Component {
         }, 1500);
     }
     render() {
-        const { task, dispatch, users, show_tab = true, show_action = true } = { ...this.props };
+        const { task, dispatch, users, show_tab = true, show_action = true, loggedUser } = { ...this.props };
         const { Filter } = { ...task }
         const tabs = [
             { id: "assignedToMe", name: 'Assigned to me' },
@@ -164,17 +164,19 @@ export default class TaskFilters extends React.Component {
                                         (task.FormActive == "Calendar") ? <i class="fa fa-list" aria-hidden="true"></i> : <i class="fa fa-calendar" aria-hidden="true"></i>
                                     }
                                 </a>
-                                <a class="btn btn-default"
-                                    onClick={(e) => {
-                                        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
-                                        dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
-                                    }}
-                                >
-                                    <span>
-                                        <i class="fa fa-plus mr10" aria-hidden="true"></i>
-                                        Add New Task
-                            </span>
-                                </a>
+                                {
+                                    (loggedUser.data.userRole <= 4) && <a class="btn btn-default"
+                                        onClick={(e) => {
+                                            dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "Form" });
+                                            dispatch({ type: "SET_TASK_SELECTED", Selected: {} });
+                                        }}
+                                    >
+                                        <span>
+                                            <i class="fa fa-plus mr10" aria-hidden="true"></i>
+                                            Add New Task
+                                    </span>
+                                    </a>
+                                }
                             </div>
                         </div>
                     }

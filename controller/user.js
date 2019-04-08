@@ -105,6 +105,13 @@ exports.get = {
             } : {}
         }
 
+        if (
+            typeof queryString.project_type != "undefined" &&
+            (queryString.project_type == "Private" || queryString.project_type == "Internal")
+        ) {
+            whereObj["userType"] = "Internal";
+        }
+
         if (typeof queryString.showAllUsers != "undefined" && queryString.showAllUsers == "false") {
             const teamLeader = await Teams.findAll({
                 where: {

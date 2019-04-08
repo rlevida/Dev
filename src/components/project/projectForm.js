@@ -122,7 +122,6 @@ export default class ProjectForm extends React.Component {
             if (!project.Selected.id) {
                 project.Selected.createdBy = loggedUser.data.id;
                 postData(`/api/project`, { ...project.Selected }, (c) => {
-                    console.log(c)
                     showToast("success", "Project successfully added.");
                     dispatch({ type: "SET_PROJECT_SELECTED", Selected: c.data.project });
                     dispatch({ type: "SET_MEMBERS_LIST", list: _.map(c.data.members, ({ user }) => { return user }) });
@@ -231,6 +230,7 @@ export default class ProjectForm extends React.Component {
                 return { id: e.id, name: `${e.firstName} ${e.lastName}` }
             }).value()
             : [];
+
         return (
             <div class="row">
                 <div class="col-lg-12">
@@ -333,7 +333,10 @@ export default class ProjectForm extends React.Component {
                             </div>
                             {
                                 (typeof project.Selected.id != 'undefined' &&
-                                    (loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && (project.Selected.type.type == "Private" || project.Selected.type.type == "Internal")))
+                                    (
+                                        loggedUser.data.userRole <= 3 ||
+                                        (loggedUser.data.userRole == 4 && (project.Selected.type.type == "Private" || project.Selected.type.type == "Internal"))
+                                    )
                                 ) && <div class="bt">
                                     <div class="mt20 mb20">
                                         <p class="form-header mb0">Project Members</p>

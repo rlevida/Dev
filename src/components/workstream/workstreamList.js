@@ -220,7 +220,7 @@ export default class WorkstreamList extends React.Component {
                                                     {
                                                         (
                                                             loggedUser.data.userRole <= 3 ||
-                                                            (loggedUser.data.userRole == 4 && projectType == "Private")
+                                                            (loggedUser.data.userRole == 4 && projectType != "Client")
                                                         ) && <a class="btn btn-default" onClick={() => { dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "Form" }) }}>
                                                             <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>
                                                             Add New Workstream
