@@ -60,8 +60,10 @@ router.use(function (req, res, next) {
                                                 model: Teams,
                                                 as: 'team',
                                                 where: { isDeleted: 0 }
-                                            }]
-                                        }, {
+                                            }],
+                                            required: false
+                                        },
+                                        {
                                             model: UsersNotificationSetting,
                                             as: 'notification_setting',
                                             required: false

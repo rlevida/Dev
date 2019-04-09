@@ -24,7 +24,7 @@ export default class Socket extends React.Component {
             if (data.usersId === loggedUser.data.id) {
                 const newList = [...this.state.list, data]
                 showToast("info", `<span style="font-weight: bolder">${data.from.firstName} ${data.from.lastName}</span> ${notificationType(data.type)}`);
-                dispatch({ type: "SET_NOTIFICATION_LIST", List: _.orderBy(newList, ["dateAdded"], ["desc"]) })
+                dispatch({ type: "SET_NOTIFICATION_LIST", list: _.orderBy(newList, ["dateAdded"], ["desc"]) })
             }
         })
     }

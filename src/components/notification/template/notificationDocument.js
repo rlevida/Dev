@@ -11,7 +11,7 @@ import moment from 'moment';
 })
 export default class Component extends React.Component {
     render() {
-        const { data, index } = { ...this.props }
+        const { data, index, archive } = { ...this.props }
         const { document_notification, from, dateAdded } = { ...data }
         const duration = moment.duration(moment().diff(moment(dateAdded)));
         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
@@ -35,7 +35,7 @@ export default class Component extends React.Component {
                             </div>
                         </div>
                         <div class="n-action">
-                            <div><a href="javascript:void(0)"> <i class="fa fa-times fa-lg text-grey"></i></a></div>
+                            <div><a href="javascript:void(0)" onClick={() => archive(data)}> <i class="fa fa-times fa-lg text-grey"></i></a></div>
                         </div>
                     </div>
                 </li>

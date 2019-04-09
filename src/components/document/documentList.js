@@ -79,6 +79,7 @@ class DocumentList extends React.Component {
         // }
         getData(requestUrl, {}, (c) => {
             const { count, result } = { ...c.data }
+            console.log(count)
             dispatch({ type: 'SET_DOCUMENT_LIST', list: document.List.concat(result), count: count });
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' });
         });

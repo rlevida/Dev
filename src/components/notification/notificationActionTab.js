@@ -1,9 +1,8 @@
 import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
-import moment from "moment";
 import { withRouter } from "react-router";
-import { getData, showToast, setDatePicker } from "../../globalFunction";
+import { putData, showToast } from "../../globalFunction";
 
 let delayTimer = "";
 
@@ -27,6 +26,18 @@ class NotificationActionTab extends React.Component {
         dispatch({ type: "SET_NOTIFICATION_FILTER", Filter: { [name]: e } })
     }
 
+    archive() {
+        const { dispatch, notification, loggedUser } = { ...this.props }
+        const { List } = { ...notification };
+        const notificationIds = List.map((e) => { return e.id });
+
+        putData(`/api/notification/archive/${notificationIds}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isArchived: 1 }, (c) => {
+            const { count, result } = { ...c.data };
+            dispatch({ type: 'SET_NOTIFICATION_LIST', list: result, count: count });
+            showToast('success', 'Successfully Archived.');
+        })
+    }
+
     render() {
         const { notification } = { ...this.props };
         return (
@@ -47,7 +58,7 @@ class NotificationActionTab extends React.Component {
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="button-action">
-                            <a class="btn btn-default mr10">
+                            <a class="btn btn-default mr10" onClick={() => this.archive()}>
                                 <span>
                                     <i class="fa fa-archive mr10" aria-hidden="true"></i>
                                     Archive All

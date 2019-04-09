@@ -40,6 +40,10 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.BIGINT,
             allowNull: true
         },
+        isArchived: {
+            type: DataTypes.BIGINT,
+            allowNull: true
+        },
         createdBy: {
             type: DataTypes.BIGINT,
             allowNull: true

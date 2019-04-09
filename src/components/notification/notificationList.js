@@ -5,7 +5,7 @@ import { getData, postData, putData, showToast, displayDateMD } from '../../glob
 import { connect } from "react-redux"
 import { withRouter } from "react-router";
 
-
+import _ from "lodash"
 
 import DocumentTemplate from "./template/notificationDocument"
 @connect((store) => {
@@ -20,68 +20,69 @@ class DocumentList extends React.Component {
         super(props)
     }
 
-    componentDidMount() {
-        const { dispatch, match, loggedUser } = { ...this.props }
-        getData(`/api/notification?usersId=${loggedUser.data.id}`, {}, (c) => {
-            dispatch({ type: "SET_NOTIFICATION_LIST", List: c.data })
-        })
+    async componentDidMount() {
+        const { dispatch, notification } = { ...this.props }
+        const { List } = { ...notification }
+        await dispatch({ type: "SET_NOTIFICATION_LIST", list: [] });
+        await this.fetchData(1)
+    }
 
+    fetchData(page) {
+        const { dispatch, loggedUser, notification } = { ...this.props };
+        const { List } = { ...notification };
+        getData(`/api/notification?page=${page}&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, {}, (c) => {
+            const { count, result } = { ...c.data };
+            dispatch({ type: 'SET_NOTIFICATION_LIST', list: List.concat(result), count: count });
+        })
+    }
+
+    getNextResult() {
+        const { notification } = { ...this.props };
+        const { Count } = { ...notification };
+        this.fetchData(Count.current_page + 1);
+    }
+
+    archive(data) {
+        const { dispatch, notification, loggedUser } = { ...this.props }
+        putData(`/api/notification/archive/${data.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isArchived: 1 }, (c) => {
+            const { count, result } = { ...c.data };
+            dispatch({ type: 'SET_NOTIFICATION_LIST', list: result, count: count });
+            showToast('success', 'Successfully Archived.');
+        })
     }
 
     render() {
         const { notification } = { ...this.props };
-        // const { Count } = { ...notifcation };
-        // const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
-        // const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
-
+        const { Count, Loading, List } = { ...notification };
+        const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
+        const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
         return (
             <div>
                 <div>
                     <div class="card-header">
                     </div>
                     <div>
-                        {/* <div class={(document.Loading == "RETRIEVING" && (document.List).length == 0) ? "linear-background" : ""}> */}
                         <div class="card-body m0">
                             <ul class="n-list">
-                                {_.orderBy(notification.List, ['dateAdded'], ['desc']).map((e, i) => {
+                                {_.orderBy(List, ['dateAdded'], ['desc']).map((e, i) => {
                                     switch (e.type) {
                                         case 'fileNewUpload': {
-                                            return <div key={i}><DocumentTemplate data={e} index={i} /></div>
+                                            return <div key={i}><DocumentTemplate data={e} index={i} archive={(data) => this.archive(data)} /></div>
                                         }
                                     }
                                 })}
-                                {/* <li class="pd0">
-                                    <div class="d-flex-sb">
-                                        <div class="n">
-                                            <div class="n-header"><i class="fa fa-check-circle mr5 n-unread"></i>Task in Accounting</div>
-                                            <div class="n-content">
-                                                <div class="n-title">Accounting Reports for February 2019</div>
-                                                <div className="d-flex">
-                                                    <img src="/images/user.png"></img>
-                                                    <div class="n-from mr5">Karen King<span></span></div>
-                                                    <div class="n-action">Uploaded a new file</div>
-                                                </div>
-                                                <div class="n-time ml40">2 minutes ago</div>
-                                                <div class="n-b-content text-cyan"><i class="fa fa-circle mr20"></i>User Matrix.xlsx</div>
-                                            </div>
-                                        </div>
-                                        <div class="p-2">Flex item</div>
-                                    </div>
-                                </li> */}
-                            </ul>
-                            {/* <div>
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" class="td-left" >Notification</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
 
-                                    </tbody>
-                                </table>
-                            </div> */}
+                            </ul>
                         </div>
+                        {
+                            ((currentPage != lastPage) && List.length > 0 && Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNextResult()}>Load More Notifications</a></p>
+                        }
+                        {
+                            (Loading == "RETRIEVING" && (List).length > 0) && <Loading />
+                        }
+                        {
+                            (List.length === 0 && Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                        }
                     </div>
                 </div>
             </div>
