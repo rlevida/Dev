@@ -9,6 +9,7 @@ const {
     Members,
     Users,
     UsersRole,
+    UsersNotificationSetting,
     Teams,
     UsersTeam,
     Projects
@@ -57,8 +58,14 @@ router.use(function (req, res, next) {
                                             where: { isDeleted: 0 },
                                             include: [{
                                                 model: Teams,
-                                                as: 'team'
+                                                as: 'team',
+                                                where: { isDeleted: 0 }
                                             }],
+                                            required: false
+                                        },
+                                        {
+                                            model: UsersNotificationSetting,
+                                            as: 'notification_setting',
                                             required: false
                                         }
                                     ]

@@ -41,9 +41,9 @@ class DocumentUpload extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch, document, match } = this.props;
+        const { dispatch, document, match, loggedUser } = this.props;
         const projectId = match.params.projectId;
-        const selectedObj = { ...document.Selected, projectId: projectId };
+        const selectedObj = { ...document.Selected, projectId: projectId, usersId: loggedUser.data.id };
 
         if (projectId) {
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })

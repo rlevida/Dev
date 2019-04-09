@@ -9,6 +9,7 @@ import ProfilePerformance from "./profilePerformance";
 import ProfileTask from "./profileTask";
 import ProfileProject from "./profileProject";
 import UserForm from "../users/users/userForm";
+import ProfileNotification from "./profileNotification";
 
 import { postData, showToast } from "../../globalFunction";
 
@@ -107,12 +108,8 @@ export default class Component extends React.Component {
                                     </div>
                                 </div>
                             </TabPanel>
-                            <TabPanel>
-                                <div class="mt20">
-                                    <div class="bt">
-                                        <h2>Notifications</h2>
-                                    </div>
-                                </div>
+                            <TabPanel class="bt">
+                                <ProfileNotification/>
                             </TabPanel>
                         </Tabs>
                     </div>

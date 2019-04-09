@@ -1264,8 +1264,11 @@ input:checked + .slider:before {
   margin: 0 auto;
 }
 
+.bell-active{
+  color: #ff9800!important;
+}
 .head .fa-bell{
-  color: #ff9800;
+  color:#D4D4D4;
 }
 
 .head .glyphicon-user,
@@ -2977,4 +2980,211 @@ td .display-flex{
 
 .text-gold:hover,.text-gold:active{
   color:#FFD700
+}
+
+.btn-cyan{
+  color: #ffffff!important;
+  background-color: #34dc9a !important;
+}
+
+.text-cyan{
+  color:cyan
+}
+
+.d-flex-sb{
+  display: flex;
+  justify-content: space-between;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.n-list{
+  list-style-type: none;
+  padding: 0;
+}
+.n-list li{
+  border-left: solid 5px #F39E3B;
+}
+.d-flex{
+  display: flex;
+  align-items: center;
+}
+.n{
+  width: 50%
+}
+.n-from,.n-title{
+  font-weight: bolder
+}
+.n-action{
+  color:#818181
+}
+.n-content{
+  margin:15px
+}
+.n-read{
+  color:#78C37D
+}
+.n-unread{
+  color:gainsboro
+}
+.n-time{
+  color:#b1aeae
+}
+.n-b-content{
+  border:solid 1px;
+  border-color: gainsboro;
+  margin-top:20px;
+  margin-left:40px;
+  padding:10px;
+  border-radius: 3px;
+  color:#41AEE7
+}
+.n-action{
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+.n-count{
+  color: #F2983B;
+  margin-left: -10px;
+  margin-bottom: -10px;
+  margin-top: 10px;
+  background: white;
+  border-radius: 100%;
+  padding: 4px;
+  font-size: 10px;
+  border: solid 1px;
+  border-color: #F2983B;
+}
+
+
+.action-link .dropdown-menu.notify-drop {
+  min-width: 330px;
+  background-color: #fff;
+  max-height: 360px;
+  padding:5px 0px 0px 0px;
+}
+.action-link .dropdown-menu.notify-drop .notify-drop-title {
+  border-bottom: 1px solid #e2e2e2;
+  padding: 5px 15px 10px 15px;
+}
+.action-link .dropdown-menu.notify-drop .drop-content {
+  min-height: 280px;
+  max-height: 280px;
+  overflow-y: scroll;
+}
+.action-link .dropdown-menu.notify-drop .drop-content::-webkit-scrollbar-track
+{
+  background-color: #F5F5F5;
+}
+
+.action-link .dropdown-menu.notify-drop .drop-content::-webkit-scrollbar
+{
+  width: 8px;
+  background-color: #F5F5F5;
+}
+
+.action-link .dropdown-menu.notify-drop .drop-content::-webkit-scrollbar-thumb
+{
+  background-color: #ccc;
+}
+.action-link .dropdown-menu.notify-drop .drop-content > li {
+  border-bottom: 1px solid #e2e2e2;
+  padding: 10px 0px 5px 0px;
+}
+// .action-link .dropdown-menu.notify-drop .drop-content > li:nth-child(2n+0) {
+//   background-color: #fafafa;
+// }
+.action-link .dropdown-menu.notify-drop .drop-content > li:after {
+  content: "";
+  clear: both;
+  display: block;
+}
+.action-link .dropdown-menu.notify-drop .drop-content > li:hover {
+  background-color: #F0F0F0;
+}
+.action-link .dropdown-menu.notify-drop .drop-content > li:last-child {
+  border-bottom: none;
+}
+.action-link .dropdown-menu.notify-drop .drop-content > li .notify-img {
+  float: left;
+  display: inline-block;
+  width: 45px;
+  height: 45px;
+  margin: 0px 0px 8px 0px;
+}
+.action-link .dropdown-menu.notify-drop .drop-content > li .notify-img img{
+  border-radius: 100%;
+}
+.action-link .dropdown-menu.notify-drop .allRead {
+  margin-right: 7px;
+}
+.action-link .dropdown-menu.notify-drop .rIcon {
+  float: right;
+  color: #999;
+}
+// .action-link .dropdown-menu.notify-drop .rIcon:hover {
+//   color: #333;
+// }
+.action-link .dropdown-menu.notify-drop .drop-content > li a {
+  font-size: 13px;
+  font-weight: bolder;
+  color:#4A4A4A
+}
+.action-link .dropdown-menu.notify-drop .drop-content > li {
+  font-size: 13px;
+}
+.action-link .dropdown-menu.notify-drop .drop-content > li hr {
+  margin: 5px 0;
+  width: 70%;
+  border-color: #e2e2e2;
+}
+.action-link .dropdown-menu.notify-drop .drop-content .pd-l0 {
+  padding-left: 0;
+}
+.action-link .dropdown-menu.notify-drop .drop-content > li p {
+  font-size: 13px;
+  color: #b1aeae;
+  font-weight: normal;
+  margin: 3px 0;
+}
+.action-link .dropdown-menu.notify-drop .drop-content > li p.time {
+  font-size: 12px;
+  top: -6px;
+  margin: 8px 0px 0px 0px;
+  position: relative;
+  display: inline-block;
+}
+// .action-link .dropdown-menu.notify-drop .drop-content > li p.time:hover {
+//   background-image: linear-gradient(#fff,#fff);
+// }
+.action-link .dropdown-menu.notify-drop .notify-drop-footer {
+  border-top: 1px solid #e2e2e2;
+  bottom: 0;
+  position: relative;
+  padding: 8px 15px;
+  background-color: #F39E3B;
+}
+.action-link .dropdown-menu.notify-drop .notify-drop-footer a {
+  color:#fff;
+  text-decoration: none;
+  font-weight: bolder
+}
+
+.nav > li > a:hover, 
+.nav > li > a:focus, 
+.nav > li > a:active,
+.nav .open > a  {
+  background-color: transparent!important;
+}
+
+.n-count{
+  font-size: 12px!important
+}
+
+.n-border{
+  border-left: solid 5px #F39E3B;
+}
+.n-type{
+  color:#818181
 }
