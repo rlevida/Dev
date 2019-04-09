@@ -5,7 +5,8 @@ export default function reducer(state = {
     Selected: {},
     Count: {},
     Filter: {
-        status: 'active'
+        isArchived: 0,
+        isDeleted: 0,
     },
     NotificationCount: 0,
     Loading: ""

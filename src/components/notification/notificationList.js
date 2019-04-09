@@ -1,13 +1,12 @@
 import React from "react";
 import { Loading } from "../../globalComponents";
-import { getData, postData, putData, showToast, displayDateMD } from '../../globalFunction';
-
+import { getData, putData, showToast } from '../../globalFunction';
 import { connect } from "react-redux"
 import { withRouter } from "react-router";
-
 import _ from "lodash"
-
 import DocumentTemplate from "./template/notificationDocument"
+import ArchivedModal from "./archiveModal"
+
 @connect((store) => {
     return {
         loggedUser: store.loggedUser,
@@ -21,16 +20,16 @@ class DocumentList extends React.Component {
     }
 
     async componentDidMount() {
-        const { dispatch, notification } = { ...this.props }
-        const { List } = { ...notification }
+        const { dispatch } = { ...this.props }
         await dispatch({ type: "SET_NOTIFICATION_LIST", list: [] });
         await this.fetchData(1)
     }
 
     fetchData(page) {
         const { dispatch, loggedUser, notification } = { ...this.props };
-        const { List } = { ...notification };
-        getData(`/api/notification?page=${page}&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, {}, (c) => {
+        const { List, Filter } = { ...notification };
+
+        getData(`/api/notification?page=${page}&usersId=${loggedUser.data.id}&isArchived=${Filter.isArchived}&isDeleted=${Filter.isDeleted}`, {}, (c) => {
             const { count, result } = { ...c.data };
             dispatch({ type: 'SET_NOTIFICATION_LIST', list: List.concat(result), count: count });
         })
@@ -43,7 +42,7 @@ class DocumentList extends React.Component {
     }
 
     archive(data) {
-        const { dispatch, notification, loggedUser } = { ...this.props }
+        const { dispatch, loggedUser } = { ...this.props }
         putData(`/api/notification/archive/${data.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isArchived: 1 }, (c) => {
             const { count, result } = { ...c.data };
             dispatch({ type: 'SET_NOTIFICATION_LIST', list: result, count: count });
@@ -53,7 +52,7 @@ class DocumentList extends React.Component {
 
     render() {
         const { notification } = { ...this.props };
-        const { Count, Loading, List } = { ...notification };
+        const { Count, List } = { ...notification };
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
         return (
@@ -75,16 +74,17 @@ class DocumentList extends React.Component {
                             </ul>
                         </div>
                         {
-                            ((currentPage != lastPage) && List.length > 0 && Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNextResult()}>Load More Notifications</a></p>
+                            ((currentPage != lastPage) && List.length > 0 && notification.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNextResult()}>Load More Notifications</a></p>
                         }
                         {
-                            (Loading == "RETRIEVING" && (List).length > 0) && <Loading />
+                            (notification.Loading == "RETRIEVING" && (List).length > 0) && <Loading />
                         }
                         {
-                            (List.length === 0 && Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                            (List.length === 0 && notification.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                         }
                     </div>
                 </div>
+                <ArchivedModal />
             </div>
         )
     }

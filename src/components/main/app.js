@@ -227,7 +227,7 @@ class Main extends React.Component {
                                         <ul class="nav navbar-nav navbar-right">
                                             <li class="dropdown">
                                                 <a data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                                                    <span class="fa fa-bell"> </span>
+                                                    <span class={`fa fa-bell ${(this.props.location.pathname !== "/notification" && notification.List.length > 0) ? "bell-active" : ""}`}> </span>
                                                     {
                                                         (notification.List.length > 0 && this.props.location.pathname !== "/notification") &&
                                                         <span class="n-count">{notification.List.length || ""}</span>

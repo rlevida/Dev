@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
 import { withRouter } from "react-router";
-import { putData, showToast } from "../../globalFunction";
+import { putData, showToast, getData } from "../../globalFunction";
 
 let delayTimer = "";
 
@@ -21,35 +21,55 @@ class NotificationActionTab extends React.Component {
     }
 
 
-    setDropDown(name, e) {
-        const { dispatch } = this.props;
-        dispatch({ type: "SET_NOTIFICATION_FILTER", Filter: { [name]: e } })
+    componentDidUpdate(prevProps) {
+        const { dispatch, loggedUser, notification } = this.props;
+
+        if (_.isEqual(prevProps.notification.Filter, this.props.notification.Filter) == false) {
+            clearTimeout(delayTimer);
+
+            const { Filter } = { ...notification };
+            let requestUrl = `/api/notification?page=${1}&usersId=${loggedUser.data.id}&isRead=0&isArchived=${Filter.isArchived}&isDeleted=${Filter.isDeleted}`;
+
+            getData(requestUrl, {}, (c) => {
+                const { count, result } = { ...c.data };
+                dispatch({ type: 'SET_NOTIFICATION_LIST', list: result, count: count });
+            })
+
+            delayTimer = setTimeout(() => {
+                if (status === 'active' || status === 'sort') {
+                    requestUrl += `&folderId=null&type=document`
+                }
+            }, 1000);
+        }
+
     }
 
-    archive() {
-        const { dispatch, notification, loggedUser } = { ...this.props }
+    setDropDown(name, e) {
+        const { dispatch, notification } = this.props;
+        const { Filter } = { ...notification };
+        dispatch({ type: "SET_NOTIFICATION_FILTER", Filter: { ...Filter, [name]: e } })
+    }
+
+    archiveAll() {
+        const { dispatch, notification } = { ...this.props }
         const { List } = { ...notification };
         const notificationIds = List.map((e) => { return e.id });
-
-        putData(`/api/notification/archive/${notificationIds}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isArchived: 1 }, (c) => {
-            const { count, result } = { ...c.data };
-            dispatch({ type: 'SET_NOTIFICATION_LIST', list: result, count: count });
-            showToast('success', 'Successfully Archived.');
-        })
+        dispatch({ type: "SET_NOTIFICATION_SELECTED", Selected: { id: notificationIds, archiveType: 'all' } });
     }
 
     render() {
         const { notification } = { ...this.props };
+        const { Filter } = { ...notification };
         return (
             <div class="container-fluid filter mb20">
                 <div class="row content-row">
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="flex-row tab-row mb0">
                             <div class="flex-col">
-                                <a class={notification.Filter.status === 'active' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'active')}>Notification</a>
+                                <a class={Filter.isArchived === 0 ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('isArchived', 0)}>Notification</a>
                             </div>
                             <div class="flex-col">
-                                <a class={notification.Filter.status === 'archived' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'archived')}>Archived</a>
+                                <a class={Filter.isArchived === 1 ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('isArchived', 1)}>Archived</a>
                             </div>
                             <div class="flex-col">
 
@@ -58,7 +78,10 @@ class NotificationActionTab extends React.Component {
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="button-action">
-                            <a class="btn btn-default mr10" onClick={() => this.archive()}>
+                            <a class="btn btn-default mr10"
+                                onClick={() => this.archiveAll()}
+                                data-toggle="modal"
+                                data-target="#archiveModal">
                                 <span>
                                     <i class="fa fa-archive mr10" aria-hidden="true"></i>
                                     Archive All

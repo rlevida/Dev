@@ -6,12 +6,12 @@ import moment from 'moment';
     return {
         project: store.project,
         task: store.task,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
     }
 })
 export default class Component extends React.Component {
     render() {
-        const { data, index, archive } = { ...this.props }
+        const { dispatch, data, index } = { ...this.props }
         const { document_notification, from, dateAdded } = { ...data }
         const duration = moment.duration(moment().diff(moment(dateAdded)));
         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
@@ -35,7 +35,18 @@ export default class Component extends React.Component {
                             </div>
                         </div>
                         <div class="n-action">
-                            <div><a href="javascript:void(0)" onClick={() => archive(data)}> <i class="fa fa-times fa-lg text-grey"></i></a></div>
+                            {
+                                (!data.isArchived) &&
+                                <div>
+                                    <a href="javascript:void(0)"
+                                        onClick={() => dispatch({ type: "SET_NOTIFICATION_SELECTED", Selected: data })}
+                                        data-toggle="modal"
+                                        data-target="#archiveModal"
+                                    >
+                                        <i class="fa fa-times fa-lg text-grey"></i>
+                                    </a>
+                                </div>
+                            }
                         </div>
                     </div>
                 </li>
