@@ -258,7 +258,6 @@ exports.get = {
                 }
             },
             result: function (callback) {
-                console.log(whereObj)
                 try {
                     Projects
                         .findAll({
