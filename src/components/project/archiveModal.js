@@ -39,7 +39,7 @@ export default class ArchiveModal extends React.Component {
 
         putData(`/api/project/archive/${project.Selected.id}`, dataToSubmit, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "REMOVE_DELETED_PROJECT_LIST", id: c.data });
+                dispatch({ type: "UPDATE_DATA_PROJECT_LIST", UpdatedData: { ...project.Selected, isDeleted: 1 } });
                 showToast("success", "Successfully Archived.");
             }
             $(`#archiveModal`).modal("hide");

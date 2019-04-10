@@ -3,7 +3,7 @@ import { filter } from "lodash";
 export default function reducer(state = {
     Count: {},
     Filter: {
-        projectStatus: "",
+        projectStatus: "Active",
         typeId: ""
     },
     FormActive: "List",

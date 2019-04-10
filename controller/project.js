@@ -8,7 +8,7 @@ const dbName = "project";
 const Op = Sequelize.Op;
 const models = require('../modelORM');
 
-const { Conversation, Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, sequelize, Notes } = models;
+const { TaskChecklist, ChecklistDocuments, Conversation, Document, DocumentLink, Members, Projects, Tag, Tasks, Teams, Type, Users, UsersTeam, UsersRole, Roles, Workstream, sequelize, Notes } = models;
 const associationFindAllStack = [
     {
         model: DocumentLink,
@@ -124,7 +124,7 @@ exports.get = {
             ...(typeof queryString.id != "undefined" && queryString.id != "") ? { id: queryString.id.split(',') } : {},
             ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {},
             ...(typeof queryString.workstreamId != "undefined" && queryString.workstreamId != "") ? { workstreamId: queryString.workstreamId } : {},
-            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : {},
+            ...(typeof queryString.isActive != "undefined" && queryString.isActive != "") ? { isActive: queryString.isActive } : { isActive: 1 },
             ...(typeof queryString.typeId != "undefined" && queryString.typeId != "") ? { typeId: queryString.typeId } : {},
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 },
             ...(typeof queryString.project != "undefined" && queryString.project != "") ? {
@@ -186,6 +186,16 @@ exports.get = {
 
         if (typeof queryString.projectStatus != "undefined" && queryString.projectStatus != "") {
             switch (queryString.projectStatus) {
+                case "All":
+                    whereObj[Sequelize.Op.or] = [
+                        {
+                            isActive: {
+                                [Sequelize.Op.or]: [0, 1]
+                            }
+                        }
+                    ];
+                    whereObj["isDeleted"] = [1, 0]
+                    break;
                 case "Active":
                     whereObj["isActive"] = 1;
                     break;
@@ -248,6 +258,7 @@ exports.get = {
                 }
             },
             result: function (callback) {
+                console.log(whereObj)
                 try {
                     Projects
                         .findAll({
@@ -1322,6 +1333,51 @@ exports.delete = {
                     Tasks.destroy({
                         where: {
                             projectId: d.id
+                        }
+                    }).then((res) => {
+                        parallelCallback(null, res)
+                    }).catch((err) => {
+                        parallelCallback(err);
+                    });
+                },
+                notes: (parallelCallback) => {
+                    Notes.destroy({
+                        where: {
+                            workstreamId: workstreamIds
+                        }
+                    }).then((res) => {
+                        parallelCallback(null, res)
+                    }).catch((err) => {
+                        parallelCallback(err);
+                    });
+                },
+                checklist: (parallelCallback) => {
+                    TaskChecklist.destroy({
+                        where: {
+                            taskId: taskIds
+                        }
+                    }).then((res) => {
+                        parallelCallback(null, res)
+                    }).catch((err) => {
+                        parallelCallback(err);
+                    });
+                },
+                checklist_document: (parallelCallback) => {
+                    ChecklistDocuments.destroy({
+                        where: {
+                            taskId: taskIds
+                        }
+                    }).then((res) => {
+                        parallelCallback(null, res)
+                    }).catch((err) => {
+                        parallelCallback(err);
+                    });
+                },
+                conversation: (parallelCallback) => {
+                    Conversation.destroy({
+                        where: {
+                            linkType: 'task',
+                            linkid: taskIds
                         }
                     }).then((res) => {
                         parallelCallback(null, res)

@@ -26,10 +26,20 @@ export default class ProjectActionTab extends React.Component {
         if (_.isEqual(prevProps.project.Filter, this.props.project.Filter) == false) {
             const { typeId, projectStatus } = this.props.project.Filter;
             const dueDateMoment = moment().format("YYYY-MM-DD");
+            let fetchUrl = `/api/project?page=1&typeId=${typeId}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
+
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
             dispatch({ type: "SET_PROJECT_LIST", list: [] });
 
-            getData(`/api/project?page=1&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`, {}, (c) => {
+            if (projectStatus == "In Active") {
+                fetchUrl += `&isActive=0`;
+            } else if (projectStatus != "Archived") {
+                fetchUrl += `&projectStatus=${projectStatus}&isActive=1&isActive=0`;
+            } else if (projectStatus == "Archived") {
+                fetchUrl += `&isDeleted=1&isActive=1&isActive=0`;
+            }
+            
+            getData(fetchUrl, {}, (c) => {
                 dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count });
                 dispatch({ type: "SET_PROJECT_LOADING", Loading: false });
                 showToast("success", "Project successfully retrieved.");
@@ -49,7 +59,9 @@ export default class ProjectActionTab extends React.Component {
         const statusList = [
             { id: "All", name: "All Status" },
             { id: "Active", name: "Active" },
+            { id: "Archived", name: "Archived" },
             { id: "On Time", name: "On Time" },
+            { id: "In Active", name: "Inactive" },
             { id: "Issues", name: "Issues" }
         ];
 

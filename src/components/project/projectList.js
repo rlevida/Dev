@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import ReactTooltip from 'react-tooltip';
 
 import { Loading } from "../../globalComponents";
-import { showToast, getData } from "../../globalFunction";
+import { showToast, getData, putData } from "../../globalFunction";
 
 import ProjectActionTab from "./projectActionTab";
 import ArchiveModal from "./archiveModal";
@@ -28,7 +28,8 @@ export default class ProjectList extends React.Component {
             "handleEdit",
             "handleArchive",
             "fetchProject",
-            "fetchFormField"
+            "fetchFormField",
+            "handleUnarchive"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -47,7 +48,7 @@ export default class ProjectList extends React.Component {
 
     fetchProject() {
         const { dispatch, loggedUser } = this.props;
-        let requestUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
+        let requestUrl = `/api/project?page=${1}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&isActive=1&isDeleted=0`;
 
         getData(requestUrl, {}, (c) => {
             dispatch({ type: "SET_PROJECT_LIST", list: c.data.result, count: c.data.count })
@@ -121,6 +122,16 @@ export default class ProjectList extends React.Component {
         $(`#archiveModal`).modal("show");
     }
 
+    handleUnarchive(params) {
+        const { dispatch } = { ...this.props };
+        putData(`/api/project/archive/${params.id}`, { isDeleted: 0 }, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "UPDATE_DATA_PROJECT_LIST", UpdatedData: { ...params, isDeleted: 0 } });
+                showToast("success", "Successfully Restored.");
+            }
+        })
+    }
+
     render() {
         const { project, loggedUser } = this.props;
         const currentPage = (typeof project.Count.current_page != "undefined") ? project.Count.current_page : 1;
@@ -154,7 +165,7 @@ export default class ProjectList extends React.Component {
                                             <tbody>
                                                 {
                                                     _.map(project.List, (projectElem, index) => {
-                                                        const { id, project, workstream, members, updates, numberOfTasks, completion_rate, type } = { ...projectElem };
+                                                        const { id, project, workstream, members, updates, numberOfTasks, completion_rate, type, isDeleted } = { ...projectElem };
                                                         let lateWorkstream = 0;
                                                         let workstreamTaskDueToday = 0;
 
@@ -172,7 +183,7 @@ export default class ProjectList extends React.Component {
                                                                 <td data-label="Project Name" class="td-left table-name">
                                                                     <p class="mb0">
                                                                         {
-                                                                            (numberOfTasks > 0) && <span>
+                                                                            (numberOfTasks > 0 && isDeleted == 0) && <span>
                                                                                 {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "icon" })}
                                                                             </span>
                                                                         }
@@ -181,11 +192,13 @@ export default class ProjectList extends React.Component {
                                                                 </td>
                                                                 <td data-label="Status">
                                                                     {
-                                                                        (numberOfTasks > 0) && <div>
+                                                                        (numberOfTasks > 0 && isDeleted == 0) && <div>
                                                                             {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "text" })}
                                                                         </div>
                                                                     }
-
+                                                                    {
+                                                                        (isDeleted == 1) && <p class="m0 text-red">Archived</p>
+                                                                    }
                                                                 </td>
                                                                 <td data-label="Type">
                                                                     {
@@ -278,17 +291,26 @@ export default class ProjectList extends React.Component {
                                                                     data-label="Actions"
                                                                     class={(loggedUser.data.userRole <= 3 || (loggedUser.data.userRole == 4 && (type.type == "Private" || type.type == "Internal"))) ? "" : "hide"}
                                                                 >
-                                                                    <div>
-                                                                        <a href="javascript:void(0);"
-                                                                            onClick={() => this.handleEdit(projectElem)}
+                                                                    {
+                                                                        (isDeleted == 0) && <div>
+                                                                            <a href="javascript:void(0);"
+                                                                                onClick={() => this.handleEdit(projectElem)}
+                                                                                class="btn btn-action">
+                                                                                <span class="glyphicon glyphicon-pencil" title="EDIT"></span>
+                                                                            </a>
+                                                                            <a href="javascript:void(0);"
+                                                                                onClick={(e) => this.handleArchive(projectElem)}
+                                                                                class={projectElem.allowedDelete == 0 ? 'hide' : 'btn btn-action'}>
+                                                                                <span class="fa fa-trash" title="DELETE"></span></a>
+                                                                        </div>
+                                                                    }
+                                                                    {
+                                                                        (isDeleted == 1) && <a href="javascript:void(0);"
+                                                                            onClick={() => this.handleUnarchive(projectElem)}
                                                                             class="btn btn-action">
-                                                                            <span class="glyphicon glyphicon-pencil" title="EDIT"></span>
+                                                                            <span class="fa fa-window-restore" title="RESTORE"></span>
                                                                         </a>
-                                                                        <a href="javascript:void(0);"
-                                                                            onClick={(e) => this.handleArchive(projectElem)}
-                                                                            class={projectElem.allowedDelete == 0 ? 'hide' : 'btn btn-action'}>
-                                                                            <span class="fa fa-trash" title="DELETE"></span></a>
-                                                                    </div>
+                                                                    }
                                                                 </td>
                                                             </tr>
                                                         )
