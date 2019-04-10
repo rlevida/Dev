@@ -141,6 +141,11 @@ module.exports = (sequelize, DataTypes) => {
       as: 'task_starred'
     });
 
+    Tasks.hasOne(models.Notification, {
+      foreignKey: 'taskId',
+      as: 'task_notification'
+    })
+
   };
 
   return Tasks

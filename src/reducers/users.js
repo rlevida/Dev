@@ -10,7 +10,8 @@ export default function reducer(state = {
     CurrentData: {},
     Filter: {
         name: ""
-    }
+    },
+    NotificationSetting: {}
 }, action) {
     switch (action.type) {
         case "ADD_USER_LIST": {
@@ -79,6 +80,9 @@ export default function reducer(state = {
             const { Filter } = { ...state };
             const updatedFilter = _.assign({}, Filter, action.filter);
             return { ...state, Filter: updatedFilter }
+        }
+        case "SET_USER_NOTIFICATION_SELECTED": {
+            return { ...state, NotificationSetting: action.Setting }
         }
         default:
             return state;

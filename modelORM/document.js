@@ -112,6 +112,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'document_read',
       foreignKey: 'documentId'
     })
+    Document.hasOne(models.Notification, {
+      as: 'document_notification',
+      foreignKey: 'documentId'
+    })
   };
 
   return Document;
