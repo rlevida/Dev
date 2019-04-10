@@ -570,6 +570,14 @@ exports.get = {
                                         [Op.lte]: 4
                                     }
                                 } : {},
+                            ... (
+                                typeof queryString.project_type != "undefined" && queryString.project_type == "Client" &&
+                                typeof queryString.memberType != "undefined" && queryString.memberType == "responsible"
+                            ) ? {
+                                    roleId: {
+                                        [Op.lte]: 3
+                                    }
+                                } : {},
                             usersId: userMemberIds
                         }
                     }).map((o) => {

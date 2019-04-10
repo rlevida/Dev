@@ -114,9 +114,9 @@ export default class ProjectMemberForm extends React.Component {
     }
 
     fetchUserList(options) {
-        const { dispatch } = { ...this.props };
+        const { dispatch, project } = { ...this.props };
         const { showAllUsers } = { ...this.state };
-        let fetchUrl = `/api/user?page=1&showAllUsers=${showAllUsers}`;
+        let fetchUrl = `/api/user?page=1&showAllUsers=${showAllUsers}&project_type=${project.Selected.type.type}`;
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
         }

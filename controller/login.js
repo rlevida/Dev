@@ -287,7 +287,6 @@ exports.post = {
                                     return o.toJSON().linkId
                                 });
 
-
                             const allUserProjectIds = [...teamProject, ...userProject];
 
                             const allUserProject = await Projects.findAll({

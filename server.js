@@ -24,7 +24,6 @@ require('./script/dueTodayReminderScript');
 require('./script/overdueReminderScript');
 // get
 var index = require('./routes');
-var project = require('./routes/project');
 var auth = require('./routes/auth');
 var forgot = require('./routes/forgotPassword');
 var api = require('./routes/api');

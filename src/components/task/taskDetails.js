@@ -577,7 +577,7 @@ export default class TaskDetails extends React.Component {
                                                                             </div>
                                                                         </div>
                                                                     )
-                                                                }) : "N/A"
+                                                                }) : <p class="m0">N/A</p>
                                                         }
                                                     </div>
                                                     <div class="label-div">

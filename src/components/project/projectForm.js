@@ -369,7 +369,7 @@ export default class ProjectForm extends React.Component {
                                                                     <td data-label="User Id">
                                                                         {data.id}
                                                                         {
-                                                                            (data.id == project.Selected.projectManagerId) && <i class="fa fa-user ml5" aria-hidden="true"></i>
+                                                                            (data.id == project.Selected.projectManagerId) && <span title="PROJECT LEAD"><i class="fa fa-user ml5" aria-hidden="true"></i></span>
                                                                         }
                                                                     </td>
                                                                     <td data-label="Username">

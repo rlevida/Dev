@@ -5,7 +5,7 @@ CREATE TABLE `members` (
     `userTypeLinkId` BIGINT,
     `linkType` ENUM("project","workstream","task"),
     `linkId` BIGINT,
-    `memberType` ENUM("assignedTo","Follower","responsible", "project manager","approver"),
+    `memberType` ENUM("assignedTo","follower","responsible", "project manager","approver"),
     `receiveNotification` TINYINT(1) DEFAULT '1',
     `isDeleted` TINYINT(1) DEFAULT '0',
     `dateAdded` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
