@@ -293,6 +293,7 @@ exports.post = {
                                 where: {
                                     id: allUserProjectIds,
                                     isDeleted: 0,
+                                    isActive: 1,
                                     ...((response).user_role[0].roleId > 4) ? {
                                         typeId: 1
                                     } : {}
