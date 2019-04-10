@@ -55,6 +55,7 @@ export default class ProjectForm extends React.Component {
     componentWillUnmount() {
         const { dispatch } = this.props;
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
+        dispatch({ type: 'SET_TEAM_LIST', list: [] });
     }
 
     getMembers() {

@@ -46,7 +46,7 @@ export default class myTaskStatus extends React.Component {
     }
 
     render() {
-        const { task } = this.props;
+        const { task, loggedUser } = this.props;
         const { StatusCount } = task;
         const assignedTask = this.sumBy("assigned_to_me", "due_today");
         const assignedIssues = this.sumBy("assigned_to_me", "issues");
@@ -59,8 +59,8 @@ export default class myTaskStatus extends React.Component {
 
             <div class={(_.isEmpty(StatusCount)) ? 'linear-background' : ''}>
                 {
-                    (_.isEmpty(StatusCount) == false) && <div class="row content-row status-count">
-                        <div class="col-lg-4 text-center">
+                    (_.isEmpty(StatusCount) == false) && <div class="row content-row status-count justify-content-center">
+                        <div class={`${(loggedUser.data.userRole > 3) ? 'col-lg-offset-2 ' : ''}col-lg-4 text-center`}>
                             <a onClick={() => this.visitPage("assignedToMe")}>
                                 <p class="status-count text-orange">{('0' + assignedTask).slice(-2)}</p>
                                 <p class="status-label mb20">Assigned to me</p>
@@ -68,14 +68,16 @@ export default class myTaskStatus extends React.Component {
                                 <p class="status-sublabel text-red mb0">{(typeof StatusCount.assigned_to_me != "undefined") ? (assignedIssues > 0) ? assignedIssues : 'No' : 'No'} delayed tasks</p>
                             </a>
                         </div>
-                        <div class="col-lg-4 text-center">
-                            <a onClick={() => this.visitPage("myTeam")}>
-                                <p class="status-count text-dark-yellow">{('0' + teamTask).slice(-2)}</p>
-                                <p class="status-label mb20">My Team</p>
-                                <p class="status-sublabel">for {(typeof StatusCount.team != "undefined") ? (StatusCount.team).length : '0'} Projects</p>
-                                <p class="status-sublabel text-red mb0">{(typeof StatusCount.team != "undefined") ? (teamIssues > 0) ? teamIssues : 'No' : 'No'} delayed tasks</p>
-                            </a>
-                        </div>
+                        {
+                            (loggedUser.data.userRole <= 3) && <div class="col-lg-4 text-center">
+                                <a onClick={() => this.visitPage("myTeam")}>
+                                    <p class="status-count text-dark-yellow">{('0' + teamTask).slice(-2)}</p>
+                                    <p class="status-label mb20">My Team</p>
+                                    <p class="status-sublabel">for {(typeof StatusCount.team != "undefined") ? (StatusCount.team).length : '0'} Projects</p>
+                                    <p class="status-sublabel text-red mb0">{(typeof StatusCount.team != "undefined") ? (teamIssues > 0) ? teamIssues : 'No' : 'No'} delayed tasks</p>
+                                </a>
+                            </div>
+                        }
                         <div class="col-lg-4 text-center">
                             <a onClick={() => this.visitPage("following")}>
                                 <p class="status-count text-dark-yellow">{('0' + followingTasks).slice(-2)}</p>

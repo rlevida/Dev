@@ -45,7 +45,7 @@ export default class ProfileNotification extends React.Component {
         const { users, loggedUser } = { ...this.props };
         const { taskAssigned, taskTagged, fileNewUpload, messageSend, commentReplies, taskDeadline, taskMemberCompleted, taskFollowingCompleted, taskTeamDeadline, taskFollowingDeadline, receiveEmail } = { ...users.NotificationSetting }
         return (
-            <div>
+            <div class="mt20">
                 <h4><strong>Send Notification when:</strong></h4>
                 <form>
                     <div class="form-group">
@@ -175,7 +175,7 @@ export default class ProfileNotification extends React.Component {
 
                     <h4><strong>Do you want to receive email notification as well?</strong></h4>
                     <div class="mb20">
-                        <button class={`btn ${receiveEmail ? 'btn-cyan' : 'btn-default'} mr20`} type="button" onClick={() => this.handleChange('receiveEmail', 1)}>Yes</button>
+                        <button class={`btn ${receiveEmail ? 'btn-cyan' : 'btn-default'} mr10`} type="button" onClick={() => this.handleChange('receiveEmail', 1)}>Yes</button>
                         <button class={`btn ${!receiveEmail ? 'btn-cyan' : 'btn-default'}`} type="button" onClick={() => this.handleChange('receiveEmail', 0)}>No</button>
                     </div>
 

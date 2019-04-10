@@ -172,6 +172,9 @@ export default class List extends React.Component {
             .values()
             .value() : [];
         const completionValue = _.find(completionRate, (o) => { return o.label == "completed" }).value;
+        const duration = moment.duration(moment().diff(moment(dateUpdated)));
+        const date = (duration.asDays() > 1) ? moment(dateUpdated).format("MMMM DD, YYYY") : moment(dateUpdated).from(new Date());
+
         return (
             <tr key={index}>
                 <td data-label="Project Name" class={(entity_type == "project") ? "td-left" : ""}>
@@ -197,7 +200,7 @@ export default class List extends React.Component {
                 </td>
                 <td data-label="Last Update">
                     <p class={`m0 ${(entity_type == "workstream") ? "text-italic" : ""}`}>
-                        {moment(dateUpdated).from(new Date())}
+                        {date}
                     </p>
                 </td>
                 <td data-label="Active Month Completion Rate">

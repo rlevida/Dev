@@ -113,9 +113,11 @@ export default class TaskFilters extends React.Component {
         const { Filter } = { ...task }
         const tabs = [
             { id: "assignedToMe", name: 'Assigned to me' },
-            { id: "myTeam", name: "My Team" },
             { id: "following", name: "Following" }
         ];
+        if(loggedUser.data.userRole <= 3){
+            tabs.splice(1, 0, { id: "myTeam", name: "My Team" })
+        }
         const statusList = [
             { id: "For Approval", name: "For Approval" },
             { id: "Completed", name: "Completed" },
