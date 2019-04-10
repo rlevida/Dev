@@ -104,7 +104,9 @@ export default class Component extends React.Component {
                             <TabPanel>
                                 <div class="mt20">
                                     <div class="bt">
-                                        <UserForm profileEdit={true} />
+                                        <div class="mt20">
+                                            <UserForm profileEdit={true} />
+                                        </div>
                                     </div>
                                 </div>
                             </TabPanel>

@@ -188,8 +188,8 @@ export default class UserForm extends React.Component {
     }
 
     fetchTeamList(options) {
-        const { dispatch, loggedUser, users, profileEdit = false } = this.props;
-        let fetchUrl = `/api/teams?page=1&isDeleted=0&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
+        const { dispatch, users, profileEdit = false } = this.props;
+        let fetchUrl = `/api/teams?page=1`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&name=${options}`;
@@ -230,7 +230,7 @@ export default class UserForm extends React.Component {
                 } else if (loggedUser.data.userRole == 2) {
                     return o.id > 1 && o.roleType == users.Selected.userType;
                 } else if (loggedUser.data.userRole == 3) {
-                    return o.roleType == "External";
+                    return  o.id > 3 && o.roleType == users.Selected.userType;
                 }
             })
             .map((e) => {
@@ -245,13 +245,13 @@ export default class UserForm extends React.Component {
             .value();
 
 
-        if (loggedUser.data.user_role[0].roleId <= 2) {
+        if (loggedUser.data.user_role[0].roleId <= 3) {
             userType.push({ id: "Internal", name: "Internal" });
         }
 
         return <div class="row content-row">
             <div class="col-md-6" id={(typeof users.Selected.id != "undefined" && users.Selected.id != "") ? "user-form-wrapper" : ""}>
-                <div class={(profileEdit) ? "mt20" : ""}>
+                <div>
                     <form id="user-form">
                         <div class="mb20">
                             <p class="form-header mb0">
@@ -409,7 +409,7 @@ export default class UserForm extends React.Component {
             {
                 (typeof users.Selected.id != "undefined" && users.Selected.id != "") &&
                 <div class="col-md-6">
-                    <div class={(profileEdit) ? "mt20" : ""}>
+                    <div>
                         <form id="user-password">
                             <p class="form-header mb0">Change Password</p>
                             <p>All with <span class="text-red">*</span> are required.</p>

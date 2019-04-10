@@ -28,6 +28,11 @@ export default class TeamList extends React.Component {
         });
     }
 
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: 'SET_TEAM_LIST', list: [], Count: {} });
+    }
+
     componentDidMount() {
         const { teams } = this.props;
 
@@ -56,8 +61,13 @@ export default class TeamList extends React.Component {
 
     getList(page) {
         const { dispatch, teams, loggedUser } = this.props;
+        let fetchUrl = `/api/teams?page=${page}`;
 
-        getData(`/api/teams?page=${page}&isDeleted=0&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`, {}, (c) => {
+        if (loggedUser.data.userRole > 3) {
+            fetchUrl += `&userId=${loggedUser.data.id}`
+        }
+
+        getData(fetchUrl, {}, (c) => {
             dispatch({ type: 'SET_TEAM_LIST', list: teams.List.concat(c.data.result), Count: c.data.count });
             dispatch({ type: 'SET_TEAM_LOADING', Loading: '' });
         });
@@ -82,7 +92,7 @@ export default class TeamList extends React.Component {
     }
 
     render() {
-        let { teams } = this.props;
+        let { teams, loggedUser } = this.props;
         const currentPage = (typeof teams.Count.current_page != "undefined") ? teams.Count.current_page : 1;
         const lastPage = (typeof teams.Count.last_page != "undefined") ? teams.Count.last_page : 1;
         const typeValue = (typeof teams.Selected.team != "undefined" && _.isEmpty(teams.Selected) == false) ? teams.Selected.team : "";
@@ -101,7 +111,7 @@ export default class TeamList extends React.Component {
                                 <th scope="col">Members</th>
                                 <th scope="col">Projects</th>
                                 <th scope="col">Workstreams</th>
-                                <th scope="col">Actions</th>
+                                <th scope="col" class={(loggedUser.data.userRole >= 4) ? "hide" : "actions"}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -167,7 +177,7 @@ export default class TeamList extends React.Component {
                                                     </div>
                                                 }
                                             </td>
-                                            <td data-label="Actions">
+                                            <td data-label="Actions" class={(loggedUser.data.userRole >= 4) ? "hide" : "actions"}>
                                                 <a href="javascript:void(0);"
                                                     onClick={() => this.editData(team)}
                                                     class="btn btn-action">

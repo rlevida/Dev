@@ -18,7 +18,8 @@ export default class Component extends React.Component {
 
 
     render() {
-        const { teams, users, dispatch } = this.props;
+        const { teams, users, dispatch, loggedUser } = this.props;
+        
         return (
             <div>
                 {
@@ -48,18 +49,21 @@ export default class Component extends React.Component {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6 col-sm-6 col-xs-12 pd0">
-                                                <div class="button-action">
-                                                    <a class="btn btn-default" onClick={() => {
-                                                        dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "Form" })
-                                                        dispatch({ type: "SET_TEAM_SELECTED", Selected: "" })
-                                                    }
-                                                    }>
-                                                        <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>
-                                                        Add New Team
-                                                </a>
+                                            {
+                                                (loggedUser.data.userRole < 4) &&
+                                                <div class="col-md-6 col-sm-6 col-xs-12 pd0">
+                                                    <div class="button-action">
+                                                        <a class="btn btn-default" onClick={() => {
+                                                            dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "Form" })
+                                                            dispatch({ type: "SET_TEAM_SELECTED", Selected: "" })
+                                                        }
+                                                        }>
+                                                            <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>
+                                                            Add New Team
+                                                        </a>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            }
                                         </div>
                                     </div>
                                 </div>

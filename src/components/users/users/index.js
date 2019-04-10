@@ -42,7 +42,7 @@ export default class Component extends React.Component {
     }
 
     render() {
-        const { users, dispatch } = this.props;
+        const { users, dispatch, loggedUser } = this.props;
         return (
             <div>
                 {
@@ -79,14 +79,16 @@ export default class Component extends React.Component {
                                                         }}
                                                         name="name"
                                                     />
-                                                    <a class="btn btn-default" onClick={() => {
-                                                        dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })
-                                                        dispatch({ type: "SET_USER_SELECTED", Selected: "" })
+                                                    {
+                                                        (loggedUser.data.userRole < 4) && <a class="btn btn-default" onClick={() => {
+                                                            dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "Form" })
+                                                            dispatch({ type: "SET_USER_SELECTED", Selected: "" })
+                                                        }
+                                                        }>
+                                                            <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>
+                                                            Add New User
+                                                        </a>
                                                     }
-                                                    }>
-                                                        <span><i class="fa fa-plus mr10" aria-hidden="true"></i></span>
-                                                        Add New User
-                                                </a>
                                                 </div>
                                             </div>
                                         </div>
@@ -111,11 +113,12 @@ export default class Component extends React.Component {
                                 >
                                     <i class="fa fa-chevron-left" aria-hidden="true"></i>
                                 </a>
-                                Add New User
+                                {(typeof users.Selected.id != "undefined" && users.Selected.id != "") ? "Edit User" : "Add New User"}
+
                             </h4>
                         </div>
                         <div class="card-body">
-                            <UserForm />
+                            <UserForm profileEdit={(typeof users.Selected.id != "undefined" && users.Selected.id == loggedUser.data.id) ? true : false} />
                         </div>
                     </div>
                 }

@@ -68,6 +68,7 @@ export default class UserList extends React.Component {
     fetchData(page) {
         const { dispatch, users, loggedUser } = this.props;
         let fetchUrl = `/api/user?page=${page}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
+
         if (users.Filter.name != "") {
             fetchUrl += `&name=${users.Filter.name}`;
         }
@@ -123,12 +124,11 @@ export default class UserList extends React.Component {
     }
 
     render() {
-        const { users } = this.props;
+        const { users, loggedUser } = this.props;
         const currentPage = (typeof users.Count != "undefined" && _.isEmpty(users.Count) == false) ? users.Count.current_page : 1;
         const lastPage = (typeof users.Count != "undefined" && _.isEmpty(users.Count) == false) ? users.Count.last_page : 1;
         const typeValue = (typeof users.Selected.firstName != "undefined" && _.isEmpty(users.Selected) == false) ? users.Selected.firstName + " " + users.Selected.lastName : "";
         const userList = users.List;
-
         return (
             <div>
                 {
@@ -142,7 +142,7 @@ export default class UserList extends React.Component {
                                 <th scope="col">Email Address</th>
                                 <th scope="col">Type</th>
                                 <th scope="col">Roles</th>
-                                <th scope="col">Actions</th>
+                                <th scope="col" class={(loggedUser.data.userRole > 4) ? "hide" : ""}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -162,11 +162,17 @@ export default class UserList extends React.Component {
                                             <td data-label="Last Name">{user.lastName}</td>
                                             <td data-label="Email Address">{user.emailAddress}</td>
                                             <td data-label="Type">{user.userType}</td>
-                                            <td data-label="Roles">{
-                                                this.renderArrayTd(_.map(user.user_role, (el) => { return el.role.role }))
-                                            }</td>
-                                            <td data-label="Actions" class="actions">
-                                                <div>
+                                            <td data-label="Roles">
+                                                {
+                                                    this.renderArrayTd(_.map(user.user_role, (el) => { return el.role.role }))
+                                                }
+                                            </td>
+                                            <td data-label="Actions" class={(loggedUser.data.userRole > 4) ? "hide" : "actions"}>
+                                                <div class={(
+                                                    (loggedUser.data.userRole > user.user_role[0].role.id) ||
+                                                    (user.user_role[0].role.id == 4 && user.id != loggedUser.data.id && loggedUser.data.userRole == 4) ||
+                                                    (loggedUser.data.userRole < user.user_role[0].role.id && loggedUser.data.userRole == 4)
+                                                ) ? "hide" : "actions"}>
                                                     <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />
                                                     <a href="javascript:void(0);" class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown"><span class="fa fa-ellipsis-v" title="MORE"></span></a>
                                                     <ul class="dropdown-menu">

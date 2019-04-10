@@ -141,12 +141,12 @@ exports.get = {
         }
 
         if (
-            (typeof queryString.userRole != "undefined" && queryString.userRole != "")
+            (typeof queryString.userRole != "undefined" && queryString.userRole != "" && queryString.userRole > 3)
         ) {
             whereObj = {
                 ...whereObj,
                 id: {
-                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT users_role.usersId FROM users_role WHERE roleId > ${queryString.userRole})`)
+                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT users_team.usersId FROM users_team WHERE users_team.teamId IN (SELECT DISTINCT teamId FROM users_team WHERE usersId = ${queryString.userId}))`)
                 }
             };
         }
