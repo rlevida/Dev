@@ -215,7 +215,7 @@ exports.get = {
                             return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status != "Completed"
                         });
                         const newDoc = _.filter(resultObj.tag, (tagObj) => {
-                            return tagObj.document.status == "new"
+                                return tagObj.document != null && tagObj.document.status == "new"
                         });
                         const members = [...resultObj.responsible,
                         ..._(resultObj.task)
@@ -227,7 +227,7 @@ exports.get = {
                             .value()
                         ];
                         const responsible = _.filter(members, (member) => { return member.memberType == "responsible" });
-                       
+
                         return {
                             ...resultObj,
                             pending: pendingTasks,

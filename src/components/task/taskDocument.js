@@ -37,7 +37,7 @@ export default class TaskDocument extends React.Component {
     }
 
     handleSubmit() {
-        const { document, loggedUser, task, dispatch, project } = { ...this.props };
+        const { document, loggedUser, task, dispatch, project,match } = { ...this.props };
         let data = new FormData();
         dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING", LoadingType: 'Loading' });
         _.map(document.Files, (file) => {
@@ -48,7 +48,7 @@ export default class TaskDocument extends React.Component {
             data.append('tagged', JSON.stringify(checklist));
         });
 
-        postData(`/api/task/document?projectId=${project.Selected.id}&workstreamId=${task.Selected.workstreamId}`, data, (c) => {
+        postData(`/api/task/document?projectId=${task.Selected.projectId}&workstreamId=${task.Selected.workstreamId}`, data, (c) => {
             if (c.data.type == "checklist") {
                 const currentChecklist = task.Selected.checklist;
                 dispatch({
