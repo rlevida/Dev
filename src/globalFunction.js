@@ -297,6 +297,12 @@ var notificationType = exports.notificationType = function (type) {
         case "messageSend": {
             return "sent you a new message"
         }
+        case "taskTagged": {
+            return "mentioned you in a task"
+        }
+        case "commentReplies": {
+            return "replies to a comment"
+        }
         default:
             return;
     }

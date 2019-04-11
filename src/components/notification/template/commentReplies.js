@@ -2,7 +2,6 @@ import React from "react";
 import { connect } from "react-redux";
 import moment from 'moment';
 import { notificationType } from "../../../globalFunction";
-
 @connect((store) => {
     return {
         project: store.project,
@@ -21,7 +20,7 @@ export default class Component extends React.Component {
                 <li class="pd0 mb20" key={index}>
                     <div class="d-flex-sb">
                         <div class="n">
-                            <div class="n-header"><i class="fa fa-check-circle mr5 n-unread"></i>Message</div>
+                            <div class="n-header"><i class="fa fa-check-circle mr5 n-unread"></i>Comment Replies</div>
                             <div class="n-content">
                                 <div class="n-title">Lorem ipsum dolor sit amet</div>
                                 <div className="d-flex">
