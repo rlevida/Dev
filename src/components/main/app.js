@@ -254,7 +254,7 @@ class Main extends React.Component {
                                                 <a href={`/account#/notification`}>View All Notification</a>
                                             </div>
                                         </ul>
-                                        <a class="btn btn-orange" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                        {/* <a class="btn btn-orange" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                                             <span>
                                                 <i class="fa fa-plus mr10" aria-hidden="true"></i>
                                                 New
@@ -278,7 +278,7 @@ class Main extends React.Component {
                                                     )
                                                 })}
                                             </div>
-                                        </ul>
+                                        </ul> */}
                                         <Link to={"/profile"}>
                                             <div class="menu-profile">
                                                 <img src={avatar} alt="Profile Picture" class="img-responsive" />
