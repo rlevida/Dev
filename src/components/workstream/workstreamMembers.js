@@ -74,11 +74,13 @@ export default class WorkstreamMembers extends React.Component {
                                                 key={index}
                                             >
                                                 <td data-label="Username">
-                                                    <div class="profile-div">
-                                                        <div class="thumbnail-profile">
-                                                            <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                    <div class="display-flex">
+                                                        <div class="profile-div">
+                                                            <div class="thumbnail-profile">
+                                                                <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                            </div>
+                                                            <p class="m0">{user.username}</p>
                                                         </div>
-                                                        <p class="m0">{user.username}</p>
                                                     </div>
                                                 </td>
                                                 <td data-label="First Name">

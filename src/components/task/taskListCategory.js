@@ -181,7 +181,7 @@ export default class TaskListCategory extends React.Component {
         let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
         const isAssignedToMe = _.find(task_members, (o) => { return o.memberType == "assignedTo" && o.user.id == loggedUser.data.id });
         const assigned = _.find(task_members, (o) => { return o.memberType == "assignedTo" });
-      
+
         return (
             <tr key={index}>
                 <td data-label="Task Name" class="td-left">
@@ -237,9 +237,13 @@ export default class TaskListCategory extends React.Component {
                 </td>
                 {
                     (Filter.type != "assignedToMe") && <td data-label="Assigned">
-                        {
-                            assigned.user.firstName + " " + assigned.user.lastName
-                        }
+                        <div class="display-flex">
+                            <div class="thumbnail-profile">
+                                <span title="John Aldrin Tapia">
+                                    <img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                </span>
+                            </div>
+                        </div>
                     </td>
                 }
                 {

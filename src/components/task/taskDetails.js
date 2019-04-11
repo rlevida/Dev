@@ -678,7 +678,7 @@ export default class TaskDetails extends React.Component {
                                                         <h3>
                                                             Attachments
                                                         </h3>
-                                                        <div class="ml20">
+                                                        <div>
                                                             {
                                                                 _.map(documentList, (params, index) => {
                                                                     const { id, origin, name, child = [], isRead, user, dateAdded } = params;
@@ -687,8 +687,8 @@ export default class TaskDetails extends React.Component {
 
                                                                     return (
                                                                         <div key={index}>
-                                                                            <div class="display-flex vh-center mb10 attachment">
-                                                                                <div class="pdl5">
+                                                                            <div class="display-flex vh-center mb5 pd10 attachment">
+                                                                                <div>
                                                                                     <p class="m0">
                                                                                         <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: origin, origin: name, isRead, user })}>
                                                                                             {name.substring(0, 50)}{(name.length > 50) ? "..." : ""}
@@ -696,12 +696,15 @@ export default class TaskDetails extends React.Component {
                                                                                     </p>
                                                                                     <p class="note mb0">Uploaded {date} by {user.firstName + " " + user.lastName}</p>
                                                                                 </div>
-                                                                                <a
-                                                                                    href="javascript:void(0);"
-                                                                                    onClick={(e) => this.deleteDocument(params)}
-                                                                                    class="btn btn-action status-multiple flex-right"
-                                                                                >
-                                                                                    <span class="fa fa-trash"></span></a>
+                                                                                {
+                                                                                    (status != "Completed") &&
+                                                                                    <a
+                                                                                        href="javascript:void(0);"
+                                                                                        onClick={(e) => this.deleteDocument(params)}
+                                                                                        class="btn btn-action flex-right"
+                                                                                    >
+                                                                                        <span class="fa fa-trash"></span></a>
+                                                                                }
                                                                             </div>
                                                                         </div>
                                                                     )
@@ -720,7 +723,7 @@ export default class TaskDetails extends React.Component {
                                                         <h3>
                                                             Checklist
                                                         </h3>
-                                                        <div class="ml20 pd0" id="checklist">
+                                                        <div id="checklist">
                                                             {
                                                                 _.map(checklist, (checklistObj, index) => {
                                                                     const { id, isCompleted, isDocument, description, user, dateAdded } = { ...checklistObj };
@@ -728,8 +731,8 @@ export default class TaskDetails extends React.Component {
                                                                     const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
 
                                                                     return (
-                                                                        <div key={index} class="display-flex vh-center flex-center checklist-item">
-                                                                            <label class="custom-checkbox todo-checklist">
+                                                                        <div key={index} class="display-flex vh-center checklist-item pd10">
+                                                                            <label class={(status != "Completed") ? "custom-checkbox todo-checklist" : "todo-checklist"}>
                                                                                 {description}
                                                                                 <p class="note mb0">Added {date} by {user.firstName + " " + user.lastName}</p>
                                                                                 {
@@ -746,12 +749,15 @@ export default class TaskDetails extends React.Component {
                                                                                     </div>
                                                                                 }
                                                                             </label>
-                                                                            <a
-                                                                                href="javascript:void(0);"
-                                                                                onClick={(e) => this.deleteSubtask(id)}
-                                                                                class="btn btn-action"
-                                                                            >
-                                                                                <span class="fa fa-trash"></span></a>
+                                                                            {
+                                                                                (status != "Completed") &&
+                                                                                <a
+                                                                                    href="javascript:void(0);"
+                                                                                    onClick={(e) => this.deleteSubtask(id)}
+                                                                                    class="btn btn-action flex-right"
+                                                                                >
+                                                                                    <span class="fa fa-trash"></span></a>
+                                                                            }
                                                                         </div>
                                                                     )
                                                                 })
@@ -772,7 +778,7 @@ export default class TaskDetails extends React.Component {
                                                         <h3>
                                                             Activity
                                                         </h3>
-                                                        <div class="ml20">
+                                                        <div class="ml10">
                                                             {
                                                                 ((activityList).length > 0) && <div>
                                                                     {
