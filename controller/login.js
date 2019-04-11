@@ -256,11 +256,10 @@ exports.post = {
                             cb({ status: false, message: "Incorrect username/password." })
                             return;
                         } else {
-                            let teamProject = [];
                             const response = res.toJSON();
                             const { users_team } = response;
-
-                            teamProject = await Members
+                           
+                            const teamProject = await Members
                                 .findAll({
                                     where: {
                                         linkType: 'project',
@@ -272,8 +271,6 @@ exports.post = {
                                 .map((o) => {
                                     return o.toJSON().linkId
                                 });
-
-
                             const userProject = await Members
                                 .findAll({
                                     where: {
@@ -288,7 +285,6 @@ exports.post = {
                                 });
 
                             const allUserProjectIds = [...teamProject, ...userProject];
-
                             const allUserProject = await Projects.findAll({
                                 where: {
                                     id: allUserProjectIds,

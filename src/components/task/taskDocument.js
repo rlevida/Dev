@@ -65,7 +65,6 @@ export default class TaskDocument extends React.Component {
                 dispatch({ type: "UPDATE_CHECKLIST", List: c.data.result });
             } else {
                 const currentDocumentlist = task.Selected.tag_task;
-                currentDocumentlist.push(c.data.result);
                 dispatch({
                     type: "SET_TASK_SELECTED",
                     Selected: { ...task.Selected, tag_task: [...currentDocumentlist, ...c.data.result] }
@@ -95,13 +94,13 @@ export default class TaskDocument extends React.Component {
     }
     render() {
         const { task, document } = { ...this.props };
-        const { checklist } = task.Selected;
+        const { checklist = [] } = task.Selected;
         const { Files = [], Loading, Selected } = document;
         const fileExtention = (Files.length == 1) ? (Files[0].type).split("/")[1] : (Files.length > 1) ? "" : "";
 
         return (
             <form id="task-document-form">
-                <div class="mt10">
+                <div>
                     <div class="form-group">
                         <label for="email">Document:<span class="text-red">*</span></label>
                         <Dropzone
@@ -146,7 +145,7 @@ export default class TaskDocument extends React.Component {
                             options={_.map(_.filter(checklist, (o) => { return o.isDocument == 1 }), ({ id, description }) => { return { id, name: description } })}
                             selected={(typeof Selected.tagged == "undefined") ? [] : Selected.tagged}
                             onChange={(e) => this.setDropDownMultiple("tagged", e)}
-                            placeholder={"Search or select task"}
+                            placeholder={"Search or select checklist"}
                             isClearable={(checklist.length > 0)}
                             disabled={(Loading == "SUBMITTING")}
                         />

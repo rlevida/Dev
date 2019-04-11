@@ -85,9 +85,8 @@ export default class TaskChecklist extends React.Component {
         return (
             <form class="full-form" id="checklist-form">
                 <div class="mt10 row">
-                    <div class="col-lg-8 col-sm-12">
-                        <div class="form-group input-inline">
-                            <label>Item:<span class="text-red">*</span></label>
+                    <div class="col-lg-12 col-sm-12">
+                        <div class="form-group mb5">
                             <input
                                 required
                                 type="text"
@@ -98,23 +97,29 @@ export default class TaskChecklist extends React.Component {
                                 value={(typeof checklist.Selected.checklist != "undefined") ? checklist.Selected.checklist : ""}
                             />
                         </div>
-                        <div class="form-group input-inline">
-                            <label class="custom-checkbox">
+                        {
+                            (typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") &&
+                            <div class="form-group input-inline">
+                                <label class="custom-checkbox">
+                                    Document
                                 <input
-                                    type="checkbox"
-                                    checked={checklist.Selected.isDocument ? true : false}
-                                    onChange={() => { }}
-                                    onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
-                                />
-                                <span class="checkmark"></span>
-                                Document
-                            </label>
-                        </div>
+                                        type="checkbox"
+                                        checked={checklist.Selected.isDocument ? true : false}
+                                        onChange={() => { }}
+                                        onClick={(f) => { this.handleCheckbox("isDocument", (checklist.Selected.isDocument) ? 0 : 1) }}
+                                    />
+                                    <span class="checkmark"></span>
+
+                                </label>
+                            </div>
+                        }
                     </div>
                 </div>
-                <a class="btn btn-violet" onClick={this.handleSubmit}>
-                    <span>Create Subtask</span>
-                </a>
+                {
+                    (typeof checklist.Selected.checklist != "undefined" && checklist.Selected.checklist != "") && <a class="btn btn-violet" onClick={this.handleSubmit}>
+                        <span>Create Subtask</span>
+                    </a>
+                }
             </form>
         )
     }

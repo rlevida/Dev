@@ -1056,7 +1056,7 @@ exports.post = {
                                     {
                                         model: Users,
                                         as: 'user',
-                                        attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+                                        attributes: ['id', 'firstName', 'lastName', 'emailAddress', 'avatar']
                                     },
                                     {
                                         model: ChecklistDocuments,
@@ -1070,6 +1070,10 @@ exports.post = {
                                                     as: 'document_read',
                                                     attributes: ['id'],
                                                     required: false
+                                                },
+                                                {
+                                                    model: Users,
+                                                    as: 'user',
                                                 }]
                                             }
                                         ]
@@ -1079,7 +1083,6 @@ exports.post = {
                         ).map((mapObject) => {
                             return mapObject.toJSON();
                         }).then((o) => {
-                            console.log(`cb1`)
                             cb({ status: true, data: { result: o, type: "checklist" } });
                         })
                     });
@@ -1113,19 +1116,21 @@ exports.post = {
                                                 as: 'document_read',
                                                 attributes: ['id'],
                                                 required: false
+                                            },
+                                            {
+                                                model: Users,
+                                                as: 'user',
                                             }]
                                         }
                                     ]
                                 }
                             ).then((o) => {
-                                console.log(`cb2`)
                                 cb({ status: true, data: { result: o, type: "document" } });
                             })
                         });
                 }
             });
         }).on('error', function (err) {
-            console.log(`cb3`)
             cb({ status: false, error: "Upload error. Please try again later." });
         });
 

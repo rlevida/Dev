@@ -1554,9 +1554,11 @@ exports.delete = {
                 Members.destroy({
                     where: {
                         userTypeLinkId: teamToBeDeletedIds,
-                        usersType: "team"
+                        usersType: "team",
+                        linkType: "project",
+                        linkId: queryString.project_id
                     }
-                }).then((res) => {
+                }).then((res, err) => {
                     cb({
                         status: true,
                         data: memberId
@@ -1567,7 +1569,9 @@ exports.delete = {
             Members.destroy({
                 where: {
                     userTypeLinkId: memberId,
-                    usersType: "users"
+                    usersType: "users",
+                    linkType: "project",
+                    linkId: queryString.project_id
                 }
             })
                 .then((res) => {

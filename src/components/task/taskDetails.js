@@ -10,6 +10,8 @@ import { DeleteModal, MentionConvert } from "../../globalComponents";
 import defaultStyle from "../global/react-mention-style";
 
 import DocumentViewerModal from "../document/modal/documentViewerModal";
+import TaskChecklist from "./taskChecklist";
+import TaskDocument from "./taskDocument";
 
 let keyTimer = "";
 
@@ -18,7 +20,8 @@ let keyTimer = "";
         task: store.task,
         loggedUser: store.loggedUser,
         activityLog: store.activityLog,
-        conversation: store.conversation
+        conversation: store.conversation,
+        document: store.document
     }
 })
 export default class TaskDetails extends React.Component {
@@ -36,7 +39,10 @@ export default class TaskDetails extends React.Component {
             "getNextAcitivyLogs",
             "handleChange",
             "renderUsers",
-            "addComment"
+            "addComment",
+            "deleteSubtask",
+            "deleteDocument",
+            "confirmDeleteDocument"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         })
@@ -222,7 +228,7 @@ export default class TaskDetails extends React.Component {
         } else {
             const linkTypeName = (linkType == "checklist") ? "subtask" : linkType;
             return (
-                <p class="ml20 mt10"><strong>{user.firstName + " " + user.lastName}</strong> {actionType + ` ${(linkTypeName == "task") ? "the" : "a"} ` + linkTypeName}. {date}</p>
+                <p class="ml10 mt10"><strong>{user.firstName + " " + user.lastName}</strong> {actionType + ` ${(linkTypeName == "task") ? "the" : "a"} ` + linkTypeName}. {date}</p>
             )
         }
     }
@@ -320,8 +326,43 @@ export default class TaskDetails extends React.Component {
         }
     }
 
+    deleteSubtask(id) {
+        const { dispatch, task, loggedUser } = this.props;
+
+        deleteData(`/api/checklist/${id}?taskId=${task.Selected.id}&userId=${loggedUser.data.id}`, {}, (c) => {
+            dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, checklist: _.remove(task.Selected.checklist, ({ id: checklistId }) => { return checklistId != id }) } });
+            showToast("success", "Subtask successfully deleted.");
+        });
+    }
+
+    deleteDocument(value) {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...value, action: 'delete' } });
+        $('#delete-document').modal("show");
+    }
+
+    confirmDeleteDocument() {
+        const { dispatch, document, task } = this.props;
+        deleteData(`/api/task/document/${document.Selected.id}?type=${document.Selected.type}`, {}, (c) => {
+            if (document.Selected.type == "Task Document") {
+                const taskDocument = _.filter(task.Selected.tag_task, (o) => {
+                    return o.document.id != document.Selected.id;
+                });
+                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, tag_task: taskDocument } });
+            } else {
+                const checklist = _.map(task.Selected.checklist, (o) => {
+                    return { ...o, tagDocuments: _.filter(o.tagDocuments, (o) => { return o.id != document.Selected.id }) }
+                });
+                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, checklist } });
+            }
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+            showToast("success", "Task Document successfully deleted.");
+            $('#delete-document').modal("hide");
+        });
+    }
+
     render() {
-        const { task: taskObj, loggedUser, activityLog, conversation } = { ...this.props };
+        const { task: taskObj, loggedUser, activityLog, conversation, document } = { ...this.props };
         const { Loading, Selected } = taskObj;
         const { id, task, task_members, dueDate, startDate, workstream, status, description, checklist, task_dependency, tag_task, projectId, workstreamId } = Selected;
         const assigned = _.find(task_members, (o) => { return o.memberType == "assignedTo" });
@@ -342,7 +383,7 @@ export default class TaskDetails extends React.Component {
         let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
         daysRemaining = (daysRemaining == 0 && dueDate != "") ? 1 : daysRemaining;
         const commentText = (typeof conversation.Selected.comment != "undefined") ? conversation.Selected.comment : "";
-        const activityList = [..._.map(activityLog.List, (o) => { return { ...o, type: 'activity_log' } }), ..._.map(conversation.List, (o) => { return { ...o, type: 'conversation' } })]
+        const activityList = [..._.map(activityLog.List, (o) => { return { ...o, type: 'activity_log' } }), ..._.map(conversation.List, (o) => { return { ...o, type: 'conversation' } })];
         const checklistDocuments = _(checklist)
             .flatMap((o) => {
                 return _.map(o.tagDocuments, function (o) {
@@ -377,7 +418,8 @@ export default class TaskDetails extends React.Component {
             })
             .value();
         const documentList = [...checklistDocuments, ...taskDocuments];
-       
+        const documentValue = (typeof document.Selected != "undefined" && _.isEmpty(document.Selected) == false) ? document.Selected.name : "";
+
         return (
             <div>
                 <div class="modal right fade" id="task-details" data-backdrop="static" data-keyboard="false">
@@ -463,6 +505,9 @@ export default class TaskDetails extends React.Component {
                                         <div class="button-action">
                                             <a class="logo-action text-grey" onClick={() => this.starredTask()}>
                                                 <i title="FAVORITE" class={`fa ${Selected.isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true"></i>
+                                            </a>
+                                            <a class="logo-action text-grey" onClick={() => { $(`#task-documents`).modal('show'); }}>
+                                                <i title="ATTACHMENT" class="fa fa-file-o" aria-hidden="true"></i>
                                             </a>
                                             <a class="logo-action text-grey" onClick={() => this.followTask(isFollower)}>
                                                 <i title="FOLLOW" class={`fa ${_.isEmpty(isFollower) == false ? "fa-user-plus text-yellow" : "fa-user-plus"}`} aria-hidden="true"></i>
@@ -635,36 +680,29 @@ export default class TaskDetails extends React.Component {
                                                         </h3>
                                                         <div class="ml20">
                                                             {
-                                                                _.map(documentList, ({ id, origin, name, child = [], isRead, user }, index) => {
+                                                                _.map(documentList, (params, index) => {
+                                                                    const { id, origin, name, child = [], isRead, user, dateAdded } = params;
+                                                                    const duration = moment.duration(moment().diff(moment(dateAdded)));
+                                                                    const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+
                                                                     return (
                                                                         <div key={index}>
                                                                             <div class="display-flex vh-center mb10 attachment">
-                                                                                <i title={(child.length > 0) ? "Subtask Document" : "Task Document"} class={`fa ${(child.length > 0) ? "fa-file-text" : "fa-file"} mr10`} aria-hidden="true"></i>
-                                                                                <p class="m0">
-                                                                                    <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: origin, origin: name, isRead, user })}>
-                                                                                        {name.substring(0, 50)}{(name.length > 50) ? "..." : ""}
-                                                                                    </a>
-                                                                                </p>
+                                                                                <div class="pdl5">
+                                                                                    <p class="m0">
+                                                                                        <a data-tip data-for={`attachment-${index}`} onClick={() => this.viewDocument({ id, name: origin, origin: name, isRead, user })}>
+                                                                                            {name.substring(0, 50)}{(name.length > 50) ? "..." : ""}
+                                                                                        </a>
+                                                                                    </p>
+                                                                                    <p class="note mb0">Uploaded {date} by {user.firstName + " " + user.lastName}</p>
+                                                                                </div>
+                                                                                <a
+                                                                                    href="javascript:void(0);"
+                                                                                    onClick={(e) => this.deleteDocument(params)}
+                                                                                    class="btn btn-action status-multiple flex-right"
+                                                                                >
+                                                                                    <span class="fa fa-trash"></span></a>
                                                                             </div>
-                                                                            {
-                                                                                (child.length > 0) && <ReactTooltip id={`attachment-${index}`} aria-haspopup='true' type={'light'}>
-                                                                                    <div class="wrapper">
-                                                                                        <p class="mb0">Checklist:</p>
-                                                                                        {
-                                                                                            _.map(child, (o, index) => {
-                                                                                                return (
-                                                                                                    <div class="display-flex mb5 ml10" key={index}>
-                                                                                                        <p class="tooltip-label">
-                                                                                                            {o}
-                                                                                                        </p>
-                                                                                                    </div>
-                                                                                                )
-                                                                                            })
-                                                                                        }
-
-                                                                                    </div>
-                                                                                </ReactTooltip>
-                                                                            }
                                                                         </div>
                                                                     )
                                                                 })
@@ -682,16 +720,20 @@ export default class TaskDetails extends React.Component {
                                                         <h3>
                                                             Checklist
                                                         </h3>
-                                                        <div class="ml20">
+                                                        <div class="ml20 pd0" id="checklist">
                                                             {
                                                                 _.map(checklist, (checklistObj, index) => {
-                                                                    const { id, isCompleted, isDocument, description } = { ...checklistObj };
+                                                                    const { id, isCompleted, isDocument, description, user, dateAdded } = { ...checklistObj };
+                                                                    const duration = moment.duration(moment().diff(moment(dateAdded)));
+                                                                    const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+
                                                                     return (
-                                                                        <div key={index}>
+                                                                        <div key={index} class="display-flex vh-center flex-center checklist-item">
                                                                             <label class="custom-checkbox todo-checklist">
                                                                                 {description}
+                                                                                <p class="note mb0">Added {date} by {user.firstName + " " + user.lastName}</p>
                                                                                 {
-                                                                                    (isDocument == 1) && <span class="label label-success ml10">Document</span>
+                                                                                    (isDocument == 1) && <span class="label label-success">Document</span>
                                                                                 }
                                                                                 {
                                                                                     (status != "Completed") && <div>
@@ -704,6 +746,12 @@ export default class TaskDetails extends React.Component {
                                                                                     </div>
                                                                                 }
                                                                             </label>
+                                                                            <a
+                                                                                href="javascript:void(0);"
+                                                                                onClick={(e) => this.deleteSubtask(id)}
+                                                                                class="btn btn-action"
+                                                                            >
+                                                                                <span class="fa fa-trash"></span></a>
                                                                         </div>
                                                                     )
                                                                 })
@@ -711,6 +759,9 @@ export default class TaskDetails extends React.Component {
                                                             {
                                                                 (typeof checklist == "undefined" || (checklist).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                                                             }
+                                                            <div class="mt20">
+                                                                <TaskChecklist />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -753,6 +804,7 @@ export default class TaskDetails extends React.Component {
                                                                     classNames={{
                                                                         mentions__input: 'form-control'
                                                                     }}
+                                                                    placeholder={"Type your comment"}
                                                                     markup="{[__display__](__id__)}"
                                                                 >
                                                                     <Mention
@@ -789,7 +841,30 @@ export default class TaskDetails extends React.Component {
                     type_value={typeValue}
                     delete_function={this.confirmDelete}
                 />
+                <DeleteModal
+                    id="delete-document"
+                    type={'task document'}
+                    type_value={documentValue}
+                    delete_function={this.confirmDeleteDocument}
+                />
                 <DocumentViewerModal />
+                <div class="modal fade" id="task-documents" data-backdrop="static" data-keyboard="false">
+                    <div class="modal-dialog modal-md">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <a class="text-grey" data-dismiss="modal" aria-label="Close">
+                                    <span>
+                                        <i class="fa fa-chevron-left mr10" aria-hidden="true"></i>
+                                        <strong>Back</strong>
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="modal-body">
+                                <TaskDocument />
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         )
     }
