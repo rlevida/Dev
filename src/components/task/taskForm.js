@@ -701,7 +701,7 @@ export default class TaskForm extends React.Component {
                                                             <p class="m0 note">Please select a project first.</p>
                                                             <div class={`input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
                                                                 <DropDown
-                                                                    required={(typeof task.Selected.approvalRequired != "undefined" && task.Selected.approvalRequired != "")}
+                                                                    required={true}
                                                                     options={members.SelectList}
                                                                     onInputChange={this.setApproverList}
                                                                     selected={(typeof task.Selected.approverId == "undefined") ? "" : task.Selected.approverId}
