@@ -16,6 +16,8 @@ import { getData, showToast } from "../../globalFunction";
 export default class WorkstreamDetails extends React.Component {
     constructor(props) {
         super(props);
+
+        this.renderStatus = this.renderStatus.bind(this);
     }
     componentDidMount() {
         const { match, dispatch } = { ...this.props };
@@ -38,11 +40,18 @@ export default class WorkstreamDetails extends React.Component {
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
     }
 
+    renderStatus({ issues, dueToday }) {
+        const color = (issues > 0) ? "text-red" : (dueToday > 0) ? "text-yellow" : "text-green";
+        return (<span class={`fa fa-circle mb0 mr10 ${color}`}></span>);
+    }
+
     render() {
         const { match, workstream, history } = { ...this.props };
         const projectId = match.params.projectId;
         const workstreamId = match.params.workstreamId;
         const workstreamTitle = (typeof workstream.Selected.workstream != "undefined") ? workstream.Selected.workstream : "";
+        const workstreamDescription = (typeof workstream.Selected.description != "undefined") ? workstream.Selected.description : "";
+        const workstreamTasks = (typeof workstream.Selected.task != "undefined") ? workstream.Selected.task : [];
 
         return (
             <div>
@@ -50,8 +59,14 @@ export default class WorkstreamDetails extends React.Component {
                     <a onClick={() => { history.goBack(); }} class="mr10 text-black">
                         <i class="fa fa-chevron-left" aria-hidden="true"></i>
                     </a>
+                    {((workstreamTasks).length > 0) ? this.renderStatus(workstream.Selected) : ""}
                     {workstreamTitle}
                 </h3>
+                {
+                    (workstreamDescription != "") && <div class="mb20">
+                        {workstreamDescription}
+                    </div>
+                }
                 <div class="mb20">
                     <TaskTimeline workstream_id={workstreamId} />
                 </div>

@@ -77,7 +77,6 @@ exports.get = {
     index: async (req, cb) => {
         const queryString = req.query;
         const limit = 10;
-
         let whereObj = {
             ...(typeof queryString.isDeleted !== 'undefined' && queryString.isDeleted !== '') ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 },
             ...(typeof queryString.name != "undefined" && queryString.name != "") ? {
@@ -140,6 +139,15 @@ exports.get = {
             }
         }
 
+        if (typeof queryString.type != "undefined" && queryString.type == "teamLead") {
+            whereObj = {
+                ...whereObj,
+                id: {
+                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT users_role.usersId FROM users_role WHERE roleId <= 3)`)
+                }
+            };
+        }
+
         if (
             (typeof queryString.userRole != "undefined" && queryString.userRole != "" && queryString.userRole > 3)
         ) {
@@ -177,6 +185,7 @@ exports.get = {
                 }
             },
             result: (parallelCallback) => {
+                console.log(whereObj)
                 try {
                     Users
                         .findAll({
@@ -659,48 +668,5 @@ exports.put = {
             cb({ status: false, error: err })
         }
 
-    }
-}
-
-exports.delete = {
-    index: (req, cb) => {
-        const id = req.params.id
-        // UsersRole
-        //     .findAll({ where: { roleId: 1 } })
-        //     .then((res) => {
-        //         if (res.length <= 1 && res[0].usersId == id) {
-        //             cb({ success: true, data: { error: true, message: 'Cant Delete, Last Master Admin user.' } })
-        //         } else {
-        //             try {
-        //                 Users.destroy({ where: { id: id } })
-        //                     .then((destroyRes) => {
-        //                         async.parallel({
-        //                             role: (parallelCallback) => {
-        //                                 UsersRole
-        //                                     .destroy({ where: { usersId: id } })
-        //                                     .then((userRoleRes) => {
-        //                                         parallelCallback(null, userRoleRes)
-        //                                     })
-        //                             },
-        //                             team: (parallelCallback) => {
-        //                                 UsersTeam
-        //                                     .destroy({ where: { usersId: id } })
-        //                                     .then((userTeamRes) => {
-        //                                         parallelCallback(null, userTeamRes)
-        //                                     })
-        //                             }
-        //                         }, (err, parallelCallbackResult) => {
-        //                             if (err) {
-        //                                 cb({ status: false, error: err })
-        //                             } else {
-        //                                 cb({ status: true, data: { id: id } })
-        //                             }
-        //                         })
-        //                     })
-        //             } catch (err) {
-        //                 cb({ status: false, error: err })
-        //             }
-        //         }
-        //     })
     }
 }

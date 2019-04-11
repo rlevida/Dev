@@ -148,7 +148,7 @@ export default class TaskCalendar extends React.Component {
             })
             .map((o) => {
                 const assigned = _.find(o.task_members, (o) => { return o.memberType == "assignedTo" });
-                const title = (typeof assigned != "undefined") ? <span title=""><div class="display-flex"><div class="profile-div"><div class="thumbnail-profile"><img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" /></div></div>{o.task}</div></span>
+                const title = (typeof assigned != "undefined") ? <span title=""><div class="display-flex vh-center"><div class="profile-div"><div class="thumbnail-profile"><img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" /></div></div>{o.task}</div></span>
                     : o.task
                 return {
                     id: o.id,

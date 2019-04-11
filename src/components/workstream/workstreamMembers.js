@@ -58,7 +58,6 @@ export default class WorkstreamMembers extends React.Component {
                         (members.List.length > 0) && <table>
                             <thead>
                                 <tr>
-                                    <th scope="col">User Id</th>
                                     <th scope="col">Username</th>
                                     <th scope="col">First Name</th>
                                     <th scope="col">Last Name</th>
@@ -74,11 +73,13 @@ export default class WorkstreamMembers extends React.Component {
                                             <tr
                                                 key={index}
                                             >
-                                                <td data-label="User Id">
-                                                    {user.id}
-                                                </td>
                                                 <td data-label="Username">
-                                                    {user.username}
+                                                    <div class="profile-div">
+                                                        <div class="thumbnail-profile">
+                                                            <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                        </div>
+                                                        <p class="m0">{user.username}</p>
+                                                    </div>
                                                 </td>
                                                 <td data-label="First Name">
                                                     {user.firstName}

@@ -233,6 +233,11 @@ export default class ProjectInfo extends React.Component {
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="col-lg-4 md-12 col-sm-12">
+                                                <div class="project-info-picture">
+                                                    <img src={Selected.picture} alt="Profile Picture" class="img-responsive" />
+                                                </div>
+                                            </div>
                                             <div class="col-lg-12 md-12 col-sm-12">
                                                 <table class="mt20">
                                                     <thead>

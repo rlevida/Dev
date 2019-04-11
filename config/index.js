@@ -1,6 +1,6 @@
 global.environment = process.env.NODE_ENV || 'development';
 
-global.site_name = "Cloud CFO";
+global.site_name = "CloudCFO";
 
 if (global.environment === "development") {
     global.site_url = '//localhost:9003/';

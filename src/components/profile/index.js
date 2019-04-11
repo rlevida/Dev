@@ -111,7 +111,7 @@ export default class Component extends React.Component {
                                 </div>
                             </TabPanel>
                             <TabPanel class="bt">
-                                <ProfileNotification/>
+                                <ProfileNotification />
                             </TabPanel>
                         </Tabs>
                     </div>
@@ -136,13 +136,15 @@ export default class Component extends React.Component {
                                     </div>
                                 </Dropzone>
                                 <div class="mt20">
-                                    <a class="btn btn-violet mr5" onClick={this.upload} disabled={(Loading == "SUBMITTING")}>
-                                        <span>
-                                            {
-                                                (Loading == "SUBMITTING") ? "Uploading..." : "Upload Picture"
-                                            }
-                                        </span>
-                                    </a>
+                                    {
+                                        (Files.length > 0) && <a class="btn btn-violet mr5" onClick={this.upload} disabled={(Loading == "SUBMITTING")}>
+                                            <span>
+                                                {
+                                                    (Loading == "SUBMITTING") ? "Uploading..." : "Upload Picture"
+                                                }
+                                            </span>
+                                        </a>
+                                    }
                                     <a class="btn btn-default" data-dismiss="modal" disabled={(Loading == "SUBMITTING")}><span>Cancel</span></a>
                                 </div>
                             </div>

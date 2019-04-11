@@ -198,19 +198,24 @@ class Main extends React.Component {
                                 </div>
                                 <div class="title item">
                                     {
-                                        (_.isEmpty(currentPage) == false) && <h3 style={{ textTransform: 'capitalize', marginTop: 0, marginBottom: 0 }}>
+                                        (_.isEmpty(currentPage) == false && currentPage.label != "Projects") && <h3 style={{ textTransform: 'capitalize', marginTop: 0, marginBottom: 0 }}>
                                             {currentPage.label}
                                         </h3>
                                     }
                                 </div>
                                 {
-                                    (showProjectMenu) && <div class="flex-row tab-row mb0 ml20 mr10 item hidden-sm hidden-xs">
+                                    (showProjectMenu) && <div class="flex-row tab-row mb0 item hidden-sm hidden-xs">
+
                                         {
                                             _.map(projectMenu, (o, index) => {
                                                 return (
-                                                    <div class="flex-col" key={index}>
+                                                    <div class="flex-col vh-center flex-center" key={index}>
                                                         <Link to={`/projects/${project.Selected.id + o.link}`} class={`${(currentProjectPage == (o.label).toLowerCase()) ? "active" : ""}`}>
-                                                            {o.label}
+                                                            {
+                                                                (o.label == "Info") ? <div class="project-image-wrapper">
+                                                                    <img src={project.Selected.picture} alt="Profile Picture" class="img-responsive" />
+                                                                </div> : o.label
+                                                            }
                                                         </Link>
                                                     </div>
                                                 )
@@ -220,38 +225,59 @@ class Main extends React.Component {
                                 }
                                 <div class="action item">
                                     <div class="hidden-sm hidden-xs text-center display-flex action-link">
-                                        <ul class="nav navbar-nav navbar-right">
-                                            <li class="dropdown">
-                                                <a data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                                                    <span class={`fa fa-bell ${(this.props.location.pathname !== "/notification" && notification.List.length > 0) ? "bell-active" : ""}`}> </span>
-                                                    {
-                                                        (notification.List.length > 0 && this.props.location.pathname !== "/notification") &&
-                                                        <span class="n-count">{notification.List.length || ""}</span>
-                                                    }
-                                                </a>
-                                                <ul class="dropdown-menu notify-drop">
-                                                    <div class="drop-content">
-                                                        {notification.List.map((e, i) => {
-                                                            const { from, dateAdded } = { ...e }
-                                                            const duration = moment.duration(moment().diff(moment(dateAdded)));
-                                                            const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
-                                                            return (
-                                                                <li key={i}>
-                                                                    <div class="col-md-3 col-sm-3 col-xs-3 n-border"><div class="notify-img"><img src={e.from.avatar} width="50" height="50" alt="" /></div></div>
-                                                                    <div class="col-md-9 col-sm-9 col-xs-9 pd-l0">
-                                                                        <a href="">{`${from.firstName} ${from.lastName}`}</a><span class="n-type">{notificationType(e.type)}</span>
-                                                                        <br />
-                                                                        <p class="time">{date}</p>
-                                                                    </div>
-                                                                </li>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                    <div class="notify-drop-footer text-center">
-                                                        <a href={`/account#/notification`}>View All Notification</a>
-                                                    </div>
-                                                </ul>
-                                            </li>
+                                        <a data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                            <span class={`fa fa-bell ${(this.props.location.pathname !== "/notification" && notification.List.length > 0) ? "bell-active" : ""}`}> </span>
+                                            {
+                                                (notification.List.length > 0 && this.props.location.pathname !== "/notification") &&
+                                                <span class="n-count">{notification.List.length || ""}</span>
+                                            }
+                                        </a>
+                                        <ul class="pull-right dropdown-menu notify-drop">
+                                            <div class="drop-content">
+                                                {notification.List.map((e, i) => {
+                                                    const { from, dateAdded } = { ...e }
+                                                    const duration = moment.duration(moment().diff(moment(dateAdded)));
+                                                    const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+                                                    return (
+                                                        <li key={i}>
+                                                            <div class="col-md-3 col-sm-3 col-xs-3 n-border"><div class="notify-img"><img src={e.from.avatar} width="50" height="50" alt="" /></div></div>
+                                                            <div class="col-md-9 col-sm-9 col-xs-9 pd-l0">
+                                                                <a href="">{`${from.firstName} ${from.lastName}`}</a><span class="n-type">{notificationType(e.type)}</span>
+                                                                <br />
+                                                                <p class="time">{date}</p>
+                                                            </div>
+                                                        </li>
+                                                    )
+                                                })}
+                                            </div>
+                                            <div class="notify-drop-footer text-center">
+                                                <a href={`/account#/notification`}>View All Notification</a>
+                                            </div>
+                                        </ul>
+                                        <a class="btn btn-orange" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                            <span>
+                                                <i class="fa fa-plus mr10" aria-hidden="true"></i>
+                                                New
+                                         </span>
+                                        </a>
+                                        <ul class="pull-right dropdown-menu new-drop">
+                                            <div class="drop-content">
+                                                {notification.List.map((e, i) => {
+                                                    const { from, dateAdded } = { ...e }
+                                                    const duration = moment.duration(moment().diff(moment(dateAdded)));
+                                                    const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+                                                    return (
+                                                        <li key={i}>
+                                                            <div class="col-md-3 col-sm-3 col-xs-3 n-border"><div class="notify-img"><img src={e.from.avatar} width="50" height="50" alt="" /></div></div>
+                                                            <div class="col-md-9 col-sm-9 col-xs-9 pd-l0">
+                                                                <a href="">{`${from.firstName} ${from.lastName}`}</a><span class="n-type">{notificationType(e.type)}</span>
+                                                                <br />
+                                                                <p class="time">{date}</p>
+                                                            </div>
+                                                        </li>
+                                                    )
+                                                })}
+                                            </div>
                                         </ul>
                                         <Link to={"/profile"}>
                                             <div class="menu-profile">
@@ -275,7 +301,7 @@ class Main extends React.Component {
                                                     )
                                                 })
                                             }
-                                            <li class="bt"><a>Notification</a></li>
+                                            <li class="bt"><Link to={"/notification"}>Notification</Link></li>
                                             <li><Link to={"/profile"}>Profile</Link></li>
                                         </div>
                                     </div>

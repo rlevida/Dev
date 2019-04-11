@@ -135,13 +135,14 @@ class FolderModal extends React.Component {
                                         required />
                                 </div>
                             </div>
-                        </div>
-                        <div class="modal-footer">
-                            {
-                                (folder.New.name) &&
-                                <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={() => this.submit()}>Submit</button>
-                            }
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <div class="mt20">
+                                <a class="btn btn-violet mr5" onClick={() => this.submit()}>
+                                    <span>
+                                        Submit
+                                    </span>
+                                </a>
+                                <a class="btn btn-default" data-dismiss="modal"><span>Cancel</span></a>
+                            </div>
                         </div>
                     </div>
                 </div>

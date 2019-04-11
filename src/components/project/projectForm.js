@@ -1,6 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
+import Dropzone from 'react-dropzone';
 import { showToast, getData, putData, deleteData, postData } from '../../globalFunction';
 import { DeleteModal, DropDown, ColorPicker } from "../../globalComponents";
 import ProjectMemberForm from "./projectMemberForm";
@@ -16,7 +17,8 @@ import WorkstreamList from "../workstream/workstreamList";
         users: store.users,
         teams: store.teams,
         members: store.members,
-        global: store.global
+        document: store.document,
+        global: store.global,
     }
 })
 
@@ -32,7 +34,9 @@ export default class ProjectForm extends React.Component {
             "renderArrayTd",
             "confirmDelete",
             "getMembers",
-            "handleColorSlider"
+            "handleColorSlider",
+            "onDrop",
+            "upload"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -55,7 +59,8 @@ export default class ProjectForm extends React.Component {
     componentWillUnmount() {
         const { dispatch } = this.props;
         dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
-        dispatch({ type: 'SET_TEAM_LIST', list: [] });
+        dispatch({ type: 'SET_TEAM_LIST', list: [], count: {} });
+        dispatch({ type: "SET_MEMBERS_LIST", list: [], count: {} });
     }
 
     getMembers() {
@@ -198,8 +203,35 @@ export default class ProjectForm extends React.Component {
         dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...Selected, color: e.hex } })
     }
 
+    onDrop(picture) {
+        const { dispatch } = this.props;
+        dispatch({ type: 'SET_DOCUMENT_FILES', Files: picture })
+    }
+
+    upload() {
+        const { document, project, dispatch } = { ...this.props };
+        const { Selected } = project;
+        let data = new FormData();
+
+        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING", LoadingType: 'Loading' });
+        _.map(document.Files, (file) => {
+            data.append("file", file);
+            data.append('project_id', project.Selected.id);
+        });
+
+        postData(`/api/project/upload`, data, (c) => {
+            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'Loading' });
+            dispatch({ type: 'SET_DOCUMENT_FILES', Files: "" });
+            dispatch({ type: "SET_PROJECT_SELECTED", Selected: { ...Selected, picture: c.data } })
+            showToast("success", "Project picture successfully uploaded.");
+
+            $('#upload-picture').modal('hide');
+        });
+    }
+
     render() {
-        const { dispatch, project, loggedUser, members, status, type, global } = { ...this.props };
+        const { dispatch, project, loggedUser, members, status, type, global, document } = { ...this.props };
+        const { Files, Loading: documentLoading } = document;
         const typeValue = (typeof members.Selected != "undefined" && _.isEmpty(members.Selected) == false) ? members.Selected.firstName + " " + members.Selected.lastName : "";
         const isMemberByTeam = (typeof members.Selected.memberByTeam != "undefined" && _.isEmpty(members.Selected) == false) ? (members.Selected.memberByTeam).length > 0 : false;
 
@@ -247,7 +279,10 @@ export default class ProjectForm extends React.Component {
                                 >
                                     <i class="fa fa-chevron-left" aria-hidden="true"></i>
                                 </a>
-                                Add New Project
+                                {
+                                    (typeof project.Selected.id != "undefined" && project.Selected.id != "") ? "Edit " : "Add New "
+                                }
+                                Project
                             </h4>
                         </div>
                         <div class="card-body">
@@ -257,6 +292,17 @@ export default class ProjectForm extends React.Component {
                                         <p class="form-header mb0">Project Details</p>
                                         <p>All with <span class="text-red">*</span> are required.</p>
                                     </div>
+                                    {
+                                        (typeof project.Selected.id != 'undefined') && <div>
+                                            <label>Project Picture:</label>
+                                            <div class="project-picture-wrapper mb20">
+                                                <img src={project.Selected.picture} alt="Profile Picture" class="img-responsive" />
+                                                <a onClick={() => { $('#upload-picture').modal('show'); }}>
+                                                    <i class="fa fa-camera"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    }
                                     <div class="form-group">
                                         <label class="custom-checkbox">
                                             <input type="checkbox"
@@ -319,7 +365,7 @@ export default class ProjectForm extends React.Component {
                                         />
                                     </div>
                                     <a class="btn btn-violet mr5" onClick={this.handleSubmit}>
-                                        <span>{`${(typeof project.Selected.id != "undefined" && project.Selected.id != "") ? "Edit" : "Add"} Project`}</span>
+                                        <span>{`${(typeof project.Selected.id != "undefined" && project.Selected.id != "") ? "Edit" : "Add"} project`}</span>
                                     </a>
                                     <a class="btn btn-default"
                                         onClick={(e) => {
@@ -440,6 +486,41 @@ export default class ProjectForm extends React.Component {
                     delete_function={this.confirmDelete}
                     note={(isMemberByTeam) ? "This is a member of a team assigned to this project. Deleting this user will remove all its team assigned to this project. Consider deleting this user from the team in Teams & Users." : ""}
                 />
+                <div id="upload-picture" class="modal fade upload-modal" data-backdrop="static" data-keyboard="false">
+                    <div class="modal-dialog modal-sm" role="document">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <p><strong>Upload Project Picture</strong></p>
+                                <Dropzone
+                                    accept=".jpg,.png,.jpeg"
+                                    onDrop={this.onDrop}
+                                    class="document-file-upload"
+                                    multiple={false}
+                                >
+                                    <div style={{ textAlign: "center", height: "100%", padding: "60px" }}>
+                                        <div class="upload-wrapper">
+                                            {
+                                                (Files.length > 0) ? <img src={Files[0].preview} alt="Profile Picture" class="img-responsive" /> : <p>Drop the best project picture here</p>
+                                            }
+                                        </div>
+                                    </div>
+                                </Dropzone>
+                                <div class="mt20">
+                                    {
+                                        (Files.length > 0) && <a class="btn btn-violet mr5" onClick={this.upload} disabled={(documentLoading == "SUBMITTING")}>
+                                            <span>
+                                                {
+                                                    (documentLoading == "SUBMITTING") ? "Uploading..." : "Upload Picture"
+                                                }
+                                            </span>
+                                        </a>
+                                    }
+                                    <a class="btn btn-default" data-dismiss="modal" disabled={(documentLoading == "SUBMITTING")}><span>Cancel</span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         )
     }

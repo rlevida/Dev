@@ -264,23 +264,25 @@ class DocumentUpload extends React.Component {
                                     </div>
                                     <div class="form-group">
                                         <label for="workstream-options">Workstream  <span class="text-red">*</span></label>
-                                        <DropDown
-                                            id="workstream-options"
-                                            multiple={true}
-                                            options={workstream.SelectList}
-                                            onInputChange={this.getWorkstreamList}
-                                            selected={(typeof document.Selected.tagWorkstream == "undefined") ? [] : document.Selected.tagWorkstream}
-                                            loading={true}
-                                            onChange={(e) => {
-                                                this.setDropDown("tagWorkstream", (e == null) ? "" : e);
-                                            }}
-                                            required={true}
-                                            disabled={Loading === "SUBMITTING" ? true : false}
-                                        />
-                                        <div>
-                                            {
-                                                (workstream.Loading == "RETRIEVING" && typeof document.Selected.projectId != "undefined") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
-                                            }
+                                        <div class="display-flex vh-center">
+                                            <DropDown
+                                                id="workstream-options"
+                                                multiple={true}
+                                                options={workstream.SelectList}
+                                                onInputChange={this.getWorkstreamList}
+                                                selected={(typeof document.Selected.tagWorkstream == "undefined") ? [] : document.Selected.tagWorkstream}
+                                                loading={true}
+                                                onChange={(e) => {
+                                                    this.setDropDown("tagWorkstream", (e == null) ? "" : e);
+                                                }}
+                                                required={true}
+                                                disabled={Loading === "SUBMITTING" ? true : false}
+                                            />
+                                            <div>
+                                                {
+                                                    (workstream.Loading == "RETRIEVING" && typeof document.Selected.projectId != "undefined") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                                }
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -357,7 +359,7 @@ class DocumentUpload extends React.Component {
                                         </table>
                                     </div>
                                     {(Loading === "" && document.Files.length > 0 && typeof document.Selected.DocumentToSave === 'undefined') &&
-                                         <a class="btn btn-violet mr5" type="button" onClick={() => this.uploadFile()}> Upload Document</a>
+                                        <a class="btn btn-violet mr5" type="button" onClick={() => this.uploadFile()}> Upload Document</a>
                                     }
                                     {(document.Selected.DocumentToSave && document.Selected.DocumentToSave.length > 0) &&
                                         <a class="btn btn-violet mr5" data-dismiss="modal" onClick={() => this.saveDocument()}>Add File</a>

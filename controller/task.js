@@ -485,21 +485,14 @@ exports.get = {
     },
     myTaskStatus: async (req, cb) => {
         const queryString = req.query;
-        const userTeams = await UsersTeam
-            .findAll({ where: { usersId: queryString.userId, isDeleted: 0 } })
-            .map((mapObject) => {
-                const { teamId } = mapObject.toJSON();
-                return teamId;
-            });
         const teams = await Teams
             .findAll({ where: { teamLeaderId: queryString.userId, isDeleted: 0 } })
             .map((mapObject) => {
                 const { id } = mapObject.toJSON();
                 return id;
             });
-        const teamIds = _.uniq([...userTeams, ...teams]);
         const allTeams = await UsersTeam
-            .findAll({ where: { teamId: teamIds, isDeleted: 0 } })
+            .findAll({ where: { teamId: teams, isDeleted: 0 } })
             .map((mapObject) => {
                 const { usersId } = mapObject.toJSON();
                 return usersId;

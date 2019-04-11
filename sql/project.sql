@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS `project`;
 CREATE TABLE `project` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT,
+    `picture` TEXT,
     `project` VARCHAR(50),
     `statusId` BIGINT,
     `typeId` BIGINT,

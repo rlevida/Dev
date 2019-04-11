@@ -833,7 +833,7 @@ exports.get = {
 
 exports.post = {
     index: (req, cb) => {
-        let d = req.body;
+        let d = { ...req.body, picture: "https://s3-ap-southeast-1.amazonaws.com/cloud-cfo/production/project_pictures/default.png" };
         sequence.create().then((nextThen) => {
             Projects
                 .findAll({
@@ -1131,6 +1131,62 @@ exports.post = {
                 }
             });
         }
+    },
+    upload: (req, cb) => {
+        const formidable = global.initRequire("formidable");
+        const func = global.initFunc();
+        let form = new formidable.IncomingForm();
+        let files = [];
+        let type = "project_pictures";
+        let projectId = "";
+        form.multiples = false;
+        files.push(new Promise((resolve, reject) => {
+            form
+                .on('field', function (name, field) {
+                    projectId = field;
+                })
+                .on('file', function (field, file) {
+                    const date = new Date();
+                    const Id = func.generatePassword(date.getTime() + file.name, "attachment");
+                    const filename = Id + (file.name).replace(/[^\w.]|_/g, "_");
+                    func.uploadFile({
+                        file: file,
+                        form: type,
+                        filename: filename
+                    }, response => {
+                        if (response.Message == 'Success') {
+                            resolve({
+                                filename: filename,
+                                origin: file.name,
+                                Id: Id,
+                                projectId
+                            })
+                        } else {
+                            reject()
+                        }
+                    });
+                })
+
+        }));
+
+        Promise.all(files).then(e => {
+            if (e.length > 0) {
+                const { filename, projectId } = e[0];
+                const url = global.AWSLink + global.environment + "/project_pictures/" + filename;
+                Projects
+                    .update({ picture: url }, { where: { id: projectId } })
+                    .then((res) => {
+                        cb({ status: true, data: global.AWSLink + global.environment + "/project_pictures/" + filename });
+                    })
+            } else {
+                cb({ status: false, data: [] });
+            }
+        })
+        // log any errors that occur
+        form.on('error', function (err) {
+            cb({ status: false, error: "Upload error. Please try again later." });
+        });
+        form.parse(req);
     }
 }
 

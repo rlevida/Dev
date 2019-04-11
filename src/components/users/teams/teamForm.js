@@ -154,18 +154,17 @@ export default class TeamForm extends React.Component {
 
     fetchTeamLeadList(options) {
         const { dispatch, teams } = this.props;
-        let fetchUrl = "/api/user?page=1&isDeleted=0";
+        let fetchUrl = "/api/user?page=1&isDeleted=0&type=teamLead";
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&name=${options}`;
         }
+        
         getData(fetchUrl, {}, (c) => {
             const taskMemberOptions = _(c.data.result)
                 .filter((user) => {
                     const alreadyMember = (typeof teams.Selected.users_team == "undefined") ? [] : teams.Selected.users_team;
-                    const canBeTeamLeader = _.findIndex(user.user_role, (o) => { return o.roleId <= 3 });
-
-                    return user.userType == "Internal" && _.findIndex(alreadyMember, (o) => { return o.value == user.id }) < 0 && canBeTeamLeader >= 0;
+                    return _.findIndex(alreadyMember, (o) => { return o.value == user.id }) < 0;
                 })
                 .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
                 .value();
@@ -218,7 +217,7 @@ export default class TeamForm extends React.Component {
                             placeholder="Enter team name"
                             onChange={this.handleChange}
                         />
-                       
+
                     </div>
                     <div class="form-group">
                         <label>Team Leader: <span class="text-red">*</span></label>
@@ -233,7 +232,7 @@ export default class TeamForm extends React.Component {
                             }}
                             isClearable={((users.SelectList).length > 0)}
                         />
-                       
+
                     </div>
                     <div class="form-group">
                         <label>Members: <span class="text-red">*</span></label>
@@ -249,7 +248,7 @@ export default class TeamForm extends React.Component {
                             }}
                             isClearable={((teams.MemberList).length > 0)}
                         />
-                       
+
                     </div>
                     <a class="btn btn-violet" onClick={this.handleSubmit}>
                         <span>{`${(typeof teams.Selected.id != "undefined" && teams.Selected.id != "") ? 'Edit' : 'Add'} Team`}</span>
