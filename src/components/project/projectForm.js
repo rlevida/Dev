@@ -77,10 +77,10 @@ export default class ProjectForm extends React.Component {
     }
 
     confirmDelete() {
-        const { members } = { ...this.props };
+        const { members, project } = { ...this.props };
         const { id, memberByTeam } = members.Selected;
 
-        deleteData(`/api/project/deleteProjectMember/${id}?memberByTeam=${memberByTeam.length > 0}`, {}, (c) => {
+        deleteData(`/api/project/deleteProjectMember/${id}?memberByTeam=${memberByTeam.length > 0}&project_id=${project.Selected.id}`, {}, (c) => {
             if (c.status == 200) {
                 this.getMembers();
                 showToast("success", "Successfully Deleted");
