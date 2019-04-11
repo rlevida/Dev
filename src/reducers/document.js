@@ -46,7 +46,7 @@ export default function reducer(state = {
             return { ...state, Library: Library }
         }
         case "SET_DOCUMENT_LIST": {
-            return { ...state, List: action.list, Count: action.count }
+            return { ...state, List: action.list, Count: { ...(typeof  action.count !== "undefined") ? action.count : state.Count } }
         }
         case "SET_DOCUMENT_NEW_LIST": {
             return { ...state, New: action.list, NewCount: (typeof action.count != "undefined") ? action.count : state.NewCount }
@@ -107,8 +107,7 @@ export default function reducer(state = {
             return { ...state, Filter: {} }
         }
         case "SET_DOCUMENT_STATUS_COUNT": {
-            const { Status } = { ...state };
-            return { ...state, Status: { ...Status, [action.status]: action.count } }
+            return { ...state, Count: { ...Count, [action.status]: action.count } }
         }
         case "SET_DOCUMENT_ACTIVE_TAB": {
             return { ...state, ActiveTab: action.active }

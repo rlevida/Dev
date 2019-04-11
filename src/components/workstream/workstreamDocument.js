@@ -1,13 +1,15 @@
 import React from "react";
 import { connect } from "react-redux";
-import { Link } from 'react-router-dom';
 import _ from "lodash";
-import EditModal from '../document/modal/editModal'
-import { showToast, getData, displayDateMD } from '../../globalFunction';
-import { Loading } from "../../globalComponents";
+import { showToast, getData } from '../../globalFunction';
 import { withRouter } from "react-router";
-import DocumentViewerModal from "../document/modal/documentViewerModal";
 import DocumentList from "../document/documentList"
+
+import EditModal from "../document/modal/editModal";
+import DeleteModal from "../document/modal/deleteModal";
+import ArchiveModal from "../document/modal/archiveModal";
+import DocumentViewerModal from "../document/modal/documentViewerModal";
+
 @connect((store) => {
     return {
         project: store.project,
@@ -94,7 +96,9 @@ class WorkstreamDocument extends React.Component {
         return (
             <div>
                 <DocumentList fetchWorkstreamDocument={(e) => this.fetchData(e)} />
-                <DocumentViewerModal />
+                <EditModal />
+                <DeleteModal />
+                <ArchiveModal />
             </div>
         )
     }
