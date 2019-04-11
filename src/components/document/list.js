@@ -6,6 +6,7 @@ import ShareModal from "../document/modal/shareModal";
 import EditModal from "../document/modal/editModal";
 import FolderModal from "../document/modal/folderModal";
 import DeleteModal from "../document/modal/deleteModal";
+import ArchiveModal from "../document/modal/archiveModal";
 import DocumentList from "../document/documentList";
 import _ from "lodash";
 
@@ -38,6 +39,7 @@ class List extends React.Component {
                 <EditModal />
                 <FolderModal />
                 <DeleteModal />
+                <ArchiveModal />
             </div>
         )
     }

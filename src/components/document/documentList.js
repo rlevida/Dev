@@ -1,6 +1,6 @@
 import React from "react";
 import { Loading } from "../../globalComponents";
-import { getData, postData, putData, showToast, displayDateMD } from '../../globalFunction';
+import { getData, postData, putData, showToast, deleteData } from '../../globalFunction';
 
 import { connect } from "react-redux"
 import { withRouter } from "react-router";
@@ -79,7 +79,6 @@ class DocumentList extends React.Component {
         // }
         getData(requestUrl, {}, (c) => {
             const { count, result } = { ...c.data }
-            console.log(count)
             dispatch({ type: 'SET_DOCUMENT_LIST', list: document.List.concat(result), count: count });
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' });
         });
@@ -235,13 +234,88 @@ class DocumentList extends React.Component {
         }
     }
 
+    starredDocument({ id, isStarred, origin }) {
+        const { document, loggedUser, dispatch, match } = this.props;
+        const projectId = match.params.projectId;
+        const isStarredValue = (isStarred > 0) ? 0 : 1;
+
+        postData(`/api/starred?projectId=${projectId}&document=${origin}`, {
+            linkType: "document",
+            linkId: id,
+            usersId: loggedUser.data.id
+        }, (c) => {
+            if (c.status == 200) {
+                const updatedDocumentList = _.map([...document.List], (documentObj, index) => {
+                    if (id == documentObj.id) {
+                        documentObj["isStarred"] = isStarredValue;
+                    }
+                    return documentObj;
+                });
+                dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList });
+                showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
+    }
+
+    editDocument(data, type) {
+        const { dispatch } = this.props;
+        const newData = { ...data, workstreamId: data.tagWorkstream };
+        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...newData, oldDocument: type === 'tags' ? data.tagWorkstream.map((e) => { return e.label }).join(',') : newData.origin } });
+        dispatch({ type: "SET_DOCUMENT_EDIT_TYPE", EditType: type });
+        $(`#editModal`).modal('show');
+    }
+
+    duplicateDocument(data) {
+        const { dispatch, loggedUser, match } = this.props;
+        const projectId = match.params.projectId;
+        const dataToSubmit = {
+            DocumentToSave: [{ name: data.name, origin: data.origin, project: projectId, uploadedBy: loggedUser.data.id, status: data.status, type: data.type }],
+            projectId: projectId,
+            tagWorkstream: data.tagWorkstream,
+            tagTask: data.tagTask,
+            tagNote: data.tagNote
+        };
+        postData(`/api/document?isDuplicate=true`, dataToSubmit, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "ADD_DOCUMENT_LIST", list: c.data.result });
+                showToast("success", "Successfully Added.")
+            } else {
+                showToast("error", "Saving failed. Please Try again later.")
+            }
+        })
+    }
+
+    readDocument(data, action) {
+        const { dispatch, loggedUser } = this.props;
+        const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 }
+        if (action === "read") {
+            postData(`/api/document/read`, dataToSubmit, (c) => {
+                const documentObj = { ...data, isRead: 1, document_read: [c.data] }
+                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: documentObj });
+                showToast('success', 'Document successfully mark as read.');
+            })
+        } else {
+            deleteData(`/api/document/read/${data.id}?usersId=${loggedUser.data.id}&documentId=${data.id}`, {}, (c) => {
+                const documentObj = { ...data, isRead: 0, document_read: [] }
+                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: documentObj });
+                showToast('success', 'Document successfully mark as unread.');
+            })
+        }
+    }
+
+    archive() {
+
+    }
+
     render() {
-        const { dispatch, document, folder } = { ...this.props };
+        const { dispatch, document, folder, match } = { ...this.props };
         const { Count } = { ...document };
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
         let tagCount = 0;
-
+        console.log(match)
         return (
             <div>
                 {(document.Filter.status) !== 'sort' &&
@@ -268,7 +342,7 @@ class DocumentList extends React.Component {
                                                     <th scope="col">Upload Date</th>
                                                     <th scope="col">Workstream</th>
                                                     <th scope="col">Read On</th>
-                                                    <th scope="col">Actions</th>
+                                                    {(match.path === "/projects/:projectId/files") && <th scope="col">Actions</th>}
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -298,19 +372,58 @@ class DocumentList extends React.Component {
                                                                 }
                                                                 </td>
                                                                 <td>{data.isRead ? moment(data.document_read[0].dateUpdated).format("MMMM DD, YYYY") : ''}</td>
-                                                                <td>
-                                                                    <a href="javascript:void(0);"
-                                                                        onClick={() => this.downloadDocument(data)}
-                                                                        class="btn btn-action">
-                                                                        <span class="fa fa-download" title="DOWNLOAD"></span>
-                                                                    </a>
-                                                                    <a href="javascript:void(0);"
-                                                                        data-toggle="modal"
-                                                                        data-target="#deleteModal"
-                                                                        onClick={() => dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data })}
-                                                                        class="btn btn-action">
-                                                                        <span class="fa fa-trash" title="DELETE"></span></a>
-                                                                </td>
+                                                                {
+                                                                    (match.path === "/projects/:projectId/files") &&
+                                                                    <td>
+                                                                        <a href="javascript:void(0)"
+                                                                            onClick={() => this.downloadDocument(data)}
+                                                                            class="btn btn-action">
+                                                                            <span class="fa fa-download" title="DOWNLOAD"></span>
+                                                                        </a>
+                                                                        <a href="javascript:void(0)"
+                                                                            data-toggle="modal"
+                                                                            data-target={`${data.isArchived ? "" : "#archiveModal"}`}
+                                                                            onClick={(e) => { data.isArchived ? e.preventDefault() : dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data }) }}
+                                                                            class="btn btn-action">
+                                                                            <span class={`fa fa-archive ${data.isArchived ? "text-cyan" : ""}`} title="ARCHIVE">
+                                                                            </span>
+                                                                        </a>
+                                                                        <a href="javascript:void(0)"
+                                                                            data-toggle="modal"
+                                                                            data-target="#deleteModal"
+                                                                            onClick={() => dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data })}
+                                                                            class="btn btn-action">
+                                                                            <span class="fa fa-trash" title="DELETE"></span>
+                                                                        </a>
+                                                                        <a class="btn btn-action dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                            <span ><i class="fa fa-ellipsis-v"></i></span>
+                                                                        </a>
+                                                                        <ul class="dropdown-menu  pull-right" aria-labelledby="dropdownMenu2">
+
+                                                                            {(data.type != 'folder') &&
+                                                                                <li><a href="javascript:void(0)" data-tip="Download" onClick={() => this.duplicateDocument(data)}>Duplicate</a></li>
+                                                                            }
+                                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "rename")}>Rename</a></li>
+                                                                            <li><a href="javascript:void(0)" data-tip="Edit" onClick={() => this.editDocument(data, "tags")}>Edit Tags</a></li>
+                                                                            <li>
+                                                                                <a onClick={() => this.starredDocument({ isStarred: data.isStarred, id: data.id, origin: data.origin })}>
+                                                                                    {data.isStarred ? 'Unstarred' : 'Star'}
+                                                                                </a>
+                                                                            </li>
+                                                                            <li><a href="javascript:void(0)" data-tip="View" onClick={() => this.viewDocument(data)}>View</a></li>
+
+                                                                            {data.type === "document" &&
+                                                                                <li>
+                                                                                    {
+                                                                                        (data.isRead > 0)
+                                                                                            ? <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "unread")}>Mark as unread</a>
+                                                                                            : <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "read")}>Mark as read</a>
+                                                                                    }
+                                                                                </li>
+                                                                            }
+                                                                        </ul>
+                                                                    </td>
+                                                                }
                                                             </tr>
                                                         )
 

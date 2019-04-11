@@ -175,12 +175,11 @@ class EditModal extends React.Component {
                                             <DropDown
                                                 name="tags"
                                                 multiple={true}
-                                                required={false}
+                                                required={true}
                                                 options={workstream.SelectList}
                                                 selected={(document.Selected.tagWorkstream != null) ? document.Selected.tagWorkstream : []}
                                                 onChange={(e) => this.setDropDown("tagWorkstream", (e == null) ? "" : e)}
                                             />
-
                                         </div>
                                     </div>
                                 }
