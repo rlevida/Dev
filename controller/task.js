@@ -4,7 +4,7 @@ const moment = require("moment");
 
 const { defaultDelete } = require("./");
 const models = require('../modelORM');
-const { ChecklistDocuments, Document, DocumentRead, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, UsersRole, Roles, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, Type, UsersTeam, Teams, Tag, sequelize } = models;
+const { ChecklistDocuments, Document, DocumentRead, TaskDependency, Tasks, Members, TaskChecklist, Workstream, Projects, Users, UsersRole, Roles, Sequelize, DocumentLink, ActivityLogs, Reminder, Starred, Type, UsersTeam, Teams, Tag, sequelize, Notification, UsersNotificationSetting } = models;
 
 const dbName = "task";
 const func = global.initFunc();
@@ -788,6 +788,119 @@ exports.post = {
                                             } else {
                                                 parallelCallback(null, {});
                                             }
+                                        },
+                                        notification: (parallelCallback) => {
+                                            UsersNotificationSetting
+                                                .findAll({ where: { usersId: [body.assignedTo, body.approverId] } })
+                                                .map((response) => {
+                                                    return response.toJSON();
+                                                })
+                                                .then((response) => {
+                                                    const notificationArr = _.filter(response, (nSetting) => {
+                                                        return (nSetting.taskAssigned === 1 && body.assignedTo === nSetting.usersId) || (nSetting.taskApprover === 1 && body.approverId === nSetting.usersId)
+                                                    }).map((nSetting) => {
+                                                        if (nSetting.taskAssigned === 1 && body.assignedTo === nSetting.usersId) {
+                                                            return {
+                                                                usersId: nSetting.usersId,
+                                                                projectId: body.projectId,
+                                                                taskId: taskObj.id,
+                                                                workstreamId: body.workstreamId,
+                                                                createdBy: body.userId,
+                                                                type: "taskAssigned",
+                                                                message: "Assigned a new task for you",
+                                                                receiveEmail: nSetting.receiveEmail
+                                                            }
+                                                        }
+
+                                                        if (nSetting.taskApprover === 1 && body.approverId === nSetting.usersId) {
+                                                            return {
+                                                                usersId: nSetting.usersId,
+                                                                projectId: body.projectId,
+                                                                taskId: taskObj.id,
+                                                                workstreamId: body.workstreamId,
+                                                                createdBy: body.userId,
+                                                                type: "taskApprover",
+                                                                message: "Needs your approval to complete a task",
+                                                                receiveEmail: nSetting.receiveEmail
+                                                            }
+                                                        }
+                                                    })
+
+                                                    Notification
+                                                        .bulkCreate(notificationArr)
+                                                        .map((notificationRes) => {
+                                                            return notificationRes.id
+                                                        })
+                                                        .then((notificationRes) => {
+                                                            Notification
+                                                                .findAll({
+                                                                    where: { id: notificationRes },
+                                                                    include: [
+                                                                        {
+                                                                            model: Users,
+                                                                            as: 'to',
+                                                                            required: false,
+                                                                            attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                                        },
+                                                                        {
+                                                                            model: Users,
+                                                                            as: 'from',
+                                                                            required: false,
+                                                                            attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                                        },
+                                                                        {
+                                                                            model: Document,
+                                                                            as: 'document_notification',
+                                                                            required: false,
+                                                                            attributes: ["origin"]
+                                                                        },
+                                                                        {
+                                                                            model: Workstream,
+                                                                            as: 'workstream_notification',
+                                                                            required: false,
+                                                                            attributes: ["workstream"]
+                                                                        },
+                                                                        {
+                                                                            model: Tasks,
+                                                                            as: 'task_notification',
+                                                                            required: false,
+                                                                            attributes: ["task"]
+                                                                        },
+                                                                    ]
+                                                                })
+                                                                .map((findNotificationRes) => {
+                                                                    req.app.parent.io.emit('FRONT_NOTIFICATION', {
+                                                                        ...findNotificationRes.toJSON()
+                                                                    });
+                                                                    return _.without(_.map(notificationArr, (nObj) => {
+                                                                        if (nObj.usersId === findNotificationRes.toJSON().usersId) {
+                                                                            return { ...nObj, emailAddress: findNotificationRes.toJSON().to.emailAddress }
+                                                                        }
+                                                                    }), undefined)
+
+                                                                })
+                                                                .then((findNotificationRes) => {
+
+                                                                    _.flatMapDeep(findNotificationRes).map(({ message, receiveEmail, emailAddress }) => {
+                                                                        if (receiveEmail) {
+                                                                            let html = '<p>' + message + '</p>';
+                                                                            html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                                            // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                                            html += '<p>Message:<br>' + message + '</p>';
+
+                                                                            const mailOptions = {
+                                                                                from: '"no-reply" <no-reply@c_cfo.com>',
+                                                                                to: `${emailAddress}`,
+                                                                                subject: '[CLOUD-CFO]',
+                                                                                html: html
+                                                                            };
+                                                                            global.emailtransport(mailOptions);
+                                                                        }
+                                                                    })
+                                                                    parallelCallback(null, {})
+                                                                })
+                                                        })
+                                                })
                                         }
                                     }, (err, response) => {
                                         resolve(response)
@@ -1281,6 +1394,118 @@ exports.put = {
                         Promise.all(memberPromise).then((values) => {
                             parallelCallback(null, _.flatten(values));
                         });
+                    },
+                    notification: (parallelCallback) => {
+                        UsersNotificationSetting
+                            .findAll({ where: { usersId: [body.assignedTo, body.approverId] } })
+                            .map((response) => {
+                                return response.toJSON();
+                            })
+                            .then((response) => {
+                                const notificationArr = _.filter(response, (nSetting) => {
+                                    return (nSetting.taskAssigned === 1 && body.assignedTo === nSetting.usersId) || (nSetting.taskApprover === 1 && body.approverId === nSetting.usersId)
+                                }).map((nSetting) => {
+                                    if (nSetting.taskAssigned === 1 && body.assignedTo === nSetting.usersId) {
+                                        return {
+                                            usersId: nSetting.usersId,
+                                            projectId: body.projectId,
+                                            taskId: body.id,
+                                            workstreamId: body.workstreamId,
+                                            createdBy: body.userId,
+                                            type: "taskAssigned",
+                                            message: "Assigned a new task for you",
+                                            receiveEmail: nSetting.receiveEmail
+                                        }
+                                    }
+
+                                    if (nSetting.taskApprover === 1 && body.approverId === nSetting.usersId && body.approvalRequired === 1) {
+                                        return {
+                                            usersId: nSetting.usersId,
+                                            projectId: body.projectId,
+                                            taskId: body.id,
+                                            workstreamId: body.workstreamId,
+                                            createdBy: body.userId,
+                                            type: "taskApprover",
+                                            message: "Needs your approval to complete a task",
+                                            receiveEmail: nSetting.receiveEmail
+                                        }
+                                    }
+                                })
+                                Notification
+                                    .bulkCreate(notificationArr)
+                                    .map((notificationRes) => {
+                                        return notificationRes.id
+                                    })
+                                    .then((notificationRes) => {
+                                        Notification
+                                            .findAll({
+                                                where: { id: notificationRes },
+                                                include: [
+                                                    {
+                                                        model: Users,
+                                                        as: 'to',
+                                                        required: false,
+                                                        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                    },
+                                                    {
+                                                        model: Users,
+                                                        as: 'from',
+                                                        required: false,
+                                                        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                    },
+                                                    {
+                                                        model: Document,
+                                                        as: 'document_notification',
+                                                        required: false,
+                                                        attributes: ["origin"]
+                                                    },
+                                                    {
+                                                        model: Workstream,
+                                                        as: 'workstream_notification',
+                                                        required: false,
+                                                        attributes: ["workstream"]
+                                                    },
+                                                    {
+                                                        model: Tasks,
+                                                        as: 'task_notification',
+                                                        required: false,
+                                                        attributes: ["task"]
+                                                    },
+                                                ]
+                                            })
+                                            .map((findNotificationRes) => {
+                                                req.app.parent.io.emit('FRONT_NOTIFICATION', {
+                                                    ...findNotificationRes.toJSON()
+                                                });
+                                                return _.without(_.map(notificationArr, (nObj) => {
+                                                    if (nObj.usersId === findNotificationRes.toJSON().usersId) {
+                                                        return { ...nObj, emailAddress: findNotificationRes.toJSON().to.emailAddress }
+                                                    }
+                                                }), undefined)
+
+                                            })
+                                            .then((findNotificationRes) => {
+
+                                                _.flatMapDeep(findNotificationRes).map(({ message, receiveEmail, emailAddress }) => {
+                                                    if (receiveEmail) {
+                                                        let html = '<p>' + message + '</p>';
+                                                        html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                        // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                        html += '<p>Message:<br>' + message + '</p>';
+
+                                                        const mailOptions = {
+                                                            from: '"no-reply" <no-reply@c_cfo.com>',
+                                                            to: `${emailAddress}`,
+                                                            subject: '[CLOUD-CFO]',
+                                                            html: html
+                                                        };
+                                                        global.emailtransport(mailOptions);
+                                                    }
+                                                })
+                                                parallelCallback(null, {})
+                                            })
+                                    })
+                            })
                     }
                 }, (err, { members }) => {
                     async.parallel({

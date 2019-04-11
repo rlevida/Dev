@@ -382,7 +382,6 @@ exports.get = {
         }
 
         if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
-            console.log(`here`)
             _.find(associationFindAllStack, { as: 'document_starred' }).where = {
                 linkType: 'document',
                 isActive: 1,
@@ -761,7 +760,10 @@ exports.post = {
                                                 .map((resTask) => {
                                                     return resTask
                                                         .toJSON().task_members
-                                                        .filter((r) => { return r.user.notification_setting.receiveEmail === 1 })
+                                                        .filter((r) => { 
+                                                            console.log(r.user)
+                                                            return r.user.notification_setting.receiveEmail === 1 
+                                                        })
                                                         .map((r) => {
                                                             return {
                                                                 usersId: r.user.id,

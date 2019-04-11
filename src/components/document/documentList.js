@@ -315,7 +315,6 @@ class DocumentList extends React.Component {
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
         let tagCount = 0;
-        console.log(match)
         return (
             <div>
                 {(document.Filter.status) !== 'sort' &&

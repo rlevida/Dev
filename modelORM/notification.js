@@ -33,7 +33,7 @@ module.exports = function (sequelize, DataTypes) {
             allowNull: true
         },
         type: {
-            type: DataTypes.ENUM('taskAssigned', 'taskTagged', 'fileNewUpload', 'messageSend', 'commentReplies', 'taskDeadline', 'taskMemberCompleted', 'taskFollowingCompleted', 'taskTeamDeadline', 'taskFollowingDeadline'),
+            type: DataTypes.ENUM('taskAssigned', "taskApprover", 'taskTagged', 'fileNewUpload', 'messageSend', 'commentReplies', 'taskDeadline', 'taskMemberCompleted', 'taskFollowingCompleted', 'taskTeamDeadline', 'taskFollowingDeadline'),
             allowNull: true
         },
         isActive: {
@@ -89,7 +89,7 @@ module.exports = function (sequelize, DataTypes) {
         Notification.belongsTo(models.Workstream, {
             foreignKey: 'workstreamId',
             as: 'workstream_notification'
-          });
+        });
     }
     return Notification;
 };

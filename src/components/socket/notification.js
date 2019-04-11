@@ -26,6 +26,7 @@ export default class Socket extends React.Component {
                 showToast("info", `<span style="font-weight: bolder">${data.from.firstName} ${data.from.lastName}</span> ${notificationType(data.type)}`);
                 dispatch({ type: "SET_NOTIFICATION_LIST", list: _.orderBy(newList, ["dateAdded"], ["desc"]) })
             }
+
         })
     }
 

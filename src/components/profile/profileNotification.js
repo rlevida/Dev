@@ -43,7 +43,7 @@ export default class ProfileNotification extends React.Component {
 
     render() {
         const { users, loggedUser } = { ...this.props };
-        const { taskAssigned, taskTagged, fileNewUpload, messageSend, commentReplies, taskDeadline, taskMemberCompleted, taskFollowingCompleted, taskTeamDeadline, taskFollowingDeadline, receiveEmail } = { ...users.NotificationSetting }
+        const { taskAssigned, taskTagged, taskApprover, fileNewUpload, messageSend, commentReplies, taskDeadline, taskMemberCompleted, taskFollowingCompleted, taskTeamDeadline, taskFollowingDeadline, receiveEmail } = { ...users.NotificationSetting }
         return (
             <div class="mt20">
                 <h4><strong>Send Notification when:</strong></h4>
@@ -56,6 +56,18 @@ export default class ProfileNotification extends React.Component {
                                 checked={taskAssigned ? 1 : 0}
                                 onChange={() => { }}
                                 onClick={() => this.handleChange('taskAssigned', taskAssigned ? 0 : 1)}
+                            />
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="custom-checkbox">
+                            I have been assigned to do a task as approver
+                            <input
+                                type="checkbox"
+                                checked={taskApprover ? 1 : 0}
+                                onChange={() => { }}
+                                onClick={() => this.handleChange('taskApprover', taskApprover ? 0 : 1)}
                             />
                             <span class="checkmark"></span>
                         </label>

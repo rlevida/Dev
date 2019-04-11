@@ -16,6 +16,10 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.BIGINT,
             allowNull: true
         },
+        taskApprover: {
+            type: DataTypes.BIGINT,
+            allowNull: true
+        },
         taskTagged: {
             type: DataTypes.BIGINT,
             allowNull: true
