@@ -6,8 +6,6 @@ import { showToast, postData, putData, getData, deleteData, setDatePicker, displ
 import { DropDown, DeleteModal } from "../../globalComponents";
 
 import TaskDependency from "./taskDependency";
-import TaskChecklist from "./taskChecklist";
-import TaskDocument from "./taskDocument";
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -47,13 +45,9 @@ export default class TaskForm extends React.Component {
             "handleSubmit",
             "getTaskDetails",
             "fetchApproverMembers",
-            "deleteSubTask",
-            "confirmDeleteSubtask",
             "confirmDeleteTaskDependency",
             "generateDueDate",
-            "deleteDocument",
             "renderArrayTd",
-            "confirmDeleteDocument",
             "onChangeRaw"
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
@@ -366,28 +360,12 @@ export default class TaskForm extends React.Component {
         }
     }
 
-    deleteSubTask(value) {
-        const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_CHECKLIST_SELECTED", Selected: { ...value, action: 'delete' } });
-        $('#delete-checklist').modal("show");
-    }
-
     deleteTaskDependency(value) {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_TASK_DEPENDENCY_SELECTED", Selected: { ...value, action: 'delete' } });
         $('#delete-taskDependency').modal("show");
     }
 
-    confirmDeleteSubtask() {
-        const { checklist, dispatch, task, loggedUser } = this.props;
-        const { Selected } = checklist;
-
-        deleteData(`/api/checklist/${Selected.id}?taskId=${task.Selected.id}&userId=${loggedUser.data.id}`, {}, (c) => {
-            dispatch({ type: "DELETE_CHECKLIST", data: { id: Selected.id } });
-            showToast("success", "Subtask successfully deleted.");
-            $('#delete-checklist').modal("hide");
-        });
-    }
 
     confirmDeleteTaskDependency() {
         const { dispatch, loggedUser, taskDependency } = this.props;
@@ -411,32 +389,6 @@ export default class TaskForm extends React.Component {
         return (
             arr.join("\r\n")
         );
-    }
-
-    deleteDocument(value) {
-        const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: { ...value, action: 'delete' } });
-        $('#delete-document').modal("show");
-    }
-
-    confirmDeleteDocument() {
-        const { dispatch, document, task } = this.props;
-        deleteData(`/api/task/document/${document.Selected.id}?type=${document.Selected.type}`, {}, (c) => {
-            if (document.Selected.type == "Task Document") {
-                const taskDocument = _.filter(task.Selected.tag_task, (o) => {
-                    return o.document.id != document.Selected.id;
-                });
-                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, tag_task: taskDocument } });
-            } else {
-                const checklist = _.map(task.Selected.checklist, (o) => {
-                    return { ...o, tagDocuments: _.filter(o.tagDocuments, (o) => { return o.id != document.Selected.id }) }
-                });
-                dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, checklist } });
-            }
-            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
-            showToast("success", "Task Document successfully deleted.");
-            $('#delete-document').modal("hide");
-        });
     }
 
     onChangeRaw(e) {
@@ -749,7 +701,7 @@ export default class TaskForm extends React.Component {
                                                             <p class="m0 note">Please select a project first.</p>
                                                             <div class={`input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
                                                                 <DropDown
-                                                                    required={(task.Selected.periodic == 1)}
+                                                                    required={(typeof task.Selected.approvalRequired != "undefined" && task.Selected.approvalRequired != "")}
                                                                     options={members.SelectList}
                                                                     onInputChange={this.setApproverList}
                                                                     selected={(typeof task.Selected.approverId == "undefined") ? "" : task.Selected.approverId}
@@ -828,138 +780,6 @@ export default class TaskForm extends React.Component {
                                 </a>
                             </form>
                             {
-                                (typeof task.Selected.id != "undefined" && task.Selected.id != "") &&
-                                <div class="bt mb20">
-                                    <div class="row">
-                                        <div class=" col-lg-12 md-12 col-sm-12">
-                                            <div class="mt20 mb20">
-                                                <p class="form-header mb0">Task Subtask</p>
-                                                <p>All with <span class="text-red">*</span> are required.</p>
-                                            </div>
-                                            <TaskChecklist />
-                                            <div class={(checklist.Loading == "RETRIEVING" && (checklist.List).length == 0) ? "linear-background mt20" : "mt20"}>
-                                                {
-                                                    ((checklist.List).length > 0) && <table>
-                                                        <thead>
-                                                            <tr>
-                                                                <th scope="col">Subtask</th>
-                                                                <th scope="col">Type</th>
-                                                                <th scope="col">Added By</th>
-                                                                <th scope="col">Date Added</th>
-                                                                <th scope="col">Action</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {
-                                                                _.map(checklist.List, (o, index) => {
-                                                                    const { description, user, isDocument } = o;
-
-                                                                    return (
-                                                                        <tr key={index}>
-                                                                            <td data-label="Subtask" class="td-left">
-                                                                                {description}
-                                                                            </td>
-                                                                            <td data-label="Type">
-                                                                                {
-                                                                                    (isDocument == 1) && <p class="mb0">Document</p>
-                                                                                }
-                                                                            </td>
-                                                                            <td data-label="Added By">
-                                                                                {
-                                                                                    user.firstName + " " + user.lastName
-                                                                                }
-                                                                            </td>
-                                                                            <td data-label="Date Added">
-                                                                                {
-                                                                                    moment(o.dateAdded).format("MMMM DD, YYYY")
-                                                                                }
-                                                                            </td>
-                                                                            <td data-label="Action">
-                                                                                <a
-                                                                                    href="javascript:void(0);"
-                                                                                    onClick={(e) => this.deleteSubTask(o)}
-                                                                                    class="btn btn-action"
-                                                                                >
-                                                                                    <span class="fa fa-trash"></span></a>
-                                                                            </td>
-                                                                        </tr>
-                                                                    )
-                                                                })
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                }
-                                                {
-                                                    ((checklist.List).length == 0 && checklist.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                            {
-                                (typeof task.Selected.id != "undefined" && task.Selected.id != "") &&
-                                <div class="bt mb20">
-                                    <div class="row">
-                                        <div class=" col-lg-12 md-12 col-sm-12">
-                                            <div class="mt20 mb20">
-                                                <p class="form-header mb0">Task Documents</p>
-                                                <p>All with <span class="text-red">*</span> are required.</p>
-                                            </div>
-                                            <TaskDocument />
-                                            <div class="mt20">
-                                                {
-                                                    ((documentList).length > 0) && <table>
-                                                        <thead>
-                                                            <tr>
-                                                                <th scope="col" class="td-left">File Name</th>
-                                                                <th scope="col">Upload Type</th>
-                                                                <th scope="col">Subtasks</th>
-                                                                <th scope="col">Upload Date</th>
-                                                                <th scope="col">Action</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {
-                                                                _.map(documentList, ({ id, name, type, child = [], dateAdded }, index) => {
-                                                                    return (
-                                                                        <tr key={index}>
-                                                                            <td data-label="File Name" class="td-left">
-                                                                                {name}
-                                                                            </td>
-                                                                            <td data-label="Upload Type">
-                                                                                {type}
-                                                                            </td>
-                                                                            <td data-label="Subtasks">
-                                                                                {this.renderArrayTd(child)}
-                                                                            </td>
-                                                                            <td data-label="Upload Date">
-                                                                                {moment(dateAdded).format("MMMM DD, YYYY")}
-                                                                            </td>
-                                                                            <td data-label="Action">
-                                                                                <a
-                                                                                    href="javascript:void(0);"
-                                                                                    onClick={(e) => this.deleteDocument({ id, name, type })}
-                                                                                    class="btn btn-action"
-                                                                                >
-                                                                                    <span class="fa fa-trash"></span></a>
-                                                                            </td>
-                                                                        </tr>
-                                                                    )
-                                                                })
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                }
-                                                {
-                                                    ((documentList).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                            {
                                 (typeof task.Selected.id != "undefined" && task.Selected.id != "" && loggedUser.data.userRole <= 4) &&
                                 <div class="bt mb20">
                                     <div class="row">
@@ -1020,22 +840,10 @@ export default class TaskForm extends React.Component {
                 </div>
                 {/* Modals */}
                 <DeleteModal
-                    id="delete-checklist"
-                    type={'checklist'}
-                    type_value={checklistTypeValue}
-                    delete_function={this.confirmDeleteSubtask}
-                />
-                <DeleteModal
                     id="delete-taskDependency"
                     type={'task dependency'}
                     type_value={taskDependencyValue}
                     delete_function={this.confirmDeleteTaskDependency}
-                />
-                <DeleteModal
-                    id="delete-document"
-                    type={'task document'}
-                    type_value={documentValue}
-                    delete_function={this.confirmDeleteDocument}
                 />
             </div >
         )
