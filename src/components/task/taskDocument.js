@@ -37,7 +37,7 @@ export default class TaskDocument extends React.Component {
     }
 
     handleSubmit() {
-        const { document, loggedUser, task, dispatch, project,match } = { ...this.props };
+        const { document, loggedUser, task, dispatch, project, match } = { ...this.props };
         let data = new FormData();
         dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING", LoadingType: 'Loading' });
         _.map(document.Files, (file) => {
@@ -145,7 +145,7 @@ export default class TaskDocument extends React.Component {
                             options={_.map(_.filter(checklist, (o) => { return o.isDocument == 1 }), ({ id, description }) => { return { id, name: description } })}
                             selected={(typeof Selected.tagged == "undefined") ? [] : Selected.tagged}
                             onChange={(e) => this.setDropDownMultiple("tagged", e)}
-                            placeholder={"Search or select checklist"}
+                            placeholder={"Search or select document checklist"}
                             isClearable={(checklist.length > 0)}
                             disabled={(Loading == "SUBMITTING")}
                         />
