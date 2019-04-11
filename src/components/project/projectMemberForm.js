@@ -199,7 +199,7 @@ export default class ProjectMemberForm extends React.Component {
                             required={true}
                             options={(members.Selected.type == "users" || loggedUser.data.userRole >= 4) ? users.SelectList : (members.Selected.type == "team") ? teams.SelectList : []}
                             onInputChange={
-                                (members.Selected.type == "users" || loggedUser.data.userRole >= 4) ? this.setAssignMemberUserList : (members.Selected.type == "team") ? this.setAssignMemberTeamList : ""
+                                (members.Selected.type == "users" || loggedUser.data.userRole >= 4) ? this.setAssignMemberUserList : (members.Selected.type == "team") ? this.setAssignMemberTeamList : undefined
                             }
                             selected={(typeof members.Selected.userTypeLinkId == "undefined" || members.Selected.action == "delete") ? "" : members.Selected.userTypeLinkId}
                             onChange={(e) => {
@@ -207,7 +207,7 @@ export default class ProjectMemberForm extends React.Component {
                             }}
                             placeholder={'Search name'}
                             onFocus={
-                                (members.Selected.type == "users" || loggedUser.data.userRole >= 4) ? this.setAssignMemberUserList : (members.Selected.type == "team") ? this.setAssignMemberTeamList : ""
+                                (members.Selected.type == "users" || loggedUser.data.userRole >= 4) ? this.setAssignMemberUserList : (members.Selected.type == "team") ? this.setAssignMemberTeamList : undefined
                             }
                         />
                         <div class="loading diplay-flex vh-center">
