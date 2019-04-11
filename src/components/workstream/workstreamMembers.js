@@ -58,8 +58,8 @@ export default class WorkstreamMembers extends React.Component {
                         (members.List.length > 0) && <table>
                             <thead>
                                 <tr>
-                                    <th scope="col">Username</th>
-                                    <th scope="col">First Name</th>
+                                    <th scope="col" class="td-left">Username</th>
+                                    <th scope="col">Name</th>
                                     <th scope="col">Last Name</th>
                                     <th scope="col">Email Address</th>
                                     <th scope="col">Member Type</th>
@@ -68,29 +68,29 @@ export default class WorkstreamMembers extends React.Component {
                             <tbody>
                                 {
                                     _.orderBy(members.List, ['firstName'], ['asc']).map(({ user, memberType }, index) => {
-
+                                        const { session = "", username, firstName, lastName, emailAddress, avatar } = user;
                                         return (
                                             <tr
                                                 key={index}
                                             >
-                                                <td data-label="Username">
+                                                <td data-label="Username" class="td-left">
+                                                    <p class="m0">
+                                                        <span><i class={`fa fa-circle mb0 mr5 ${((session != "" && session != null) ? "text-green" : "text-light-grey")}`}></i></span>
+                                                        {username}
+                                                    </p>
+                                                </td>
+                                                <td data-label="Name">
                                                     <div class="display-flex">
                                                         <div class="profile-div">
                                                             <div class="thumbnail-profile">
-                                                                <img src={user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                <img src={avatar} alt="Profile Picture" class="img-responsive" />
                                                             </div>
-                                                            <p class="m0">{user.username}</p>
+                                                            <p class="m0">{firstName + " " + lastName}</p>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td data-label="First Name">
-                                                    {user.firstName}
-                                                </td>
-                                                <td data-label="Last Name">
-                                                    {user.lastName}
-                                                </td>
                                                 <td data-label="Email Address">
-                                                    {user.emailAddress}
+                                                    {emailAddress}
                                                 </td>
                                                 <td data-label="Member Type">
                                                     {

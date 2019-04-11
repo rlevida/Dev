@@ -1,7 +1,7 @@
 const _ = require("lodash");
 const async = require("async");
 const models = require('../modelORM');
-const { Members, Users, UsersRole, Roles, UsersTeam, Teams, TaskMemberReminder, Sequelize, sequelize } = models;
+const { Members, Users, UsersRole, Roles, UsersTeam, Teams, TaskMemberReminder, Sequelize, sequelize, Session } = models;
 const associationArray = [
     {
         model: Users,
@@ -33,6 +33,11 @@ const associationArray = [
             {
                 model: TaskMemberReminder,
                 as: 'task_member_reminder',
+                required: false
+            },
+            {
+                model: Session,
+                as: 'session',
                 required: false
             }
         ]

@@ -126,6 +126,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'to',
       foreignKey: 'usersId'
     })
+    Users.hasOne(models.Session, {
+      as: 'session',
+      foreignKey: 'usersId'
+    })
   };
 
   return Users;
