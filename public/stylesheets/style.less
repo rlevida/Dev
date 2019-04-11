@@ -1219,6 +1219,10 @@ input:checked + .slider:before {
   top: 10px;
 }
 
+#task-document-form{
+  margin: 0 auto;
+}
+
 .nav li{
   color: #fff;
 }
@@ -1876,7 +1880,6 @@ textarea::-webkit-scrollbar-thumb {
 }
 
 #task-document {
-  max-width: 360px;
   height: 200px;
 }
 
@@ -1967,6 +1970,21 @@ textarea::-webkit-scrollbar-thumb {
 
 .todo-checklist{
   font-weight: unset!important;
+  margin: 0px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+#checklist .custom-checkbox{
+    white-space: pre-wrap;
+    display: block;
+    width: 485px;
+    word-wrap: break-word;
+}
+
+.checklist-item:hover,
+.attachment:hover{
+  background-color: #f6f6f6;
 }
 
 .note {
@@ -2182,6 +2200,7 @@ textarea::-webkit-scrollbar-thumb {
 
 .project-picture-wrapper img{
   max-width: 200px;
+  border: 1px solid #ccc;
 }
 
 .profile-wrapper i,
