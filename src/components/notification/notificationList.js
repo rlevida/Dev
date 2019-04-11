@@ -4,9 +4,10 @@ import { getData, putData, showToast } from '../../globalFunction';
 import { connect } from "react-redux"
 import { withRouter } from "react-router";
 import _ from "lodash"
-import DocumentTemplate from "./template/notificationDocument"
+import FileNewUpload from "./template/fileNewUpload"
+import TaskAssgined from "./template/taskAssigned"
+import TaskApprover from "./template/taskApprover"
 import ArchivedModal from "./archiveModal"
-
 @connect((store) => {
     return {
         loggedUser: store.loggedUser,
@@ -66,7 +67,13 @@ class DocumentList extends React.Component {
                                 {_.orderBy(List, ['dateAdded'], ['desc']).map((e, i) => {
                                     switch (e.type) {
                                         case 'fileNewUpload': {
-                                            return <div key={i}><DocumentTemplate data={e} index={i} archive={(data) => this.archive(data)} /></div>
+                                            return <div key={i}><FileNewUpload data={e} index={i} archive={(data) => this.archive(data)} /></div>
+                                        }
+                                        case 'taskAssigned': {
+                                            return <div key={i}><TaskAssgined data={e} index={i} archive={(data) => this.archive(data)} /></div>
+                                        }
+                                        case 'taskApprover': {
+                                            return <div key={i}><TaskApprover data={e} index={i} archive={(data) => this.archive(data)} /></div>
                                         }
                                     }
                                 })}
