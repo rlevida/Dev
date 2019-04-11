@@ -17,7 +17,9 @@ const {
     Projects,
     Starred,
     sequelize,
-    Sequelize
+    Sequelize,
+    UsersNotificationSetting,
+    Notification
 } = models;
 const Op = Sequelize.Op;
 
@@ -551,86 +553,199 @@ exports.post = {
                         });
                 }
             }, (err, result) => {
-                Users.findAll({
-                    where: {
-                        id: userId
-                    }
-                }).map((o) => {
-                    const userObj = o.toJSON();
-                    return userObj;
-                }).then(async (response) => {
-                    const workstream = await Workstream.findOne({
-                        where: {
-                            id: body.workstreamId
-                        },
-                        include: [
-                            {
-                                model: Projects,
-                                as: 'project'
+                const sender = body.userId;
+                const receiver = body.users.map((e) => { return e.value });
+                UsersNotificationSetting
+                    .findAll({
+                        where: { id: receiver },
+                        include: [{
+                            model: Users,
+                            as: 'notification_setting',
+                            required: false
+                        }]
+                    })
+                    .map((response) => {
+                        return response.toJSON()
+                    })
+                    .then((response) => {
+                        const notificationArr = _.filter(response, (nSetting) => {
+                            return nSetting.messageSend === 1
+                        }).map((nSetting) => {
+                            return {
+                                usersId: nSetting.usersId,
+                                projectId: body.projectId,
+                                createdBy: sender,
+                                noteId: noteResult.id,
+                                type: "messageSend",
+                                message: "Sent you a new message",
                             }
-                        ]
-                    }).then((o) => { return o.toJSON() });
+                        })
 
-                    const sender = _.find(response, (o) => { return o.id == body.userId });
-                    const receivers = _.filter(response, (o) => { return o.id != body.userId });
-                    const reminderList = _.map(receivers, (receiver) => {
-                        return {
-                            detail: sender.firstName + " " + sender.lastName + " started a message.",
-                            emailAddress: receiver.emailAddress,
-                            usersId: receiver.id,
-                            linkType: 'notes',
-                            linkId: noteResult.id,
-                            type: "Send Message",
-                            createdBy: sender.id
-                        }
-                    });
+                        const emailArr = _.filter(response, (nSetting) => {
+                            return nSetting.receiveEmail === 1
+                        }).map((nSetting) => {
+                            return {
+                                usersId: nSetting.usersId,
+                                projectId: body.projectId,
+                                createdBy: sender,
+                                noteId: noteResult.id,
+                                type: "messageSend",
+                                message: "Sent you a new message",
+                                emailAddress: nSetting.notification_setting.emailAddress
+                            }
+                        })
 
-                    Reminder.bulkCreate(
-                        _.map(reminderList, (o) => { return _.omit(o, ["emailAddress"]) })
-                    ).map((response) => {
-                        return response.toJSON();
-                    }).then((resultArray) => {
-                        async.map(reminderList, ({ emailAddress, detail }, mapCallback) => {
-                            let html = '<p>' + detail + '</p>';
-                            html += '<p style="margin-bottom:0">Title: ' + body.title + '</p>';
-                            html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                            html += '<p>Message:<br>' + body.message + '</p>';
+                        Notification
+                            .bulkCreate(notificationArr)
+                            .map((notificationRes) => {
+                                return notificationRes.id
+                            })
+                            .then((notificationRes) => {
+                                Notification
+                                    .findAll({
+                                        where: { id: notificationRes },
+                                        include: [
+                                            {
+                                                model: Users,
+                                                as: 'to',
+                                                required: false,
+                                                attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                            },
+                                            {
+                                                model: Users,
+                                                as: 'from',
+                                                required: false,
+                                                attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                            },
+                                            {
+                                                model: Document,
+                                                as: 'document_notification',
+                                                required: false,
+                                                attributes: ["origin"]
+                                            },
+                                            {
+                                                model: Workstream,
+                                                as: 'workstream_notification',
+                                                required: false,
+                                                attributes: ["workstream"]
+                                            },
+                                            {
+                                                model: Tasks,
+                                                as: 'task_notification',
+                                                required: false,
+                                                attributes: ["task"]
+                                            },
+                                        ]
+                                    })
+                                    .map((findNotificationRes) => {
+                                        req.app.parent.io.emit('FRONT_NOTIFICATION', {
+                                            ...findNotificationRes.toJSON()
+                                        })
+                                        return findNotificationRes.toJSON()
+                                    })
+                                    .then((findNotificationRes) => {
+                                        async.map(emailArr, ({ emailAddress, message }, mapCallback) => {
+                                                let html = '<p>' + message + '</p>';
+                                                html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                html += '<p>Message:<br>' + message + '</p>';
 
-                            const mailOptions = {
-                                from: '"no-reply" <no-reply@c_cfo.com>',
-                                to: `${emailAddress}`,
-                                subject: '[CLOUD-CFO]',
-                                html: html
-                            };
+                                                const mailOptions = {
+                                                    from: '"no-reply" <no-reply@c_cfo.com>',
+                                                    to: `${emailAddress}`,
+                                                    subject: '[CLOUD-CFO]',
+                                                    html: html
+                                                };
+                                                global.emailtransport(mailOptions);
+                                            mapCallback(null)
+                                        }, () => {
+                                            const options = {
+                                                include: getAssociation,
+                                                order: [['dateUpdated', 'DESC']]
+                                            };
 
-                            global.emailtransport(mailOptions);
-                            mapCallback(null);
-                        }, (err, result) => {
-                            const options = {
-                                include: getAssociation,
-                                order: [['dateUpdated', 'DESC']]
-                            };
-                            Notes.findAll({
-                                ...options,
-                                where: {
-                                    id: noteResult.id
-                                }
-                            }).map((mapObject) => {
-                                const responseObj = mapObject.toJSON();
-                                req.app.parent.io.emit('FRONT_NEW_NOTE', {
-                                    ...responseObj,
-                                    isStarred: 0
-                                });
-                                return {
-                                    ...responseObj,
-                                    isStarred: 0
-                                }
-                            }).then((resultArray) => {
-                                cb({ status: true, data: resultArray });
-                            });
-                        });
-                    });
-                })
+                                            Notes.findAll({
+                                                ...options,
+                                                where: {
+                                                    id: noteResult.id
+                                                }
+                                            }).map((mapObject) => {
+                                                const responseObj = mapObject.toJSON();
+                                                req.app.parent.io.emit('FRONT_NEW_NOTE', {
+                                                    ...responseObj,
+                                                    isStarred: 0
+                                                });
+                                                return {
+                                                    ...responseObj,
+                                                    isStarred: 0
+                                                }
+                                            }).then((resultArray) => {
+                                                cb({ status: true, data: resultArray });
+                                            });
+                                        })
+                                    })
+                            })
+                    })
+
+                // Users.findAll({
+                //     where: {
+                //         id: userId
+                //     }
+                // }).map((o) => {
+                //     const userObj = o.toJSON();
+                //     return userObj;
+                // }).then(async (response) => {
+                //     const workstream = await Workstream.findOne({
+                //         where: {
+                //             id: body.workstreamId
+                //         },
+                //         include: [
+                //             {
+                //                 model: Projects,
+                //                 as: 'project'
+                //             }
+                //         ]
+                //     }).then((o) => { return o.toJSON() });
+
+                //     const sender = _.find(response, (o) => { return o.id == body.userId });
+                //     const receivers = _.filter(response, (o) => { return o.id != body.userId });
+                //     const reminderList = _.map(receivers, (receiver) => {
+                //         return {
+                //             detail: sender.firstName + " " + sender.lastName + " started a message.",
+                //             emailAddress: receiver.emailAddress,
+                //             usersId: receiver.id,
+                //             linkType: 'notes',
+                //             linkId: noteResult.id,
+                //             type: "Send Message",
+                //             createdBy: sender.id
+                //         }
+                //     });
+
+                //     Reminder.bulkCreate(
+                //         _.map(reminderList, (o) => { return _.omit(o, ["emailAddress"]) })
+                //     ).map((response) => {
+                //         return response.toJSON();
+                //     }).then((resultArray) => {
+                //         async.map(reminderList, ({ emailAddress, detail }, mapCallback) => {
+                //             let html = '<p>' + detail + '</p>';
+                //             html += '<p style="margin-bottom:0">Title: ' + body.title + '</p>';
+                //             html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                //             html += '<p>Message:<br>' + body.message + '</p>';
+
+                //             const mailOptions = {
+                //                 from: '"no-reply" <no-reply@c_cfo.com>',
+                //                 to: `${emailAddress}`,
+                //                 subject: '[CLOUD-CFO]',
+                //                 html: html
+                //             };
+
+                //             global.emailtransport(mailOptions);
+                //             mapCallback(null);
+                //         }, (err, result) => {
+
+                //         });
+                //     });
+                // })
             });
         }).on('error', function (err) {
             cb({ status: false, error: "Upload error. Please try again later." });
@@ -1048,6 +1163,7 @@ exports.post = {
                                 });
                             });
                         } else {
+                            // console.log(responseObj , memberUser)
                             req.app.parent.io.emit('FRONT_COMMENT_LIST', { result: responseObj, members: memberUser });
                             cb({ status: true, data: responseObj });
                         }

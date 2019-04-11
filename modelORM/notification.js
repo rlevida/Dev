@@ -28,6 +28,10 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.BIGINT,
             allowNull: true
         },
+        noteId:{
+            type: DataTypes.BIGINT,
+            allowNull: true
+        },
         message: {
             type: DataTypes.STRING(50),
             allowNull: true
