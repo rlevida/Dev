@@ -28,11 +28,6 @@ export default class TeamList extends React.Component {
         });
     }
 
-    componentWillUnmount() {
-        const { dispatch } = { ...this.props };
-        dispatch({ type: 'SET_TEAM_LIST', list: [], Count: {} });
-    }
-
     componentDidMount() {
         const { teams } = this.props;
 
@@ -92,7 +87,7 @@ export default class TeamList extends React.Component {
     }
 
     render() {
-        let { teams, loggedUser } = this.props;
+        const { teams, loggedUser } = { ...this.props };
         const currentPage = (typeof teams.Count.current_page != "undefined") ? teams.Count.current_page : 1;
         const lastPage = (typeof teams.Count.last_page != "undefined") ? teams.Count.last_page : 1;
         const typeValue = (typeof teams.Selected.team != "undefined" && _.isEmpty(teams.Selected) == false) ? teams.Selected.team : "";

@@ -14,11 +14,8 @@ export default function reducer(state = {
 }, action) {
     switch (action.type) {
         case "ADD_TEAM_TO_LIST": {
-            let List = state.List;
-            action.list.map(e => {
-                List.push(e)
-            })
-            return { ...state, List: List }
+            const { List } = { ...state };
+            return { ...state, List: [...List, ...action.list] }
         }
         case "SET_TEAM_LIST": {
             return { ...state, List: action.list, Count: (typeof action.Count !== 'undefined') ? action.Count : {} }

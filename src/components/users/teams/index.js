@@ -16,10 +16,14 @@ export default class Component extends React.Component {
         super(props)
     }
 
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: 'SET_TEAM_LIST', list: [], Count: {} });
+    }
 
     render() {
         const { teams, users, dispatch, loggedUser } = this.props;
-        
+
         return (
             <div>
                 {
