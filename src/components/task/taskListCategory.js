@@ -155,6 +155,7 @@ export default class TaskListCategory extends React.Component {
         });
 
         getData(`/api/conversation/getConversationList?page=1&linkType=task&linkId=${id}`, {}, (c) => {
+            console.log(c)
             if (c.status == 200) {
                 const { data } = c;
                 dispatch({ type: "SET_COMMENT_LIST", list: data.result, count: data.count });

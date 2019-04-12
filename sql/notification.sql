@@ -6,6 +6,7 @@ CREATE TABLE `notification` (
     `workstreamId` BIGINT,
     `taskId` BIGINT,
     `documentId` BIGINT,
+    `noteId` BIGINT,
     `message` VARCHAR(255),
     `isActive` TINYINT DEFAULT '1',
     `isRead` TINYINT DEFAULT '0',
