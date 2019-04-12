@@ -76,29 +76,29 @@ exports.get = {
                         linkId: queryString.workstreamId,
                         linkType: 'workstream'
                     },
-                    // {
-                    //     memberType: 'assignedTo',
-                    //     usersType: 'users',
-                    //     userTypeLinkId: {
-                    //         [Sequelize.Op.in]: Sequelize.literal(`(
-                    //             SELECT DISTINCT
-                    //                 members.userTypeLinkId
-                    //             FROM
-                    //                 task
-                    //             LEFT JOIN members ON task.id = members.linkId
-                    //             WHERE
-                    //                 members.linkType = "task" AND task.workstreamId = ${queryString.workstreamId} AND members.userTypeLinkId NOT IN(
-                    //                 SELECT DISTINCT
-                    //                     members.userTypeLinkId
-                    //                 FROM
-                    //                     members
-                    //                 WHERE
-                    //                     memberType = "responsible" AND linkType = "workstream" AND linkId = ${queryString.workstreamId}
-                    //             )
-                    //         )`),
-                    //     },
-                    //     linkType: 'task'
-                    // }
+                    {
+                        memberType: 'assignedTo',
+                        usersType: 'users',
+                        userTypeLinkId: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(
+                                SELECT DISTINCT
+                                    members.userTypeLinkId
+                                FROM
+                                    task
+                                LEFT JOIN members ON task.id = members.linkId
+                                WHERE
+                                    members.linkType = "task" AND task.workstreamId = ${queryString.workstreamId} AND members.userTypeLinkId NOT IN(
+                                    SELECT DISTINCT
+                                        members.userTypeLinkId
+                                    FROM
+                                        members
+                                    WHERE
+                                        memberType = "responsible" AND linkType = "workstream" AND linkId = ${queryString.workstreamId}
+                                )
+                            )`),
+                        },
+                        linkType: 'task'
+                    }
                 ]
             } : {},
             ...(typeof queryString.memberName != "undefined" && queryString.memberName != "") ? {
