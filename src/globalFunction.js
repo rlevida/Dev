@@ -306,6 +306,9 @@ var notificationType = exports.notificationType = function (type) {
         case "taskFollowingCompleted": {
             return "completed this task"
         }
+        case "taskMemberCompleted": {
+            return "completed this task"
+        }
         default:
             return;
     }

@@ -10,6 +10,8 @@ import TaskApprover from "./template/taskApprover";
 import MessageSend from "./template/messageSend";
 import TaskTagged from "./template/taskTagged";
 import CommentReplies from "./template/commentReplies";
+import TaskMemberCompleted from "./template/taskMemberCompleted";
+import TaskFollowingCompleted from "./template/taskFollowingCompleted";
 
 import ArchivedModal from "./archiveModal"
 @connect((store) => {
@@ -69,6 +71,7 @@ class NotificationList extends React.Component {
                         <div class="card-body m0">
                             <ul class="n-list">
                                 {_.orderBy(List, ['dateAdded'], ['desc']).map((e, i) => {
+                                    console.log(e)
                                     switch (e.type) {
                                         case 'fileNewUpload': {
                                             return <div key={i}><FileNewUpload data={e} index={i} archive={(data) => this.archive(data)} /></div>
@@ -87,6 +90,12 @@ class NotificationList extends React.Component {
                                         }
                                         case "commentReplies": {
                                             return <div key={i}><CommentReplies data={e} index={i} archive={(data) => this.archive(data)} /></div>
+                                        }
+                                        case "taskFollowingCompleted": {
+                                            return <div key={i}><TaskFollowingCompleted data={e} index={i} archive={(data) => this.archive(data)} /></div>
+                                        }
+                                        case "taskMemberCompleted": {
+                                            return <div key={i}><TaskMemberCompleted data={e} index={i} archive={(data) => this.archive(data)} /></div>
                                         }
                                         default:
                                             return;
