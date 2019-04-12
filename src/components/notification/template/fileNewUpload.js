@@ -1,6 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import moment from 'moment';
+import { notificationType } from "../../../globalFunction";
 
 @connect((store) => {
     return {
@@ -20,13 +21,13 @@ export default class Component extends React.Component {
                 <li class="pd0 mb20" key={index}>
                     <div class="d-flex-sb">
                         <div class="n">
-                            <div class="n-header"><i class="fa fa-check-circle mr5 n-unread"></i>Task in Accounting</div>
+                            <div class="n-header"><i class="fa fa-check-circle mr5 n-unread"></i>Uploaded a new file</div>
                             <div class="n-content">
-                                <div class="n-title">Accounting Reports for February 2019</div>
+                                <div class="n-title">Lorem ipsum dolor sit amet</div>
                                 <div className="d-flex">
                                     <img class="image-circle" width="30" height="30" src="/images/user.png"></img>
                                     <div class="n-from mr5">{`${from.firstName} ${from.lastName}`}<span></span></div>
-                                    <div class="n-action">Uploaded a new file</div>
+                                    <div class="n-action">{notificationType(data.type)}</div>
                                 </div>
                                 <div class="n-time ml40">{date}</div>
                                 <div class="n-b-content">

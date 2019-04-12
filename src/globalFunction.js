@@ -289,7 +289,7 @@ var notificationType = exports.notificationType = function (type) {
             return "upload a new file"
         }
         case "taskAssigned": {
-            return "assgined a new task for you"
+            return "assigned a new task for you"
         }
         case "taskApprover": {
             return "needs your approval to complete a task"
