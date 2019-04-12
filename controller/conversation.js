@@ -582,7 +582,7 @@ exports.post = {
                         })
 
                         const emailArr = _.filter(response, (nSetting) => {
-                            return nSetting.receiveEmail === 1
+                            return nSetting.receiveEmail === 1 && nSetting.messageSend === 1
                         }).map((nSetting) => {
                             return {
                                 usersId: nSetting.usersId,
@@ -873,7 +873,7 @@ exports.post = {
                                 })
 
                                 emailArr = await _.filter(response, (nSetting) => {
-                                    return nSetting.receiveEmail === 1
+                                    return nSetting.receiveEmail === 1 && nSetting.messageSend === 1
                                 }).map((nSetting) => {
                                     const { emailAddress } = { ...nSetting.notification_setting }
                                     return {
@@ -1019,7 +1019,7 @@ exports.post = {
                                     })
 
                                     emailArr = await _.filter(response, (nSetting) => {
-                                        return nSetting.receiveEmail === 1
+                                        return nSetting.receiveEmail === 1 && nSetting.messageSend === 1
                                     }).map((nSetting) => {
                                         const { emailAddress } = { ...nSetting.notification_setting }
                                         return {
@@ -1464,7 +1464,7 @@ exports.post = {
                                 })
 
                                 const emailArr = _.filter(response, (nSetting) => {
-                                    return nSetting.receiveEmail === 1
+                                    return nSetting.receiveEmail === 1 && nSetting.messageSend === 1
                                 }).map((nSetting) => {
                                     return {
                                         usersId: nSetting.usersId,
