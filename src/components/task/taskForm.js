@@ -424,11 +424,11 @@ export default class TaskForm extends React.Component {
             workstreamList.push({ id: task.Selected.workstream.id, name: task.Selected.workstream.workstream });
 
             if (typeof userAssigned != "undefined") {
-                assignedList.push({ id: userAssigned.user.id, name: userAssigned.user.firstName + " " + userAssigned.user.lastuName, image: userAssigned.user.avatar });
+                assignedList.push({ id: userAssigned.user.id, name: userAssigned.user.firstName + " " + userAssigned.user.lastName, image: userAssigned.user.avatar });
             }
-            
+
             if (typeof userApprover != "undefined") {
-                approverList.push({ id: userAssigned.user.id, name: userAssigned.user.firstName + " " + userAssigned.user.lastuName, image: userAssigned.user.avatar })
+                approverList.push({ id: userAssigned.user.id, name: userAssigned.user.firstName + " " + userAssigned.user.lastName, image: userAssigned.user.avatar })
             }
         }
 
