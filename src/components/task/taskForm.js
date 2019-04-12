@@ -408,37 +408,8 @@ export default class TaskForm extends React.Component {
 
     render() {
         const { dispatch, task, users, project, workstream, checklist, taskDependency, members, document, loggedUser } = { ...this.props };
-        const checklistTypeValue = (typeof checklist.Selected.description != "undefined" && _.isEmpty(checklist.Selected) == false) ? checklist.Selected.description : "";
         const taskDependencyValue = (typeof taskDependency.task != "undefined" && _.isEmpty(taskDependency.Selected) == false) ? taskDependency.task.task : "";
         const documentValue = (typeof document.Selected != "undefined" && _.isEmpty(document.Selected) == false) ? document.Selected.name : "";
-        const checklistDocuments = _(task.Selected.checklist)
-            .flatMap((o) => {
-                return _.map(o.tagDocuments, (o) => {
-                    return {
-                        id: o.id,
-                        name: o.document.origin,
-                        type: "Subtask Document",
-                        dateAdded: o.document.dateAdded,
-                        child: _(task.Selected.checklist)
-                            .filter((check) => { return check.id == o.checklistId })
-                            .map((o) => { return o.description })
-                            .value()
-                    };
-                })
-            })
-            .value();
-        const taskDocuments = _(task.Selected.tag_task)
-            .filter((o) => { return o.tagType == "document" })
-            .map((o) => {
-                return {
-                    id: o.document.id,
-                    name: o.document.origin,
-                    type: "Task Document",
-                    dateAdded: o.document.dateAdded
-                };
-            })
-            .value();
-        const documentList = [...checklistDocuments, ...taskDocuments];
         let projectList = project.SelectList;
 
         if (typeof task.Selected.workstream != "undefined") {
@@ -580,11 +551,11 @@ export default class TaskForm extends React.Component {
                                                             }}
                                                             customSelected={({ value: o }) => {
                                                                 return (
-                                                                    <div class="drop-profile">
+                                                                    <div class="drop-profile" title={o.label}>
                                                                         {
                                                                             (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
                                                                         }
-                                                                        <p class="m0">{o.label}</p>
+                                                                        <p class="m0">{(o.label).substring(0, 17)}{((o.label).length > 17) ? "..." : ""}</p>
                                                                     </div>
                                                                 );
                                                             }}
@@ -712,56 +683,58 @@ export default class TaskForm extends React.Component {
                                         </div>
                                         {
                                             (typeof task.Selected.approvalRequired != "undefined" && task.Selected.approvalRequired != "") && <div class="form-group">
-                                            <label class="m0">
-                                                Approver:<span class="text-red">*</span>
-                                            </label>
-                                            <p class="m0 note">Please select a project first.</p>
-                                            <div class={`input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
-                                                <DropDown
-                                                    required={true}
-                                                    options={members.SelectList}
-                                                    onInputChange={this.setApproverList}
-                                                    selected={(typeof task.Selected.approverId == "undefined") ? "" : task.Selected.approverId}
-                                                    onChange={(e) => {
-                                                        this.setDropDown("approverId", (e == null) ? "" : e.value);
-                                                    }}
-                                                    placeholder={'Search Approver'}
-                                                    disabled={
-                                                        (
-                                                            loggedUser.data.userRole > 5 && (
-                                                                typeof task.Selected.workstream != "undefined" &&
-                                                                task.Selected.workstream.project.type.type == "Client"
+                                                <label class="m0">
+                                                    Approver:<span class="text-red">*</span>
+                                                </label>
+                                                <p class="m0 note">Please select a project first.</p>
+                                                <div class={`input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
+                                                    <DropDown
+                                                        required={true}
+                                                        options={members.SelectList}
+                                                        onInputChange={this.setApproverList}
+                                                        selected={(typeof task.Selected.approverId == "undefined") ? "" : task.Selected.approverId}
+                                                        onChange={(e) => {
+                                                            this.setDropDown("approverId", (e == null) ? "" : e.value);
+                                                        }}
+                                                        placeholder={'Search Approver'}
+                                                        disabled={
+                                                            (
+                                                                loggedUser.data.userRole > 5 && (
+                                                                    typeof task.Selected.workstream != "undefined" &&
+                                                                    task.Selected.workstream.project.type.type == "Client"
+                                                                )
                                                             )
-                                                        )
-                                                    }
-                                                    customLabel={(o) => {
-                                                        return (
-                                                            <div class="drop-profile">
-                                                                {
-                                                                    (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
-                                                                }
-                                                                <p class="m0">{o.label}</p>
-                                                            </div>
-                                                        );
-                                                    }}
-                                                    customSelected={({ value: o }) => {
-                                                        return (
-                                                            <div class="drop-profile">
-                                                                {
-                                                                    (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
-                                                                }
-                                                                <p class="m0">{o.label}</p>
-                                                            </div>
-                                                        );
-                                                    }}
-                                                />
-                                                <div class="loading">
-                                                    {
-                                                        (workstream.Loading == "RETRIEVING" && typeof task.Selected.projectId != "undefined" && task.Selected.projectId != "") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
-                                                    }
+                                                        }
+                                                        customLabel={(o) => {
+                                                            return (
+                                                                <div class="drop-profile">
+                                                                    {
+                                                                        (typeof o.image != "undefined" && o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                                                    }
+                                                                    <p class="m0">{o.label}</p>
+                                                                </div>
+                                                            );
+                                                        }}
+                                                        customSelected={({ value: o }) => {
+                                                            return (
+                                                                <div class="drop-profile">
+                                                                    {
+                                                                        (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                                                    }
+                                                                    <p class="m0">
+                                                                        {o.label}
+                                                                    </p>
+                                                                </div>
+                                                            );
+                                                        }}
+                                                    />
+                                                    <div class="loading">
+                                                        {
+                                                            (workstream.Loading == "RETRIEVING" && typeof task.Selected.projectId != "undefined" && task.Selected.projectId != "") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                                        }
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
                                         }
                                         <div>
                                             <label class="custom-checkbox">

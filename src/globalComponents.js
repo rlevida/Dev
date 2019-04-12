@@ -33,7 +33,7 @@ export const DropDown = React.createClass({
         }
     },
     componentWillMount: function () {
-        var records = this.props.options.map((d, index) => { return { value: d.id, label: d.name }; })
+        var records = this.props.options.map((d, index) => { return { value: d.id, label: d.name, image: (typeof d.image != "undefined") ? d.image : "" }; })
 
         this.setState({ records: records });
 

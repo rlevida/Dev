@@ -59,7 +59,7 @@ export default class WorkstreamMembers extends React.Component {
                             <thead>
                                 <tr>
                                     <th scope="col" class="td-left">Username</th>
-                                    <th scope="col">Name</th>
+                                    <th scope="col" class="td-left">Name</th>
                                     <th scope="col">Email Address</th>
                                     <th scope="col">Member Type</th>
                                 </tr>
@@ -78,8 +78,8 @@ export default class WorkstreamMembers extends React.Component {
                                                         {username}
                                                     </p>
                                                 </td>
-                                                <td data-label="Name">
-                                                    <div class="display-flex">
+                                                <td data-label="Name" class="td-left">
+                                                    <div>
                                                         <div class="profile-div">
                                                             <div class="thumbnail-profile">
                                                                 <img src={avatar} alt="Profile Picture" class="img-responsive" />
