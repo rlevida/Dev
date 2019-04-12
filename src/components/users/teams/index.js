@@ -32,6 +32,8 @@ export default class Component extends React.Component {
                                                             onClick={() => {
                                                                 dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "List" });
                                                                 dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "" });
+                                                                dispatch({ type: "SET_USER_LOADING", Loading: "RETRIEVING" });
+                                                                dispatch({ type: 'SET_USER_LIST', list: [], Count: {} });
                                                             }}
                                                         >
                                                             Users

@@ -28,12 +28,6 @@ export default class TeamList extends React.Component {
         });
     }
 
-    componentWillUnmount(){
-        const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_TEAM_LOADING", Loading: "RETRIEVING" });
-        dispatch({ type: 'SET_TEAM_LIST', list: [], Count: {} });
-    }
-
     componentDidMount() {
         const { teams } = this.props;
         if (_.isEmpty(teams.Count)) {
@@ -87,7 +81,7 @@ export default class TeamList extends React.Component {
 
     editData(data) {
         const { dispatch } = this.props;
-        dispatch({ type: "SET_TEAM_SELECTED", Selected: { ...data, users_team: data.users_team.map((e) => { return { value: e.user.id, label: `${e.user.firstName} ${e.user.lastName}` } }) } });
+        dispatch({ type: "SET_TEAM_SELECTED", Selected: { ...data, users_team: data.users_team.map((e) => { return { value: e.user.id, label: `${e.user.firstName} ${e.user.lastName}`, image: e.user.avatar } }) } });
         dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "Form" });
     }
 

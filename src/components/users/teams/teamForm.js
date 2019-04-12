@@ -197,7 +197,10 @@ export default class TeamForm extends React.Component {
 
 
     render() {
-        const { teams, users } = this.props;
+        const { teams, users } = { ...this.props };
+        const { users_team = [] } = teams.Selected;
+        let memberOptions = _.filter(teams.MemberList, (o) => { return o.id != teams.Selected.teamLeaderId });
+        memberOptions = [...memberOptions, ..._.map(users_team, ({ value: id, label: name, image }) => { return { id, name, image } })];
 
         return <div>
             <div class="mb20">
@@ -259,7 +262,7 @@ export default class TeamForm extends React.Component {
                         <DropDown
                             multiple={true}
                             required={true}
-                            options={_.filter(teams.MemberList, (o) => { return o.id != teams.Selected.teamLeaderId })}
+                            options={memberOptions}
                             onInputChange={this.setTeamMemberList}
                             selected={(typeof teams.Selected.users_team == "undefined") ? [] : teams.Selected.users_team}
                             placeholder={"Search and select team members"}

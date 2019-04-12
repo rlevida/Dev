@@ -222,6 +222,7 @@ export default class UserForm extends React.Component {
 
     render() {
         const { users, loggedUser, global, teams, profileEdit = false } = this.props;
+        const { team = [] } = users.Selected;
         const userType = [{ id: "External", name: "External" }];
         const userRole = _(global.SelectList.roleList)
             .filter((o) => {
@@ -243,7 +244,7 @@ export default class UserForm extends React.Component {
                 return _.includes(_.map(users.Selected.team, ({ value }) => { return value }), p.teamId);
             })
             .value();
-
+        let teamList = [...teams.SelectList, ..._.map(team, ({ value: id, label: name, teamLeader }) => { return { id, name, teamLeader } })];
 
         if (loggedUser.data.user_role[0].roleId <= 3) {
             userType.push({ id: "Internal", name: "Internal" });
@@ -375,7 +376,7 @@ export default class UserForm extends React.Component {
                                         <DropDown
                                             multiple={true}
                                             required={false}
-                                            options={teams.SelectList}
+                                            options={teamList}
                                             onInputChange={this.setTeamList}
                                             placeholder={'Search or select team'}
                                             onChange={(e) => this.setDropDownMultiple("team", e)}

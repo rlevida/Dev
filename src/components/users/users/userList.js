@@ -36,12 +36,6 @@ export default class UserList extends React.Component {
         }
     }
 
-    componentWillUnmount(){
-        const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_USER_LOADING", Loading: "RETRIEVING" });
-        dispatch({ type: 'SET_USER_LIST', list: [], Count: {} });
-    }
-
     componentDidMount() {
         const { users } = this.props;
         if (_.isEmpty(users.Count)) {
