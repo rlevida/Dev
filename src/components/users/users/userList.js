@@ -31,7 +31,20 @@ export default class UserList extends React.Component {
         const { users, dispatch } = this.props;
 
         if (_.isEqual(prevProps.users.Filter, users.Filter) == false) {
+            this.fetchData(1);
             dispatch({ type: "SET_USER_LIST", list: [] });
+        }
+    }
+
+    componentWillUnmount(){
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_USER_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: 'SET_USER_LIST', list: [], Count: {} });
+    }
+
+    componentDidMount() {
+        const { users } = this.props;
+        if (_.isEmpty(users.Count)) {
             this.fetchData(1);
         }
     }

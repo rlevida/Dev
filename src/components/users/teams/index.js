@@ -12,15 +12,6 @@ import TeamForm from "./teamForm";
     }
 })
 export default class Component extends React.Component {
-    constructor(props) {
-        super(props)
-    }
-
-    componentWillUnmount() {
-        const { dispatch } = { ...this.props };
-        dispatch({ type: 'SET_TEAM_LIST', list: [], Count: {} });
-    }
-
     render() {
         const { teams, users, dispatch, loggedUser } = this.props;
 
@@ -71,7 +62,7 @@ export default class Component extends React.Component {
                                         </div>
                                     </div>
                                 </div>
-                                <div class={(users.Loading == "RETRIEVING" && (users.List).length == 0) ? "linear-background" : ""}>
+                                <div class={(teams.Loading == "RETRIEVING" && (teams.List).length == 0) ? "linear-background" : ""}>
                                     <TeamList />
                                 </div>
                             </div>

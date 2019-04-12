@@ -28,9 +28,14 @@ export default class TeamList extends React.Component {
         });
     }
 
+    componentWillUnmount(){
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_TEAM_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: 'SET_TEAM_LIST', list: [], Count: {} });
+    }
+
     componentDidMount() {
         const { teams } = this.props;
-
         if (_.isEmpty(teams.Count)) {
             this.getList(1);
         }

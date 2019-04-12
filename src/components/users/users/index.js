@@ -21,16 +21,6 @@ export default class Component extends React.Component {
 
     }
 
-    componentDidMount() {
-        const { dispatch, loggedUser } = this.props;
-
-        getData(`/api/user?page=1&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`, {}, (c) => {
-            dispatch({ type: 'SET_USER_LIST', list: c.data.result, Count: c.data.count });
-            dispatch({ type: 'SET_USER_LOADING', Loading: '' });
-            showToast("success", "Users successfully retrieved.");
-        });
-    }
-
     handleChange(params) {
         const { dispatch, users } = this.props;
 
