@@ -193,7 +193,6 @@ exports.get = {
                 }
             },
             result: (parallelCallback) => {
-                console.log(whereObj)
                 try {
                     Users
                         .findAll({

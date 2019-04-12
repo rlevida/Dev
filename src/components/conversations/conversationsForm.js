@@ -509,7 +509,6 @@ export default class ConversationForm extends React.Component {
                                                 <p class="m0">{o.label}</p>
                                                 <span class="Select-value-icon close-custom" aria-hidden="true" onClick={() => {
                                                     const updatedList = _.remove(notes.Selected.users, ({ value }) => { return value != o.value });
-                                                    console.log(updatedList)
                                                     this.setDropDownMultiple("users", updatedList);
                                                 }}>
                                                     ×

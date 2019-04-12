@@ -761,7 +761,6 @@ exports.post = {
                                                     return resTask
                                                         .toJSON().task_members
                                                         .filter((r) => { 
-                                                            console.log(r.user)
                                                             return r.user.notification_setting.receiveEmail === 1 
                                                         })
                                                         .map((r) => {

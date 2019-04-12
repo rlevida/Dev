@@ -303,6 +303,9 @@ var notificationType = exports.notificationType = function (type) {
         case "commentReplies": {
             return "replies to a comment"
         }
+        case "taskFollowingCompleted": {
+            return "completed this task"
+        }
         default:
             return;
     }
