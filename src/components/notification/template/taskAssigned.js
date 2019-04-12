@@ -17,8 +17,8 @@ export default class Component extends React.Component {
         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
         
         return (
-            <div>
-                <li class="pd0 mb20" key={index}>
+            <div key={index}>
+                <li class="pd0 mb20">
                     <div class="d-flex-sb">
                         <div class="n">
                             <p class="m0">Task Assigned</p>

@@ -230,7 +230,7 @@ export default class UserForm extends React.Component {
                 } else if (loggedUser.data.userRole == 2) {
                     return o.id > 1 && o.roleType == users.Selected.userType;
                 } else if (loggedUser.data.userRole == 3) {
-                    return  o.id > 3 && o.roleType == users.Selected.userType;
+                    return o.id > 3 && o.roleType == users.Selected.userType;
                 }
             })
             .map((e) => {
@@ -238,7 +238,7 @@ export default class UserForm extends React.Component {
             })
             .value();
         const surpervisorSelectList = _(teams.SelectList)
-            .map(({ teamLeader, id }) => { return { id: teamLeader.id, name: teamLeader.firstName + " " + teamLeader.lastName, teamId: id } })
+            .map(({ teamLeader, id }) => { return { id: teamLeader.id, name: teamLeader.firstName + " " + teamLeader.lastName, teamId: id, image: teamLeader.avatar } })
             .filter((p) => {
                 return _.includes(_.map(users.Selected.team, ({ value }) => { return value }), p.teamId);
             })
@@ -395,6 +395,16 @@ export default class UserForm extends React.Component {
                                             required={false}
                                             options={surpervisorSelectList}
                                             selected={_.map(surpervisorSelectList, (o) => { return { value: o.id } })}
+                                            customSelected={({ value: o }) => {
+                                                return (
+                                                    <div class="drop-profile">
+                                                        {
+                                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                                        }
+                                                        <p class="m0">{o.label}</p>
+                                                    </div>
+                                                );
+                                            }}
                                         />
                                     </div>
                                 }

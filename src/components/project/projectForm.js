@@ -260,7 +260,7 @@ export default class ProjectForm extends React.Component {
                 return roleChecker.length > 0;
             })
             .map((e) => {
-                return { id: e.id, name: `${e.firstName} ${e.lastName}` }
+                return { id: e.id, name: `${e.firstName} ${e.lastName}`, image: e.avatar }
             }).value()
             : [];
 
@@ -351,6 +351,26 @@ export default class ProjectForm extends React.Component {
                                             onChange={(e) => {
                                                 this.setDropDown("projectManagerId", (e == null) ? "" : e.value);
                                             }}
+                                            customLabel={(o) => {
+                                                return (
+                                                    <div class="drop-profile">
+                                                        {
+                                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                                        }
+                                                        <p class="m0">{o.label}</p>
+                                                    </div>
+                                                );
+                                            }}
+                                            customSelected={({ value: o }) => {
+                                                return (
+                                                    <div class="drop-profile">
+                                                        {
+                                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                                        }
+                                                        <p class="m0">{o.label}</p>
+                                                    </div>
+                                                );
+                                            }}
                                             placeholder={"Search or select project lead"}
                                         />
 
@@ -395,13 +415,9 @@ export default class ProjectForm extends React.Component {
                                             (members.List.length > 0) && <table>
                                                 <thead>
                                                     <tr>
-                                                        <th scope="col">User Id</th>
-                                                        <th scope="col">Username</th>
-                                                        <th scope="col">First Name</th>
-                                                        <th scope="col">Last Name</th>
+                                                        <th scope="col" class="td-left">Name</th>
                                                         <th scope="col">Email Address</th>
                                                         <th scope="col">Member Type</th>
-                                                        <th scope="col">Role(s)</th>
                                                         <th scope="col">Team(s)</th>
                                                         <th scope="col">Actions</th>
                                                     </tr>
@@ -413,29 +429,21 @@ export default class ProjectForm extends React.Component {
                                                                 <tr
                                                                     key={index}
                                                                 >
-                                                                    <td data-label="User Id">
-                                                                        {data.id}
-                                                                        {
-                                                                            (data.id == project.Selected.projectManagerId) && <span title="PROJECT LEAD"><i class="fa fa-user ml5" aria-hidden="true"></i></span>
-                                                                        }
+                                                                    <td data-label="Username" class="td-left">
+                                                                        <div>
+                                                                            <div class="profile-div">
+                                                                                <div class="thumbnail-profile">
+                                                                                    <img src={data.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                                </div>
+                                                                                <p class="m0">{data.firstName + " " + data.lastName}</p>
+                                                                            </div>
+                                                                        </div>
                                                                     </td>
-                                                                    <td data-label="Username">
-                                                                        {data.username}
-                                                                    </td>
-                                                                    <td data-label="First Name">
-                                                                        {data.firstName}
-                                                                    </td>
-                                                                    <td data-label="Last Name">
-                                                                        {data.lastName}
-                                                                    </td>
-                                                                    <td data-label="Email Address">
-                                                                        {data.emailAddress}
-                                                                    </td>
+                                                                    <td data-label="Email Address">{data.emailAddress}</td>
                                                                     <td data-label="Member Type">
-                                                                        {data.userType}
-                                                                    </td>
-                                                                    <td data-label="Role(s)">
-                                                                        {this.renderRoles(data.user_role)}
+                                                                        {
+                                                                            (data.id == project.Selected.projectManagerId) ? "Project Lead" : "Member"
+                                                                        }
                                                                     </td>
                                                                     <td data-label="Team(s)">
                                                                         {this.renderTeams(data.team)}

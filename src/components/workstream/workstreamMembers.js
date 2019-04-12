@@ -60,7 +60,6 @@ export default class WorkstreamMembers extends React.Component {
                                 <tr>
                                     <th scope="col" class="td-left">Username</th>
                                     <th scope="col">Name</th>
-                                    <th scope="col">Last Name</th>
                                     <th scope="col">Email Address</th>
                                     <th scope="col">Member Type</th>
                                 </tr>

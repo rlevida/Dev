@@ -240,7 +240,7 @@ class Main extends React.Component {
                                                         const duration = moment.duration(moment().diff(moment(dateAdded)));
                                                         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
                                                         return (
-                                                            <div class="display-flex vh-center bb notif-item n-border">
+                                                            <div class="display-flex vh-center bb notif-item n-border" key={i}>
                                                                 <div class="menu-profile mb5">
                                                                     <img src={e.from.avatar} alt="Profile Picture" class="img-responsive" />
                                                                 </div>

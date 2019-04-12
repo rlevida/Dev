@@ -153,9 +153,17 @@ exports.get = {
         ) {
             whereObj = {
                 ...whereObj,
-                id: {
-                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT users_team.usersId FROM users_team WHERE users_team.teamId IN (SELECT DISTINCT teamId FROM users_team WHERE usersId = ${queryString.userId}))`)
-                }
+                [Sequelize.Op.or]: [
+                    {
+                        id: {
+                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT users_team.usersId FROM users_team WHERE users_team.teamId IN (SELECT DISTINCT teamId FROM users_team WHERE usersId = ${queryString.userId}))`)
+                        }
+                    },
+                    {
+                        id: queryString.userId
+                    }
+                ]
+
             };
         }
 

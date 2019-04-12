@@ -103,7 +103,7 @@ export default class TaskForm extends React.Component {
 
         getData(fetchUrl, {}, (c) => {
             const usersOptions = _(c.data)
-                .map((o) => { return { id: o.id, name: o.firstName + " " + o.lastName } })
+                .map((o) => { return { id: o.id, name: o.firstName + " " + o.lastName, image: o.avatar } })
                 .value();
             dispatch({ type: "SET_USER_SELECT_LIST", List: usersOptions });
         });
@@ -164,7 +164,7 @@ export default class TaskForm extends React.Component {
         }
         getData(fetchUrl, {}, (c) => {
             const getApproverSelectList = _(c.data)
-                .map((o) => { return { id: o.id, name: o.firstName + " " + o.lastName } })
+                .map((o) => { return { id: o.id, name: o.firstName + " " + o.lastName, image: o.avatar } })
                 .value();
             dispatch({ type: "SET_MEMBER_SELECT_LIST", List: getApproverSelectList });
         });
@@ -497,37 +497,6 @@ export default class TaskForm extends React.Component {
                                         <div class="mt20">
                                             <div class="mt10 row">
                                                 <div class="col-lg-6 col-sm-6">
-                                                    <div class={`form-group input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
-                                                        <label for="email">
-                                                            Assigned: <span class="text-red">*</span>
-                                                            <p class="m0 note">Please select a project first.</p>
-                                                        </label>
-                                                        <DropDown
-                                                            required={true}
-                                                            options={users.SelectList}
-                                                            onInputChange={this.setAssignMemberList}
-                                                            selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
-                                                            onChange={(e) => {
-                                                                this.setDropDown("assignedTo", (e == null) ? "" : e.value);
-                                                            }}
-                                                            placeholder={'Search name'}
-                                                            disabled={
-                                                                (
-                                                                    loggedUser.data.userRole >= 4 && (
-                                                                        typeof task.Selected.workstream != "undefined" &&
-                                                                        task.Selected.workstream.project.type.type == "Client"
-                                                                    )
-                                                                )
-                                                            }
-                                                        />
-                                                        <div class="loading">
-                                                            {
-                                                                (workstream.Loading == "RETRIEVING" && typeof task.Selected.projectId != "undefined" && task.Selected.projectId != "") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-lg-6 col-sm-6">
                                                     <div class="form-group input-inline">
                                                         <label for="email">Project: <span class="text-red">*</span></label>
                                                         <DropDown
@@ -543,8 +512,6 @@ export default class TaskForm extends React.Component {
                                                         />
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="mt10 row">
                                                 <div class="col-lg-6 col-sm-6">
                                                     <div class={`form-group input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
                                                         <label>
@@ -568,6 +535,59 @@ export default class TaskForm extends React.Component {
                                                                     )
                                                                 )
                                                             }
+                                                        />
+                                                        <div class="loading">
+                                                            {
+                                                                (workstream.Loading == "RETRIEVING" && typeof task.Selected.projectId != "undefined" && task.Selected.projectId != "") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-lg-6 col-sm-6">
+                                                    <div class={`form-group input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
+                                                        <label for="email">
+                                                            Assigned: <span class="text-red">*</span>
+                                                            <p class="m0 note">Please select a project first.</p>
+                                                        </label>
+                                                        <DropDown
+                                                            required={true}
+                                                            options={users.SelectList}
+                                                            onInputChange={this.setAssignMemberList}
+                                                            selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
+                                                            onChange={(e) => {
+                                                                this.setDropDown("assignedTo", (e == null) ? "" : e.value);
+                                                            }}
+                                                            placeholder={'Search name'}
+                                                            disabled={
+                                                                (
+                                                                    loggedUser.data.userRole >= 4 && (
+                                                                        typeof task.Selected.workstream != "undefined" &&
+                                                                        task.Selected.workstream.project.type.type == "Client"
+                                                                    )
+                                                                )
+                                                            }
+                                                            customLabel={(o) => {
+                                                                return (
+                                                                    <div class="drop-profile">
+                                                                        {
+                                                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                                                        }
+                                                                        <p class="m0">{o.label}</p>
+                                                                    </div>
+                                                                );
+                                                            }}
+                                                            customSelected={({ value: o }) => {
+                                                                return (
+                                                                    <div class="drop-profile">
+                                                                        {
+                                                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                                                        }
+                                                                        <p class="m0">{o.label}</p>
+                                                                    </div>
+                                                                );
+                                                            }}
                                                         />
                                                         <div class="loading">
                                                             {
@@ -691,43 +711,57 @@ export default class TaskForm extends React.Component {
                                             </label>
                                         </div>
                                         {
-                                            (typeof task.Selected.approvalRequired != "undefined" && task.Selected.approvalRequired != "") && <div>
-                                                <div class="row">
-                                                    <div class="col-lg-8 md-8 col-sm-8">
-                                                        <div class="form-group">
-                                                            <label class="m0">
-                                                                Approver:<span class="text-red">*</span>
-                                                            </label>
-                                                            <p class="m0 note">Please select a project first.</p>
-                                                            <div class={`input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
-                                                                <DropDown
-                                                                    required={true}
-                                                                    options={members.SelectList}
-                                                                    onInputChange={this.setApproverList}
-                                                                    selected={(typeof task.Selected.approverId == "undefined") ? "" : task.Selected.approverId}
-                                                                    onChange={(e) => {
-                                                                        this.setDropDown("approverId", (e == null) ? "" : e.value);
-                                                                    }}
-                                                                    placeholder={'Search Approver'}
-                                                                    disabled={
-                                                                        (
-                                                                            loggedUser.data.userRole > 5 && (
-                                                                                typeof task.Selected.workstream != "undefined" &&
-                                                                                task.Selected.workstream.project.type.type == "Client"
-                                                                            )
-                                                                        )
-                                                                    }
-                                                                />
-                                                                <div class="loading">
-                                                                    {
-                                                                        (workstream.Loading == "RETRIEVING" && typeof task.Selected.projectId != "undefined" && task.Selected.projectId != "") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
-                                                                    }
-                                                                </div>
+                                            (typeof task.Selected.approvalRequired != "undefined" && task.Selected.approvalRequired != "") && <div class="form-group">
+                                            <label class="m0">
+                                                Approver:<span class="text-red">*</span>
+                                            </label>
+                                            <p class="m0 note">Please select a project first.</p>
+                                            <div class={`input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
+                                                <DropDown
+                                                    required={true}
+                                                    options={members.SelectList}
+                                                    onInputChange={this.setApproverList}
+                                                    selected={(typeof task.Selected.approverId == "undefined") ? "" : task.Selected.approverId}
+                                                    onChange={(e) => {
+                                                        this.setDropDown("approverId", (e == null) ? "" : e.value);
+                                                    }}
+                                                    placeholder={'Search Approver'}
+                                                    disabled={
+                                                        (
+                                                            loggedUser.data.userRole > 5 && (
+                                                                typeof task.Selected.workstream != "undefined" &&
+                                                                task.Selected.workstream.project.type.type == "Client"
+                                                            )
+                                                        )
+                                                    }
+                                                    customLabel={(o) => {
+                                                        return (
+                                                            <div class="drop-profile">
+                                                                {
+                                                                    (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                                                }
+                                                                <p class="m0">{o.label}</p>
                                                             </div>
-                                                        </div>
-                                                    </div>
+                                                        );
+                                                    }}
+                                                    customSelected={({ value: o }) => {
+                                                        return (
+                                                            <div class="drop-profile">
+                                                                {
+                                                                    (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                                                }
+                                                                <p class="m0">{o.label}</p>
+                                                            </div>
+                                                        );
+                                                    }}
+                                                />
+                                                <div class="loading">
+                                                    {
+                                                        (workstream.Loading == "RETRIEVING" && typeof task.Selected.projectId != "undefined" && task.Selected.projectId != "") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                                    }
                                                 </div>
                                             </div>
+                                        </div>
                                         }
                                         <div>
                                             <label class="custom-checkbox">
@@ -750,7 +784,7 @@ export default class TaskForm extends React.Component {
                                                                 Recurring Every:<span class="text-red">*</span>
                                                             </label>
                                                             <DropDown multiple={false}
-                                                                required={(task.Selected.periodic == 1)}
+                                                                required={true}
                                                                 options={_.map(['Year', 'Month', 'Week', 'Day'], (o) => { return { id: (o + 's').toLowerCase(), name: o } })}
                                                                 selected={(typeof task.Selected.periodType == "undefined") ? "" : task.Selected.periodType}
                                                                 onChange={(e) => this.setDropDown("periodType", e.value)}

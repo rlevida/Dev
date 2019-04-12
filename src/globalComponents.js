@@ -15,7 +15,7 @@ export const DropDown = React.createClass({
         };
     },
     componentWillReceiveProps: function (props) {
-        var records = props.options.map((d, index) => { return { value: d.id, label: d.name }; });
+        var records = props.options.map((d, index) => { return { value: d.id, label: d.name, image: (typeof d.image != "undefined") ? d.image : "" }; });
         var objToBeUpdated = {
             records: records,
             noResultsText: (records.length > 0) ? "" : "No Results Found",
@@ -64,11 +64,12 @@ export const DropDown = React.createClass({
             self.props.onChange(option);
             self.setState({ selected: (self.props.multiple) ? option : option ? option.value : "", });
         };
-
         return (
             <Select multi={this.props.multiple}
                 disabled={this.state.disabled}
                 options={self.state.records}
+                optionRenderer={this.props.customLabel}
+                valueComponent={this.props.customSelected}
                 style={this.props.style}
                 value={this.state.selected}
                 onChange={handleChange}

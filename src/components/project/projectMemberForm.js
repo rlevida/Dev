@@ -123,7 +123,7 @@ export default class ProjectMemberForm extends React.Component {
         }
         getData(fetchUrl, {}, (c) => {
             const memberOptions = _.map(c.data.result, (o) => {
-                return { id: o.id, name: `${o.firstName} ${o.lastName}` }
+                return { id: o.id, name: `${o.firstName} ${o.lastName}`, image: o.avatar }
             });
             dispatch({ type: "SET_USER_SELECT_LIST", List: memberOptions });
         });
@@ -209,6 +209,26 @@ export default class ProjectMemberForm extends React.Component {
                             onFocus={
                                 (members.Selected.type == "users" || loggedUser.data.userRole >= 4) ? this.setAssignMemberUserList : (members.Selected.type == "team") ? this.setAssignMemberTeamList : undefined
                             }
+                            customLabel={(o) => {
+                                return (
+                                    <div class="drop-profile">
+                                        {
+                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                        }
+                                        <p class="m0">{o.label}</p>
+                                    </div>
+                                );
+                            }}
+                            customSelected={({ value: o }) => {
+                                return (
+                                    <div class="drop-profile">
+                                        {
+                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                        }
+                                        <p class="m0">{o.label}</p>
+                                    </div>
+                                );
+                            }}
                         />
                         <div class="loading diplay-flex vh-center">
                             {

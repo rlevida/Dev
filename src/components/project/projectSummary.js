@@ -159,12 +159,12 @@ export default class List extends React.Component {
         }
     }
 
-    renderRow({ id, name, type, entity_type, new_files, dateUpdated, completion_rate, numberOfTasks }, index) {
+    renderRow({ id, name, type, entity_type, new_files, dateUpdated, completion_rate, numberOfTasks, workstream = [] }, index) {
         const completionRate = (completion_rate != "") ? _(completion_rate)
             .mapValues(({ value, color, count }, key) => {
                 return {
                     label: `${key.replace(/[_-]/g, " ")}`,
-                    value: value.toFixed(2),
+                    value: (entity_type == "project" && workstream.length > 0) ? 0.00 : value.toFixed(2),
                     color: color,
                     count
                 }
@@ -206,7 +206,12 @@ export default class List extends React.Component {
                 <td data-label="Active Month Completion Rate">
                     <a data-tip data-for={`task-${index}`}>
                         <ProgressBar data={completionRate} />
-                        <p class={`m0 ${(entity_type == "workstream") ? "text-italic" : ""}`}>{completionValue}%</p>
+                        {
+                            (
+                                entity_type == "project" && workstream.length == 0 ||
+                                entity_type == "workstream"
+                            ) && <p class={`m0 ${(entity_type == "workstream") ? "text-italic" : ""}`}>{completionValue}%</p>
+                        }
                     </a>
                     <ReactTooltip id={`task-${index}`} aria-haspopup='true' type={'light'}>
                         <div class="wrapper">

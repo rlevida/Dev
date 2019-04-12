@@ -1212,6 +1212,34 @@ input:checked + .slider:before {
   position: relative;
 }
 
+.drop-profile {
+  display: flex;
+  display: flex;
+  align-items: center;
+}
+
+.drop-profile img{
+  min-width: 30px;
+  min-height: 30px;
+  max-width: 30px;
+  max-height: 30px;
+  border: solid 1px #ffffff;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.Select-multi-value-wrapper{
+  display: flex!important;
+  align-items: center;
+}
+
+.close-custom {
+  padding: 0;
+    padding-left: 5px;
+    padding-right: 5px;
+    color:#818181
+}
+
 #close-menu{
   position: absolute;
   right: 20px;
@@ -2237,6 +2265,12 @@ textarea::-webkit-scrollbar-thumb {
 
 #conversation-form .Select{
   margin-right: 0px;
+}
+#conversation-form .Select .Select-control .Select--multi .Select-multi-value-wrapper{
+  display: flex!important;
+}
+#conversation-form .drop-profile{
+  margin-right: 5px;
 }
 
 #conversation-form textarea.form-control{

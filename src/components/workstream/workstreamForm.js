@@ -67,7 +67,7 @@ export default class WorkstreamForm extends React.Component {
         getData(fetchUrl, {}, (c) => {
             const taskMemberOptions = _(c.data)
                 .map((e) => {
-                    return { id: e.id, name: e.firstName + " " + e.lastName }
+                    return { id: e.id, name: e.firstName + " " + e.lastName, image: e.avatar }
                 })
                 .value();
             dispatch({ type: "SET_MEMBER_SELECT_LIST", List: taskMemberOptions });
@@ -294,6 +294,26 @@ export default class WorkstreamForm extends React.Component {
                         selected={(typeof workstream.Selected.responsible == "undefined" || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.responsible}
                         onChange={(e) => {
                             this.setDropDown("responsible", (e == null) ? "" : e.value);
+                        }}
+                        customLabel={(o) => {
+                            return (
+                                <div class="drop-profile">
+                                    {
+                                        (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                    }
+                                    <p class="m0">{o.label}</p>
+                                </div>
+                            );
+                        }}
+                        customSelected={({ value: o }) => {
+                            return (
+                                <div class="drop-profile">
+                                    {
+                                        (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                    }
+                                    <p class="m0">{o.label}</p>
+                                </div>
+                            );
                         }}
                         isClearable={true}
                         placeholder={'Search and select member responsible'}

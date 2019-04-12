@@ -136,7 +136,7 @@ export default class UserList extends React.Component {
                     <table id="user-list">
                         <thead>
                             <tr>
-                                <th scope="col">Username</th>
+                                <th scope="col" class="td-left">Username</th>
                                 <th scope="col">First Name</th>
                                 <th scope="col">Last Name</th>
                                 <th scope="col">Email Address</th>
@@ -150,7 +150,7 @@ export default class UserList extends React.Component {
                                 _.map(userList, (user, index) => {
                                     return (
                                         <tr key={index}>
-                                            <td data-label="Username">
+                                            <td data-label="Username" class="td-left">
                                                 <div class="profile-div">
                                                     <div class="thumbnail-profile">
                                                         <img src={user.avatar} alt="Profile Picture" class="img-responsive" />

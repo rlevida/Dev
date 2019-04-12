@@ -358,7 +358,15 @@ class DocumentList extends React.Component {
                                                                         {data.type === "document" && < span class={data.isRead ? 'read' : 'unread'}>{documentName}</span>}
                                                                     </a>
                                                                 </td>
-                                                                <td><p class="m0">{data.user.firstName + " " + data.user.lastName}</p></td>
+                                                                <td>
+                                                                    <div class="display-flex">
+                                                                        <div class="thumbnail-profile">
+                                                                            <span title={data.user.firstName + " " + data.user.lastName}>
+                                                                                <img src={data.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
                                                                 <td>{moment(data.dateAdded).format("MMMM DD, YYYY")}</td>
                                                                 <td>{
                                                                     data.tagWorkstream.length > 0 &&

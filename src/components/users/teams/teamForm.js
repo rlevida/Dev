@@ -159,14 +159,14 @@ export default class TeamForm extends React.Component {
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&name=${options}`;
         }
-        
+
         getData(fetchUrl, {}, (c) => {
             const taskMemberOptions = _(c.data.result)
                 .filter((user) => {
                     const alreadyMember = (typeof teams.Selected.users_team == "undefined") ? [] : teams.Selected.users_team;
                     return _.findIndex(alreadyMember, (o) => { return o.value == user.id }) < 0;
                 })
-                .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
+                .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName, image: e.avatar } })
                 .value();
             dispatch({ type: "SET_USER_SELECT_LIST", List: taskMemberOptions });
         });
@@ -189,7 +189,7 @@ export default class TeamForm extends React.Component {
 
         getData(fetchUrl, {}, (c) => {
             const taskMemberOptions = _(c.data.result)
-                .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName } })
+                .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName, image: e.avatar } })
                 .value();
             dispatch({ type: "SET_TEAM_MEMBER_SELECT_LIST", List: taskMemberOptions });
         });
@@ -230,6 +230,26 @@ export default class TeamForm extends React.Component {
                             onChange={(e) => {
                                 this.setDropDown("teamLeaderId", (e == null) ? "" : e.value);
                             }}
+                            customLabel={(o) => {
+                                return (
+                                    <div class="drop-profile">
+                                        {
+                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                        }
+                                        <p class="m0">{o.label}</p>
+                                    </div>
+                                );
+                            }}
+                            customSelected={({ value: o }) => {
+                                return (
+                                    <div class="drop-profile">
+                                        {
+                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                        }
+                                        <p class="m0">{o.label}</p>
+                                    </div>
+                                );
+                            }}
                             isClearable={((users.SelectList).length > 0)}
                         />
 
@@ -247,6 +267,32 @@ export default class TeamForm extends React.Component {
                                 this.setDropDownMultiple("users_team", (e == null) ? [] : e);
                             }}
                             isClearable={((teams.MemberList).length > 0)}
+                            customLabel={(o) => {
+                                return (
+                                    <div class="drop-profile">
+                                        {
+                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                        }
+                                        <p class="m0">{o.label}</p>
+                                    </div>
+                                );
+                            }}
+                            customSelected={({ value: o }) => {
+                                return (
+                                    <div class="drop-profile">
+                                        {
+                                            (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                        }
+                                        <p class="m0">{o.label}</p>
+                                        <span class="Select-value-icon close-custom" aria-hidden="true" onClick={() => {
+                                            const updatedList = _.remove(teams.Selected.users_team, ({ value }) => { return value != o.value });
+                                            this.setDropDownMultiple("users_team", updatedList);
+                                        }}>
+                                            ×
+                                        </span>
+                                    </div>
+                                );
+                            }}
                         />
 
                     </div>
