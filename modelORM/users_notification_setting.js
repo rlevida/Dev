@@ -75,7 +75,7 @@ module.exports = function (sequelize, DataTypes) {
         });
 
     UsersNotificationSetting.associate = (models) => {
-        UsersNotificationSetting.hasOne(models.Users, {
+        UsersNotificationSetting.belongsTo(models.Users, {
             as: 'notification_setting',
             foreignKey: 'id'
         })

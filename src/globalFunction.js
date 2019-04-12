@@ -294,5 +294,16 @@ var notificationType = exports.notificationType = function (type) {
         case "taskApprover": {
             return "needs your approval to complete a task"
         }
+        case "messageSend": {
+            return "sent you a new message"
+        }
+        case "taskTagged": {
+            return "mentioned you in a task"
+        }
+        case "commentReplies": {
+            return "replies to a comment"
+        }
+        default:
+            return;
     }
 }

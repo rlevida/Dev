@@ -12,7 +12,7 @@ import { notificationType } from "../../../globalFunction";
 export default class Component extends React.Component {
     render() {
         const { dispatch, data, index } = { ...this.props }
-        const { document_notification, from, dateAdded } = { ...data }
+        const { from, dateAdded } = { ...data }
         const duration = moment.duration(moment().diff(moment(dateAdded)));
         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
         

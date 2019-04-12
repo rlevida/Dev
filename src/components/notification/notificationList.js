@@ -4,9 +4,13 @@ import { getData, putData, showToast } from '../../globalFunction';
 import { connect } from "react-redux"
 import { withRouter } from "react-router";
 import _ from "lodash"
-import FileNewUpload from "./template/fileNewUpload"
-import TaskAssgined from "./template/taskAssigned"
-import TaskApprover from "./template/taskApprover"
+import FileNewUpload from "./template/fileNewUpload";
+import TaskAssgined from "./template/taskAssigned";
+import TaskApprover from "./template/taskApprover";
+import MessageSend from "./template/messageSend";
+import TaskTagged from "./template/taskTagged";
+import CommentReplies from "./template/commentReplies";
+
 import ArchivedModal from "./archiveModal"
 @connect((store) => {
     return {
@@ -75,6 +79,17 @@ class NotificationList extends React.Component {
                                         case 'taskApprover': {
                                             return <div key={i}><TaskApprover data={e} index={i} archive={(data) => this.archive(data)} /></div>
                                         }
+                                        case 'messageSend': {
+                                            return <div key={i}><MessageSend data={e} index={i} archive={(data) => this.archive(data)} /></div>
+                                        }
+                                        case "taskTagged": {
+                                            return <div key={i}><TaskTagged data={e} index={i} archive={(data) => this.archive(data)} /></div>
+                                        }
+                                        case "commentReplies": {
+                                            return <div key={i}><CommentReplies data={e} index={i} archive={(data) => this.archive(data)} /></div>
+                                        }
+                                        default:
+                                            return;
                                     }
                                 })}
 
