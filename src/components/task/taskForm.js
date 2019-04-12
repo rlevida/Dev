@@ -407,14 +407,29 @@ export default class TaskForm extends React.Component {
     }
 
     render() {
-        const { dispatch, task, users, project, workstream, checklist, taskDependency, members, document, loggedUser } = { ...this.props };
+        const { dispatch, task, users, project, workstream, taskDependency, members, document, loggedUser } = { ...this.props };
+        const { workstream: taskWorkstream = "" } = task.Selected;
         const taskDependencyValue = (typeof taskDependency.task != "undefined" && _.isEmpty(taskDependency.Selected) == false) ? taskDependency.task.task : "";
-        const documentValue = (typeof document.Selected != "undefined" && _.isEmpty(document.Selected) == false) ? document.Selected.name : "";
-        let projectList = project.SelectList;
+        let projectList = _.cloneDeep(project.SelectList);
+        let workstreamList = _.cloneDeep(workstream.SelectList);
+        let assignedList = _.cloneDeep(users.SelectList);
+        let approverList = _.cloneDeep(members.SelectList);
 
-        if (typeof task.Selected.workstream != "undefined") {
+        if (typeof task.Selected.id != "undefined") {
             const { project } = task.Selected.workstream;
+            const userAssigned = _.find(task.Selected.task_members, ({ memberType }) => { return memberType == "assignedTo" });
+            const userApprover = _.find(task.Selected.task_members, ({ memberType }) => { return memberType == "approver" });
+
             projectList.push({ id: project.id, name: project.project });
+            workstreamList.push({ id: task.Selected.workstream.id, name: task.Selected.workstream.workstream });
+
+            if (typeof userAssigned != "undefined") {
+                assignedList.push({ id: userAssigned.user.id, name: userAssigned.user.firstName + " " + userAssigned.user.lastuName, image: userAssigned.user.avatar });
+            }
+            
+            if (typeof userApprover != "undefined") {
+                approverList.push({ id: userAssigned.user.id, name: userAssigned.user.firstName + " " + userAssigned.user.lastuName, image: userAssigned.user.avatar })
+            }
         }
 
         return (
@@ -491,7 +506,7 @@ export default class TaskForm extends React.Component {
                                                         </label>
                                                         <DropDown
                                                             required={true}
-                                                            options={workstream.SelectList}
+                                                            options={_.uniqBy(workstreamList, 'id')}
                                                             onInputChange={this.setWorkstreamList}
                                                             selected={(typeof task.Selected.workstreamId == "undefined") ? "" : task.Selected.workstreamId}
                                                             onChange={(e) => {
@@ -524,7 +539,7 @@ export default class TaskForm extends React.Component {
                                                         </label>
                                                         <DropDown
                                                             required={true}
-                                                            options={users.SelectList}
+                                                            options={_.uniqBy(assignedList, 'id')}
                                                             onInputChange={this.setAssignMemberList}
                                                             selected={(typeof task.Selected.assignedTo == "undefined") ? "" : task.Selected.assignedTo}
                                                             onChange={(e) => {
@@ -690,7 +705,7 @@ export default class TaskForm extends React.Component {
                                                 <div class={`input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
                                                     <DropDown
                                                         required={true}
-                                                        options={members.SelectList}
+                                                        options={_.uniqBy(approverList, 'id')}
                                                         onInputChange={this.setApproverList}
                                                         selected={(typeof task.Selected.approverId == "undefined") ? "" : task.Selected.approverId}
                                                         onChange={(e) => {
