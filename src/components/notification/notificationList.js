@@ -15,7 +15,7 @@ import ArchivedModal from "./archiveModal"
     }
 })
 
-class DocumentList extends React.Component {
+class NotificationList extends React.Component {
     constructor(props) {
         super(props)
     }
@@ -97,4 +97,4 @@ class DocumentList extends React.Component {
     }
 }
 
-export default withRouter(DocumentList);
+export default withRouter(NotificationList);

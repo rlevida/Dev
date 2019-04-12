@@ -57,7 +57,7 @@ export default class TaskFilters extends React.Component {
         const { dispatch, loggedUser, show_tab = true } = { ...this.props };
         let fetchUrl = `/api/user?page=1&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
         if (typeof options != "undefined" && options != "") {
-            fetchUrl += `&memberName=${options}`;
+            fetchUrl += `&name=${options}`;
         }
 
         getData(fetchUrl, {}, (c) => {

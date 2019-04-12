@@ -225,60 +225,38 @@ class Main extends React.Component {
                                 }
                                 <div class="action item">
                                     <div class="hidden-sm hidden-xs text-center display-flex action-link">
-                                        <a data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                        <a data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" id="notif-bell">
                                             <span class={`fa fa-bell ${(this.props.location.pathname !== "/notification" && notification.List.length > 0) ? "bell-active" : ""}`}> </span>
                                             {
                                                 (notification.List.length > 0 && this.props.location.pathname !== "/notification") &&
-                                                <span class="n-count">{notification.List.length || ""}</span>
+                                                <div class="circle"><p>{notification.List.length || ""}</p></div>
                                             }
                                         </a>
-                                        <ul class="pull-right dropdown-menu notify-drop">
-                                            <div class="drop-content">
-                                                {notification.List.map((e, i) => {
-                                                    const { from, dateAdded } = { ...e }
-                                                    const duration = moment.duration(moment().diff(moment(dateAdded)));
-                                                    const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
-                                                    return (
-                                                        <li key={i}>
-                                                            <div class="col-md-3 col-sm-3 col-xs-3 n-border"><div class="notify-img"><img src={e.from.avatar} width="50" height="50" alt="" /></div></div>
-                                                            <div class="col-md-9 col-sm-9 col-xs-9 pd-l0">
-                                                                <a href="">{`${from.firstName} ${from.lastName}`}</a><span class="n-type">{notificationType(e.type)}</span>
-                                                                <br />
-                                                                <p class="time">{date}</p>
+                                        <div class="pull-right dropdown-menu notify-drop">
+                                            <div class="pd10 notif-wrapper">
+                                                {
+                                                    (notification.List).map((e, i) => {
+                                                        const { from, dateAdded } = { ...e }
+                                                        const duration = moment.duration(moment().diff(moment(dateAdded)));
+                                                        const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+                                                        return (
+                                                            <div class="display-flex vh-center bb notif-item n-border">
+                                                                <div class="menu-profile mb5">
+                                                                    <img src={e.from.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                </div>
+                                                                <div>
+                                                                    <p class="m0">{`${from.firstName} ${from.lastName}`} <strong>{notificationType(e.type)}</strong></p>
+                                                                    <p class="note">{date}</p>
+                                                                </div>
                                                             </div>
-                                                        </li>
-                                                    )
-                                                })}
+                                                        )
+                                                    })
+                                                }
                                             </div>
                                             <div class="notify-drop-footer text-center">
                                                 <a href={`/account#/notification`}>View All Notification</a>
                                             </div>
-                                        </ul>
-                                        {/* <a class="btn btn-orange" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                                            <span>
-                                                <i class="fa fa-plus mr10" aria-hidden="true"></i>
-                                                New
-                                         </span>
-                                        </a>
-                                        <ul class="pull-right dropdown-menu new-drop">
-                                            <div class="drop-content">
-                                                {notification.List.map((e, i) => {
-                                                    const { from, dateAdded } = { ...e }
-                                                    const duration = moment.duration(moment().diff(moment(dateAdded)));
-                                                    const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
-                                                    return (
-                                                        <li key={i}>
-                                                            <div class="col-md-3 col-sm-3 col-xs-3 n-border"><div class="notify-img"><img src={e.from.avatar} width="50" height="50" alt="" /></div></div>
-                                                            <div class="col-md-9 col-sm-9 col-xs-9 pd-l0">
-                                                                <a href="">{`${from.firstName} ${from.lastName}`}</a><span class="n-type">{notificationType(e.type)}</span>
-                                                                <br />
-                                                                <p class="time">{date}</p>
-                                                            </div>
-                                                        </li>
-                                                    )
-                                                })}
-                                            </div>
-                                        </ul> */}
+                                        </div>
                                         <Link to={"/profile"}>
                                             <div class="menu-profile">
                                                 <img src={avatar} alt="Profile Picture" class="img-responsive" />
