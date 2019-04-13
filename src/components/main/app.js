@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import { withRouter } from "react-router";
 import { Route, Switch, Link } from 'react-router-dom';
-
+import _ from "lodash";
 import { getData, notificationType } from '../../globalFunction';
 
 import Menu from "./menu";
@@ -32,8 +32,10 @@ class Main extends React.Component {
             reminderCount: 0,
             getReminder: true
         }
-        this.showLeft = this.showLeft.bind(this)
-        this.showRight = this.showRight.bind(this)
+        _.map([
+            "showLeft",
+            "handleAdd"
+        ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
     showLeft() {
@@ -95,11 +97,15 @@ class Main extends React.Component {
         }
         this.setState({ showMore: type })
     }
+    handleAdd(type) {
+        const { dispatch } = this.props;
 
-    showRight() {
-
+        switch (type) {
+            case "task":
+                
+                break;
+        }
     }
-
     render() {
         const { showLeft } = { ...this.state };
         const { project, loggedUser, notification } = { ...this.props };
@@ -225,14 +231,14 @@ class Main extends React.Component {
                                 }
                                 <div class="action item">
                                     <div class="hidden-sm hidden-xs text-center display-flex action-link">
-                                        <a data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" id="notif-bell">
+                                        <a class="mr20" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" id="notif-bell">
                                             <span class={`fa fa-bell ${(this.props.location.pathname !== "/notification" && notification.List.length > 0) ? "bell-active" : ""}`}> </span>
                                             {
                                                 (notification.List.length > 0 && this.props.location.pathname !== "/notification") &&
                                                 <div class="circle"><p>{notification.List.length || ""}</p></div>
                                             }
                                         </a>
-                                        <div class="pull-right dropdown-menu notify-drop">
+                                        <div class="pull-right dropdown-menu notify-drop" aria-labelledby="notif-bell">
                                             <div class="pd10 notif-wrapper">
                                                 {
                                                     (notification.List).map((e, i) => {
@@ -255,6 +261,19 @@ class Main extends React.Component {
                                             </div>
                                             <div class="notify-drop-footer text-center">
                                                 <a href={`/account#/notification`}>View All Notification</a>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <a class="mr15 btn btn-default btn-orange dropdown-toggle" type="button" id="new" data-toggle="dropdown">
+                                                <span><i class="fa fa-plus mr10" aria-hidden="true"></i>New</span>
+                                            </a>
+                                            <div class="pull-right dropdown-menu new-menu" role="menu" aria-labelledby="new">
+                                                <ul>
+                                                    <li role="presentation"><a role="menuitem" onClick={() => this.handleAdd("task")}>Task</a></li>
+                                                    <li role="presentation"><a role="menuitem" href="#">Project</a></li>
+                                                    <li role="presentation"><a role="menuitem" href="#">User</a></li>
+                                                    <li role="presentation"><a role="menuitem" href="#">Team</a></li>
+                                                </ul>
                                             </div>
                                         </div>
                                         <Link to={"/profile"}>

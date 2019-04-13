@@ -195,6 +195,22 @@ export default class WorkstreamForm extends React.Component {
             .map((o, i) => { return { id: o.id, name: o.type } })
             .value()
             : [];
+        let responsibleList = members.SelectList;
+
+        if (typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") {
+            responsibleList = [...responsibleList, ..._(workstream.Selected.members)
+                .filter(({ memberType }) => { return memberType == "responsible" })
+                .map(({user}) => {
+                    return {
+                        id: user.id,
+                        name: user.firstName + " " + user.lastName,
+                        image: user.avatar
+                    }
+                })
+                .uniqBy("id")
+                .value()
+            ];
+        }
         return (
             <form id="workstream-form">
                 <div class="mb20">
@@ -289,7 +305,7 @@ export default class WorkstreamForm extends React.Component {
                     <label>Responsible: <span class="text-red">*</span></label>
                     <DropDown
                         required={true}
-                        options={members.SelectList}
+                        options={responsibleList}
                         onInputChange={this.setMemberList}
                         selected={(typeof workstream.Selected.responsible == "undefined" || typeof workstream.Selected.action != "undefined") ? "" : workstream.Selected.responsible}
                         onChange={(e) => {

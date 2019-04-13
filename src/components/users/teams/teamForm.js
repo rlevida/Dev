@@ -200,8 +200,8 @@ export default class TeamForm extends React.Component {
         const { teams, users } = { ...this.props };
         const { users_team = [] } = teams.Selected;
         let memberOptions = _.filter(teams.MemberList, (o) => { return o.id != teams.Selected.teamLeaderId });
-        memberOptions = [...memberOptions, ..._.map(users_team, ({ value: id, label: name, image }) => { return { id, name, image } })];
-
+        memberOptions = _.uniqBy([...memberOptions, ..._.map(users_team, ({ value: id, label: name, image }) => { return { id, name, image } })], 'id');
+        
         return <div>
             <div class="mb20">
                 <form id="team-form">

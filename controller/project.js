@@ -1223,7 +1223,25 @@ exports.put = {
                 .then((res) => {
                     nextThen(res);
                 })
-        }).then((nextThen, result) => {
+        }).then(async (nextThen, result) => {
+            const currentProjectManager = await Members.findOne({
+                where: { linkType: "project", linkId: id, usersType: "users", memberType: "project manager" }
+            }).then((o) => { return o.toJSON(); })
+
+            if (dataToSubmit.projectManagerId != currentProjectManager.userTypeLinkId) {
+                await Members.update(
+                    { memberType: "assignedTo" },
+                    {
+                        where: {
+                            linkType: "project",
+                            linkId: id,
+                            usersType: "users",
+                            userTypeLinkId: currentProjectManager.userTypeLinkId,
+                            memberType: "project manager"
+                        }
+                    }
+                )
+            }
             Members
                 .destroy({
                     where: { linkType: "project", linkId: id, usersType: "users", memberType: "project manager" }

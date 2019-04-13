@@ -8,6 +8,8 @@ import ProjectMemberForm from "./projectMemberForm";
 import WorkstreamForm from "../workstream/workstreamForm";
 import WorkstreamList from "../workstream/workstreamList";
 
+let keyTimer = "";
+
 @connect((store) => {
     return {
         project: store.project,
@@ -17,6 +19,7 @@ import WorkstreamList from "../workstream/workstreamList";
         users: store.users,
         teams: store.teams,
         members: store.members,
+        users: store.users,
         document: store.document,
         global: store.global,
     }
@@ -36,7 +39,8 @@ export default class ProjectForm extends React.Component {
             "getMembers",
             "handleColorSlider",
             "onDrop",
-            "upload"
+            "upload",
+            "setProjetLeadList"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -54,6 +58,7 @@ export default class ProjectForm extends React.Component {
         });
 
         this.getMembers();
+        this.fetchProjetLeadList();
     }
 
     componentWillUnmount() {
@@ -229,12 +234,36 @@ export default class ProjectForm extends React.Component {
         });
     }
 
+    setProjetLeadList(options) {
+        keyTimer && clearTimeout(keyTimer);
+        keyTimer = setTimeout(() => {
+            this.fetchProjetLeadList(options);
+        }, 1500);
+    }
+
+    fetchProjetLeadList(options) {
+        const { dispatch } = this.props;
+        let fetchUrl = "/api/user?page=1&isDeleted=0&type=teamLead";
+
+        if (typeof options != "undefined" && options != "") {
+            fetchUrl += `&name=${options}`;
+        }
+
+        getData(fetchUrl, {}, (c) => {
+            const projectLeadList = _(c.data.result)
+                .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName, image: e.avatar } })
+                .value();
+            dispatch({ type: "SET_USER_SELECT_LIST", List: projectLeadList });
+        });
+    }
+
+
     render() {
-        const { dispatch, project, loggedUser, members, status, type, global, document } = { ...this.props };
+        const { dispatch, project, loggedUser, members, status, type, users, document } = { ...this.props };
         const { Files, Loading: documentLoading } = document;
         const typeValue = (typeof members.Selected != "undefined" && _.isEmpty(members.Selected) == false) ? members.Selected.firstName + " " + members.Selected.lastName : "";
         const isMemberByTeam = (typeof members.Selected.memberByTeam != "undefined" && _.isEmpty(members.Selected) == false) ? (members.Selected.memberByTeam).length > 0 : false;
-
+        let projectManagerOptions = users.SelectList;
         let statusList = [], typeList = [];
 
         status.List.map((e, i) => { if (e.linkType == "project") { statusList.push({ id: e.id, name: e.status }) } })
@@ -253,16 +282,22 @@ export default class ProjectForm extends React.Component {
             })
             .value();
 
-        const projectManagerOptions = (typeof global.SelectList.usersList !== 'undefined') ? _(global.SelectList.usersList)
-            .filter((userObj) => {
-                const role = (typeof userObj.user_role != "undefined") ? userObj.user_role : userObj.role;
-                const roleChecker = _.filter(role, (roleObj) => { return roleObj.roleId < 4 });
-                return roleChecker.length > 0;
-            })
-            .map((e) => {
-                return { id: e.id, name: `${e.firstName} ${e.lastName}`, image: e.avatar }
-            }).value()
-            : [];
+        if (typeof project.Selected.id != "undefined" && project.Selected.id != "") {
+            projectManagerOptions = [
+                ...projectManagerOptions,
+                ..._(project.Selected.members)
+                    .filter(({ id }) => { return id == project.Selected.projectManagerId })
+                    .map((e) => {
+                        return {
+                            id: e.id,
+                            name: e.firstName + " " + e.lastName,
+                            image: e.avatar
+                        }
+                    })
+                    .uniqBy("id")
+                    .value()
+            ]
+        }
 
         return (
             <div class="row">
@@ -344,10 +379,12 @@ export default class ProjectForm extends React.Component {
                                     }
                                     <div class="form-group">
                                         <label for="project-manager">Project Lead: <span class="text-red">*</span></label>
-                                        <DropDown multiple={false}
+                                        <DropDown
                                             required={true}
                                             options={projectManagerOptions}
-                                            selected={project.Selected.projectManagerId}
+                                            onInputChange={this.setProjetLeadList}
+                                            selected={(typeof project.Selected.projectManagerId == "undefined") ? "" : project.Selected.projectManagerId}
+                                            placeholder={"Search and select project lead"}
                                             onChange={(e) => {
                                                 this.setDropDown("projectManagerId", (e == null) ? "" : e.value);
                                             }}
@@ -371,9 +408,8 @@ export default class ProjectForm extends React.Component {
                                                     </div>
                                                 );
                                             }}
-                                            placeholder={"Search or select project lead"}
+                                            isClearable={((users.SelectList).length > 0)}
                                         />
-
                                     </div>
                                     <div class="form-group">
                                         <label for="project-manager">Color Indicator: <span class="text-red">*</span></label>

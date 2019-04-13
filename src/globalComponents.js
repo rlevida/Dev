@@ -22,7 +22,6 @@ export const DropDown = React.createClass({
             disabled: props.disabled
         };
         this.setState(objToBeUpdated);
-
         if (typeof props.selected != "undefined") {
             if (props.multiple) {
                 var selected = props.selected.map((d, index) => { return d.value });
