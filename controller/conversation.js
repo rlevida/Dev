@@ -763,6 +763,7 @@ exports.post = {
         form.parse(req);
     },
     comment: async (req, cb) => {
+
         const body = req.body;
         const bodyData = body.data;
         const conversation = await Conversation
@@ -825,7 +826,7 @@ exports.post = {
                             {
                                 model: Users,
                                 as: 'users',
-                                where: { id: { [Op.ne]: [...body.reminderList, body.userId] } },
+                                where: { id: { [Op.notIn]: [...body.reminderList, body.userId] } },
                             }
                         ],
                         group: ['users.id']
@@ -964,7 +965,7 @@ exports.post = {
                 }
             },
             mentionedNotification: async (parallelCallback) => {
-                const receiver = body.reminderList
+                const receiver = await _.filter(body.reminderList, (o) => { return o !== body.userId })
                 try {
                     if (receiver.length > 0) {
                         const sender = await Users.findOne({
@@ -1017,7 +1018,7 @@ exports.post = {
                                             usersId: nSetting.usersId,
                                             projectId: task.projectId,
                                             createdBy: sender.id,
-                                            task: task.id,
+                                            taskId: task.id,
                                             workstreamId: task.workstreamId,
                                             type: "taskTagged",
                                             message: message,
@@ -1101,82 +1102,7 @@ exports.post = {
                     console.error(err)
                 }
             }
-            // reminder: (parallelCallback) => {
-            //     Users.findAll({
-            //         where: {
-            //             id: [...body.reminderList, bodyData.usersId]
-            //         }
-            //     })
-            //         .map((o) => { return o.toJSON() })
-            //         .then(async (users) => {
-            //             const reminderPromise = _.map(_.filter(users, (o) => { return o.id != bodyData.usersId }), async (o) => {
-            //                 return new Promise(async (resolve) => {
-            //                     const mentioned = _.find(users, (o) => { return o.id == bodyData.usersId });
-            //                     let message = "";
-            //                     let data = {};
-
-            //                     if (bodyData.linkType == "task") {
-            //                         const task = await Tasks.findOne({
-            //                             include: {
-            //                                 model: Workstream,
-            //                                 as: 'workstream'
-            //                             },
-            //                             where: {
-            //                                 id: bodyData.linkId
-            //                             }
-            //                         }).then((o) => {
-            //                             const responseObj = o.toJSON();
-            //                             return responseObj;
-            //                         });
-            //                         message = `${mentioned.firstName + " " + mentioned.lastName} metioned you on the task ${task.task} under ${task.workstream.workstream} workstream.`;
-            //                         data = {
-            //                             detail: message,
-            //                             usersId: o.id,
-            //                             linkType: bodyData.linkType,
-            //                             linkId: bodyData.linkId,
-            //                             type: 'Tag in Comment',
-            //                             projectId: body.projectId,
-            //                             createdBy: bodyData.usersId
-            //                         }
-            //                     } else if (bodyData.linkType == "document") {
-            //                         const document = await Tasks.findOne({
-            //                             where: {
-            //                                 id: bodyData.linkId
-            //                             }
-            //                         }).then((o) => {
-            //                             const responseObj = o.toJSON();
-            //                             return responseObj;
-            //                         });
-            //                         message = `${mentioned.firstName + " " + mentioned.lastName} metioned you on the ${document.origin}`
-            //                         data = {
-            //                             detail: message,
-            //                             usersId: o.id,
-            //                             linkType: bodyData.linkType,
-            //                             linkId: bodyData.linkId,
-            //                             type: 'Tag in Comment',
-            //                             projectId: body.projectId,
-            //                             createdBy: bodyData.usersId
-            //                         }
-            //                     }
-            //                     const mailOptions = {
-            //                         from: '"no-reply" <no-reply@c_cfo.com>',
-            //                         to: `${o.emailAddress}`,
-            //                         subject: '[CLOUD-CFO]',
-            //                         html: '<p>' + message + '</p>'
-            //                     }
-            //                     global.emailtransport(mailOptions)
-            //                     resolve(data)
-            //                 });
-            //             });
-            //             Promise.all(reminderPromise).then((values) => {
-            //                 Reminder.bulkCreate(values).map((response) => {
-            //                     return response.toJSON();
-            //                 }).then((resultArray) => {
-            //                     parallelCallback(null, resultArray)
-            //                 });
-            //             });
-            //         })
-            // }
+           
         }, (err, result) => {
             if (err != null) {
                 cb({ status: false, error: err });

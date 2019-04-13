@@ -132,7 +132,7 @@ class Main extends React.Component {
         }
         dispatch({ type: formType, FormActive: "Form" });
     }
-    
+
     render() {
         const { showLeft } = { ...this.state };
         const { project, loggedUser, notification } = { ...this.props };
@@ -214,7 +214,7 @@ class Main extends React.Component {
         const getProjectDetailsPath = currentPath.split("/");
         const showProjectMenu = (getProjectDetailsPath[2] == project.Selected.id && typeof project.Selected.id != "undefined");
         const currentProjectPage = (typeof getProjectDetailsPath[3] == "undefined") ? "dashboard" : getProjectDetailsPath[3];
-    
+
         return (
             <div class={(showLeft) ? 'flex-row' : ''} id="main-container">
                 {(showLeft) &&
@@ -320,9 +320,9 @@ class Main extends React.Component {
                                             <div class="pull-right dropdown-menu new-menu" role="menu" aria-labelledby="new">
                                                 <ul>
                                                     {
-                                                        _.map(dropdownAddLinks, ({ id, label }) => {
+                                                        _.map(dropdownAddLinks, ({ id, label }, index) => {
                                                             return (
-                                                                <li role="presentation"><a role="menuitem" onClick={() => this.handleAdd(id)}>{label}</a></li>
+                                                                <li role="presentation" key={index}><a role="menuitem" onClick={() => this.handleAdd(id)}>{label}</a></li>
                                                             )
                                                         })
                                                     }

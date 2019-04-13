@@ -22,7 +22,7 @@ export default class Component extends React.Component {
                 <li class="pd0 mb20">
                     <div class="d-flex-sb">
                         <div class="n">
-                            <p class="m0">Message</p>
+                            <p class="m0">Messages</p>
                             <div class="m20">
                                 <div class="display-flex vh-center">
                                     <div class="thumbnail-profile">

@@ -2,6 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import moment from 'moment';
 import { notificationType } from "../../../globalFunction";
+import { MentionConvert } from "../../../globalComponents"
 @connect((store) => {
     return {
         project: store.project,
@@ -36,10 +37,10 @@ export default class Component extends React.Component {
                                     </div>
                                 </div>
                                 <div class="n-b-content">
-                                    <p class="m0 n-message">
-                                        <i class="fa fa-comments`-o mr10" />
-                                        <span>"{comment}"</span>
-                                    </p>
+                                    <div class="m0 n-message display-flex vh-center">
+                                        <i class="fa fa-comments-o mr10" />
+                                        <MentionConvert string={comment} />
+                                    </div>
                                 </div>
                             </div>
                         </div>
