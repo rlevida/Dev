@@ -1,7 +1,6 @@
 var gulp = require('gulp');
 var concat = require('gulp-concat');
 var cleanCSS = require('gulp-clean-css');
-var uglify = require('gulp-uglify');
 
 var fileSources = {
     vendorJavascripts: {
@@ -40,7 +39,7 @@ var fileSources = {
 gulp.task("minify-vendor-JS", function () {
     return gulp.src(fileSources.vendorJavascripts.sources)
         .pipe(concat("vendor.js"))
-        .pipe(gulp.dest("public/javascripts/"));
+        .pipe(gulp.dest("public/javascripts/dist"));
 });
 
 gulp.task("minify-vendor-CSS", function () {

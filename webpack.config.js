@@ -24,7 +24,7 @@ module.exports = {
         ]
     },
     output: {
-        path: `${__dirname}/public/javascripts`,
+        path: `${__dirname}/public/javascripts/dist`,
         filename: '[name].min.js'
     },
     mode: (debug) ? "development" : "production",

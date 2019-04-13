@@ -83,12 +83,7 @@ const associationFindAllStack = [
                 as: 'taskDueToday',
                 where: {
                     dueDate: moment.utc().format("YYYY-MM-DD"),
-                    status: {
-                        [Op.or]: {
-                            [Op.not]: "Completed",
-                            [Op.eq]: null
-                        }
-                    }
+                    status: "In Progress"
                 },
                 required: false,
             },
@@ -97,12 +92,7 @@ const associationFindAllStack = [
                 as: 'taskOverDue',
                 where: {
                     dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") },
-                    status: {
-                        [Op.or]: {
-                            [Op.not]: "Completed",
-                            [Op.eq]: null
-                        }
-                    }
+                    status: "In Progress"
                 },
                 required: false,
             },
@@ -423,7 +413,7 @@ exports.get = {
                             [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "Completed" THEN task.id END)'), 'completed'],
                             [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate < "' + moment(dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" AND task.status = "In Progress" THEN task.id END)'), 'issues'],
                             [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "For Approval" THEN task.id END)'), 'for_approval'],
-                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" AND task.status <> "Completed" THEN task.id END)'), 'due_today']
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" AND task.status = "In Progress" THEN task.id END)'), 'due_today']
                         ]
                     }).map((response) => {
                         return response.toJSON();

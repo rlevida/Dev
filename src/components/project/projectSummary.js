@@ -43,6 +43,7 @@ export default class List extends React.Component {
         const { dispatch } = { ...this.props };
         dispatch({ type: "SET_PROJECT_LIST", list: [] });
         dispatch({ type: "SET_WORKSTREAM_LIST", list: [] });
+        dispatch({ type: "SET_TASK_LIST", list: [] });
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
     }
 
@@ -109,7 +110,7 @@ export default class List extends React.Component {
         const toDate = moment().endOf('month').format("YYYY-MM-DD");
         const today = moment().format("YYYY-MM-DD");
         let fetchUrl = `/api/task?dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
-
+      
         if (type == "project") {
             fetchUrl += `&projectId=${id}`
         }

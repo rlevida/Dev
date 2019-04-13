@@ -12,6 +12,14 @@ import { connect } from "react-redux";
 })
 
 export default class Component extends React.Component {
+    constructor(props){
+        super(props);
+        this.handleRedirect = this.handleRedirect.bind(this);
+    }
+    handleRedirect(link) {
+        const { history } = { ...this.props };
+        history.push(link);
+    }
     render() {
         const { history } = { ...this.props };
         return (

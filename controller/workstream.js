@@ -83,20 +83,6 @@ exports.get = {
             ...(typeof queryString.isTemplate != "undefined" && queryString.isTemplate != "") ? { isTemplate: queryString.isTemplate } : {},
             ...(typeof queryString.typeId != "undefined" && queryString.typeId != "") ? { typeId: queryString.typeId } : {},
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : { isDeleted: 0 },
-            // ...((typeof queryString.userType != "undefined" && queryString.userType == "External") && (typeof queryString.userId != "undefined" && queryString.userId != "")) ? {
-            //     [Sequelize.Op.or]: [
-            //         {
-            //             id: {
-            //                 [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT workstreamId FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId = ${queryString.userId})`)
-            //             }
-            //         },
-            //         {
-            //             id: {
-            //                 [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT linkId FROM members WHERE memberType="responsible" AND linkType="workstream" AND userTypeLinkId = ${queryString.userId})`)
-            //             }
-            //         }
-            //     ]
-            // } : {},
             ...(typeof queryString.workstream != "undefined" && queryString.workstream != "") ? {
                 [Sequelize.Op.and]: [
                     Sequelize.where(Sequelize.fn('lower', Sequelize.col('workstream')),
@@ -167,7 +153,7 @@ exports.get = {
                             task
                         ON task.workstreamId = workstream.id
                         WHERE task.dueDate < "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}"
-                        AND (task.status != "Completed" OR task.status IS NULL)
+                        AND (task.status == "In Progress" OR task.status IS NULL)
                     )`)
                     }
                     break;
@@ -195,27 +181,26 @@ exports.get = {
                     Workstream.findAll({
                         where: whereObj,
                         ...options
-                    }).map((mapObject) => {
-                        const resultObj = mapObject.toJSON();
+                    }).map((response) => {
+                        const resultObj = response.toJSON();
                         const completedTasks = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "Completed" });
-                        const forApproval = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "For Approval" });
                         const issuesTasks = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
                             const currentDateMoment = moment.utc();
-                            return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status != "Completed"
+                            return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status == "In Progress"
                         });
                         const pendingTasks = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
                             const currentDateMoment = moment.utc();
-                            return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && taskObj.status != "Completed"
+                            return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && (taskObj.status != "Completed" && taskObj.status != "Rejected")
                         });
                         const dueTodayTask = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
                             const currentDateMoment = moment.utc();
-                            return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status != "Completed"
+                            return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status == "In Progress"
                         });
                         const newDoc = _.filter(resultObj.tag, (tagObj) => {
-                                return tagObj.document != null && tagObj.document.status == "new"
+                            return tagObj.document.status == "new"
                         });
                         const members = [...resultObj.responsible,
                         ..._(resultObj.task)
@@ -226,12 +211,16 @@ exports.get = {
                             })
                             .value()
                         ];
+                        const forApproval = _.filter(resultObj.task, (taskObj) => {
+                            return taskObj.status == "For Approval"
+                        });
                         const responsible = _.filter(members, (member) => { return member.memberType == "responsible" });
 
                         return {
                             ...resultObj,
                             pending: pendingTasks,
                             completed: completedTasks,
+                            for_approval: forApproval.length,
                             issues: issuesTasks.length,
                             dueToday: dueTodayTask.length,
                             new_documents: newDoc.length,
@@ -482,17 +471,17 @@ exports.post = {
                         const issuesTasks = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
                             const currentDateMoment = moment.utc();
-                            return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status != "Completed"
+                            return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status == "In Progress"
                         });
                         const pendingTasks = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
                             const currentDateMoment = moment.utc();
-                            return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && taskObj.status != "Completed"
+                            return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && (taskObj.status != "Completed" && taskObj.status != "Rejected")
                         });
                         const dueTodayTask = _.filter(resultObj.task, (taskObj) => {
                             const dueDateMoment = moment(taskObj.dueDate);
                             const currentDateMoment = moment.utc();
-                            return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status != "Completed"
+                            return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status == "In Progress"
                         });
                         const newDoc = _.filter(resultObj.tag, (tagObj) => {
                             return tagObj.document.status == "new"
@@ -506,7 +495,10 @@ exports.post = {
                             })
                             .value()
                         ];
-                        const forApproval = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "For Approval" });
+                        const forApproval = _.filter(resultObj.task, (taskObj) => {
+                            return taskObj.status == "For Approval"
+                        });
+                        const responsible = _.filter(members, (member) => { return member.memberType == "responsible" });
                         Projects.update({ dateUpdated: body.dateUpdated },
                             {
                                 where: { id: resultObj.projectId }
@@ -517,6 +509,7 @@ exports.post = {
                                         ...resultObj,
                                         pending: pendingTasks,
                                         completed: completedTasks,
+                                        for_approval: forApproval.length,
                                         issues: issuesTasks.length,
                                         dueToday: dueTodayTask.length,
                                         new_documents: newDoc.length,
@@ -544,6 +537,7 @@ exports.post = {
                                             }
                                         },
                                         members,
+                                        responsible: ((responsible).length > 0) ? responsible[0].userTypeLinkId : ""
                                     }
                                 });
                             });
@@ -580,17 +574,17 @@ exports.put = {
                             const issuesTasks = _.filter(resultObj.task, (taskObj) => {
                                 const dueDateMoment = moment(taskObj.dueDate);
                                 const currentDateMoment = moment.utc();
-                                return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status != "Completed"
+                                return dueDateMoment.isBefore(currentDateMoment, 'day') && taskObj.status == "In Progress"
                             });
                             const pendingTasks = _.filter(resultObj.task, (taskObj) => {
                                 const dueDateMoment = moment(taskObj.dueDate);
                                 const currentDateMoment = moment.utc();
-                                return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && taskObj.status != "Completed"
+                                return dueDateMoment.isBefore(currentDateMoment, 'day') == false && dueDateMoment.isSame(currentDateMoment, 'day') == false && (taskObj.status != "Completed" && taskObj.status != "Rejected")
                             });
                             const dueTodayTask = _.filter(resultObj.task, (taskObj) => {
                                 const dueDateMoment = moment(taskObj.dueDate);
                                 const currentDateMoment = moment.utc();
-                                return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status != "Completed"
+                                return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status == "In Progress"
                             });
                             const newDoc = _.filter(resultObj.tag, (tagObj) => {
                                 return tagObj.document.status == "new"
@@ -604,7 +598,10 @@ exports.put = {
                                 })
                                 .value()
                             ];
-                            const forApproval = _.filter(resultObj.task, (taskObj) => { return taskObj.status == "For Approval" });
+                            const forApproval = _.filter(resultObj.task, (taskObj) => {
+                                return taskObj.status == "For Approval"
+                            });
+                            const responsible = _.filter(members, (member) => { return member.memberType == "responsible" });
                             async.parallel({
                                 projects: (parallelCallback) => {
                                     Projects.update({ dateUpdated: body.dateUpdated },
@@ -632,6 +629,7 @@ exports.put = {
                                         completed: completedTasks,
                                         issues: issuesTasks.length,
                                         dueToday: dueTodayTask.length,
+                                        for_approval: forApproval.length,
                                         new_documents: newDoc.length,
                                         numberOfTasks: (resultObj.task).length,
                                         completion_rate: {
@@ -657,6 +655,7 @@ exports.put = {
                                             }
                                         },
                                         members,
+                                        responsible: ((responsible).length > 0) ? responsible[0].userTypeLinkId : ""
                                     }
                                 });
                             });

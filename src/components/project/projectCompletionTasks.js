@@ -102,7 +102,6 @@ export default class ProjectCompletionTasks extends React.Component {
                                 {
                                     ((List).length == 0 && Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                                 }
-
                             </div>
                         </div>
                     </div>

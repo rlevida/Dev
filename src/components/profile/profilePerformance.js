@@ -36,7 +36,7 @@ export default class ProfilePerformance extends React.Component {
         const currentYear = moment().format("YYYY");
         const { task, show_title = true, show_legend = true } = this.props;
         const { StatusCount, Loading: taskLoading } = task;
-        const { assigned_tasks = 0, due_today = 0, issues = 0, on_time = 0, remaining = 0 } = StatusCount;
+        const { assigned_tasks = 0, due_today = 0, issues = 0, on_time = 0, for_approval = 0 } = StatusCount;
         const options = {
             pieHole: 0.6,
             is3D: false,
@@ -49,14 +49,15 @@ export default class ProfilePerformance extends React.Component {
                 height: "94%",
                 width: "94%"
             },
-            colors: ['#00e589', '#f6dc64', '#f9003b', '#f1f1f1'],
+            colors: ['#00e589', '#f6dc64', '#f9003b', '#ff754a', '#f1f1f1'],
         };
         const data = [
             ["Status", "Count"],
             ["On Time", on_time],
             ["Due Today", due_today],
             ["Delayed", issues],
-            ["Remaining", remaining]
+            ["For Approval", for_approval],
+            ["Remaining", (assigned_tasks - (on_time + due_today + issues + for_approval))]
         ];
 
         return (
@@ -102,8 +103,12 @@ export default class ProfilePerformance extends React.Component {
                                             <h3>{issues}</h3>
                                         </div>
                                         <div class="flex-col">
+                                            <label><span class="fa fa-circle mb0 mr5 text-orange"></span> For Approval:</label>
+                                            <h3>{for_approval}</h3>
+                                        </div>
+                                        <div class="flex-col">
                                             <label><span class="fa fa-circle mb0 mr5 text-grey-f1"></span> Remaining:</label>
-                                            <h3>{remaining}</h3>
+                                            <h3>{(assigned_tasks - (on_time + due_today + issues + for_approval))}</h3>
                                         </div>
                                     </div>
                                 </div>

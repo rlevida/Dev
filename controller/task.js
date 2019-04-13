@@ -471,11 +471,11 @@ exports.get = {
                 },
             }],
             attributes: [
-                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.id <> 0  THEN task.id END)'), 'assigned_tasks'],
-                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "Completed"  THEN task.id END)'), 'on_time'],
-                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today'],
-                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues'],
-                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status <> "Completed" AND task.dueDate > "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'remaining']
+                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.id <> 0 THEN task.id END)'), 'assigned_tasks'],
+                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "Completed" THEN task.id END)'), 'on_time'],
+                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "For Approval" THEN task.id END)'), 'for_approval'],
+                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "In Progress" AND task.dueDate = "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'due_today'],
+                [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "In Progress" AND task.dueDate < "' + moment(queryString.date, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" THEN task.id END)'), 'issues']
             ]
         }).map((response) => {
             return response.toJSON();
@@ -616,9 +616,7 @@ exports.get = {
                                     [Op.eq]: currentDate
                                 },
                                 projectId,
-                                status: {
-                                    [Op.ne]: 'Completed'
-                                }
+                                status: "In Progress"
                             }
                         }).then(({ count }) => {
                             parallelCallback(null, count)
@@ -650,9 +648,7 @@ exports.get = {
                                 dueDate: {
                                     [Op.lt]: currentDate
                                 },
-                                status: {
-                                    [Op.ne]: 'Completed'
-                                },
+                                status: "In Progress",
                                 projectId
                             }
                         }).then(({ count }) => {

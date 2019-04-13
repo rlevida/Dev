@@ -1,5 +1,6 @@
 node_modules/*
 temp/*
+/public/javascripts/dist/*
 /public/javascripts/app.min.js
 /public/javascripts/app.js
 /public/stylesheets/style.css

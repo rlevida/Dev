@@ -100,7 +100,9 @@ export default class ProjectList extends React.Component {
         })
     }
 
-    renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type }) {
+    renderStatus({ workstream, render_type }) {
+        const lateWorkstream = _.filter(workstream, ({ taskOverDue }) => { return taskOverDue.length > 0 }).length;
+        const workstreamTaskDueToday = _.filter(workstream, ({ taskDueToday }) => { return taskDueToday.length > 0 }).length;
         const status = (lateWorkstream > 0) ? `${lateWorkstream} stream(s) delayed` : (workstreamTaskDueToday > 0) ? `${workstreamTaskDueToday} stream(s) due today` : `On track`;
         const color = (lateWorkstream > 0) ? "text-red" : (workstreamTaskDueToday > 0) ? "text-yellow" : "text-green";
         const component = (render_type == "text") ? <p class={`mb0 ${color}`}>
@@ -166,25 +168,17 @@ export default class ProjectList extends React.Component {
                                                 {
                                                     _.map(project.List, (projectElem, index) => {
                                                         const { id, project, workstream, members, updates, numberOfTasks, completion_rate, type, isDeleted } = { ...projectElem };
-                                                        let lateWorkstream = 0;
-                                                        let workstreamTaskDueToday = 0;
-
-                                                        workstream.map((e) => {
-                                                            if (e.taskOverDue.length) {
-                                                                lateWorkstream++;
-                                                            }
-                                                            if (e.taskDueToday.length) {
-                                                                workstreamTaskDueToday++;
-                                                            }
-                                                        });
+                                                        const lateWorkstream = completion_rate.delayed_task.count;
+                                                        const workstreamTaskDueToday = completion_rate.tasks_due_today.count;
                                                         const completionRate = (completion_rate.completed.count / numberOfTasks) * 100;
+
                                                         return (
                                                             <tr key={index}>
                                                                 <td data-label="Project Name" class="td-left table-name">
                                                                     <p class="mb0">
                                                                         {
                                                                             (numberOfTasks > 0 && isDeleted == 0) && <span>
-                                                                                {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "icon" })}
+                                                                                {this.renderStatus({ workstream, render_type: "icon" })}
                                                                             </span>
                                                                         }
                                                                         <Link to={`/projects/${id}`}>{project}</Link>
@@ -193,7 +187,7 @@ export default class ProjectList extends React.Component {
                                                                 <td data-label="Status">
                                                                     {
                                                                         (numberOfTasks > 0 && isDeleted == 0) && <div>
-                                                                            {this.renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type: "text" })}
+                                                                            {this.renderStatus({ workstream, render_type: "text" })}
                                                                         </div>
                                                                     }
                                                                     {

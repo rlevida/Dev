@@ -128,14 +128,15 @@ export default class ProjectDashboard extends React.Component {
             { label: "Delayed Tasks", count: delayed_task, class_color: "text-red" }
         ];
         const projectId = this.props.match.params.projectId;
-        const chartData = _.map(workstream.List, ({ id, issues, dueToday, completed, task, workstream, completion_rate }) => {
+        const chartData = _.map(workstream.List, ({ id, issues, dueToday, completed, task, workstream, completion_rate, for_approval }) => {
             return {
                 data: [
                     ["Workstream", "Completion"],
                     ["Completed", completed.length],
                     ["Due Today", dueToday],
                     ["Delayed", issues],
-                    ["In Progress", task.length - (completed.length + dueToday + issues)]
+                    ["For Approval", for_approval],
+                    ["In Progress", task.length - (completed.length + dueToday + issues + for_approval)]
                 ],
                 title: workstream,
                 total: (completion_rate.completed.value).toFixed(2),
@@ -154,8 +155,9 @@ export default class ProjectDashboard extends React.Component {
                 height: "94%",
                 width: "94%"
             },
-            colors: ['#00e589', '#f6dc64', '#f9003b', '#f1f1f1'],
+            colors: ['#00e589', '#f6dc64', '#f9003b', '#ff754a', '#f1f1f1'],
         };
+       
         return (
             <div class="row content-row">
                 <div class="col-lg-12">

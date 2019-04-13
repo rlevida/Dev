@@ -308,9 +308,9 @@ class Main extends React.Component {
                                             <div class="pull-right dropdown-menu new-menu" role="menu" aria-labelledby="new">
                                                 <ul>
                                                     {
-                                                        _.map(dropdownAddLinks, ({ id, label }) => {
+                                                        _.map(dropdownAddLinks, ({ id, label }, index) => {
                                                             return (
-                                                                <li role="presentation"><a role="menuitem" onClick={() => this.handleAdd(id)}>{label}</a></li>
+                                                                <li role="presentation" key={index}><a role="menuitem" onClick={() => this.handleAdd(id)}>{label}</a></li>
                                                             )
                                                         })
                                                     }
