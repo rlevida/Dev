@@ -731,7 +731,7 @@ export default class TaskDetails extends React.Component {
                                                                     const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
 
                                                                     return (
-                                                                        <div key={index} class="display-flex vh-center checklist-item pd10">
+                                                                        <div key={index} class="display-flex vh-center checklist-item">
                                                                             <label class={(status != "Completed") ? "custom-checkbox todo-checklist" : "todo-checklist"}>
                                                                                 {description}
                                                                                 <p class="note mb0">Added {date} by {user.firstName + " " + user.lastName}</p>
