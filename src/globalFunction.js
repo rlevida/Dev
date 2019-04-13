@@ -322,3 +322,26 @@ var notificationType = exports.notificationType = function (type) {
             return;
     }
 }
+
+var parseQuery = exports.parseQuery = function (queryString) {
+    var query = {};
+    var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+    for (var i = 0; i < pairs.length; i++) {
+        var pair = pairs[i].split('=');
+        query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+    }
+    return query;
+}
+
+var workstreamActiveTab = exports.workstreamActiveTab = function (tab) {
+    var tabIndex = 0
+    switch (tab) {
+        case "document": {
+            tabIndex = 1
+        }
+        break;
+        default:
+            tabIndex = 0
+    }
+    return tabIndex
+}

@@ -70,7 +70,7 @@ class NotificationList extends React.Component {
                     <div>
                         <div class="card-body m0">
                             <ul class="n-list">
-                                {_.orderBy(List, ['dateAdded'], ['desc']).map((e, i) => {
+                                {_.orderBy(List, ['isRead'], ['asc']).map((e, i) => {
                                     switch (e.type) {
                                         case 'fileNewUpload': {
                                             return <div key={i}><FileNewUpload data={e} index={i} archive={(data) => this.archive(data)} /></div>

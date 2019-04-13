@@ -1048,7 +1048,8 @@ exports.post = {
                                     [Op.or]: [
                                         { linkType: 'workstream', linkId: workstreamId },
                                         { linkType: 'task', linkId: taskId }
-                                    ]
+                                    ],
+                                    userTypeLinkId: { [Op.ne]: userId }
                                 }
                             })
                             .map((o) => {
