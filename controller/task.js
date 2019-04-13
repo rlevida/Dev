@@ -1714,9 +1714,9 @@ exports.put = {
                                                     }).map((nSetting) => {
                                                         return {
                                                             usersId: nSetting.usersId,
-                                                            projectId: updatedResponse.projectId,
                                                             createdBy: sender.id,
-                                                            task: updatedResponse.id,
+                                                            projectId: updatedResponse.projectId,
+                                                            taskId: updatedResponse.id,
                                                             workstreamId: updatedResponse.workstreamId,
                                                             type: "taskFollowingCompleted",
                                                             message: message
@@ -1896,9 +1896,9 @@ exports.put = {
                                                         const { emailAddress } = { ...nSetting.notification_setting }
                                                         return {
                                                             usersId: nSetting.usersId,
-                                                            projectId: updatedResponse.projectId,
                                                             createdBy: sender.id,
-                                                            task: updatedResponse.id,
+                                                            projectId: updatedResponse.projectId,
+                                                            taskId: updatedResponse.id,
                                                             workstreamId: updatedResponse.workstreamId,
                                                             type: "taskMemberCompleted",
                                                             message: message,

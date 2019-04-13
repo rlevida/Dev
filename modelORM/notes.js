@@ -73,7 +73,10 @@ module.exports = function (sequelize, DataTypes) {
       as: 'documentTags',
       foreignKey: 'linkId',
     })
+    Notes.hasOne(models.Notification, {
+      as: 'note_notification',
+      foreignKey: 'id'
+    })
   }
-
   return Notes;
 };

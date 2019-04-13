@@ -635,6 +635,16 @@ exports.post = {
                                                 required: false,
                                                 attributes: ["task"]
                                             },
+                                            {
+                                                model: Notes,
+                                                as: 'note_notification',
+                                                required: false,
+                                                include: [{
+                                                    model: Conversation,
+                                                    as: 'comments',
+                                                    required: false
+                                                }]
+                                            }
                                         ]
                                     })
                                     .map((findNotificationRes) => {
@@ -1431,7 +1441,6 @@ exports.post = {
                         const receiver = _.filter(body.users, (usersObj) => {
                             return usersObj.value !== sender
                         }).map((usersObj) => { return usersObj.value })
-
                         const memberUser = _.map([
                             ...members.new_members,
                             ...members.removed_members
@@ -1457,7 +1466,9 @@ exports.post = {
                                         usersId: nSetting.usersId,
                                         projectId: body.projectId,
                                         createdBy: sender,
-                                        noteId: responseObj.linkId.id,
+                                        noteId: responseObj.linkId,
+                                        conversationId: responseObj.id,
+                                        workstreamId: responseObj.conversationNotes.noteWorkstream.id,
                                         type: "messageSend",
                                         message: "Sent you a new message",
                                     }
@@ -1470,7 +1481,9 @@ exports.post = {
                                         usersId: nSetting.usersId,
                                         projectId: body.projectId,
                                         createdBy: sender,
-                                        noteId: responseObj.linkId.id,
+                                        noteId: responseObj.linkId,
+                                        conversationId: responseObj.id,
+                                        workstreamId: responseObj.conversationNotes.noteWorkstream.id,
                                         type: "messageSend",
                                         message: "Sent you a new message",
                                         emailAddress: nSetting.notification_setting.emailAddress
@@ -1512,11 +1525,15 @@ exports.post = {
                                                         attributes: ["workstream"]
                                                     },
                                                     {
-                                                        model: Tasks,
-                                                        as: 'task_notification',
+                                                        model: Notes,
+                                                        as: 'note_notification',
                                                         required: false,
-                                                        attributes: ["task"]
-                                                    },
+                                                        include: [{
+                                                            model: Conversation,
+                                                            as: 'comments',
+                                                            required: false
+                                                        }]
+                                                    }
                                                 ]
                                             })
                                             .map((findNotificationRes) => {

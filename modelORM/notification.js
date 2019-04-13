@@ -28,7 +28,11 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.BIGINT,
             allowNull: true
         },
-        noteId:{
+        noteId: {
+            type: DataTypes.BIGINT,
+            allowNull: true
+        },
+        conversationId: {
             type: DataTypes.BIGINT,
             allowNull: true
         },
@@ -93,6 +97,10 @@ module.exports = function (sequelize, DataTypes) {
         Notification.belongsTo(models.Workstream, {
             foreignKey: 'workstreamId',
             as: 'workstream_notification'
+        });
+        Notification.belongsTo(models.Notes, {
+            foreignKey: 'noteId',
+            as: 'note_notification'
         });
     }
     return Notification;
