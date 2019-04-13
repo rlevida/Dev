@@ -24,9 +24,9 @@ export default class Component extends React.Component {
                 <li class="pd0 mb20">
                     <div class="d-flex-sb">
                         <div class="n">
-                            <p class="m0"><i class="fa fa-check-circle mr5 n-unread"></i>Task in <strong>{workstream}</strong></p>
+                            <p class="m0"><i class="fa fa-check-circle mr5 n-unread"></i>{data.taskId === null ? `Uploaded a file in ` : `Task in `}<strong>{workstream}</strong></p>
                             <div class="m20">
-                            <div class="n-title mb10"><h4><strong>{task}</strong></h4></div>
+                                <div class="n-title mb10"><h4><strong>{task}</strong></h4></div>
                                 <div class="display-flex vh-center">
                                     <div class="thumbnail-profile">
                                         <img src={from.avatar} alt="Profile Picture" class="img-responsive" />
