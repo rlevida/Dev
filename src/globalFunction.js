@@ -309,6 +309,15 @@ var notificationType = exports.notificationType = function (type) {
         case "taskMemberCompleted": {
             return "completed this task"
         }
+        case "taskDeadline": {
+            return "You seem to have missed a deadline"
+        }
+        case "taskFollowingDeadline": {
+            return "Task following seem to have missed a deadline"
+        }
+        case "taskTeamDeadline": {
+            return "Team member seem to have missed a deadline"
+        }
         default:
             return;
     }

@@ -162,6 +162,13 @@ const associationStack = [
                 ]
             }
         ]
+    },
+    {
+        model: Members,
+        as: 'follower',
+        required: false,
+        attributes: ['userTypeLinkId'],
+        where: { linkType: 'task', memberType: 'follower' },
     }
 ];
 
@@ -1668,10 +1675,8 @@ exports.put = {
                             const workstreamResponsible = _.map(updatedResponse.workstream.responsible, (responsible) => { return responsible.user })
                             const membersToRemind = _.uniqBy(_.filter(taskMembers.concat(workstreamResponsible), (member) => { return member.id != body.userId }).map((o) => { return { id: o.id } }), 'id');
 
-
-
                             async.parallel({
-                                notification: async (statusParallelCallback) => {
+                                notificationFollower: async (statusParallelCallback) => {
                                     try {
                                         if (body.status === "Completed") {
                                             const sender = await Users.findOne({
@@ -1683,7 +1688,7 @@ exports.put = {
                                                 return responseObj;
                                             })
 
-                                            const receiver = membersToRemind;
+                                            const receiver = updatedResponse.follower.map((e) => { return e.userTypeLinkId });
 
                                             UsersNotificationSetting
                                                 .findAll({
@@ -1702,7 +1707,7 @@ exports.put = {
                                                     let notificationArr = [];
                                                     let emailArr = [];
 
-                                                    message = `Task ${updatedResponse.task} has been completed by ${sender.firstName} ${sender.lastName}.`
+                                                    message = `Task ${updatedResponse.task} has been completed.`
 
                                                     notificationArr = await _.filter(response, (nSetting) => {
                                                         return nSetting.taskFollowingCompleted === 1

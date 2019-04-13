@@ -283,13 +283,25 @@ class Main extends React.Component {
                                                         const { from, dateAdded } = { ...e }
                                                         const duration = moment.duration(moment().diff(moment(dateAdded)));
                                                         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+
                                                         return (
                                                             <div class="display-flex vh-center bb notif-item n-border" key={i}>
                                                                 <div class="menu-profile mb5">
-                                                                    <img src={e.from.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                    {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline"
+                                                                        ? <div class="n-image"><img src={e.from.avatar} alt="Profile Picture" class="img-responsive " /></div>
+                                                                        : <span class="n-tod-warning"><i class="fa fa-exclamation-circle"></i></span>
+                                                                    }
                                                                 </div>
-                                                                <div>
-                                                                    <p class="m0">{`${from.firstName} ${from.lastName}`} <strong>{notificationType(e.type)}</strong></p>
+                                                                <div class="ml10">
+                                                                    <p class="m0 ">
+
+                                                                        {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline"
+                                                                            ?
+                                                                            <span>{`${from.firstName} ${from.lastName} `}<strong>{notificationType(e.type)}</strong></span>
+                                                                            :
+                                                                            <span>{`${notificationType(e.type)} `}<strong>Checkout the task</strong></span>
+                                                                        }
+                                                                    </p>
                                                                     <p class="note">{date}</p>
                                                                 </div>
                                                             </div>
