@@ -1,1 +1,5 @@
 node_modules/*
+temp/*
+/public/javascripts/app.min.js
+/public/javascripts/app.js
+/public/stylesheets/style.css
