@@ -23,6 +23,7 @@ import Notification from "../notification";
         notification: store.notification
     }
 })
+
 class Main extends React.Component {
     constructor(props) {
         super(props)
@@ -97,15 +98,41 @@ class Main extends React.Component {
         }
         this.setState({ showMore: type })
     }
+
     handleAdd(type) {
-        const { dispatch } = this.props;
+        const { dispatch, history, location } = this.props;
+        let formType = "";
 
         switch (type) {
             case "task":
-                
+                if (location.pathname != '/my-tasks') {
+                    history.push('/my-tasks');
+                }
+                formType = "SET_TASK_FORM_ACTIVE";
+                break;
+            case "project":
+                if (location.pathname != '/projects') {
+                    history.push('/projects');
+                }
+                formType = "SET_PROJECT_FORM_ACTIVE";
+                break;
+            case "user":
+                if (location.pathname != '/users-and-team') {
+                    history.push('/users-and-team');
+                }
+                formType = "SET_USER_FORM_ACTIVE";
+                break;
+            case "team":
+                if (location.pathname != '/users-and-team') {
+                    history.push('/users-and-team');
+                }
+                formType = "SET_TEAM_FORM_ACTIVE";
+                dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "" });
                 break;
         }
+        dispatch({ type: formType, FormActive: "Form" });
     }
+    
     render() {
         const { showLeft } = { ...this.state };
         const { project, loggedUser, notification } = { ...this.props };
@@ -157,17 +184,10 @@ class Main extends React.Component {
                 show_menu: false
             },
         ];
-
-        if (loggedUser.data.userType === "External") {
-            pages = _.filter(pages, (e) => e.path_name === 'my-tasks' || e.path_name === 'projects' || e.path_name === '' || e.path_name === 'not-found' || e.path_name === 'profile')
-        }
-
-        const currentPath = this.props.location.pathname;
-        const parentPath = currentPath.split("/")[1];
-        const currentPage = _.find(pages, (page) => { return page.path_name == parentPath });
-        const getProjectDetailsPath = currentPath.split("/");
-        const showProjectMenu = (getProjectDetailsPath[2] == project.Selected.id && typeof project.Selected.id != "undefined");
-        const currentProjectPage = (typeof getProjectDetailsPath[3] == "undefined") ? "dashboard" : getProjectDetailsPath[3];
+        const dropdownAddLinks = [
+            { id: "task", label: "Task" },
+            { id: "project", label: "Project" },
+        ];
         const projectMenu = [
             { label: "Info", link: "/info" },
             { label: "Dashboard", link: "" },
@@ -177,6 +197,24 @@ class Main extends React.Component {
             { label: "Files", link: "/files" }
         ];
 
+        if (loggedUser.data.userType === "External") {
+            pages = _.filter(({ path_name }) => { return path_name != "users-and-team" });
+        }
+
+        if (loggedUser.data.userType != "External") {
+            dropdownAddLinks.push(
+                { id: "user", label: "User" },
+                { id: "team", label: "Team" }
+            );
+        }
+
+        const currentPath = this.props.location.pathname;
+        const parentPath = currentPath.split("/")[1];
+        const currentPage = _.find(pages, (page) => { return page.path_name == parentPath });
+        const getProjectDetailsPath = currentPath.split("/");
+        const showProjectMenu = (getProjectDetailsPath[2] == project.Selected.id && typeof project.Selected.id != "undefined");
+        const currentProjectPage = (typeof getProjectDetailsPath[3] == "undefined") ? "dashboard" : getProjectDetailsPath[3];
+    
         return (
             <div class={(showLeft) ? 'flex-row' : ''} id="main-container">
                 {(showLeft) &&
@@ -269,10 +307,13 @@ class Main extends React.Component {
                                             </a>
                                             <div class="pull-right dropdown-menu new-menu" role="menu" aria-labelledby="new">
                                                 <ul>
-                                                    <li role="presentation"><a role="menuitem" onClick={() => this.handleAdd("task")}>Task</a></li>
-                                                    <li role="presentation"><a role="menuitem" href="#">Project</a></li>
-                                                    <li role="presentation"><a role="menuitem" href="#">User</a></li>
-                                                    <li role="presentation"><a role="menuitem" href="#">Team</a></li>
+                                                    {
+                                                        _.map(dropdownAddLinks, ({ id, label }) => {
+                                                            return (
+                                                                <li role="presentation"><a role="menuitem" onClick={() => this.handleAdd(id)}>{label}</a></li>
+                                                            )
+                                                        })
+                                                    }
                                                 </ul>
                                             </div>
                                         </div>
