@@ -586,6 +586,8 @@ exports.post = {
                                 }
                             },
                             notification: (parallelCallback) => {
+                                parallelCallback(null)
+                                return 
                                 if (res.dataValues.type !== "folder") {
                                     const workstreamIds = data.tagWorkstream.map((e) => { return e.value });
                                     const workstreamWhereObj = { linkId: workstreamIds, linkType: 'workstream', userTypeLinkId: { [Op.ne]: e.uploadedBy } };
@@ -729,6 +731,8 @@ exports.post = {
                                 }
                             },
                             emailNotification: (parallelCallback) => {
+                                parallelCallback(null)
+                                return 
                                 if (res.dataValues.type !== "folder") {
                                     const workstreamIds = data.tagWorkstream.map((e) => { return e.value });
                                     const workstreamWhereObj = { linkId: workstreamIds, linkType: 'workstream' };
@@ -761,7 +765,6 @@ exports.post = {
                                                     return resTask
                                                         .toJSON().task_members
                                                         .filter((r) => { 
-                                                            console.log(r.user)
                                                             return r.user.notification_setting.receiveEmail === 1 
                                                         })
                                                         .map((r) => {

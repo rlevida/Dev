@@ -7,6 +7,7 @@ CREATE TABLE `notification` (
     `taskId` BIGINT,
     `documentId` BIGINT,
     `noteId` BIGINT,
+    `conversationId` BIGINT,
     `message` VARCHAR(255),
     `isActive` TINYINT DEFAULT '1',
     `isRead` TINYINT DEFAULT '0',

@@ -187,6 +187,7 @@ router.get('/:controller', (req, res, next) => {
             }
         })
     } catch (err) {
+        console.error(err)
         res.status(400).send({ error: "Not Found!" })
     }
 })
@@ -210,6 +211,7 @@ router.get('/:controller/detail/:id', (req, res, next) => {
             }
         })
     } catch (err) {
+        console.error(err)
         res.status(400).send({ error: "Not Found!" })
     }
 })
@@ -228,6 +230,7 @@ router.get('/:controller/:action', (req, res, next) => {
             }
         })
     } catch (err) {
+        console.error(err)
         res.status(400).send({ error: "Not Found!" })
     }
 })
@@ -247,6 +250,7 @@ router.post('/:controller', (req, res, next) => {
             }
         })
     } catch (err) {
+        console.error(err)
         res.status(400).send({ error: "Not Found!" })
     }
 })
@@ -266,6 +270,7 @@ router.post('/:controller/:action', (req, res, next) => {
             }
         })
     } catch (err) {
+        console.error(err)
         res.status(400).send({ error: "Not Found!" })
     }
 })
@@ -289,6 +294,7 @@ router.put('/:controller/:id', (req, res, next) => {
             }
         })
     } catch (err) {
+        console.error(err)
         res.status(400).send({ error: "Not Found!" })
     }
 })
@@ -312,6 +318,7 @@ router.put('/:controller/:action/:id', (req, res, next) => {
             }
         })
     } catch (err) {
+        console.error(err)
         res.status(400).send({ error: "Not Found!" })
     }
 })
@@ -335,6 +342,7 @@ router.delete('/:controller/:id', (req, res, next) => {
             }
         })
     } catch (err) {
+        console.error(err)
         res.status(400).send({ error: "Not Found!" })
     }
 })
@@ -358,6 +366,7 @@ router.delete('/:controller/:action/:id', (req, res, next) => {
             }
         })
     } catch (err) {
+        console.error(err)
         res.status(400).send({ error: "Not Found!" })
     }
 })
