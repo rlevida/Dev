@@ -63,6 +63,10 @@ module.exports = function (sequelize, DataTypes) {
       as: 'seenComments',
       foreignKey: 'linkId'
     })
+    Conversation.hasOne(models.Notification, {
+      as: "coversation_notification",
+      foreignKey: "id"
+    })
   }
 
   return Conversation;

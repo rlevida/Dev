@@ -12,24 +12,26 @@ import { notificationType } from "../../../globalFunction";
 export default class Component extends React.Component {
     render() {
         const { dispatch, data, index } = { ...this.props }
-        const { from, dateAdded } = { ...data }
+        const { from, dateAdded, workstream_notification, task_notification } = { ...data };
+        const { workstream } = { ...workstream_notification };
+        const { task } = { ...task_notification };
         const duration = moment.duration(moment().diff(moment(dateAdded)));
         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
-        
+
         return (
             <div key={index}>
                 <li class="pd0 mb20">
                     <div class="d-flex-sb">
                         <div class="n">
-                            <p class="m0">Task Assigned</p>
-                            <div>
-                                <div class="n-title">Lorem ipsum dolor sit amet</div>
+                            <p class="m0"><i class="fa fa-check-circle mr5 n-unread"></i>Task in <strong>{workstream}</strong></p>
+                            <div class="m20">
+                                <div class="n-title mb10"><h4><strong>{task}</strong></h4></div>
                                 <div class="display-flex vh-center">
                                     <div class="thumbnail-profile">
                                         <img src={from.avatar} alt="Profile Picture" class="img-responsive" />
                                     </div>
-                                    <div>
-                                        <p class="m0">{from.firstName + " " + from.lastName + " " + notificationType(data.type)}</p>
+                                    <div class="ml10">
+                                        <p class="m0"><strong>{from.firstName + " " + from.lastName}</strong> {notificationType(data.type)}</p>
                                         <p class="note m0">{date}</p>
                                     </div>
                                 </div>

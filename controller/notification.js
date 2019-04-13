@@ -5,7 +5,9 @@ const {
     Users,
     Workstream,
     Tasks,
-    Document
+    Document,
+    Notes,
+    Conversation
 } = models;
 
 exports.get = {
@@ -75,6 +77,22 @@ exports.get = {
                                     attributes: ["task"]
 
                                 },
+                                {
+                                    model: Notes,
+                                    as: 'note_notification',
+                                    required: false,
+                                    include: [{
+                                        model: Conversation,
+                                        as: 'comments',
+                                        required: false
+                                    }]
+                                },
+                                {
+                                    model: Conversation,
+                                    as: 'conversation_notification',
+                                    required: false
+
+                                }
 
                             ]
                         })
@@ -178,7 +196,7 @@ exports.put = {
             ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
             order: [['dateAdded', 'DESC']]
         };
-        
+
         try {
             Notification
                 .update(body, { where: { id: id } })

@@ -10,6 +10,8 @@ import TaskApprover from "./template/taskApprover";
 import MessageSend from "./template/messageSend";
 import TaskTagged from "./template/taskTagged";
 import CommentReplies from "./template/commentReplies";
+import TaskMemberCompleted from "./template/taskMemberCompleted";
+import TaskFollowingCompleted from "./template/taskFollowingCompleted";
 
 import ArchivedModal from "./archiveModal"
 @connect((store) => {
@@ -87,6 +89,12 @@ class NotificationList extends React.Component {
                                         }
                                         case "commentReplies": {
                                             return <div key={i}><CommentReplies data={e} index={i} archive={(data) => this.archive(data)} /></div>
+                                        }
+                                        case "taskFollowingCompleted": {
+                                            return <div key={i}><TaskFollowingCompleted data={e} index={i} archive={(data) => this.archive(data)} /></div>
+                                        }
+                                        case "taskMemberCompleted": {
+                                            return <div key={i}><TaskMemberCompleted data={e} index={i} archive={(data) => this.archive(data)} /></div>
                                         }
                                         default:
                                             return;

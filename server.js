@@ -20,8 +20,9 @@ process.env.TZ = 'Asia/Manila'; // force node to use utc timezone on staging
 var config = require('./config');
 var serverAuth = require('./auth');
 require('./backup')
-require('./script/dueTodayReminderScript');
-require('./script/overdueReminderScript');
+// require('./script/dueTodayReminderScript');
+// require('./script/overdueReminderScript');
+require('./script/taskOverdueNotification');
 // get
 var index = require('./routes');
 var auth = require('./routes/auth');
