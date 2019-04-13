@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { withRouter } from "react-router";
 import { Route, Switch, Link } from 'react-router-dom';
 import _ from "lodash";
-import { getData, notificationType } from '../../globalFunction';
+import { getData, notificationType, putData } from '../../globalFunction';
 
 import Menu from "./menu";
 import Home from "../home";
@@ -133,6 +133,36 @@ class Main extends React.Component {
         dispatch({ type: formType, FormActive: "Form" });
     }
 
+    handleNotificationRedirect(notif) {
+        const { history, dispatch, loggedUser } = { ...this.props };
+        const { taskId, workstreamId, projectId, } = { ...notif };
+
+        putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, (c) => {
+            dispatch({ type: 'UPDATE_DATA_NOTIFICATION_LIST', updatedData: c.data });
+            switch (notif.type) {
+                case "fileNewUpload": {
+                    let url = `/projects/${projectId}/workstreams/${workstreamId}`
+                    if (notif.taskId === null) {
+                        history.push(`${url}?tab=document`);
+                    } else {
+                        history.push(`${url}?task-id=${taskId}`);
+                    }
+                }
+                    break;
+                case "taskAssgined":
+                case "taskApprover":
+                case "taskTagged":
+                case "commentReplies":
+                case "taskTeamDeadline":
+                case "taskFollowingDeadline":
+                case "taskAssigned": {
+                    history.push(`${url}?task-id=${taskId}`);
+                }
+                    break;
+            }
+        })
+    }
+
     render() {
         const { showLeft } = { ...this.state };
         const { project, loggedUser, notification } = { ...this.props };
@@ -214,6 +244,7 @@ class Main extends React.Component {
         const getProjectDetailsPath = currentPath.split("/");
         const showProjectMenu = (getProjectDetailsPath[2] == project.Selected.id && typeof project.Selected.id != "undefined");
         const currentProjectPage = (typeof getProjectDetailsPath[3] == "undefined") ? "dashboard" : getProjectDetailsPath[3];
+        const notificationUnreadCount = _.filter(notification.List, (o) => { return !o.isRead }).length
 
         return (
             <div class={(showLeft) ? 'flex-row' : ''} id="main-container">
@@ -270,41 +301,43 @@ class Main extends React.Component {
                                 <div class="action item">
                                     <div class="hidden-sm hidden-xs text-center display-flex action-link">
                                         <a class="mr20" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" id="notif-bell">
-                                            <span class={`fa fa-bell ${(this.props.location.pathname !== "/notification" && notification.List.length > 0) ? "bell-active" : ""}`}> </span>
+                                            <span class={`fa fa-bell ${(this.props.location.pathname !== "/notification" && notificationUnreadCount > 0) ? "bell-active" : ""}`}> </span>
                                             {
-                                                (notification.List.length > 0 && this.props.location.pathname !== "/notification") &&
-                                                <div class="circle"><p>{notification.List.length || ""}</p></div>
+                                                (notificationUnreadCount > 0 && this.props.location.pathname !== "/notification") &&
+                                                <div class="circle"><p>{notificationUnreadCount || ""}</p></div>
                                             }
                                         </a>
                                         <div class="pull-right dropdown-menu notify-drop" aria-labelledby="notif-bell">
                                             <div class="pd10 notif-wrapper">
                                                 {
-                                                    (notification.List).map((e, i) => {
+                                                    _.orderBy(notification.List, ['isRead', 'dateUpdated'], ['asc', 'desc']).map((e, i) => {
                                                         const { from, dateAdded } = { ...e }
                                                         const duration = moment.duration(moment().diff(moment(dateAdded)));
                                                         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
 
                                                         return (
-                                                            <div class="display-flex vh-center bb notif-item n-border" key={i}>
-                                                                <div class="menu-profile mb5">
-                                                                    {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline"
-                                                                        ? <div class="n-image"><img src={e.from.avatar} alt="Profile Picture" class="img-responsive " /></div>
-                                                                        : <span class="n-tod-warning"><i class="fa fa-exclamation-circle"></i></span>
-                                                                    }
-                                                                </div>
-                                                                <div class="ml10">
-                                                                    <p class="m0 ">
-
+                                                            <a href="javascript:void(0)" onClick={() => this.handleNotificationRedirect(e)}>
+                                                                <div class={`display-flex vh-center bb notif-item ${e.isRead ? "" : "n-unread"}`} key={i}>
+                                                                    <div class="menu-profile mb5">
                                                                         {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline"
-                                                                            ?
-                                                                            <span>{`${from.firstName} ${from.lastName} `}<strong>{notificationType(e.type)}</strong></span>
-                                                                            :
-                                                                            <span>{`${notificationType(e.type)} `}<strong>Checkout the task</strong></span>
+                                                                            ? <div class="n-image"><img src={e.from.avatar} alt="Profile Picture" class="img-responsive " /></div>
+                                                                            : <span class="n-tod-warning"><i class="fa fa-exclamation-circle"></i></span>
                                                                         }
-                                                                    </p>
-                                                                    <p class="note">{date}</p>
+                                                                    </div>
+                                                                    <div class="ml10">
+                                                                        <p class="m0 ">
+
+                                                                            {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline"
+                                                                                ?
+                                                                                <span>{`${from.firstName} ${from.lastName} `}<strong>{notificationType(e.type)}</strong></span>
+                                                                                :
+                                                                                <span>{`${notificationType(e.type)} `}<strong>Checkout the task</strong></span>
+                                                                            }
+                                                                        </p>
+                                                                        <p class="note">{date}</p>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            </a>
                                                         )
                                                     })
                                                 }

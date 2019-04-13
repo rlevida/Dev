@@ -23,8 +23,8 @@ export default function reducer(state = {
         }
         case "UPDATE_DATA_NOTIFICATION_LIST": {
             let newList = state.List.map((e, i) => {
-                if (e.id == action.UpdatedData.id) {
-                    return action.UpdatedData
+                if (e.id == action.updatedData.id) {
+                    return action.updatedData
                 }
                 return e
             })

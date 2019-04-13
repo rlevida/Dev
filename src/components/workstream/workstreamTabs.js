@@ -2,6 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
 import { Searchbar } from "../../globalComponents";
+import { parseQuery, workstreamActiveTab } from "../../globalFunction";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import WorkstreamDocument from "./workstreamDocument";
 
@@ -22,6 +23,10 @@ import ConversationList from "../conversations/conversationList";
 export default class WorkstreamTabs extends React.Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            tab: 0
+        }
         _.map([
             "handleChange",
             "handleTab"
@@ -36,10 +41,18 @@ export default class WorkstreamTabs extends React.Component {
             dispatch({ type: "SET_TASK_FILTER", filter: params });
         }
     }
+
     handleTab(o) {
+        const { history } = { ...this.props };
         const { taskAction = "", messageAction = "" } = { ...this.refs };
         const taskActionClassList = (taskAction != "") ? taskAction.classList : "";
         const messageActionClassList = (messageAction != "") ? messageAction.classList : "";
+        
+        if (history.location.search) {
+            history.push(history.location.pathname)
+        }
+
+        this.setState({ tab: o });
 
         if (o != 0) {
             (taskActionClassList).add('hide');
@@ -52,15 +65,17 @@ export default class WorkstreamTabs extends React.Component {
         } else {
             (messageActionClassList).remove('hide');
         }
-
     }
+
     render() {
-        const { project_id, workstream_id, dispatch, notes, loggedUser } = { ...this.props };
+        const { project_id, workstream_id, dispatch, notes, loggedUser, history } = { ...this.props };
+        let tab = history.location.search ? workstreamActiveTab(parseQuery(history.location.search).tab) : this.state.tab;
+
         return (
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card">
-                        <Tabs onSelect={index => this.handleTab(index)}>
+                        <Tabs selectedIndex={tab} onSelect={index => this.handleTab(index)}>
                             <TabList>
                                 <Tab>Tasks</Tab>
                                 <Tab>Active Files</Tab>
