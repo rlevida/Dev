@@ -552,7 +552,7 @@ exports.post = {
                             parallelCallback(null, response)
                         });
                 }
-            }, (err, result) => {
+            }, (err, { conversations }) => {
                 const sender = body.userId;
                 const receiver = body.users.map((e) => { return e.value });
                 UsersNotificationSetting
@@ -568,6 +568,8 @@ exports.post = {
                         return response.toJSON()
                     })
                     .then((response) => {
+                        let message = "Sent you a new message"
+
                         const notificationArr = _.filter(response, (nSetting) => {
                             return nSetting.messageSend === 1
                         }).map((nSetting) => {
@@ -576,21 +578,10 @@ exports.post = {
                                 projectId: body.projectId,
                                 createdBy: sender,
                                 noteId: noteResult.id,
+                                conversationId: conversations.id,
                                 type: "messageSend",
-                                message: "Sent you a new message",
-                            }
-                        })
-
-                        const emailArr = _.filter(response, (nSetting) => {
-                            return nSetting.receiveEmail === 1 && nSetting.messageSend === 1
-                        }).map((nSetting) => {
-                            return {
-                                usersId: nSetting.usersId,
-                                projectId: body.projectId,
-                                createdBy: sender,
-                                noteId: noteResult.id,
-                                type: "messageSend",
-                                message: "Sent you a new message",
+                                message: message,
+                                receiveEmail: nSetting.receiveEmail,
                                 emailAddress: nSetting.notification_setting.emailAddress
                             }
                         })
@@ -644,6 +635,12 @@ exports.post = {
                                                     as: 'comments',
                                                     required: false
                                                 }]
+                                            },
+                                            {
+                                                model: Conversation,
+                                                as: 'conversation_notification',
+                                                required: false
+
                                             }
                                         ]
                                     })
@@ -653,20 +650,22 @@ exports.post = {
                                         })
                                         return findNotificationRes.toJSON()
                                     })
-                                    .then((findNotificationRes) => {
-                                        async.map(emailArr, ({ emailAddress, message }, mapCallback) => {
-                                            let html = '<p>' + message + '</p>';
-                                            html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
-                                            // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                                            html += '<p>Message:<br>' + message + '</p>';
+                                    .then(() => {
+                                        async.map(notificationArr, ({ emailAddress, message, receiveEmail }, mapCallback) => {
+                                            if (receiveEmail) {
+                                                let html = '<p>' + message + '</p>';
+                                                html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                html += '<p>Message:<br>' + message + '</p>';
 
-                                            const mailOptions = {
-                                                from: '"no-reply" <no-reply@c_cfo.com>',
-                                                to: `${emailAddress}`,
-                                                subject: '[CLOUD-CFO]',
-                                                html: html
-                                            };
-                                            global.emailtransport(mailOptions);
+                                                const mailOptions = {
+                                                    from: '"no-reply" <no-reply@c_cfo.com>',
+                                                    to: `${emailAddress}`,
+                                                    subject: '[CLOUD-CFO]',
+                                                    html: html
+                                                };
+                                                global.emailtransport(mailOptions);
+                                            }
                                             mapCallback(null)
                                         }, () => {
                                             const options = {
@@ -816,8 +815,8 @@ exports.post = {
                             id: body.userId
                         }
                     }).then((o) => {
-                        const responseObj = o.toJSON();
-                        return responseObj;
+                        const userObj = o.toJSON();
+                        return userObj;
                     })
 
                     const receiver = await Conversation.findAll({
@@ -851,7 +850,6 @@ exports.post = {
                         .then(async (response) => {
                             let message = "";
                             let notificationArr = [];
-                            let emailArr = [];
 
                             if (bodyData.linkType === "task") {
                                 const task = await Tasks.findOne({
@@ -863,41 +861,29 @@ exports.post = {
                                         id: bodyData.linkId
                                     }
                                 }).then((o) => {
-                                    const responseObj = o.toJSON();
-                                    return responseObj;
+                                    const oObj = o.toJSON();
+                                    return oObj;
                                 });
-                                message = `${sender.firstName + " " + sender.lastName} also commented on the task ${task.task} under ${task.workstream.workstream} workstream.`;
+                                message = `${sender.firstName + " " + sender.lastName} replies to a comment on the task ${task.task} under ${task.workstream.workstream} workstream.`;
 
                                 notificationArr = await _.filter(response, (nSetting) => {
                                     return nSetting.messageSend === 1
                                 }).map((nSetting) => {
-                                    return {
-                                        usersId: nSetting.usersId,
-                                        projectId: task.projectId,
-                                        createdBy: sender.id,
-                                        task: task.id,
-                                        workstreamId: task.workstreamId,
-                                        type: "commentReplies",
-                                        message: message
-                                    }
-                                })
 
-                                emailArr = await _.filter(response, (nSetting) => {
-                                    return nSetting.receiveEmail === 1 && nSetting.messageSend === 1
-                                }).map((nSetting) => {
                                     const { emailAddress } = { ...nSetting.notification_setting }
                                     return {
+                                        createdBy: sender.id,
                                         usersId: nSetting.usersId,
                                         projectId: task.projectId,
-                                        createdBy: sender.id,
-                                        task: task.id,
+                                        taskId: task.id,
+                                        conversationId: conversation.id,
                                         workstreamId: task.workstreamId,
                                         type: "commentReplies",
                                         message: message,
-                                        emailAddress: emailAddress
+                                        emailAddress: emailAddress,
+                                        receiveEmail: nSetting.receiveEmail
                                     }
                                 })
-
                             }
 
                             Notification
@@ -940,6 +926,12 @@ exports.post = {
                                                     required: false,
                                                     attributes: ["task"]
                                                 },
+                                                {
+                                                    model: Conversation,
+                                                    as: 'conversation_notification',
+                                                    required: false
+
+                                                }
                                             ]
                                         })
                                         .map((findNotificationRes) => {
@@ -949,15 +941,17 @@ exports.post = {
                                             return findNotificationRes.toJSON()
                                         })
                                         .then(() => {
-                                            async.map(emailArr, ({ emailAddress, message }, mapCallback) => {
-                                                let html = '<p>' + message + '</p>';
-                                                const mailOptions = {
-                                                    from: '"no-reply" <no-reply@c_cfo.com>',
-                                                    to: `${emailAddress}`,
-                                                    subject: '[CLOUD-CFO]',
-                                                    html: html
-                                                };
-                                                global.emailtransport(mailOptions);
+                                            async.map(notificationArr, ({ emailAddress, message, receiveEmail }, mapCallback) => {
+                                                if (receiveEmail === 1) {
+                                                    let html = '<p>' + message + '</p>';
+                                                    const mailOptions = {
+                                                        from: '"no-reply" <no-reply@c_cfo.com>',
+                                                        to: `${emailAddress}`,
+                                                        subject: '[CLOUD-CFO]',
+                                                        html: html
+                                                    };
+                                                    global.emailtransport(mailOptions);
+                                                }
                                                 mapCallback(null)
                                             }, (err) => {
                                                 return null;
@@ -1017,21 +1011,8 @@ exports.post = {
                                     notificationArr = await _.filter(response, (nSetting) => {
                                         return nSetting.messageSend === 1
                                     }).map((nSetting) => {
-                                        return {
-                                            usersId: nSetting.usersId,
-                                            projectId: task.projectId,
-                                            createdBy: sender.id,
-                                            task: task.id,
-                                            workstreamId: task.workstreamId,
-                                            type: "taskTagged",
-                                            message: message
-                                        }
-                                    })
-
-                                    emailArr = await _.filter(response, (nSetting) => {
-                                        return nSetting.receiveEmail === 1 && nSetting.messageSend === 1
-                                    }).map((nSetting) => {
                                         const { emailAddress } = { ...nSetting.notification_setting }
+
                                         return {
                                             usersId: nSetting.usersId,
                                             projectId: task.projectId,
@@ -1040,10 +1021,10 @@ exports.post = {
                                             workstreamId: task.workstreamId,
                                             type: "taskTagged",
                                             message: message,
-                                            emailAddress: emailAddress
+                                            emailAddress: emailAddress,
+                                            receiveEmail: nSetting.receiveEmail
                                         }
                                     })
-
                                 }
 
                                 Notification
@@ -1095,15 +1076,17 @@ exports.post = {
                                                 return findNotificationRes.toJSON()
                                             })
                                             .then(() => {
-                                                async.map(emailArr, ({ emailAddress, message }, mapCallback) => {
-                                                    let html = '<p>' + message + '</p>';
-                                                    const mailOptions = {
-                                                        from: '"no-reply" <no-reply@c_cfo.com>',
-                                                        to: `${emailAddress}`,
-                                                        subject: '[CLOUD-CFO]',
-                                                        html: html
-                                                    };
-                                                    global.emailtransport(mailOptions);
+                                                async.map(emailArr, ({ emailAddress, message, receiveEmail }, mapCallback) => {
+                                                    if (receiveEmail === 1) {
+                                                        let html = '<p>' + message + '</p>';
+                                                        const mailOptions = {
+                                                            from: '"no-reply" <no-reply@c_cfo.com>',
+                                                            to: `${emailAddress}`,
+                                                            subject: '[CLOUD-CFO]',
+                                                            html: html
+                                                        };
+                                                        global.emailtransport(mailOptions);
+                                                    }
                                                     mapCallback(null)
                                                 }, (err) => {
                                                     return null;

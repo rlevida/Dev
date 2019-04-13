@@ -12,26 +12,28 @@ import { notificationType } from "../../../globalFunction";
 export default class Component extends React.Component {
     render() {
         const { dispatch, data, index } = { ...this.props }
-        const { from, dateAdded } = { ...data }
+        const { from, dateAdded, workstream_notification, task_notification } = { ...data }
+        const { workstream } = { ...workstream_notification }
+        const { task } = { ...task_notification }
         const duration = moment.duration(moment().diff(moment(dateAdded)));
         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
         return (
-            <div>
-                <li class="pd0 mb20" key={index}>
+            <div key={index}>
+                <li class="pd0 mb20">
                     <div class="d-flex-sb">
                         <div class="n">
-                            <div class="n-header"><i class="fa fa-check-circle mr5 n-unread"></i>Task Tagged</div>
-                            <div class="n-content">
-                                <div class="n-title">Lorem ipsum dolor sit amet</div>
-                                <div className="d-flex">
-                                    <img class="image-circle" width="30" height="30" src="/images/user.png"></img>
-                                    <div class="n-from mr5">{`${from.firstName} ${from.lastName}`}<span></span></div>
-                                    <div class="n-action">{notificationType(data.type)}</div>
+                            <p class="m0"><i class="fa fa-check-circle mr5 n-unread"></i>Task in <strong>{workstream}</strong></p>
+                            <div class="m20">
+                                <div class="n-title mb10"><h4><strong>{task}</strong></h4></div>
+                                <div class="display-flex vh-center">
+                                    <div class="thumbnail-profile">
+                                        <img src={from.avatar} alt="Profile Picture" class="img-responsive" />
+                                    </div>
+                                    <div class="ml10">
+                                        <p class="m0"><strong>{from.firstName + " " + from.lastName}</strong> {notificationType(data.type)}</p>
+                                        <p class="note m0">{date}</p>
+                                    </div>
                                 </div>
-                                <div class="n-time ml40">{date}</div>
-                                {/* <div class="n-b-content">
-                                    <a href="javascript:void(0)"><i class="fa fa-circle mr20"></i>{document_notification.origin}</a>
-                                </div> */}
                             </div>
                         </div>
                         <div class="n-action">

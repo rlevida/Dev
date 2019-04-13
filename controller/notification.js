@@ -86,6 +86,12 @@ exports.get = {
                                         as: 'comments',
                                         required: false
                                     }]
+                                },
+                                {
+                                    model: Conversation,
+                                    as: 'conversation_notification',
+                                    required: false
+
                                 }
 
                             ]

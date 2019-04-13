@@ -1038,36 +1038,212 @@ exports.post = {
                     }
                 });
 
-                Tag.bulkCreate(workstreamTag);
+                async.parallel({
+                    tag: (parallelCallback) => {
 
-                if (checklistStack.length > 0) {
-                    const checklistTag = _(documentUpload)
-                        .map(({ id }) => {
-                            return _.map(checklistStack, ({ value }) => {
-                                return {
-                                    taskId,
-                                    checklistId: value,
-                                    documentId: id
+                        Tag.bulkCreate(workstreamTag).then(() => {
+                            parallelCallback(null)
+                        });
+                    },
+                    notification: async (parallelCallback) => {
+                        const receiver = await Members
+                            .findAll({
+                                where: {
+                                    [Op.or]: [
+                                        { linkType: 'workstream', linkId: workstreamId },
+                                        { linkType: 'task', linkId: taskId }
+                                    ]
                                 }
                             })
-                        })
-                        .flatten()
-                        .value();
-                    ChecklistDocuments.bulkCreate(checklistTag).then((o) => {
-                        TaskChecklist.findAll(
-                            {
-                                where: {
-                                    id: _.map(checklistTag, (o) => { return o.checklistId })
-                                },
-                                include: [
-                                    {
-                                        model: Users,
-                                        as: 'user',
-                                        attributes: ['id', 'firstName', 'lastName', 'emailAddress', 'avatar']
+                            .map((o) => {
+                                return o.userTypeLinkId
+                            })
+                            .then((o) => {
+                                return _.union(o)
+                            })
+
+                        UsersNotificationSetting
+                            .findAll({
+                                where: { usersId: receiver },
+                                include: [{
+                                    model: Users,
+                                    as: 'notification_setting',
+                                    required: false
+                                }]
+                            })
+                            .map((response) => {
+                                return response.toJSON()
+                            })
+                            .then((response) => {
+
+                                async.map(documentUpload, (o, mapCallback) => {
+                                    const notificationArr = _.filter(response, (nSetting) => {
+                                        return nSetting.fileNewUpload === 1
+                                    }).map((nSetting) => {
+                                        return {
+                                            usersId: nSetting.usersId,
+                                            projectId: projectId,
+                                            createdBy: o.uploadedBy,
+                                            workstreamId: workstreamId,
+                                            taskId: taskId,
+                                            documentId: o.id,
+                                            type: "fileNewUpload",
+                                            message: "upload a new file",
+                                            receiveEmail: nSetting.receiveEmail
+                                        }
+                                    })
+                                    mapCallback(null, { notificationArr: notificationArr })
+                                }, (err, nsResult) => {
+                                    const notificationArr = nsResult.map((o) => { return o.notificationArr })
+
+                                    Notification
+                                        .bulkCreate(_.flatMapDeep(notificationArr))
+                                        .map((notificationRes) => {
+                                            return notificationRes.id
+                                        })
+                                        .then((notificationRes) => {
+                                            Notification
+                                                .findAll({
+                                                    where: { id: notificationRes },
+                                                    include: [
+                                                        {
+                                                            model: Users,
+                                                            as: 'to',
+                                                            required: false,
+                                                            attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                        },
+                                                        {
+                                                            model: Users,
+                                                            as: 'from',
+                                                            required: false,
+                                                            attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                        },
+                                                        {
+                                                            model: Document,
+                                                            as: 'document_notification',
+                                                            required: false,
+                                                            attributes: ["origin"]
+                                                        },
+                                                        {
+                                                            model: Workstream,
+                                                            as: 'workstream_notification',
+                                                            required: false,
+                                                            attributes: ["workstream"]
+                                                        },
+                                                        {
+                                                            model: Tasks,
+                                                            as: 'task_notification',
+                                                            required: false,
+                                                            attributes: ["task"]
+                                                        },
+                                                    ]
+                                                })
+                                                .map((findNotificationRes) => {
+                                                    req.app.parent.io.emit('FRONT_NOTIFICATION', {
+                                                        ...findNotificationRes.toJSON()
+                                                    })
+                                                    return findNotificationRes.toJSON()
+                                                })
+                                                .then(() => {
+                                                    async.map(notificationArr, ({ emailAddress, message, receiveEmail }, mapCallback) => {
+                                                        if (receiveEmail === 1) {
+                                                            let html = '<p>' + message + '</p>';
+                                                            html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                            // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                            html += '<p>Message:<br>' + message + '</p>';
+
+                                                            const mailOptions = {
+                                                                from: '"no-reply" <no-reply@c_cfo.com>',
+                                                                to: `${emailAddress}`,
+                                                                subject: '[CLOUD-CFO]',
+                                                                html: html
+                                                            };
+                                                            global.emailtransport(mailOptions);
+                                                        }
+                                                        mapCallback(null)
+                                                    }, () => {
+                                                        return
+                                                    })
+                                                })
+                                        })
+                                })
+                            })
+                    }
+                }, () => {
+                    if (checklistStack.length > 0) {
+                        const checklistTag = _(documentUpload)
+                            .map(({ id }) => {
+                                return _.map(checklistStack, ({ value }) => {
+                                    return {
+                                        taskId,
+                                        checklistId: value,
+                                        documentId: id
+                                    }
+                                })
+                            })
+                            .flatten()
+                            .value();
+                        ChecklistDocuments.bulkCreate(checklistTag).then((o) => {
+                            TaskChecklist.findAll(
+                                {
+                                    where: {
+                                        id: _.map(checklistTag, (o) => { return o.checklistId })
                                     },
+                                    include: [
+                                        {
+                                            model: Users,
+                                            as: 'user',
+                                            attributes: ['id', 'firstName', 'lastName', 'emailAddress', 'avatar']
+                                        },
+                                        {
+                                            model: ChecklistDocuments,
+                                            as: 'tagDocuments',
+                                            include: [
+                                                {
+                                                    model: Document,
+                                                    as: 'document',
+                                                    include: [{
+                                                        model: DocumentRead,
+                                                        as: 'document_read',
+                                                        attributes: ['id'],
+                                                        required: false
+                                                    },
+                                                    {
+                                                        model: Users,
+                                                        as: 'user',
+                                                    }]
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                }
+                            ).map((mapObject) => {
+                                return mapObject.toJSON();
+                            }).then((o) => {
+                                cb({ status: true, data: { result: o, type: "checklist" } });
+                            })
+                        });
+                    } else {
+                        const taskTag = _.map(documentUpload, ({ id }) => {
+                            return {
+                                linkType: "task",
+                                linkId: taskId,
+                                tagType: "document",
+                                tagTypeId: id
+                            }
+                        });
+
+                        Tag.bulkCreate(taskTag)
+                            .map((o) => { return o.toJSON() })
+                            .then((o) => {
+                                Tag.findAll(
                                     {
-                                        model: ChecklistDocuments,
-                                        as: 'tagDocuments',
+                                        where: {
+                                            linkType: "task",
+                                            linkId: taskId,
+                                            tagType: "document",
+                                            tagTypeId: _.map(taskTag, ({ tagTypeId }) => { return tagTypeId })
+                                        },
                                         include: [
                                             {
                                                 model: Document,
@@ -1085,57 +1261,12 @@ exports.post = {
                                             }
                                         ]
                                     }
-                                ],
-                            }
-                        ).map((mapObject) => {
-                            return mapObject.toJSON();
-                        }).then((o) => {
-                            cb({ status: true, data: { result: o, type: "checklist" } });
-                        })
-                    });
-                } else {
-                    const taskTag = _.map(documentUpload, ({ id }) => {
-                        return {
-                            linkType: "task",
-                            linkId: taskId,
-                            tagType: "document",
-                            tagTypeId: id
-                        }
-                    });
-
-                    Tag.bulkCreate(taskTag)
-                        .map((o) => { return o.toJSON() })
-                        .then((o) => {
-                            Tag.findAll(
-                                {
-                                    where: {
-                                        linkType: "task",
-                                        linkId: taskId,
-                                        tagType: "document",
-                                        tagTypeId: _.map(taskTag, ({ tagTypeId }) => { return tagTypeId })
-                                    },
-                                    include: [
-                                        {
-                                            model: Document,
-                                            as: 'document',
-                                            include: [{
-                                                model: DocumentRead,
-                                                as: 'document_read',
-                                                attributes: ['id'],
-                                                required: false
-                                            },
-                                            {
-                                                model: Users,
-                                                as: 'user',
-                                            }]
-                                        }
-                                    ]
-                                }
-                            ).then((o) => {
-                                cb({ status: true, data: { result: o, type: "document" } });
-                            })
-                        });
-                }
+                                ).then((o) => {
+                                    cb({ status: true, data: { result: o, type: "document" } });
+                                })
+                            });
+                    }
+                })
             });
         }).on('error', function (err) {
             cb({ status: false, error: "Upload error. Please try again later." });
