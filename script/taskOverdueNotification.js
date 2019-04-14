@@ -16,7 +16,7 @@ const Op = Sequelize.Op;
  * 
  **/
 
- var job = new CronJob('* 7 * * *', function () {
+var job = new CronJob('* 7 * * *', function () {
     const models = require('../modelORM');
     const {
         Tasks,
@@ -62,7 +62,7 @@ const Op = Sequelize.Op;
         .then((res) => {
             async.map(res, (e, mapCallback) => {
                 async.parallel({
-                    notificationAssgined: (parallelCallback) => {
+                    notificationAssgined: async (parallelCallback) => {
                         const receiver = e.assignee[0].userTypeLinkId;
 
                         UsersNotificationSetting
@@ -78,25 +78,8 @@ const Op = Sequelize.Op;
                                 return response.toJSON()
                             })
                             .then(async (response) => {
-                                let message = "";
-                                message = `You seem to have missed a deadline.`;
-
                                 let notificationArr = await _.filter(response, (nSetting) => {
                                     return nSetting.taskDeadline === 1
-                                }).map((nSetting) => {
-                                    return {
-                                        usersId: nSetting.usersId,
-                                        projectId: e.projectId,
-                                        taskId: e.id,
-                                        workstreamId: e.workstreamId,
-                                        createdBy: e.assignee[0].userTypeLinkId,
-                                        type: "taskDeadline",
-                                        message: message
-                                    }
-                                })
-
-                                let emailArr = await _.filter(response, (nSetting) => {
-                                    return nSetting.receiveEmail === 1 && nSetting.taskDeadline === 1
                                 }).map((nSetting) => {
                                     const { emailAddress } = { ...nSetting.notification_setting }
                                     return {
@@ -104,9 +87,11 @@ const Op = Sequelize.Op;
                                         projectId: e.projectId,
                                         taskId: e.id,
                                         workstreamId: e.workstreamId,
+                                        createdBy: e.assignee[0].userTypeLinkId,
                                         type: "taskDeadline",
-                                        message: message,
-                                        emailAddress: emailAddress
+                                        message: `You seem to have missed a deadline.`,
+                                        emailAddress: emailAddress,
+                                        receiveEmail: nSetting.receiveEmail
                                     }
                                 })
 
@@ -153,23 +138,29 @@ const Op = Sequelize.Op;
                                                 return findNotificationRes.toJSON()
                                             })
                                             .then(() => {
-                                                async.map(emailArr, ({ emailAddress, message }, mapCallback) => {
-                                                    let html = '<p>' + message + '</p>';
-                                                    const mailOptions = {
-                                                        from: '"no-reply" <no-reply@c_cfo.com>',
-                                                        to: `${emailAddress}`,
-                                                        subject: '[CLOUD-CFO]',
-                                                        html: html
-                                                    };
-                                                    global.emailtransport(mailOptions);
+                                                async.map(notificationArr, ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
+                                                    if (receiveEmail === 1) {
+                                                        let html = '<p>' + message + '</p>';
+                                                        html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                        // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                        html += `<p>Message:<br>${message}</p>`;
+                                                        html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+
+                                                        const mailOptions = {
+                                                            from: '"no-reply" <no-reply@c_cfo.com>',
+                                                            to: `${emailAddress}`,
+                                                            subject: '[CLOUD-CFO]',
+                                                            html: html
+                                                        };
+                                                        global.emailtransport(mailOptions);
+                                                    }
                                                     mapCallback(null)
                                                 }, (err) => {
-                                                    parallelCallback(null)
+                                                    return
                                                 })
                                             })
                                     })
                             })
-
                     },
                     notificationTeamLeader: (parallelCallback) => {
                         UsersTeam.findAll({
@@ -197,25 +188,8 @@ const Op = Sequelize.Op;
                                     return response.toJSON()
                                 })
                                 .then(async (response) => {
-                                    let message = "";
-                                    message = `Team member seem to have missed a deadline.`;
-
                                     let notificationArr = await _.filter(response, (nSetting) => {
                                         return nSetting.taskTeamDeadline === 1
-                                    }).map((nSetting) => {
-                                        return {
-                                            usersId: nSetting.usersId,
-                                            projectId: e.projectId,
-                                            taskId: e.id,
-                                            workstreamId: e.workstreamId,
-                                            createdBy: e.assignee[0].userTypeLinkId,
-                                            type: "taskTeamDeadline",
-                                            message: message
-                                        }
-                                    })
-
-                                    let emailArr = await _.filter(response, (nSetting) => {
-                                        return nSetting.receiveEmail === 1 && nSetting.taskTeamDeadline === 1
                                     }).map((nSetting) => {
                                         const { emailAddress } = { ...nSetting.notification_setting }
                                         return {
@@ -225,8 +199,9 @@ const Op = Sequelize.Op;
                                             workstreamId: e.workstreamId,
                                             createdBy: e.assignee[0].userTypeLinkId,
                                             type: "taskTeamDeadline",
-                                            message: message,
-                                            emailAddress: emailAddress
+                                            message: `Team member seem to have missed a deadline.`,
+                                            emailAddress: emailAddress,
+                                            receiveEmail: nSetting.receiveEmail
                                         }
                                     })
 
@@ -273,15 +248,22 @@ const Op = Sequelize.Op;
                                                     return findNotificationRes.toJSON()
                                                 })
                                                 .then(() => {
-                                                    async.map(emailArr, ({ emailAddress, message }, mapCallback) => {
-                                                        let html = '<p>' + message + '</p>';
-                                                        const mailOptions = {
-                                                            from: '"no-reply" <no-reply@c_cfo.com>',
-                                                            to: `${emailAddress}`,
-                                                            subject: '[CLOUD-CFO]',
-                                                            html: html
-                                                        };
-                                                        global.emailtransport(mailOptions);
+                                                    async.map(notificationArr, ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
+                                                        if (receiveEmail === 1) {
+                                                            let html = '<p>' + message + '</p>';
+                                                            html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                            // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                            html += `<p>Message:<br>${message}</p>`;
+                                                            html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+    
+                                                            const mailOptions = {
+                                                                from: '"no-reply" <no-reply@c_cfo.com>',
+                                                                to: `${emailAddress}`,
+                                                                subject: '[CLOUD-CFO]',
+                                                                html: html
+                                                            };
+                                                            global.emailtransport(mailOptions);
+                                                        }
                                                         mapCallback(null)
                                                     }, (err) => {
                                                         parallelCallback(null)

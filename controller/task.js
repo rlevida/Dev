@@ -897,8 +897,8 @@ exports.post = {
                                                                     return findNotificationRes.toJSON()
                                                                 })
                                                                 .then(() => {
-                                                                    notificationArr.map(({ message, receiveEmail, emailAddress, projectId, workstreamId, taskId }) => {
-                                                                        if (receiveEmail) {
+                                                                    async.map(notificationArr, ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
+                                                                        if (receiveEmail === 1) {
                                                                             let html = '<p>' + message + '</p>';
                                                                             html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
                                                                             // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
@@ -913,6 +913,9 @@ exports.post = {
                                                                             };
                                                                             global.emailtransport(mailOptions);
                                                                         }
+                                                                        mapCallback(null)
+                                                                    }, (err) => {
+                                                                        return null
                                                                     })
                                                                     return;
                                                                 })
