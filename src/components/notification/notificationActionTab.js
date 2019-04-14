@@ -81,6 +81,15 @@ class NotificationActionTab extends React.Component {
                             <a class="btn btn-default mr10"
                                 onClick={() => this.archiveAll()}
                                 data-toggle="modal"
+                                data-target="#clearModal">
+                                <span>
+                                    <i class="fa fa-trash mr10" aria-hidden="true"></i>
+                                    Clear All Read Notification
+                                </span>
+                            </a>
+                            <a class="btn btn-default mr10"
+                                onClick={() => this.archiveAll()}
+                                data-toggle="modal"
                                 data-target="#archiveModal">
                                 <span>
                                     <i class="fa fa-archive mr10" aria-hidden="true"></i>

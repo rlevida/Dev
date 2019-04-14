@@ -20,7 +20,7 @@ export default class Component extends React.Component {
 
         return (
             <div key={index}>
-                <li class={`pd0 mb20 ${!data.isRead ? "n-unread" : ""}`}>
+                <li class={`pd0 mb20 ${data.isRead ? "" : "n-unread"}`}>
                     <div class="d-flex-sb">
                         <div class="n">
                             <a href="javascript:void(0)" onClick={() => handleNotificationRedirect(data)}><p class="m0"><i class="fa fa-check-circle mr5"></i>Task in <strong>{workstream}</strong></p></a>
