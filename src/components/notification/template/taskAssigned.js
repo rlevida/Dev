@@ -20,10 +20,10 @@ export default class Component extends React.Component {
 
         return (
             <div key={index}>
-                <li class="pd0 mb20">
+                <li class={`pd0 mb20 ${!data.isRead ? "n-unread": ""}`}>
                     <div class="d-flex-sb">
                         <div class="n">
-                            <p class="m0"><i class="fa fa-check-circle mr5 n-unread"></i>Task in <strong>{workstream}</strong></p>
+                            <p class="m0"><i class="fa fa-check-circle mr5"></i>Task in <strong>{workstream}</strong></p>
                             <div class="m20">
                                 <div class="n-title mb10"><h4><strong>{task}</strong></h4></div>
                                 <div class="display-flex vh-center">

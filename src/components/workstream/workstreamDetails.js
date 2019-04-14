@@ -74,6 +74,8 @@ export default class WorkstreamDetails extends React.Component {
                     <WorkstreamTabs
                         project_id={projectId}
                         workstream_id={workstreamId}
+                        history={history}
+                        match={match}
                     />
                 </div>
             </div>
