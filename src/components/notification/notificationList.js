@@ -12,7 +12,9 @@ import TaskTagged from "./template/taskTagged";
 import CommentReplies from "./template/commentReplies";
 import TaskMemberCompleted from "./template/taskMemberCompleted";
 import TaskFollowingCompleted from "./template/taskFollowingCompleted";
-
+import TaskDeadline from "./template/taskDeadLine";
+import TaskTeamDeadline from "./template/taskTeamDeadline";
+import TaskFollowingDeadline from "./template/taskFollowingDeadline";
 import ArchivedModal from "./archiveModal"
 @connect((store) => {
     return {
@@ -89,6 +91,7 @@ class NotificationList extends React.Component {
             case "commentReplies":
             case "taskMemberCompleted":
             case "taskFollowingCompleted":
+            case "taskDeadline":
             case "taskTeamDeadline":
             case "taskFollowingDeadline":
             case "taskAssigned": {
@@ -137,6 +140,15 @@ class NotificationList extends React.Component {
                                         }
                                         case "taskMemberCompleted": {
                                             return <div key={i}><TaskMemberCompleted data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                        }
+                                        case "taskDeadline": {
+                                            return <div key={i}><TaskDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                        }
+                                        case "taskTeamDeadline": {
+                                            return <div key={i}><TaskTeamDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                        }
+                                        case "taskFollowingDeadline": {
+                                            return <div key={i}><TaskFollowingDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
                                         }
                                         default:
                                             return;

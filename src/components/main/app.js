@@ -164,6 +164,7 @@ class Main extends React.Component {
             case "commentReplies":
             case "taskMemberCompleted":
             case "taskFollowingCompleted":
+            case "taskDeadline":
             case "taskTeamDeadline":
             case "taskFollowingDeadline":
             case "taskAssigned": {
