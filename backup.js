@@ -1,6 +1,7 @@
 const schedule = require('node-schedule');
 const moment = require('moment');
 const database = require('./config/database');
+const mysqlDump = require('mysqldump');
 
 schedule.scheduleJob('0 0 0 * * *', () => {
     const config = database.connectionCredentials;
