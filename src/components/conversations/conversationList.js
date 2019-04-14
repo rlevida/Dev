@@ -4,7 +4,7 @@ import _ from "lodash";
 import { connect } from "react-redux";
 
 import { Loading } from "../../globalComponents";
-import { showToast, getData, postData } from "../../globalFunction";
+import { showToast, getData, postData, getParameterByName } from "../../globalFunction";
 
 let keyTimer = "";
 
@@ -39,7 +39,19 @@ export default class ConversationList extends React.Component {
     }
 
     componentDidMount() {
+        const noteId = getParameterByName("note-id");
+        if (noteId != null) {
+            this.getConversationById(noteId)
+        }
         this.fetchNotes(1);
+    }
+
+    getConversationById(id) {
+        const { loggedUser } = { ...this.props }
+        let requestUrl = `/api/conversation/conversationById?${id}?&starredUser=${loggedUser.data.id}&userId=${loggedUser.data.id}`;
+        getData(requestUrl, {}, (c) => {
+            this.openMessage(c.data)
+        });
     }
 
     fetchNotes(page) {
@@ -139,10 +151,10 @@ export default class ConversationList extends React.Component {
             keyTimer = setTimeout(() => {
                 postData(`/api/conversation/seen`, {
                     noteId: id,
-                    projectId:noteWorkstream.project.id,
+                    projectId: noteWorkstream.project.id,
                     usersId: loggedUser.data.id
                 }, (c) => {
-                   
+
                 });
             }, 1500);
 

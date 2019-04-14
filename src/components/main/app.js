@@ -139,14 +139,20 @@ class Main extends React.Component {
 
         putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, (c) => {
             dispatch({ type: 'UPDATE_DATA_NOTIFICATION_LIST', updatedData: c.data });
+            let url = `/projects/${projectId}`;
             switch (notif.type) {
                 case "fileNewUpload": {
-                    let url = `/projects/${projectId}/workstreams/${workstreamId}`
+
                     if (notif.taskId === null) {
-                        history.push(`${url}?tab=document`);
+                        history.push(`${url}/workstreams/${workstreamId}?tab=document`);
                     } else {
-                        history.push(`${url}?task-id=${taskId}`);
+                        history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+
                     }
+                }
+                    break;
+                case "messageSend": {
+                    history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
                 }
                     break;
                 case "taskAssgined":
@@ -156,7 +162,7 @@ class Main extends React.Component {
                 case "taskTeamDeadline":
                 case "taskFollowingDeadline":
                 case "taskAssigned": {
-                    history.push(`${url}?task-id=${taskId}`);
+                    history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
                 }
                     break;
             }

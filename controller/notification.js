@@ -7,8 +7,72 @@ const {
     Tasks,
     Document,
     Notes,
-    Conversation
+    Conversation,
+    Tag,
+    Projects
 } = models;
+
+
+const NotesInclude = [
+    {
+        model: Tag,
+        where: {
+            linkType: 'task', tagType: 'notes'
+        },
+        as: 'notesTagTask',
+        required: false,
+        include: [
+            {
+                model: Tasks,
+                as: 'tagTask',
+            }
+        ]
+    },
+    {
+        model: Workstream,
+        as: 'noteWorkstream'
+    },
+    {
+        model: Tag,
+        where: {
+            linkType: 'notes', tagType: 'document'
+        },
+        as: 'documentTags',
+        required: false,
+        include: [
+            {
+                model: Document,
+                as: 'document',
+                include: [{
+                    model: Users,
+                    as: 'user',
+                    attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+                }]
+            }
+        ]
+    },
+    {
+        model: Conversation,
+        where: {
+            linkType: 'notes'
+        },
+        as: 'comments',
+        required: false,
+        include: [
+            {
+                model: Users,
+                as: 'users',
+                attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+            }
+        ]
+    },
+    {
+        model: Users,
+        as: 'creator',
+        required: false,
+        attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+    }
+];
 
 exports.get = {
     index: (req, cb) => {
@@ -24,6 +88,40 @@ exports.get = {
             ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
             order: [['dateAdded', 'DESC']]
         };
+
+        const notesAssociation = [
+            {
+                model: Conversation,
+                as: 'comments',
+                required: false
+            },
+            {
+                model: Workstream,
+                as: 'noteWorkstream',
+                include: [
+                    {
+                        model: Projects,
+                        as: 'project'
+                    }
+                ]
+            },
+            {
+                model: Tag,
+                as: 'notesTagTask',
+                required: false,
+                where: {
+                    linkType: 'user',
+                    tagType: 'notes',
+                    isDeleted: 0
+                },
+                include: [
+                    {
+                        model: Users,
+                        as: 'user'
+                    }
+                ]
+            }
+        ]
 
         try {
             async.parallel({
@@ -82,17 +180,12 @@ exports.get = {
                                     model: Notes,
                                     as: 'note_notification',
                                     required: false,
-                                    include: [{
-                                        model: Conversation,
-                                        as: 'comments',
-                                        required: false
-                                    }]
+                                    include: notesAssociation
                                 },
                                 {
                                     model: Conversation,
                                     as: 'conversation_notification',
-                                    required: false
-
+                                    required: false,
                                 }
 
                             ]
@@ -205,6 +298,18 @@ exports.put = {
                                     attributes: ["task"]
 
                                 },
+                                {
+                                    model: Notes,
+                                    as: 'note_notification',
+                                    required: false,
+                                    include: NotesInclude
+                                },
+                                {
+                                    model: Conversation,
+                                    as: 'conversation_notification',
+                                    required: false
+
+                                }
 
                             ]
                         })

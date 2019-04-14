@@ -23,9 +23,8 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_NOTES_SELECTED", Selected: {} });
     }
     render() {
-        const { match = "", dispatch, notes, workstream_id = "", project_id } = { ...this.props };
+        const { match = "", dispatch, notes, workstream_id = "", project_id, history } = { ...this.props };
         const projectId = (match != "") ? match.params.projectId : project_id;
-
         return (
             <div class={(workstream_id == "") ? "card" : ""}>
                 <div class={`mb20 ${(workstream_id == "") ? "bb" : ""}`}>

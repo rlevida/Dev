@@ -17,6 +17,7 @@ export default class Component extends React.Component {
         const { comment } = { ...conversation_notification }
         const duration = moment.duration(moment().diff(moment(dateAdded)));
         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+    
         return (
             <div key={index}>
                 <li class={`pd0 mb20 ${!data.isRead ? "n-unread": ""}`}>

@@ -212,14 +212,104 @@ exports.get = {
             }
         });
     },
-    getById: (req, cb) => {
-        defaultGetById(dbName, req, (res) => {
-            if (res.status) {
-                cb({ status: true, data: res.data })
-            } else {
-                cb({ status: false, error: res.error })
+    conversationById: async (req, cb) => {
+        const queryString = req.query;
+        const getAssociation = [
+            {
+                model: Workstream,
+                as: 'noteWorkstream',
+                include: [
+                    {
+                        model: Projects,
+                        as: 'project'
+                    }
+                ]
+            },
+            {
+                model: Tag,
+                as: 'notesTagTask',
+                required: false,
+                where: {
+                    linkType: 'user',
+                    tagType: 'notes',
+                    isDeleted: 0
+                },
+                include: [
+                    {
+                        model: Users,
+                        as: 'user'
+                    }
+                ]
             }
-        })
+        ]
+        let taggedUser = [];
+
+        if (typeof queryString.userId && queryString.userId != "") {
+            taggedUser = await Tag.findAll({
+                where: {
+                    tagType: 'notes',
+                    linkType: 'user',
+                    linkId: queryString.userId,
+                    isDeleted: 0
+                }
+            }).map((o) => { return o.toJSON(); });
+        }
+
+        const whereObj = {
+            ...(typeof queryString.noteId !== "undefined" && queryString.noteId !== '') ? { id: queryString.noteId } : {},
+            ...(typeof queryString.projectId !== 'undefined' && queryString.projectId !== '') ? { projectId: queryString.projectId } : {},
+            ...(typeof queryString.workstreamId !== 'undefined' && queryString.workstreamId !== '') ? { workstreamId: queryString.workstreamId } : {},
+            ...(typeof queryString.title != "undefined" && queryString.title != "") ? {
+                [Op.and]: [
+                    Sequelize.where(Sequelize.fn('lower', Sequelize.col('notes.note')),
+                        {
+                            [Op.like]: sequelize.fn('lower', `%${queryString.title}%`)
+                        }
+                    )
+                ]
+            } : {},
+            ...(typeof queryString.userId && queryString.userId != "") ? {
+                id: _.map(taggedUser, ({ tagTypeId }) => { return tagTypeId })
+            } : {}
+        }
+
+        if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
+            getAssociation.push({
+                model: Starred,
+                as: 'notes_starred',
+                where: {
+                    linkType: 'notes',
+                    isActive: 1,
+                    usersId: queryString.starredUser,
+                    isDeleted: 0
+                },
+                required: false,
+                include: [
+                    {
+                        model: Users,
+                        as: 'user',
+                        attributes: ['id', 'firstName', 'lastName', 'emailAddress']
+                    }
+                ]
+            });
+        }
+        const options = {
+            include: getAssociation,
+        };
+
+        const note = await Notes.findOne({
+            ...options,
+            where: whereObj
+        }).then((resultArray) => {
+            const responseObj = resultArray.toJSON();
+            return {
+                ...responseObj,
+                isStarred: (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '' && (responseObj.notes_starred).length > 0) ? responseObj.notes_starred[0].isActive : 0
+            }
+
+        });
+        
+        cb({ status: true, data: note });
     },
     getConversationList: (req, cb) => {
         const queryString = req.query;
@@ -630,11 +720,7 @@ exports.post = {
                                                 model: Notes,
                                                 as: 'note_notification',
                                                 required: false,
-                                                include: [{
-                                                    model: Conversation,
-                                                    as: 'comments',
-                                                    required: false
-                                                }]
+                                                include: NotesInclude
                                             },
                                             {
                                                 model: Conversation,
@@ -1102,7 +1188,7 @@ exports.post = {
                     console.error(err)
                 }
             }
-           
+
         }, (err, result) => {
             if (err != null) {
                 cb({ status: false, error: err });
@@ -1373,29 +1459,15 @@ exports.post = {
                                 }).map((nSetting) => {
                                     return {
                                         usersId: nSetting.usersId,
-                                        projectId: body.projectId,
+                                        projectId: projectId,
                                         createdBy: sender,
                                         noteId: responseObj.linkId,
                                         conversationId: responseObj.id,
                                         workstreamId: responseObj.conversationNotes.noteWorkstream.id,
                                         type: "messageSend",
                                         message: "Sent you a new message",
-                                    }
-                                })
-
-                                const emailArr = _.filter(response, (nSetting) => {
-                                    return nSetting.receiveEmail === 1 && nSetting.messageSend === 1
-                                }).map((nSetting) => {
-                                    return {
-                                        usersId: nSetting.usersId,
-                                        projectId: body.projectId,
-                                        createdBy: sender,
-                                        noteId: responseObj.linkId,
-                                        conversationId: responseObj.id,
-                                        workstreamId: responseObj.conversationNotes.noteWorkstream.id,
-                                        type: "messageSend",
-                                        message: "Sent you a new message",
-                                        emailAddress: nSetting.notification_setting.emailAddress
+                                        emailAddress: nSetting.notification_setting.emailAddress,
+                                        receiveEmail: nSetting.receiveEmail
                                     }
                                 })
 
@@ -1437,11 +1509,12 @@ exports.post = {
                                                         model: Notes,
                                                         as: 'note_notification',
                                                         required: false,
-                                                        include: [{
-                                                            model: Conversation,
-                                                            as: 'comments',
-                                                            required: false
-                                                        }]
+                                                        include: NotesInclude,
+                                                    },
+                                                    {
+                                                        model: Conversation,
+                                                        as: 'conversation_notification',
+                                                        required: false
                                                     }
                                                 ]
                                             })
@@ -1452,19 +1525,21 @@ exports.post = {
                                                 return findNotificationRes.toJSON()
                                             })
                                             .then(() => {
-                                                async.map(emailArr, ({ emailAddress, message }, mapCallback) => {
-                                                    let html = '<p>' + message + '</p>';
-                                                    html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
-                                                    // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                                                    html += '<p>Message:<br>' + message + '</p>';
+                                                async.map(notificationArr, ({ emailAddress, message, receiveEmail }, mapCallback) => {
+                                                    if (receiveEmail === 1) {
+                                                        let html = '<p>' + message + '</p>';
+                                                        html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                        // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                        html += '<p>Message:<br>' + message + '</p>';
 
-                                                    const mailOptions = {
-                                                        from: '"no-reply" <no-reply@c_cfo.com>',
-                                                        to: `${emailAddress}`,
-                                                        subject: '[CLOUD-CFO]',
-                                                        html: html
-                                                    };
-                                                    global.emailtransport(mailOptions);
+                                                        const mailOptions = {
+                                                            from: '"no-reply" <no-reply@c_cfo.com>',
+                                                            to: `${emailAddress}`,
+                                                            subject: '[CLOUD-CFO]',
+                                                            html: html
+                                                        };
+                                                        global.emailtransport(mailOptions);
+                                                    }
                                                     mapCallback(null)
                                                 }, () => {
                                                     req.app.parent.io.emit('FRONT_COMMENT_LIST', { result: responseObj, members: memberUser });
