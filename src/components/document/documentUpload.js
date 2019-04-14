@@ -1,7 +1,6 @@
 import React from "react";
 import Dropzone from 'react-dropzone';
 import { connect } from "react-redux"
-
 import { DropDown } from "../../globalComponents";
 import { showToast, postData, getData } from '../../globalFunction';
 import _ from "lodash";
