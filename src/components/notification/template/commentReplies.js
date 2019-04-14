@@ -12,7 +12,7 @@ import { MentionConvert } from "../../../globalComponents"
 })
 export default class Component extends React.Component {
     render() {
-        const { dispatch, data, index } = { ...this.props }
+        const { dispatch, data, index, handleNotificationRedirect } = { ...this.props }
         const { from, dateAdded, conversation_notification, workstream_notification, task_notification } = { ...data }
         const { comment } = { ...conversation_notification }
         const { workstream } = { ...workstream_notification }
@@ -21,10 +21,10 @@ export default class Component extends React.Component {
         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
         return (
             <div key={index}>
-                <li class={`pd0 mb20 ${!data.isRead ? "n-unread": ""}`}>
+                <li class={`pd0 mb20 ${!data.isRead ? "n-unread" : ""}`}>
                     <div class="d-flex-sb">
                         <div class="n">
-                            <p class="m0"><i class="fa fa-check-circle mr5"></i>Task in <strong>{workstream}</strong></p>
+                            <a href="javascript:void(0)" onClick={() => handleNotificationRedirect(data)}><p class="m0"><i class="fa fa-check-circle mr5"></i>Task in <strong>{workstream}</strong></p></a>
                             <div class="m20">
                                 <div class="n-title mb10"><h4><strong>{task}</strong></h4></div>
                                 <div class="display-flex vh-center">

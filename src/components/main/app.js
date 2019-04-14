@@ -133,40 +133,44 @@ class Main extends React.Component {
         dispatch({ type: formType, FormActive: "Form" });
     }
 
-    handleNotificationRedirect(notif) {
+    async handleNotificationRedirect(notif) {
         const { history, dispatch, loggedUser } = { ...this.props };
         const { taskId, workstreamId, projectId, } = { ...notif };
+        if (!notif.isRead) {
+            await putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, (c) => {
+                dispatch({ type: 'UPDATE_DATA_NOTIFICATION_LIST', updatedData: c.data });
+            })
+        }
 
-        putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, (c) => {
-            dispatch({ type: 'UPDATE_DATA_NOTIFICATION_LIST', updatedData: c.data });
-            let url = `/projects/${projectId}`;
-            switch (notif.type) {
-                case "fileNewUpload": {
+        let url = `/projects/${projectId}`;
+        switch (notif.type) {
+            case "fileNewUpload": {
 
-                    if (notif.taskId === null) {
-                        history.push(`${url}/workstreams/${workstreamId}?tab=document`);
-                    } else {
-                        history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
-
-                    }
-                }
-                    break;
-                case "messageSend": {
-                    history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
-                }
-                    break;
-                case "taskAssgined":
-                case "taskApprover":
-                case "taskTagged":
-                case "commentReplies":
-                case "taskTeamDeadline":
-                case "taskFollowingDeadline":
-                case "taskAssigned": {
+                if (notif.taskId === null) {
+                    history.push(`${url}/workstreams/${workstreamId}?tab=document`);
+                } else {
                     history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+
                 }
-                    break;
             }
-        })
+                break;
+            case "messageSend": {
+                history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
+            }
+                break;
+            case "taskAssgined":
+            case "taskApprover":
+            case "taskTagged":
+            case "commentReplies":
+            case "taskMemberCompleted":
+            case "taskFollowingCompleted":
+            case "taskTeamDeadline":
+            case "taskFollowingDeadline":
+            case "taskAssigned": {
+                history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+            }
+                break;
+        }
     }
 
     render() {
@@ -322,8 +326,8 @@ class Main extends React.Component {
                                                         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
 
                                                         return (
-                                                            <a href="javascript:void(0)" onClick={() => this.handleNotificationRedirect(e)}>
-                                                                <div class={`display-flex vh-center bb notif-item ${e.isRead ? "" : "n-unread"}`} key={i}>
+                                                            <a href="javascript:void(0)" onClick={() => this.handleNotificationRedirect(e)} key={i}>
+                                                                <div class={`display-flex vh-center bb notif-item ${e.isRead ? "" : "n-unread"}`}>
                                                                     <div class="menu-profile mb5">
                                                                         {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline"
                                                                             ? <div class="n-image"><img src={e.from.avatar} alt="Profile Picture" class="img-responsive " /></div>
