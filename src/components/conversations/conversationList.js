@@ -48,7 +48,7 @@ export default class ConversationList extends React.Component {
 
     getConversationById(id) {
         const { loggedUser } = { ...this.props }
-        let requestUrl = `/api/conversation/conversationById?${id}?&starredUser=${loggedUser.data.id}&userId=${loggedUser.data.id}`;
+        let requestUrl = `/api/conversation/conversationById?noteId=${id}&starredUser=${loggedUser.data.id}&userId=${loggedUser.data.id}`;
         getData(requestUrl, {}, (c) => {
             this.openMessage(c.data)
         });

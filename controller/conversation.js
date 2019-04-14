@@ -242,18 +242,6 @@ exports.get = {
                 ]
             }
         ]
-        let taggedUser = [];
-
-        if (typeof queryString.userId && queryString.userId != "") {
-            taggedUser = await Tag.findAll({
-                where: {
-                    tagType: 'notes',
-                    linkType: 'user',
-                    linkId: queryString.userId,
-                    isDeleted: 0
-                }
-            }).map((o) => { return o.toJSON(); });
-        }
 
         const whereObj = {
             ...(typeof queryString.noteId !== "undefined" && queryString.noteId !== '') ? { id: queryString.noteId } : {},
@@ -268,9 +256,6 @@ exports.get = {
                     )
                 ]
             } : {},
-            ...(typeof queryString.userId && queryString.userId != "") ? {
-                id: _.map(taggedUser, ({ tagTypeId }) => { return tagTypeId })
-            } : {}
         }
 
         if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
@@ -293,6 +278,7 @@ exports.get = {
                 ]
             });
         }
+
         const options = {
             include: getAssociation,
         };
@@ -308,7 +294,7 @@ exports.get = {
             }
 
         });
-        
+
         cb({ status: true, data: note });
     },
     getConversationList: (req, cb) => {
@@ -642,9 +628,19 @@ exports.post = {
                             parallelCallback(null, response)
                         });
                 }
-            }, (err, { conversations }) => {
-                const sender = body.userId;
+            }, async (err, { conversations }) => {
+
+                const sender = await Users.findOne({
+                    where: {
+                        id: body.userId
+                    }
+                }).then((o) => {
+                    const responseObj = o.toJSON();
+                    return responseObj;
+                })
+
                 const receiver = body.users.map((e) => { return e.value });
+
                 UsersNotificationSetting
                     .findAll({
                         where: { usersId: receiver },
@@ -666,7 +662,7 @@ exports.post = {
                             return {
                                 usersId: nSetting.usersId,
                                 projectId: body.projectId,
-                                createdBy: sender,
+                                createdBy: sender.id,
                                 noteId: noteResult.id,
                                 conversationId: conversations.id,
                                 type: "messageSend",
@@ -737,12 +733,13 @@ exports.post = {
                                         return findNotificationRes.toJSON()
                                     })
                                     .then(() => {
-                                        async.map(notificationArr, ({ emailAddress, message, receiveEmail }, mapCallback) => {
-                                            if (receiveEmail) {
+                                        async.map(notificationArr, ({ emailAddress, message, receiveEmail, projectId, noteId, }, mapCallback) => {
+                                            if (receiveEmail === 1) {
                                                 let html = '<p>' + message + '</p>';
                                                 html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
                                                 // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                                                html += '<p>Message:<br>' + message + '</p>';
+                                                html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
+                                                html += `<a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/messages?note-id=${noteId}">Click here</a>`;
 
                                                 const mailOptions = {
                                                     from: '"no-reply" <no-reply@c_cfo.com>',
@@ -781,66 +778,6 @@ exports.post = {
                                     })
                             })
                     })
-
-                // Users.findAll({
-                //     where: {
-                //         id: userId
-                //     }
-                // }).map((o) => {
-                //     const userObj = o.toJSON();
-                //     return userObj;
-                // }).then(async (response) => {
-                //     const workstream = await Workstream.findOne({
-                //         where: {
-                //             id: body.workstreamId
-                //         },
-                //         include: [
-                //             {
-                //                 model: Projects,
-                //                 as: 'project'
-                //             }
-                //         ]
-                //     }).then((o) => { return o.toJSON() });
-
-                //     const sender = _.find(response, (o) => { return o.id == body.userId });
-                //     const receivers = _.filter(response, (o) => { return o.id != body.userId });
-                //     const reminderList = _.map(receivers, (receiver) => {
-                //         return {
-                //             detail: sender.firstName + " " + sender.lastName + " started a message.",
-                //             emailAddress: receiver.emailAddress,
-                //             usersId: receiver.id,
-                //             linkType: 'notes',
-                //             linkId: noteResult.id,
-                //             type: "Send Message",
-                //             createdBy: sender.id
-                //         }
-                //     });
-
-                //     Reminder.bulkCreate(
-                //         _.map(reminderList, (o) => { return _.omit(o, ["emailAddress"]) })
-                //     ).map((response) => {
-                //         return response.toJSON();
-                //     }).then((resultArray) => {
-                //         async.map(reminderList, ({ emailAddress, detail }, mapCallback) => {
-                //             let html = '<p>' + detail + '</p>';
-                //             html += '<p style="margin-bottom:0">Title: ' + body.title + '</p>';
-                //             html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                //             html += '<p>Message:<br>' + body.message + '</p>';
-
-                //             const mailOptions = {
-                //                 from: '"no-reply" <no-reply@c_cfo.com>',
-                //                 to: `${emailAddress}`,
-                //                 subject: '[CLOUD-CFO]',
-                //                 html: html
-                //             };
-
-                //             global.emailtransport(mailOptions);
-                //             mapCallback(null);
-                //         }, (err, result) => {
-
-                //         });
-                //     });
-                // })
             });
         }).on('error', function (err) {
             cb({ status: false, error: "Upload error. Please try again later." });
@@ -1028,9 +965,14 @@ exports.post = {
                                             return findNotificationRes.toJSON()
                                         })
                                         .then(() => {
-                                            async.map(notificationArr, ({ emailAddress, message, receiveEmail }, mapCallback) => {
+                                            async.map(notificationArr, ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
                                                 if (receiveEmail === 1) {
                                                     let html = '<p>' + message + '</p>';
+                                                    html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                    // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                    html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName} </strong> ${message}</p>`;
+                                                    html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+
                                                     const mailOptions = {
                                                         from: '"no-reply" <no-reply@c_cfo.com>',
                                                         to: `${emailAddress}`,
@@ -1078,7 +1020,6 @@ exports.post = {
                             .then(async (response) => {
                                 let message = "";
                                 let notificationArr = [];
-                                let emailArr = [];
 
                                 if (bodyData.linkType === "task") {
                                     const task = await Tasks.findOne({
@@ -1093,7 +1034,7 @@ exports.post = {
                                         const responseObj = o.toJSON();
                                         return responseObj;
                                     });
-                                    message = `${sender.firstName + " " + sender.lastName} metioned you on the task ${task.task} under ${task.workstream.workstream} workstream.`;
+                                    message = `metioned you on the task ${task.task} under ${task.workstream.workstream} workstream.`;
 
                                     notificationArr = await _.filter(response, (nSetting) => {
                                         return nSetting.messageSend === 1
@@ -1163,9 +1104,14 @@ exports.post = {
                                                 return findNotificationRes.toJSON()
                                             })
                                             .then(() => {
-                                                async.map(emailArr, ({ emailAddress, message, receiveEmail }, mapCallback) => {
+                                                async.map(notificationArr, ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
                                                     if (receiveEmail === 1) {
                                                         let html = '<p>' + message + '</p>';
+                                                        html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                        // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                        html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName} </strong> ${message}</p>`;
+                                                        html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+
                                                         const mailOptions = {
                                                             from: '"no-reply" <no-reply@c_cfo.com>',
                                                             to: `${emailAddress}`,
@@ -1432,10 +1378,19 @@ exports.post = {
                         ]
                     }).then(async (res) => {
                         const responseObj = res.toJSON();
-                        const sender = body.usersId;
+                        const sender = await Users.findOne({
+                            where: {
+                                id: body.usersId
+                            }
+                        }).then((o) => {
+                            const responseObj = o.toJSON();
+                            return responseObj;
+                        })
+
                         const receiver = _.filter(body.users, (usersObj) => {
-                            return usersObj.value !== sender
+                            return usersObj.value !== sender.id
                         }).map((usersObj) => { return usersObj.value })
+
                         const memberUser = _.map([
                             ...members.new_members,
                             ...members.removed_members
@@ -1460,7 +1415,7 @@ exports.post = {
                                     return {
                                         usersId: nSetting.usersId,
                                         projectId: projectId,
-                                        createdBy: sender,
+                                        createdBy: sender.id,
                                         noteId: responseObj.linkId,
                                         conversationId: responseObj.id,
                                         workstreamId: responseObj.conversationNotes.noteWorkstream.id,
@@ -1525,12 +1480,14 @@ exports.post = {
                                                 return findNotificationRes.toJSON()
                                             })
                                             .then(() => {
-                                                async.map(notificationArr, ({ emailAddress, message, receiveEmail }, mapCallback) => {
+                                                async.map(notificationArr, ({ emailAddress, message, receiveEmail, noteId }, mapCallback) => {
                                                     if (receiveEmail === 1) {
                                                         let html = '<p>' + message + '</p>';
                                                         html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
                                                         // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                                                        html += '<p>Message:<br>' + message + '</p>';
+                                                        html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
+                                                        html += `<a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/messages?note-id=${noteId}">Click here</a>`;
+
 
                                                         const mailOptions = {
                                                             from: '"no-reply" <no-reply@c_cfo.com>',
@@ -1549,61 +1506,6 @@ exports.post = {
                                             })
                                     })
                             })
-
-
-
-
-                        // const { users, conversationNotes } = responseObj;
-                        // if (memberUser.length > 0) {
-                        //     const reminderUsers = await Users.findAll({
-                        //         where: {
-                        //             id: _.map(memberUser, ({ linkId }) => { return linkId })
-                        //         }
-                        //     }).map((o) => { return o.toJSON() });
-
-                        //     const reminderList = _.map(reminderUsers, ({ emailAddress, id }) => {
-                        //         const memberType = _.find(memberUser, ({ linkId }) => { return linkId == id });
-                        //         const message = (memberType.member_type == "new") ? "added you to a message" : "removed you to a message"
-                        //         return {
-                        //             detail: users.firstName + " " + users.lastName + " " + message + ".",
-                        //             emailAddress: emailAddress,
-                        //             usersId: memberType.linkId,
-                        //             linkType: 'notes',
-                        //             linkId: conversationNotes.id,
-                        //             type: "Send Message",
-                        //             createdBy: users.id
-                        //         }
-                        //     });
-
-                        //     await Reminder.bulkCreate(
-                        //         _.map(reminderList, (o) => { return _.omit(o, ["emailAddress"]) })
-                        //     ).map((response) => {
-                        //         return response.toJSON();
-                        //     }).then((resultArray) => {
-                        //         async.map(reminderList, ({ emailAddress, detail }, mapCallback) => {
-                        //             let html = '<p>' + detail + '</p>';
-                        //             html += '<p style="margin-bottom:0">Title: ' + responseObj.conversationNotes.note + '</p>';
-                        //             html += '<p style="margin-top:0">Project - Workstream: ' + responseObj.conversationNotes.noteWorkstream.project.project + ' - ' + responseObj.conversationNotes.noteWorkstream.workstream + '</p>';
-
-                        //             const mailOptions = {
-                        //                 from: '"no-reply" <no-reply@c_cfo.com>',
-                        //                 to: `${emailAddress}`,
-                        //                 subject: '[CLOUD-CFO]',
-                        //                 html: html
-                        //             };
-                        //             global.emailtransport(mailOptions);
-                        //             mapCallback(null);
-                        //         }, (err, result) => {
-                        //             req.app.parent.io.emit('FRONT_COMMENT_LIST', { result: responseObj, members: memberUser });
-                        //             cb({ status: true, data: responseObj });
-                        //         });
-                        //     });
-                        // } else {
-                        //     console.log(responseObj , memberUser)
-                        //     req.app.parent.io.emit('FRONT_COMMENT_LIST', { result: responseObj, members: memberUser });
-                        //     cb({ status: true, data: responseObj });
-                        // }
-
                     })
             });
         }).on('error', function (err) {
