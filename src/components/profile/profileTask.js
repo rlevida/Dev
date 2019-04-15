@@ -2,6 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
 import moment from "moment";
+import { Link } from 'react-router-dom';
 
 import { Loading } from "../../globalComponents";
 import { getData } from "../../globalFunction";
@@ -71,7 +72,7 @@ export default class ProfileTask extends React.Component {
                             </thead>
                             <tbody>
                                 {
-                                    _.map(List, ({ periodic, task, workstream, dueDate, status }, index) => {
+                                    _.map(List, ({ periodic, task, workstream, dueDate, status, id }, index) => {
                                         const given = moment(dueDate, "YYYY-MM-DD");
                                         const current = moment().startOf('day');
                                         let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
@@ -84,7 +85,10 @@ export default class ProfileTask extends React.Component {
                                                     {
                                                         (colorClass != "") && <span class={`fa fa-circle mb0 mr5 ${colorClass}`}></span>
                                                     }
-                                                    {task}
+                                                    <a
+                                                        href={window.location.origin + `/account#/projects/${workstream.project.id}/workstreams/${workstream.id}?task-id=${id}`}>
+                                                        {task}
+                                                    </a>
                                                     {(periodic == 1) && <i class="fa fa-refresh ml10" aria-hidden="true"></i>}
                                                 </td>
                                                 <td data-label="Project">

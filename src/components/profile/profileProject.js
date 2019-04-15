@@ -1,5 +1,6 @@
 import React from "react";
 import _ from "lodash";
+import { Link } from 'react-router-dom';
 
 import { connect } from "react-redux";
 import { getData } from "../../globalFunction";
@@ -91,7 +92,7 @@ export default class ProfileProject extends React.Component {
                                         {
                                             _.map(o.projects, (o, index) => {
                                                 return (
-                                                    <p class="m0" key={index}>{o.project}</p>
+                                                    <p class="m0" key={index}><Link to={`/projects/${o.id}`}>{o.project}</Link></p>
                                                 )
                                             })
                                         }
