@@ -239,7 +239,9 @@ class Main extends React.Component {
         ];
 
         if (loggedUser.data.userType === "External") {
-            pages = _.filter(({ path_name }) => { return path_name != "users-and-team" });
+            pages = _.filter(pages, ({ path_name }) => {
+                return path_name != "users-and-team"
+            });
         }
 
         if (loggedUser.data.userType != "External") {
