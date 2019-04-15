@@ -36,6 +36,7 @@ class DocumentUpload extends React.Component {
             "getWorkstreamList",
             "fetchFolderList",
             "getFolderList",
+            "fetchWorkstreamList"
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
@@ -74,16 +75,18 @@ class DocumentUpload extends React.Component {
     }
 
     getWorkstreamList(options) {
+        const self = this
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
-            this.fetchWorkstreamList(options);
+            self.fetchWorkstreamList(options);
         }, 1500);
     }
 
     getFolderList(options) {
+        const self = this
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
-            this.fetchFolderList(options);
+            self.fetchFolderList(options);
         }, 1500);
     }
 

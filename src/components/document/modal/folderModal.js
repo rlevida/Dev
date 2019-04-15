@@ -21,6 +21,7 @@ class FolderModal extends React.Component {
         _.map([
             "submit",
             "onChange",
+            "fetchWorkstreamList", "fetchFolderList", "fetchProjectList", "getWorkstreamList", "getFolderList"
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
@@ -69,8 +70,8 @@ class FolderModal extends React.Component {
         const projectId = match.params.projectId;
         let result = true;
 
-        $('#folder-form *').validator('validate');
-        $('#folder-form .form-group').each(function () {
+        $('.folder-form *').validator('validate');
+        $('.folder-form .form-group').each(function () {
             if ($(this).hasClass('has-error')) {
                 result = false;
             }
@@ -84,8 +85,8 @@ class FolderModal extends React.Component {
         const dataToSubmit =
         {
             DocumentToSave: [{
-                name: folder.New.name,
-                origin: folder.New.name,
+                name: document.Selected.name,
+                origin: document.Selected.name,
                 createdBy: loggedUser.data.id,
                 type: "folder",
                 project: projectId,
@@ -93,28 +94,35 @@ class FolderModal extends React.Component {
                 status: 'new',
             }],
             projectId: projectId,
-            folderId: folder.Selected.id,
+            folderId: document.Selected.folderId,
         };
-
-        if (folder.SelectedFolderName.length <= 3) {
+        try {
+            // if (folder.SelectedFolderName.length <= 3) {
             postData(`/api/document`, dataToSubmit, (c) => {
                 const { result } = { ...c.data }
                 if (document.Filter.status === 'sort') {
-                    if (_.isEmpty(folder.SelectedFolderName)) {
-                        dispatch({ type: "ADD_FOLDER_LIST", list: result });
-                    } else {
-                        const newList = this.getNestedChildren(folder.List, folder.Selected.id, result[0])
-                        dispatch({ type: "SET_FOLDER_LIST", list: newList });
-                    }
-                } else {
+                    // if (_.isEmpty(folder.SelectedFolderName)) {
+                    //     dispatch({ type: "ADD_FOLDER_LIST", list: result });
+                    // } else {
+                    const newList = this.getNestedChildren(folder.List, document.Selected.folderId, result[0])
+                    dispatch({ type: "SET_FOLDER_LIST", list: newList });
+                    // }
+                } else if (document.Selected.folderId === folder.Selected.id) {
+                    dispatch({ type: "ADD_DOCUMENT_LIST", list: result });
+                } else if (typeof folder.Selected.id === "undefined") {
                     dispatch({ type: "ADD_DOCUMENT_LIST", list: result });
                 }
-                dispatch({ type: 'SET_NEW_FOLDER', New: {} })
+
+                dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: {} })
+                $("#folderModal").modal("hide");
                 showToast("success", "Successfully Added.")
             })
-        } else {
-            showToast("warning", "Folder count reached")
+        } catch (err) {
+            console.log(err)
         }
+        // } else {
+        //     showToast("warning", "Folder count reached")
+        // }
     }
 
     componentWillUnmount() {
@@ -135,7 +143,6 @@ class FolderModal extends React.Component {
             const projectOptions = _(c.data.result)
                 .map((e) => { return { id: e.id, name: e.project } })
                 .value();
-            console.log(projectOptions)
             dispatch({ type: "SET_PROJECT_SELECT_LIST", List: projectOptions });
         });
     }
@@ -176,7 +183,7 @@ class FolderModal extends React.Component {
         const { dispatch, loggedUser, match } = { ...this.props };
         const projectId = match.params.projectId;
 
-        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
+        let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
 
         if (typeof options != "undefined" && options != "") {
             requestUrl += `&name=${options}`;
@@ -212,7 +219,7 @@ class FolderModal extends React.Component {
 
     onChange(e) {
         const { dispatch, document } = this.props;
-        const selectedObj = { ...document, [e.target.name]: e.target.value };
+        const selectedObj = { ...document.Selected, [e.target.name]: e.target.value };
         dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
     }
 
@@ -220,7 +227,6 @@ class FolderModal extends React.Component {
         const { dispatch, project, workstream, folder, match, document } = { ...this.props };
         const { Files = [], Selected, Loading } = { ...document };
         const projectId = match.params.projectId;
-        console.log(project.SelectList)
         return (
             <div class="modal fade" id="folderModal" tabIndex="-1" role="dialog" aria-labelledby="folderModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog" role="document">

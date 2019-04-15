@@ -61,10 +61,31 @@ class FieldContainer extends React.Component {
 
     }
 
+    getNestedChildren(arr, parent, dataObj) {
+        var out = []
+        for (var i in arr) {
+            if (arr[i].id == parent) {
+                if (typeof arr[i].childFolder === 'undefined') {
+                    arr[i].childFolder = []
+                }
+                arr[i].childFolder = dataObj
+                out.push(arr[i])
+            } else {
+                if (typeof arr[i].childFolder === "undefined") {
+                    arr[i].childFolder = []
+                }
+                if (arr[i].childFolder.length > 0) {
+                    this.getNestedChildren(arr[i].childFolder, parent, dataObj)
+                }
+                out.push(arr[i])
+            }
+        }
+        return out
+    }
+
     async fetchFolder(data) {
         const { dispatch, loggedUser, folder, history, match } = this.props;
         const projectId = match.params.projectId;
-        let folderList = folder.SelectedFolderName;
 
         if (data === "") {
             dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
@@ -74,90 +95,13 @@ class FieldContainer extends React.Component {
             await history.push(`/projects/${projectId}/files`);
         } else if (folder.Selected.id !== data.id) {
             getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&type=folder&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
-                const { result, count } = { ...c.data }
+                const { result } = { ...c.data }
                 if (result.length > 0) {
-                    let hasFolder = true;
-                    let parentFolderId = data.id;
-
-                    while (hasFolder) {
-                        let parentFolder = folderList.filter((e) => { return e.folderId == parentFolderId });
-                        if (parentFolder.length > 0) {
-                            folderList = folderList.filter((e) => { return e.folderId != parentFolderId });
-                            parentFolderId = parentFolder[0].id;
-                        } else {
-                            hasFolder = false;
-                        }
-                    }
-
-                    let newList = []
-                    newList = folder.List.map((a) => {
-                        if (a.id === data.id) {
-                            if (typeof a.childFolder === 'undefined') {
-                                a.childFolder = []
-                                a.childFolder = result;
-                            } else {
-                                a.childFolder.map((y) => {
-                                    let b = y
-                                    if (b.id === data.id) {
-                                        if (typeof b.childFolder === 'undefined') {
-                                            b.childFolder = []
-                                            b.childFolder = result
-                                        }
-                                    } else if (typeof b.childFolder !== "undefined") {
-                                        b.childFolder.map((c) => {
-                                            if (c.id === data.id) {
-                                                if (typeof c.childFolder === "undefined") {
-                                                    c.childFolder = []
-                                                    c.childFolder = result
-                                                }
-                                            }
-                                            return c
-                                        })
-                                    }
-                                    return b
-                                })
-                            }
-                        } else if (typeof a.childFolder !== "undefined") {
-
-                            a.childFolder.map((y) => {
-                                let b = y
-                                if (b.id === data.id) {
-                                    if (typeof b.childFolder === 'undefined') {
-                                        b.childFolder = []
-                                        b.childFolder = result
-                                    }
-                                } else if (typeof b.childFolder !== "undefined") {
-                                    b.childFolder.map((c) => {
-                                        if (c.id === data.id) {
-                                            if (typeof c.childFolder === 'undefined') {
-                                                c.childFolder = []
-                                                c.childFolder = result
-                                            }
-                                        }
-                                        return c
-                                    })
-                                }
-                                return b
-                            })
-                        }
-                        return a
-                    })
+                    const newList = this.getNestedChildren(folder.List, data.id, result)
                     dispatch({ type: 'SET_FOLDER_LIST', list: newList })
                 }
-
-                const isAlreadyInList = folder.SelectedFolderName.indexOf(data) > -1 ? true : false
-                dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: isAlreadyInList ? folderList : folder.SelectedFolderName.concat([data]) });
-                dispatch({ type: 'SET_FOLDER_SELECTED', Selected: data })
             });
         } else if (folder.Selected.id === data.id) {
-            // let returnObj = true;
-            // const removeSelected = folder.SelectedFolderName.filter((e) => {
-            //     if (returnObj && data.id !== e.id) {
-            //         return e
-            //     } else {
-            //         returnObj = false
-            //     }
-            // })
             dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
         }
     }

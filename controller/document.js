@@ -130,17 +130,17 @@ exports.get = {
             ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {},
             ...(typeof queryString.uploadFrom != "undefined" && typeof queryString.uploadTo != "undefined" && queryString.uploadFrom != "" && queryString.uploadTo != "" && queryString.uploadFrom != "undefined" && queryString.uploadTo != "undefined")
                 ? { dateAdded: { [Op.between]: [moment(queryString.uploadFrom).add(8, 'hours').toDate(), moment(queryString.uploadTo).add(8, 'hours').toDate()] } } : {},
-            ...(typeof queryString.userType != "undefined" && queryString.userType == "External") ? {
-                [Op.or]: {
-                    ...(typeof queryString.userType != "undefined" && queryString.userType == "External" && typeof queryString.userId != "undefined" && queryString.userId != "") ? {
-                        [Op.or]: [
-                            { id: { [Op.in]: Sequelize.literal(`(SELECT DISTINCT shareId FROM share where userTypeLinkId = ${queryString.userId})`) } },
-                            { id: { [Op.in]: Sequelize.literal(`(SELECT DISTINCT document.id FROM document LEFT JOIN share ON document.folderId = share.shareId where share.shareType = 'folder' AND share.userTypeLinkId = ${queryString.userId} )`) } }
-                        ]
-                    } : {},
-                    uploadedBy: queryString.userId
-                }
-            } : {}
+            // ...(typeof queryString.userType != "undefined" && queryString.userType == "External") ? {
+            //     [Op.or]: {
+            //         ...(typeof queryString.userType != "undefined" && queryString.userType == "External" && typeof queryString.userId != "undefined" && queryString.userId != "") ? {
+            //             [Op.or]: [
+            //                 { id: { [Op.in]: Sequelize.literal(`(SELECT DISTINCT shareId FROM share where userTypeLinkId = ${queryString.userId})`) } },
+            //                 { id: { [Op.in]: Sequelize.literal(`(SELECT DISTINCT document.id FROM document LEFT JOIN share ON document.folderId = share.shareId where share.shareType = 'folder' AND share.userTypeLinkId = ${queryString.userId} )`) } }
+            //             ]
+            //         } : {},
+            //         uploadedBy: queryString.userId
+            //     }
+            // } : {}
         }
 
         if (typeof queryString.search !== 'undefined' && queryString.search !== '') {
