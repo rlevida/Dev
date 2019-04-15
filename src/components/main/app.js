@@ -228,6 +228,8 @@ class Main extends React.Component {
         const dropdownAddLinks = [
             { id: "task", label: "Task" },
             { id: "project", label: "Project" },
+            { id: "user", label: "User" },
+            { id: "team", label: "Team" }
         ];
         const projectMenu = [
             { label: "Info", link: "/info" },
@@ -243,14 +245,6 @@ class Main extends React.Component {
                 return path_name != "users-and-team"
             });
         }
-
-        if (loggedUser.data.userType != "External") {
-            dropdownAddLinks.push(
-                { id: "user", label: "User" },
-                { id: "team", label: "Team" }
-            );
-        }
-
         const currentPath = this.props.location.pathname;
         const parentPath = currentPath.split("/")[1];
         const currentPage = _.find(pages, (page) => { return page.path_name == parentPath });
@@ -359,22 +353,24 @@ class Main extends React.Component {
                                                 <a href={`/account#/notification`}>View All Notification</a>
                                             </div>
                                         </div>
-                                        <div>
-                                            <a class="mr15 btn btn-default btn-orange dropdown-toggle" type="button" id="new" data-toggle="dropdown">
-                                                <span><i class="fa fa-plus mr10" aria-hidden="true"></i>New</span>
-                                            </a>
-                                            <div class="pull-right dropdown-menu new-menu" role="menu" aria-labelledby="new">
-                                                <ul>
-                                                    {
-                                                        _.map(dropdownAddLinks, ({ id, label }, index) => {
-                                                            return (
-                                                                <li role="presentation" key={index}><a role="menuitem" onClick={() => this.handleAdd(id)}>{label}</a></li>
-                                                            )
-                                                        })
-                                                    }
-                                                </ul>
+                                        {
+                                            (loggedUser.data.userType != "External") && <div>
+                                                <a class="mr15 btn btn-default btn-orange dropdown-toggle" type="button" id="new" data-toggle="dropdown">
+                                                    <span><i class="fa fa-plus mr10" aria-hidden="true"></i>New</span>
+                                                </a>
+                                                <div class="pull-right dropdown-menu new-menu" role="menu" aria-labelledby="new">
+                                                    <ul>
+                                                        {
+                                                            _.map(dropdownAddLinks, ({ id, label }, index) => {
+                                                                return (
+                                                                    <li role="presentation" key={index}><a role="menuitem" onClick={() => this.handleAdd(id)}>{label}</a></li>
+                                                                )
+                                                            })
+                                                        }
+                                                    </ul>
+                                                </div>
                                             </div>
-                                        </div>
+                                        }
                                         <Link to={"/profile"}>
                                             <div class="menu-profile">
                                                 <img src={avatar} alt="Profile Picture" class="img-responsive" />
