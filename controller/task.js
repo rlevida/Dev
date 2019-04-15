@@ -276,33 +276,35 @@ exports.get = {
                         );
                         break;
                     case "myTeam":
-                        const userTeams = await UsersTeam
-                            .findAll({ where: { usersId: queryUserIds, isDeleted: 0 } })
-                            .map((mapObject) => {
-                                const { teamId } = mapObject.toJSON();
-                                return teamId;
-                            });
                         const teams = await Teams
                             .findAll({ where: { teamLeaderId: queryUserIds, isDeleted: 0 } })
                             .map((mapObject) => {
                                 const { id } = mapObject.toJSON();
                                 return id;
                             });
-                        const teamIds = _.uniq([...userTeams, ...teams]);
-                        const allTeams = (typeof queryString.assigned != "undefined" && queryString.assigned != "") ?
-                            [queryString.assigned]
-                            : await UsersTeam
-                                .findAll({ where: { teamId: teamIds, isDeleted: 0 } })
+                        if (teams.length > 0) {
+                            const allTeams = await UsersTeam
+                                .findAll({
+                                    where: {
+                                        teamId: teams,
+                                        isDeleted: 0,
+                                        ...(typeof queryString.assigned != "undefined" && queryString.assigned != "") ? { usersId: queryString.assigned } : {}
+                                    }
+                                })
                                 .map((mapObject) => {
                                     const { usersId } = mapObject.toJSON();
                                     return usersId;
                                 })
                                 .filter((o) => { return o != queryString.userId });
-                        if (allTeams.length > 0) {
+
+                            let myTeamQuery = "(";
+                            myTeamQuery += `SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId IN (${(allTeams).join(",")}) AND members.userTypeLinkId <> ${queryString.userId} AND members.isDeleted = 0 AND members.memberType = "assignedTo"`;
+                            myTeamQuery += ")";
+
                             opOrArray.push(
                                 {
                                     id: {
-                                        [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.userTypeLinkId IN (${(allTeams).join(",")}) AND members.userTypeLinkId <> ${queryString.userId} AND members.isDeleted = 0 AND members.memberType = "assignedTo")`)
+                                        [Sequelize.Op.in]: Sequelize.literal(myTeamQuery)
                                     }
                                 }
                             );
