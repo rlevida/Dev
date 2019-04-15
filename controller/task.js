@@ -176,7 +176,7 @@ exports.get = {
     index: async (req, cb) => {
         const associationArray = _.cloneDeep(associationStack);
         const queryString = req.query;
-        const limit = 10;
+        const limit = (typeof queryString.limit != "undefined") ? parseInt(queryString.limit) : 10;
         const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
         let dueDate = "";
 

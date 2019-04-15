@@ -97,7 +97,7 @@ export default class ProjectInfo extends React.Component {
     }
 
     renderStatus({ lateWorkstream, workstreamTaskDueToday, render_type }) {
-        const status = (lateWorkstream > 0) ? `${lateWorkstream} stream(s) delayed` : (workstreamTaskDueToday > 0) ? `${workstreamTaskDueToday} stream(s) due today` : `On track`;
+        const status = (lateWorkstream > 0) ? `${lateWorkstream} stream${(lateWorkstream > 1) ? 's' : ''} delayed` : (workstreamTaskDueToday > 0) ? `${workstreamTaskDueToday} stream${(workstreamTaskDueToday > 1) ? 's' : ''} due today` : `On track`;
         const color = (lateWorkstream > 0) ? "text-red" : (workstreamTaskDueToday > 0) ? "text-yellow" : "text-green";
         const component = (render_type == "text") ? <p class={`mb0 ${color}`}>
             {status}
@@ -117,7 +117,7 @@ export default class ProjectInfo extends React.Component {
     render() {
         const { project, workstream, members, loggedUser } = { ...this.props };
         const { Selected } = project;
-        const { project: projectName = "", workstream: workstreamList = [], type, color, projectManager = [] } = Selected;
+        const { project: projectName = "", workstream: workstreamList = [], type, color, projectManager = [], creator } = Selected;
         const workstreamCurrentPage = (typeof workstream.Count.current_page != "undefined") ? workstream.Count.current_page : 1;
         const workstreamLastPage = (typeof workstream.Count.last_page != "undefined") ? workstream.Count.last_page : 1;
         let lateWorkstream = 0;
@@ -224,6 +224,15 @@ export default class ProjectInfo extends React.Component {
                                                             <p>{type.type}</p>
                                                         </div>
                                                         <div>
+                                                            <label>Project Creator:</label>
+                                                            <div class="profile-div">
+                                                                <div class="thumbnail-profile">
+                                                                    <img src={creator.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                </div>
+                                                                <p class="m0">{creator.firstName + " " + creator.lastName}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mt10">
                                                             <label>Color Indicator:</label>
                                                             <p>
                                                                 <span class="fa fa-circle mr10" style={{ color }}></span>

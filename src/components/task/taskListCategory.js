@@ -231,7 +231,7 @@ export default class TaskListCategory extends React.Component {
                     <p class={`m0 ${(daysRemaining == 0 && status != "Completed") ? "text-yellow" : (daysRemaining < 1 && status != "Completed") ? "text-red" : ""}`}>
                         {
                             `${(dueDate != "" && dueDate != null && status != "Completed") ?
-                                (daysRemaining == 0) ? 'Today' : Math.abs(daysRemaining) + `${(daysRemaining < 1) ? "  day(s) delayed" : " day(s)"}` : "N/A"}`
+                                (daysRemaining == 0) ? 'Today' : Math.abs(daysRemaining) + `${(daysRemaining < 1) ? `  day${(Math.abs(daysRemaining) > 1) ? 's' : ''} delayed` : ` day${(Math.abs(daysRemaining) > 1) ? 's' : ''}`}` : "N/A"}`
                         }
                     </p>
                 </td>

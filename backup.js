@@ -17,15 +17,17 @@ schedule.scheduleJob('0 0 0 * * *', () => {
             filename: currentName
         }, response => {
             empty('./temp', false, (o) => {
+                let mailOptions = {
+                    from: 'noreply<mobbizapps12345@gmail.com>',
+                    to: 'andrien.pecson@volenday.com',
+                    subject: "CloudCFO Database Backup"
+                };
                 if (response.Message != 'Success') {
-                    var mailOptions = {
-                        from: 'noreply<mobbizapps12345@gmail.com>',
-                        to: 'andrien.pecson@volenday.com',
-                        subject: "CloudCFO Database Backup",
-                        html: "Error in database backup for the CloudCFO website."
-                    };
-                    global.emailtransport(mailOptions)
+                    mailOptions['html'] = "Error in database backup for the CloudCFO website."
+                } else {
+                    mailOptions['html'] = "Database successfully backup for the CloudCFO website."
                 }
+                global.emailtransport(mailOptions);
             });
         });
     });

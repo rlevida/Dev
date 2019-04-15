@@ -73,11 +73,7 @@ export default class List extends React.Component {
         const { dispatch, project, loggedUser } = { ...this.props };
         const { typeId, projectStatus } = project.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
-        let requestUrl = `/api/project?page=${page}&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}`;
-
-        if (loggedUser.data.userRole >= 3) {
-            requestUrl += `&id=${loggedUser.data.projectId}`
-        }
+        let requestUrl = `/api/project?page=${page}&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
 
         getData(requestUrl, {}, (c) => {
             const projectList = (page == 1) ? c.data.result : [...project.List, ...c.data.result];
@@ -109,8 +105,8 @@ export default class List extends React.Component {
         const fromDate = moment().startOf('month').format("YYYY-MM-DD");
         const toDate = moment().endOf('month').format("YYYY-MM-DD");
         const today = moment().format("YYYY-MM-DD");
-        let fetchUrl = `/api/task?dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}`;
-      
+        let fetchUrl = `/api/task?dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}&page=1&limit=4`;
+
         if (type == "project") {
             fetchUrl += `&projectId=${id}`
         }
@@ -124,13 +120,7 @@ export default class List extends React.Component {
             const delayedTasks = _.filter(result, (o) => {
                 return o.status == "In Progress" && moment(o.dueDate).isBefore(today)
             });
-            const remainingTasks = _.filter(result, (o) => {
-                const indexChecker = _.findIndex(delayedTasks, function (delayedTask) { return delayedTask.id == o.id });
-                return indexChecker < 0;
-            });
-            const taskList = [...delayedTasks, ...remainingTasks];
-
-            dispatch({ type: "SET_TASK_LIST", list: taskList });
+            dispatch({ type: "SET_TASK_LIST", list: delayedTasks });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
         });
 
@@ -205,7 +195,7 @@ export default class List extends React.Component {
                     </p>
                 </td>
                 <td data-label="Active Month Completion Rate">
-                    <a data-tip data-for={`task-${index}`}>
+                    <a data-tip data-for={`task-${index}`} onClick={() => this.getLateTasks({ id, type: entity_type })}>
                         <ProgressBar data={completionRate} />
                         {
                             (

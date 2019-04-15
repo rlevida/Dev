@@ -103,7 +103,7 @@ export default class ProjectList extends React.Component {
     renderStatus({ workstream, render_type }) {
         const lateWorkstream = _.filter(workstream, ({ taskOverDue }) => { return taskOverDue.length > 0 }).length;
         const workstreamTaskDueToday = _.filter(workstream, ({ taskDueToday }) => { return taskDueToday.length > 0 }).length;
-        const status = (lateWorkstream > 0) ? `${lateWorkstream} stream(s) delayed` : (workstreamTaskDueToday > 0) ? `${workstreamTaskDueToday} stream(s) due today` : `On track`;
+        const status = (lateWorkstream > 0) ? `${lateWorkstream} stream${(lateWorkstream > 1) ? 's' : ''} delayed` : (workstreamTaskDueToday > 0) ? `${workstreamTaskDueToday} stream${(workstreamTaskDueToday > 1) ? 's' : ''} due today` : `On track`;
         const color = (lateWorkstream > 0) ? "text-red" : (workstreamTaskDueToday > 0) ? "text-yellow" : "text-green";
         const component = (render_type == "text") ? <p class={`mb0 ${color}`}>
             {status}
@@ -168,10 +168,7 @@ export default class ProjectList extends React.Component {
                                                 {
                                                     _.map(project.List, (projectElem, index) => {
                                                         const { id, project, workstream, members, updates, numberOfTasks, completion_rate, type, isDeleted } = { ...projectElem };
-                                                        const lateWorkstream = completion_rate.delayed_task.count;
-                                                        const workstreamTaskDueToday = completion_rate.tasks_due_today.count;
                                                         const completionRate = (completion_rate.completed.count / numberOfTasks) * 100;
-
                                                         return (
                                                             <tr key={index}>
                                                                 <td data-label="Project Name" class="td-left table-name">
@@ -198,7 +195,7 @@ export default class ProjectList extends React.Component {
                                                                     {
                                                                         (updates.count > 0) && <a data-tip data-for={`update-${index}`}>
                                                                             <p class="mb0 text-blue">
-                                                                                {updates.count} update(s)
+                                                                                {updates.count} update{(updates.count > 1) ? 's' : ''}
                                                                             </p>
                                                                         </a>
                                                                     }
@@ -247,7 +244,7 @@ export default class ProjectList extends React.Component {
                                                                 </td>
                                                                 <td data-label="Completion">
                                                                     {
-                                                                        (completionRate > 0) && <p class="m0">
+                                                                        (completionRate > 0) && <p class={`m0 ${(completionRate == 100) ? 'text-green' : ''}`}>
                                                                             {(completionRate).toFixed(2) + "%"}
                                                                         </p>
                                                                     }

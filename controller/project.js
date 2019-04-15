@@ -34,6 +34,11 @@ const associationFindAllStack = [
         attributes: ["type"]
     },
     {
+        model: Users,
+        as: 'creator',
+        required: true
+    },
+    {
         model: Members,
         as: 'projectManager',
         where: {
@@ -130,7 +135,7 @@ exports.get = {
 
         if (
             (typeof queryString.userId != "undefined" && queryString.userId != "") &&
-            (typeof queryString.userRole != "undefined" && queryString.userRole > 3)
+            (typeof queryString.userRole != "undefined" && queryString.userRole >= 3)
         ) {
             const userTeam = await UsersTeam.findAll({
                 where: {

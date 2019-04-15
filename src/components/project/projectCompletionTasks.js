@@ -46,7 +46,7 @@ export default class ProjectCompletionTasks extends React.Component {
                             </a>
                         </div>
                         <div class="modal-body pt0">
-                            <h2 class="mt20 mb0">Tasks</h2>
+                            <h2 class="mt20 mb0">Delayed Tasks</h2>
                             <div class={(Loading == "RETRIEVING") ? "linear-background" : ""}>
                                 {
                                     ((List).length > 0) && <table id="late-task">
@@ -62,10 +62,7 @@ export default class ProjectCompletionTasks extends React.Component {
                                                 _.map(List, ({ id, task, task_members, dueDate, status, workstream, projectId }, index) => {
                                                     const given = moment(dueDate, "YYYY-MM-DD");
                                                     const current = moment().startOf('day');
-                                                    const assigned = _(task_members)
-                                                        .filter((o) => { return o.memberType == "assignedTo" })
-                                                        .map((o) => { return o.user.firstName + " " + o.user.lastName })
-                                                        .value();
+                                                    const assigned = _.find(task_members, (o) => { return o.memberType == "assignedTo" });
                                                     let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
 
                                                     const colorClass = (daysRemaining < 0 && status != "Completed") ? "text-red" :
@@ -83,9 +80,13 @@ export default class ProjectCompletionTasks extends React.Component {
                                                                 </p>
                                                             </td>
                                                             <td data-label="Assigned">
-                                                                {
-                                                                    assigned.join("\r\n")
-                                                                }
+                                                                <div class="display-flex">
+                                                                    <div class="thumbnail-profile display-flex">
+                                                                        <span title={assigned.user.firstName + " " + assigned.user.lastName}>
+                                                                            <img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" />
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
                                                             </td>
                                                             <td data-label="Deadline" class="m0">
                                                                 {

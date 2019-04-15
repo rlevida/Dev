@@ -136,13 +136,13 @@ export default class WorkstreamList extends React.Component {
                                                 </td>
                                                 <td data-label="Completion">
                                                     {
-                                                        (data.completion_rate.completed.value > 0) && <p class="m0">
+                                                        (data.completion_rate.completed.value > 0) && <p class={`m0 ${(data.completion_rate.completed.value == 100) ? 'text-green' : ''}`}>
                                                             {(data.completion_rate.completed.value).toFixed(2) + "%"}
                                                         </p>
                                                     }
                                                 </td>
                                                 <td data-label="For Approval">
-                                                    {(data.completion_rate.tasks_for_approval.count > 0) && <p class="text-orange m0">{data.completion_rate.tasks_for_approval.count} task(s)</p>}
+                                                    {(data.completion_rate.tasks_for_approval.count > 0) && <p class="text-orange m0">{data.completion_rate.tasks_for_approval.count} task{(data.completion_rate.tasks_for_approval.count > 1) ? 's' : ''}</p>}
                                                 </td>
                                                 <td data-label="Issues">
                                                     {
@@ -151,12 +151,12 @@ export default class WorkstreamList extends React.Component {
                                                 </td>
                                                 <td data-label="New Docs">
                                                     {
-                                                        (data.new_documents > 0) && <p class="text-blue m0">{data.new_documents} file(s)</p>
+                                                        (data.new_documents > 0) && <p class="text-blue m0">{data.new_documents} file{(data.new_documents > 1) ? 's' : ''}</p>
                                                     }
                                                 </td>
                                                 <td data-label="Messages">
                                                     {
-                                                        (data.messages > 0) && <p class="text-blue m0">{data.messages} message(s)</p>
+                                                        (data.messages > 0) && <p class="text-blue m0">{data.messages} message{(data.messages > 1) ? 's' : ''}</p>
                                                     }
                                                 </td>
                                                 <td data-label="Actions" class={(

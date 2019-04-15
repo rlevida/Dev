@@ -454,7 +454,7 @@ export default class ProjectForm extends React.Component {
                                                         <th scope="col" class="td-left">Name</th>
                                                         <th scope="col">Email Address</th>
                                                         <th scope="col">Member Type</th>
-                                                        <th scope="col">Team(s)</th>
+                                                        <th scope="col">Teams</th>
                                                         <th scope="col">Actions</th>
                                                     </tr>
                                                 </thead>
@@ -481,7 +481,7 @@ export default class ProjectForm extends React.Component {
                                                                             (data.id == project.Selected.projectManagerId) ? "Project Lead" : "Member"
                                                                         }
                                                                     </td>
-                                                                    <td data-label="Team(s)">
+                                                                    <td data-label="Teams">
                                                                         {this.renderTeams(data.team)}
                                                                     </td>
                                                                     <td data-label="Actions">

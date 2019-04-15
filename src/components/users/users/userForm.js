@@ -76,6 +76,11 @@ export default class UserForm extends React.Component {
             } : {}
         };
 
+        if (/\s/.test(users.Selected.username)) {
+            showToast("error", "Username cannot contain spacing.");
+            return;
+        }
+
         if (!result) {
             showToast("error", "Please fill up the required fields.");
             return;
@@ -273,7 +278,8 @@ export default class UserForm extends React.Component {
                             </div>
                         }
                         <div class="form-group">
-                            <label>Username: <span class="text-red">*</span></label>
+                            <label class="mb0">Username: <span class="text-red">*</span></label>
+                            <p class="mt0 note">Must not contain spacing.</p>
                             <input
                                 type="text"
                                 name="username"
