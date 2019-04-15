@@ -321,7 +321,7 @@ class Main extends React.Component {
                                             }
                                         </a>
                                         <div class="pull-right dropdown-menu notify-drop" aria-labelledby="notif-bell">
-                                            <div class="pd10 notif-wrapper">
+                                            <div class="notif-wrapper">
                                                 {
                                                     _.orderBy(notification.List, ['isRead', 'dateUpdated'], ['asc', 'desc']).map((e, i) => {
                                                         const { from, dateAdded } = { ...e }
@@ -331,9 +331,9 @@ class Main extends React.Component {
                                                         return (
                                                             <a href="javascript:void(0)" onClick={() => this.handleNotificationRedirect(e)} key={i}>
                                                                 <div class={`display-flex vh-center bb notif-item ${e.isRead ? "" : "n-unread"}`}>
-                                                                    <div class="menu-profile mb5">
+                                                                    <div class="menu-profile">
                                                                         {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline"
-                                                                            ? <div class="n-image"><img src={e.from.avatar} alt="Profile Picture" class="img-responsive " /></div>
+                                                                            ? <img src={e.from.avatar} alt="Profile Picture" class="img-responsive" />
                                                                             : <span class="n-tod-warning"><i class="fa fa-exclamation-circle"></i></span>
                                                                         }
                                                                     </div>
@@ -347,7 +347,7 @@ class Main extends React.Component {
                                                                                 <span>{`${notificationType(e.type)} `}<strong>Checkout the task</strong></span>
                                                                             }
                                                                         </p>
-                                                                        <p class="note">{date}</p>
+                                                                        <p class="note m0">{date}</p>
                                                                     </div>
                                                                 </div>
                                                             </a>

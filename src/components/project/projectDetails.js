@@ -7,7 +7,7 @@ import { getData } from '../../globalFunction';
 import ProjectInfo from "./projectInfo";
 import ProjectDashboard from "./projectDashboard";
 import Workstream from "../workstream";
-import TaskCalendar from "../task/taskCalendar";
+import ProjectTaskCalendar from "./projectTaskCalendar";
 import Files from "../document";
 import Conversations from "../conversations";
 
@@ -48,7 +48,7 @@ export default class ProjectDetails extends React.Component {
                     <Route exact={true} path={`${this.props.match.path}/info`} component={ProjectInfo} />
                     <Route exact={true} path={`${this.props.match.path}`} component={ProjectDashboard} />
                     <Route path={`${this.props.match.path}/workstreams`} component={Workstream} />
-                    <Route path={`${this.props.match.path}/calendar`} component={TaskCalendar} />
+                    <Route path={`${this.props.match.path}/calendar`} component={ProjectTaskCalendar} />
                     <Route path={`${this.props.match.path}/files`} component={Files} />
                     <Route path={`${this.props.match.path}/messages`} component={Conversations} />
                 </Switch>

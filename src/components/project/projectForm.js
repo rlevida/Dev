@@ -283,7 +283,7 @@ export default class ProjectForm extends React.Component {
             .value();
 
         if (typeof project.Selected.id != "undefined" && project.Selected.id != "") {
-            projectManagerOptions = [
+            projectManagerOptions = _.uniqBy([
                 ...projectManagerOptions,
                 ..._(project.Selected.members)
                     .filter(({ id }) => { return id == project.Selected.projectManagerId })
@@ -294,9 +294,8 @@ export default class ProjectForm extends React.Component {
                             image: e.avatar
                         }
                     })
-                    .uniqBy("id")
                     .value()
-            ]
+            ], 'id')
         }
 
         return (

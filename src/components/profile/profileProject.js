@@ -87,7 +87,7 @@ export default class ProfileProject extends React.Component {
                                             {o.type} Projects
                                         </strong>
                                     </p>
-                                    <div class="ml30">
+                                    <div class="ml15">
                                         {
                                             _.map(o.projects, (o, index) => {
                                                 return (

@@ -153,7 +153,7 @@ exports.get = {
                             task
                         ON task.workstreamId = workstream.id
                         WHERE task.dueDate < "${moment(queryString.dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm")}"
-                        AND (task.status == "In Progress" OR task.status IS NULL)
+                        AND (task.status = "In Progress" OR task.status IS NULL)
                     )`)
                     }
                     break;

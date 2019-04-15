@@ -36,8 +36,10 @@ export default class Component extends React.Component {
                     (task.FormActive == "List" || task.FormActive == "Calendar") && <div class="row">
                         <div class="col-lg-12">
                             <div class="card">
-                                <div class="mb20 bb">
-                                    <TaskFilters />
+                                <div class="bb">
+                                    <div class="mb20 container-fluid">
+                                        <TaskFilters />
+                                    </div>
                                 </div>
                                 {
                                     (task.FormActive == "List") && <MyTaskList />

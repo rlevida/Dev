@@ -47,7 +47,7 @@ export default class WorkstreamTabs extends React.Component {
         const { taskAction = "", messageAction = "" } = { ...this.refs };
         const taskActionClassList = (taskAction != "") ? taskAction.classList : "";
         const messageActionClassList = (messageAction != "") ? messageAction.classList : "";
-        
+
         if (history.location.search) {
             history.push(history.location.pathname)
         }
@@ -121,10 +121,12 @@ export default class WorkstreamTabs extends React.Component {
                                 </div>
                             </TabList>
                             <TabPanel>
-                                <TaskFilters
-                                    show_tab={false}
-                                    show_action={false}
-                                />
+                                <div class="container-fluid mt20 mb20">
+                                    <TaskFilters
+                                        show_tab={false}
+                                        show_action={false}
+                                    />
+                                </div>
                                 <div class="bt">
                                     <div class="mt20 mb40">
                                         <TaskListCategory date="Today" workstream_id={workstream_id} />

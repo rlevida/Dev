@@ -159,8 +159,9 @@ export default class WorkstreamForm extends React.Component {
             showToast("error", "Form did not fullfill the required value.");
         } else if (typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") {
             putData(`/api/workstream/${workstream.Selected.id}`, dataToBeSubmitted, (c) => {
+                const responsibleMember = _.find(c.data.members, ({ memberType }) => { return memberType == "responsible" });
                 if (c.status == 200) {
-                    dispatch({ type: "UPDATE_DATA_WORKSTREAM_LIST", data: { ...c.data, responsible: c.data.responsible[0].user.id }, });
+                    dispatch({ type: "UPDATE_DATA_WORKSTREAM_LIST", data: { ...c.data, responsible: responsibleMember.user.id } });
                     showToast("success", "Workstream successfully updated.");
                 } else {
                     showToast("error", "Something went wrong please try again later.");
@@ -196,20 +197,20 @@ export default class WorkstreamForm extends React.Component {
             .value()
             : [];
         let responsibleList = members.SelectList;
-
+        console.log(workstream.Selected.responsible)
+        console.log(workstream.Selected.members)
         if (typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") {
-            responsibleList = [...responsibleList, ..._(workstream.Selected.members)
+            responsibleList = _.uniqBy([...responsibleList, ..._(workstream.Selected.members)
                 .filter(({ memberType }) => { return memberType == "responsible" })
-                .map(({user}) => {
+                .map(({ user }) => {
                     return {
                         id: user.id,
                         name: user.firstName + " " + user.lastName,
                         image: user.avatar
                     }
                 })
-                .uniqBy("id")
                 .value()
-            ];
+            ], 'id');
         }
         return (
             <form id="workstream-form">

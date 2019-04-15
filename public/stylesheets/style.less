@@ -1271,7 +1271,12 @@ input:checked + .slider:before {
   display: inline-flex;
   -webkit-flex-direction: row;
   flex-direction: row;
-  width: 100%;
+  width: 100%;  
+}
+
+.filter-row{
+  margin-right: -15px;
+  margin-left: -15px;
 }
 
 .flex-col {
@@ -1642,10 +1647,9 @@ table th, .rbc-header  {
   justify-content: flex-end;
 }
 
-.button-action .Select{
+.filter .Select{
   margin-right: 10px;
-  width: 100%;
-  max-width: 200px;
+  width: 200px;
 }
 
 .button-action .btn-default, 
@@ -2931,6 +2935,7 @@ td .display-flex{
   background-color: white;
   overflow: visible;
   width: 100%;
+  min-width: 250px;
   position:relative
 }
 .document-name  a:hover span{
@@ -3187,6 +3192,10 @@ td .display-flex{
   line-height: 18px;
 }
 
+.notif-item{
+  padding: 10px;
+}
+
 .notif-item:not(:last-child){
   margin-bottom: 10px;
   cursor: pointer;
@@ -3209,7 +3218,7 @@ td .display-flex{
 }
 
 .action-link .dropdown-menu.notify-drop {
-  padding:5px 0px 0px 0px;
+  padding:0px;
 }
 
 .action-link .dropdown-menu.notify-drop .drop-content > li {

@@ -23,7 +23,7 @@ export default class Component extends React.Component {
                     <div class="d-flex-sb">
                         <div class="n">
                             <a href="javascript:void(0)" onClick={() => handleNotificationRedirect(data)}><p class="m0"><i class="fa fa-check-circle mr5"></i>Task in <strong>{workstream}</strong></p></a>
-                            <div class="m20">
+                            <div>
                                 <div class="n-title mb10"><h4><strong>{task}</strong></h4></div>
                                 <div class="display-flex vh-center">
                                     <div class="thumbnail-profile">

@@ -37,7 +37,7 @@ export default class TaskCalendar extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { task, dispatch } = this.props;
+        const { task } = this.props;
 
         if (_.isEqual(prevProps.task.Filter, task.Filter) == false) {
             showToast("success", "Retrieving tasks. Please wait.");
@@ -184,15 +184,15 @@ export default class TaskCalendar extends React.Component {
                     {
                         (is_card) ? <div class="card">
                             <div>
-                               {
-                                   this.renderCalendar()
-                               } 
+                                {
+                                    this.renderCalendar()
+                                }
                             </div>
                         </div>
                             : <div>
                                 {
-                                   this.renderCalendar()
-                                } 
+                                    this.renderCalendar()
+                                }
                             </div>
                     }
                 </div>
