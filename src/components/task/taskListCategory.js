@@ -239,7 +239,7 @@ export default class TaskListCategory extends React.Component {
                     (Filter.type != "assignedToMe") && <td data-label="Assigned">
                         <div class="display-flex">
                             <div class="thumbnail-profile">
-                                <span title="John Aldrin Tapia">
+                                <span title={assigned.user.firstName+" "+assigned.user.lastName}>
                                     <img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" />
                                 </span>
                             </div>
