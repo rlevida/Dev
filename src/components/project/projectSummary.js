@@ -41,10 +41,13 @@ export default class List extends React.Component {
 
     componentWillUnmount() {
         const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_PROJECT_LIST", list: [] });
-        dispatch({ type: "SET_WORKSTREAM_LIST", list: [] });
-        dispatch({ type: "SET_TASK_LIST", list: [] });
+        dispatch({ type: "SET_PROJECT_LIST", list: [], count: {} });
+        dispatch({ type: "SET_WORKSTREAM_LIST", list: [], count: {} });
+        dispatch({ type: "SET_TASK_LIST", list: [], count: {} });
+
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
     }
 
     componentDidUpdate(prevProps) {
