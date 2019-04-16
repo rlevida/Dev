@@ -480,7 +480,10 @@ export default class TaskDetails extends React.Component {
                                                 </a>
                                             }
                                             {
-                                                (Selected.approverId == loggedUser.data.id && Selected.status == "For Approval") &&
+                                                (
+                                                    (Selected.approverId == loggedUser.data.id || loggedUser.data.userRole < 3) &&
+                                                    Selected.status == "For Approval"
+                                                ) &&
                                                 <a class="btn btn-default mr5" onClick={() => this.completeTask("In Progress")}>
                                                     <span>
                                                         <i class="fa mr10 fa-check" aria-hidden="true"></i>
@@ -497,7 +500,10 @@ export default class TaskDetails extends React.Component {
                                                 </a>
                                             }
                                             {
-                                                (Selected.approverId == loggedUser.data.id && (Selected.status == "For Approval")) && <a class="btn btn-default" onClick={() => this.completeTask("Rejected")}>
+                                                (
+                                                    (Selected.approverId == loggedUser.data.id || loggedUser.data.userRole < 3) &&
+                                                    (Selected.status == "For Approval")
+                                                ) && <a class="btn btn-default" onClick={() => this.completeTask("Rejected")}>
                                                     <span>
                                                         <i class="fa mr10 fa-ban" aria-hidden="true"></i>
                                                         Reject
@@ -505,7 +511,11 @@ export default class TaskDetails extends React.Component {
                                                 </a>
                                             }
                                             {
-                                                (Selected.approverId == loggedUser.data.id && Selected.status == "Rejected") && <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
+                                                (
+                                                    (Selected.approverId == loggedUser.data.id ||
+                                                        (typeof assigned != "undefined" && assigned.user.id == loggedUser.data.id) ||
+                                                        loggedUser.data.userRole < 3
+                                                    ) && Selected.status == "Rejected") && <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
                                                     <span>
                                                         <i class="fa mr10 fa-check" aria-hidden="true"></i>
                                                         For Approval

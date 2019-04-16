@@ -64,7 +64,7 @@ export default class TaskFilters extends React.Component {
         getData(fetchUrl, {}, (c) => {
             const memberOptions = _(c.data.result)
                 .map((o) => {
-                    return { id: o.id, name: `${o.firstName} ${o.lastName}` }
+                    return { id: o.id, name: `${o.firstName} ${o.lastName}`, image: o.avatar }
                 })
                 .filter((o) => {
                     return (show_tab) ? o.id != loggedUser.data.id : o.id > 0;
@@ -209,6 +209,26 @@ export default class TaskFilters extends React.Component {
                                 }}
                                 placeholder={"Assigned"}
                                 isClearable={true}
+                                customLabel={(o) => {
+                                    return (
+                                        <div class="drop-profile">
+                                            {
+                                                (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                            }
+                                            <p class="m0">{o.label}</p>
+                                        </div>
+                                    );
+                                }}
+                                customSelected={({ value: o }) => {
+                                    return (
+                                        <div class="drop-profile" title={o.label}>
+                                            {
+                                                (o.image != "") && <img src={o.image} alt="Profile Picture" class="img-responsive" />
+                                            }
+                                            <p class="m0">{(o.label).substring(0, 17)}{((o.label).length > 17) ? "..." : ""}</p>
+                                        </div>
+                                    );
+                                }}
                             />
                         </div>
                     }
