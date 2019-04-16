@@ -45,7 +45,7 @@
     "morgan": "^1.9.1",
     "mysql": "^2.16.0",
     "mysql2": "^1.6.1",
-    "mysqldump": "^1.4.2",
+    "mysqldump": "^2.3.0",
     "natives": "^1.1.6",
     "node-mime": "^1.0.0",
     "node-printer": "^1.0.3",
