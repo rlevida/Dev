@@ -352,7 +352,7 @@ class DocumentList extends React.Component {
                                                 {document.Loading === "" &&
                                                     _.orderBy(document.List, ['dateAdded'], ['desc']).map((data, index) => {
                                                         const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
-
+                                                       
                                                         return (
                                                             <tr key={index}>
                                                                 <td class="document-name">

@@ -206,7 +206,6 @@ class FolderModal extends React.Component {
             dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
             this.getWorkstreamList();
         }
-        console.log(selectedObj)
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj });
     }
 
