@@ -119,7 +119,7 @@ module.exports = (sequelize, DataTypes) => {
       as: 'members',
       foreignKey: 'linkId'
     })
-    
+
     Projects.hasMany(models.Members, {
       as: 'team',
       foreignKey: 'linkId'
@@ -153,6 +153,11 @@ module.exports = (sequelize, DataTypes) => {
     Projects.hasMany(models.Tasks, {
       as: 'tasks',
       foreignKey: 'projectId'
+    })
+
+    Projects.hasOne(models.Notification, {
+      as: 'project_notification',
+      foreignKey: 'id'
     })
 
   };

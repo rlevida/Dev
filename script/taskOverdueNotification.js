@@ -112,6 +112,17 @@ var job = new CronJob('* 7 * * *', function () {
                                                         attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                                     },
                                                     {
+                                                        model: Projects,
+                                                        as: 'project_notification',
+                                                        required: false,
+                                                        include: [{
+                                                            model: Type,
+                                                            as: 'type',
+                                                            required: false,
+                                                            attributes: ["type"]
+                                                        }]
+                                                    },
+                                                    {
                                                         model: Users,
                                                         as: 'from',
                                                         required: false,
@@ -228,6 +239,17 @@ var job = new CronJob('* 7 * * *', function () {
                                                             attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                                         },
                                                         {
+                                                            model: Projects,
+                                                            as: 'project_notification',
+                                                            required: false,
+                                                            include: [{
+                                                                model: Type,
+                                                                as: 'type',
+                                                                required: false,
+                                                                attributes: ["type"]
+                                                            }]
+                                                        },
+                                                        {
                                                             model: Workstream,
                                                             as: 'workstream_notification',
                                                             required: false,
@@ -341,6 +363,17 @@ var job = new CronJob('* 7 * * *', function () {
                                                         as: 'from',
                                                         required: false,
                                                         attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                    },
+                                                    {
+                                                        model: Projects,
+                                                        as: 'project_notification',
+                                                        required: false,
+                                                        include: [{
+                                                            model: Type,
+                                                            as: 'type',
+                                                            required: false,
+                                                            attributes: ["type"]
+                                                        }]
                                                     },
                                                     {
                                                         model: Workstream,

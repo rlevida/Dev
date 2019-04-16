@@ -15,8 +15,8 @@ import TaskFollowingCompleted from "./template/taskFollowingCompleted";
 import TaskDeadline from "./template/taskDeadLine";
 import TaskTeamDeadline from "./template/taskTeamDeadline";
 import TaskFollowingDeadline from "./template/taskFollowingDeadline";
-import ArchivedModal from "./archiveModal"
-import ClearModal from "./clearModal"
+import ArchivedModal from "./archiveModal";
+import MarkAsReadModal from "./markAsReadModal";
 @connect((store) => {
     return {
         loggedUser: store.loggedUser,
@@ -170,7 +170,7 @@ class NotificationList extends React.Component {
                     </div>
                 </div>
                 <ArchivedModal />
-                <ClearModal />
+                <MarkAsReadModal />
             </div>
         )
     }

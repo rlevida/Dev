@@ -106,6 +106,10 @@ module.exports = function (sequelize, DataTypes) {
             foreignKey: 'conversationId',
             as: "conversation_notification"
         })
+        Notification.belongsTo(models.Projects, {
+            foreignKey: 'projectId',
+            as: "project_notification"
+        })
     }
     return Notification;
 };

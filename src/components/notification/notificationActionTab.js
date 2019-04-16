@@ -79,12 +79,11 @@ class NotificationActionTab extends React.Component {
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="button-action">
                             <a class="btn btn-default mr10"
-                                onClick={() => this.archiveAll()}
                                 data-toggle="modal"
-                                data-target="#clearModal">
+                                data-target="#markAsReadModal">
                                 <span>
-                                    <i class="fa fa-trash mr10" aria-hidden="true"></i>
-                                    Clear All Read Notification
+                                    <i class="fa fa-check-circle mr10" aria-hidden="true"></i>
+                                    Mark all as read
                                 </span>
                             </a>
                             <a class="btn btn-default mr10"
@@ -93,7 +92,7 @@ class NotificationActionTab extends React.Component {
                                 data-target="#archiveModal">
                                 <span>
                                     <i class="fa fa-archive mr10" aria-hidden="true"></i>
-                                    Archive All
+                                    Archive all
                                 </span>
                             </a>
                         </div>
