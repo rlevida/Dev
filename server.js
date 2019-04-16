@@ -23,6 +23,7 @@ require('./backup')
 // require('./script/dueTodayReminderScript');
 // require('./script/overdueReminderScript');
 require('./script/taskOverdueNotification');
+require('./script/taskBeforeDueNotification');
 // get
 var index = require('./routes');
 var auth = require('./routes/auth');

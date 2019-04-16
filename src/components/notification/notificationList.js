@@ -15,6 +15,7 @@ import TaskFollowingCompleted from "./template/taskFollowingCompleted";
 import TaskDeadline from "./template/taskDeadLine";
 import TaskTeamDeadline from "./template/taskTeamDeadline";
 import TaskFollowingDeadline from "./template/taskFollowingDeadline";
+import TaskResponsibleDeadline from "./template/taskResponsibleDeadline";
 import ArchivedModal from "./archiveModal";
 import MarkAsReadModal from "./markAsReadModal";
 @connect((store) => {
@@ -95,6 +96,8 @@ class NotificationList extends React.Component {
             case "taskDeadline":
             case "taskTeamDeadline":
             case "taskFollowingDeadline":
+            case "taskResponsibleDeadline":
+            case "taskResponsibleBeforeDeadLine":
             case "taskAssigned": {
                 history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
             }
@@ -150,6 +153,10 @@ class NotificationList extends React.Component {
                                         }
                                         case "taskFollowingDeadline": {
                                             return <div key={i}><TaskFollowingDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                        }
+                                        case "taskResponsibleDeadLine":
+                                        case "taskResponsibleBeforeDeadline": {
+                                            return <div key={i}><TaskResponsibleDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
                                         }
                                         default:
                                             return;
