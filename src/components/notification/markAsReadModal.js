@@ -10,29 +10,30 @@ import { withRouter } from "react-router";
         notification: store.notification
     }
 })
-class ArchiveModal extends React.Component {
+class MarkAsReadModal extends React.Component {
     constructor(props) {
         super(props);
 
         _.map([
-            "clearNotification"
+            "markAsReadNotification"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
     }
 
-    async clearNotification() {
+    async markAsReadNotification() {
         const { dispatch, loggedUser, notification } = { ...this.props }
-        const notificationIds = _.filter(notification.List, (o) => { return o.isRead }).map((o) => { return o.id })
+        const notificationIds = _.filter(notification.List, (o) => { return !o.isRead }).map((o) => { return o.id })
 
         if (notificationIds.length > 0) {
-            putData(`/api/notification/archive/${notificationIds}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isDeleted: 1 }, (c) => {
+            putData(`/api/notification/archive/${notificationIds}?page=1&usersId=${loggedUser.data.id}&isDeleted=0&isArchived=0`, { isRead: 1 }, (c) => {
                 const { count, result } = { ...c.data };
                 dispatch({ type: 'SET_NOTIFICATION_LIST', list: result, count: count });
                 showToast('success', 'Successfully cleared all read notifications.');
             })
+            $(`#markAsReadModal`).modal("hide");
         } else {
-            $(`#clearModal`).modal("hide");
+            $(`#markAsReadModal`).modal("hide");
         }
     }
 
@@ -42,17 +43,17 @@ class ArchiveModal extends React.Component {
         const { Selected } = { ...notification };
 
         return (
-            <div class="modal fade delete-modal" id="clearModal">
+            <div class="modal fade delete-modal" id="markAsReadModal">
                 <div class="modal-dialog modal-md" role="document">
                     <div class="modal-content">
                         <div class="modal-body">
                             <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
-                            <p class="warning text-center">Are you sure to clear all read notification?</p>
+                            <p class="warning text-center">Mark all as read?</p>
                             <p class="warning text-center"><strong>{Selected.origin}</strong></p>
                             <div class="flex-row mt20" id="delete-action">
                                 <div class="flex-col">
                                     <div class="dropdown">
-                                        <button class="btn btn-danger" type="button" onClick={this.clearNotification}>
+                                        <button class="btn btn-danger" type="button" onClick={this.markAsReadNotification}>
                                             Yes
                                         </button>
                                     </div>
@@ -69,4 +70,4 @@ class ArchiveModal extends React.Component {
     }
 }
 
-export default withRouter(ArchiveModal)
+export default withRouter(MarkAsReadModal)

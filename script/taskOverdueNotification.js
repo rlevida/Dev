@@ -29,7 +29,8 @@ var job = new CronJob('* 7 * * *', function () {
         UsersNotificationSetting,
         Notification,
         UsersTeam,
-        Teams
+        Teams,
+        Type
     } = models;
 
     Tasks
@@ -112,6 +113,17 @@ var job = new CronJob('* 7 * * *', function () {
                                                         attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                                     },
                                                     {
+                                                        model: Projects,
+                                                        as: 'project_notification',
+                                                        required: false,
+                                                        include: [{
+                                                            model: Type,
+                                                            as: 'type',
+                                                            required: false,
+                                                            attributes: ["type"]
+                                                        }]
+                                                    },
+                                                    {
                                                         model: Users,
                                                         as: 'from',
                                                         required: false,
@@ -145,6 +157,7 @@ var job = new CronJob('* 7 * * *', function () {
                                                         // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
                                                         html += `<p>Message:<br>${message}</p>`;
                                                         html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                        html += `<p>Date:<br>${moment().format('LLL')}</p>`;
 
                                                         const mailOptions = {
                                                             from: '"no-reply" <no-reply@c_cfo.com>',
@@ -228,6 +241,17 @@ var job = new CronJob('* 7 * * *', function () {
                                                             attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                                         },
                                                         {
+                                                            model: Projects,
+                                                            as: 'project_notification',
+                                                            required: false,
+                                                            include: [{
+                                                                model: Type,
+                                                                as: 'type',
+                                                                required: false,
+                                                                attributes: ["type"]
+                                                            }]
+                                                        },
+                                                        {
                                                             model: Workstream,
                                                             as: 'workstream_notification',
                                                             required: false,
@@ -255,7 +279,8 @@ var job = new CronJob('* 7 * * *', function () {
                                                             // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
                                                             html += `<p>Message:<br>${message}</p>`;
                                                             html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
-    
+                                                            html += `<p>Date:<br>${moment().format('LLL')}</p>`;
+
                                                             const mailOptions = {
                                                                 from: '"no-reply" <no-reply@c_cfo.com>',
                                                                 to: `${emailAddress}`,
@@ -343,6 +368,17 @@ var job = new CronJob('* 7 * * *', function () {
                                                         attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                                     },
                                                     {
+                                                        model: Projects,
+                                                        as: 'project_notification',
+                                                        required: false,
+                                                        include: [{
+                                                            model: Type,
+                                                            as: 'type',
+                                                            required: false,
+                                                            attributes: ["type"]
+                                                        }]
+                                                    },
+                                                    {
                                                         model: Workstream,
                                                         as: 'workstream_notification',
                                                         required: false,
@@ -363,15 +399,23 @@ var job = new CronJob('* 7 * * *', function () {
                                                 return findNotificationRes.toJSON()
                                             })
                                             .then(() => {
-                                                async.map(emailArr, ({ emailAddress, message }, mapCallback) => {
-                                                    let html = '<p>' + message + '</p>';
-                                                    const mailOptions = {
-                                                        from: '"no-reply" <no-reply@c_cfo.com>',
-                                                        to: `${emailAddress}`,
-                                                        subject: '[CLOUD-CFO]',
-                                                        html: html
-                                                    };
-                                                    global.emailtransport(mailOptions);
+                                                async.map(emailArr, ({ emailAddress, message, projectId, workstreamId, taskId }, mapCallback) => {
+                                                    if (receiveEmail === 1) {
+                                                        let html = '<p>' + message + '</p>';
+                                                        html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                        // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                        html += `<p>Message:<br>${message}</p>`;
+                                                        html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                        html += `<p>Date:<br>${moment().format('LLL')}</p>`;
+
+                                                        const mailOptions = {
+                                                            from: '"no-reply" <no-reply@c_cfo.com>',
+                                                            to: `${emailAddress}`,
+                                                            subject: '[CLOUD-CFO]',
+                                                            html: html
+                                                        };
+                                                        global.emailtransport(mailOptions);
+                                                    }
                                                     mapCallback(null)
                                                 }, (err) => {
                                                     parallelCallback(null)

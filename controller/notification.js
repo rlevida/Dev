@@ -9,7 +9,8 @@ const {
     Notes,
     Conversation,
     Tag,
-    Projects
+    Projects,
+    Type
 } = models;
 
 
@@ -73,6 +74,56 @@ const NotesInclude = [
         attributes: ['id', 'firstName', 'lastName', 'emailAddress']
     }
 ];
+
+const NotificationInclude = [
+    {
+        model: Users,
+        as: 'to',
+        required: false,
+        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+    },
+    {
+        model: Users,
+        as: 'from',
+        required: false,
+        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+    },
+    {
+        model: Projects,
+        as: 'project_notification',
+        required: false,
+    },
+    {
+        model: Document,
+        as: 'document_notification',
+        required: false,
+        attributes: ["origin"]
+    },
+    {
+        model: Workstream,
+        as: 'workstream_notification',
+        required: false,
+        attributes: ["workstream"]
+    },
+    {
+        model: Tasks,
+        as: 'task_notification',
+        required: false,
+        attributes: ["task"]
+
+    },
+    {
+        model: Notes,
+        as: 'note_notification',
+        required: false,
+        include: NotesInclude
+    },
+    {
+        model: Conversation,
+        as: 'conversation_notification',
+        required: false
+    }
+]
 
 exports.get = {
     index: (req, cb) => {
@@ -156,6 +207,17 @@ exports.get = {
                                     as: 'from',
                                     required: false,
                                     attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                },
+                                {
+                                    model: Projects,
+                                    as: 'project_notification',
+                                    required: false,
+                                    include: [{
+                                        model: Type,
+                                        as: 'type',
+                                        required: false,
+                                        attributes: ["type"]
+                                    }]
                                 },
                                 {
                                     model: Document,
@@ -259,6 +321,7 @@ exports.put = {
     index: (req, cb) => {
         const id = req.params.id
         const body = req.body
+        const notificationStack = _.cloneDeep(NotificationInclude)
         try {
             Notification
                 .update(body, { where: { id: id } })
@@ -266,52 +329,7 @@ exports.put = {
                     Notification
                         .findOne({
                             where: { id: id },
-                            include: [
-                                {
-                                    model: Users,
-                                    as: 'to',
-                                    required: false,
-                                    attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                },
-                                {
-                                    model: Users,
-                                    as: 'from',
-                                    required: false,
-                                    attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                },
-                                {
-                                    model: Document,
-                                    as: 'document_notification',
-                                    required: false,
-                                    attributes: ["origin"]
-                                },
-                                {
-                                    model: Workstream,
-                                    as: 'workstream_notification',
-                                    required: false,
-                                    attributes: ["workstream"]
-                                },
-                                {
-                                    model: Tasks,
-                                    as: 'task_notification',
-                                    required: false,
-                                    attributes: ["task"]
-
-                                },
-                                {
-                                    model: Notes,
-                                    as: 'note_notification',
-                                    required: false,
-                                    include: NotesInclude
-                                },
-                                {
-                                    model: Conversation,
-                                    as: 'conversation_notification',
-                                    required: false
-
-                                }
-
-                            ]
+                            include: notificationStack
                         })
                         .then((findRes) => {
                             cb({ status: true, data: findRes })
@@ -326,6 +344,7 @@ exports.put = {
         const body = req.body;
         const queryString = req.query;
         const limit = 10;
+        const notificationStack = _.cloneDeep(NotificationInclude);
         const whereObj = {
             ...(typeof queryString.usersId != "undefined" && queryString.usersId != "") ? { usersId: parseInt(queryString.usersId) } : {},
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
@@ -335,7 +354,7 @@ exports.put = {
 
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            order: [['dateAdded', 'DESC']]
+            order: [['dateUpdated', 'DESC'], ['isRead', 'DESC']]
         };
 
         try {
@@ -362,40 +381,8 @@ exports.put = {
                                 .findAll({
                                     ...options,
                                     where: whereObj,
-                                    include: [
-                                        {
-                                            model: Users,
-                                            as: 'to',
-                                            required: false,
-                                            attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                        },
-                                        {
-                                            model: Users,
-                                            as: 'from',
-                                            required: false,
-                                            attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                        },
-                                        {
-                                            model: Document,
-                                            as: 'document_notification',
-                                            required: false,
-                                            attributes: ["origin"]
-                                        },
-                                        {
-                                            model: Workstream,
-                                            as: 'workstream_notification',
-                                            required: false,
-                                            attributes: ["workstream"]
-                                        },
-                                        {
-                                            model: Tasks,
-                                            as: 'task_notification',
-                                            required: false,
-                                            attributes: ["task"]
+                                    include: notificationStack
 
-                                        },
-
-                                    ]
                                 })
                                 .then((res) => {
                                     parallelCallback(null, res)

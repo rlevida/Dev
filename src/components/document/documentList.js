@@ -50,7 +50,6 @@ class DocumentList extends React.Component {
         if (tagWorkstream) {
             requestUrl += `&workstream=${tagWorkstream}`
         }
-        console.log(requestUrl)
         // if (status === 'library') {
         //     requestUrl += `&type=folder`
         // }

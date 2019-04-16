@@ -3,7 +3,6 @@ const sequence = require("sequence").Sequence,
     mime = require('mime-types'),
     path = require('path');
 const _ = require("lodash");
-const dbName = "document";
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 const models = require('../modelORM');
@@ -23,7 +22,9 @@ const {
     UsersRole,
     Workstream,
     Notes,
-    Notification
+    Notification,
+    Type,
+    Projects
 } = models;
 
 const associationFindAllStack = [
@@ -701,6 +702,17 @@ exports.post = {
                                                                 attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                                             },
                                                             {
+                                                                model: Projects,
+                                                                as: 'project_notification',
+                                                                required: false,
+                                                                include: [{
+                                                                    model: Type,
+                                                                    as: 'type',
+                                                                    required: false,
+                                                                    attributes: ["type"]
+                                                                }]
+                                                            },
+                                                            {
                                                                 model: Document,
                                                                 as: 'document_notification',
                                                                 required: false,
@@ -733,6 +745,7 @@ exports.post = {
                                                                 html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
                                                                 // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
                                                                 html += '<p>Message:<br>' + message + '</p>';
+                                                                html += `<p>Date:<br>${moment().format('LLL')}</p>`;
 
                                                                 const mailOptions = {
                                                                     from: '"no-reply" <no-reply@c_cfo.com>',

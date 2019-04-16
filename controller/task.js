@@ -873,6 +873,17 @@ exports.post = {
                                                                             attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                                                         },
                                                                         {
+                                                                            model: Projects,
+                                                                            as: 'project_notification',
+                                                                            required: false,
+                                                                            include: [{
+                                                                                model: Type,
+                                                                                as: 'type',
+                                                                                required: false,
+                                                                                attributes: ["type"]
+                                                                            }]
+                                                                        },
+                                                                        {
                                                                             model: Document,
                                                                             as: 'document_notification',
                                                                             required: false,
@@ -906,6 +917,7 @@ exports.post = {
                                                                             // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
                                                                             html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                                             html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                                            html += `<p>Date:<br>${moment().format('LLL')}</p>`;
 
                                                                             const mailOptions = {
                                                                                 from: '"no-reply" <no-reply@c_cfo.com>',
@@ -1145,6 +1157,17 @@ exports.post = {
                                                             attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                                         },
                                                         {
+                                                            model: Projects,
+                                                            as: 'project_notification',
+                                                            required: false,
+                                                            include: [{
+                                                                model: Type,
+                                                                as: 'type',
+                                                                required: false,
+                                                                attributes: ["type"]
+                                                            }]
+                                                        },
+                                                        {
                                                             model: Document,
                                                             as: 'document_notification',
                                                             required: false,
@@ -1178,6 +1201,7 @@ exports.post = {
                                                             // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
                                                             html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                             html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                            html += `<p>Date:<br>${moment().format('LLL')}</p>`;
 
                                                             const mailOptions = {
                                                                 from: '"no-reply" <no-reply@c_cfo.com>',
@@ -1636,6 +1660,17 @@ exports.put = {
                                                         attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                                     },
                                                     {
+                                                        model: Projects,
+                                                        as: 'project_notification',
+                                                        required: false,
+                                                        include: [{
+                                                            model: Type,
+                                                            as: 'type',
+                                                            required: false,
+                                                            attributes: ["type"]
+                                                        }]
+                                                    },
+                                                    {
                                                         model: Document,
                                                         as: 'document_notification',
                                                         required: false,
@@ -1674,6 +1709,7 @@ exports.put = {
                                                         // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
                                                         html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                         html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                        html += `<p>Date:<br>${moment().format('LLL')}</p>`;
 
                                                         const mailOptions = {
                                                             from: '"no-reply" <no-reply@c_cfo.com>',
@@ -1912,6 +1948,17 @@ exports.put = {
                                                                             attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                                                         },
                                                                         {
+                                                                            model: Projects,
+                                                                            as: 'project_notification',
+                                                                            required: false,
+                                                                            include: [{
+                                                                                model: Type,
+                                                                                as: 'type',
+                                                                                required: false,
+                                                                                attributes: ["type"]
+                                                                            }]
+                                                                        },
+                                                                        {
                                                                             model: Document,
                                                                             as: 'document_notification',
                                                                             required: false,
@@ -1945,6 +1992,7 @@ exports.put = {
                                                                             // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
                                                                             html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                                             html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                                            html += `<p>Date:<br>${moment().format('LLL')}</p>`;
 
                                                                             const mailOptions = {
                                                                                 from: '"no-reply" <no-reply@c_cfo.com>',
@@ -2047,6 +2095,17 @@ exports.put = {
                                                                             attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                                                         },
                                                                         {
+                                                                            model: Projects,
+                                                                            as: 'project_notification',
+                                                                            required: false,
+                                                                            include: [{
+                                                                                model: Type,
+                                                                                as: 'type',
+                                                                                required: false,
+                                                                                attributes: ["type"]
+                                                                            }]
+                                                                        },
+                                                                        {
                                                                             model: Document,
                                                                             as: 'document_notification',
                                                                             required: false,
@@ -2080,7 +2139,8 @@ exports.put = {
                                                                             // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
                                                                             html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                                             html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
-
+                                                                            html += `<p>Date:<br>${moment().format('LLL')}</p>`;
+                                                                            
                                                                             const mailOptions = {
                                                                                 from: '"no-reply" <no-reply@c_cfo.com>',
                                                                                 to: `${emailAddress}`,
