@@ -38,16 +38,22 @@ class DocumentList extends React.Component {
     fetchData(page) {
         const { dispatch, loggedUser, document, folder, match } = this.props;
         const projectId = match.params.projectId;
-        const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, status } = document.Filter;
+        const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, status, tagWorkstream } = document.Filter;
 
         let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
+        if (typeof folder.Selected.id !== "undefined") {
+            requestUrl += `&folderId=${folder.Selected.id}`
+        }
         if (status === 'active' || status === 'sort') {
-            requestUrl += `&folderId=null&type=document`
+            requestUrl += `&type=document`
         }
-
-        if (status === 'library') {
-            requestUrl += `&folderId=null&type=folder`
+        if (tagWorkstream) {
+            requestUrl += `&workstream=${tagWorkstream}`
         }
+        console.log(requestUrl)
+        // if (status === 'library') {
+        //     requestUrl += `&type=folder`
+        // }
         // if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
         //     requestUrl += `&isCompleted=${isCompleted}`
         // }
@@ -315,6 +321,7 @@ class DocumentList extends React.Component {
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
         let tagCount = 0;
+
         return (
             <div>
                 {(document.Filter.status) !== 'sort' &&
@@ -348,7 +355,6 @@ class DocumentList extends React.Component {
                                                 {document.Loading === "" &&
                                                     _.orderBy(document.List, ['dateAdded'], ['desc']).map((data, index) => {
                                                         const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
-
                                                         return (
                                                             <tr key={index}>
                                                                 <td class="document-name">
