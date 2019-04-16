@@ -72,7 +72,6 @@ class DocumentFilter extends React.Component {
                 if (tagWorkstream) {
                     requestUrl += `&workstream=${tagWorkstream}`
                 }
-                console.log(requestUrl)
                 // if (isCompleted) {
                 //     requestUrl += `&isCompleted=${isCompleted}`
                 // }
@@ -227,7 +226,6 @@ class DocumentFilter extends React.Component {
                                     loading={true}
                                     isClearable={true}
                                     onChange={(e) => {
-                                        console.log(e)
                                         this.setDropDown("tagWorkstream", (e == null) ? null : e.value);
                                     }}
                                     required={true}

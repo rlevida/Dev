@@ -335,7 +335,7 @@ exports.put = {
 
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            order: [['dateAdded', 'DESC']]
+            order: [['dateUpdated', 'DESC'], ['isRead', 'DESC']]
         };
 
         try {
