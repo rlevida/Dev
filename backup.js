@@ -23,7 +23,7 @@ schedule.scheduleJob('0 0 0 * * *', () => {
             empty('./temp', false, (o) => {
                 let mailOptions = {
                     from: 'noreply<mobbizapps12345@gmail.com>',
-                    to: 'andrien.pecson@volenday.com',
+                    to: (err != null) ? 'support@mobbizsolutions.com' : 'andrien.pecson@volenday.com',
                     subject: "CloudCFO Database Backup"
                 };
                 if (err != null) {
