@@ -2,6 +2,7 @@ const dbName = "notes";
 const async = require('async')
 var { defaultGet, defaultGetId, defaultPost, defaultPut, defaultDelete } = require("./")
 const models = require('../modelORM');
+const moment = require('moment');
 const {
     Notes,
     NotesLastSeen,
@@ -752,7 +753,7 @@ exports.post = {
                                                 // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
                                                 html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                 html += `<a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/messages?note-id=${noteId}">Click here</a>`;
-
+                                                html += `<p>Date:<br>${moment().format('LLL')}</p>`;
                                                 const mailOptions = {
                                                     from: '"no-reply" <no-reply@c_cfo.com>',
                                                     to: `${emailAddress}`,
@@ -984,6 +985,7 @@ exports.post = {
                                                     // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
                                                     html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName} </strong> ${message}</p>`;
                                                     html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                    html += `<p>Date:<br>${moment().format('LLL')}</p>`;
 
                                                     const mailOptions = {
                                                         from: '"no-reply" <no-reply@c_cfo.com>',
@@ -1134,6 +1136,7 @@ exports.post = {
                                                         // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
                                                         html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName} </strong> ${message}</p>`;
                                                         html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                        html += `<p>Date:<br>${moment().format('LLL')}</p>`;
 
                                                         const mailOptions = {
                                                             from: '"no-reply" <no-reply@c_cfo.com>',
@@ -1521,7 +1524,7 @@ exports.post = {
                                                         // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
                                                         html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
                                                         html += `<a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/messages?note-id=${noteId}">Click here</a>`;
-
+                                                        html += `<p>Date:<br>${moment().format('LLL')}</p>`;
 
                                                         const mailOptions = {
                                                             from: '"no-reply" <no-reply@c_cfo.com>',
