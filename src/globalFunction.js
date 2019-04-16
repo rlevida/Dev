@@ -345,7 +345,7 @@ var workstreamActiveTab = exports.workstreamActiveTab = function (tab) {
     }
     return tabIndex
 }
-const textColor = exports.textColor = function(hexcolor) {
+const textColor = exports.textColor = function (hexcolor) {
     var r = parseInt(hexcolor.substr(0, 2), 16);
     var g = parseInt(hexcolor.substr(2, 2), 16);
     var b = parseInt(hexcolor.substr(4, 2), 16);

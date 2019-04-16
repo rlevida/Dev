@@ -377,7 +377,7 @@ export default class TaskDetails extends React.Component {
         const { task: taskObj, loggedUser, activityLog, conversation, document, dispatch } = { ...this.props };
         const commentType = conversation.Selected.type || "";
         const { Loading, Selected } = taskObj;
-        const { id, task, task_members, dueDate, startDate, workstream, status, description, checklist, task_dependency, tag_task, projectId, workstreamId } = Selected;
+        const { id, task, task_members, dueDate, startDate, workstream, status, description, checklist, task_dependency = [], tag_task, projectId, workstreamId } = Selected;
         const assigned = _.find(task_members, (o) => { return o.memberType == "assignedTo" });
         const isAssignedToMe = _.find(task_members, (o) => { return o.memberType == "assignedTo" && o.user.id == loggedUser.data.id });
         const approver = _.filter(task_members, (o) => { return o.memberType == "approver" });
@@ -536,7 +536,10 @@ export default class TaskDetails extends React.Component {
                                                 <i title="FOLLOW" class={`fa ${_.isEmpty(isFollower) == false ? "fa-user-plus text-yellow" : "fa-user-plus"}`} aria-hidden="true"></i>
                                             </a>
                                             {
-                                                (status != "Completed") && <a data-dismiss="modal" onClick={() => this.editTask()} class="logo-action text-grey"><i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i></a>
+                                                (
+                                                    status != "Completed" ||
+                                                    (loggedUser.data.userRole < 6)
+                                                ) && <a data-dismiss="modal" onClick={() => this.editTask()} class="logo-action text-grey"><i title="EDIT" class="fa fa-pencil" aria-hidden="true"></i></a>
                                             }
                                             <a data-dismiss="modal" onClick={() => { $(`#delete-task`).modal("show"); }} class="logo-action text-grey"><i title="DELETE" class="fa fa-trash-o" aria-hidden="true"></i></a>
                                         </div>

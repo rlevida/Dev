@@ -211,7 +211,7 @@ export default class WorkstreamList extends React.Component {
                                 <div class="mb20 bb">
                                     <div class="container-fluid filter mb20">
                                         <div class="row content-row">
-                                            <div class="col-md-6 col-sm-12">
+                                            <div class="col-md-6 col-sm-12 pd0">
                                                 <h3 class="title m0">Workstreams</h3>
                                             </div>
                                             <div class="col-md-6 col-sm-12">

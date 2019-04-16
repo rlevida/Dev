@@ -30,7 +30,7 @@ export default class Component extends React.Component {
                 <div class={`mb20 ${(workstream_id == "") ? "bb" : ""}`}>
                     <div class={`mb20 ${(workstream_id == "") ? "container-fluid mb20" : ""}`}>
                         <div class="row content-row">
-                            <div class="col-md-6 col-sm-12">
+                            <div class="col-md-6 col-sm-12 pd0">
                                 {
                                     (workstream_id != "") && <div class="card-header">
                                         <h4 class="title m0">Messages</h4>
@@ -40,7 +40,7 @@ export default class Component extends React.Component {
                                     (workstream_id == "") && <h3 class="title m0">Messages</h3>
                                 }
                             </div>
-                            <div class="col-md-6 col-sm-12 col-xs-12" >
+                            <div class="col-md-6 col-sm-12 col-xs-12 pd0" >
                                 {
                                     (typeof notes.Selected.id != "undefined" && notes.Selected.id != "") && <div class="button-action">
                                         <a class="btn btn-default"

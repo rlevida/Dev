@@ -351,7 +351,7 @@ export default class ConversationForm extends React.Component {
                                     typeof notes.Selected.id != "undefined" && notes.Selected.id != "" &&
                                     (typeof notes.Selected.editTitle == "undefined" || notes.Selected.editTitle == false)
                                 ) && <div>
-                                    <a href="javascript:void(0);" class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown"><span class="fa fa-ellipsis-v" title="Settings"></span></a>
+                                    <a href="javascript:void(0);" class="btn btn-action dropdown-toggle m0" type="button" data-toggle="dropdown"><span class="fa fa-ellipsis-v" title="Settings"></span></a>
                                     <ul class="dropdown-menu pull-right">
                                         <li><a onClick={this.handleEditTitle}>Edit Title</a></li>
                                         <li><a onClick={this.updateMessage}>Make {(notes.Selected.privacyType == "Private") ? "Public" : "Private"}</a></li>

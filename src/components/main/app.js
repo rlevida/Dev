@@ -295,7 +295,9 @@ class Main extends React.Component {
                                                         <Link to={`/projects/${project.Selected.id + o.link}`} class={`${(currentProjectPage == (o.label).toLowerCase()) ? "active" : ""}`}>
                                                             {
                                                                 (o.label == "Info") ? <div class="project-image-wrapper">
-                                                                    <img src={project.Selected.picture} alt="Profile Picture" class="img-responsive" />
+                                                                    <span title={project.Selected.project}>
+                                                                        <img src={project.Selected.picture} alt="Profile Picture" class="img-responsive" />
+                                                                    </span>
                                                                 </div> : o.label
                                                             }
                                                         </Link>
