@@ -128,6 +128,8 @@ class EditModal extends React.Component {
                 dispatch({ type: "SET_DOCUMENT_FORM_ACTIVE", FormActive: "List" })
             })
         }
+
+        $("#editModal").modal("hide");
     }
 
     selectTag(e) {
@@ -197,7 +199,7 @@ class EditModal extends React.Component {
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                             {(document.Selected.tags != null != null) &&
-                                <button type="button" class="btn btn-primary" data-dismiss="modal" onClick={this.handleSubmit}>Submit</button>
+                                <button type="button" class="btn btn-primary" onClick={this.handleSubmit}>Submit</button>
                             }
                         </div>
                     </div>

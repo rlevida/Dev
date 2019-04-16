@@ -28,7 +28,7 @@ class FolderModal extends React.Component {
     componentDidMount() {
         const { dispatch, document, match, loggedUser } = this.props;
         const projectId = match.params.projectId;
-        const selectedObj = { ...document.Selected, projectId: projectId, usersId: loggedUser.data.id };
+        const selectedObj = { projectId: projectId, usersId: loggedUser.data.id };
 
         if (projectId) {
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
@@ -37,6 +37,10 @@ class FolderModal extends React.Component {
         this.fetchProjectList();
         this.getWorkstreamList();
         this.fetchFolderList();
+
+        $('#folderModal').on('hidden.bs.modal', function () {
+            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: {} })
+        })
     }
     componentWillMount() {
         const { dispatch } = { ...this.props };
@@ -93,36 +97,26 @@ class FolderModal extends React.Component {
                 uploadedBy: loggedUser.data.id,
                 status: 'new',
             }],
+            tagWorkstream: typeof document.Selected.tagWorkstream !== "undefined" ? document.Selected.tagWorkstream : [],
             projectId: projectId,
             folderId: document.Selected.folderId,
         };
-        try {
-            // if (folder.SelectedFolderName.length <= 3) {
-            postData(`/api/document`, dataToSubmit, (c) => {
-                const { result } = { ...c.data }
-                if (document.Filter.status === 'sort') {
-                    // if (_.isEmpty(folder.SelectedFolderName)) {
-                    //     dispatch({ type: "ADD_FOLDER_LIST", list: result });
-                    // } else {
-                    const newList = this.getNestedChildren(folder.List, document.Selected.folderId, result[0])
-                    dispatch({ type: "SET_FOLDER_LIST", list: newList });
-                    // }
-                } else if (document.Selected.folderId === folder.Selected.id) {
-                    dispatch({ type: "ADD_DOCUMENT_LIST", list: result });
-                } else if (typeof folder.Selected.id === "undefined") {
-                    dispatch({ type: "ADD_DOCUMENT_LIST", list: result });
-                }
 
-                dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: {} })
-                $("#folderModal").modal("hide");
-                showToast("success", "Successfully Added.")
-            })
-        } catch (err) {
-            console.log(err)
-        }
-        // } else {
-        //     showToast("warning", "Folder count reached")
-        // }
+        postData(`/api/document`, dataToSubmit, (c) => {
+            const { result } = { ...c.data }
+            if (document.Filter.status === 'sort') {
+                const newList = this.getNestedChildren(folder.List, document.Selected.folderId, result[0])
+                dispatch({ type: "SET_FOLDER_LIST", list: newList });
+            } else if (document.Selected.folderId === folder.Selected.id) {
+                dispatch({ type: "ADD_DOCUMENT_LIST", list: result });
+            } else if (typeof folder.Selected.id === "undefined") {
+                dispatch({ type: "ADD_DOCUMENT_LIST", list: result });
+            }
+
+            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: {} })
+            $("#folderModal").modal("hide");
+            showToast("success", "Successfully Added.")
+        })
     }
 
     componentWillUnmount() {
@@ -212,7 +206,7 @@ class FolderModal extends React.Component {
             dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
             this.getWorkstreamList();
         }
-
+        console.log(selectedObj)
         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj });
     }
 
