@@ -74,13 +74,13 @@ export default class ForgotPassword extends React.Component {
                             </a>
                         </div>
                         <div class="modal-body">
-                            <h2 class="mt20 mb0">Forgot Password</h2>
-                            <form onSubmit={this.handleSubmit} class="form-container mt20 mb20 center-div">
+                            <h2 class="m0">Forgot Password</h2>
+                            <form onSubmit={this.handleSubmit} class="form-container mt20 mb20 center-div" id="forgot-password">
                                 <div class="form-group">
                                     <label for="project-type">Email Address<span class="text-red">*</span></label>
                                     <input type="email" name="email" required value={email} class="form-control" placeholder="Enter email address" onChange={this.handleChange} />
                                 </div>
-                                <button class="btn btn-violet btn-block" disabled={disabled}>{(disabled) ? 'Submitting ...' : 'Submit'}</button>
+                                <button class="btn btn-violet btn-block btn-lg" disabled={disabled}>{(disabled) ? 'Submitting ...' : 'Submit'}</button>
                             </form>
                         </div>
                     </div>
