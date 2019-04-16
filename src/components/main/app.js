@@ -341,6 +341,13 @@ class Main extends React.Component {
                                                                                 <span>{`${notificationType(e.type)} `}<strong>Checkout the task</strong></span>
                                                                             }
                                                                         </p>
+                                                                        <p class="m0 td-oblong">
+                                                                        {console.log(e)}
+                                                                            {/* <span title={workstream.project.type.type}>
+                                                                                <i class={(workstream.project.type.type == "Client") ? "fa fa-users mr5" : (workstream.project.type.type == "Private") ? "fa fa-lock mr5" : "fa fa-cloud mr5"}></i>
+                                                                            </span>
+                                                                            {workstream.project.project} */}
+                                                                        </p>
                                                                         <p class="note m0">{date}</p>
                                                                     </div>
                                                                 </div>
