@@ -136,6 +136,7 @@ class Main extends React.Component {
     async handleNotificationRedirect(notif) {
         const { history, dispatch, loggedUser } = { ...this.props };
         const { taskId, workstreamId, projectId, } = { ...notif };
+        
         if (!notif.isRead) {
             await putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, (c) => {
                 dispatch({ type: 'UPDATE_DATA_NOTIFICATION_LIST', updatedData: c.data });
@@ -161,12 +162,15 @@ class Main extends React.Component {
             case "taskAssgined":
             case "taskApprover":
             case "taskTagged":
+            case "taskApproved":
             case "commentReplies":
             case "taskMemberCompleted":
             case "taskFollowingCompleted":
             case "taskDeadline":
             case "taskTeamDeadline":
             case "taskFollowingDeadline":
+            case "taskResponsibleDeadLine":
+            case "taskResponsibleBeforeDeadline":
             case "taskAssigned": {
                 history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
             }
@@ -318,6 +322,7 @@ class Main extends React.Component {
                                         </a>
                                         <div class="pull-right dropdown-menu notify-drop" aria-labelledby="notif-bell">
                                             <div class="notif-wrapper">
+                                            {console.log(notification.List)}
                                                 {
                                                     _.orderBy(notification.List, ['isRead', 'dateUpdated'], ['asc', 'desc']).map((e, i) => {
                                                         const { from, dateAdded, project_notification } = { ...e }
@@ -339,7 +344,7 @@ class Main extends React.Component {
                                                                                 ?
                                                                                 <span>{`${from.firstName} ${from.lastName} `}<strong>{notificationType(e.type)}</strong></span>
                                                                                 :
-                                                                                <span>{`${notificationType(e.type)} `}<strong>Checkout the task</strong></span>
+                                                                                <span>{`${notificationType(e.type)} `}<strong>{`Checkout the task ${e.task_notification.task}`}</strong></span>
                                                                             }
                                                                         </p>
                                                                         <p class="note m0">{date}</p>
