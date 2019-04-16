@@ -72,7 +72,7 @@ class DocumentFilter extends React.Component {
                 if (tagWorkstream) {
                     requestUrl += `&workstream=${tagWorkstream}`
                 }
-
+                console.log(requestUrl)
                 // if (isCompleted) {
                 //     requestUrl += `&isCompleted=${isCompleted}`
                 // }
@@ -182,16 +182,19 @@ class DocumentFilter extends React.Component {
 
     setDropDown(name, e) {
         const { dispatch, folder, document: { Filter } } = this.props;
-        let tagWorkstream = { ...Filter };
-        tagWorkstream = { ...tagWorkstream, [name]: e };
+        let filterObj = { ...Filter };
+        filterObj = { ...filterObj, [name]: e };
         if (!_.isEmpty(folder.SelectedLibraryFolderName) || !_.isEmpty(folder.SelectedNewFolderName)) {
             dispatch({ type: 'CLEAR_FOLDER' })
         }
 
-        if (_.isEqual(tagWorkstream, this.props.document.Filter) == false) {
+        if (_.isEqual(filterObj, this.props.document.Filter) == false) {
             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "RETRIEVING" });
-            dispatch({ type: "SET_DOCUMENT_LIST", list: [] });
+            dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: {} });
             dispatch({ type: "SET_DOCUMENT_FILTER", filter: { [name]: e } });
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+            dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
+            dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
         }
     }
 
@@ -215,25 +218,22 @@ class DocumentFilter extends React.Component {
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="button-action">
-                            {/* <Searchbar
-                                handleChange={this.handleChange}
-                                handleCancel={() => {
-                                    dispatch({ type: "SET_DOCUMENT_FILTER", filter: { workstream: "" } });
-                                }}
-                                name="workstream"
-                            /> */}
-                            <DropDown
-                                id="workstream-options"
-                                options={workstream.SelectList}
-                                onInputChange={this.getWorkstreamList}
-                                selected={document.Filter.tagWorkstream}
-                                loading={true}
-                                onChange={(e) => {
-                                    this.setDropDown("tagWorkstream", e.value);
-                                }}
-                                required={true}
-                                disabled={Loading === "SUBMITTING" ? true : false}
-                            />
+                            {(document.Filter.status === 'active') &&
+                                <DropDown
+                                    id="workstream-options"
+                                    options={workstream.SelectList}
+                                    onInputChange={this.getWorkstreamList}
+                                    selected={document.Filter.tagWorkstream}
+                                    loading={true}
+                                    isClearable={true}
+                                    onChange={(e) => {
+                                        console.log(e)
+                                        this.setDropDown("tagWorkstream", (e == null) ? null : e.value);
+                                    }}
+                                    required={true}
+                                    disabled={Loading === "SUBMITTING" ? true : false}
+                                />
+                            }
                             <a class="btn btn-default mr10" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>
                                 <span>
                                     <i class="fa fa-plus mr10" aria-hidden="true"></i>

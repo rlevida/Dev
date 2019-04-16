@@ -99,14 +99,18 @@ class FolderModal extends React.Component {
             }],
             tagWorkstream: typeof document.Selected.tagWorkstream !== "undefined" ? document.Selected.tagWorkstream : [],
             projectId: projectId,
-            folderId: document.Selected.folderId,
+            folderId: document.Selected.folderId ? document.Selected.folderId : null
         };
 
         postData(`/api/document`, dataToSubmit, (c) => {
             const { result } = { ...c.data }
             if (document.Filter.status === 'sort') {
-                const newList = this.getNestedChildren(folder.List, document.Selected.folderId, result[0])
-                dispatch({ type: "SET_FOLDER_LIST", list: newList });
+                if (document.Selected.folderId) {
+                    const newList = this.getNestedChildren(folder.List, document.Selected.folderId, result[0])
+                    dispatch({ type: "SET_FOLDER_LIST", list: newList });
+                } else {
+                    dispatch({ type: "ADD_FOLDER_LIST", list: result });
+                }
             } else if (document.Selected.folderId === folder.Selected.id) {
                 dispatch({ type: "ADD_DOCUMENT_LIST", list: result });
             } else if (typeof folder.Selected.id === "undefined") {
@@ -293,6 +297,7 @@ class FolderModal extends React.Component {
                                         onChange={(e) => {
                                             this.setDropDown("folderId", (e == null) ? "" : e.value);
                                         }}
+                                        isClearable={true}
                                         disabled={Loading === "SUBMITTING" ? true : false}
                                     />
                                 </div>

@@ -75,18 +75,16 @@ class DocumentUpload extends React.Component {
     }
 
     getWorkstreamList(options) {
-        const self = this
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
-            self.fetchWorkstreamList(options);
+            this.fetchWorkstreamList(options);
         }, 1500);
     }
 
     getFolderList(options) {
-        const self = this
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
-            self.fetchFolderList(options);
+            this.fetchFolderList(options);
         }, 1500);
     }
 
@@ -299,6 +297,7 @@ class DocumentUpload extends React.Component {
                                             onChange={(e) => {
                                                 this.setDropDown("folderId", (e == null) ? "" : e.value);
                                             }}
+                                            isClearable={true}
                                             disabled={Loading === "SUBMITTING" ? true : false}
                                         />
                                     </div>

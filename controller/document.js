@@ -112,6 +112,7 @@ exports.get = {
     index: (req, cb) => {
         const queryString = req.query;
         const limit = 10;
+        let associationStack = _.cloneDeep(associationFindAllStack)
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
             order: [['dateAdded', 'DESC']]
@@ -153,58 +154,59 @@ exports.get = {
         }
 
         if (typeof queryString.userId !== "undefined" && queryString.userId !== '') {
-            _.find(associationFindAllStack, { as: 'document_read' }).where = {
+            _.find(associationStack, { as: 'document_read' }).where = {
                 usersId: queryString.userId,
                 isDeleted: 0
             };
         }
 
         if (typeof queryString.workstream !== 'undefined' && queryString.workstream !== '') {
-            _.find(associationFindAllStack, { as: 'tagDocumentWorkstream' }).where = {
+            _.find(associationStack, { as: 'tagDocumentWorkstream' }).where = {
                 linkId: queryString.workstream,
                 linkType: 'workstream',
                 tagType: 'document'
             };
-            _.find(associationFindAllStack, { as: 'tagDocumentWorkstream' }).required = true;
+            _.find(associationStack, { as: 'tagDocumentWorkstream' }).required = true;
         } else {
-            _.find(associationFindAllStack, { as: 'tagDocumentWorkstream' }).required = false;
+            _.find(associationStack, { as: 'tagDocumentWorkstream' }).required = false;
         }
+
         if (typeof queryString.task !== 'undefined' && queryString.task !== '') {
-            _.find(associationFindAllStack, { as: 'tagDocumentTask' }).where = {
+            _.find(associationStack, { as: 'tagDocumentTask' }).where = {
                 linkId: queryString.task,
                 linkType: 'task',
                 tagType: 'document'
             };
-            _.find(associationFindAllStack, { as: 'tagDocumentTask' }).required = true;
+            _.find(associationStack, { as: 'tagDocumentTask' }).required = true;
         } else {
-            _.find(associationFindAllStack, { as: 'tagDocumentTask' }).required = false;
+            _.find(associationStack, { as: 'tagDocumentTask' }).required = false;
         }
 
         if (typeof queryString.uploadedBy !== 'undefined' && queryString.uploadedBy !== '') {
-            _.find(associationFindAllStack, { as: 'user' }).where = {
+            _.find(associationStack, { as: 'user' }).where = {
                 [Op.or]: [
                     { emailAddress: { [Op.like]: `%${queryString.uploadedBy}%` } },
                 ]
             };
-            _.find(associationFindAllStack, { as: 'user' }).required = true;
+            _.find(associationStack, { as: 'user' }).required = true;
         } else {
-            delete _.find(associationFindAllStack, { as: 'user' }).required;
-            delete _.find(associationFindAllStack, { as: 'user' }).where;
+            delete _.find(associationStack, { as: 'user' }).required;
+            delete _.find(associationStack, { as: 'user' }).where;
         }
 
         if (typeof queryString.members !== 'undefined' && queryString.members !== '') {
-            _.find(associationFindAllStack, { as: 'share' }).where = {
+            _.find(associationStack, { as: 'share' }).where = {
                 linkType: 'project',
                 usersType: 'users',
                 userTypeLinkId: queryString.members
             }
-            _.find(associationFindAllStack, { as: 'share' }).required = true;
+            _.find(associationStack, { as: 'share' }).required = true;
         } else {
-            _.find(associationFindAllStack, { as: 'share' }).required = false;
+            _.find(associationStack, { as: 'share' }).required = false;
         }
 
         if (typeof queryString.starredUser !== 'undefined' && queryString.starredUser !== '') {
-            _.find(associationFindAllStack, { as: 'document_starred' }).where = {
+            _.find(associationStack, { as: 'document_starred' }).where = {
                 linkType: 'document',
                 isActive: 1,
                 isDeleted: 0,
@@ -223,7 +225,7 @@ exports.get = {
                                 model: Document,
                                 as: 'document',
                                 where: documentWhereObj,
-                                include: associationFindAllStack,
+                                include: associationStack,
 
                                 hierarchy: true
 
@@ -249,7 +251,7 @@ exports.get = {
                                     model: Document,
                                     as: 'document',
                                     where: documentWhereObj,
-                                    include: associationFindAllStack,
+                                    include: associationStack,
                                     required: true,
                                     hierarchy: true
                                 }

@@ -38,7 +38,7 @@ class DocumentList extends React.Component {
     fetchData(page) {
         const { dispatch, loggedUser, document, folder, match } = this.props;
         const projectId = match.params.projectId;
-        const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, status } = document.Filter;
+        const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, status, tagWorkstream } = document.Filter;
 
         let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
         if (typeof folder.Selected.id !== "undefined") {
@@ -47,7 +47,10 @@ class DocumentList extends React.Component {
         if (status === 'active' || status === 'sort') {
             requestUrl += `&type=document`
         }
-
+        if (tagWorkstream) {
+            requestUrl += `&workstream=${tagWorkstream}`
+        }
+        console.log(requestUrl)
         // if (status === 'library') {
         //     requestUrl += `&type=folder`
         // }
@@ -352,7 +355,6 @@ class DocumentList extends React.Component {
                                                 {document.Loading === "" &&
                                                     _.orderBy(document.List, ['dateAdded'], ['desc']).map((data, index) => {
                                                         const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
-                                                       
                                                         return (
                                                             <tr key={index}>
                                                                 <td class="document-name">
