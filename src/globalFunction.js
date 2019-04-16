@@ -318,6 +318,15 @@ var notificationType = exports.notificationType = function (type) {
         case "taskTeamDeadline": {
             return "Team member seem to have missed a deadline"
         }
+        case "taskResponsibleDeadLine": {
+            return "Task seem to have missed a deadline as a responsbile"
+        }
+        case "taskResponsibleBeforeDeadline": {
+            return "Task about to be due"
+        }
+        case "taskApproved": {
+            return "Task approved"
+        }
         default:
             return;
     }
