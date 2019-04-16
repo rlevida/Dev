@@ -1,7 +1,6 @@
 import React from "react";
 import Dropzone from 'react-dropzone';
 import { connect } from "react-redux"
-
 import { DropDown } from "../../globalComponents";
 import { showToast, postData, getData } from '../../globalFunction';
 import _ from "lodash";
@@ -37,6 +36,7 @@ class DocumentUpload extends React.Component {
             "getWorkstreamList",
             "fetchFolderList",
             "getFolderList",
+            "fetchWorkstreamList"
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
@@ -297,6 +297,7 @@ class DocumentUpload extends React.Component {
                                             onChange={(e) => {
                                                 this.setDropDown("folderId", (e == null) ? "" : e.value);
                                             }}
+                                            isClearable={true}
                                             disabled={Loading === "SUBMITTING" ? true : false}
                                         />
                                     </div>
