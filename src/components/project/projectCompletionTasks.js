@@ -19,11 +19,19 @@ export default class ProjectCompletionTasks extends React.Component {
             this[fn] = this[fn].bind(this);
         });
     }
+
     viewAllTasks() {
         const { handleRedirect, task } = { ...this.props };
         const { List } = task;
-        const projectId = List[0].projectId;
-        handleRedirect(`/projects/${projectId}/workstreams`);
+        let redirectURL = "";
+
+        if (List[0].list_type == "project") {
+            redirectURL = `/projects/${List[0].link_type_id}/workstreams`;
+        } else {
+            redirectURL = `/projects/${List[0].projectId}/workstreams/${List[0].link_type_id}`;
+        }
+
+        handleRedirect(redirectURL);
     }
     viewTask({ id, workstreamId, projectId }) {
         const { handleRedirect } = { ...this.props };
@@ -45,8 +53,8 @@ export default class ProjectCompletionTasks extends React.Component {
                                 </span>
                             </a>
                         </div>
-                        <div class="modal-body pt0">
-                            <h2 class="mt20 mb0">Delayed Tasks</h2>
+                        <div class="modal-body">
+                            <h2 class="mt0 mb0">Delayed Tasks</h2>
                             <div class={(Loading == "RETRIEVING") ? "linear-background" : ""}>
                                 {
                                     ((List).length > 0) && <table id="late-task">
@@ -59,7 +67,7 @@ export default class ProjectCompletionTasks extends React.Component {
                                         </thead>
                                         <tbody>
                                             {
-                                                _.map(List, ({ id, task, task_members, dueDate, status, workstream, projectId }, index) => {
+                                                _.map(_.take(List, 4), ({ id, task, task_members, dueDate, status, workstream, projectId }, index) => {
                                                     const given = moment(dueDate, "YYYY-MM-DD");
                                                     const current = moment().startOf('day');
                                                     const assigned = _.find(task_members, (o) => { return o.memberType == "assignedTo" });
@@ -99,6 +107,11 @@ export default class ProjectCompletionTasks extends React.Component {
                                             }
                                         </tbody>
                                     </table>
+                                }
+                                {
+                                    (Loading != "RETRIEVING" && (List).length > 4) && <p class="mb0 text-center">
+                                        <a onClick={this.viewAllTasks} data-dismiss="modal">View All Tasks</a>
+                                    </p>
                                 }
                                 {
                                     ((List).length == 0 && Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>

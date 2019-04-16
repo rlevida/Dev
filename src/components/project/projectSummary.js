@@ -106,9 +106,8 @@ export default class List extends React.Component {
     getLateTasks({ id, type }) {
         const { dispatch } = { ...this.props };
         const fromDate = moment().startOf('month').format("YYYY-MM-DD");
-        const toDate = moment().endOf('month').format("YYYY-MM-DD");
         const today = moment().format("YYYY-MM-DD");
-        let fetchUrl = `/api/task?dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}&page=1&limit=4`;
+        let fetchUrl = `/api/task?dueDate=${JSON.stringify({ opt: "between", value: [fromDate, today] })}&page=1&status=${JSON.stringify({ opt: "eq", value: "In Progress" })}`;
 
         if (type == "project") {
             fetchUrl += `&projectId=${id}`
@@ -120,8 +119,8 @@ export default class List extends React.Component {
 
         getData(fetchUrl, {}, (c) => {
             const result = c.data.result;
-            const delayedTasks = _.filter(result, (o) => {
-                return o.status == "In Progress" && moment(o.dueDate).isBefore(today)
+            const delayedTasks = _.map(result, (o) => {
+                return { ...o, list_type: type, link_type_id: id };
             });
             dispatch({ type: "SET_TASK_LIST", list: delayedTasks });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });
@@ -158,7 +157,7 @@ export default class List extends React.Component {
             .mapValues(({ value, color, count }, key) => {
                 return {
                     label: `${key.replace(/[_-]/g, " ")}`,
-                    value: (entity_type == "project" && workstream.length > 0) ? 0.00 : value.toFixed(2),
+                    value: (entity_type == "project" && workstream.length > 0) ? 0.00 : value.toFixed(1) + 0,
                     color: color,
                     count
                 }
