@@ -90,6 +90,7 @@ class NotificationList extends React.Component {
             case "taskAssgined":
             case "taskApprover":
             case "taskTagged":
+            case "taskApproved":
             case "commentReplies":
             case "taskMemberCompleted":
             case "taskFollowingCompleted":
@@ -127,6 +128,7 @@ class NotificationList extends React.Component {
                                         case 'taskAssigned': {
                                             return <div key={i}><TaskAssgined data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
                                         }
+                                        case 'taskApproved':
                                         case 'taskApprover': {
                                             return <div key={i}><TaskApprover data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
                                         }
@@ -152,6 +154,9 @@ class NotificationList extends React.Component {
                                             return <div key={i}><TaskTeamDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
                                         }
                                         case "taskFollowingDeadline": {
+                                            return <div key={i}><TaskFollowingDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                        }
+                                        case "taskApproved": {
                                             return <div key={i}><TaskFollowingDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
                                         }
                                         case "taskResponsibleDeadLine":
