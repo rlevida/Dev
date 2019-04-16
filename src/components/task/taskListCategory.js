@@ -4,7 +4,7 @@ import moment from 'moment';
 import { connect } from "react-redux";
 
 import { Loading } from "../../globalComponents";
-import { getData, putData, showToast, getParameterByName } from "../../globalFunction";
+import { getData, putData, showToast, getParameterByName, textColor } from "../../globalFunction";
 
 @connect((store) => {
     return {
@@ -239,7 +239,7 @@ export default class TaskListCategory extends React.Component {
                     (Filter.type != "assignedToMe") && <td data-label="Assigned">
                         <div class="display-flex">
                             <div class="thumbnail-profile">
-                                <span title={assigned.user.firstName+" "+assigned.user.lastName}>
+                                <span title={assigned.user.firstName + " " + assigned.user.lastName}>
                                     <img src={assigned.user.avatar} alt="Profile Picture" class="img-responsive" />
                                 </span>
                             </div>
@@ -248,7 +248,7 @@ export default class TaskListCategory extends React.Component {
                 }
                 {
                     (workstream_id == "") && <td data-label="Project">
-                        <p class="m0 td-oblong">
+                        <p class="m0 td-oblong" style={{ backgroundColor: project.color, color: textColor(project.color) }}>
                             <span title={project.type.type}>
                                 <i class={(project.type.type == "Client") ? "fa fa-users mr5" : (project.type.type == "Private") ? "fa fa-lock mr5" : "fa fa-cloud mr5"}></i>
                             </span>

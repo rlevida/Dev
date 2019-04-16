@@ -2,10 +2,9 @@ import React from "react";
 import { connect } from "react-redux";
 import _ from "lodash";
 import moment from "moment";
-import { Link } from 'react-router-dom';
 
 import { Loading } from "../../globalComponents";
-import { getData } from "../../globalFunction";
+import { getData, textColor } from "../../globalFunction";
 
 @connect((store) => {
     return {
@@ -92,7 +91,7 @@ export default class ProfileTask extends React.Component {
                                                     {(periodic == 1) && <i class="fa fa-refresh ml10" aria-hidden="true"></i>}
                                                 </td>
                                                 <td data-label="Project">
-                                                    <p class="m0 td-oblong">
+                                                    <p class="m0 td-oblong" style={{ backgroundColor: workstream.project.color, color: textColor(workstream.project.color) }}>
                                                         <span title={workstream.project.type.type}>
                                                             <i class={(workstream.project.type.type == "Client") ? "fa fa-users mr5" : (workstream.project.type.type == "Private") ? "fa fa-lock mr5" : "fa fa-cloud mr5"}></i>
                                                         </span>
