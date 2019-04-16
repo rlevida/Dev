@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { withRouter } from "react-router";
 import { Route, Switch, Link } from 'react-router-dom';
 import _ from "lodash";
-import { getData, notificationType, putData } from '../../globalFunction';
+import { getData, notificationType, putData, textColor } from '../../globalFunction';
 
 import Menu from "./menu";
 import Home from "../home";
@@ -318,10 +318,9 @@ class Main extends React.Component {
                                             <div class="notif-wrapper">
                                                 {
                                                     _.orderBy(notification.List, ['isRead', 'dateUpdated'], ['asc', 'desc']).map((e, i) => {
-                                                        const { from, dateAdded } = { ...e }
+                                                        const { from, dateAdded, project_notification } = { ...e }
                                                         const duration = moment.duration(moment().diff(moment(dateAdded)));
                                                         const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
-
                                                         return (
                                                             <a href="javascript:void(0)" onClick={() => this.handleNotificationRedirect(e)} key={i}>
                                                                 <div class={`display-flex vh-center bb notif-item ${e.isRead ? "" : "n-unread"}`}>
@@ -331,7 +330,7 @@ class Main extends React.Component {
                                                                             : <span class="n-tod-warning"><i class="fa fa-exclamation-circle"></i></span>
                                                                         }
                                                                     </div>
-                                                                    <div class="ml10">
+                                                                    <div class="ml10 w100">
                                                                         <p class="m0 ">
 
                                                                             {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline"
@@ -341,14 +340,13 @@ class Main extends React.Component {
                                                                                 <span>{`${notificationType(e.type)} `}<strong>Checkout the task</strong></span>
                                                                             }
                                                                         </p>
-                                                                        <p class="m0 td-oblong">
-                                                                        {console.log(e)}
-                                                                            {/* <span title={workstream.project.type.type}>
-                                                                                <i class={(workstream.project.type.type == "Client") ? "fa fa-users mr5" : (workstream.project.type.type == "Private") ? "fa fa-lock mr5" : "fa fa-cloud mr5"}></i>
-                                                                            </span>
-                                                                            {workstream.project.project} */}
-                                                                        </p>
                                                                         <p class="note m0">{date}</p>
+                                                                        <p class="m0 td-oblong mt10" style={{ backgroundColor: e.project_notification.color, color: textColor(e.project_notification.color) }}>
+                                                                            <span title={e.project_notification.type.type}>
+                                                                                <i class={(e.project_notification.type.type == "Client") ? "fa fa-users mr5" : (e.project_notification.type.type == "Private") ? "fa fa-lock mr5" : "fa fa-cloud mr5"}></i>
+                                                                            </span>
+                                                                            {e.project_notification.project}
+                                                                        </p>
                                                                     </div>
                                                                 </div>
                                                             </a>

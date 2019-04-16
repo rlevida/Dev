@@ -9,7 +9,8 @@ const {
     Notes,
     Conversation,
     Tag,
-    Projects
+    Projects,
+    Type
 } = models;
 
 
@@ -210,7 +211,13 @@ exports.get = {
                                 {
                                     model: Projects,
                                     as: 'project_notification',
-                                    required: false
+                                    required: false,
+                                    include: [{
+                                        model: Type,
+                                        as: 'type',
+                                        required: false,
+                                        attributes: ["type"]
+                                    }]
                                 },
                                 {
                                     model: Document,

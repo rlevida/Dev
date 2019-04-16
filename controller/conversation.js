@@ -19,7 +19,8 @@ const {
     sequelize,
     Sequelize,
     UsersNotificationSetting,
-    Notification
+    Notification,
+    Type
 } = models;
 const Op = Sequelize.Op;
 
@@ -695,6 +696,17 @@ exports.post = {
                                                 attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                             },
                                             {
+                                                model: Projects,
+                                                as: 'project_notification',
+                                                required: false,
+                                                include: [{
+                                                    model: Type,
+                                                    as: 'type',
+                                                    required: false,
+                                                    attributes: ["type"]
+                                                }]
+                                            },
+                                            {
                                                 model: Document,
                                                 as: 'document_notification',
                                                 required: false,
@@ -1078,6 +1090,17 @@ exports.post = {
                                                         attributes: ["emailAddress", "firstName", "lastName", "avatar"]
                                                     },
                                                     {
+                                                        model: Projects,
+                                                        as: 'project_notification',
+                                                        required: false,
+                                                        include: [{
+                                                            model: Type,
+                                                            as: 'type',
+                                                            required: false,
+                                                            attributes: ["type"]
+                                                        }]
+                                                    },
+                                                    {
                                                         model: Document,
                                                         as: 'document_notification',
                                                         required: false,
@@ -1447,6 +1470,17 @@ exports.post = {
                                                         as: 'from',
                                                         required: false,
                                                         attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                    },
+                                                    {
+                                                        model: Projects,
+                                                        as: 'project_notification',
+                                                        required: false,
+                                                        include: [{
+                                                            model: Type,
+                                                            as: 'type',
+                                                            required: false,
+                                                            attributes: ["type"]
+                                                        }]
                                                     },
                                                     {
                                                         model: Document,

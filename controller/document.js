@@ -23,7 +23,9 @@ const {
     UsersRole,
     Workstream,
     Notes,
-    Notification
+    Notification,
+    Type,
+    Projects
 } = models;
 
 const associationFindAllStack = [
@@ -699,6 +701,17 @@ exports.post = {
                                                                 as: 'from',
                                                                 required: false,
                                                                 attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                            },
+                                                            {
+                                                                model: Projects,
+                                                                as: 'project_notification',
+                                                                required: false,
+                                                                include: [{
+                                                                    model: Type,
+                                                                    as: 'type',
+                                                                    required: false,
+                                                                    attributes: ["type"]
+                                                                }]
                                                             },
                                                             {
                                                                 model: Document,
