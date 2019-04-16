@@ -36,13 +36,14 @@ export default class TaskDetails extends React.Component {
             "followTask",
             "handleBack",
             "renderActivityLogs",
-            "getNextAcitivyLogs",
+            "getNextActivityLogs",
             "handleChange",
             "renderUsers",
             "addComment",
             "deleteSubtask",
             "deleteDocument",
-            "confirmDeleteDocument"
+            "confirmDeleteDocument",
+            "replyComment"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         })
@@ -222,6 +223,7 @@ export default class TaskDetails extends React.Component {
                     <div>
                         <MentionConvert string={comment} />
                         <p class="note m0">Posted {date} by {users.firstName + " " + users.lastName}.</p>
+                        <p class="note m0"><a onClick={() => this.replyComment(users)}>Reply</a></p>
                     </div>
                 </div>
             )
@@ -233,7 +235,7 @@ export default class TaskDetails extends React.Component {
         }
     }
 
-    getNextAcitivyLogs() {
+    getNextActivityLogs() {
         const { activityLog, task, dispatch, conversation } = { ...this.props };
         const activityPage = activityLog.Count.current_page + 1;
         const conversationPage = conversation.Count.current_page + 1;
@@ -283,6 +285,7 @@ export default class TaskDetails extends React.Component {
 
     addComment() {
         const { conversation, task, loggedUser, dispatch } = this.props;
+        const commentType = conversation.Selected.type || "";
         const commentText = conversation.Selected.comment || "";
         const commentSplit = (commentText).split(/{([^}]+)}/g).filter(Boolean);
         const commentIds = _(commentSplit).filter((o) => {
@@ -298,9 +301,11 @@ export default class TaskDetails extends React.Component {
             taskId: task.Selected.id,
             projectId: task.Selected.projectId,
             userId: loggedUser.data.id,
+            type: commentType
         };
 
         dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
+
         postData(`/api/conversation/comment`, dataToBeSubmited, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_COMMENT_LIST", comment: c.data });
@@ -310,6 +315,13 @@ export default class TaskDetails extends React.Component {
                 showToast("error", "Something went wrong. Please try again later.");
             }
         });
+    }
+
+    replyComment({ firstName, lastName, username, id }) {
+        const { dispatch, conversation } = this.props
+        const { Selected } = conversation;
+        this.mentionInput.focus();
+        dispatch({ type: "SET_COMMENT_SELECTED", Selected: { ...Selected, comment: `{[${firstName + " " + lastName} - ${username}](${id})} `, type: "reply" } });
     }
 
     viewDocument(data) {
@@ -362,7 +374,8 @@ export default class TaskDetails extends React.Component {
     }
 
     render() {
-        const { task: taskObj, loggedUser, activityLog, conversation, document } = { ...this.props };
+        const { task: taskObj, loggedUser, activityLog, conversation, document, dispatch } = { ...this.props };
+        const commentType = conversation.Selected.type || "";
         const { Loading, Selected } = taskObj;
         const { id, task, task_members, dueDate, startDate, workstream, status, description, checklist, task_dependency, tag_task, projectId, workstreamId } = Selected;
         const assigned = _.find(task_members, (o) => { return o.memberType == "assignedTo" });
@@ -570,8 +583,11 @@ export default class TaskDetails extends React.Component {
                                                             {workstream.workstream}
                                                         </p>
                                                     </div>
-                                                    <div>
+                                                    <div class={(followers.length == 0) ? "label-div" : ""}>
                                                         <label>Follower/s:</label>
+                                                        {
+                                                            (followers.length == 0) && <p class="m0">N/A</p>
+                                                        }
                                                         <div class="display-flex">
                                                             {
                                                                 _.map(_.take(followers, 5), ({ user }, index) => {
@@ -648,8 +664,11 @@ export default class TaskDetails extends React.Component {
                                                             }
                                                         </div>
                                                     </div>
-                                                    <div>
+                                                    <div class={(task_dependency.length == 0) ? "label-div" : ""}>
                                                         <label>Dependency:</label>
+                                                        {
+                                                            (task_dependency.length == 0) && <p class="m0">N/A</p>
+                                                        }
                                                         <div class="ml20">
                                                             {
                                                                 _.map(task_dependency, ({ task, dependencyType }, index) => {
@@ -734,7 +753,7 @@ export default class TaskDetails extends React.Component {
                                                                         <div key={index} class="display-flex vh-center checklist-item">
                                                                             <label class={(status != "Completed") ? "custom-checkbox todo-checklist" : "todo-checklist"}>
                                                                                 {description}
-                                                                                <p class="note mb0">Added {date} by {user.firstName + " " + user.lastName}</p>
+                                                                                <p class="note mb0">Added {date} by {user.firstName + " " + user.lastName}.</p>
                                                                                 {
                                                                                     (isDocument == 1) && <span class="label label-success">Document</span>
                                                                                 }
@@ -798,11 +817,22 @@ export default class TaskDetails extends React.Component {
                                                                 ((activityList).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                                                             }
                                                             {
-                                                                (currentActivityLogPage != lastActivityLogPage || currentConversationLogPage != lastConversationLogPage) && <p class="m0 text-center"><a onClick={() => this.getNextAcitivyLogs()}>Load More Activities</a></p>
+                                                                (currentActivityLogPage != lastActivityLogPage || currentConversationLogPage != lastConversationLogPage) && <p class="m0 text-center"><a onClick={() => this.getNextActivityLogs()}>Load More Activities</a></p>
                                                             }
                                                         </div>
                                                         <div class="ml20 mt20 mb20">
                                                             <div class="form-group mention">
+                                                                {
+                                                                    (commentType != "") && <div>
+                                                                        <p class="m0 note">Replying to a comment
+                                                                            <a onClick={() => {
+                                                                                dispatch({ type: "SET_COMMENT_SELECTED", Selected: { ...conversation.Selected, type: "" } });
+                                                                            }}>
+                                                                                <i class="fa fa-times ml5" aria-hidden="true"></i>
+                                                                            </a>
+                                                                        </p>
+                                                                    </div>
+                                                                }
                                                                 <MentionsInput
                                                                     value={commentText}
                                                                     onChange={this.handleChange.bind(this, "comment")}
@@ -812,6 +842,7 @@ export default class TaskDetails extends React.Component {
                                                                     }}
                                                                     placeholder={"Type your comment"}
                                                                     markup="{[__display__](__id__)}"
+                                                                    inputRef={(input) => { this.mentionInput = input; }}
                                                                 >
                                                                     <Mention
                                                                         trigger="@"
