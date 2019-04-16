@@ -398,8 +398,8 @@ export default class ConversationForm extends React.Component {
                                                         <img src={users.avatar} alt="Profile Picture" class="img-responsive" />
                                                     </div>
                                                     <div class="message-text">
-                                                        <p class="note mb5"><strong>{users.firstName + " " + users.lastName}</strong> {date}</p>
-                                                        <p>{comment}</p>
+                                                        <p class="note mb0"><strong>{users.firstName + " " + users.lastName}</strong> {date}</p>
+                                                        <p class="mb0">{comment}</p>
                                                         {
                                                             (conversationDocuments.length > 0) && _.map(conversationDocuments, ({ document }, index) => {
                                                                 return (
