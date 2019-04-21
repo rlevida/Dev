@@ -139,7 +139,7 @@ exports.post = {
                         })
                 })
         } catch (err) {
-            console.log(err)
+            console.error(err)
             cb({ status: false, error: err })
         }
     },
