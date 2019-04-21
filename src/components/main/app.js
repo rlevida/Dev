@@ -322,7 +322,6 @@ class Main extends React.Component {
                                         </a>
                                         <div class="pull-right dropdown-menu notify-drop" aria-labelledby="notif-bell">
                                             <div class="notif-wrapper">
-                                            {console.log(notification.List)}
                                                 {
                                                     _.orderBy(notification.List, ['isRead', 'dateUpdated'], ['asc', 'desc']).map((e, i) => {
                                                         const { from, dateAdded, project_notification } = { ...e }
