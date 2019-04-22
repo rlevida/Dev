@@ -259,7 +259,7 @@ var putData = exports.putData = function (url, data, cb) {
             cb(res)
         })
         .catch((err) => {
-            console.error(err);
+            cb(err);
         });
 }
 

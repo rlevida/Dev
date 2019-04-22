@@ -291,7 +291,7 @@ export default class TaskForm extends React.Component {
                 projectId: task.Selected.projectId,
                 period: (typeof task.Selected.period != "undefined" && task.Selected.period != "" && task.Selected.period != null) ? _.toNumber(task.Selected.period) : 0,
                 periodInstance: (typeof task.Selected.periodic != "undefined" && task.Selected.periodic == 1) ? 3 : 0,
-                status: (task.Selected.approvalRequired == 1 && (typeof task.Selected.status == "undefined" || task.Selected.status == null || task.Selected.status == "For Approval")) ? "For Approval" : (task.Selected.status == null || task.Selected.status == "") ? "In Progress" : task.Selected.status,
+                status: (task.Selected.status == null || task.Selected.status == "") ? "In Progress" : task.Selected.status,
                 dueDate: (typeof task.Selected.dueDate != "undefined" && task.Selected.dueDate != "" && task.Selected.dueDate != null) ? moment(task.Selected.dueDate).format('YYYY-MM-DD HH:mm:ss') : null,
                 startDate: (typeof task.Selected.startDate != "undefined" && task.Selected.startDate != "" && task.Selected.startDate != null) ? moment(task.Selected.startDate).format('YYYY-MM-DD HH:mm:ss') : null,
                 dateUpdated: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -303,9 +303,9 @@ export default class TaskForm extends React.Component {
             if (typeof task.Selected.id != "undefined") {
                 putData(`/api/task/${task.Selected.id}`, submitData, (c) => {
                     if (c.status == 200) {
-                        showToast("success", "Task successfully updated.");
+                        showToast("success", "Task successfully updated.", undefined, true);
                     } else {
-                        showToast("error", "Something went wrong please try again later.");
+                        showToast("error", c.response.data.message);
                     }
                     dispatch({ type: "SET_TASK_LOADING", Loading: "" });
                 });
@@ -350,9 +350,9 @@ export default class TaskForm extends React.Component {
                             }
                         });
                         this.getTaskDetails();
-                        showToast("success", "Task successfully added.");
+                        showToast("success", "Task successfully added.", undefined, true);
                     } else {
-                        showToast("error", "Something went wrong please try again later.");
+                        showToast("error", c.response.data.message);
                     }
                     dispatch({ type: "SET_TASK_LOADING", Loading: "" });
                 });
@@ -788,7 +788,7 @@ export default class TaskForm extends React.Component {
                                     <span>
                                         {
                                             (task.Loading == "SUBMITTING") ? "Creating..." :
-                                                (typeof task.Selected.id != "undefined" && task.Selected.id != "") ? "Edit Task" :
+                                                (typeof task.Selected.id != "undefined" && task.Selected.id != "") ? "Save Task" :
                                                     "Create Task"
                                         }
                                     </span>

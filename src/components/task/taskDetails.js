@@ -105,6 +105,7 @@ export default class TaskDetails extends React.Component {
         const { Selected } = task;
         const { periodTask, periodic, id } = Selected;
         const taskStatus = status;
+
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus }, (c) => {
             if (c.status == 200) {
                 dispatch({ type: "UPDATE_DATA_TASK_LIST", List: c.data.task });
@@ -457,7 +458,9 @@ export default class TaskDetails extends React.Component {
                                                 (
                                                     typeof checklist != "undefined" &&
                                                     (checklist.length == 0 || _.filter(checklist, ({ isCompleted }) => { return isCompleted == 1 }).length == checklist.length) &&
-                                                    Selected.status == "In Progress" &&
+                                                    Selected.status == "In Progress" && 
+                                                    Selected.approvalRequired == 0
+                                                    &&
                                                     (
                                                         loggedUser.data.userRole < 4 ||
                                                         typeof isAssignedToMe != "undefined" ||
@@ -470,9 +473,9 @@ export default class TaskDetails extends React.Component {
                                                             loggedUser.data.userRole >= 4 &&
                                                             (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") &&
                                                             assigned.user.user_role[0].roleId == 4
-                                                        )
+                                                        ) 
                                                     )
-                                                ) && <a class="btn btn-default" onClick={() => this.completeTask("Completed")}>
+                                                ) && <a class="btn btn-default mr5" onClick={() => this.completeTask("Completed")}>
                                                     <span>
                                                         <i class="fa mr10 fa-check" aria-hidden="true"></i>
                                                         Complete
@@ -481,22 +484,31 @@ export default class TaskDetails extends React.Component {
                                             }
                                             {
                                                 (
-                                                    (Selected.approverId == loggedUser.data.id || loggedUser.data.userRole < 3) &&
-                                                    Selected.status == "For Approval"
-                                                ) &&
-                                                <a class="btn btn-default mr5" onClick={() => this.completeTask("In Progress")}>
+                                                    (
+                                                        Selected.status == "In Progress" &&
+                                                        Selected.approvalRequired == 1 &&
+                                                        typeof isAssignedToMe != "undefined"
+                                                    ) || (
+                                                        Selected.status == "Rejected" &&
+                                                        typeof isAssignedToMe != "undefined"
+                                                    )
+                                                ) && <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
                                                     <span>
                                                         <i class="fa mr10 fa-check" aria-hidden="true"></i>
-                                                        Approve
+                                                        For Approval
                                                         </span>
                                                 </a>
                                             }
                                             {
-                                                (typeof isAssignedToMe != "undefined" && Selected.status == "Completed") && <a class="btn btn-default" onClick={() => this.completeTask("In Progress")}>
+                                                (
+                                                    (Selected.approverId == loggedUser.data.id || loggedUser.data.userRole < 3) &&
+                                                    Selected.status == "For Approval"
+                                                ) &&
+                                                <a class="btn btn-default mr5" onClick={() => this.completeTask("Completed")}>
                                                     <span>
-                                                        <i class="fa mr10 fa-line-chart" aria-hidden="true"></i>
-                                                        In Progress
-                                                        </span>
+                                                        <i class="fa mr10 fa-check" aria-hidden="true"></i>
+                                                        Approve
+                                                    </span>
                                                 </a>
                                             }
                                             {
@@ -507,18 +519,6 @@ export default class TaskDetails extends React.Component {
                                                     <span>
                                                         <i class="fa mr10 fa-ban" aria-hidden="true"></i>
                                                         Reject
-                                                        </span>
-                                                </a>
-                                            }
-                                            {
-                                                (
-                                                    (Selected.approverId == loggedUser.data.id ||
-                                                        (typeof assigned != "undefined" && assigned.user.id == loggedUser.data.id) ||
-                                                        loggedUser.data.userRole < 3
-                                                    ) && Selected.status == "Rejected") && <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
-                                                    <span>
-                                                        <i class="fa mr10 fa-check" aria-hidden="true"></i>
-                                                        For Approval
                                                         </span>
                                                 </a>
                                             }
