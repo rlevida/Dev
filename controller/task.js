@@ -1340,68 +1340,138 @@ exports.post = {
 
 exports.put = {
     index: (req, cb) => {
-        index: (req, cb) => {
-            const body = req.body;
-            const updateBody = _.omit(body, ["id", "task_members", "task_dependency", "checklist", "workstream"]);
-            const whereObj = {
-                id: req.params.id
-            };
-            const options = {
-                include: _.filter(associationStack, (o) => { return o.as == "workstream" || o.as == "task_members" })
-            };
+        const body = req.body;
+        const updateBody = _.omit(body, ["id", "task_members", "task_dependency", "checklist", "workstream"]);
+        const whereObj = {
+            id: req.params.id
+        };
+        const options = {
+            include: _.filter(associationStack, (o) => { return o.as == "workstream" || o.as == "task_members" })
+        };
 
-            try {
-                async.parallel({
-                    task: (parallelCallback) => {
-                        try {
-                            Tasks.findOne({ ...options, where: whereObj }).then(async (response) => {
-                                const responseObj = response.toJSON();
-                                let checkIfExistTask = [];
+        try {
+            async.parallel({
+                task: (parallelCallback) => {
+                    try {
+                        Tasks.findOne({ ...options, where: whereObj }).then(async (response) => {
+                            const responseObj = response.toJSON();
+                            let checkIfExistTask = [];
 
-                                if (responseObj.task != body.task) {
-                                    checkIfExistTask = await Tasks.findAll({
-                                        where: {
-                                            task: body.task,
-                                            workstreamId: body.workstreamId,
-                                            id: {
-                                                [Sequelize.Op.ne]: body.id
-                                            },
-                                            [Sequelize.Op.or]: [
-                                                { periodTask: null },
-                                                {
-                                                    periodTask: {
-                                                        [Sequelize.Op.ne]: body.id
-                                                    }
+                            if (responseObj.task != body.task) {
+                                checkIfExistTask = await Tasks.findAll({
+                                    where: {
+                                        task: body.task,
+                                        workstreamId: body.workstreamId,
+                                        id: {
+                                            [Sequelize.Op.ne]: body.id
+                                        },
+                                        [Sequelize.Op.or]: [
+                                            { periodTask: null },
+                                            {
+                                                periodTask: {
+                                                    [Sequelize.Op.ne]: body.id
                                                 }
-                                            ],
-                                            isDeleted: 0
-                                        }
-                                    }).map((o) => { return o.toJSON(); });
-                                }
-                                if (checkIfExistTask.length > 0) {
-                                    parallelCallback("Task name already exists in the workstream selected.")
-                                } else {
-                                    Tasks.findOne({ ...options, where: whereObj }).then((response) => {
-                                        const responseObj = response.toJSON();
+                                            }
+                                        ],
+                                        isDeleted: 0
+                                    }
+                                }).map((o) => { return o.toJSON(); });
+                            }
+                            if (checkIfExistTask.length > 0) {
+                                parallelCallback("Task name already exists in the workstream selected.")
+                            } else {
+                                Tasks.findOne({ ...options, where: whereObj }).then((response) => {
+                                    const responseObj = response.toJSON();
 
-                                        const currentTask = _(responseObj)
+                                    const currentTask = _(responseObj)
+                                        .omit(["workstreamId", "approvalRequired", "approverId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
+                                        .mapValues((objVal, objKey) => {
+                                            if (objKey == "dueDate" || objKey == "startDate") {
+                                                return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                            } else if (objKey == "workstream") {
+                                                return (responseObj.workstream).workstream;
+                                            } else {
+                                                return objVal;
+                                            }
+                                        }).value();
+
+                                    Tasks.update(updateBody, { where: { id: body.id } }).then((response) => {
+                                        return Tasks.findOne({ ...options, where: { id: body.id } })
+                                    }).then((response) => {
+                                        const updatedResponse = response.toJSON();
+                                        const updatedTask = _(updatedResponse)
                                             .omit(["workstreamId", "approvalRequired", "approverId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
                                             .mapValues((objVal, objKey) => {
                                                 if (objKey == "dueDate" || objKey == "startDate") {
                                                     return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
                                                 } else if (objKey == "workstream") {
-                                                    return (responseObj.workstream).workstream;
+                                                    return (updatedResponse.workstream).workstream;
                                                 } else {
                                                     return objVal;
                                                 }
                                             }).value();
+                                        const newObject = func.changedObjAttributes(updatedTask, currentTask);
+                                        const objectKeys = _.map(newObject, function (value, key) {
+                                            return key;
+                                        });
 
-                                        Tasks.update(updateBody, { where: { id: body.id } }).then((response) => {
-                                            return Tasks.findOne({ ...options, where: { id: body.id } })
+                                        parallelCallback(null, {
+                                            data: updatedResponse, ...(_.isEmpty(newObject)) ? {} : {
+                                                logs: {
+                                                    old: JSON.stringify({ "task_details": _.pick(currentTask, objectKeys) }),
+                                                    new: JSON.stringify({ "task_details": newObject })
+                                                }
+                                            }
+                                        });
+                                    })
+                                });
+                            }
+
+                        });
+                    } catch (err) {
+                        parallelCallback(err);
+                    }
+                },
+                period: (parallelCallback) => {
+                    if (typeof body.periodic != "undefined" && body.periodic == 1) {
+                        const taskId = (body.periodTask == null) ? body.id : body.periodTask;
+                        Tasks.findAll(
+                            {
+                                ...options,
+                                where: {
+                                    periodTask: taskId,
+                                    id: {
+                                        [Sequelize.Op.gt]: body.id
+                                    }
+                                }
+                            }
+                        ).map((mapObject) => {
+                            return mapObject.toJSON();
+                        }).then((resultArray) => {
+                            if (resultArray.length > 0) {
+                                const periodTaskPromise = _.map(resultArray, (periodTaskObj, index) => {
+                                    const currentTask = _(periodTaskObj)
+                                        .omit(["workstreamId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
+                                        .mapValues((objVal, objKey) => {
+                                            if (objKey == "dueDate" || objKey == "startDate") {
+                                                return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
+                                            } else if (objKey == "workstream") {
+                                                return (periodTaskObj.workstream).workstream;
+                                            } else {
+                                                return objVal;
+                                            }
+                                        }).value();
+
+                                    const nextDueDate = moment(body.dueDate).add(body.periodType, (body.period * (index + 1))).format('YYYY-MM-DD HH:mm:ss');
+                                    const newPeriodTask = { ...updateBody, dueDate: nextDueDate, ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, (body.period * (index + 1))).format('YYYY-MM-DD HH:mm:ss') } : {} }
+
+                                    return new Promise((resolve) => {
+                                        Tasks.update(_.omit(newPeriodTask, ["periodTask", "status"]), { where: { id: periodTaskObj.id } }).then((response) => {
+                                            return Tasks.findOne({ ...options, where: { id: periodTaskObj.id } });
                                         }).then((response) => {
                                             const updatedResponse = response.toJSON();
                                             const updatedTask = _(updatedResponse)
-                                                .omit(["workstreamId", "approvalRequired", "approverId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
+                                                .omit(["workstreamId", "dateUpdated", "dateAdded"])
                                                 .mapValues((objVal, objKey) => {
                                                     if (objKey == "dueDate" || objKey == "startDate") {
                                                         return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
@@ -1411,413 +1481,341 @@ exports.put = {
                                                         return objVal;
                                                     }
                                                 }).value();
+
                                             const newObject = func.changedObjAttributes(updatedTask, currentTask);
-                                            const objectKeys = _.map(newObject, function (value, key) {
+                                            const objectKeys = _.map(newObject, function (_, key) {
                                                 return key;
                                             });
-
-                                            parallelCallback(null, {
-                                                data: updatedResponse, ...(_.isEmpty(newObject)) ? {} : {
+                                            resolve({
+                                                data: updatedResponse,
+                                                ...(_.isEmpty(newObject) == false) ? {
                                                     logs: {
                                                         old: JSON.stringify({ "task_details": _.pick(currentTask, objectKeys) }),
                                                         new: JSON.stringify({ "task_details": newObject })
                                                     }
-                                                }
-                                            });
-                                        })
-                                    });
-                                }
-
-                            });
-                        } catch (err) {
-                            parallelCallback(err);
-                        }
-                    },
-                    period: (parallelCallback) => {
-                        if (typeof body.periodic != "undefined" && body.periodic == 1) {
-                            const taskId = (body.periodTask == null) ? body.id : body.periodTask;
-                            Tasks.findAll(
-                                {
-                                    ...options,
-                                    where: {
-                                        periodTask: taskId,
-                                        id: {
-                                            [Sequelize.Op.gt]: body.id
-                                        }
-                                    }
-                                }
-                            ).map((mapObject) => {
-                                return mapObject.toJSON();
-                            }).then((resultArray) => {
-                                if (resultArray.length > 0) {
-                                    const periodTaskPromise = _.map(resultArray, (periodTaskObj, index) => {
-                                        const currentTask = _(periodTaskObj)
-                                            .omit(["workstreamId", "dateUpdated", "dateAdded", "periodic", "periodInstance", "periodTask"])
-                                            .mapValues((objVal, objKey) => {
-                                                if (objKey == "dueDate" || objKey == "startDate") {
-                                                    return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
-                                                } else if (objKey == "workstream") {
-                                                    return (periodTaskObj.workstream).workstream;
-                                                } else {
-                                                    return objVal;
-                                                }
-                                            }).value();
-
-                                        const nextDueDate = moment(body.dueDate).add(body.periodType, (body.period * (index + 1))).format('YYYY-MM-DD HH:mm:ss');
-                                        const newPeriodTask = { ...updateBody, dueDate: nextDueDate, ...(body.startDate != null && body.startDate != "") ? { startDate: moment(body.startDate).add(body.periodType, (body.period * (index + 1))).format('YYYY-MM-DD HH:mm:ss') } : {} }
-
-                                        return new Promise((resolve) => {
-                                            Tasks.update(_.omit(newPeriodTask, ["periodTask", "status"]), { where: { id: periodTaskObj.id } }).then((response) => {
-                                                return Tasks.findOne({ ...options, where: { id: periodTaskObj.id } });
-                                            }).then((response) => {
-                                                const updatedResponse = response.toJSON();
-                                                const updatedTask = _(updatedResponse)
-                                                    .omit(["workstreamId", "dateUpdated", "dateAdded"])
-                                                    .mapValues((objVal, objKey) => {
-                                                        if (objKey == "dueDate" || objKey == "startDate") {
-                                                            return (objVal != "" && objVal != null) ? moment(objVal).format("YYYY-MM-DD") : "";
-                                                        } else if (objKey == "workstream") {
-                                                            return (updatedResponse.workstream).workstream;
-                                                        } else {
-                                                            return objVal;
-                                                        }
-                                                    }).value();
-
-                                                const newObject = func.changedObjAttributes(updatedTask, currentTask);
-                                                const objectKeys = _.map(newObject, function (_, key) {
-                                                    return key;
-                                                });
-                                                resolve({
-                                                    data: updatedResponse,
-                                                    ...(_.isEmpty(newObject) == false) ? {
-                                                        logs: {
-                                                            old: JSON.stringify({ "task_details": _.pick(currentTask, objectKeys) }),
-                                                            new: JSON.stringify({ "task_details": newObject })
-                                                        }
-                                                    } : {}
-                                                });
+                                                } : {}
                                             });
                                         });
                                     });
-                                    Promise.all(periodTaskPromise).then((values) => {
-                                        parallelCallback(null, values);
-                                    });
-                                } else {
-                                    parallelCallback(null, []);
-                                }
-                            });
-                        } else {
-                            parallelCallback(null, []);
-                        }
-                    }
-                }, (err, result) => {
-                    if (err != null) {
-                        cb({ status: false, error: err })
-                    } else {
-                        const { period, task } = result;
-                        const allTask = period.concat(task);
-                        const taskLogStack = _(allTask)
-                            .filter((periodObj) => {
-                                return (typeof periodObj.logs != "undefined")
-                            })
-                            .map((periodObj) => {
-                                const { logs, data } = periodObj
-                                return { usersId: body.userId, linkType: "task", linkId: data.id, actionType: "modified", old: logs.old, new: logs.new }
-                            })
-                            .value();
-
-
-                        async.parallel({
-                            members: (parallelCallback) => {
-                                const memberPromise = _.map(allTask, (relatedTaskObj) => {
-                                    return new Promise((resolve) => {
-                                        Members.findAll({
-                                            where: {
-                                                linkType: "task",
-                                                linkId: relatedTaskObj.data.id,
-                                                isDeleted: 0
-                                            },
-                                            include: [
-                                                {
-                                                    model: Users,
-                                                    as: 'user',
-                                                    attributes: ['id', 'firstName', 'lastName']
-                                                }
-                                            ]
-                                        })
-                                            .map((o) => { return o.toJSON() })
-                                            .then((responseObj) => {
-                                                const oldUserResponse = responseObj;
-
-                                                Members.update({ isDeleted: 1 },
-                                                    {
-                                                        where: {
-                                                            linkType: "task",
-                                                            linkId: relatedTaskObj.data.id,
-                                                            usersType: "users"
-                                                        }
-                                                    }).then(() => {
-                                                        const members = [];
-                                                        if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
-                                                            members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
-                                                        }
-
-                                                        if (typeof body.approverId != "undefined" && body.approverId != "") {
-                                                            members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
-                                                        }
-
-                                                        if (members.length > 0) {
-                                                            Members.bulkCreate(members).map(async (response) => {
-                                                                const responseObj = response.toJSON();
-                                                                const userDetails = await Users.findOne({
-                                                                    where: {
-                                                                        id: responseObj.userTypeLinkId
-                                                                    }
-                                                                }).
-                                                                    then((o) => {
-                                                                        return o.toJSON();
-                                                                    });
-                                                                return { ..._.omit(responseObj, ["dateUpdated"]), user: userDetails }
-                                                            }).then((o) => {
-                                                                const newAssigned = _.find(o, (res) => { return res.memberType == "assignedTo" });
-                                                                const newApprover = _.find(o, (res) => { return res.memberType == "approver" });
-                                                                const oldAssigned = _.find(oldUserResponse, (res) => { return res.memberType == "assignedTo" });
-                                                                const oldApprover = _.find(oldUserResponse, (res) => { return res.memberType == "approver" });
-
-                                                                const memberLogs = _([
-                                                                    {
-                                                                        old: oldAssigned,
-                                                                        new: newAssigned,
-                                                                        type: "assigned"
-                                                                    },
-                                                                    {
-                                                                        old: oldApprover,
-                                                                        new: newApprover,
-                                                                        type: "approver"
-                                                                    }
-                                                                ])
-                                                                    .filter((o) => {
-                                                                        const oldUser = (typeof o.old != "undefined") ? o.old.userTypeLinkId : 0;
-                                                                        const newUser = (typeof o.new != "undefined") ? o.new.userTypeLinkId : 0;
-                                                                        return oldUser != newUser
-                                                                    })
-                                                                    .map((o) => {
-                                                                        return {
-                                                                            old: (o.old != "undefined" && _.isEmpty(o.old) == false) ? JSON.stringify({
-                                                                                [o.type]: o.old
-                                                                            }) : "",
-                                                                            new: (o.new != "undefined" && _.isEmpty(o.new) == false) ? JSON.stringify({
-                                                                                [o.type]: o.new
-                                                                            }) : "",
-                                                                            actionType: "modified",
-                                                                            usersId: body.userId,
-                                                                            linkType: "task",
-                                                                            linkId: relatedTaskObj.data.id,
-                                                                            title: _.isEmpty(o.new) ? (_.isEmpty(o.old) == false) ? (o.old).user.firstName + " " + (o.old).user.lastName : "" : (o.new).user.firstName + " " + (o.new).user.lastName
-                                                                        }
-                                                                    }).value();
-                                                                resolve(memberLogs);
-                                                            });
-                                                        } else {
-                                                            resolve(null)
-                                                        }
-                                                    });
-                                            })
-                                    });
                                 });
+                                Promise.all(periodTaskPromise).then((values) => {
+                                    parallelCallback(null, values);
+                                });
+                            } else {
+                                parallelCallback(null, []);
+                            }
+                        });
+                    } else {
+                        parallelCallback(null, []);
+                    }
+                }
+            }, (err, result) => {
+                if (err != null) {
+                    cb({ status: false, error: err })
+                } else {
+                    const { period, task } = result;
+                    const allTask = period.concat(task);
+                    const taskLogStack = _(allTask)
+                        .filter((periodObj) => {
+                            return (typeof periodObj.logs != "undefined")
+                        })
+                        .map((periodObj) => {
+                            const { logs, data } = periodObj
+                            return { usersId: body.userId, linkType: "task", linkId: data.id, actionType: "modified", old: logs.old, new: logs.new }
+                        })
+                        .value();
 
-                                Promise.all(memberPromise).then((values) => {
-                                    parallelCallback(null, _.flatten(values));
+
+                    async.parallel({
+                        members: (parallelCallback) => {
+                            const memberPromise = _.map(allTask, (relatedTaskObj) => {
+                                return new Promise((resolve) => {
+                                    Members.findAll({
+                                        where: {
+                                            linkType: "task",
+                                            linkId: relatedTaskObj.data.id,
+                                            isDeleted: 0
+                                        },
+                                        include: [
+                                            {
+                                                model: Users,
+                                                as: 'user',
+                                                attributes: ['id', 'firstName', 'lastName']
+                                            }
+                                        ]
+                                    })
+                                        .map((o) => { return o.toJSON() })
+                                        .then((responseObj) => {
+                                            const oldUserResponse = responseObj;
+
+                                            Members.update({ isDeleted: 1 },
+                                                {
+                                                    where: {
+                                                        linkType: "task",
+                                                        linkId: relatedTaskObj.data.id,
+                                                        usersType: "users"
+                                                    }
+                                                }).then(() => {
+                                                    const members = [];
+                                                    if (typeof body.assignedTo != "undefined" && body.assignedTo != "") {
+                                                        members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.assignedTo, memberType: "assignedTo" });
+                                                    }
+
+                                                    if (typeof body.approverId != "undefined" && body.approverId != "") {
+                                                        members.push({ linkType: "task", linkId: relatedTaskObj.data.id, usersType: "users", userTypeLinkId: body.approverId, memberType: "approver" });
+                                                    }
+
+                                                    if (members.length > 0) {
+                                                        Members.bulkCreate(members).map(async (response) => {
+                                                            const responseObj = response.toJSON();
+                                                            const userDetails = await Users.findOne({
+                                                                where: {
+                                                                    id: responseObj.userTypeLinkId
+                                                                }
+                                                            }).
+                                                                then((o) => {
+                                                                    return o.toJSON();
+                                                                });
+                                                            return { ..._.omit(responseObj, ["dateUpdated"]), user: userDetails }
+                                                        }).then((o) => {
+                                                            const newAssigned = _.find(o, (res) => { return res.memberType == "assignedTo" });
+                                                            const newApprover = _.find(o, (res) => { return res.memberType == "approver" });
+                                                            const oldAssigned = _.find(oldUserResponse, (res) => { return res.memberType == "assignedTo" });
+                                                            const oldApprover = _.find(oldUserResponse, (res) => { return res.memberType == "approver" });
+
+                                                            const memberLogs = _([
+                                                                {
+                                                                    old: oldAssigned,
+                                                                    new: newAssigned,
+                                                                    type: "assigned"
+                                                                },
+                                                                {
+                                                                    old: oldApprover,
+                                                                    new: newApprover,
+                                                                    type: "approver"
+                                                                }
+                                                            ])
+                                                                .filter((o) => {
+                                                                    const oldUser = (typeof o.old != "undefined") ? o.old.userTypeLinkId : 0;
+                                                                    const newUser = (typeof o.new != "undefined") ? o.new.userTypeLinkId : 0;
+                                                                    return oldUser != newUser
+                                                                })
+                                                                .map((o) => {
+                                                                    return {
+                                                                        old: (o.old != "undefined" && _.isEmpty(o.old) == false) ? JSON.stringify({
+                                                                            [o.type]: o.old
+                                                                        }) : "",
+                                                                        new: (o.new != "undefined" && _.isEmpty(o.new) == false) ? JSON.stringify({
+                                                                            [o.type]: o.new
+                                                                        }) : "",
+                                                                        actionType: "modified",
+                                                                        usersId: body.userId,
+                                                                        linkType: "task",
+                                                                        linkId: relatedTaskObj.data.id,
+                                                                        title: _.isEmpty(o.new) ? (_.isEmpty(o.old) == false) ? (o.old).user.firstName + " " + (o.old).user.lastName : "" : (o.new).user.firstName + " " + (o.new).user.lastName
+                                                                    }
+                                                                }).value();
+                                                            resolve(memberLogs);
+                                                        });
+                                                    } else {
+                                                        resolve(null)
+                                                    }
+                                                });
+                                        })
+                                });
+                            });
+
+                            Promise.all(memberPromise).then((values) => {
+                                parallelCallback(null, _.flatten(values));
+                            });
+                        },
+                        notification: (parallelCallback) => {
+                            Users.findOne({
+                                where: {
+                                    id: body.userId
+                                }
+                            }).then((o) => {
+                                const sender = o.toJSON();
+                                UsersNotificationSetting
+                                    .findAll({ where: { usersId: [body.assignedTo, body.approverId] } })
+                                    .map((response) => {
+                                        return response.toJSON();
+                                    })
+                                    .then((response) => {
+
+                                        const notificationArr = _.filter(response, (nSetting) => {
+                                            return (nSetting.taskAssigned === 1 && body.assignedTo === nSetting.usersId) || (nSetting.taskApprover === 1 && body.approverId === nSetting.usersId)
+                                        }).map((nSetting) => {
+                                            if (nSetting.taskAssigned === 1 && body.assignedTo === nSetting.usersId) {
+                                                return {
+                                                    usersId: nSetting.usersId,
+                                                    projectId: body.projectId,
+                                                    taskId: body.id,
+                                                    workstreamId: body.workstreamId,
+                                                    createdBy: body.userId,
+                                                    type: "taskAssigned",
+                                                    message: "Updated the task assigned to you",
+                                                    receiveEmail: nSetting.receiveEmail
+                                                }
+                                            }
+
+                                            if (nSetting.taskApprover === 1 && body.approverId === nSetting.usersId && body.approvalRequired === 1) {
+                                                return {
+                                                    usersId: nSetting.usersId,
+                                                    projectId: body.projectId,
+                                                    taskId: body.id,
+                                                    workstreamId: body.workstreamId,
+                                                    createdBy: body.userId,
+                                                    type: "taskApprover",
+                                                    message: "Updated the task that needs your approval to complete a task",
+                                                    receiveEmail: nSetting.receiveEmail
+                                                }
+                                            }
+                                        })
+
+                                        Notification
+                                            .bulkCreate(notificationArr)
+                                            .map((notificationRes) => {
+                                                return notificationRes.id
+                                            })
+                                            .then((notificationRes) => {
+                                                Notification
+                                                    .findAll({
+                                                        where: { id: notificationRes },
+                                                        include: [
+                                                            {
+                                                                model: Users,
+                                                                as: 'to',
+                                                                required: false,
+                                                                attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                            },
+                                                            {
+                                                                model: Users,
+                                                                as: 'from',
+                                                                required: false,
+                                                                attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                            },
+                                                            {
+                                                                model: Projects,
+                                                                as: 'project_notification',
+                                                                required: false,
+                                                                include: [{
+                                                                    model: Type,
+                                                                    as: 'type',
+                                                                    required: false,
+                                                                    attributes: ["type"]
+                                                                }]
+                                                            },
+                                                            {
+                                                                model: Document,
+                                                                as: 'document_notification',
+                                                                required: false,
+                                                                attributes: ["origin"]
+                                                            },
+                                                            {
+                                                                model: Workstream,
+                                                                as: 'workstream_notification',
+                                                                required: false,
+                                                                attributes: ["workstream"]
+                                                            },
+                                                            {
+                                                                model: Tasks,
+                                                                as: 'task_notification',
+                                                                required: false,
+                                                                attributes: ["task"]
+                                                            },
+                                                        ]
+                                                    })
+                                                    .map((findNotificationRes) => {
+                                                        req.app.parent.io.emit('FRONT_NOTIFICATION', {
+                                                            ...findNotificationRes.toJSON()
+                                                        });
+                                                        return _.without(_.map(notificationArr, (nObj) => {
+                                                            if (nObj.usersId === findNotificationRes.toJSON().usersId) {
+                                                                return { ...nObj, emailAddress: findNotificationRes.toJSON().to.emailAddress }
+                                                            }
+                                                        }), undefined)
+
+                                                    })
+                                                    .then((findNotificationRes) => {
+                                                        async.map(_.flatMapDeep(findNotificationRes), ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
+                                                            if (receiveEmail === 1) {
+                                                                let html = '<p>' + message + '</p>';
+                                                                html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                                // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                                html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
+                                                                html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                                html += `<p>Date:<br>${moment().format('LLL')}</p>`;
+
+                                                                const mailOptions = {
+                                                                    from: '"no-reply" <no-reply@c_cfo.com>',
+                                                                    to: `${emailAddress}`,
+                                                                    subject: '[CLOUD-CFO]',
+                                                                    html: html
+                                                                };
+                                                                global.emailtransport(mailOptions);
+                                                            }
+                                                            mapCallback(null)
+                                                        }, () => {
+                                                            parallelCallback(null)
+                                                        })
+                                                    })
+                                            })
+                                    })
+                            })
+                        }
+                    }, (err, { members }) => {
+                        async.parallel({
+                            activity_logs: (parallelCallback) => {
+                                const allLogsStack = [...members, ...taskLogStack];
+                                ActivityLogs.bulkCreate(allLogsStack).then((response) => {
+                                    parallelCallback(null, response)
                                 });
                             },
-                            notification: (parallelCallback) => {
-                                Users.findOne({
-                                    where: {
-                                        id: body.userId
-                                    }
-                                }).then((o) => {
-                                    const sender = o.toJSON();
-                                    UsersNotificationSetting
-                                        .findAll({ where: { usersId: [body.assignedTo, body.approverId] } })
-                                        .map((response) => {
-                                            return response.toJSON();
-                                        })
-                                        .then((response) => {
-
-                                            const notificationArr = _.filter(response, (nSetting) => {
-                                                return (nSetting.taskAssigned === 1 && body.assignedTo === nSetting.usersId) || (nSetting.taskApprover === 1 && body.approverId === nSetting.usersId)
-                                            }).map((nSetting) => {
-                                                if (nSetting.taskAssigned === 1 && body.assignedTo === nSetting.usersId) {
-                                                    return {
-                                                        usersId: nSetting.usersId,
-                                                        projectId: body.projectId,
-                                                        taskId: body.id,
-                                                        workstreamId: body.workstreamId,
-                                                        createdBy: body.userId,
-                                                        type: "taskAssigned",
-                                                        message: "Updated the task assigned to you",
-                                                        receiveEmail: nSetting.receiveEmail
-                                                    }
-                                                }
-
-                                                if (nSetting.taskApprover === 1 && body.approverId === nSetting.usersId && body.approvalRequired === 1) {
-                                                    return {
-                                                        usersId: nSetting.usersId,
-                                                        projectId: body.projectId,
-                                                        taskId: body.id,
-                                                        workstreamId: body.workstreamId,
-                                                        createdBy: body.userId,
-                                                        type: "taskApprover",
-                                                        message: "Updated the task that needs your approval to complete a task",
-                                                        receiveEmail: nSetting.receiveEmail
-                                                    }
-                                                }
-                                            })
-
-                                            Notification
-                                                .bulkCreate(notificationArr)
-                                                .map((notificationRes) => {
-                                                    return notificationRes.id
-                                                })
-                                                .then((notificationRes) => {
-                                                    Notification
-                                                        .findAll({
-                                                            where: { id: notificationRes },
-                                                            include: [
-                                                                {
-                                                                    model: Users,
-                                                                    as: 'to',
-                                                                    required: false,
-                                                                    attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                                },
-                                                                {
-                                                                    model: Users,
-                                                                    as: 'from',
-                                                                    required: false,
-                                                                    attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                                },
-                                                                {
-                                                                    model: Projects,
-                                                                    as: 'project_notification',
-                                                                    required: false,
-                                                                    include: [{
-                                                                        model: Type,
-                                                                        as: 'type',
-                                                                        required: false,
-                                                                        attributes: ["type"]
-                                                                    }]
-                                                                },
-                                                                {
-                                                                    model: Document,
-                                                                    as: 'document_notification',
-                                                                    required: false,
-                                                                    attributes: ["origin"]
-                                                                },
-                                                                {
-                                                                    model: Workstream,
-                                                                    as: 'workstream_notification',
-                                                                    required: false,
-                                                                    attributes: ["workstream"]
-                                                                },
-                                                                {
-                                                                    model: Tasks,
-                                                                    as: 'task_notification',
-                                                                    required: false,
-                                                                    attributes: ["task"]
-                                                                },
-                                                            ]
-                                                        })
-                                                        .map((findNotificationRes) => {
-                                                            req.app.parent.io.emit('FRONT_NOTIFICATION', {
-                                                                ...findNotificationRes.toJSON()
-                                                            });
-                                                            return _.without(_.map(notificationArr, (nObj) => {
-                                                                if (nObj.usersId === findNotificationRes.toJSON().usersId) {
-                                                                    return { ...nObj, emailAddress: findNotificationRes.toJSON().to.emailAddress }
-                                                                }
-                                                            }), undefined)
-
-                                                        })
-                                                        .then((findNotificationRes) => {
-                                                            async.map(_.flatMapDeep(findNotificationRes), ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
-                                                                if (receiveEmail === 1) {
-                                                                    let html = '<p>' + message + '</p>';
-                                                                    html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
-                                                                    // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                                                                    html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName}</strong> ${message}</p>`;
-                                                                    html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
-                                                                    html += `<p>Date:<br>${moment().format('LLL')}</p>`;
-
-                                                                    const mailOptions = {
-                                                                        from: '"no-reply" <no-reply@c_cfo.com>',
-                                                                        to: `${emailAddress}`,
-                                                                        subject: '[CLOUD-CFO]',
-                                                                        html: html
-                                                                    };
-                                                                    global.emailtransport(mailOptions);
-                                                                }
-                                                                mapCallback(null)
-                                                            }, () => {
-                                                                parallelCallback(null)
-                                                            })
-                                                        })
-                                                })
-                                        })
-                                })
-                            }
-                        }, (err, { members }) => {
-                            async.parallel({
-                                activity_logs: (parallelCallback) => {
-                                    const allLogsStack = [...members, ...taskLogStack];
-                                    ActivityLogs.bulkCreate(allLogsStack).then((response) => {
-                                        parallelCallback(null, response)
-                                    });
-                                },
-                                tasks: (parallelCallback) => {
-                                    Tasks.findAll(
-                                        {
-                                            ...options,
-                                            where: {
-                                                id: _.map(allTask, (allTaskObj) => { return allTaskObj.data.id })
-                                            }
+                            tasks: (parallelCallback) => {
+                                Tasks.findAll(
+                                    {
+                                        ...options,
+                                        where: {
+                                            id: _.map(allTask, (allTaskObj) => { return allTaskObj.data.id })
                                         }
-                                    ).map((mapObject) => {
-                                        return mapObject.toJSON();
-                                    }).then((resultArray) => {
-                                        parallelCallback(null, resultArray)
-                                    });
-                                },
-                                project: (parallelCallback) => {
-                                    Projects
-                                        .update(
-                                            {
-                                                dateUpdated: body.dateUpdated
-                                            },
-                                            {
-                                                where: { id: allTask[0].data.projectId }
-                                            })
-                                        .then((res) => {
-                                            parallelCallback(null)
-                                        });
-                                },
-                                workstream: (parallelCallback) => {
-                                    Workstream.update({ dateUpdated: body.dateUpdated },
+                                    }
+                                ).map((mapObject) => {
+                                    return mapObject.toJSON();
+                                }).then((resultArray) => {
+                                    parallelCallback(null, resultArray)
+                                });
+                            },
+                            project: (parallelCallback) => {
+                                Projects
+                                    .update(
                                         {
-                                            where: { id: allTask[0].data.workstreamId }
+                                            dateUpdated: body.dateUpdated
+                                        },
+                                        {
+                                            where: { id: allTask[0].data.projectId }
                                         })
-                                        .then((res) => {
-                                            parallelCallback(null);
-                                        });
-                                }
-                            }, (err, response) => {
-                                cb({ status: true, data: response.tasks });
-                            });
-                        })
-                    }
-                });
-            } catch (err) {
-                cb({ status: false, error: err })
-            }
+                                    .then((res) => {
+                                        parallelCallback(null)
+                                    });
+                            },
+                            workstream: (parallelCallback) => {
+                                Workstream.update({ dateUpdated: body.dateUpdated },
+                                    {
+                                        where: { id: allTask[0].data.workstreamId }
+                                    })
+                                    .then((res) => {
+                                        parallelCallback(null);
+                                    });
+                            }
+                        }, (err, response) => {
+                            cb({ status: true, data: response.tasks });
+                        });
+                    })
+                }
+            });
+        } catch (err) {
+            cb({ status: false, error: err })
         }
     },
     status: (req, cb) => {

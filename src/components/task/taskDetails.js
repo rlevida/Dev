@@ -458,7 +458,7 @@ export default class TaskDetails extends React.Component {
                                                 (
                                                     typeof checklist != "undefined" &&
                                                     (checklist.length == 0 || _.filter(checklist, ({ isCompleted }) => { return isCompleted == 1 }).length == checklist.length) &&
-                                                    Selected.status == "In Progress" && 
+                                                    Selected.status == "In Progress" &&
                                                     Selected.approvalRequired == 0
                                                     &&
                                                     (
@@ -473,7 +473,7 @@ export default class TaskDetails extends React.Component {
                                                             loggedUser.data.userRole >= 4 &&
                                                             (typeof Selected.workstream != "undefined" && Selected.workstream.project.type.type == "Internal") &&
                                                             assigned.user.user_role[0].roleId == 4
-                                                        ) 
+                                                        )
                                                     )
                                                 ) && <a class="btn btn-default mr5" onClick={() => this.completeTask("Completed")}>
                                                     <span>
@@ -488,14 +488,39 @@ export default class TaskDetails extends React.Component {
                                                         Selected.status == "In Progress" &&
                                                         Selected.approvalRequired == 1 &&
                                                         typeof isAssignedToMe != "undefined"
-                                                    ) || (
+                                                    ) ||
+                                                    (
                                                         Selected.status == "Rejected" &&
                                                         typeof isAssignedToMe != "undefined"
-                                                    )
+                                                    ) ||
+                                                    (
+                                                        Selected.status == "Completed" &&
+                                                        Selected.approvalRequired == 1 &&
+                                                        Selected.approverId == loggedUser.data.id
+                                                    ) 
                                                 ) && <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
                                                     <span>
                                                         <i class="fa mr10 fa-check" aria-hidden="true"></i>
                                                         For Approval
+                                                        </span>
+                                                </a>
+                                            }
+                                            {
+                                                (
+                                                    (typeof isAssignedToMe != "undefined") &&
+                                                    (
+                                                        (
+                                                            Selected.status == "Completed" &&
+                                                            Selected.approvalRequired == 0) ||
+                                                        (
+                                                            Selected.status == "For Approval" &&
+                                                            Selected.approvalRequired == 1
+                                                        )
+                                                    )
+                                                ) && <a class="btn btn-default" onClick={() => this.completeTask("In Progress")}>
+                                                    <span>
+                                                        <i class="fa mr10 fa-line-chart" aria-hidden="true"></i>
+                                                        In Progress
                                                         </span>
                                                 </a>
                                             }

@@ -57,9 +57,9 @@ export default class TaskListCategory extends React.Component {
         }
     }
 
-    completeTask({ id, status, periodic, periodTask }) {
+    completeTask({ id, status, periodic, periodTask, approvalRequired }) {
         const { dispatch, loggedUser } = { ...this.props };
-        const taskStatus = (status == "For Approval" || status == "Completed") ? "In Progress" : "Completed";
+        const taskStatus = (status == "Completed" && approvalRequired == 0) ? "In Progress" : (status == "Completed" && approvalRequired == 1) ? "For Approval" : "Completed";
 
         putData(`/api/task/status/${id}`, { userId: loggedUser.data.id, periodTask, periodic, id, status: taskStatus, date: moment().format('YYYY-MM-DD HH:mm:ss') }, (c) => {
             if (c.status == 200) {
@@ -172,7 +172,7 @@ export default class TaskListCategory extends React.Component {
         });
     }
 
-    renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted, checklist }) {
+    renderRow({ index, id, task: task_name, dueDate, workstream, task_members, periodic, status, periodTask, dateCompleted, checklist, approvalRequired, approverId }) {
         const { task, workstream_id = "", loggedUser } = { ...this.props };
         const { Filter } = task;
         const given = moment(dueDate, "YYYY-MM-DD");
@@ -188,24 +188,33 @@ export default class TaskListCategory extends React.Component {
                     <div class="action-td">
                         {
                             (
-                                status != "For Approval" &&
-                                status != "Rejected" &&
-                                (checklist.length == 0 || _.filter(checklist, ({ isCompleted }) => { return isCompleted == 1 }).length == checklist.length) &&
                                 (
-                                    loggedUser.data.userRole < 4 ||
-                                    typeof isAssignedToMe != "undefined" ||
+                                    status != "For Approval" &&
+                                    status != "Rejected" &&
                                     (
-                                        loggedUser.data.userRole >= 4 &&
-                                        project.type.type == "Client" &&
-                                        assigned.user.userType == "External"
-                                    ) ||
+                                        checklist.length == 0 || _.filter(checklist, ({ isCompleted }) => { return isCompleted == 1 }).length == checklist.length) &&
                                     (
-                                        loggedUser.data.userRole >= 4 &&
-                                        project.type.type == "Internal" &&
-                                        assigned.user.user_role[0].roleId == 4
-                                    )
+                                        loggedUser.data.userRole < 4 ||
+                                        typeof isAssignedToMe != "undefined" ||
+                                        (
+                                            loggedUser.data.userRole >= 4 &&
+                                            project.type.type == "Client" &&
+                                            assigned.user.userType == "External"
+                                        ) ||
+                                        (
+                                            loggedUser.data.userRole >= 4 &&
+                                            project.type.type == "Internal" &&
+                                            assigned.user.user_role[0].roleId == 4
+                                        )
+                                    ) &&
+                                    approvalRequired == 0) ||
+                                (
+                                    status != "Rejected" &&
+                                    approvalRequired == 1 &&
+                                    approverId == loggedUser.data.id
                                 )
-                            ) && <a onClick={() => this.completeTask({ id, status, periodic, periodTask })}>
+
+                            ) && <a onClick={() => this.completeTask({ id, status, periodic, periodTask, approvalRequired })}>
                                 <span class={`fa mr10 ${(status != "Completed") ? "fa-circle-thin" : "fa-check-circle text-green"}`} title="Complete"></span>
                             </a>
                         }
