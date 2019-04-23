@@ -39,7 +39,23 @@ class DocumentList extends React.Component {
                 })
             })
         }
+    }
 
+    componentDidUpdate(prevProps) {
+        const { dispatch,history } = { ...this.props }
+        if (getParameterByName("file-id") && history.location.search !== "") {
+            if (this.props.document.Selected.id !== parseInt(getParameterByName("file-id"))) {
+                const documentId = getParameterByName("file-id")
+                getData(`/api/document/detail/${documentId}`, {}, (ret) => {
+                    const documentObj = { ...ret.data }
+                    getData(`/api/conversation/getConversationList?linkType=document&linkId=${documentObj.id}`, {}, (c) => {
+                        dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
+                        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: documentObj });
+                        $(`#documentViewerModal`).modal('show')
+                    })
+                })
+            }
+        }
     }
 
     componentWillUnmount() {
