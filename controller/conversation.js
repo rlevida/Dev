@@ -842,11 +842,7 @@ exports.post = {
             },
             notification: (parallelCallback) => {
                 try {
-                    if (body.reminderList.length === 0) {
-                        let whereObj = {
-                            linkType: bodyData.linkType,
-                            linkId: bodyData.linkId
-                        }
+                    if (JSON.parse(body.reminderList).length === 0) {
                         Users.findOne({
                             where: {
                                 id: body.userId
@@ -854,17 +850,14 @@ exports.post = {
                         }).then(async (o) => {
                             const sender = o.toJSON();
                             const receiver = await Conversation.findAll({
-                                where: whereObj,
-                                include: [
-                                    {
-                                        model: Users,
-                                        as: 'users',
-                                        where: { id: { [Op.notIn]: [...body.reminderList, body.userId] } },
-                                    }
-                                ],
-                                group: ['users.id']
+                                where: {
+                                    linkType: bodyData.linkType,
+                                    linkId: bodyData.linkId,
+                                    usersId: { [Op.notIn]: [body.userId] }
+                                },
+                                group: ['usersId'],
                             }).map((response) => {
-                                return response.toJSON().users.id;
+                                return response.toJSON().usersId;
                             }).then((response) => {
                                 return response;
                             })
@@ -1029,7 +1022,7 @@ exports.post = {
                                         })
                                 })
                         })
-                    }else{
+                    } else {
                         parallelCallback(null);
                     }
 
@@ -1097,7 +1090,7 @@ exports.post = {
                                             }
                                         })
                                     } else if (bodyData.linkType === "document") {
-                                        message = `metioned you on a comment.`;
+                                        message = `metioned you on a file.`;
 
                                         notificationArr = await _.filter(response, (nSetting) => {
                                             return nSetting.messageSend === 1
@@ -1109,7 +1102,7 @@ exports.post = {
                                                 projectId: body.projectId,
                                                 createdBy: sender.id,
                                                 documentId: bodyData.linkId,
-                                                type: "taskTagged",
+                                                type: "fileTagged",
                                                 message: message,
                                                 emailAddress: emailAddress,
                                                 receiveEmail: nSetting.receiveEmail
