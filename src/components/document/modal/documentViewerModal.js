@@ -36,12 +36,11 @@ class DocumentViewerComponent extends React.Component {
     componentDidMount() {
         const { dispatch } = { ...this.props };
         $('#documentViewerModal').on('hidden.bs.modal', () => {
-            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
             const { history } = { ...this.props };
-
             if (history.location.search != "") {
                 history.push(history.location.pathname)
             }
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
         })
     }
 
