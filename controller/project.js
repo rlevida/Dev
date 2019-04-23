@@ -967,7 +967,7 @@ exports.post = {
                     ]
                 })
                 .then(res => {
-                    cb({ status: true, data: { project: { ...res.toJSON() }, members: members } })
+                    cb({ status: true, data: { project: { ...res.toJSON(), projectManagerId: d.projectManagerId }, members: members } })
                 })
         })
     },
