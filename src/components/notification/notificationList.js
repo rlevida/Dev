@@ -16,6 +16,7 @@ import TaskDeadline from "./template/taskDeadLine";
 import TaskTeamDeadline from "./template/taskTeamDeadline";
 import TaskFollowingDeadline from "./template/taskFollowingDeadline";
 import TaskResponsibleDeadline from "./template/taskResponsibleDeadline";
+import FileTagged from "./template/fileTagged";
 import ArchivedModal from "./archiveModal";
 import MarkAsReadModal from "./markAsReadModal";
 @connect((store) => {
@@ -124,6 +125,9 @@ class NotificationList extends React.Component {
                                     switch (e.type) {
                                         case 'fileNewUpload': {
                                             return <div key={i}><FileNewUpload data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
+                                        }
+                                        case 'fileTagged':{
+                                            return <div key={i}><FileTagged data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
                                         }
                                         case 'taskAssigned': {
                                             return <div key={i}><TaskAssgined data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>

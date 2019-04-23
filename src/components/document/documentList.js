@@ -1,6 +1,6 @@
 import React from "react";
 import { Loading } from "../../globalComponents";
-import { getData, postData, putData, showToast, deleteData } from '../../globalFunction';
+import { getData, postData, putData, showToast, deleteData, getParameterByName } from '../../globalFunction';
 
 import { connect } from "react-redux"
 import { withRouter } from "react-router";
@@ -24,8 +24,22 @@ class DocumentList extends React.Component {
         this.fetchData = this.fetchData.bind(this);
     }
 
-    componentDidMount() {
+    async componentDidMount() {
+        const { dispatch } = { ...this.props }
         this.fetchData(1)
+
+        if (getParameterByName("file-id")) {
+            const documentId = getParameterByName("file-id")
+            getData(`/api/document/detail/${documentId}`, {}, (ret) => {
+                const documentObj = { ...ret.data }
+                getData(`/api/conversation/getConversationList?linkType=document&linkId=${documentObj.id}`, {}, (c) => {
+                    dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
+                    dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: documentObj });
+                    $(`#documentViewerModal`).modal('show')
+                })
+            })
+        }
+
     }
 
     componentWillUnmount() {
