@@ -200,7 +200,7 @@ exports.get = {
                             return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status == "In Progress"
                         });
                         const newDoc = _.filter(resultObj.tag, (tagObj) => {
-                            return tagObj.document.status == "new"
+                            return tagObj.document && tagObj.document.status == "new"
                         });
                         const members = [...resultObj.responsible,
                         ..._(resultObj.task)
@@ -484,7 +484,7 @@ exports.post = {
                             return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status == "In Progress"
                         });
                         const newDoc = _.filter(resultObj.tag, (tagObj) => {
-                            return tagObj.document.status == "new"
+                            return tagObj.document && tagObj.document.status == "new"
                         });
                         const members = [...resultObj.responsible,
                         ..._(resultObj.task)
@@ -587,7 +587,7 @@ exports.put = {
                                 return dueDateMoment.isSame(currentDateMoment, 'day') == true && taskObj.status == "In Progress"
                             });
                             const newDoc = _.filter(resultObj.tag, (tagObj) => {
-                                return tagObj.document.status == "new"
+                                return tagObj.document && tagObj.document.status == "new"
                             });
                             const members = [...resultObj.responsible,
                             ..._(resultObj.task)

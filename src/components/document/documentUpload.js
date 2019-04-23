@@ -182,20 +182,16 @@ class DocumentUpload extends React.Component {
         })
     }
 
-    onDrop(file) {
-        const { dispatch, document } = this.props;
-        dispatch({ type: 'SET_DOCUMENT_FILES', Files: [...document.Files, ...file] });
-    }
-
-    async uploadFile() {
+    async onDrop(file) {
         const { loggedUser, folder, dispatch, document, match } = { ...this.props };
         const projectId = match.params.projectId;
         const selectedObj = { ...document.Selected };
+        const tempFiles =[...document.Files, ...file]
         let data = new FormData();
 
         await dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING" });
 
-        await document.Files.map(e => {
+        await tempFiles.map(e => {
             data.append("file", e)
         })
 
@@ -212,6 +208,32 @@ class DocumentUpload extends React.Component {
             dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
         })
     }
+
+    // async uploadFile() {
+    //     const { loggedUser, folder, dispatch, document, match } = { ...this.props };
+    //     const projectId = match.params.projectId;
+    //     const selectedObj = { ...document.Selected };
+    //     let data = new FormData();
+
+    //     await dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING" });
+
+    //     await document.Files.map(e => {
+    //         data.append("file", e)
+    //     })
+
+    //     await postData(`/api/document/upload`, data, async (c) => {
+    //         const documentToSave = c.data.map(e => {
+    //             e = {
+    //                 name: e.filename, origin: e.origin, project: projectId, uploadedBy: loggedUser.data.id,
+    //                 status: 'new', type: 'document', folderId: folder.SelectedNewFolder.id
+    //             }
+    //             return e
+    //         })
+    //         selectedObj.DocumentToSave = documentToSave
+    //         dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: selectedObj })
+    //         dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "" });
+    //     })
+    // }
 
     removefile(selecindextedId) {
         const { dispatch, document } = { ...this.props };

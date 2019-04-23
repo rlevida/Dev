@@ -136,7 +136,7 @@ class Main extends React.Component {
     async handleNotificationRedirect(notif) {
         const { history, dispatch, loggedUser } = { ...this.props };
         const { taskId, workstreamId, projectId, } = { ...notif };
-        
+
         if (!notif.isRead) {
             await putData(`/api/notification/${notif.id}?page=1&usersId=${loggedUser.data.id}&isRead=0&isDeleted=0&isArchived=0`, { isRead: 1 }, (c) => {
                 dispatch({ type: 'UPDATE_DATA_NOTIFICATION_LIST', updatedData: c.data });
@@ -360,9 +360,11 @@ class Main extends React.Component {
                                                     })
                                                 }
                                             </div>
-                                            <div class="notify-drop-footer text-center">
-                                                <a href={`/account#/notification`}>View All Notification</a>
+                                            <a href={`/account#/notification`}>
+                                                <div class="notify-drop-footer text-center">
+                                                    View All Notification
                                             </div>
+                                            </a>
                                         </div>
                                         {
                                             (loggedUser.data.userType != "External") && <div>
