@@ -109,6 +109,8 @@ class FieldContainer extends React.Component {
     renderFolder(data) {
         const { moveTo, document, hovered, folder } = { ...this.props }
         const isSelected = folder.Selected.id === data.id ? true : false
+        const fileName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
+
         return (
             <div class="folder-accordion" id={data.id} style={{ backgroundColor: hovered ? '#e4e4e4' : '' }}>
                 <a href="javascript:void(0)"
@@ -121,7 +123,7 @@ class FieldContainer extends React.Component {
                     onClick={() => this.fetchFolder(data)}>
                     <i class="fa-chevron fa fa-chevron-down"></i>
                     <i class="fa fa-fw fa-folder"></i>
-                    {data.origin}
+                    {fileName}
                 </a>
                 <div class="collapse" id={`collapse${data.id}`}>
                     <div class="collapse-folder-child">
