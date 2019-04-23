@@ -626,7 +626,8 @@ exports.get = {
                                     [Op.eq]: currentDate
                                 },
                                 projectId,
-                                status: "In Progress"
+                                status: "In Progress",
+                                isDeleted: 0
                             }
                         }).then(({ count }) => {
                             parallelCallback(null, count)
@@ -641,7 +642,8 @@ exports.get = {
                         {
                             where: {
                                 status: 'For Approval',
-                                projectId
+                                projectId,
+                                isDeleted: 0
                             }
                         }).then(({ count }) => {
                             parallelCallback(null, count)
@@ -659,7 +661,8 @@ exports.get = {
                                     [Op.lt]: currentDate
                                 },
                                 status: "In Progress",
-                                projectId
+                                projectId,
+                                isDeleted: 0
                             }
                         }).then(({ count }) => {
                             parallelCallback(null, count)
