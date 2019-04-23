@@ -933,7 +933,7 @@ export default class TaskDetails extends React.Component {
                                                     <TabPanel>
                                                         <div class="ml10 mt20">
                                                             <h3>
-                                                                Time Tracking: {totalHoursValue} Hour{(totalHoursValue > 0) ? "s" : ""}
+                                                                Time Tracking: {totalHoursValue} Hour{(totalHoursValue > 1) ? "s" : ""}
                                                             </h3>
                                                             <div>
                                                                 {
