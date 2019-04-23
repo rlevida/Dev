@@ -172,20 +172,27 @@ class DocumentList extends React.Component {
         }
     }
 
-    async viewDocument(data) {
+    viewDocument(data) {
         const { dispatch, loggedUser, folder, match } = this.props;
         const projectId = match.params.projectId;
         if (data.type !== 'folder') {
             if (data.document_read.length === 0) {
                 const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
-                await postData(`/api/document/read`, dataToSubmit, (ret) => {
-                    dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
-                    dispatch({ type: 'UPDATE_DATA_DOCUMENT_LIST', UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } })
-                    $(`#documentViewerModal`).modal('show')
+                postData(`/api/document/read`, dataToSubmit, (ret) => {
+                    getData(`/api/conversation/getConversationList?linkType=document&linkId=${data.id}`, {}, (c) => {
+                        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
+                        dispatch({ type: 'UPDATE_DATA_DOCUMENT_LIST', UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } });
+                        dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
+                        $(`#documentViewerModal`).modal('show')
+                    })
                 });
+
             } else {
-                dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
-                $(`#documentViewerModal`).modal('show')
+                getData(`/api/conversation/getConversationList?linkType=document&linkId=${data.id}`, {}, (c) => {
+                    dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
+                    dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
+                    $(`#documentViewerModal`).modal('show')
+                })
             }
         } else {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
@@ -237,31 +244,6 @@ class DocumentList extends React.Component {
         } else {
             window.open(encodeURI(`/api/downloadFolder?folder=${data.id}&folderName=${`${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`}`));
         }
-    }
-
-    starredDocument({ id, isStarred, origin }) {
-        const { document, loggedUser, dispatch, match } = this.props;
-        const projectId = match.params.projectId;
-        const isStarredValue = (isStarred > 0) ? 0 : 1;
-
-        postData(`/api/starred?projectId=${projectId}&document=${origin}`, {
-            linkType: "document",
-            linkId: id,
-            usersId: loggedUser.data.id
-        }, (c) => {
-            if (c.status == 200) {
-                const updatedDocumentList = _.map([...document.List], (documentObj, index) => {
-                    if (id == documentObj.id) {
-                        documentObj["isStarred"] = isStarredValue;
-                    }
-                    return documentObj;
-                });
-                dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList });
-                showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
-            } else {
-                showToast("error", "Something went wrong please try again later.");
-            }
-        });
     }
 
     editDocument(data, type) {
