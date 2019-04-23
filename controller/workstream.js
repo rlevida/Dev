@@ -21,12 +21,13 @@ const associationStack = [
         model: Tasks,
         as: 'task',
         required: false,
-        attributes: ['id', 'task', 'status', 'dueDate'],
+        attributes: ['id', 'task', 'status', 'dueDate', 'isDeleted'],
+        where: { isDeleted: 0 },
         include: [{
             model: Members,
             as: 'task_members',
             required: false,
-            where: { linkType: 'task' },
+            where: { linkType: 'task', isDeleted: 0 },
             include: [
                 {
                     model: Users,
@@ -102,7 +103,8 @@ exports.get = {
             _.find(includeStack, { as: 'task' }).where = {
                 dueDate: {
                     [Sequelize.Op.between]: [startMonth, endMonth]
-                }
+                },
+                isDeleted: 0
             };
         }
 
@@ -215,7 +217,6 @@ exports.get = {
                             return taskObj.status == "For Approval"
                         });
                         const responsible = _.filter(members, (member) => { return member.memberType == "responsible" });
-
                         return {
                             ...resultObj,
                             pending: pendingTasks,

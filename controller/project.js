@@ -88,7 +88,8 @@ const associationFindAllStack = [
                 as: 'taskDueToday',
                 where: {
                     dueDate: moment.utc().format("YYYY-MM-DD"),
-                    status: "In Progress"
+                    status: "In Progress",
+                    isDeleted: 0
                 },
                 required: false,
             },
@@ -97,7 +98,8 @@ const associationFindAllStack = [
                 as: 'taskOverDue',
                 where: {
                     dueDate: { [Op.lt]: moment.utc().format("YYYY-MM-DD") },
-                    status: "In Progress"
+                    status: "In Progress",
+                    isDeleted: 0
                 },
                 required: false,
             },
@@ -164,7 +166,7 @@ exports.get = {
                 return res.toJSON();
             });
 
-            if (queryString.userRole > 4) {
+            if (queryString.userRole > 4 && typeof queryString.typeId == "undefined") {
                 whereObj["typeId"] = 1;
             }
 
@@ -414,11 +416,11 @@ exports.get = {
                         },
                         attributes: [
                             'projectId',
-                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.id <> 0 THEN task.id END)'), 'total_tasks'],
-                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "Completed" THEN task.id END)'), 'completed'],
-                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate < "' + moment(dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" AND task.status = "In Progress" THEN task.id END)'), 'issues'],
-                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "For Approval" THEN task.id END)'), 'for_approval'],
-                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" AND task.status = "In Progress" THEN task.id END)'), 'due_today']
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.id <> 0 AND task.isDeleted = 0 THEN task.id END)'), 'total_tasks'],
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "Completed" AND task.isDeleted = 0 THEN task.id END)'), 'completed'],
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate < "' + moment(dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" AND task.status = "In Progress" AND task.isDeleted = 0 THEN task.id END)'), 'issues'],
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.status = "For Approval" AND task.isDeleted = 0 THEN task.id END)'), 'for_approval'],
+                            [models.sequelize.literal('COUNT(DISTINCT CASE WHEN task.dueDate = "' + moment(dueDate, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") + '" AND task.status = "In Progress" AND task.isDeleted = 0 THEN task.id END)'), 'due_today']
                         ]
                     }).map((response) => {
                         return response.toJSON();
