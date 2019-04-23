@@ -74,7 +74,6 @@ class DocumentViewerComponent extends React.Component {
                 })
             }, 1000);
         }
-
     }
 
     fetchData(page) {

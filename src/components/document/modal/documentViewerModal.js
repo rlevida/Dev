@@ -39,13 +39,19 @@ class DocumentViewerComponent extends React.Component {
             dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
         })
     }
+
+    componentWillMount() {
+        this.fetchData()
+    }
+
     componentWillUnmount() {
         const { dispatch } = this.props;
         dispatch({ type: "SET_COMMENT_SELECTED", Selected: "" })
     }
-    fetchData(page) {
-        const { dispatch, match } = this.props;
-        getData(`/api/conversation/getConversationList?linkType=document&linkId=${match.params.documentId}`, {}, (c) => {
+
+    fetchData() {
+        const { dispatch, document } = this.props;
+        getData(`/api/conversation/getConversationList?linkType=document&linkId=${document.Selected.id}`, {}, (c) => {
             dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
         })
     }
@@ -148,6 +154,7 @@ class DocumentViewerComponent extends React.Component {
             }
         });
     }
+    
     render() {
         const { document, settings } = this.props;
         let isDocument = true, ext = "", documentContentType = "";
@@ -217,28 +224,38 @@ class DocumentViewerComponent extends React.Component {
                                         </div>
                                     </div>
                                 </div>
-                                <div id="documentImage" class="mt20">
-                                    <div class="label-div">
-                                        <label>File Preview:</label>
-                                    </div>
-                                    {
-                                        (isDocument == true) &&
-                                        <iframe
-                                            src={`https://view.officeapps.live.com/op/embed.aspx?src=${settings.imageUrl}/upload/${document.Selected.name}`}
-                                            width='100%' height='623px' frameBorder='0'>
-                                            This is an embedded
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div id="documentImage" class="mt20">
+                                            <div class="label-div">
+                                                <label>File Preview:</label>
+                                            </div>
+                                            {
+                                                (isDocument == true) &&
+                                                <iframe
+                                                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${settings.imageUrl}/upload/${document.Selected.name}`}
+                                                    width='100%' height='623px' frameBorder='0'>
+                                                    This is an embedded
                                             <a target='_blank' href='http://office.com'>Microsoft Office</a> document, powered by <a target='_blank' href='http://office.com/webapps'>Office Online</a>
-                                        </iframe>
-                                    }
-                                    {
-                                        (isDocument == "image") && <div>
-                                            <img class="img-responsive" src={`${settings.imageUrl}/upload/${document.Selected.name}`} />
-                                        </div>
+                                                </iframe>
+                                            }
+                                            {
+                                                (isDocument == "image") && <div>
+                                                    <img class="img-responsive" src={`${settings.imageUrl}/upload/${document.Selected.name}`} />
+                                                </div>
 
-                                    }
-                                    {
-                                        (isDocument == "pdf") && <embed src={`${settings.imageUrl}/upload/${document.Selected.name}`} type={documentContentType} width='100%' height='623px'></embed>
-                                    }
+                                            }
+                                            {
+                                                (isDocument == "pdf") && <embed src={`${settings.imageUrl}/upload/${document.Selected.name}`} type={documentContentType} width='100%' height='623px'></embed>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="label-div mt20">
+                                            <label>Comments:</label>
+                                        </div>
+                                        <DocumentComment />
+                                    </div>
                                 </div>
                             </div>
                         }
