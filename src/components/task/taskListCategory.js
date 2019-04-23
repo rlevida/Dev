@@ -209,6 +209,7 @@ export default class TaskListCategory extends React.Component {
                                     ) &&
                                     approvalRequired == 0) ||
                                 (
+                                    status != "In Progress" &&
                                     status != "Rejected" &&
                                     approvalRequired == 1 &&
                                     approverId == loggedUser.data.id
