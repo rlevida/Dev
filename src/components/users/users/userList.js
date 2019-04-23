@@ -178,7 +178,8 @@ export default class UserList extends React.Component {
                                                 <div class={(
                                                     (loggedUser.data.userRole > user.user_role[0].role.id) ||
                                                     (user.user_role[0].role.id == 4 && user.id != loggedUser.data.id && loggedUser.data.userRole == 4) ||
-                                                    (loggedUser.data.userRole < user.user_role[0].role.id && loggedUser.data.userRole == 4)
+                                                    (loggedUser.data.userRole < user.user_role[0].role.id && loggedUser.data.userRole == 4) ||
+                                                    (loggedUser.data.userRole == user.user_role[0].role.id && loggedUser.data.userRole > 1)
                                                 ) ? "hide" : "actions"}>
                                                     <OnOffSwitch Active={user.isActive} Action={() => this.updateActiveStatus(user.id, user.isActive)} />
                                                     <a href="javascript:void(0);" class="btn btn-action dropdown-toggle" type="button" data-toggle="dropdown"><span class="fa fa-ellipsis-v" title="MORE"></span></a>

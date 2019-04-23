@@ -48,12 +48,12 @@ export default class myTaskStatus extends React.Component {
     render() {
         const { task, loggedUser } = this.props;
         const { StatusCount } = task;
-        const assignedTask = this.sumBy("assigned_to_me", "due_today");
         const assignedIssues = this.sumBy("assigned_to_me", "issues");
-        const followingTasks = this.sumBy("following", "due_today");
+        const assignedTask = this.sumBy("assigned_to_me", "due_today") + assignedIssues;
         const followingIssues = this.sumBy("following", "issues");
-        const teamTask = this.sumBy("team", "due_today");
+        const followingTasks = this.sumBy("following", "due_today") + followingIssues;
         const teamIssues = this.sumBy("team", "issues");
+        const teamTask = this.sumBy("team", "due_today") + teamIssues;
 
         return (
 

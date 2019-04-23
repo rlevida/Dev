@@ -221,6 +221,37 @@ export default class TaskListCategory extends React.Component {
                         }
                         <a
                             onClick={() => this.openTaskDetails(id)}
+                            style={{
+                                marginLeft: (
+                                    (
+                                        status != "For Approval" &&
+                                        status != "Rejected" &&
+                                        (
+                                            checklist.length == 0 || _.filter(checklist, ({ isCompleted }) => { return isCompleted == 1 }).length == checklist.length) &&
+                                        (
+                                            loggedUser.data.userRole < 4 ||
+                                            typeof isAssignedToMe != "undefined" ||
+                                            (
+                                                loggedUser.data.userRole >= 4 &&
+                                                project.type.type == "Client" &&
+                                                assigned.user.userType == "External"
+                                            ) ||
+                                            (
+                                                loggedUser.data.userRole >= 4 &&
+                                                project.type.type == "Internal" &&
+                                                assigned.user.user_role[0].roleId == 4
+                                            )
+                                        ) &&
+                                        approvalRequired == 0) ||
+                                    (
+                                        status != "In Progress" &&
+                                        status != "Rejected" &&
+                                        approvalRequired == 1 &&
+                                        approverId == loggedUser.data.id
+                                    )
+
+                                ) ? 0 : 30
+                            }}
                         >
                             {task_name}
                             {(periodic == 1) && <i class="fa fa-refresh ml10" aria-hidden="true"></i>}
