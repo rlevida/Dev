@@ -852,120 +852,122 @@ export default class TaskDetails extends React.Component {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <Tabs>
-                                                <TabList>
-                                                    <Tab>Activities</Tab>
-                                                    <Tab>Time Tracking</Tab>
-                                                </TabList>
-                                                <TabPanel>
-                                                    <div class="ml10 mt20">
-                                                        <h3>
-                                                            Activity
+                                            <div class="mb20">
+                                                <Tabs>
+                                                    <TabList>
+                                                        <Tab>Activities</Tab>
+                                                        <Tab>Time Tracking</Tab>
+                                                    </TabList>
+                                                    <TabPanel>
+                                                        <div class="ml10 mt20">
+                                                            <h3>
+                                                            Activities
                                                         </h3>
-                                                        <div>
-                                                            {
-                                                                ((activityList).length > 0) && <div>
-                                                                    {
-                                                                        _.map(_.sortBy(activityList, 'dateAdded').reverse(), (log, index) => {
-                                                                            return (
-                                                                                <div key={index}>
-                                                                                    {
-                                                                                        this.renderActivityLogs(log)
-                                                                                    }
-                                                                                </div>
-                                                                            )
-                                                                        })
-                                                                    }
-                                                                </div>
-                                                            }
-                                                            {
-                                                                ((activityList).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
-                                                            }
-                                                            {
-                                                                (currentActivityLogPage != lastActivityLogPage || currentConversationLogPage != lastConversationLogPage) && <p class="m0 text-center"><a onClick={() => this.getNextActivityLogs()}>Load More Activities</a></p>
-                                                            }
-                                                        </div>
-                                                        <div class="ml20 mt20 mb20">
-                                                            <div class="form-group mention">
+                                                            <div>
                                                                 {
-                                                                    (commentType != "") && <div>
-                                                                        <p class="m0 note">Replying to a comment
-                                                                            <a onClick={() => {
-                                                                                dispatch({ type: "SET_COMMENT_SELECTED", Selected: { ...conversation.Selected, type: "" } });
-                                                                            }}>
-                                                                                <i class="fa fa-times ml5" aria-hidden="true"></i>
-                                                                            </a>
-                                                                        </p>
+                                                                    ((activityList).length > 0) && <div>
+                                                                        {
+                                                                            _.map(_.sortBy(activityList, 'dateAdded').reverse(), (log, index) => {
+                                                                                return (
+                                                                                    <div key={index}>
+                                                                                        {
+                                                                                            this.renderActivityLogs(log)
+                                                                                        }
+                                                                                    </div>
+                                                                                )
+                                                                            })
+                                                                        }
                                                                     </div>
                                                                 }
-                                                                <MentionsInput
-                                                                    value={commentText}
-                                                                    onChange={this.handleChange.bind(this, "comment")}
-                                                                    style={defaultStyle}
-                                                                    classNames={{
-                                                                        mentions__input: 'form-control'
-                                                                    }}
-                                                                    placeholder={"Type your comment"}
-                                                                    markup="{[__display__](__id__)}"
-                                                                    inputRef={(input) => { this.mentionInput = input; }}
-                                                                >
-                                                                    <Mention
-                                                                        trigger="@"
-                                                                        data={this.renderUsers}
-                                                                        appendSpaceOnAdd={true}
-                                                                        style={{ backgroundColor: '#ecf0f1', padding: 1 }}
-                                                                    />
-                                                                </MentionsInput>
                                                                 {
-                                                                    (commentText != "") && <a
-                                                                        class="btn btn-violet mt10"
-                                                                        onClick={this.addComment}
-                                                                        disabled={(conversation.Loading == "SUBMITTING")}
-                                                                    ><span>{
-                                                                        (conversation.Loading == "SUBMITTING") ? "Sending ..." : "Submit Comment"
-                                                                    }</span></a>
+                                                                    ((activityList).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                                                }
+                                                                {
+                                                                    (currentActivityLogPage != lastActivityLogPage || currentConversationLogPage != lastConversationLogPage) && <p class="m0 text-center"><a onClick={() => this.getNextActivityLogs()}>Load More Activities</a></p>
+                                                                }
+                                                            </div>
+                                                            <div class="ml20 mt20 mb20">
+                                                                <div class="form-group mention">
+                                                                    {
+                                                                        (commentType != "") && <div>
+                                                                            <p class="m0 note">Replying to a comment
+                                                                            <a onClick={() => {
+                                                                                    dispatch({ type: "SET_COMMENT_SELECTED", Selected: { ...conversation.Selected, type: "" } });
+                                                                                }}>
+                                                                                    <i class="fa fa-times ml5" aria-hidden="true"></i>
+                                                                                </a>
+                                                                            </p>
+                                                                        </div>
+                                                                    }
+                                                                    <MentionsInput
+                                                                        value={commentText}
+                                                                        onChange={this.handleChange.bind(this, "comment")}
+                                                                        style={defaultStyle}
+                                                                        classNames={{
+                                                                            mentions__input: 'form-control'
+                                                                        }}
+                                                                        placeholder={"Type your comment"}
+                                                                        markup="{[__display__](__id__)}"
+                                                                        inputRef={(input) => { this.mentionInput = input; }}
+                                                                    >
+                                                                        <Mention
+                                                                            trigger="@"
+                                                                            data={this.renderUsers}
+                                                                            appendSpaceOnAdd={true}
+                                                                            style={{ backgroundColor: '#ecf0f1', padding: 1 }}
+                                                                        />
+                                                                    </MentionsInput>
+                                                                    {
+                                                                        (commentText != "") && <a
+                                                                            class="btn btn-violet mt10"
+                                                                            onClick={this.addComment}
+                                                                            disabled={(conversation.Loading == "SUBMITTING")}
+                                                                        ><span>{
+                                                                            (conversation.Loading == "SUBMITTING") ? "Sending ..." : "Submit Comment"
+                                                                        }</span></a>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </TabPanel>
+                                                    <TabPanel>
+                                                        <div class="ml10 mt20">
+                                                            <h3>
+                                                                Time Tracking: {(_.sum(totalHours) / 60).toFixed(2)} Hours
+                                                        </h3>
+                                                            <div>
+                                                                {
+                                                                    _.map(tasktimeLog.List, (taskTimeLogObj, index) => {
+                                                                        const { time, description, dateAdded, user, period } = { ...taskTimeLogObj };
+                                                                        const duration = moment.duration(moment().diff(moment(dateAdded)));
+                                                                        const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+
+                                                                        return (
+                                                                            <div key={index} class="log-time">
+                                                                                <div class="display-flex vh-center">
+                                                                                    <p class="mb0 note">Logged Time:</p>
+                                                                                    <p class="mb0 ml10">{time + " " + period}</p>
+                                                                                </div>
+                                                                                <div class="display-flex vh-center">
+                                                                                    <p class="mb0 note">Description:</p>
+                                                                                    <p class="mb0 ml10">{description}</p>
+                                                                                </div>
+                                                                                <p class="note mb0">Added {date} by {user.firstName + " " + user.lastName}.</p>
+                                                                            </div>
+                                                                        )
+                                                                    })
+                                                                }
+                                                                {
+                                                                    ((tasktimeLog.List).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                                                }
+                                                                {
+                                                                    (tasktimeLog.Count.current_page != tasktimeLog.Count.last_page) && <p class="m0 text-center"><a onClick={() => this.getNextTimeLogs()}>Load More Timelogs</a></p>
                                                                 }
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </TabPanel>
-                                                <TabPanel>
-                                                    <div class="ml10 mt20">
-                                                        <h3>
-                                                            Time tracking: {(_.sum(totalHours) / 60).toFixed(2)} Hours
-                                                        </h3>
-                                                        <div>
-                                                            {
-                                                                _.map(tasktimeLog.List, (taskTimeLogObj, index) => {
-                                                                    const { time, description, dateAdded, user, period } = { ...taskTimeLogObj };
-                                                                    const duration = moment.duration(moment().diff(moment(dateAdded)));
-                                                                    const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
-
-                                                                    return (
-                                                                        <div key={index} class="log-time">
-                                                                            <div class="display-flex vh-center">
-                                                                                <p class="mb0 note">Logged Time:</p>
-                                                                                <p class="mb0 ml10">{time + " " + period}</p>
-                                                                            </div>
-                                                                            <div class="display-flex vh-center">
-                                                                                <p class="mb0 note">Description:</p>
-                                                                                <p class="mb0 ml10">{description}</p>
-                                                                            </div>
-                                                                            <p class="note mb0">Added {date} by {user.firstName + " " + user.lastName}.</p>
-                                                                        </div>
-                                                                    )
-                                                                })
-                                                            }
-                                                            {
-                                                                ((tasktimeLog.List).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
-                                                            }
-                                                            {
-                                                                (tasktimeLog.Count.current_page != tasktimeLog.Count.last_page) && <p class="m0 text-center"><a onClick={() => this.getNextTimeLogs()}>Load More Timelogs</a></p>
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                </TabPanel>
-                                            </Tabs>
+                                                    </TabPanel>
+                                                </Tabs>
+                                            </div>
                                         </div>
                                     }
                                 </div>
