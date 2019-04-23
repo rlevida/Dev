@@ -840,332 +840,370 @@ exports.post = {
                         parallelCallback(null, res)
                     });
             },
-            notification: async (parallelCallback) => {
+            notification: (parallelCallback) => {
                 try {
-                    let whereObj = {
-                        linkType: bodyData.linkType,
-                        linkId: bodyData.linkId
+                    if (body.reminderList.length === 0) {
+                        let whereObj = {
+                            linkType: bodyData.linkType,
+                            linkId: bodyData.linkId
+                        }
+                        Users.findOne({
+                            where: {
+                                id: body.userId
+                            }
+                        }).then(async (o) => {
+                            const sender = o.toJSON();
+                            const receiver = await Conversation.findAll({
+                                where: whereObj,
+                                include: [
+                                    {
+                                        model: Users,
+                                        as: 'users',
+                                        where: { id: { [Op.notIn]: [...body.reminderList, body.userId] } },
+                                    }
+                                ],
+                                group: ['users.id']
+                            }).map((response) => {
+                                return response.toJSON().users.id;
+                            }).then((response) => {
+                                return response;
+                            })
+
+                            UsersNotificationSetting
+                                .findAll({
+                                    where: { usersId: receiver },
+                                    include: [{
+                                        model: Users,
+                                        as: 'notification_setting',
+                                        required: false
+                                    }]
+                                })
+                                .map((response) => {
+                                    return response.toJSON()
+                                })
+                                .then(async (response) => {
+                                    let message = "";
+                                    let notificationArr = [];
+
+                                    if (bodyData.linkType === "task") {
+                                        const task = await Tasks.findOne({
+                                            include: {
+                                                model: Workstream,
+                                                as: 'workstream'
+                                            },
+                                            where: {
+                                                id: bodyData.linkId
+                                            }
+                                        }).then((o) => {
+                                            const oObj = o.toJSON();
+                                            return oObj;
+                                        });
+                                        message = `${sender.firstName + " " + sender.lastName} replies to a comment on the task ${task.task} under ${task.workstream.workstream} workstream.`;
+
+                                        notificationArr = await _.filter(response, (nSetting) => {
+                                            return nSetting.messageSend === 1
+                                        }).map((nSetting) => {
+                                            const { emailAddress } = { ...nSetting.notification_setting }
+                                            return {
+                                                createdBy: sender.id,
+                                                usersId: nSetting.usersId,
+                                                projectId: task.projectId,
+                                                taskId: task.id,
+                                                conversationId: conversation.id,
+                                                workstreamId: task.workstreamId,
+                                                type: "commentReplies",
+                                                message: message,
+                                                emailAddress: emailAddress,
+                                                receiveEmail: nSetting.receiveEmail
+                                            }
+                                        })
+                                    } else if (bodyData.linkType === "document") {
+                                        message = `Replies to a comment.`;
+
+                                        notificationArr = await _.filter(response, (nSetting) => {
+                                            return nSetting.messageSend === 1
+                                        }).map((nSetting) => {
+                                            const { emailAddress } = { ...nSetting.notification_setting }
+
+                                            return {
+                                                usersId: nSetting.usersId,
+                                                projectId: body.projectId,
+                                                createdBy: sender.id,
+                                                documentId: bodyData.linkId,
+                                                type: "commentReplies",
+                                                message: message,
+                                                emailAddress: emailAddress,
+                                                receiveEmail: nSetting.receiveEmail
+                                            }
+                                        })
+                                    }
+
+                                    Notification
+                                        .bulkCreate(notificationArr)
+                                        .map((notificationRes) => {
+                                            return notificationRes.id
+                                        })
+                                        .then((notificationRes) => {
+                                            Notification
+                                                .findAll({
+                                                    where: { id: notificationRes },
+                                                    include: [
+                                                        {
+                                                            model: Users,
+                                                            as: 'to',
+                                                            required: false,
+                                                            attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                        },
+                                                        {
+                                                            model: Users,
+                                                            as: 'from',
+                                                            required: false,
+                                                            attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                        },
+                                                        {
+                                                            model: Projects,
+                                                            as: 'project_notification',
+                                                            required: false,
+                                                            include: [{
+                                                                model: Type,
+                                                                as: 'type',
+                                                                required: false,
+                                                                attributes: ["type"]
+                                                            }]
+                                                        },
+                                                        {
+                                                            model: Document,
+                                                            as: 'document_notification',
+                                                            required: false,
+                                                            attributes: ["origin"]
+                                                        },
+                                                        {
+                                                            model: Workstream,
+                                                            as: 'workstream_notification',
+                                                            required: false,
+                                                            attributes: ["workstream"]
+                                                        },
+                                                        {
+                                                            model: Tasks,
+                                                            as: 'task_notification',
+                                                            required: false,
+                                                            attributes: ["task"]
+                                                        },
+                                                        {
+                                                            model: Conversation,
+                                                            as: 'conversation_notification',
+                                                            required: false
+
+                                                        }
+                                                    ]
+                                                })
+                                                .map((findNotificationRes) => {
+                                                    req.app.parent.io.emit('FRONT_NOTIFICATION', {
+                                                        ...findNotificationRes.toJSON()
+                                                    })
+                                                    return findNotificationRes.toJSON()
+                                                })
+                                                .then(() => {
+                                                    async.map(notificationArr, ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
+                                                        if (receiveEmail === 1) {
+                                                            let html = '<p>' + message + '</p>';
+                                                            html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                            // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                            html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName} </strong> ${message}</p>`;
+                                                            html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                            html += `<p>Date:<br>${moment().format('LLL')}</p>`;
+
+                                                            const mailOptions = {
+                                                                from: '"no-reply" <no-reply@c_cfo.com>',
+                                                                to: `${emailAddress}`,
+                                                                subject: '[CLOUD-CFO]',
+                                                                html: html
+                                                            };
+                                                            global.emailtransport(mailOptions);
+                                                        }
+                                                        mapCallback(null)
+                                                    }, (err) => {
+                                                        parallelCallback(null);
+                                                    })
+                                                })
+                                        })
+                                })
+                        })
+                    }else{
+                        parallelCallback(null);
                     }
 
-                    const sender = await Users.findOne({
-                        where: {
-                            id: body.userId
-                        }
-                    }).then((o) => {
-                        const userObj = o.toJSON();
-                        return userObj;
-                    })
-
-                    const receiver = await Conversation.findAll({
-                        where: whereObj,
-                        include: [
-                            {
-                                model: Users,
-                                as: 'users',
-                                where: { id: { [Op.notIn]: [...body.reminderList, body.userId] } },
-                            }
-                        ],
-                        group: ['users.id']
-                    }).map((response) => {
-                        return response.toJSON().users.id;
-                    }).then((response) => {
-                        return response;
-                    })
-
-                    UsersNotificationSetting
-                        .findAll({
-                            where: { usersId: receiver },
-                            include: [{
-                                model: Users,
-                                as: 'notification_setting',
-                                required: false
-                            }]
-                        })
-                        .map((response) => {
-                            return response.toJSON()
-                        })
-                        .then(async (response) => {
-                            let message = "";
-                            let notificationArr = [];
-
-                            if (bodyData.linkType === "task") {
-                                const task = await Tasks.findOne({
-                                    include: {
-                                        model: Workstream,
-                                        as: 'workstream'
-                                    },
-                                    where: {
-                                        id: bodyData.linkId
-                                    }
-                                }).then((o) => {
-                                    const oObj = o.toJSON();
-                                    return oObj;
-                                });
-                                message = `${sender.firstName + " " + sender.lastName} replies to a comment on the task ${task.task} under ${task.workstream.workstream} workstream.`;
-
-                                notificationArr = await _.filter(response, (nSetting) => {
-                                    return nSetting.messageSend === 1
-                                }).map((nSetting) => {
-
-                                    const { emailAddress } = { ...nSetting.notification_setting }
-                                    return {
-                                        createdBy: sender.id,
-                                        usersId: nSetting.usersId,
-                                        projectId: task.projectId,
-                                        taskId: task.id,
-                                        conversationId: conversation.id,
-                                        workstreamId: task.workstreamId,
-                                        type: "commentReplies",
-                                        message: message,
-                                        emailAddress: emailAddress,
-                                        receiveEmail: nSetting.receiveEmail
-                                    }
-                                })
-                            }
-
-                            Notification
-                                .bulkCreate(notificationArr)
-                                .map((notificationRes) => {
-                                    return notificationRes.id
-                                })
-                                .then((notificationRes) => {
-                                    Notification
-                                        .findAll({
-                                            where: { id: notificationRes },
-                                            include: [
-                                                {
-                                                    model: Users,
-                                                    as: 'to',
-                                                    required: false,
-                                                    attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                },
-                                                {
-                                                    model: Users,
-                                                    as: 'from',
-                                                    required: false,
-                                                    attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                },
-                                                {
-                                                    model: Projects,
-                                                    as: 'project_notification',
-                                                    required: false,
-                                                    include: [{
-                                                        model: Type,
-                                                        as: 'type',
-                                                        required: false,
-                                                        attributes: ["type"]
-                                                    }]
-                                                },
-                                                {
-                                                    model: Document,
-                                                    as: 'document_notification',
-                                                    required: false,
-                                                    attributes: ["origin"]
-                                                },
-                                                {
-                                                    model: Workstream,
-                                                    as: 'workstream_notification',
-                                                    required: false,
-                                                    attributes: ["workstream"]
-                                                },
-                                                {
-                                                    model: Tasks,
-                                                    as: 'task_notification',
-                                                    required: false,
-                                                    attributes: ["task"]
-                                                },
-                                                {
-                                                    model: Conversation,
-                                                    as: 'conversation_notification',
-                                                    required: false
-
-                                                }
-                                            ]
-                                        })
-                                        .map((findNotificationRes) => {
-                                            req.app.parent.io.emit('FRONT_NOTIFICATION', {
-                                                ...findNotificationRes.toJSON()
-                                            })
-                                            return findNotificationRes.toJSON()
-                                        })
-                                        .then(() => {
-                                            async.map(notificationArr, ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
-                                                if (receiveEmail === 1) {
-                                                    let html = '<p>' + message + '</p>';
-                                                    html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
-                                                    // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                                                    html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName} </strong> ${message}</p>`;
-                                                    html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
-                                                    html += `<p>Date:<br>${moment().format('LLL')}</p>`;
-
-                                                    const mailOptions = {
-                                                        from: '"no-reply" <no-reply@c_cfo.com>',
-                                                        to: `${emailAddress}`,
-                                                        subject: '[CLOUD-CFO]',
-                                                        html: html
-                                                    };
-                                                    global.emailtransport(mailOptions);
-                                                }
-                                                mapCallback(null)
-                                            }, (err) => {
-                                                return null;
-                                            })
-                                        })
-                                })
-                        })
                 } catch (err) {
                     console.error(err)
                 }
             },
-            mentionedNotification: async (parallelCallback) => {
-                const receiver = await _.filter(body.reminderList, (o) => { return o !== body.userId })
+            mentionedNotification: (parallelCallback) => {
+                const receiver = _.filter(body.reminderList, (o) => { return o !== body.userId })
                 try {
                     if (receiver.length > 0) {
-                        const sender = await Users.findOne({
+                        Users.findOne({
                             where: {
                                 id: body.userId
                             }
-                        }).then((o) => {
-                            const responseObj = o.toJSON();
-                            return responseObj;
-                        })
+                        }).then(async (o) => {
+                            const sender = o.toJSON();
 
-                        UsersNotificationSetting
-                            .findAll({
-                                where: { usersId: receiver },
-                                include: [{
-                                    model: Users,
-                                    as: 'notification_setting',
-                                    required: false
-                                }]
-                            })
-                            .map((response) => {
-                                return response.toJSON()
-                            })
-                            .then(async (response) => {
-                                let message = "";
-                                let notificationArr = [];
+                            UsersNotificationSetting
+                                .findAll({
+                                    where: { usersId: receiver },
+                                    include: [{
+                                        model: Users,
+                                        as: 'notification_setting',
+                                        required: false
+                                    }]
+                                })
+                                .map((response) => {
+                                    return response.toJSON()
+                                })
+                                .then(async (response) => {
+                                    let message = "";
+                                    let notificationArr = [];
 
-                                if (bodyData.linkType === "task") {
-                                    const task = await Tasks.findOne({
-                                        include: {
-                                            model: Workstream,
-                                            as: 'workstream'
-                                        },
-                                        where: {
-                                            id: bodyData.linkId
-                                        }
-                                    }).then((o) => {
-                                        const responseObj = o.toJSON();
-                                        return responseObj;
-                                    });
-                                    message = `metioned you on the task ${task.task} under ${task.workstream.workstream} workstream.`;
+                                    if (bodyData.linkType === "task") {
+                                        const task = await Tasks.findOne({
+                                            include: {
+                                                model: Workstream,
+                                                as: 'workstream'
+                                            },
+                                            where: {
+                                                id: bodyData.linkId
+                                            }
+                                        }).then((o) => {
+                                            const responseObj = o.toJSON();
+                                            return responseObj;
+                                        });
+                                        message = `metioned you on the task ${task.task} under ${task.workstream.workstream} workstream.`;
 
-                                    notificationArr = await _.filter(response, (nSetting) => {
-                                        return nSetting.messageSend === 1
-                                    }).map((nSetting) => {
-                                        const { emailAddress } = { ...nSetting.notification_setting }
+                                        notificationArr = await _.filter(response, (nSetting) => {
+                                            return nSetting.messageSend === 1
+                                        }).map((nSetting) => {
+                                            const { emailAddress } = { ...nSetting.notification_setting }
 
-                                        return {
-                                            usersId: nSetting.usersId,
-                                            projectId: task.projectId,
-                                            createdBy: sender.id,
-                                            taskId: task.id,
-                                            workstreamId: task.workstreamId,
-                                            type: "taskTagged",
-                                            message: message,
-                                            emailAddress: emailAddress,
-                                            receiveEmail: nSetting.receiveEmail
-                                        }
-                                    })
-                                }
+                                            return {
+                                                usersId: nSetting.usersId,
+                                                projectId: task.projectId,
+                                                createdBy: sender.id,
+                                                taskId: task.id,
+                                                workstreamId: task.workstreamId,
+                                                type: "taskTagged",
+                                                message: message,
+                                                emailAddress: emailAddress,
+                                                receiveEmail: nSetting.receiveEmail
+                                            }
+                                        })
+                                    } else if (bodyData.linkType === "document") {
+                                        message = `metioned you on a comment.`;
 
-                                Notification
-                                    .bulkCreate(notificationArr)
-                                    .map((notificationRes) => {
-                                        return notificationRes.id
-                                    })
-                                    .then((notificationRes) => {
-                                        Notification
-                                            .findAll({
-                                                where: { id: notificationRes },
-                                                include: [
-                                                    {
-                                                        model: Users,
-                                                        as: 'to',
-                                                        required: false,
-                                                        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                    },
-                                                    {
-                                                        model: Users,
-                                                        as: 'from',
-                                                        required: false,
-                                                        attributes: ["emailAddress", "firstName", "lastName", "avatar"]
-                                                    },
-                                                    {
-                                                        model: Projects,
-                                                        as: 'project_notification',
-                                                        required: false,
-                                                        include: [{
-                                                            model: Type,
-                                                            as: 'type',
+                                        notificationArr = await _.filter(response, (nSetting) => {
+                                            return nSetting.messageSend === 1
+                                        }).map((nSetting) => {
+                                            const { emailAddress } = { ...nSetting.notification_setting }
+
+                                            return {
+                                                usersId: nSetting.usersId,
+                                                projectId: body.projectId,
+                                                createdBy: sender.id,
+                                                documentId: bodyData.linkId,
+                                                type: "taskTagged",
+                                                message: message,
+                                                emailAddress: emailAddress,
+                                                receiveEmail: nSetting.receiveEmail
+                                            }
+                                        })
+                                    }
+
+                                    Notification
+                                        .bulkCreate(notificationArr)
+                                        .map((notificationRes) => {
+                                            return notificationRes.id
+                                        })
+                                        .then((notificationRes) => {
+                                            Notification
+                                                .findAll({
+                                                    where: { id: notificationRes },
+                                                    include: [
+                                                        {
+                                                            model: Users,
+                                                            as: 'to',
                                                             required: false,
-                                                            attributes: ["type"]
-                                                        }]
-                                                    },
-                                                    {
-                                                        model: Document,
-                                                        as: 'document_notification',
-                                                        required: false,
-                                                        attributes: ["origin"]
-                                                    },
-                                                    {
-                                                        model: Workstream,
-                                                        as: 'workstream_notification',
-                                                        required: false,
-                                                        attributes: ["workstream"]
-                                                    },
-                                                    {
-                                                        model: Tasks,
-                                                        as: 'task_notification',
-                                                        required: false,
-                                                        attributes: ["task"]
-                                                    },
-                                                ]
-                                            })
-                                            .map((findNotificationRes) => {
-                                                req.app.parent.io.emit('FRONT_NOTIFICATION', {
-                                                    ...findNotificationRes.toJSON()
+                                                            attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                        },
+                                                        {
+                                                            model: Users,
+                                                            as: 'from',
+                                                            required: false,
+                                                            attributes: ["emailAddress", "firstName", "lastName", "avatar"]
+                                                        },
+                                                        {
+                                                            model: Projects,
+                                                            as: 'project_notification',
+                                                            required: false,
+                                                            include: [{
+                                                                model: Type,
+                                                                as: 'type',
+                                                                required: false,
+                                                                attributes: ["type"]
+                                                            }]
+                                                        },
+                                                        {
+                                                            model: Document,
+                                                            as: 'document_notification',
+                                                            required: false,
+                                                            attributes: ["origin"]
+                                                        },
+                                                        {
+                                                            model: Workstream,
+                                                            as: 'workstream_notification',
+                                                            required: false,
+                                                            attributes: ["workstream"]
+                                                        },
+                                                        {
+                                                            model: Tasks,
+                                                            as: 'task_notification',
+                                                            required: false,
+                                                            attributes: ["task"]
+                                                        },
+                                                    ]
                                                 })
-                                                return findNotificationRes.toJSON()
-                                            })
-                                            .then(() => {
-                                                async.map(notificationArr, ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
-                                                    if (receiveEmail === 1) {
-                                                        let html = '<p>' + message + '</p>';
-                                                        html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
-                                                        // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
-                                                        html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName} </strong> ${message}</p>`;
-                                                        html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
-                                                        html += `<p>Date:<br>${moment().format('LLL')}</p>`;
+                                                .map((findNotificationRes) => {
+                                                    req.app.parent.io.emit('FRONT_NOTIFICATION', {
+                                                        ...findNotificationRes.toJSON()
+                                                    })
+                                                    return findNotificationRes.toJSON()
+                                                })
+                                                .then(() => {
+                                                    async.map(notificationArr, ({ emailAddress, message, receiveEmail, projectId, workstreamId, taskId }, mapCallback) => {
+                                                        if (receiveEmail === 1) {
+                                                            let html = '<p>' + message + '</p>';
+                                                            html += '<p style="margin-bottom:0">Title: ' + message + '</p>';
+                                                            // html += '<p style="margin-top:0">Project - Workstream: ' + workstream.project.project + ' - ' + workstream.workstream + '</p>';
+                                                            html += `<p>Message:<br><strong>${sender.firstName}  ${sender.lastName} </strong> ${message}</p>`;
+                                                            html += ` <a href="${((process.env.NODE_ENV == "production") ? "https:" : "http:")}${global.site_url}account#/projects/${projectId}/workstreams/${workstreamId}?task-id=${taskId}">Click here</a>`;
+                                                            html += `<p>Date:<br>${moment().format('LLL')}</p>`;
 
-                                                        const mailOptions = {
-                                                            from: '"no-reply" <no-reply@c_cfo.com>',
-                                                            to: `${emailAddress}`,
-                                                            subject: '[CLOUD-CFO]',
-                                                            html: html
-                                                        };
-                                                        global.emailtransport(mailOptions);
-                                                    }
-                                                    mapCallback(null)
-                                                }, (err) => {
-                                                    return null;
+                                                            const mailOptions = {
+                                                                from: '"no-reply" <no-reply@c_cfo.com>',
+                                                                to: `${emailAddress}`,
+                                                                subject: '[CLOUD-CFO]',
+                                                                html: html
+                                                            };
+                                                            global.emailtransport(mailOptions);
+                                                        }
+                                                        mapCallback(null)
+                                                    }, () => {
+                                                        parallelCallback(null);
+                                                    })
                                                 })
-                                            })
-                                    })
-                            })
+                                        })
+                                })
+                        })
                     } else {
-                        return null
+                        parallelCallback(null);
                     }
                 } catch (err) {
                     console.error(err)
