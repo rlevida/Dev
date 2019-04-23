@@ -297,6 +297,9 @@ var notificationType = exports.notificationType = function (type) {
         case "messageSend": {
             return "sent you a new message"
         }
+        case "fileTagged":{
+            return "mentioned you in a file"
+        }
         case "taskTagged": {
             return "mentioned you in a task"
         }

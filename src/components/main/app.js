@@ -161,16 +161,26 @@ class Main extends React.Component {
 
                 }
             }
+            case "fileTagged": {
+                history.push(`${url}/files?file-id=${notif.documentId}`);
+            }
                 break;
             case "messageSend": {
                 history.push(`${url}/messages?note-id=${notif.note_notification.id}`);
             }
                 break;
+            case "commentReplies": {
+                if (notif.taskId === null) {
+                    history.push(`${url}/files?file-id=${notif.documentId}`);
+                } else {
+                    history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+                }
+            }
+                break
             case "taskAssgined":
             case "taskApprover":
             case "taskTagged":
             case "taskApproved":
-            case "commentReplies":
             case "taskMemberCompleted":
             case "taskFollowingCompleted":
             case "taskDeadline":
