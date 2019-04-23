@@ -137,6 +137,13 @@ export default class TaskCalendar extends React.Component {
                 dispatch({ type: "SET_COMMENT_LIST", list: data.result, count: data.count });
             }
         });
+
+        getData(`/api/taskTimeLogs?taskId=${e.id}&page=1`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_TASKTIMELOG_LIST", list: c.data.result, count: c.data.count });
+                dispatch({ type: "SET_TOTAL_HOURS", total: c.data.total_hours });
+            }
+        });
     }
 
     renderCalendar() {

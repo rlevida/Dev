@@ -351,7 +351,6 @@ export default class ProjectForm extends React.Component {
                                     <div class="form-group">
                                         <label for="project-name">Project Name: <span class="text-red">*</span></label>
                                         <input id="project-name" type="text" name="project" required value={(typeof project.Selected.project == "undefined" || project.Selected.project == null) ? "" : project.Selected.project} class="form-control" placeholder="Enter project name" onChange={this.handleChange} />
-
                                     </div>
                                     <div class="form-group">
                                         <label for="project-type">Project Type: <span class="text-red">*</span></label>

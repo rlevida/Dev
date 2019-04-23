@@ -166,8 +166,13 @@ export default class TaskListCategory extends React.Component {
                 dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
                 dispatch({ type: "SET_TASK_LOADING", Loading: "" });
                 $(`#task-details`).modal('show');
-            } else {
-                showToast("error", "Error retrieving task. Please try again later.");
+            }
+        });
+
+        getData(`/api/taskTimeLogs?taskId=${id}&page=1`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_TASKTIMELOG_LIST", list: c.data.result, count: c.data.count });
+                dispatch({ type: "SET_TOTAL_HOURS", total: c.data.total_hours });
             }
         });
     }

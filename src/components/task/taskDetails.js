@@ -3,7 +3,7 @@ import _ from "lodash";
 import moment from 'moment';
 import { connect } from "react-redux";
 import { MentionsInput, Mention } from 'react-mentions';
-import ReactTooltip from 'react-tooltip';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 import { putData, postData, deleteData, getData, showToast } from "../../globalFunction";
 import { DeleteModal, MentionConvert } from "../../globalComponents";
@@ -12,6 +12,7 @@ import defaultStyle from "../global/react-mention-style";
 import DocumentViewerModal from "../document/modal/documentViewerModal";
 import TaskChecklist from "./taskChecklist";
 import TaskDocument from "./taskDocument";
+import TaskTimeLog from "./taskTimeLog";
 
 let keyTimer = "";
 
@@ -21,7 +22,8 @@ let keyTimer = "";
         loggedUser: store.loggedUser,
         activityLog: store.activityLog,
         conversation: store.conversation,
-        document: store.document
+        document: store.document,
+        tasktimeLog: store.tasktimeLog
     }
 })
 export default class TaskDetails extends React.Component {
@@ -43,7 +45,8 @@ export default class TaskDetails extends React.Component {
             "deleteSubtask",
             "deleteDocument",
             "confirmDeleteDocument",
-            "replyComment"
+            "replyComment",
+            "getNextTimeLogs"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         })
@@ -374,8 +377,19 @@ export default class TaskDetails extends React.Component {
         });
     }
 
+    getNextTimeLogs() {
+        const { dispatch, tasktimeLog, task } = this.props;
+        const tasktimeLogPage = tasktimeLog.Count.current_page + 1;
+        getData(`/api/taskTimeLogs?taskId=${task.Selected.id}&page=${tasktimeLogPage}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "UPDATE_TASKTIMELOG_LIST", list: c.data.result, count: c.data.count });
+                dispatch({ type: "SET_TOTAL_HOURS", total: c.data.total_hours });
+            }
+        });
+    }
+
     render() {
-        const { task: taskObj, loggedUser, activityLog, conversation, document, dispatch } = { ...this.props };
+        const { task: taskObj, loggedUser, activityLog, conversation, document, dispatch, tasktimeLog } = { ...this.props };
         const commentType = conversation.Selected.type || "";
         const { Loading, Selected } = taskObj;
         const { id, task, task_members, dueDate, startDate, workstream, status, description, checklist, task_dependency = [], tag_task, projectId, workstreamId } = Selected;
@@ -433,6 +447,12 @@ export default class TaskDetails extends React.Component {
             .value();
         const documentList = [...checklistDocuments, ...taskDocuments];
         const documentValue = (typeof document.Selected != "undefined" && _.isEmpty(document.Selected) == false) ? document.Selected.name : "";
+        const totalHours = _(tasktimeLog.TotalHours)
+            .map(({ period, value }) => {
+                const toBeAdded = (period == "hours") ? value * 60 : value;
+                return toBeAdded;
+            })
+            .value();
 
         return (
             <div>
@@ -497,7 +517,7 @@ export default class TaskDetails extends React.Component {
                                                         Selected.status == "Completed" &&
                                                         Selected.approvalRequired == 1 &&
                                                         Selected.approverId == loggedUser.data.id
-                                                    ) 
+                                                    )
                                                 ) && <a class="btn btn-default" onClick={() => this.completeTask("For Approval")}>
                                                     <span>
                                                         <i class="fa mr10 fa-check" aria-hidden="true"></i>
@@ -551,6 +571,9 @@ export default class TaskDetails extends React.Component {
                                     </div>
                                     <div class="col-md-6">
                                         <div class="button-action">
+                                            <a class="logo-action text-grey" onClick={() => { $(`#task-time`).modal('show'); }}>
+                                                <i title="LOG TIME" class="fa fa-clock-o" aria-hidden="true"></i>
+                                            </a>
                                             <a class="logo-action text-grey" onClick={() => this.starredTask()}>
                                                 <i title="FAVORITE" class={`fa ${Selected.isStarred ? "fa-star text-yellow" : "fa-star-o"}`} aria-hidden="true"></i>
                                             </a>
@@ -829,13 +852,17 @@ export default class TaskDetails extends React.Component {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="row mb20">
-                                                <div class="col-md-12">
-                                                    <div>
+                                            <Tabs>
+                                                <TabList>
+                                                    <Tab>Activities</Tab>
+                                                    <Tab>Time Tracking</Tab>
+                                                </TabList>
+                                                <TabPanel>
+                                                    <div class="ml10 mt20">
                                                         <h3>
                                                             Activity
                                                         </h3>
-                                                        <div class="ml10">
+                                                        <div>
                                                             {
                                                                 ((activityList).length > 0) && <div>
                                                                     {
@@ -901,8 +928,44 @@ export default class TaskDetails extends React.Component {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </div>
+                                                </TabPanel>
+                                                <TabPanel>
+                                                    <div class="ml10 mt20">
+                                                        <h3>
+                                                            Time tracking: {(_.sum(totalHours) / 60).toFixed(2)} Hours
+                                                        </h3>
+                                                        <div>
+                                                            {
+                                                                _.map(tasktimeLog.List, (taskTimeLogObj, index) => {
+                                                                    const { time, description, dateAdded, user, period } = { ...taskTimeLogObj };
+                                                                    const duration = moment.duration(moment().diff(moment(dateAdded)));
+                                                                    const date = (duration.asDays() > 1) ? moment(dateAdded).format("MMMM DD, YYYY") : moment(dateAdded).from(new Date());
+
+                                                                    return (
+                                                                        <div key={index} class="log-time">
+                                                                            <div class="display-flex vh-center">
+                                                                                <p class="mb0 note">Logged Time:</p>
+                                                                                <p class="mb0 ml10">{time + " " + period}</p>
+                                                                            </div>
+                                                                            <div class="display-flex vh-center">
+                                                                                <p class="mb0 note">Description:</p>
+                                                                                <p class="mb0 ml10">{description}</p>
+                                                                            </div>
+                                                                            <p class="note mb0">Added {date} by {user.firstName + " " + user.lastName}.</p>
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                            {
+                                                                ((tasktimeLog.List).length == 0) && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                                            }
+                                                            {
+                                                                (tasktimeLog.Count.current_page != tasktimeLog.Count.last_page) && <p class="m0 text-center"><a onClick={() => this.getNextTimeLogs()}>Load More Timelogs</a></p>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </TabPanel>
+                                            </Tabs>
                                         </div>
                                     }
                                 </div>
@@ -936,6 +999,23 @@ export default class TaskDetails extends React.Component {
                             </div>
                             <div class="modal-body">
                                 <TaskDocument />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade" id="task-time" data-backdrop="static" data-keyboard="false">
+                    <div class="modal-dialog modal-md">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <a class="text-grey" data-dismiss="modal" aria-label="Close">
+                                    <span>
+                                        <i class="fa fa-chevron-left mr10" aria-hidden="true"></i>
+                                        <strong>Back</strong>
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="modal-body">
+                                <TaskTimeLog />
                             </div>
                         </div>
                     </div>

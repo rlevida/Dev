@@ -102,6 +102,7 @@ class Main extends React.Component {
     handleAdd(type) {
         const { dispatch, history, location } = this.props;
         let formType = "";
+        let selectedType = "";
 
         switch (type) {
             case "task":
@@ -109,28 +110,34 @@ class Main extends React.Component {
                     history.push('/my-tasks');
                 }
                 formType = "SET_TASK_FORM_ACTIVE";
+                selectedType = "SET_TASK_SELECTED";
                 break;
             case "project":
                 if (location.pathname != '/projects') {
                     history.push('/projects');
                 }
                 formType = "SET_PROJECT_FORM_ACTIVE";
+                selectedType = "SET_PROJECT_SELECTED";
                 break;
             case "user":
                 if (location.pathname != '/users-and-team') {
                     history.push('/users-and-team');
                 }
                 formType = "SET_USER_FORM_ACTIVE";
+                selectedType = "SET_USER_SELECTED";
                 break;
             case "team":
                 if (location.pathname != '/users-and-team') {
                     history.push('/users-and-team');
                 }
                 formType = "SET_TEAM_FORM_ACTIVE";
+                selectedType = "SET_TEAM_SELECTED";
                 dispatch({ type: "SET_USER_FORM_ACTIVE", FormActive: "" });
                 break;
         }
+
         dispatch({ type: formType, FormActive: "Form" });
+        dispatch({ type: selectedType, Selected: {} });
     }
 
     async handleNotificationRedirect(notif) {
