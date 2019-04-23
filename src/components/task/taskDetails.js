@@ -453,7 +453,7 @@ export default class TaskDetails extends React.Component {
                 return toBeAdded;
             })
             .value();
-
+        const totalHoursValue = (_.sum(totalHours) / 60).toFixed(2);
         return (
             <div>
                 <div class="modal right fade" id="task-details" data-backdrop="static" data-keyboard="false">
@@ -861,7 +861,7 @@ export default class TaskDetails extends React.Component {
                                                     <TabPanel>
                                                         <div class="ml10 mt20">
                                                             <h3>
-                                                            Activities
+                                                                Activities
                                                         </h3>
                                                             <div>
                                                                 {
@@ -933,8 +933,8 @@ export default class TaskDetails extends React.Component {
                                                     <TabPanel>
                                                         <div class="ml10 mt20">
                                                             <h3>
-                                                                Time Tracking: {(_.sum(totalHours) / 60).toFixed(2)} Hours
-                                                        </h3>
+                                                                Time Tracking: {totalHoursValue} Hour{(totalHoursValue > 0) ? "s" : ""}
+                                                            </h3>
                                                             <div>
                                                                 {
                                                                     _.map(tasktimeLog.List, (taskTimeLogObj, index) => {
