@@ -51,8 +51,15 @@ export default class TaskForm extends React.Component {
             "onChangeRaw"
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
+    componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+
+        dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
+        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
+        dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
+    }
     componentDidMount() {
-        const { task } = { ...this.props };
+        const { task, workstream, project } = { ...this.props };
 
         this.fetchAssignList();
         this.fetchProjectList();
@@ -62,8 +69,13 @@ export default class TaskForm extends React.Component {
             this.fetchApproverMembers();
             this.getTaskDetails();
         }
-    }
 
+        if (typeof project.Selected.id != "undefined" && project.Selected.id != "") {
+            this.fetchApproverMembers();
+            this.fetchWorkstreamList();
+            this.fetchAssignList();
+        }
+    }
     setAssignMemberList(options) {
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
@@ -93,9 +105,11 @@ export default class TaskForm extends React.Component {
     }
 
     fetchAssignList(options) {
-        const { dispatch, task } = { ...this.props };
+        const { dispatch, task, project } = { ...this.props };
         const { Selected } = task;
-        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${Selected.projectId}&linkType=project`;
+        const projectId = Selected.projectId || project.Selected.id;
+
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
@@ -138,9 +152,11 @@ export default class TaskForm extends React.Component {
     }
 
     fetchWorkstreamList(options) {
-        const { dispatch, task, loggedUser } = { ...this.props };
+        const { dispatch, task, loggedUser, project } = { ...this.props };
         const { Selected } = task;
-        let fetchUrl = `/api/workstream?projectId=${Selected.projectId}&page=1&userId=${loggedUser.data.id}`;
+        const projectId = Selected.projectId || project.Selected.id;
+
+        let fetchUrl = `/api/workstream?projectId=${projectId}&page=1&userId=${loggedUser.data.id}`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&workstream=${options}`;
@@ -155,9 +171,11 @@ export default class TaskForm extends React.Component {
     }
 
     fetchApproverMembers(options) {
-        const { dispatch, task } = { ...this.props };
+        const { dispatch, task, project } = { ...this.props };
         const { Selected } = task;
-        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${Selected.projectId}&linkType=project&memberType=approver`;
+        const projectId = Selected.projectId || project.Selected.id;
+
+        let fetchUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project&memberType=approver`;
 
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&memberName=${options}`;
@@ -229,6 +247,7 @@ export default class TaskForm extends React.Component {
         }
 
         if (name == "projectId" && value != "") {
+            selectedObj["projectId"] = value;
             selectedObj["workstreamId"] = "";
             selectedObj["approverId"] = "";
             dispatch({ type: "SET_TASK_DEPENDENCY_SELECTED", Selected: "" })
@@ -265,7 +284,7 @@ export default class TaskForm extends React.Component {
     }
 
     handleSubmit(e) {
-        const { task, dispatch, loggedUser } = this.props;
+        const { task, dispatch, loggedUser, project, workstream } = this.props;
         let result = true;
 
         $('#task-form *').validator('validate');
@@ -288,7 +307,8 @@ export default class TaskForm extends React.Component {
                 ...task.Selected,
                 approverId: (task.Selected.approvalRequired > 0) ? task.Selected.approverId : "",
                 userId: loggedUser.data.id,
-                projectId: task.Selected.projectId,
+                projectId: task.Selected.projectId || project.Selected.id,
+                workstreamId: task.Selected.workstreamId || workstream.Selected.id,
                 period: (typeof task.Selected.period != "undefined" && task.Selected.period != "" && task.Selected.period != null) ? _.toNumber(task.Selected.period) : 0,
                 periodInstance: (typeof task.Selected.periodic != "undefined" && task.Selected.periodic == 1) ? 3 : 0,
                 status: (task.Selected.status == null || task.Selected.status == "") ? "In Progress" : task.Selected.status,
@@ -432,6 +452,13 @@ export default class TaskForm extends React.Component {
             }
         }
 
+        if (typeof project.Selected.id != "undefined") {
+            projectList.push({ id: project.Selected.id, name: project.Selected.project });
+        }
+
+        if (typeof workstream.Selected.id != "undefined") {
+            workstreamList.push({ id: workstream.Selected.id, name: workstream.Selected.workstream });
+        }
         return (
             <div class="row" >
                 <div class="col-lg-12">
@@ -483,23 +510,25 @@ export default class TaskForm extends React.Component {
                                         <div class="mt20">
                                             <div class="mt10 row">
                                                 <div class="col-lg-6 col-sm-6">
-                                                    <div class="form-group input-inline">
+                                                    <div class={`form-group input-inline ${(typeof project.Selected.id != "undefined") ? "pointer-none" : ""}`}>
                                                         <label for="email">Project: <span class="text-red">*</span></label>
                                                         <DropDown
                                                             required={true}
                                                             options={projectList}
                                                             onInputChange={this.setProjectList}
-                                                            selected={(typeof task.Selected.projectId == "undefined") ? "" : task.Selected.projectId}
+                                                            selected={
+                                                                (typeof project.Selected.id != "undefined") ? project.Selected.id :
+                                                                    (typeof task.Selected.projectId == "undefined") ? "" : task.Selected.projectId
+                                                            }
                                                             onChange={(e) => {
                                                                 this.setDropDown("projectId", (e == null) ? "" : e.value);
                                                             }}
-                                                            disabled={(typeof task.Selected.id != "undefined" && task.Selected.id != "")}
                                                             placeholder={'Search project'}
                                                         />
                                                     </div>
                                                 </div>
                                                 <div class="col-lg-6 col-sm-6">
-                                                    <div class={`form-group input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
+                                                    <div class={`form-group input-inline ${(workstream.Loading == "RETRIEVING" || typeof workstream.Selected.id != "undefined") ? "pointer-none" : ""}`}>
                                                         <label>
                                                             Workstream: <span class="text-red">*</span>
                                                             <p class="m0 note">Please select a project first.</p>
@@ -508,7 +537,10 @@ export default class TaskForm extends React.Component {
                                                             required={true}
                                                             options={_.uniqBy(workstreamList, 'id')}
                                                             onInputChange={this.setWorkstreamList}
-                                                            selected={(typeof task.Selected.workstreamId == "undefined") ? "" : task.Selected.workstreamId}
+                                                            selected={
+                                                                (typeof workstream.Selected.id != "undefined") ? workstream.Selected.id :
+                                                                    (typeof task.Selected.workstreamId == "undefined") ? "" : task.Selected.workstreamId
+                                                            }
                                                             onChange={(e) => {
                                                                 this.setDropDown("workstreamId", (e == null) ? "" : e.value);
                                                             }}
@@ -532,7 +564,10 @@ export default class TaskForm extends React.Component {
                                             </div>
                                             <div class="row">
                                                 <div class="col-lg-6 col-sm-6">
-                                                    <div class={`form-group input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
+                                                    <div class={`form-group input-inline ${(
+                                                        (typeof task.Selected.projectId == "undefined" && typeof project.Selected.id == "undefined") ||
+                                                        workstream.Loading == "RETRIEVING"
+                                                    ) ? "pointer-none" : ""}`}>
                                                         <label for="email">
                                                             Assigned: <span class="text-red">*</span>
                                                             <p class="m0 note">Please select a project first.</p>
@@ -548,8 +583,9 @@ export default class TaskForm extends React.Component {
                                                             placeholder={'Search name'}
                                                             disabled={
                                                                 (
-                                                                    loggedUser.data.userRole >= 4 && (
-                                                                        typeof task.Selected.workstream != "undefined" &&
+                                                                    loggedUser.data.userRole >= 4 &&
+                                                                    (
+                                                                        (typeof task.Selected.workstream != "undefined" || typeof workstream.Selected.id != "undefined") &&
                                                                         task.Selected.workstream.project.type.type == "Client"
                                                                     )
                                                                 )
@@ -702,7 +738,10 @@ export default class TaskForm extends React.Component {
                                                     Approver:<span class="text-red">*</span>
                                                 </label>
                                                 <p class="m0 note">Please select a project first.</p>
-                                                <div class={`input-inline ${(workstream.Loading == "RETRIEVING" || typeof task.Selected.projectId == "undefined" || task.Selected.projectId == "") ? "pointer-none" : ""}`}>
+                                                <div class={`input-inline ${(
+                                                    (typeof task.Selected.projectId == "undefined" && typeof project.Selected.id == "undefined") ||
+                                                    workstream.Loading == "RETRIEVING"
+                                                ) ? "pointer-none" : ""}`}>
                                                     <DropDown
                                                         required={true}
                                                         options={_.uniqBy(approverList, 'id')}

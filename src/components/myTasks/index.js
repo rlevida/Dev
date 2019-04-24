@@ -22,6 +22,8 @@ export default class Component extends React.Component {
         dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
         dispatch({ type: "SET_TASK_LIST", list: [], count: {} });
+        dispatch({ type: "SET_PROJECT_SELECTED", Selected: {} });
+        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
     }
 
     render() {

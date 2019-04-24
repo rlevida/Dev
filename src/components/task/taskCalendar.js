@@ -33,6 +33,7 @@ export default class TaskCalendar extends React.Component {
 
     componentDidMount() {
         const currentMonth = moment().startOf('month');
+        showToast("success", "Retrieving tasks. Please wait.");
         this.fetchData(currentMonth);
     }
 

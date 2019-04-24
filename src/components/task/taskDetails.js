@@ -859,10 +859,7 @@ export default class TaskDetails extends React.Component {
                                                         <Tab>Time Tracking</Tab>
                                                     </TabList>
                                                     <TabPanel>
-                                                        <div class="ml10 mt20">
-                                                            <h3>
-                                                                Activities
-                                                        </h3>
+                                                        <div class="ml10 mt20 detail-tabs">
                                                             <div>
                                                                 {
                                                                     ((activityList).length > 0) && <div>
@@ -931,9 +928,9 @@ export default class TaskDetails extends React.Component {
                                                         </div>
                                                     </TabPanel>
                                                     <TabPanel>
-                                                        <div class="ml10 mt20">
+                                                        <div class="ml10 mt20 detail-tabs">
                                                             <h3>
-                                                                Time Tracking: {totalHoursValue} Hour{(totalHoursValue > 1) ? "s" : ""}
+                                                                Total Time: {totalHoursValue} Hour{(totalHoursValue > 1) ? "s" : ""}
                                                             </h3>
                                                             <div>
                                                                 {

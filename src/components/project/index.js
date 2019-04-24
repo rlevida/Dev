@@ -44,9 +44,6 @@ export default class Component extends React.Component {
             <div>
                 {
                     (project.FormActive != "Form" && task.FormActive != "Form") && <Switch>
-                        {
-
-                        }
                         <Route exact={true} path="/projects" component={
                             (
                                 (loggedUser.data.userRole <= 3) ||

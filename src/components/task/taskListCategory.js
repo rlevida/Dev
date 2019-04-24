@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 
 import { Loading } from "../../globalComponents";
 import { getData, putData, showToast, getParameterByName, textColor } from "../../globalFunction";
+let currentTaskId = "";
 
 @connect((store) => {
     return {
@@ -50,10 +51,17 @@ export default class TaskListCategory extends React.Component {
 
     componentDidUpdate(prevProps) {
         const { task } = this.props;
+        const taskId = getParameterByName("task-id");
+
         if (_.isEqual(prevProps.task.Filter, task.Filter) == false) {
             this.setState({ loading: "RETRIEVING" }, () => {
                 this.getList(1)
             });
+        }
+
+        if (currentTaskId != taskId && taskId != null) {
+            currentTaskId = taskId;
+            this.openTaskDetails(taskId);
         }
     }
 

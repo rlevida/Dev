@@ -8,7 +8,9 @@ import WorkstreamForm from './workstreamForm';
 
 @connect((store) => {
     return {
-        workstream: store.workstream
+        workstream: store.workstream,
+        project: store.project,
+        task: store.task
     }
 })
 export default class Component extends React.Component {
@@ -16,11 +18,14 @@ export default class Component extends React.Component {
         super(props);
     }
     componentWillUnmount() {
-        const { dispatch } = { ...this.props };
-        
-        dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
+        const { dispatch, task, project } = { ...this.props };
         dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
         dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
+
+        if ((project.FormActive != "Form" && task.FormActive != "Form") == false) {
+            dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
+            dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
+        }
     }
 
     render() {
