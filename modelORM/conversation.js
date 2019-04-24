@@ -43,7 +43,8 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-      tableName: 'conversation'
+      tableName: 'conversation',
+      charset: 'utf8mb4'
     });
 
   Conversation.associate = function (models) {

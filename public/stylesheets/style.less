@@ -306,6 +306,20 @@ section {
     padding: 100px 0;
 }
 
+.emoji-mart,
+.emoji-mart section{
+  padding: 2px;
+}
+
+.emojiPicker{
+  position: absolute;
+  position:absolute;
+  left:0;
+  right:0;
+  top: 0;
+  text-align: center;
+}
+
 .more {
   float: right;
   display: inline;
@@ -2089,6 +2103,20 @@ textarea::-webkit-scrollbar-thumb {
   z-index: 99
 }
 
+.emoji-picker-close{
+  font-size: 25px;
+  z-index: 99;
+  position: absolute;
+  right: -12px;
+  top: -22px;
+}
+
+.emoji-wrapper{
+  position: relative;
+  width: 355px;
+  margin: 0 auto;
+}
+
 .color-tab{
   height: 30px;
   width: 30px;
@@ -2328,7 +2356,7 @@ textarea::-webkit-scrollbar-thumb {
 
 #conversation-form textarea.form-control{
   height: 40px;
-  padding-right: 25px;
+  padding-right: 60px;
 }
 
 #message-div {
@@ -2413,6 +2441,7 @@ textarea::-webkit-scrollbar-thumb {
   width: 40px;
   height:40px;
   overflow:hidden;
+  margin-right: 5px;
 }
 
 #message-thread .thumbnail-profile img{

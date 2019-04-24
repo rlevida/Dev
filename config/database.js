@@ -6,7 +6,7 @@ var connectionCredentials = exports.connectionCredentials = {
     user:  process.env.CLOUD_CFO_DB_USER,
     password: process.env.CLOUD_CFO_DB_PASSWORD,
     database: process.env.CLOUD_CFO_DB,
-    charset : 'utf8mb4'
+    charset: 'utf8mb4'
 };
 
 var connection = mysql.createConnection(connectionCredentials);

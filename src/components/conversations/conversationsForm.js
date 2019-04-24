@@ -2,6 +2,8 @@ import React from "react";
 import _ from 'lodash';
 import moment from 'moment';
 import { connect } from "react-redux";
+import 'emoji-mart/css/emoji-mart.css'
+import { Picker } from 'emoji-mart'
 
 import { DropDown, Loading } from "../../globalComponents";
 import { getData, postData, putData, showToast } from "../../globalFunction";
@@ -36,7 +38,8 @@ export default class ConversationForm extends React.Component {
             "removefile",
             "fetchConversation",
             "handleEditTitle",
-            "updateMessage"
+            "updateMessage",
+            "handleShowEmoticons"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -298,8 +301,23 @@ export default class ConversationForm extends React.Component {
         }
     }
 
+    handleShowEmoticons() {
+        const { handleCancel } = { ...this.props };
+        const { emoticons = "", emoticonIcon = "" } = { ...this.refs };
+        const emoticonsClassList = (emoticons != "") ? emoticons.classList : "";
+
+        if (emoticonsClassList.contains('hide')) {
+            (emoticonsClassList).remove('hide');
+            (searchIconClassList).remove('fa-search');
+            (searchIconClassList).add('fa-times-circle-o');
+            (searchIconClassList).add('ml5');
+        } else {
+            (emoticonsClassList).add('hide');
+        }
+    }
+
     render() {
-        const { teams, workstream, notes, conversation, loggedUser, workstreamId } = this.props;
+        const { teams, workstream, notes, conversation, loggedUser, workstreamId, dispatch } = this.props;
         const workstreamList = workstream.SelectList;
         const userList = [...teams.MemberList, ..._.map(notes.Selected.users, ({ value, label }) => { return { id: value, name: label } })];
         const conversationList = (typeof notes.Selected.id != "undefined" && notes.Selected.id != "") ? _(conversation.List)
@@ -436,8 +454,11 @@ export default class ConversationForm extends React.Component {
                                 placeholder="Message"
                                 onChange={this.handleChange}
                             />
-                            <a class="logo-action text-grey" onClick={() => this.refs.fileUploader.click()}>
+                            <a class="logo-action text-grey mr30" onClick={() => this.refs.fileUploader.click()}>
                                 <i class="fa fa-paperclip" aria-hidden="true"></i>
+                            </a>
+                            <a class="logo-action text-grey" ref="emoticonIcon" onClick={() => this.handleShowEmoticons()}>
+                                <i class="fa fa-smile-o" aria-hidden="true"></i>
                             </a>
                         </div>
                         {
@@ -540,6 +561,16 @@ export default class ConversationForm extends React.Component {
                         }
                     </div>
                 </form>
+                <div class="emojiPicker hide" ref="emoticons">
+                    <div class="emoji-wrapper">
+                        <a class="emoji-picker-close" onClick={() => this.handleShowEmoticons()}><i class="fa fa-times-circle" aria-hidden="true"></i></a>
+                        <Picker set='emojione' onSelect={(o) => {
+                            const notesMessage = notes.Selected.message || "";
+                            console.log(o)
+                            dispatch({ type: "SET_NOTES_SELECTED", Selected: { ...notes.Selected, ['message']: notesMessage + "" + o.native } });
+                        }} />
+                    </div>
+                </div>
                 <DocumentViewerModal />
             </div>
         )
