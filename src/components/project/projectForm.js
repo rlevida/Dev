@@ -20,8 +20,7 @@ let keyTimer = "";
         teams: store.teams,
         members: store.members,
         users: store.users,
-        document: store.document,
-        global: store.global,
+        document: store.document
     }
 })
 
@@ -51,10 +50,6 @@ export default class ProjectForm extends React.Component {
 
         getData(`/api/project/getProjectTeams?linkId=${project.Selected.id}&linkType=project&usersType=team`, {}, (c) => {
             dispatch({ type: "SET_TEAM_LIST", list: c.data })
-        });
-
-        getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
-            dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
         });
 
         this.getMembers();
