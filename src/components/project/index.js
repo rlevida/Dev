@@ -32,6 +32,7 @@ export default class Component extends React.Component {
         this.unlisten = this.props.history.listen(() => {
             dispatch({ type: "SET_PROJECT_FORM_ACTIVE", FormActive: "List" });
             dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+            dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
         });
     }
 
