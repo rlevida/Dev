@@ -434,7 +434,7 @@ export default class TaskForm extends React.Component {
         let workstreamList = _.cloneDeep(workstream.SelectList);
         let assignedList = _.cloneDeep(users.SelectList);
         let approverList = _.cloneDeep(members.SelectList);
-
+        
         if (typeof task.Selected.id != "undefined") {
             const { project } = task.Selected.workstream;
             const userAssigned = _.find(task.Selected.task_members, ({ memberType }) => { return memberType == "assignedTo" });
@@ -500,8 +500,7 @@ export default class TaskForm extends React.Component {
                                                 disabled={
                                                     (
                                                         loggedUser.data.userRole >= 4 && (
-                                                            typeof task.Selected.workstream != "undefined" &&
-                                                            task.Selected.workstream.project.type.type == "Client"
+                                                            typeof task.Selected.workstream != "undefined" && project.Selected.type.type == "Client"
                                                         )
                                                     )
                                                 }
@@ -548,8 +547,7 @@ export default class TaskForm extends React.Component {
                                                             disabled={
                                                                 (
                                                                     loggedUser.data.userRole >= 4 && (
-                                                                        typeof task.Selected.workstream != "undefined" &&
-                                                                        task.Selected.workstream.project.type.type == "Client"
+                                                                        typeof task.Selected.workstream != "undefined" && project.Selected.type.type == "Client"
                                                                     )
                                                                 )
                                                             }
@@ -586,7 +584,7 @@ export default class TaskForm extends React.Component {
                                                                     loggedUser.data.userRole >= 4 &&
                                                                     (
                                                                         (typeof task.Selected.workstream != "undefined" || typeof workstream.Selected.id != "undefined") &&
-                                                                        task.Selected.workstream.project.type.type == "Client"
+                                                                        (typeof project.Selected.type != "undefined" && project.Selected.type.type == "Client")
                                                                     )
                                                                 )
                                                             }
@@ -645,8 +643,7 @@ export default class TaskForm extends React.Component {
                                                                 disabled={
                                                                     (
                                                                         loggedUser.data.userRole >= 4 && (
-                                                                            typeof task.Selected.workstream != "undefined" &&
-                                                                            task.Selected.workstream.project.type.type == "Client"
+                                                                            typeof task.Selected.workstream != "undefined" && project.Selected.type.type == "Client"
                                                                         )
                                                                     )
                                                                 }
@@ -680,8 +677,7 @@ export default class TaskForm extends React.Component {
                                                             disabled={
                                                                 (
                                                                     loggedUser.data.userRole >= 4 && (
-                                                                        typeof task.Selected.workstream != "undefined" &&
-                                                                        task.Selected.workstream.project.type.type == "Client"
+                                                                        typeof task.Selected.workstream != "undefined" && project.Selected.type.type == "Client"
                                                                     )
                                                                 )
                                                             }
@@ -701,8 +697,7 @@ export default class TaskForm extends React.Component {
                                                         disabled={
                                                             (
                                                                 loggedUser.data.userRole >= 4 && (
-                                                                    typeof task.Selected.workstream != "undefined" &&
-                                                                    task.Selected.workstream.project.type.type == "Client"
+                                                                    typeof task.Selected.workstream != "undefined" && project.Selected.type.type == "Client"
                                                                 )
                                                             )
                                                         }
@@ -723,8 +718,7 @@ export default class TaskForm extends React.Component {
                                                     disabled={
                                                         (
                                                             loggedUser.data.userRole > 5 && (
-                                                                typeof task.Selected.workstream != "undefined" &&
-                                                                task.Selected.workstream.project.type.type == "Client"
+                                                                typeof task.Selected.workstream != "undefined" && project.Selected.type.type == "Client"
                                                             )
                                                         )
                                                     }
@@ -754,8 +748,7 @@ export default class TaskForm extends React.Component {
                                                         disabled={
                                                             (
                                                                 loggedUser.data.userRole > 5 && (
-                                                                    typeof task.Selected.workstream != "undefined" &&
-                                                                    task.Selected.workstream.project.type.type == "Client"
+                                                                    typeof task.Selected.workstream != "undefined" && project.Selected.type.type == "Client"
                                                                 )
                                                             )
                                                         }

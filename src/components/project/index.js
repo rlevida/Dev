@@ -50,9 +50,9 @@ export default class Component extends React.Component {
                     (project.FormActive != "Form" && task.FormActive != "Form") && <Switch>
                         <Route exact={true} path="/projects" component={
                             (
-                                (loggedUser.data.userRole <= 3) ||
-                                (loggedUser.data.userRole < 3 && isProjectMember > 0) ||
-                                (loggedUser.data.userRole > 3 && loggedUser.data.projectId.length > 1)
+                                (loggedUser.data.userRole <= 4) ||
+                                (loggedUser.data.userRole < 4 && isProjectMember > 0) ||
+                                (loggedUser.data.userRole > 4 && loggedUser.data.projectId.length > 1)
                             ) ? ProjectList : NotAvailable
                         } />
                         <Route path={`${this.props.match.path}/:projectId`} component={(isProjectMember > 0 || loggedUser.data.userRole < 3) ? ProjectDetails : NotAvailable} />
