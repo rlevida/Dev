@@ -117,6 +117,15 @@ class FolderModal extends React.Component {
                 dispatch({ type: "ADD_DOCUMENT_LIST", list: result });
             }
 
+            if (document.Filter.status === "library") {
+                const resultArr = result.map((e) => {
+                    const fName = e.documentNameCount > 0 ? `${e.name}(${e.documentNameCount})` : e.name;
+                    return { id: e.id, name: fName }
+                })
+                const folderOptions = [...folder.SelectList, ...resultArr];
+                dispatch({ type: "SET_FOLDER_SELECT_LIST", List: folderOptions });
+            }
+
             dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: {} })
             $("#folderModal").modal("hide");
             showToast("success", "Successfully Added.")
