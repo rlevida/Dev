@@ -138,14 +138,13 @@ exports.get = {
         const whereObj = {
             ...(typeof queryString.usersId != "undefined" && queryString.usersId != "") ? { usersId: parseInt(queryString.usersId) } : {},
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
-            // ...(typeof queryString.isRead != "undefined" && queryString.isRead != "") ? { isRead: queryString.isRead } : {},
+            ...(typeof queryString.isRead != "undefined" && queryString.isRead != "") ? { isRead: queryString.isRead } : {},
             ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {},
         };
         const options = {
             ...(typeof queryString.page != "undefined" && queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
-            order: [['dateAdded', 'DESC']]
+            order: [['isRead', 'ASC'],['dateAdded','ASC']]
         };
-
         const notesAssociation = [
             {
                 model: Conversation,
