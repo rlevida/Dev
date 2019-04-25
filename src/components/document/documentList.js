@@ -37,22 +37,22 @@ class DocumentList extends React.Component {
         }
     }
 
-    componentDidUpdate(prevProps) {
-        const { dispatch, history } = { ...this.props }
-        if (getParameterByName("file-id") && history.location.search !== "") {
-            if (this.props.document.Selected.id !== parseInt(getParameterByName("file-id"))) {
-                const documentId = getParameterByName("file-id")
-                getData(`/api/document/detail/${documentId}`, {}, (ret) => {
-                    const documentObj = { ...ret.data }
-                    getData(`/api/conversation/getConversationList?linkType=document&linkId=${documentObj.id}`, {}, (c) => {
-                        dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
-                        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: documentObj });
-                        $(`#documentViewerModal`).modal('show')
-                    })
-                })
-            }
-        }
-    }
+    // componentDidUpdate(prevProps) {
+    //     const { dispatch, history } = { ...this.props }
+    //     if (getParameterByName("file-id") && history.location.search !== "") {
+    //         if (this.props.document.Selected.id !== parseInt(getParameterByName("file-id"))) {
+    //             const documentId = getParameterByName("file-id")
+    //             getData(`/api/document/detail/${documentId}`, {}, (ret) => {
+    //                 const documentObj = { ...ret.data }
+    //                 getData(`/api/conversation/getConversationList?linkType=document&linkId=${documentObj.id}`, {}, (c) => {
+    //                     dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
+    //                     dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: documentObj });
+    //                     $(`#documentViewerModal`).modal('show')
+    //                 })
+    //             })
+    //         }
+    //     }
+    // }
 
     componentWillUnmount() {
         const { dispatch } = { ...this.props }
@@ -158,7 +158,8 @@ class DocumentList extends React.Component {
 
     getNextResult() {
         const { document, fetchWorkstreamDocument, match } = this.props;
-        if (match.url === "/projects/1/files") {
+        const projectId = match.params.projectId;
+        if (match.url === `/projects/${projectId}/files` || match.url === `/projects/${projectId}`) {
             this.fetchData(document.Count.current_page + 1)
         } else {
             fetchWorkstreamDocument(document.Count.current_page + 1)
@@ -207,28 +208,47 @@ class DocumentList extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch, loggedUser, folder, match } = this.props;
+        const { dispatch, loggedUser, folder, match, history, pageModal } = this.props;
         const projectId = match.params.projectId;
+
         if (data.type !== 'folder') {
             if (data.document_read.length === 0) {
                 const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
                 postData(`/api/document/read`, dataToSubmit, (ret) => {
-                    getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, (c) => {
-                        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
-                        dispatch({ type: 'UPDATE_DATA_DOCUMENT_LIST', UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } });
-                        dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
-                        dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
-                        $(`#documentViewerModal`).modal('show');
-                    })
+                    if (pageModal) {
+                        switch (pageModal) {
+                            case "project": {
+                                window.location.href = `/account#/projects/${projectId}/files?file-id=${data.id}`;
+                                location.reload();
+                            }
+                        }
+                    } else {
+                        getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, (c) => {
+                            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
+                            dispatch({ type: 'UPDATE_DATA_DOCUMENT_LIST', UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } });
+                            dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
+                            dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
+                            $(`#documentViewerModal`).modal('show');
+                        })
+                    }
                 });
 
             } else {
-                getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, (c) => {
-                    dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
-                    dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
-                    dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
-                    $(`#documentViewerModal`).modal('show');
-                })
+                if (pageModal) {
+                    switch (pageModal) {
+                        case "project": {
+                            window.location.href = `/account#/projects/${projectId}/files?file-id=${data.id}`;
+                            location.reload();
+                        }
+                    }
+                } else {
+                    getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, (c) => {
+                        dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
+                        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
+                        dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
+                        $(`#documentViewerModal`).modal('show');
+                    })
+                }
             }
         } else {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });

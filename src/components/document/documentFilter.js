@@ -132,7 +132,6 @@ class DocumentFilter extends React.Component {
             if (c.status == 200) {
                 const folderOptions = _(c.data.result)
                     .map((e) => {
-                        console.log( e.documentNameCount)
                         const fName = e.documentNameCount > 0 ? `${e.name}(${e.documentNameCount})` : e.name;
                         return { id: e.id, name: fName }
 
