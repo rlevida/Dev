@@ -276,6 +276,18 @@ exports.get = {
                             }
                         );
                         break;
+                    case "forApproval":
+                        opOrArray.push(
+                            {
+                                id: {
+                                    [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="forApproval" AND members.userTypeLinkId ${compareOpt} ${ids} AND members.isDeleted = 0)`)
+                                }
+                            },
+                            {
+                                approverId: queryString.userId
+                            }
+                        );
+                        break;
                     case "myTeam":
                         const teams = await Teams
                             .findAll({ where: { teamLeaderId: queryUserIds, isDeleted: 0 } })

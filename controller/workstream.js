@@ -73,7 +73,7 @@ const associationStack = [
     }
 ];
 exports.get = {
-    index: (req, cb) => {
+    index: async (req, cb) => {
         const includeStack = _.cloneDeep(associationStack);
         const queryString = req.query;
         const limit = 10;
@@ -106,6 +106,38 @@ exports.get = {
                 },
                 isDeleted: 0
             };
+        }
+
+        if (typeof queryString.userRole != "undefined" && queryString.userRole != "") {
+            const workstreamResponsible = await Members.findAll({
+                where: {
+                    memberType: 'responsible',
+                    linkType: 'workstream',
+                    usersType: 'users',
+                    userTypeLinkId: queryString.userId
+                }
+            }).map((o) => {
+                const response = o.toJSON();
+                return response.linkId;
+            });
+            const taskMemberAssigned = await Members.findAll({
+                where: {
+                    memberType: ['assignedTo', 'approver'],
+                    linkType: 'task',
+                    usersType: 'users',
+                    userTypeLinkId: queryString.userId
+                }
+            }).map((o) => {
+                const response = o.toJSON();
+                return response.linkId;
+            });
+            const taskList = await Tasks.findAll({
+                where: {
+                    id: taskMemberAssigned
+                }
+            }).map((o) => { return o.toJSON().workstreamId })
+
+            whereObj["id"] = [...workstreamResponsible, ...taskList];
         }
 
         const options = {

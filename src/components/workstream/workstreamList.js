@@ -56,7 +56,7 @@ export default class WorkstreamList extends React.Component {
         const { typeId, workstreamStatus, workstream: workstreamFilter } = workstream.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
         const projectId = (typeof projectObj.Selected.id != "undefined") ? projectObj.Selected.id : match.params.projectId;
-        const requestUrl = `/api/workstream?projectId=${projectId}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
+        const requestUrl = `/api/workstream?projectId=${projectId}&page=${page}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
         
         dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
 

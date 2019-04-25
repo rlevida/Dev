@@ -5,8 +5,10 @@ import Chart from "react-google-charts";
 import { Link } from 'react-router-dom';
 import { getData, showToast } from '../../globalFunction';
 import { Loading } from '../../globalComponents';
-
+import ProjectCompletionTasks from "../project/projectCompletionTasks";
 import Focus from '../focus';
+
+let statusType = "";
 
 @connect((store) => {
     return {
@@ -21,7 +23,10 @@ export default class ProjectDashboard extends React.Component {
         super(props);
         _.map([
             "fetchProjectStatus",
-            "getNextWorkstreams"
+            "getNextWorkstreams",
+            "showCountList",
+            "taskList",
+            "handleRedirect"
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
@@ -77,7 +82,7 @@ export default class ProjectDashboard extends React.Component {
         const { typeId, workstreamStatus, workstream: workstreamFilter } = workstream.Filter;
         const dueDateMoment = moment().format("YYYY-MM-DD");
         const projectId = match.params.projectId;
-        const requestUrl = `/api/workstream?projectId=${projectId}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
+        const requestUrl = `/api/workstream?projectId=${projectId}&page=${page}&userType=${loggedUser.data.userType}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}&typeId=${typeId}&workstreamStatus=${workstreamStatus}&dueDate=${dueDateMoment}&workstream=${workstreamFilter}&isDeleted=0`;
 
         getData(requestUrl, {}, (c) => {
             if (c.status == 200) {
@@ -104,10 +109,76 @@ export default class ProjectDashboard extends React.Component {
                     <p class={`status-count ${class_color}`}>{('0' + count).slice(-2)}</p>
                 </div>
                 <div class="flex-col">
-                    <p class="status-label">{label}</p>
+                    <p class="status-label"><a onClick={() => this.showCountList(label)}>{label}</a></p>
                 </div>
             </div>
         );
+    }
+
+    showCountList(type) {
+        statusType = type;
+
+        switch (type) {
+            case 'Tasks Due Today':
+                this.taskList(type);
+                break;
+
+            case 'Tasks For Approval':
+                this.taskList(type);
+                break;
+
+            case 'Delayed Tasks':
+                this.taskList(type);
+                break;
+        }
+    }
+
+    taskList(type) {
+        const { dispatch, match, task, loggedUser } = { ...this.props };
+        const { Count } = task;
+        const page = (_.isEmpty(Count)) ? 1 : Count.current_page + 1;
+        const fromDate = moment().startOf('month').format("YYYY-MM-DD");
+        const today = moment().subtract(1, "days").format("YYYY-MM-DD");
+        const projectId = match.params.projectId;
+        let fetchUrl = `/api/task?projectId=${projectId}&page=${page}`;
+
+        if (loggedUser.data.userRole > 3 && type != "Tasks For Approval") {
+            fetchUrl += `&type=assignedToMe&userId=${loggedUser.data.id}`
+        }
+
+        if (loggedUser.data.userRole > 3 && type == "Tasks For Approval") {
+            fetchUrl += `&type=forApproval&userId=${loggedUser.data.id}`
+        }
+
+        switch (type) {
+            case 'Tasks Due Today':
+                fetchUrl += `&dueDate=${JSON.stringify({ opt: "=", value: today })}&status=${JSON.stringify({ opt: "eq", value: "In Progress" })}`;
+                break;
+            case 'Tasks For Approval':
+                fetchUrl += `&status=${JSON.stringify({ opt: "eq", value: "For Approval" })}`;
+                break;
+            case 'Delayed Tasks':
+                fetchUrl += `&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, today] })}&status=${JSON.stringify({ opt: "eq", value: "In Progress" })}`;
+                break;
+        }
+
+        dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+
+        getData(fetchUrl, {}, (c) => {
+            const result = c.data.result;
+            const taskList = _.map(result, (o) => {
+                return { ...o, list_type: 'project', link_type_id: projectId };
+            });
+            dispatch({ type: "SET_TASK_LIST", list: [...task.List, ...taskList], count: c.data.count });
+            dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+        });
+
+        $('#completion-tasks').modal("show");
+    }
+
+    handleRedirect(link) {
+        const { history } = { ...this.props };
+        history.push(link);
     }
 
     render() {
@@ -157,7 +228,7 @@ export default class ProjectDashboard extends React.Component {
             },
             colors: ['#00e589', '#f6dc64', '#f9003b', '#ff754a', '#f1f1f1'],
         };
-       
+
         return (
             <div class="row content-row">
                 <div class="col-lg-12">
@@ -246,6 +317,7 @@ export default class ProjectDashboard extends React.Component {
                         </div>
                     </div>
                 </div>
+                <ProjectCompletionTasks handleRedirect={this.handleRedirect} paginate={true} handlePaginate={() => this.taskList(statusType)} />
             </div>
         );
     }

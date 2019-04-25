@@ -1,6 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
-import { Link } from 'react-router-dom';
+import { Loading as LoadingComponent } from "../../globalComponents";
 import moment from 'moment';
 
 @connect((store) => {
@@ -38,15 +38,21 @@ export default class ProjectCompletionTasks extends React.Component {
         handleRedirect(`/projects/${projectId}/workstreams/${workstreamId}?task-id=${id}`);
     }
     render() {
-        const { task } = { ...this.props };
-        const { Loading, List } = task;
+        const { task, paginate = false, handlePaginate, dispatch } = { ...this.props };
+        const { Loading, List, Count } = task;
+        const taskList = (paginate) ? _.take(List, 4) : List;
+        const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
+        const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
 
         return (
             <div class="modal fade" id="completion-tasks" data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog modal-md" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <a class="text-grey" data-dismiss="modal" aria-label="Close">
+                            <a class="text-grey" data-dismiss="modal" aria-label="Close" onClick={() => {
+                                dispatch({ type: "SET_TASK_LIST", list: [], count: {} });
+                                dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+                            }}>
                                 <span>
                                     <i class="fa fa-chevron-left mr10" aria-hidden="true"></i>
                                     <strong>Back</strong>
@@ -54,8 +60,7 @@ export default class ProjectCompletionTasks extends React.Component {
                             </a>
                         </div>
                         <div class="modal-body">
-                            <h2 class="mt0 mb0">Delayed Tasks</h2>
-                            <div class={(Loading == "RETRIEVING") ? "linear-background" : ""}>
+                            <div class={(Loading == "RETRIEVING" && (List).length == 0) ? "linear-background" : ""}>
                                 {
                                     ((List).length > 0) && <table id="late-task">
                                         <thead>
@@ -67,13 +72,13 @@ export default class ProjectCompletionTasks extends React.Component {
                                         </thead>
                                         <tbody>
                                             {
-                                                _.map(_.take(List, 4), ({ id, task, task_members, dueDate, status, workstream, projectId }, index) => {
+                                                _.map(taskList, ({ id, task, task_members, dueDate, status, workstream, projectId }, index) => {
                                                     const given = moment(dueDate, "YYYY-MM-DD");
                                                     const current = moment().startOf('day');
                                                     const assigned = _.find(task_members, (o) => { return o.memberType == "assignedTo" });
                                                     let daysRemaining = (dueDate != "") ? moment.duration(given.diff(current)).asDays() + 1 : 0;
 
-                                                    const colorClass = (daysRemaining < 0 && status != "Completed") ? "text-red" :
+                                                    const colorClass = (daysRemaining < 0 && (status == "In Progress")) ? "text-red" :
                                                         (status == "For Approval") ? "text-orange" : (daysRemaining == 0 && status != "Completed") ? "text-yellow" : (status == "Completed") ? "text-green" : "";
                                                     return (
                                                         <tr key={index}>
@@ -109,12 +114,24 @@ export default class ProjectCompletionTasks extends React.Component {
                                     </table>
                                 }
                                 {
-                                    (Loading != "RETRIEVING" && (List).length > 4) && <p class="mb0 text-center">
+                                    (Loading != "RETRIEVING" && (taskList).length > 4 && paginate == false) && <p class="mb0 text-center">
                                         <a onClick={this.viewAllTasks} data-dismiss="modal">View All Tasks</a>
                                     </p>
                                 }
                                 {
-                                    ((List).length == 0 && Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                    ((taskList).length == 0 && Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
+                                }
+                                {
+                                    (paginate == true) && <div>
+                                        {
+                                            (Loading == "RETRIEVING" && (taskList).length > 0) && <LoadingComponent />
+                                        }
+                                        {
+                                            (currentPage != lastPage && Loading != "RETRIEVING") && <p class="mb0 text-center">
+                                                <a onClick={() => handlePaginate()}>Load More Tasks</a>
+                                            </p>
+                                        }
+                                    </div>
                                 }
                             </div>
                         </div>

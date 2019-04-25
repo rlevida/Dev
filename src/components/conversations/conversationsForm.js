@@ -308,9 +308,6 @@ export default class ConversationForm extends React.Component {
 
         if (emoticonsClassList.contains('hide')) {
             (emoticonsClassList).remove('hide');
-            (searchIconClassList).remove('fa-search');
-            (searchIconClassList).add('fa-times-circle-o');
-            (searchIconClassList).add('ml5');
         } else {
             (emoticonsClassList).add('hide');
         }

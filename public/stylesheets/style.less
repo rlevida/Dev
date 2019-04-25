@@ -306,9 +306,11 @@ section {
     padding: 100px 0;
 }
 
-.emoji-mart,
+.emoji-mart{
+  padding: 10px;
+}
 .emoji-mart section{
-  padding: 2px;
+  padding: 0px;
 }
 
 .emojiPicker{
@@ -316,8 +318,13 @@ section {
   position:absolute;
   left:0;
   right:0;
-  top: 0;
+  top: 100px;
   text-align: center;
+}
+
+.emoji-mart-search {
+  margin-top: 0px;
+  margin-bottom: 10px;
 }
 
 .more {
@@ -2253,6 +2260,10 @@ textarea::-webkit-scrollbar-thumb {
 }
 .__react_component_tooltip.type-light.place-right:after{
   border-right-color: #c4c4c4;
+}
+
+.emoji-mart-preview, .emoji-mart-bar{
+  display: none;
 }
 
 #profile-details p{
