@@ -24,7 +24,6 @@ class DocumentList extends React.Component {
     async componentDidMount() {
         const { dispatch } = { ...this.props }
         this.fetchData(1)
-
         if (getParameterByName("file-id")) {
             const documentId = getParameterByName("file-id")
             getData(`/api/document/detail/${documentId}`, {}, (ret) => {
@@ -61,6 +60,8 @@ class DocumentList extends React.Component {
         dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
         dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
     }
+
+
 
     fetchData(page) {
         const { dispatch, loggedUser, document, folder, match } = this.props;
@@ -327,8 +328,21 @@ class DocumentList extends React.Component {
         }
     }
 
-    archive() {
+    moveTo(folderObj, documentObj) {
+        const { dispatch, loggedUser, match } = this.props;
+        const projectId = match.params.projectId;
+        const dataToSubmit = {
+            origin: documentObj.origin,
+            folderId: folderObj.id,
+            projectId: projectId,
+            usersId: loggedUser.data.id,
+        };
 
+        putData(`/api/document/${documentObj.id}`, dataToSubmit, (c) => {
+            const { result } = { ...c.data }
+            dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: result })
+            showToast("success", "Successfully Updated.")
+        })
     }
 
     render() {
@@ -337,7 +351,6 @@ class DocumentList extends React.Component {
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
         let tagCount = 0;
-
         return (
             <div>
                 {(document.Filter.status) !== 'sort' &&
@@ -347,7 +360,10 @@ class DocumentList extends React.Component {
                                 <div class='mt20'>
                                     <h4><a href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>All Files</a></h4>
                                     {(folder.SelectedFolderName.length > 0) &&
-                                        folder.SelectedFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })
+                                        folder.SelectedFolderName.map((e, index) => {
+                                            const fName = e.documentNameCount > 0 ? `${e.name}(${e.documentNameCount})` : e.name;
+                                            return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {fName}</a> </span>
+                                        })
                                     }
                                 </div>
                             }
@@ -448,6 +464,31 @@ class DocumentList extends React.Component {
                                                                                             ? <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "unread")}>Mark as unread</a>
                                                                                             : <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "read")}>Mark as read</a>
                                                                                     }
+                                                                                </li>
+                                                                            }
+                                                                            {document.Filter.status === "library" &&
+                                                                                <li>
+                                                                                    <a class=" dropdown dropdown-library">
+                                                                                        Move to
+                                                                                    <div class="dropdown-content dropdown-menu-right">
+                                                                                            {folder.SelectList.map((e, fIndex) => {
+                                                                                                if (e.id !== data.id) {
+
+                                                                                                    if (typeof folder.Selected.id !== "undefined") {
+                                                                                                        if (e.id !== folder.Selected.id) {
+                                                                                                            return (
+                                                                                                                <span key={fIndex} onClick={() => this.moveTo(e, data)}>{e.name}</span>
+                                                                                                            )
+                                                                                                        }
+                                                                                                    } else {
+                                                                                                        return (
+                                                                                                            <span key={fIndex} onClick={() => this.moveTo(e, data)}>{e.name}</span>
+                                                                                                        )
+                                                                                                    }
+                                                                                                }
+                                                                                            })}
+                                                                                        </div>
+                                                                                    </a>
                                                                                 </li>
                                                                             }
                                                                         </ul>
