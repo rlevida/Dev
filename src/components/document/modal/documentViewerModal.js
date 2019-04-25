@@ -30,9 +30,16 @@ class DocumentViewerComponent extends React.Component {
             mentions: [],
             reminderList: []
         }
-        this.handleOnChange = this.handleOnChange.bind(this)
-        this.downloadDocument = this.downloadDocument.bind(this)
+        _.map([
+            "downloadDocument",
+            "handleOnChange",
+            "deleteDocument",
+            "printDocument",
+            "downloadDocument",
+            "starredDocument",
+        ], (fn) => { this[fn] = this[fn].bind(this) });
     }
+    
     componentDidMount() {
         const { dispatch } = { ...this.props };
         $('#documentViewerModal').on('hidden.bs.modal', () => {
@@ -40,24 +47,14 @@ class DocumentViewerComponent extends React.Component {
             if (history.location.search != "") {
                 history.push(history.location.pathname)
             }
-            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
+            dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
+            dispatch({ type: "CLEAR_COMMENT" });
         })
-    }
-
-    componentWillMount() {
-        this.fetchData()
     }
 
     componentWillUnmount() {
         const { dispatch } = this.props;
         dispatch({ type: "SET_COMMENT_SELECTED", Selected: "" })
-    }
-
-    fetchData() {
-        const { dispatch, document } = this.props;
-        getData(`/api/conversation/getConversationList?linkType=document&linkId=${document.Selected.id}`, {}, (c) => {
-            dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
-        })
     }
 
     deleteDocument(id) {
@@ -100,35 +97,6 @@ class DocumentViewerComponent extends React.Component {
     handleOnChange(e) {
         const { dispatch } = this.props;
         dispatch({ type: 'SET_COMMENT_FILTER', filter: { [e.target.name]: e.target.value } });
-    }
-
-    starredDocument({ id, isStarred, origin }) {
-        const { document, loggedUser, dispatch, match } = this.props;
-        const projectId = match.params.projectId;
-        const isStarredValue = (isStarred > 0) ? 0 : 1;
-
-        postData(`/api/starred?projectId=${projectId}&document=${origin}`, {
-            linkType: "document",
-            linkId: id,
-            usersId: loggedUser.data.id
-        }, (c) => {
-            if (c.status == 200) {
-                const updatedDocumentList = _.map(document.Selected.status === 'new' ? [...document.New] : [...document.Library], (documentObj, index) => {
-                    if (id == documentObj.id) {
-                        documentObj["isStarred"] = isStarredValue;
-                    }
-                    return documentObj;
-                });
-                dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList, DocumentType: document.Selected.status === 'new' ? 'New' : 'Library' });
-                showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
-            } else {
-                showToast("error", "Something went wrong please try again later.");
-            }
-        });
-    }
-
-    downloadDocument(document) {
-        window.open(encodeURI(`/api/downloadDocument?fileName=${document.name}&origin=${document.origin}`));
     }
 
     starredDocument({ id, isStarred, origin }) {

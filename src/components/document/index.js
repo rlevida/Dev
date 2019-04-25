@@ -24,43 +24,8 @@ export default class DocumentComponent extends React.Component {
         dispatch({ type: 'CLEAR_DOCUMENT' });
     }
     componentDidMount() {
-        const { dispatch, project } = this.props
-        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: {} });
+        const { dispatch } = this.props
         dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'List' });
-
-        parallel({
-            shareList: (parallelCallback) => {
-                getData(`/api/globalORM/selectList?selectName=shareList&linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
-                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'shareList' })
-                    parallelCallback(null, "")
-                })
-            },
-            projectMemberListGlobal: (parallelCallback) => {
-                getData(`/api/globalORM/selectList?selectName=projectMemberList&linkId=${project.Selected.id}&linkType=project`, {}, (c) => {
-                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'projectMemberList' })
-                    parallelCallback(null, "")
-                })
-            },
-            workstreamList: (parallelCallback) => {
-                getData(`/api/globalORM/selectList?selectName=workstreamList&projectId=${project.Selected.id}`, {}, (c) => {
-                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'workstreamList' })
-                    parallelCallback(null, "")
-                })
-            },
-            taskList: (parallelCallback) => {
-                getData(`/api/globalORM/selectList?selectName=taskList&projectId=${project.Selected.id}`, {}, (c) => {
-                    dispatch({ type: "SET_APPLICATION_SELECT_LIST", List: c.data, name: 'taskList' })
-                    parallelCallback(null, "")
-                })
-            },
-            members: (parallelCallback) => {
-                getData(`/api/member?linktype=project&linkId=${project.Selected.id}`, {}, (c) => {
-                    dispatch({ type: "SET_MEMBERS_LIST", list: c.data.result, count: {} })
-                    parallelCallback(null, "")
-                })
-            }
-        }, (error, result) => {
-        })
     }
 
     render() {
