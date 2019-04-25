@@ -563,7 +563,6 @@ export default class ConversationForm extends React.Component {
                         <a class="emoji-picker-close" onClick={() => this.handleShowEmoticons()}><i class="fa fa-times-circle" aria-hidden="true"></i></a>
                         <Picker set='emojione' onSelect={(o) => {
                             const notesMessage = notes.Selected.message || "";
-                            console.log(o)
                             dispatch({ type: "SET_NOTES_SELECTED", Selected: { ...notes.Selected, ['message']: notesMessage + "" + o.native } });
                         }} />
                     </div>

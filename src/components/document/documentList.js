@@ -24,7 +24,6 @@ class DocumentList extends React.Component {
     async componentDidMount() {
         const { dispatch } = { ...this.props }
         this.fetchData(1)
-
         if (getParameterByName("file-id")) {
             const documentId = getParameterByName("file-id")
             getData(`/api/document/detail/${documentId}`, {}, (ret) => {
@@ -38,22 +37,22 @@ class DocumentList extends React.Component {
         }
     }
 
-    componentDidUpdate(prevProps) {
-        const { dispatch, history } = { ...this.props }
-        if (getParameterByName("file-id") && history.location.search !== "") {
-            if (this.props.document.Selected.id !== parseInt(getParameterByName("file-id"))) {
-                const documentId = getParameterByName("file-id")
-                getData(`/api/document/detail/${documentId}`, {}, (ret) => {
-                    const documentObj = { ...ret.data }
-                    getData(`/api/conversation/getConversationList?linkType=document&linkId=${documentObj.id}`, {}, (c) => {
-                        dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
-                        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: documentObj });
-                        $(`#documentViewerModal`).modal('show')
-                    })
-                })
-            }
-        }
-    }
+    // componentDidUpdate(prevProps) {
+    //     const { dispatch, history } = { ...this.props }
+    //     if (getParameterByName("file-id") && history.location.search !== "") {
+    //         if (this.props.document.Selected.id !== parseInt(getParameterByName("file-id"))) {
+    //             const documentId = getParameterByName("file-id")
+    //             getData(`/api/document/detail/${documentId}`, {}, (ret) => {
+    //                 const documentObj = { ...ret.data }
+    //                 getData(`/api/conversation/getConversationList?linkType=document&linkId=${documentObj.id}`, {}, (c) => {
+    //                     dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
+    //                     dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: documentObj });
+    //                     $(`#documentViewerModal`).modal('show')
+    //                 })
+    //             })
+    //         }
+    //     }
+    // }
 
     componentWillUnmount() {
         const { dispatch } = { ...this.props }
@@ -61,6 +60,8 @@ class DocumentList extends React.Component {
         dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
         dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
     }
+
+
 
     fetchData(page) {
         const { dispatch, loggedUser, document, folder, match } = this.props;
@@ -157,7 +158,8 @@ class DocumentList extends React.Component {
 
     getNextResult() {
         const { document, fetchWorkstreamDocument, match } = this.props;
-        if (match.url === "/projects/1/files") {
+        const projectId = match.params.projectId;
+        if (match.url === `/projects/${projectId}/files` || match.url === `/projects/${projectId}`) {
             this.fetchData(document.Count.current_page + 1)
         } else {
             fetchWorkstreamDocument(document.Count.current_page + 1)
@@ -206,28 +208,47 @@ class DocumentList extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch, loggedUser, folder, match } = this.props;
+        const { dispatch, loggedUser, folder, match, history, pageModal } = this.props;
         const projectId = match.params.projectId;
+
         if (data.type !== 'folder') {
             if (data.document_read.length === 0) {
                 const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
                 postData(`/api/document/read`, dataToSubmit, (ret) => {
-                    getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, (c) => {
-                        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
-                        dispatch({ type: 'UPDATE_DATA_DOCUMENT_LIST', UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } });
-                        dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
-                        dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
-                        $(`#documentViewerModal`).modal('show');
-                    })
+                    if (pageModal) {
+                        switch (pageModal) {
+                            case "project": {
+                                window.location.href = `/account#/projects/${projectId}/files?file-id=${data.id}`;
+                                location.reload();
+                            }
+                        }
+                    } else {
+                        getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, (c) => {
+                            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
+                            dispatch({ type: 'UPDATE_DATA_DOCUMENT_LIST', UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } });
+                            dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
+                            dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
+                            $(`#documentViewerModal`).modal('show');
+                        })
+                    }
                 });
 
             } else {
-                getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, (c) => {
-                    dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
-                    dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
-                    dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
-                    $(`#documentViewerModal`).modal('show');
-                })
+                if (pageModal) {
+                    switch (pageModal) {
+                        case "project": {
+                            window.location.href = `/account#/projects/${projectId}/files?file-id=${data.id}`;
+                            location.reload();
+                        }
+                    }
+                } else {
+                    getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, (c) => {
+                        dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
+                        dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
+                        dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
+                        $(`#documentViewerModal`).modal('show');
+                    })
+                }
             }
         } else {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
@@ -327,8 +348,21 @@ class DocumentList extends React.Component {
         }
     }
 
-    archive() {
+    moveTo(folderObj, documentObj) {
+        const { dispatch, loggedUser, match } = this.props;
+        const projectId = match.params.projectId;
+        const dataToSubmit = {
+            origin: documentObj.origin,
+            folderId: folderObj.id,
+            projectId: projectId,
+            usersId: loggedUser.data.id,
+        };
 
+        putData(`/api/document/${documentObj.id}`, dataToSubmit, (c) => {
+            const { result } = { ...c.data }
+            dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: result })
+            showToast("success", "Successfully Updated.")
+        })
     }
 
     render() {
@@ -337,7 +371,6 @@ class DocumentList extends React.Component {
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
         let tagCount = 0;
-
         return (
             <div>
                 {(document.Filter.status) !== 'sort' &&
@@ -347,7 +380,10 @@ class DocumentList extends React.Component {
                                 <div class='mt20'>
                                     <h4><a href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>All Files</a></h4>
                                     {(folder.SelectedFolderName.length > 0) &&
-                                        folder.SelectedFolderName.map((e, index) => { return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {e.name}</a> </span> })
+                                        folder.SelectedFolderName.map((e, index) => {
+                                            const fName = e.documentNameCount > 0 ? `${e.name}(${e.documentNameCount})` : e.name;
+                                            return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {fName}</a> </span>
+                                        })
                                     }
                                 </div>
                             }
@@ -448,6 +484,31 @@ class DocumentList extends React.Component {
                                                                                             ? <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "unread")}>Mark as unread</a>
                                                                                             : <a href="javascript:void(0)" data-tip="View" onClick={() => this.readDocument(data, "read")}>Mark as read</a>
                                                                                     }
+                                                                                </li>
+                                                                            }
+                                                                            {document.Filter.status === "library" &&
+                                                                                <li>
+                                                                                    <a class=" dropdown dropdown-library">
+                                                                                        Move to
+                                                                                    <div class="dropdown-content dropdown-menu-right">
+                                                                                            {folder.SelectList.map((e, fIndex) => {
+                                                                                                if (e.id !== data.id) {
+
+                                                                                                    if (typeof folder.Selected.id !== "undefined") {
+                                                                                                        if (e.id !== folder.Selected.id) {
+                                                                                                            return (
+                                                                                                                <span key={fIndex} onClick={() => this.moveTo(e, data)}>{e.name}</span>
+                                                                                                            )
+                                                                                                        }
+                                                                                                    } else {
+                                                                                                        return (
+                                                                                                            <span key={fIndex} onClick={() => this.moveTo(e, data)}>{e.name}</span>
+                                                                                                        )
+                                                                                                    }
+                                                                                                }
+                                                                                            })}
+                                                                                        </div>
+                                                                                    </a>
                                                                                 </li>
                                                                             }
                                                                         </ul>

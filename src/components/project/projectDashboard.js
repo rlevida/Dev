@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { getData, showToast } from '../../globalFunction';
 import { Loading } from '../../globalComponents';
 import ProjectCompletionTasks from "../project/projectCompletionTasks";
+import FileNewUploads from "../project/fileNewUploads";
 import Focus from '../focus';
 
 let statusType = "";
@@ -15,7 +16,8 @@ let statusType = "";
         projectData: store.project,
         workstream: store.workstream,
         task: store.task,
-        loggedUser: store.loggedUser
+        loggedUser: store.loggedUser,
+        document: store.document
     }
 })
 export default class ProjectDashboard extends React.Component {
@@ -130,7 +132,14 @@ export default class ProjectDashboard extends React.Component {
             case 'Delayed Tasks':
                 this.taskList(type);
                 break;
+            case 'New Files Uploaded':
+                this.fileList()
+                break;
         }
+    }
+
+    fileList() {
+        $(`#file-new-upload`).modal('show')
     }
 
     taskList(type) {
@@ -318,6 +327,7 @@ export default class ProjectDashboard extends React.Component {
                     </div>
                 </div>
                 <ProjectCompletionTasks handleRedirect={this.handleRedirect} paginate={true} handlePaginate={() => this.taskList(statusType)} />
+                <FileNewUploads />
             </div>
         );
     }
