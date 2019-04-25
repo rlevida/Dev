@@ -19,6 +19,8 @@ export default class Component extends React.Component {
     }
 
     componentWillUnmount() {
+        const { dispatch } = { ...this.props };
+        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
         this.resetSelected();
     }
 
@@ -28,7 +30,7 @@ export default class Component extends React.Component {
 
     resetSelected() {
         const { dispatch } = { ...this.props };
-        
+
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
         dispatch({ type: "SET_TASK_LIST", list: [], count: {} });
 

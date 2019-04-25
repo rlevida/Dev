@@ -44,7 +44,6 @@ export default class Component extends React.Component {
         const { project, task, history, loggedUser } = { ...this.props };
         const projectId = (history.location.pathname).split('/')[2];
         const isProjectMember = _.filter(loggedUser.data.projectId, (e) => e === parseInt(projectId)).length;
-
         return (
             <div>
                 {

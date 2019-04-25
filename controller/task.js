@@ -612,10 +612,12 @@ exports.get = {
             }
         })
     },
-    projectTaskStatus: (req, cb) => {
+    projectTaskStatus: async (req, cb) => {
         const queryString = req.query;
-        const { projectId } = queryString;
-        const currentDate = moment(queryString.date, 'YYYY-MM-DD').format("YYYY-MM-DD HH:mm");
+        const { projectId, date, userId = "", userRole = "" } = queryString;
+        const currentDate = moment(date, 'YYYY-MM-DD').format("YYYY-MM-DD HH:mm");
+        let assignedTask = [];
+
         async.parallel({
             task_due: (parallelCallback) => {
                 try {
@@ -627,7 +629,12 @@ exports.get = {
                                 },
                                 projectId,
                                 status: "In Progress",
-                                isDeleted: 0
+                                isDeleted: 0,
+                                ...(userId != "" && queryString.userRole > 3) ? {
+                                    id: {
+                                        [Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`)
+                                    }
+                                } : {}
                             }
                         }).then(({ count }) => {
                             parallelCallback(null, count)
@@ -643,7 +650,12 @@ exports.get = {
                             where: {
                                 status: 'For Approval',
                                 projectId,
-                                isDeleted: 0
+                                isDeleted: 0,
+                                ...(userId != "" && queryString.userRole > 3) ? {
+                                    id: {
+                                        [Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="approver" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`)
+                                    }
+                                } : {}
                             }
                         }).then(({ count }) => {
                             parallelCallback(null, count)
@@ -662,7 +674,12 @@ exports.get = {
                                 },
                                 status: "In Progress",
                                 projectId,
-                                isDeleted: 0
+                                isDeleted: 0,
+                                ...(userId != "" && queryString.userRole > 3) ? {
+                                    id: {
+                                        [Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`)
+                                    }
+                                } : {}
                             }
                         }).then(({ count }) => {
                             parallelCallback(null, count)
@@ -1620,7 +1637,7 @@ exports.put = {
                         },
                         notification: (parallelCallback) => {
                             parallelCallback(null) // temporary removed to clarify
-                            return 
+                            return
                             Users.findOne({
                                 where: {
                                     id: body.userId
