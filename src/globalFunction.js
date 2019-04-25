@@ -286,7 +286,7 @@ var removeTempFile = exports.removeTempFile = function (fileToRemove, cb) {
 var notificationType = exports.notificationType = function (type) {
     switch (type) {
         case "fileNewUpload": {
-            return "upload a new file"
+            return "uploaded a new file"
         }
         case "taskAssigned": {
             return "assigned a new task for you"
