@@ -48,29 +48,22 @@ class DocumentFilter extends React.Component {
             }
 
             const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, isArchived, status, tagWorkstream } = this.props.document.Filter;
-
             let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
-
-            // let requestUrl = `/api/document?isDeleted=0&1linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
-            // if (document.ActiveTab === 'document') {
-            //     requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
-            // } else {
-            //     requestUrl = `/api/activityLogDocument?projectId=${projectId}&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`
-            // }
 
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
 
             delayTimer = setTimeout(() => {
                 if (status === 'active' || status === 'sort') {
-                    requestUrl += `&folderId=null&type=document`
+                    requestUrl += `&folderId=null&type=document`;
                 }
 
                 if (status === 'library') {
-                    requestUrl += `&folderId=null&type=folder`
+                    requestUrl += `&folderId=null&type=folder`;
+                    this.fetchFolderList();
                 }
 
                 if (tagWorkstream) {
-                    requestUrl += `&workstream=${tagWorkstream}`
+                    requestUrl += `&workstream=${tagWorkstream}`;
                 }
                 // if (isCompleted) {
                 //     requestUrl += `&isCompleted=${isCompleted}`
@@ -122,6 +115,34 @@ class DocumentFilter extends React.Component {
 
         setDatePicker(this.handleDate, "uploadFrom", new Date(2019, 3, 20));
         setDatePicker(this.handleDate, "uploadTo", new Date(2019, 3, 20));
+    }
+
+
+    fetchFolderList() {
+        const { dispatch, loggedUser, match } = { ...this.props };
+        const projectId = match.params.projectId;
+
+        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
+
+        if (typeof options != "undefined" && options != "") {
+            requestUrl += `&name=${options}`;
+        }
+
+        getData(requestUrl, {}, (c) => {
+            if (c.status == 200) {
+                const folderOptions = _(c.data.result)
+                    .map((e) => {
+                        console.log( e.documentNameCount)
+                        const fName = e.documentNameCount > 0 ? `${e.name}(${e.documentNameCount})` : e.name;
+                        return { id: e.id, name: fName }
+
+                    })
+                    .value();
+                dispatch({ type: "SET_FOLDER_SELECT_LIST", List: folderOptions });
+            } else {
+                showToast('success', 'Something went wrong!');
+            }
+        });
     }
 
 
