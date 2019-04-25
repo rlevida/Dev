@@ -703,7 +703,12 @@ exports.get = {
                                     as: 'document',
                                     required: true,
                                     where: {
-                                        status: 'new'
+                                        status: 'new',
+                                        folderId: null,
+                                        type: 'document',
+                                        isDeleted: 0,
+                                        isArchived: 0
+
                                     }
                                 }
                             ]
@@ -2208,7 +2213,7 @@ exports.put = {
                                         if (body.status === "Completed") {
                                             Users.findOne({
                                                 where: {
-                                                    id:  body.userId
+                                                    id: body.userId
                                                 }
                                             }).then((o) => {
                                                 const sender = o.toJSON();
