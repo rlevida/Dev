@@ -73,7 +73,7 @@ class DocumentList extends React.Component {
         }
 
         if (status === 'active' || status === 'sort') {
-            requestUrl += `&type=document`
+            requestUrl += `&type=document&folderId=null`
         }
 
         if (status === 'library') {
@@ -83,6 +83,7 @@ class DocumentList extends React.Component {
         if (tagWorkstream) {
             requestUrl += `&workstream=${tagWorkstream}`
         }
+
         // if (status === 'library') {
         //     requestUrl += `&type=folder`
         // }
@@ -132,7 +133,6 @@ class DocumentList extends React.Component {
             await dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
             await dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
             await this.fetchData(1);
-            await history.push(`/projects/${projectId}/files`);
         } else if (folder.Selected.id !== data.id) {
             getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
                 const { result, count } = { ...c.data }
