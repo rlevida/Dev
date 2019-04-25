@@ -40,10 +40,10 @@ export default class ProjectCompletionTasks extends React.Component {
     render() {
         const { task, paginate = false, handlePaginate, dispatch } = { ...this.props };
         const { Loading, List, Count } = task;
-        const taskList = (paginate) ? _.take(List, 4) : List;
+        const taskList = (paginate == false) ? _.take(List, 4) : List;
         const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
         const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
-
+        
         return (
             <div class="modal fade" id="completion-tasks" data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog modal-md" role="document">
