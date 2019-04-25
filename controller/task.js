@@ -170,6 +170,7 @@ const associationStack = [
         attributes: ['userTypeLinkId'],
         where: { linkType: 'task', memberType: 'follower' },
     }
+
 ];
 
 exports.get = {
@@ -1620,7 +1621,7 @@ exports.put = {
                         },
                         notification: (parallelCallback) => {
                             parallelCallback(null) // temporary removed to clarify
-                            return 
+                            return
                             Users.findOne({
                                 where: {
                                     id: body.userId
@@ -2190,12 +2191,11 @@ exports.put = {
                                         if (body.status === "Completed") {
                                             Users.findOne({
                                                 where: {
-                                                    id: updatedResponse.approverId
+                                                    id:  body.userId
                                                 }
                                             }).then((o) => {
                                                 const sender = o.toJSON();
-                                                const receiver = updatedResponse.workstream.responsible[0].user.id
-
+                                                const receiver = updatedResponse.task_members.filter((f) => { return f.memberType === "assignedTo" }).map((f) => { return f.userTypeLinkId })
                                                 UsersNotificationSetting
                                                     .findAll({
                                                         where: { usersId: receiver },
@@ -2317,7 +2317,7 @@ exports.put = {
                                         console.error(err)
                                     }
                                 },
-                                notificationTaskApproved: (statusParallelCallback) => {
+                                notificationTaskForApproval: (statusParallelCallback) => {
                                     try {
                                         if (body.status == "For Approval") {
                                             Users.findOne({
