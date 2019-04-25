@@ -15,15 +15,26 @@ import TaskCalendar from "../task/taskCalendar";
 export default class Component extends React.Component {
     constructor(props) {
         super(props);
+        this.resetSelected = this.resetSelected.bind(this);
     }
 
     componentWillUnmount() {
+        this.resetSelected();
+    }
+
+    componentDidMount() {
+        this.resetSelected();
+    }
+
+    resetSelected() {
         const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "List" });
+        
         dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
         dispatch({ type: "SET_TASK_LIST", list: [], count: {} });
-        dispatch({ type: "SET_PROJECT_SELECTED", Selected: {} });
-        dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
+
+        _.map(["SET_PROJECT_SELECTED", "SET_WORKSTREAM_SELECTED"], (o) => {
+            dispatch({ type: o, Selected: {} });
+        });
     }
 
     render() {

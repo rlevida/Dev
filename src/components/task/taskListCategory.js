@@ -58,11 +58,6 @@ export default class TaskListCategory extends React.Component {
                 this.getList(1)
             });
         }
-
-        if (currentTaskId != taskId && taskId != null) {
-            currentTaskId = taskId;
-            this.openTaskDetails(taskId);
-        }
     }
 
     completeTask({ id, status, periodic, periodTask, approvalRequired }) {

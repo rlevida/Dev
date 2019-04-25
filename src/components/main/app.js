@@ -118,6 +118,7 @@ class Main extends React.Component {
                 }
                 formType = "SET_PROJECT_FORM_ACTIVE";
                 selectedType = "SET_PROJECT_SELECTED";
+                dispatch({ type: "SET_TASK_FORM_ACTIVE", FormActive: "" });
                 break;
             case "user":
                 if (location.pathname != '/users-and-team') {
@@ -190,6 +191,7 @@ class Main extends React.Component {
             case "taskResponsibleBeforeDeadline":
             case "taskAssigned": {
                 history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
+                window.location.reload();
             }
                 break;
         }
