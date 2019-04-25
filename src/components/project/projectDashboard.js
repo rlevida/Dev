@@ -63,6 +63,8 @@ export default class ProjectDashboard extends React.Component {
         dispatch({ type: "SET_STATUS_TASK_COUNT_LIST", count: {} });
         dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
         dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
+        dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: {} });
+        dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "RETRIEVING" });
     }
 
     fetchProjectStatus() {
@@ -139,7 +141,16 @@ export default class ProjectDashboard extends React.Component {
     }
 
     fileList() {
-        $(`#file-new-upload`).modal('show')
+        const { dispatch, loggedUser, match } = this.props;
+        const projectId = match.params.projectId;
+        const requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=document&folderId=null`;
+
+        getData(requestUrl, {}, (c) => {
+            const { count, result } = { ...c.data }
+            dispatch({ type: 'SET_DOCUMENT_LIST', list: result, count: count });
+            dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' });
+            $(`#file-new-upload`).modal('show')
+        });
     }
 
     taskList(type) {
