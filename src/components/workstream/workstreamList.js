@@ -27,8 +27,7 @@ export default class WorkstreamList extends React.Component {
             "editData",
             "confirmDelete",
             "renderStatus",
-            "renderList",
-            "resetSelected"
+            "renderList"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
@@ -40,15 +39,6 @@ export default class WorkstreamList extends React.Component {
         if (_.isEmpty(workstream.Count)) {
             this.getList(1);
         }
-    }
-
-    componentWillUnmount() {
-        this.resetSelected();
-    }
-
-    resetSelected() {
-        const { dispatch } = { ...this.props };
-        dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} })   
     }
 
     getList(page) {

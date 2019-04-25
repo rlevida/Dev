@@ -197,8 +197,6 @@ export default class WorkstreamForm extends React.Component {
             .value()
             : [];
         let responsibleList = members.SelectList;
-        console.log(workstream.Selected.responsible)
-        console.log(workstream.Selected.members)
         if (typeof workstream.Selected.id != "undefined" && workstream.Selected.id != "") {
             responsibleList = _.uniqBy([...responsibleList, ..._(workstream.Selected.members)
                 .filter(({ memberType }) => { return memberType == "responsible" })

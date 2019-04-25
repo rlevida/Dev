@@ -108,7 +108,7 @@ exports.get = {
             };
         }
 
-        if (typeof queryString.userRole != "undefined" && queryString.userRole > 3) {
+        if (typeof queryString.userRole != "undefined" && queryString.userRole > 4) {
             const workstreamResponsible = await Members.findAll({
                 where: {
                     memberType: 'responsible',
