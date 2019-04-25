@@ -78,7 +78,7 @@ class DocumentViewerComponent extends React.Component {
 
     fetchData(page) {
         const { dispatch, match } = this.props;
-        getData(`/api/conversation/getConversationList?linkType=document&linkId=${match.params.documentId}`, {}, (c) => {
+        getData(`/api/conversation/getConversationList?page=${page}linkType=document&linkId=${match.params.documentId}`, {}, (c) => {
             dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
         })
     }
@@ -148,10 +148,6 @@ class DocumentViewerComponent extends React.Component {
                 showToast("error", "Something went wrong please try again later.");
             }
         });
-    }
-
-    back() {
-
     }
 
     render() {

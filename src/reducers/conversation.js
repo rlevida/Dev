@@ -61,6 +61,9 @@ export default function reducer(state = {
         case "SET_COMMENT_LOADING": {
             return { ...state, Loading: (typeof action.Loading != "undefined") ? action.Loading : "" }
         }
+        case "CLEAR_COMMENT": {
+            return { ...state, List: [], Count: {} }
+        }
         default:
             return state;
     }

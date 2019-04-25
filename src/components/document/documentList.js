@@ -1,13 +1,10 @@
 import React from "react";
 import { Loading } from "../../globalComponents";
 import { getData, postData, putData, showToast, deleteData, getParameterByName } from '../../globalFunction';
-
 import { connect } from "react-redux"
 import { withRouter } from "react-router";
-
 import DocumentSortFile from "./documentSortFile"
 import DocumentViewerModal from "./modal/documentViewerModal"
-
 import moment from "moment";
 
 @connect((store) => {
@@ -42,7 +39,7 @@ class DocumentList extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { dispatch,history } = { ...this.props }
+        const { dispatch, history } = { ...this.props }
         if (getParameterByName("file-id") && history.location.search !== "") {
             if (this.props.document.Selected.id !== parseInt(getParameterByName("file-id"))) {
                 const documentId = getParameterByName("file-id")
@@ -70,7 +67,7 @@ class DocumentList extends React.Component {
         const projectId = match.params.projectId;
         const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, status, tagWorkstream } = document.Filter;
         let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
-        
+
         if (typeof folder.Selected.id !== "undefined") {
             requestUrl += `&folderId=${folder.Selected.id}`
         }
@@ -215,19 +212,21 @@ class DocumentList extends React.Component {
             if (data.document_read.length === 0) {
                 const dataToSubmit = { usersId: loggedUser.data.id, documentId: data.id, isDeleted: 0 };
                 postData(`/api/document/read`, dataToSubmit, (ret) => {
-                    getData(`/api/conversation/getConversationList?linkType=document&linkId=${data.id}`, {}, (c) => {
+                    getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, (c) => {
                         dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: { ...data, document_read: [ret.data], isRead: 1 } });
                         dispatch({ type: 'UPDATE_DATA_DOCUMENT_LIST', UpdatedData: { ...data, document_read: [ret.data], isRead: 1 } });
-                        dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
-                        $(`#documentViewerModal`).modal('show')
+                        dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
+                        dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
+                        $(`#documentViewerModal`).modal('show');
                     })
                 });
 
             } else {
-                getData(`/api/conversation/getConversationList?linkType=document&linkId=${data.id}`, {}, (c) => {
-                    dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
+                getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${data.id}`, {}, (c) => {
+                    dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
                     dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: data });
-                    $(`#documentViewerModal`).modal('show')
+                    dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" })
+                    $(`#documentViewerModal`).modal('show');
                 })
             }
         } else {
