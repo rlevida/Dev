@@ -463,7 +463,7 @@ exports.get = {
 }
 
 exports.post = {
-    index: (req, cb) => {
+    index: async (req, cb) => {
 
         const data = req.body;
         const projectId = data.projectId;
@@ -479,25 +479,33 @@ exports.post = {
                     ...(typeof e.type != "undefined" && e.type != "") ? { type: e.type } : {}
                 }
 
-                try {
-                    Document
-                        .findAll({
-                            where: whereObj,
-                            order: Sequelize.literal('documentNameCount DESC'),
-                            raw: true,
-                        })
-                        .then(res => {
-                            if (res.length > 0) {
-                                e.documentNameCount = res[0].documentNameCount + 1
-                                mapCallback(null, e)
-                            } else {
-                                e.documentNameCount = 0;
-                                mapCallback(null, e)
-                            }
-                        })
-                } catch (err) {
-                    mapCallback(err)
-                }
+                DocumentLink
+                    .findAll({
+                        where: {
+                            linkType: "project",
+                            linkId: projectId,
+                        },
+                        include: [
+                            {
+                                model: Document,
+                                as: 'document',
+                                where: whereObj,
+                            },
+                        ],
+                        order: Sequelize.literal('documentNameCount DESC'),
+                    })
+                    .map((res) => {
+                        return res.toJSON().document;
+                    })
+                    .then((res) => {
+                        if (res.length > 0) {
+                            e.documentNameCount = res[0].documentNameCount + 1
+                            mapCallback(null, e)
+                        } else {
+                            e.documentNameCount = 0;
+                            mapCallback(null, e)
+                        }
+                    })
             }, (err, result) => {
                 if (err != null) {
                     cb({ status: false, error: err })
@@ -505,7 +513,6 @@ exports.post = {
                     nextThen(result)
                 }
             })
-
         }).then((nextThen, result) => {
             async.map(result, (e, mapCallback) => {
                 const documentObj = { ...e, folderId: typeof folderId !== "undefined" ? folderId : null }

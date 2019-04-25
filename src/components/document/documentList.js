@@ -69,14 +69,20 @@ class DocumentList extends React.Component {
         const { dispatch, loggedUser, document, folder, match } = this.props;
         const projectId = match.params.projectId;
         const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, status, tagWorkstream } = document.Filter;
-
         let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
+        
         if (typeof folder.Selected.id !== "undefined") {
             requestUrl += `&folderId=${folder.Selected.id}`
         }
+
         if (status === 'active' || status === 'sort') {
             requestUrl += `&type=document`
         }
+
+        if (status === 'library') {
+            requestUrl += `&folderId=null&type=folder`
+        }
+
         if (tagWorkstream) {
             requestUrl += `&workstream=${tagWorkstream}`
         }
