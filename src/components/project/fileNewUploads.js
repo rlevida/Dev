@@ -21,6 +21,7 @@ export default class FileNewUploads extends React.Component {
 
 
     render() {
+        const { dispatch } = { ...this.props }
         return (
             <div class="modal fade" id="file-new-upload" data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog modal-lg" role="document">

@@ -66,7 +66,7 @@ class DocumentList extends React.Component {
     fetchData(page) {
         const { dispatch, loggedUser, document, folder, match } = this.props;
         const projectId = match.params.projectId;
-        const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, status, tagWorkstream } = document.Filter;
+        const { status, tagWorkstream } = document.Filter;
         let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
         if (typeof folder.Selected.id !== "undefined") {
@@ -85,38 +85,6 @@ class DocumentList extends React.Component {
             requestUrl += `&workstream=${tagWorkstream}`
         }
 
-        // if (status === 'library') {
-        //     requestUrl += `&type=folder`
-        // }
-        // if (typeof isCompleted !== 'undefined' && isCompleted !== '') {
-        //     requestUrl += `&isCompleted=${isCompleted}`
-        // }
-        // if (typeof search !== 'undefined' && search !== '') {
-        //     requestUrl += `&search=${search}`
-        // }
-        // if (typeof tags !== 'undefined') {
-        //     _.filter(tags, (t) => {
-        //         const tagType = t.value.split('-')[0];
-        //         const tagId = t.value.split('-')[1];
-        //         if (tagType === 'workstream') {
-        //             requestUrl += `&workstream=${tagId}`
-        //         }
-        //     })
-        // }
-        // if (typeof uploadedBy !== 'undefined' && uploadedBy !== '') {
-        //     requestUrl += `&uploadedBy=${uploadedBy}`
-        // }
-        // if (typeof members !== 'undefined' && members !== '') {
-        //     _.map(members, (e) => {
-        //         requestUrl += `&members=${e.value}`
-        //     })
-        // }
-        // if (typeof uploadFrom !== 'undefiend' && uploadFrom !== '') {
-        //     requestUrl += `&uploadFrom=${uploadFrom}`
-        // }
-        // if (typeof uploadTo !== 'undefiend' && uploadTo !== '') {
-        //     requestUrl += `&uploadTo=${uploadTo}`
-        // }
         getData(requestUrl, {}, (c) => {
             const { count, result } = { ...c.data }
             dispatch({ type: 'SET_DOCUMENT_LIST', list: document.List.concat(result), count: count });
@@ -125,7 +93,7 @@ class DocumentList extends React.Component {
     }
 
     async getFolderDocuments(data) {
-        const { dispatch, loggedUser, folder, history, match } = this.props;
+        const { dispatch, loggedUser, folder, match } = this.props;
         const projectId = match.params.projectId;
         let folderList = folder.SelectedFolderName;
 
@@ -208,7 +176,7 @@ class DocumentList extends React.Component {
     }
 
     viewDocument(data) {
-        const { dispatch, loggedUser, folder, match, history, pageModal } = this.props;
+        const { dispatch, loggedUser, folder, match, pageModal } = this.props;
         const projectId = match.params.projectId;
 
         if (data.type !== 'folder') {
@@ -388,6 +356,7 @@ class DocumentList extends React.Component {
                                 </div>
                             }
                         </div>
+                        {console.log(document.Loading, document.List.length)}
                         <div class={(document.Loading == "RETRIEVING" && (document.List).length == 0) ? "linear-background" : ""}>
                             <div class="card-body m0">
                                 <div>
