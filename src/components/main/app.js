@@ -45,7 +45,7 @@ class Main extends React.Component {
     }
 
     componentWillMount() {
-        const { dispatch, user } = this.props;
+        const { dispatch, user, location } = this.props;
 
         getData(`/api/reminder?usersId=${user.id}`, {}, (c) => {
             dispatch({ type: "SET_REMINDER_LIST", list: c.data })
@@ -54,11 +54,13 @@ class Main extends React.Component {
         getData(`/api/globalORM/settings`, {}, (c) => {
             dispatch({ type: 'UPDATE_SETTINGS', value: c.data.value, name: 'imageUrl' })
         })
-
-        getData(`/api/notification?usersId=${user.id}&isRead=0&isDeleted=0&isArchived=0`, {}, (c) => {
-            const { count, result } = { ...c.data }
-            dispatch({ type: 'SET_NOTIFICATION_LIST', list: result, count: count });
-        })
+       
+        if (location.pathname !== "/notification") {
+            getData(`/api/notification?usersId=${user.id}&isRead=0&isDeleted=0&isArchived=0`, {}, (c) => {
+                const { count, result } = { ...c.data }
+                dispatch({ type: 'SET_NOTIFICATION_LIST', list: result, count: count });
+            })
+        }
 
         if (window.innerHeight <= 550) {
             this.setState({ showMore: "" })

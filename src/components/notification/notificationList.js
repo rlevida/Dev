@@ -31,16 +31,15 @@ class NotificationList extends React.Component {
         super(props)
     }
 
-    async componentDidMount() {
+    componentDidMount() {
         const { dispatch } = { ...this.props }
-        await dispatch({ type: "SET_NOTIFICATION_LIST", list: [] });
-        await this.fetchData(1)
+        dispatch({ type: "SET_NOTIFICATION_LIST", list: [] });
+        this.fetchData(1)
     }
 
     fetchData(page) {
         const { dispatch, loggedUser, notification } = { ...this.props };
         const { List, Filter } = { ...notification };
-
         getData(`/api/notification?page=${page}&usersId=${loggedUser.data.id}&isArchived=${Filter.isArchived}&isDeleted=${Filter.isDeleted}`, {}, (c) => {
             const { count, result } = { ...c.data };
             dispatch({ type: 'SET_NOTIFICATION_LIST', list: List.concat(result), count: count });
@@ -126,7 +125,7 @@ class NotificationList extends React.Component {
                                         case 'fileNewUpload': {
                                             return <div key={i}><FileNewUpload data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
                                         }
-                                        case 'fileTagged':{
+                                        case 'fileTagged': {
                                             return <div key={i}><FileTagged data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
                                         }
                                         case 'taskAssigned': {
