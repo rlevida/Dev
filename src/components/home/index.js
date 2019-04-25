@@ -12,7 +12,7 @@ import { connect } from "react-redux";
 })
 
 export default class Component extends React.Component {
-    constructor(props){
+    constructor(props) {
         super(props);
         this.handleRedirect = this.handleRedirect.bind(this);
     }
