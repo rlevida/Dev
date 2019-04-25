@@ -297,7 +297,7 @@ var notificationType = exports.notificationType = function (type) {
         case "messageSend": {
             return "sent you a new message"
         }
-        case "fileTagged":{
+        case "fileTagged": {
             return "mentioned you in a file"
         }
         case "taskTagged": {
@@ -307,10 +307,10 @@ var notificationType = exports.notificationType = function (type) {
             return "replies to a comment"
         }
         case "taskFollowingCompleted": {
-            return "completed this task"
+            return "completed a task"
         }
         case "taskMemberCompleted": {
-            return "completed this task"
+            return "completed a task"
         }
         case "taskDeadline": {
             return "You seem to have missed a deadline"
@@ -328,7 +328,7 @@ var notificationType = exports.notificationType = function (type) {
             return "Task about to be due"
         }
         case "taskApproved": {
-            return "Task approved"
+            return "approved a task"
         }
         default:
             return;
