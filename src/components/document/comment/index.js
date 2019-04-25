@@ -7,6 +7,7 @@ import moment from 'moment';
 import { postData, showToast, getData } from '../../../globalFunction'
 import defaultStyle from "../../global/react-mention-style";
 import { withRouter } from "react-router";
+import { Loading } from "../../../globalComponents";
 
 let keyTimer = "";
 
@@ -26,7 +27,9 @@ class DocumentComment extends React.Component {
             "renderUsers",
             "handleSubmit",
             "handleChange",
-            "replyComment"
+            "replyComment",
+            "getNextResult",
+            "fetchData"
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
 
@@ -98,11 +101,28 @@ class DocumentComment extends React.Component {
         })
     }
 
+    fetchData(page) {
+        const { dispatch, document, conversation } = { ...this.props }
+        dispatch({ type: 'SET_COMMENT_LOADING', Loading: "RETRIEVING" })
+        getData(`/api/conversation/getConversationList?page=${page}&linkType=document&linkId=${document.Selected.id}`, {}, (c) => {
+            dispatch({ type: 'SET_COMMENT_LIST', list: conversation.List.concat(c.data.result), count: c.data.count });
+            dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" });
+            $(`#documentViewerModal`).modal('show');
+        })
+    }
+
+    getNextResult() {
+        const { conversation, } = this.props;
+        this.fetchData(conversation.Count.current_page + 1)
+    }
 
     render() {
         const { dispatch, conversation } = { ...this.props };
         let commentText = (typeof conversation.Selected.comment != "undefined") ? conversation.Selected.comment : "";
         const commentType = conversation.Selected.type || "";
+        const { Count } = { ...conversation };
+        const currentPage = (typeof Count.current_page != "undefined") ? Count.current_page : 1;
+        const lastPage = (typeof Count.last_page != "undefined") ? Count.last_page : 1;
 
         return (
             <div>
@@ -126,6 +146,16 @@ class DocumentComment extends React.Component {
                             </div>
                         )
                     })
+                }
+
+                {
+                    ((currentPage != lastPage) && conversation.List.length > 0 && conversation.Loading != "RETRIEVING") && <p class="mb0 text-center"><a onClick={() => this.getNextResult()}>Load More Comments</a></p>
+                }
+                {
+                    (conversation.Loading == "RETRIEVING" && (conversation.List).length > 0) && <Loading />
+                }
+                {
+                    (conversation.List.length === 0 && conversation.Loading != "RETRIEVING") && <p class="mb0 text-center"><strong>No Records Found</strong></p>
                 }
                 <div class="row mt10">
                     <div class="col-md-12 col-xs-12">
