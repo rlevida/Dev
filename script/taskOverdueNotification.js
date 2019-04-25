@@ -41,7 +41,10 @@ var job = new CronJob('0 7 * * *', function () {
                         { [Op.lt]: moment().utc().format("YYYY-MM-DD") },
                     ]
                 },
-                isActive: 1
+                isActive: 1,
+                status: {
+                    [Op.ne]: "Completed"
+                }
             },
             include: [{
                 model: Members,
