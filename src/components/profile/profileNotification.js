@@ -42,8 +42,8 @@ export default class ProfileNotification extends React.Component {
     }
 
     render() {
-        const { users, loggedUser } = { ...this.props };
-        const { taskAssigned, taskTagged, taskApprover, fileNewUpload, messageSend, commentReplies, taskDeadline, taskMemberCompleted, taskFollowingCompleted, taskTeamDeadline, taskFollowingDeadline, receiveEmail } = { ...users.NotificationSetting }
+        const { users } = { ...this.props };
+        const { taskAssigned, taskTagged, taskApprover, fileNewUpload, messageSend, commentReplies, taskDeadline, taskMemberCompleted, taskFollowingCompleted, taskTeamDeadline, taskFollowingDeadline, receiveEmail, taskBeforeDeadline } = { ...users.NotificationSetting }
         return (
             <div class="mt20">
                 <h4><strong>Send Notification when:</strong></h4>
@@ -137,7 +137,7 @@ export default class ProfileNotification extends React.Component {
                             Members under my team were able to complete a task
                             <input
                                 type="checkbox"
-                                checked={taskDeadline ? 1 : 0}
+                                checked={taskMemberCompleted ? 1 : 0}
                                 onChange={() => { }}
                                 checked={taskMemberCompleted ? 1 : 0}
                                 onClick={() => this.handleChange('taskMemberCompleted', taskMemberCompleted ? 0 : 1)}
@@ -150,7 +150,7 @@ export default class ProfileNotification extends React.Component {
                             A task I'm following was completed
                             <input
                                 type="checkbox"
-                                checked={taskDeadline ? 1 : 0}
+                                checked={taskFollowingCompleted ? 1 : 0}
                                 onChange={() => { }}
                                 checked={taskFollowingCompleted ? 1 : 0}
                                 onClick={() => this.handleChange('taskFollowingCompleted', taskFollowingCompleted ? 0 : 1)}
@@ -163,7 +163,7 @@ export default class ProfileNotification extends React.Component {
                             A task goes beyond the deadline under my team
                             <input
                                 type="checkbox"
-                                checked={taskDeadline ? 1 : 0}
+                                checked={taskTeamDeadline ? 1 : 0}
                                 onChange={() => { }}
                                 checked={taskTeamDeadline ? 1 : 0}
                                 onClick={() => this.handleChange('taskTeamDeadline', taskTeamDeadline ? 0 : 1)}
@@ -176,10 +176,23 @@ export default class ProfileNotification extends React.Component {
                             A task goes beyond the deadline under the task I'm following
                             <input
                                 type="checkbox"
-                                checked={taskDeadline ? 1 : 0}
+                                checked={taskFollowingDeadline ? 1 : 0}
                                 onChange={() => { }}
                                 checked={taskFollowingDeadline ? 1 : 0}
                                 onClick={() => this.handleChange('taskFollowingDeadline', taskFollowingDeadline ? 0 : 1)}
+                            />
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="custom-checkbox">
+                            A task about to be due
+                            <input
+                                type="checkbox"
+                                checked={taskBeforeDeadline ? 1 : 0}
+                                onChange={() => { }}
+                                checked={taskBeforeDeadline ? 1 : 0}
+                                onClick={() => this.handleChange('taskBeforeDeadline', taskBeforeDeadline ? 0 : 1)}
                             />
                             <span class="checkmark"></span>
                         </label>
