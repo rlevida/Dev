@@ -90,7 +90,7 @@ var job = new CronJob('0 7 * * *', function () {
                                 let message = "";
                                 message = `Task about to be due as responsible`;
                                 let notificationArr = await _.filter(response, (nSetting) => {
-                                    return nSetting.taskFollowingDeadline === 1
+                                    return nSetting.taskBeforeDeadline === 1
                                 }).map((nSetting) => {
                                     const { emailAddress } = { ...nSetting.notification_setting }
 
@@ -100,7 +100,7 @@ var job = new CronJob('0 7 * * *', function () {
                                         projectId: e.projectId,
                                         taskId: e.id,
                                         workstreamId: e.workstreamId,
-                                        type: "taskResponsibleBeforeDeadline",
+                                        type: "taskBeforeDeadline",
                                         message: message,
                                         emailAddress: emailAddress,
                                         receiveEmail: nSetting.receiveEmail
@@ -203,7 +203,7 @@ var job = new CronJob('0 7 * * *', function () {
                                 let message = "";
                                 message = `Task about to be due`;
                                 let notificationArr = await _.filter(response, (nSetting) => {
-                                    return nSetting.taskFollowingDeadline === 1
+                                    return nSetting.taskBeforeDeadline === 1
                                 }).map((nSetting) => {
                                     const { emailAddress } = { ...nSetting.notification_setting }
 
@@ -213,7 +213,7 @@ var job = new CronJob('0 7 * * *', function () {
                                         projectId: e.projectId,
                                         taskId: e.id,
                                         workstreamId: e.workstreamId,
-                                        type: "taskAssigned",
+                                        type: "taskBeforeDeadline",
                                         message: message,
                                         emailAddress: emailAddress,
                                         receiveEmail: nSetting.receiveEmail

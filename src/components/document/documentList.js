@@ -356,7 +356,6 @@ class DocumentList extends React.Component {
                                 </div>
                             }
                         </div>
-                        {console.log(document.Loading, document.List.length)}
                         <div class={(document.Loading == "RETRIEVING" && (document.List).length == 0) ? "linear-background" : ""}>
                             <div class="card-body m0">
                                 <div>

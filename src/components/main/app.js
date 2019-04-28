@@ -191,6 +191,7 @@ class Main extends React.Component {
             case "taskFollowingDeadline":
             case "taskResponsibleDeadLine":
             case "taskResponsibleBeforeDeadline":
+            case "taskBeforeDeadline":
             case "taskAssigned": {
                 history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
                 window.location.reload();
@@ -352,15 +353,14 @@ class Main extends React.Component {
                                                             <a href="javascript:void(0)" onClick={() => this.handleNotificationRedirect(e)} key={i}>
                                                                 <div class={`display-flex vh-center bb notif-item ${e.isRead ? "" : "n-unread"}`}>
                                                                     <div class="menu-profile">
-                                                                        {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline"
+                                                                        {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline" && e.type !== "taskBeforeDeadline" 
                                                                             ? <img src={e.from.avatar} alt="Profile Picture" class="img-responsive" />
                                                                             : <span class="n-tod-warning"><i class="fa fa-exclamation-circle"></i></span>
                                                                         }
                                                                     </div>
                                                                     <div class="ml10 w100">
                                                                         <p class="m0 ">
-
-                                                                            {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline"
+                                                                            {e.type !== "taskDeadline" && e.type !== "taskTeamDeadline" && e.type !== "taskFollowingDeadline" && e.type !== "taskBeforeDeadline" 
                                                                                 ?
                                                                                 <span>{`${from.firstName} ${from.lastName} `}<strong>{notificationType(e.type)}</strong></span>
                                                                                 :

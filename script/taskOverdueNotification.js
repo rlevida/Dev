@@ -37,9 +37,7 @@ var job = new CronJob('0 7 * * *', function () {
         .findAll({
             where: {
                 dueDate: {
-                    [Op.or]: [
-                        { [Op.lt]: moment().utc().format("YYYY-MM-DD") },
-                    ]
+                    [Op.lt]: moment().utc().format("YYYY-MM-DD"),
                 },
                 isActive: 1,
                 status: {

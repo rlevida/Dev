@@ -12,7 +12,7 @@ CREATE TABLE `notification` (
     `isActive` TINYINT DEFAULT '1',
     `isRead` TINYINT DEFAULT '0',
     `isArchived` TINYINT DEFAULT '0',
-    `type` ENUM("taskAssigned","taskApprover","taskTagged","fileNewUpload","messageSend","commentReplies","taskDeadline","taskMemberCompleted","taskFollowingCompleted","taskTeamDeadline","taskFollowingDeadline","taskApproved","taskResponsibleDeadLine","taskResponsibleBeforeDeadline","fileTagged"),
+    `type` ENUM("taskAssigned","taskApprover","taskTagged","fileNewUpload","messageSend","commentReplies","taskDeadline","taskBeforeDeadline","taskMemberCompleted","taskFollowingCompleted","taskTeamDeadline","taskFollowingDeadline","taskApproved","taskResponsibleDeadLine","taskResponsibleBeforeDeadline","fileTagged"),
     `createdBy` BIGINT,
     `isDeleted` TINYINT DEFAULT '0',
     `dateAdded` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

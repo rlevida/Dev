@@ -41,7 +41,7 @@ module.exports = function (sequelize, DataTypes) {
             allowNull: true
         },
         type: {
-            type: DataTypes.ENUM('taskAssigned', "taskApprover", 'taskTagged', 'fileNewUpload', 'messageSend', 'commentReplies', 'taskDeadline', 'taskMemberCompleted', 'taskFollowingCompleted', 'taskTeamDeadline', 'taskFollowingDeadline',"taskApproved","taskResponsibleDeadLine","taskResponsibleBeforeDeadline","fileTagged"),
+            type: DataTypes.ENUM('taskAssigned', "taskApprover", 'taskTagged', 'fileNewUpload', 'messageSend', 'commentReplies', 'taskDeadline', 'taskBeforeDeadline', 'taskMemberCompleted', 'taskFollowingCompleted', 'taskTeamDeadline', 'taskFollowingDeadline', "taskApproved", "taskResponsibleDeadLine", "taskResponsibleBeforeDeadline", "fileTagged"),
             allowNull: true
         },
         isActive: {

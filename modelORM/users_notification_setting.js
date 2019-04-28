@@ -56,6 +56,10 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.BIGINT,
             allowNull: true
         },
+        taskBeforeDeadline: {
+            type: DataTypes.BIGINT,
+            allowNull: true
+        },
         receiveEmail: {
             type: DataTypes.BIGINT,
             allowNull: true

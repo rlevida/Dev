@@ -31,10 +31,10 @@ class NotificationList extends React.Component {
         super(props)
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         const { dispatch } = { ...this.props }
-        dispatch({ type: "SET_NOTIFICATION_LIST", list: [] });
-        this.fetchData(1)
+        await dispatch({ type: "SET_NOTIFICATION_LIST", list: [] });
+        await this.fetchData(1)
     }
 
     fetchData(page) {
@@ -99,6 +99,7 @@ class NotificationList extends React.Component {
             case "taskFollowingDeadline":
             case "taskResponsibleDeadline":
             case "taskResponsibleBeforeDeadLine":
+            case "taskBeforeDeadline":
             case "taskAssigned": {
                 history.push(`${url}/workstreams/${workstreamId}?task-id=${taskId}`);
             }
@@ -163,7 +164,8 @@ class NotificationList extends React.Component {
                                             return <div key={i}><TaskFollowingDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
                                         }
                                         case "taskResponsibleDeadLine":
-                                        case "taskResponsibleBeforeDeadline": {
+                                        case "taskResponsibleBeforeDeadline":
+                                        case "taskBeforeDeadline": {
                                             return <div key={i}><TaskResponsibleDeadline data={e} index={i} archive={(data) => this.archive(data)} handleNotificationRedirect={(data) => this.handleNotificationRedirect(data)} /></div>
                                         }
                                         default:
