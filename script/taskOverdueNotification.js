@@ -48,7 +48,7 @@ var job = new CronJob('0 7 * * *', function () {
                 model: Members,
                 as: 'assignee',
                 attributes: ['userTypeLinkId'],
-                where: { memberType: 'assignedTo' },
+                where: { memberType: 'assignedTo',linkType: 'task', isDeleted: 0  },
                 required: false,
             }, {
                 model: Members,
@@ -63,7 +63,7 @@ var job = new CronJob('0 7 * * *', function () {
                 include: [{
                     model: Members,
                     as: 'responsible',
-                    where: { memberType: 'responsible', linkType: 'workstream' },
+                    where: { memberType: 'responsible', linkType: 'workstream' , isDeleted: 0},
                     required: false
                 }]
             }]
