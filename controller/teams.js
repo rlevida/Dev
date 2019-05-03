@@ -225,29 +225,33 @@ exports.post = {
                     }
                 },
                 user: (parallelCallback) => {
-                    try {
-                        Users
-                            .findAll({
-                                where: {
-                                    id: body.users_team.map((e) => { return e.value }).concat([body.teamLeaderId])
-                                },
-                                include: usersAssociationStack,
-                                attributes: ['id', 'username', 'firstName', 'lastName', 'emailAddress', 'phoneNumber', 'avatar', 'isActive', 'userType', 'company']
-                            })
-                            .map((res) => {
-                                let responseToReturn = {
-                                    ...res.toJSON(),
-                                    projectId: res.projectId.map((e) => { return e.linkId }),
-                                    userRole: res.user_role[0].roleId,
-                                    team: res.team_as_teamLeader.concat(res.users_team.map((e) => { return e.team }))
-                                }
-                                return _.omit(responseToReturn, "team_as_teamLeader", "users_team")
-                            })
-                            .then((res) => {
-                                parallelCallback(null, res);
-                            })
-                    } catch (err) {
-                        parallelCallback(err)
+                    if (typeof body.users_team !== 'undefined') {
+                        try {
+                            Users
+                                .findAll({
+                                    where: {
+                                        id: body.users_team.map((e) => { return e.value }).concat([body.teamLeaderId])
+                                    },
+                                    include: usersAssociationStack,
+                                    attributes: ['id', 'username', 'firstName', 'lastName', 'emailAddress', 'phoneNumber', 'avatar', 'isActive', 'userType', 'company']
+                                })
+                                .map((res) => {
+                                    let responseToReturn = {
+                                        ...res.toJSON(),
+                                        projectId: res.projectId.map((e) => { return e.linkId }),
+                                        userRole: res.user_role[0].roleId,
+                                        team: res.team_as_teamLeader.concat(res.users_team.map((e) => { return e.team }))
+                                    }
+                                    return _.omit(responseToReturn, "team_as_teamLeader", "users_team")
+                                })
+                                .then((res) => {
+                                    parallelCallback(null, res);
+                                })
+                        } catch (err) {
+                            parallelCallback(err)
+                        }
+                    } else {
+                        parallelCallback(null, []);
                     }
                 }
             }, (err, parallelCallbackResult) => {

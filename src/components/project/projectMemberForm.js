@@ -114,7 +114,7 @@ export default class ProjectMemberForm extends React.Component {
     }
 
     fetchUserList(options) {
-        const { dispatch, project } = { ...this.props };
+        const { dispatch, project, users } = { ...this.props };
         const { showAllUsers } = { ...this.state };
         let fetchUrl = `/api/user?page=1&showAllUsers=${showAllUsers}&project_type=${project.Selected.type.type}`;
 
@@ -125,12 +125,12 @@ export default class ProjectMemberForm extends React.Component {
             const memberOptions = _.map(c.data.result, (o) => {
                 return { id: o.id, name: `${o.firstName} ${o.lastName}`, image: o.avatar }
             });
-            dispatch({ type: "SET_USER_SELECT_LIST", List: memberOptions });
+            dispatch({ type: "SET_USER_SELECT_LIST", List: _.uniqBy([...users.SelectList, ...memberOptions], "id") });
         });
     }
 
     fetchTeamList(options) {
-        const { dispatch, loggedUser } = this.props;
+        const { dispatch, loggedUser, teams } = this.props;
         let fetchUrl = `/api/teams?page=1&isDeleted=0&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`;
 
         if (typeof options != "undefined" && options != "") {
@@ -141,13 +141,14 @@ export default class ProjectMemberForm extends React.Component {
                 .map((e) => { return { id: e.id, name: e.team } })
                 .value();
 
-            dispatch({ type: "SET_TEAM_SELECT_LIST", List: teamOptions });
+            dispatch({ type: "SET_TEAM_SELECT_LIST", List: _.uniqBy([...teams.SelectList, ...teamOptions], "id") });
             dispatch({ type: "SET_USER_LOADING", Loading: "" });
         });
 
     }
 
     setAssignMemberUserList(options) {
+        const { members } = this.props;
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
             this.fetchUserList(options);
@@ -162,8 +163,10 @@ export default class ProjectMemberForm extends React.Component {
     }
 
     render() {
-        const { users, members, teams, dispatch, loggedUser, project } = this.props;
+        const { users, members, teams, dispatch, loggedUser } = this.props;
         const { showAllUsers } = this.state;
+        let userList = _.cloneDeep(users.SelectList);
+        let teamList = _.cloneDeep(teams.SelectList);
         let userTypes = [
             { id: 'users', name: 'User' },
             { id: 'team', name: 'Team' }
@@ -194,16 +197,17 @@ export default class ProjectMemberForm extends React.Component {
                 }
                 <div class="form-group">
                     <label>Member: <span class="text-red">*</span></label>
-                    <div class={`display-flex ${(users.Loading == "RETRIEVING" && typeof members.Selected.type != "undefined") ? "pointer-none" : ""}`}>
+                    <div class={`display-flex ${(users.Loading == "RETRIEVING" && typeof members.Selected.type != "undefined") ? "pointer-none" : ""}`} style={{ position: "relative" }}>
                         <DropDown
                             required={true}
-                            options={(members.Selected.type == "users" || loggedUser.data.userRole >= 4) ? users.SelectList : (members.Selected.type == "team") ? teams.SelectList : []}
+                            options={(members.Selected.type == "users" || loggedUser.data.userRole >= 4) ? userList : (members.Selected.type == "team") ? teamList : []}
                             onInputChange={
                                 (members.Selected.type == "users" || loggedUser.data.userRole >= 4) ? this.setAssignMemberUserList : (members.Selected.type == "team") ? this.setAssignMemberTeamList : undefined
                             }
                             selected={(typeof members.Selected.userTypeLinkId == "undefined" || members.Selected.action == "delete") ? "" : members.Selected.userTypeLinkId}
+                            isClearable={true}
                             onChange={(e) => {
-                                this.setDropDown("userTypeLinkId", e.value);
+                                this.setDropDown("userTypeLinkId", (e == null) ? null : e.value);
                             }}
                             placeholder={'Search name'}
                             onFocus={

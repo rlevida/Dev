@@ -83,12 +83,14 @@ export default class TeamForm extends React.Component {
                     dispatch({ type: 'UPDATE_USER_TEAM', List: c.data.user });
                     dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "List" });
                     showToast('success', 'Team successfully added.');
-
                     let updatedProfile = "";
-                    if (_.filter(dataToBeSubmitted.users_team, (o) => { return o.value == loggedUser.data.id }).length > 0 || dataToBeSubmitted.teamLeaderId == loggedUser.data.id) {
+                    if (
+                        (typeof dataToBeSubmitted.users_team != "undefined") &&
+                        (_.filter(dataToBeSubmitted.users_team, (o) => { return o.value == loggedUser.data.id }).length > 0 || dataToBeSubmitted.teamLeaderId == loggedUser.data.id)
+                    ) {
                         updatedProfile = { ...loggedUser.data, team: [...myCurrentTeam, ...c.data.team] };
+                        dispatch({ type: "SET_LOGGED_USER_DATA", data: updatedProfile });
                     }
-                    dispatch({ type: "SET_LOGGED_USER_DATA", data: updatedProfile });
                 } else {
                     showToast('error', 'Something went wrong. Please try again.');
                 }
@@ -201,7 +203,7 @@ export default class TeamForm extends React.Component {
         const { users_team = [] } = teams.Selected;
         let memberOptions = _.filter(teams.MemberList, (o) => { return o.id != teams.Selected.teamLeaderId });
         memberOptions = _.uniqBy([...memberOptions, ..._.map(users_team, ({ value: id, label: name, image }) => { return { id, name, image } })], 'id');
-        
+
         return <div>
             <div class="mb20">
                 <form id="team-form">
