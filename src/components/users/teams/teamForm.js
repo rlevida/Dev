@@ -79,17 +79,21 @@ export default class TeamForm extends React.Component {
         if (typeof dataToBeSubmitted.id === 'undefined') {
             postData(`/api/teams`, dataToBeSubmitted, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: 'ADD_TEAM_TO_LIST', list: c.data.team });
-                    dispatch({ type: 'UPDATE_USER_TEAM', List: c.data.user });
-                    dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "List" });
-                    showToast('success', 'Team successfully added.');
-                    let updatedProfile = "";
-                    if (
-                        (typeof dataToBeSubmitted.users_team != "undefined") &&
-                        (_.filter(dataToBeSubmitted.users_team, (o) => { return o.value == loggedUser.data.id }).length > 0 || dataToBeSubmitted.teamLeaderId == loggedUser.data.id)
-                    ) {
-                        updatedProfile = { ...loggedUser.data, team: [...myCurrentTeam, ...c.data.team] };
-                        dispatch({ type: "SET_LOGGED_USER_DATA", data: updatedProfile });
+                    if (typeof c.data.message !== "undefined") {
+                        showToast('error', c.data.message);
+                    } else {
+                        dispatch({ type: 'ADD_TEAM_TO_LIST', list: c.data.team });
+                        dispatch({ type: 'UPDATE_USER_TEAM', List: c.data.user });
+                        dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "List" });
+                        showToast('success', 'Team successfully added.');
+                        let updatedProfile = "";
+                        if (
+                            (typeof dataToBeSubmitted.users_team != "undefined") &&
+                            (_.filter(dataToBeSubmitted.users_team, (o) => { return o.value == loggedUser.data.id }).length > 0 || dataToBeSubmitted.teamLeaderId == loggedUser.data.id)
+                        ) {
+                            updatedProfile = { ...loggedUser.data, team: [...myCurrentTeam, ...c.data.team] };
+                            dispatch({ type: "SET_LOGGED_USER_DATA", data: updatedProfile });
+                        }
                     }
                 } else {
                     showToast('error', 'Something went wrong. Please try again.');
@@ -98,28 +102,33 @@ export default class TeamForm extends React.Component {
         } else {
             putData(`/api/teams/${dataToBeSubmitted.id}`, dataToBeSubmitted, (c) => {
                 if (c.status == 200) {
-                    dispatch({ type: 'UPDATE_DATA_TEAM_LIST', UpdatedData: c.data.team });
-                    dispatch({ type: 'UPDATE_USER_TEAM', List: c.data.user });
-                    dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "List" });
-                    showToast('success', 'Team successfully updated.');
-
-                    let updatedProfile = "";
-
-                    if (myTeamIndex >= 0 || _.filter(dataToBeSubmitted.users_team, (o) => { return o.value == loggedUser.data.id }).length > 0 || teamLeaderId == loggedUser.data.id) {
-                        myCurrentTeam.splice(myTeamIndex, 1, _.omit(c.data.team, ['users_team']));
-                        updatedProfile = { ...loggedUser.data, team: myCurrentTeam };
+                    if (typeof c.data.message !== "undefined") {
+                        showToast('error', c.data.message);
                     } else {
-                        updatedProfile = {
-                            ...loggedUser.data,
-                            team: _.remove(myCurrentTeam, function (o) {
-                                return o.id != dataToBeSubmitted.id;
-                            })
-                        };
+                        dispatch({ type: 'UPDATE_DATA_TEAM_LIST', UpdatedData: c.data.team });
+                        dispatch({ type: 'UPDATE_USER_TEAM', List: c.data.user });
+                        dispatch({ type: "SET_TEAM_FORM_ACTIVE", FormActive: "List" });
+                        showToast('success', 'Team successfully updated.');
+
+                        let updatedProfile = "";
+
+                        if (myTeamIndex >= 0 || _.filter(dataToBeSubmitted.users_team, (o) => { return o.value == loggedUser.data.id }).length > 0 || dataToBeSubmitted.teamLeaderId == loggedUser.data.id) {
+                            myCurrentTeam.splice(myTeamIndex, 1, _.omit(c.data.team, ['users_team']));
+                            updatedProfile = { ...loggedUser.data, team: myCurrentTeam };
+                        } else {
+                            updatedProfile = {
+                                ...loggedUser.data,
+                                team: _.remove(myCurrentTeam, function (o) {
+                                    return o.id != dataToBeSubmitted.id;
+                                })
+                            };
+                        }
+                        dispatch({ type: "SET_LOGGED_USER_DATA", data: updatedProfile });
                     }
-                    dispatch({ type: "SET_LOGGED_USER_DATA", data: updatedProfile });
                 } else {
                     showToast('error', 'Something went wrong. Please try again.');
                 }
+
             });
         }
     }
@@ -301,7 +310,7 @@ export default class TeamForm extends React.Component {
 
                     </div>
                     <a class="btn btn-violet" onClick={this.handleSubmit}>
-                        <span>{`${(typeof teams.Selected.id != "undefined" && teams.Selected.id != "") ? 'Edit' : 'Add'} Team`}</span>
+                        <span>{`${(typeof teams.Selected.id != "undefined" && teams.Selected.id != "") ? 'Edit/Save' : 'Add'} Team`}</span>
                     </a>
                 </form>
             </div>
