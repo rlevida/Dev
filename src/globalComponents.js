@@ -64,7 +64,7 @@ export const DropDown = React.createClass({
             self.setState({ selected: (self.props.multiple) ? option : option ? option.value : "", });
         };
         return (
-            <div style={{ width: '100%' }}>
+            <div class="select-wrapper">
                 <p class="note m0">Type to search item.</p>
                 <Select multi={this.props.multiple}
                     disabled={this.state.disabled}
