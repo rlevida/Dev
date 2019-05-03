@@ -29,7 +29,7 @@ export default class Component extends React.Component {
                                 <div class="display-flex vh-center">
                                     <span class="n-tod-warning"><i class="fa fa-exclamation-circle"></i></span>
                                     <div >
-                                        <p class="m0">{notificationType(data.type)}</p>
+                                        <p class="m0">{data.message}</p>
                                         <p class="note m0">{date}</p>
                                     </div>
                                 </div>

@@ -330,6 +330,9 @@ var notificationType = exports.notificationType = function (type) {
         case "taskApproved": {
             return "approved a task"
         }
+        case "taskBeforeDeadline": {
+            return "Task about to be due"
+        }
         default:
             return;
     }
