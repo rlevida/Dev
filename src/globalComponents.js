@@ -64,24 +64,27 @@ export const DropDown = React.createClass({
             self.setState({ selected: (self.props.multiple) ? option : option ? option.value : "", });
         };
         return (
-            <Select multi={this.props.multiple}
-                disabled={this.state.disabled}
-                options={self.state.records}
-                optionRenderer={this.props.customLabel}
-                valueComponent={this.props.customSelected}
-                style={this.props.style}
-                value={this.state.selected}
-                onChange={handleChange}
-                clearable={(typeof this.props.isClearable != 'undefined') ? this.props.isClearable : false}
-                required={this.props.required}
-                onInputChange={this.onInputChange}
-                onFocus={this.onFocus}
-                noResultsText={self.state.noResultsText}
-                onSelectResetsInput={false}
-                onBlurResetsInput={true}
-                autoBlur
-                placeholder={(typeof this.props.placeholder != "undefined") ? this.props.placeholder : "Select"}
-            />
+            <div style={{ width: '100%' }}>
+                <p class="note m0">Type to search item.</p>
+                <Select multi={this.props.multiple}
+                    disabled={this.state.disabled}
+                    options={self.state.records}
+                    optionRenderer={this.props.customLabel}
+                    valueComponent={this.props.customSelected}
+                    style={this.props.style}
+                    value={this.state.selected}
+                    onChange={handleChange}
+                    clearable={(typeof this.props.isClearable != 'undefined') ? this.props.isClearable : false}
+                    required={this.props.required}
+                    onInputChange={this.onInputChange}
+                    onFocus={this.onFocus}
+                    noResultsText={self.state.noResultsText}
+                    onSelectResetsInput={false}
+                    onBlurResetsInput={true}
+                    autoBlur
+                    placeholder={"Search"}
+                />
+            </div>
         );
     }
 })

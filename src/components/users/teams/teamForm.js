@@ -258,10 +258,9 @@ export default class TeamForm extends React.Component {
 
                     </div>
                     <div class="form-group">
-                        <label>Members: <span class="text-red">*</span></label>
+                        <label>Members:</label>
                         <DropDown
                             multiple={true}
-                            required={true}
                             options={memberOptions}
                             onInputChange={this.setTeamMemberList}
                             selected={(typeof teams.Selected.users_team == "undefined") ? [] : teams.Selected.users_team}

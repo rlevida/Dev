@@ -1679,6 +1679,7 @@ table th, .rbc-header  {
   float: right;
   width: 100%;
   justify-content: flex-end;
+  align-items: flex-end;
 }
 
 .filter .Select{
@@ -1822,6 +1823,7 @@ form .underlined{
 .input-inline .Select{
   width: 100%;
   max-width: 350px;
+  min-width: 180px;
 }
 .input-inline label{
   display: flex;
@@ -1859,7 +1861,10 @@ textarea::-webkit-scrollbar-thumb {
   position: absolute;
     bottom: 7px;
     right: 25px;
-    top: 15px
+}
+
+.input-inline .loading i{
+  font-size: 15px;
 }
 
 .input-inline {
@@ -2541,6 +2546,10 @@ td .display-flex{
   background-color: transparent;
 }
 
+.button-action .btn-default{
+  height: 35px;
+}
+
 @media screen and (max-width: 600px) {
   table {
     border: 0;
@@ -2690,11 +2699,11 @@ td .display-flex{
   .button-action .Select{
     margin-bottom: 15px;
     max-width: none;
+
   }
   .button-action .btn{
     width: 100%;
   }
-
   .input-inline{
    flex-direction: column;
   }

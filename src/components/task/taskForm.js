@@ -530,7 +530,7 @@ export default class TaskForm extends React.Component {
                                                     <div class={`form-group input-inline ${(workstream.Loading == "RETRIEVING" || typeof workstream.Selected.id != "undefined") ? "pointer-none" : ""}`}>
                                                         <label>
                                                             Workstream: <span class="text-red">*</span>
-                                                            <p class="m0 note">Please select a project first.</p>
+                                                            <p class="m0 note">Select a project first.</p>
                                                         </label>
                                                         <DropDown
                                                             required={true}
@@ -568,7 +568,7 @@ export default class TaskForm extends React.Component {
                                                     ) ? "pointer-none" : ""}`}>
                                                         <label for="email">
                                                             Assigned: <span class="text-red">*</span>
-                                                            <p class="m0 note">Please select a project first.</p>
+                                                            <p class="m0 note">Select a project first.</p>
                                                         </label>
                                                         <DropDown
                                                             required={true}
@@ -731,7 +731,7 @@ export default class TaskForm extends React.Component {
                                                 <label class="m0">
                                                     Approver:<span class="text-red">*</span>
                                                 </label>
-                                                <p class="m0 note">Please select a project first.</p>
+                                                <p class="note mb5">Select a project first.</p>
                                                 <div class={`input-inline ${(
                                                     (typeof task.Selected.projectId == "undefined" && typeof project.Selected.id == "undefined") ||
                                                     workstream.Loading == "RETRIEVING"
