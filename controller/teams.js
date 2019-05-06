@@ -183,6 +183,20 @@ exports.post = {
         sequence.create().then((nextThen) => {
             try {
                 Teams
+                    .findAndCountAll({ where: { team: body.team } })
+                    .then(({ count }) => {
+                        if (count > 0) {
+                            cb({ status: true, data: { message: 'Team name was already in use.' } });
+                        } else {
+                            nextThen()
+                        }
+                    })
+            } catch (err) {
+                cb({ status: true, error: err })
+            }
+        }).then((nextThen) => {
+            try {
+                Teams
                     .create(body)
                     .then((res) => {
                         nextThen(res)
@@ -269,6 +283,20 @@ exports.put = {
     index: (req, cb) => {
         const body = req.body;
         sequence.create().then((nextThen) => {
+            try {
+                Teams
+                    .findAndCountAll({ where: { team: body.team, id: { [Op.ne]: body.id } } })
+                    .then(({ count }) => {
+                        if (count > 0) {
+                            cb({ status: true, data: { message: 'Team name was already in use.' } });
+                        } else {
+                            nextThen()
+                        }
+                    })
+            } catch (err) {
+                cb({ status: true, error: err })
+            }
+        }).then((nextThen) => {
             async.parallel({
                 userTeams: (parallelCallback) => {
                     UsersTeam
