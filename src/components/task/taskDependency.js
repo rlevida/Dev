@@ -94,7 +94,7 @@ export default class TaskDependency extends React.Component {
 
     getTaskList(options) {
         const { dispatch, task, taskDependency } = this.props;
-        let fetchUrl = `/api/task?projectId=${task.Selected.projectId}&page=1`;
+        let fetchUrl = `/api/task?workstreamId=${task.Selected.workstreamId}&page=1`;
         if (typeof options != "undefined" && options != "") {
             fetchUrl += `&task=${options}`;
         }

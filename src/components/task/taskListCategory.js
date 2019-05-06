@@ -89,14 +89,14 @@ export default class TaskListCategory extends React.Component {
                 break;
             case "This week":
                 fromDate = moment().add('days', 1).format("YYYY-MM-DD");
-                toDate = moment().add('days', 8).format("YYYY-MM-DD");
+                toDate = moment().endOf('week').format("YYYY-MM-DD");
                 break;
             case "This month":
-                fromDate = moment().add('days', 9).format("YYYY-MM-DD");
-                toDate = moment().add('days', 38).format("YYYY-MM-DD");
+                fromDate = moment().endOf('week').add('days', 1).format("YYYY-MM-DD");
+                toDate = moment().endOf('month').format("YYYY-MM-DD");
                 break;
             case "Succeeding month":
-                fromDate = moment().add('days', 39).format("YYYY-MM-DD");
+                fromDate = moment().endOf('month').add('days', 1).format("YYYY-MM-DD");
                 toDate = moment().endOf("year").format("YYYY-MM-DD");
                 break;
             default:
@@ -327,13 +327,13 @@ export default class TaskListCategory extends React.Component {
                     return daysRemaining <= 0;
                     break;
                 case "This week":
-                    return daysRemaining > 0 && daysRemaining <= 7;
+                    return (given).isAfter(moment().endOf('day')) > 0 && (given).isBefore(moment().endOf('week'));
                     break;
                 case "This month":
-                    return daysRemaining > 7 && daysRemaining <= 23;
+                    return (given).isAfter(moment().endOf('week')) && (given).isBefore(moment().endOf('month'))
                     break;
                 case "Succeeding month":
-                    return daysRemaining > 23;
+                    return (given).isAfter(moment().endOf('month'));
                     break;
                 default:
                     return dueDate == null;
