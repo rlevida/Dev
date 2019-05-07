@@ -318,10 +318,10 @@ export default class TaskListCategory extends React.Component {
         const { task, date } = { ...this.props };
         const taskList = _.filter(task.List, (o) => {
             const { dueDate } = o;
-            const given = moment(dueDate, "YYYY-MM-DD");
+            const given = moment(dueDate).local();
             const current = moment().startOf('day');
             const daysRemaining = moment.duration(given.diff(current)).asDays() + 1;
-
+           
             switch (date) {
                 case "Today":
                     return daysRemaining <= 0;
