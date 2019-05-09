@@ -320,14 +320,13 @@ export default class TaskListCategory extends React.Component {
             const { dueDate } = o;
             const given = moment(dueDate).local();
             const current = moment().startOf('day');
-            const daysRemaining = moment.duration(given.diff(current)).asDays() + 1;
-           
+          
             switch (date) {
                 case "Today":
-                    return daysRemaining <= 0;
+                    return (given).isSameOrBefore(moment().endOf('day'));
                     break;
                 case "This week":
-                    return (given).isAfter(moment().endOf('day')) > 0 && (given).isBefore(moment().endOf('week'));
+                    return (given).isAfter(moment().endOf('day')) && (given).isBefore(moment().endOf('week'));
                     break;
                 case "This month":
                     return (given).isAfter(moment().endOf('week')) && (given).isBefore(moment().endOf('month'))
