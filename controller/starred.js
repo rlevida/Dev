@@ -68,7 +68,11 @@ exports.get = {
                                         ...(typeof queryString.projectId != "undefined" && queryString.projectId != "") ? { projectId: queryString.projectId } : {}
                                     }
                                 }]
-                            }
+                            },
+                            {
+                                model: Users,
+                                as: 'user',
+                            },
                         ]
                     });
                     break;
@@ -115,7 +119,7 @@ exports.get = {
                         }
 
                         if (typeof responseObj.notes != "undefined") {
-                            responseObj = { ...responseObj, title: responseObj.notes.note, type: "notes", workstream: responseObj.notes.noteWorkstream.workstream  }
+                            responseObj = { ...responseObj, title: responseObj.notes.note, type: "notes", workstream: responseObj.notes.noteWorkstream.workstream }
                         }
 
                         if (typeof responseObj.document != "undefined") {

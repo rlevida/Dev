@@ -202,7 +202,7 @@ export default class ProjectDashboard extends React.Component {
     }
 
     render() {
-        const { task, workstream } = this.props;
+        const { task, workstream, history } = this.props;
         const { StatusCount } = task;
         const {
             task_due = 0,
@@ -327,7 +327,7 @@ export default class ProjectDashboard extends React.Component {
                                         <Focus type={"task"} label={"Tasks"} project_id={projectId} />
                                     </div>
                                     <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                        <Focus type={"notes"} label={"Messages"} project_id={projectId} />
+                                        <Focus type={"notes"} label={"Messages"} project_id={projectId} history={history} />
                                     </div>
                                     <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                         <Focus type={"document"} label={"Documents"} project_id={projectId} />

@@ -507,7 +507,6 @@ class DocumentList extends React.Component {
                 {
                     (document.Filter.status) === 'sort' && <div><DocumentSortFile /></div>
                 }
-                <DocumentViewerModal />
             </div>
         )
     }

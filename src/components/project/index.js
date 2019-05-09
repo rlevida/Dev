@@ -8,6 +8,7 @@ import ProjectDetails from "./projectDetails";
 import TaskForm from "../task/taskForm";
 import TaskDetails from "../task/taskDetails";
 import NotAvailable from "../notAvailable";
+import FileViewer from "../document/modal//documentViewerModal";
 
 @connect((store) => {
     return {
@@ -66,6 +67,7 @@ export default class Component extends React.Component {
                     (project.FormActive == "Form") && <ProjectForm />
                 }
                 <TaskDetails history={history} />
+                <FileViewer />
             </div>
         )
     }
