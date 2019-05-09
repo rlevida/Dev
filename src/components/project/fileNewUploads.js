@@ -1,7 +1,5 @@
 import React from "react";
 import { connect } from "react-redux";
-import { Loading as LoadingComponent } from "../../globalComponents";
-import moment from 'moment';
 import DocumentList from "../document/documentList"
 
 @connect((store) => {

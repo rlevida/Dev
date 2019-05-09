@@ -66,7 +66,8 @@ export default class Component extends React.Component {
             }
         });
     }
-    renderList({ id, title, workstream = "" }) {
+    renderList(obj) {
+        const { id, title, workstream = "" } = { ...obj };
         return (
             <div class="starred">
                 <div class="action-link">
@@ -76,9 +77,9 @@ export default class Component extends React.Component {
                         </span>
                     </a>
                     <div>
-                        <p class="mb0 title">
+                        <a href="javascript:void(0)" class="mb0 title" onClick={() => this.renderStarred(obj)}>
                             {title}
-                        </p>
+                        </a>
                         {
                             (workstream != "") && <p class="m0 note">{workstream}</p>
                         }
@@ -86,6 +87,65 @@ export default class Component extends React.Component {
                 </div>
             </div>
         )
+    }
+    renderStarred(obj) {
+        switch (obj.linkType) {
+            case 'task':
+                this.openTaskDetails(obj.linkId);
+                break;
+            case 'document':
+                this.openFileViewer(obj);
+                break
+            case 'notes':
+                this.openNotes(obj);
+                break
+        }
+    }
+    openTaskDetails(id) {
+        const { dispatch, loggedUser } = { ...this.props };
+        dispatch({ type: "SET_TASK_LOADING", Loading: "RETRIEVING" });
+
+        getData(`/api/activityLog?taskId=${id}&page=1&includes=user`, {}, (c) => {
+            if (c.status == 200) {
+                const { data } = c;
+                dispatch({ type: "SET_ACTIVITYLOG_LIST", list: data.result, count: data.count });
+            }
+        });
+
+        getData(`/api/conversation/getConversationList?page=1&linkType=task&linkId=${id}`, {}, (c) => {
+            if (c.status == 200) {
+                const { data } = c;
+                dispatch({ type: "SET_COMMENT_LIST", list: data.result, count: data.count });
+            }
+        });
+
+        getData(`/api/task/detail/${id}?starredUser=${loggedUser.data.id}`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_TASK_SELECTED", Selected: c.data });
+                dispatch({ type: "SET_TASK_LOADING", Loading: "" });
+                $(`#task-details`).modal('show');
+            }
+        });
+
+        getData(`/api/taskTimeLogs?taskId=${id}&page=1`, {}, (c) => {
+            if (c.status == 200) {
+                dispatch({ type: "SET_TASKTIMELOG_LIST", list: c.data.result, count: c.data.count });
+                dispatch({ type: "SET_TOTAL_HOURS", total: c.data.total_hours });
+            }
+        });
+    }
+    openFileViewer({ document, linkId }) {
+        const { dispatch } = { ...this.props };
+        getData(`/api/conversation/getConversationList?page=${1}&linkType=document&linkId=${linkId}`, {}, (c) => {
+            dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: document });
+            dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result, count: c.data.count });
+            dispatch({ type: 'SET_COMMENT_LOADING', Loading: "" });
+            $(`#documentViewerModal`).modal('show');
+        })
+    }
+    openNotes(obj) {
+        const { history, project_id } = { ...this.props };
+        history.push(`/projects/${project_id}/messages?note-id=${obj.linkId}`)
     }
     getNextResult() {
         const { starred, type = "" } = { ...this.props };
@@ -96,7 +156,6 @@ export default class Component extends React.Component {
         const starredList = _.filter(starred.List, (o) => { return o.type == type });
         const currentPage = (typeof starred.Count[type] != "undefined" && _.isEmpty(starred.Count[type]) == false) ? starred.Count[type].current_page : 1;
         const lastPage = (typeof starred.Count[type] != "undefined" && _.isEmpty(starred.Count[type]) == false) ? starred.Count[type].last_page : 1;
-
         return (
             <div>
                 <h5 class="mt0"><strong>{`${label}`}</strong></h5>
