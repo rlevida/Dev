@@ -21,10 +21,11 @@ export default class Component extends React.Component {
         const { dispatch, task, project } = { ...this.props };
         dispatch({ type: "SET_WORKSTREAM_FORM_ACTIVE", FormActive: "List" });
         dispatch({ type: "SET_WORKSTREAM_LOADING", Loading: "RETRIEVING" });
-
-        if ((project.FormActive != "Form" && task.FormActive != "Form") == false) {
+        
+        if ((project.FormActive != "Form" && task.FormActive != "Form")) {
             dispatch({ type: "SET_WORKSTREAM_LIST", list: [], Count: {} });
             dispatch({ type: "SET_WORKSTREAM_SELECTED", Selected: {} });
+            dispatch({ type: "SET_TASK_LIST", list: [], count: {} });
         }
     }
 

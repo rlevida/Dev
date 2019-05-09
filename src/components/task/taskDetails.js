@@ -531,7 +531,7 @@ export default class TaskDetails extends React.Component {
                                             }
                                             {
                                                 (
-                                                    (typeof isAssignedToMe != "undefined") &&
+                                                    (typeof isAssignedToMe != "undefined" || loggedUser.data.userRole < 3) &&
                                                     (
                                                         (
                                                             Selected.status == "Completed" &&

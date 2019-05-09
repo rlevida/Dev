@@ -121,18 +121,16 @@ export default class ProjectDashboard extends React.Component {
 
     showCountList(type) {
         statusType = type;
-
+        const { dispatch } = { ...this.props };
         switch (type) {
             case 'Tasks Due Today':
                 this.taskList(type);
                 break;
-
             case 'Tasks For Approval':
                 this.taskList(type);
                 break;
-
             case 'Delayed Tasks':
-                this.taskList(type);
+                this.taskList(type)
                 break;
             case 'New Files Uploaded':
                 this.fileList()
@@ -158,7 +156,7 @@ export default class ProjectDashboard extends React.Component {
         const { Count } = task;
         const page = (_.isEmpty(Count)) ? 1 : Count.current_page + 1;
         const fromDate = moment().startOf('month').format("YYYY-MM-DD");
-        const today = moment().subtract(1, "days").format("YYYY-MM-DD");
+        const today = moment().format("YYYY-MM-DD");
         const projectId = match.params.projectId;
         let fetchUrl = `/api/task?projectId=${projectId}&page=${page}`;
 
@@ -172,13 +170,13 @@ export default class ProjectDashboard extends React.Component {
 
         switch (type) {
             case 'Tasks Due Today':
-                fetchUrl += `&dueDate=${JSON.stringify({ opt: "=", value: today })}&status=${JSON.stringify({ opt: "eq", value: "In Progress" })}`;
+                fetchUrl += `&dueDate=${JSON.stringify({ opt: "eq", value: today })}&status=${JSON.stringify({ opt: "eq", value: "In Progress" })}`;
                 break;
             case 'Tasks For Approval':
                 fetchUrl += `&status=${JSON.stringify({ opt: "eq", value: "For Approval" })}`;
                 break;
             case 'Delayed Tasks':
-                fetchUrl += `&dueDate=${JSON.stringify({ opt: "between", value: [fromDate, today] })}&status=${JSON.stringify({ opt: "eq", value: "In Progress" })}`;
+                fetchUrl += `&dueDate=${JSON.stringify({ opt: "lt", value: today })}&status=${JSON.stringify({ opt: "eq", value: "In Progress" })}`;
                 break;
         }
 

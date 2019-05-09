@@ -86,14 +86,13 @@ export default class ProjectList extends React.Component {
     }
 
     getNextResult() {
-        const { project, dispatch } = { ...this.props };
+        const { project, dispatch, loggedUser } = { ...this.props };
         const { Count, List, Filter } = project;
         const { typeId, projectStatus } = Filter;
-        const dueDateMoment = moment().format("YYYY-MM-DD");
 
         dispatch({ type: "SET_PROJECT_LOADING", Loading: "RETRIEVING" });
 
-        getData(`/api/project?page=${Count.current_page + 1}&typeId=${typeId}&projectStatus=${projectStatus}&dueDate=${dueDateMoment}`, {}, (c) => {
+        getData(`/api/project?page=${Count.current_page + 1}&typeId=${typeId}&projectStatus=${projectStatus}&userId=${loggedUser.data.id}&userRole=${loggedUser.data.userRole}`, {}, (c) => {
             dispatch({ type: "SET_PROJECT_LIST", list: List.concat(c.data.result), count: c.data.count })
             dispatch({ type: "SET_PROJECT_LOADING", Loading: "" });
             showToast("success", "Project successfully retrieved.");
@@ -193,7 +192,7 @@ export default class ProjectList extends React.Component {
                                                                 </td>
                                                                 <td data-label="Type">
                                                                     {
-                                                                        (updates.count > 0) && <a data-tip data-for={`update-${index}`}>
+                                                                        (typeof updates != "undefined" && updates.count > 0) && <a data-tip data-for={`update-${index}`}>
                                                                             <p class="mb0 text-blue">
                                                                                 {updates.count} update{(updates.count > 1) ? 's' : ''}
                                                                             </p>

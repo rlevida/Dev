@@ -180,9 +180,9 @@ exports.get = {
         const limit = (typeof queryString.limit != "undefined") ? parseInt(queryString.limit) : 10;
         const status = (typeof queryString.status != "undefined") ? JSON.parse(queryString.status) : "";
         let dueDate = "";
-
+        
         if (typeof queryString.dueDate != "undefined" && queryString.dueDate != "") {
-            if (Array.isArray(queryString.dueDate)) {
+            if (Array.isArray(queryString.dueDate.value)) {
                 dueDate = _.reduce(queryString.dueDate, function (obj, values) {
                     const arrValues = JSON.parse(values);
                     obj[Sequelize.Op[arrValues.opt]] = arrValues.value;
@@ -225,9 +225,11 @@ exports.get = {
                     {
                         ...(dueDate != "" && Array.isArray(dueDate)) ? {
                             [Sequelize.Op.or]: dueDate
-                        } : (dueDate != "") ? {
+                        } : (dueDate != ""  && Array.isArray(dueDate.value)) ? {
                             [Sequelize.Op[dueDate.opt]]: _.map(dueDate.value, (o) => { return moment(o, 'YYYY-MM-DD').utc().format("YYYY-MM-DD HH:mm") })
-                        } : {},
+                        } : {
+                            [Sequelize.Op[dueDate.opt]]: moment(dueDate.value, 'YYYY-MM-DD').format("YYYY-MM-DD HH:mm:ss")
+                        },
                         [Sequelize.Op.not]: null
                     }
             } : {},
@@ -475,8 +477,8 @@ exports.get = {
                 isDeleted: 0,
                 dueDate: {
                     [Op.between]: [
-                        moment(queryString.date, 'YYYY-MM-DD').startOf('month').format("YYYY-MM-DD HH:mm"),
-                        moment(queryString.date, 'YYYY-MM-DD').endOf('month').format("YYYY-MM-DD HH:mm")
+                        moment(queryString.date, 'YYYY-MM-DD').startOf('month').utc().format("YYYY-MM-DD HH:mm"),
+                        moment(queryString.date, 'YYYY-MM-DD').endOf('month').utc().format("YYYY-MM-DD HH:mm")
                     ]
                 }
             },
@@ -693,7 +695,7 @@ exports.get = {
                                         [Op.in]: Sequelize.literal(`(SELECT DISTINCT task.id FROM task LEFT JOIN members on task.id = members.linkId WHERE members.linkType = "task" AND members.memberType ="assignedTo" AND members.userTypeLinkId = ${userId} AND members.isDeleted = 0)`)
                                     }
                                 } : {}
-                            }
+                            },
                         }).then(({ count }) => {
                             parallelCallback(null, count)
                         });
