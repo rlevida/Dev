@@ -34,7 +34,7 @@ export default function reducer(state = {
             return { ...state, NotificationCount: action.Count }
         }
         case "SET_NOTIFICATION_LOADING": {
-            return { ...state, Loading: action.loadin }
+            return { ...state, Loading: action.loading }
         }
         case "REMOVE_NOTIFICATION_FROM_LIST": {
             const tempList = state.List.filter((e) => {

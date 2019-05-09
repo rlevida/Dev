@@ -25,13 +25,16 @@ class NotificationActionTab extends React.Component {
         const { dispatch, loggedUser, notification } = this.props;
 
         if (_.isEqual(prevProps.notification.Filter, this.props.notification.Filter) == false) {
+
+            dispatch({ type: 'SET_NOTIFICATION_LOADING', loading: "RETRIEVING" });
             clearTimeout(delayTimer);
 
             const { Filter } = { ...notification };
-            let requestUrl = `/api/notification?page=${1}&usersId=${loggedUser.data.id}&isRead=0&isArchived=${Filter.isArchived}&isDeleted=${Filter.isDeleted}`;
+            let requestUrl = `/api/notification?page=${1}&usersId=${loggedUser.data.id}&isArchived=${Filter.isArchived}&isDeleted=${Filter.isDeleted}`;
 
             getData(requestUrl, {}, (c) => {
                 const { count, result } = { ...c.data };
+                dispatch({ type: 'SET_NOTIFICATION_LOADING', loading: "" });
                 dispatch({ type: 'SET_NOTIFICATION_LIST', list: result, count: count });
             })
 
@@ -76,27 +79,29 @@ class NotificationActionTab extends React.Component {
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-sm-6 col-xs-12 pd0">
-                        <div class="button-action">
-                            <a class="btn btn-default mr10"
-                                data-toggle="modal"
-                                data-target="#markAsReadModal">
-                                <span>
-                                    <i class="fa fa-check-circle mr10" aria-hidden="true"></i>
-                                    Mark all as read
+                    {Filter.isArchived === 0 &&
+                        <div class="col-md-6 col-sm-6 col-xs-12 pd0">
+                            <div class="button-action">
+                                <a class="btn btn-default mr10"
+                                    data-toggle="modal"
+                                    data-target="#markAsReadModal">
+                                    <span>
+                                        <i class="fa fa-check-circle mr10" aria-hidden="true"></i>
+                                        Mark all as read
                                 </span>
-                            </a>
-                            <a class="btn btn-default mr10"
-                                onClick={() => this.archiveAll()}
-                                data-toggle="modal"
-                                data-target="#archiveModal">
-                                <span>
-                                    <i class="fa fa-archive mr10" aria-hidden="true"></i>
-                                    Archive all
+                                </a>
+                                <a class="btn btn-default mr10"
+                                    onClick={() => this.archiveAll()}
+                                    data-toggle="modal"
+                                    data-target="#archiveModal">
+                                    <span>
+                                        <i class="fa fa-archive mr10" aria-hidden="true"></i>
+                                        Archive all
                                 </span>
-                            </a>
+                                </a>
+                            </div>
                         </div>
-                    </div>
+                    }
                 </div>
             </div>
         )
