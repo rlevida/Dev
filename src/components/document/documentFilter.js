@@ -47,7 +47,7 @@ class DocumentFilter extends React.Component {
                 dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] })
             }
 
-            const { search, tags, uploadedBy, isCompleted, members, uploadFrom, uploadTo, isArchived, status, tagWorkstream } = this.props.document.Filter;
+            const { status, tagWorkstream } = this.props.document.Filter;
             let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
@@ -65,38 +65,6 @@ class DocumentFilter extends React.Component {
                 if (tagWorkstream) {
                     requestUrl += `&workstream=${tagWorkstream}`;
                 }
-                // if (isCompleted) {
-                //     requestUrl += `&isCompleted=${isCompleted}`
-                // }
-                // if (search) {
-                //     requestUrl += `&search=${search}`
-                // }
-                // if (tags) {
-                //     _.map(tags, (t) => {
-                //         const tagType = t.value.split('-')[0];
-                //         const tagId = t.value.split('-')[1];
-                //         if (tagType === 'workstream') {
-                //             requestUrl += `&workstream=${tagId}`
-                //         }
-                //         if (tagType === 'task') {
-                //             requestUrl += `&task=${tagId}`
-                //         }
-                //     })
-                // }
-                // if (uploadedBy) {
-                //     requestUrl += `&uploadedBy=${uploadedBy}`
-                // }
-                // if (members) {
-                //     _.map(members, (e) => {
-                //         requestUrl += `&members=${e.value}`
-                //     })
-                // }
-                // if (uploadFrom) {
-                //     requestUrl += `&uploadFrom=${uploadFrom}`
-                // }
-                // if (uploadTo) {
-                //     requestUrl += `&uploadTo=${uploadTo}`
-                // }
                 getData(`${requestUrl}`, {}, (c) => {
                     const { result, count } = { ...c.data }
                     dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count })
@@ -116,7 +84,6 @@ class DocumentFilter extends React.Component {
         setDatePicker(this.handleDate, "uploadFrom", new Date(2019, 3, 20));
         setDatePicker(this.handleDate, "uploadTo", new Date(2019, 3, 20));
     }
-
 
     fetchFolderList() {
         const { dispatch, loggedUser, match } = { ...this.props };
@@ -144,7 +111,6 @@ class DocumentFilter extends React.Component {
         });
     }
 
-
     handleChange(params) {
         const { dispatch, document } = this.props;
         if (document.Filter.workstream != params.workstream) {
@@ -158,21 +124,6 @@ class DocumentFilter extends React.Component {
         const selectedDate = (e.target.value != '') ? moment(e.target.value).format('YYYY-MM-DD') : '';
         dispatch({ type: "SET_DOCUMENT_FILTER", filter: { [e.target.name]: selectedDate } });
     }
-
-    // setDropDown(name, e) {
-    //     const { dispatch, history, match, folder, document } = this.props;
-
-    //     if (!_.isEmpty(folder.SelectedLibraryFolderName) || !_.isEmpty(folder.SelectedNewFolderName)) {
-    //         dispatch({ type: 'CLEAR_FOLDER' })
-    //     }
-    //     if (e != document.Filter.status) {
-    //         dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} });
-    //         dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: {} })
-    //         dispatch({ type: "SET_FOLDER_SELECTED", Selected: {} });
-    //         dispatch({ type: 'SET_SELECTED_FOLDER_NAME', List: [] });
-    //         dispatch({ type: "SET_DOCUMENT_FILTER", filter: { [name]: e }, name: name });
-    //     }
-    // }
 
     getWorkstreamList(options) {
         keyTimer && clearTimeout(keyTimer);
@@ -237,7 +188,8 @@ class DocumentFilter extends React.Component {
                     </div>
                     <div class="col-md-6 col-sm-6 col-xs-12 pd0">
                         <div class="button-action">
-                            {(document.Filter.status === 'active') &&
+                            {
+                                (document.Filter.status === 'active' && document.Loading === "") &&
                                 <DropDown
                                     id="workstream-options"
                                     options={workstream.SelectList}
@@ -252,14 +204,17 @@ class DocumentFilter extends React.Component {
                                     disabled={Loading === "SUBMITTING" ? true : false}
                                 />
                             }
-                            <a class="btn btn-default mr10" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>
-                                <span>
-                                    <i class="fa fa-plus mr10" aria-hidden="true"></i>
-                                    Add New File
-                                </span>
-                            </a>
                             {
-                                (document.Filter.status !== 'active') &&
+                                (document.Loading === "") &&
+                                <a class="btn btn-default mr10" onClick={() => dispatch({ type: 'SET_DOCUMENT_FORM_ACTIVE', FormActive: 'Upload' })}>
+                                    <span>
+                                        <i class="fa fa-plus mr10" aria-hidden="true"></i>
+                                        Add New File
+                                    </span>
+                                </a>
+                            }
+                            {
+                                (document.Filter.status !== 'active' && document.Loading === "") &&
                                 <a class="btn btn-default" data-toggle="modal" data-target="#folderModal">
                                     <span>
                                         <i class="fa fa-folder fa-lg mr10"></i>
@@ -267,7 +222,6 @@ class DocumentFilter extends React.Component {
                                     </span>
                                 </a>
                             }
-
                         </div>
                     </div>
                 </div>
