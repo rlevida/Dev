@@ -7,6 +7,18 @@ import { connect } from "react-redux"
 import { withRouter } from "react-router";
 import DocumentViewerModal from "../modal/documentViewerModal"
 
+const getFieldStyle = (isDragging, selected) => {
+    const style = {
+        borderStyle: 'dashed',
+        borderWidth: 1,
+        height: 30,
+        margin: 5,
+    };
+    style.backgroundColor = selected ? 'pink' : '#87cefa';
+    style.opacity = isDragging ? 0.5 : 1;
+    return style;
+};
+
 @connect((store) => {
     return {
         document: store.document,
@@ -15,12 +27,20 @@ import DocumentViewerModal from "../modal/documentViewerModal"
     }
 })
 
+
+
 class DocumentNew extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
             order: 'asc',
         }
+        this.handleItemSelection = this.handleItemSelection.bind(this)
+    }
+
+    componentWillMount() {
+        this.state = { selectedFields: [], lastSelectedIndex: -1 };
+        // this.handleItemSelection(-1, false, false);
     }
 
     moveTo(folderOj, documentObj) {
@@ -73,6 +93,38 @@ class DocumentNew extends React.Component {
         this.fetchData(document.Count.current_page + 1)
     }
 
+    handleItemSelection(index, cmdKey, shiftKey) {
+        let selectedFields;
+        const fields = this.props.document.List;
+        const field = index < 0 ? '' : fields[index];
+        const lastSelectedIndex = index;
+        if (!cmdKey && !shiftKey) {
+            selectedFields = [field];
+        } else if (shiftKey) {
+            if (this.state.lastSelectedIndex >= index) {
+                selectedFields = [].concat.apply(this.state.selectedFields,
+                    fields.slice(index, this.state.lastSelectedIndex));
+            } else {
+                selectedFields = [].concat.apply(this.state.selectedFields,
+                    fields.slice(this.state.lastSelectedIndex + 1, index + 1));
+            }
+        } else if (cmdKey) {
+            const foundIndex = this.state.selectedFields.findIndex(f => f === field);
+            // If found remove it to unselect it.
+            if (foundIndex >= 0) {
+                selectedFields = [
+                    ...this.state.selectedFields.slice(0, foundIndex),
+                    ...this.state.selectedFields.slice(foundIndex + 1),
+                ];
+            } else {
+                selectedFields = [...this.state.selectedFields, field];
+            }
+        }
+        const finalList = fields ? fields
+            .filter(f => selectedFields.find(a => a === f)) : [];
+        this.setState({ selectedFields: finalList, lastSelectedIndex });
+    }
+
     render() {
         const { document, folder } = { ...this.props };
         const { Count } = { ...document };
@@ -109,6 +161,8 @@ class DocumentNew extends React.Component {
                                                             index={index}
                                                             key={index}
                                                             moveTo={(folderData, documentData) => this.moveTo(folderData, documentData)}
+                                                            selectedFields={this.state.selectedFields}
+                                                            handleSelection={this.handleItemSelection}
                                                         />
                                                     )
                                                 })

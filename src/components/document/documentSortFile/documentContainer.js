@@ -1,5 +1,5 @@
 import React from "react";
-import { postData } from '../../../globalFunction'
+import { postData, putData, showToast, deleteData } from '../../../globalFunction'
 import { DragSource, DropTarget } from 'react-dnd';
 import { connect } from "react-redux";
 import { withRouter } from "react-router";
@@ -10,6 +10,7 @@ const itemSource = {
         return props.data
     },
 }
+
 const itemTarget = {
     hover(props, monitor) {
         const draggedId = monitor.getItem().id
@@ -74,17 +75,24 @@ class FieldContainer extends React.Component {
         }
     }
 
+    handleRowSelection(cmdKey, shiftKey, index) {
+        this.props.handleSelection(index, cmdKey, shiftKey);
+    }
+
     render() {
         const { data, index } = this.props
         let tagCount = 0;
+        const selected = this.props.selectedFields.find(field => field.id === data.id);
         const documentName = `${data.origin}${data.documentNameCount > 0 ? `(${data.documentNameCount})` : ``}`
         const { isDragging, connectDragSource, connectDropTarget, hovered } = this.props
-        const opacity = isDragging ? 0 : 1;
-        const backgroundColor = hovered ? 'lightblue' : '';
+        const opacity = isDragging  && selected ? 0 : 1;
+        const backgroundColor = selected ? 'lightblue' : '';
 
         return connectDragSource(
             connectDropTarget(
-                <tr class="item" key={index} style={{ opacity, background: backgroundColor }}>
+                <tr class="item" key={index} style={{ opacity, background: backgroundColor }}
+                    onClick={(e) => this.handleRowSelection(e.metaKey, e.shiftKey, this.props.index)}
+                >
                     <td class="document-name">
                         <a href="javascript:void(0)" onClick={() => this.viewDocument(data)}>
                             < span class={data.isRead ? 'read' : 'unread'}>{documentName}</span>
