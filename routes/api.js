@@ -142,7 +142,7 @@ router.get('/downloadFolder', (req, res, next) => {
                                 gzip: "gzip",
                             },
                             [`${parentDirectory}`]
-                        ).pipe(fs.createWriteStream(`${parentDirectory}.tgz`))
+                        ).pipe(fs.createWriteStream(`${parentDirectory}.zip`))
                         writeStream.on('finish', () => {
 
                             var deleteFolderRecursive = function (path) { // remove temp files
@@ -161,8 +161,8 @@ router.get('/downloadFolder', (req, res, next) => {
                             deleteFolderRecursive(parentDirectory)
 
 
-                            res.download(`${parentDirectory}.tgz`, `${parentDirectory}.tgz`, (c) => {
-                                fs.unlink(`${parentDirectory}.tgz`, (t) => { })
+                            res.download(`${parentDirectory}.zip`, `${parentDirectory}.zip`, (c) => {
+                                fs.unlink(`${parentDirectory}.zip`, (t) => { })
                             })
                         })
                     }

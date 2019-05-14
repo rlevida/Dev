@@ -50,13 +50,13 @@ export default class List extends React.Component {
         // }
     }
 
-    fetchData(page) {
-        const { dispatch, loggedUser, document, workstream } = this.props;
-        getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=workstream&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream.Selected.id}&tagType=document&starredUser=${loggedUser.data.id}`, {}, (c) => {
-            dispatch({ type: "SET_DOCUMENT_LIST", list: document.List.concat(c.data.result), DocumentType: 'List', Count: c.data.count, CountType: 'Count' })
-            dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'Loading' })
-        });
-    }
+    // fetchData(page) {
+    //     const { dispatch, loggedUser, document, workstream } = this.props;
+    //     getData(`/api/document/getTaggedDocument?isDeleted=0&projectId=${project}&linkType=workstream&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&workstreamId=${workstream.Selected.id}&tagType=document&starredUser=${loggedUser.data.id}`, {}, (c) => {
+    //         dispatch({ type: "SET_DOCUMENT_LIST", list: document.List.concat(c.data.result), DocumentType: 'List', Count: c.data.count, CountType: 'Count' })
+    //         dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "", LoadingType: 'Loading' })
+    //     });
+    // }
 
     viewDocument(data) {
         let { dispatch } = this.props;
