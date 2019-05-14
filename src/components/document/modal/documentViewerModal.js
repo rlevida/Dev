@@ -39,7 +39,7 @@ class DocumentViewerComponent extends React.Component {
             "starredDocument",
         ], (fn) => { this[fn] = this[fn].bind(this) });
     }
-    
+
     componentDidMount() {
         const { dispatch } = { ...this.props };
         $('#documentViewerModal').on('hidden.bs.modal', () => {
@@ -121,6 +121,30 @@ class DocumentViewerComponent extends React.Component {
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: selectedObj })
                 dispatch({ type: "SET_DOCUMENT_LIST", list: updatedDocumentList, count: document.Count });
                 showToast("success", `Document successfully ${(isStarredValue > 0) ? "starred" : "unstarred"}.`);
+                if (isStarredValue === 0) {
+                    dispatch({ type: "REMOVE_DELETED_STARRED_LIST", id: id });
+                }else{
+                    this.fetchFavorites("document");
+                }
+            } else {
+                showToast("error", "Something went wrong please try again later.");
+            }
+        });
+    }
+
+    fetchFavorites(type) {
+        const { loggedUser, dispatch, starred, project } = { ...this.props };
+        const { Count } = starred;
+        const projectId = project.Selected.id;
+        const reqUrl = `/api/starred?page=${1}&userId=${loggedUser.data.id}&isActive=1&type=${type}&projectId=${projectId}`;
+
+        dispatch({ type: "SET_STARRED_LOADING", Loading: { [type]: "RETRIEVING" } });
+
+        getData(reqUrl, {}, (c) => {
+            if (c.status == 200) {
+                const { result, count } = c.data;
+                dispatch({ type: "UPDATE_DATA_STARRED_LIST", List: result, count: { ...Count, [type]: count } });
+                dispatch({ type: "SET_STARRED_LOADING", Loading: { [type]: "" } });
             } else {
                 showToast("error", "Something went wrong please try again later.");
             }
