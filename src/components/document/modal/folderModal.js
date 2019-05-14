@@ -26,7 +26,7 @@ class FolderModal extends React.Component {
     }
 
     componentDidMount() {
-        const { dispatch, document, match, loggedUser } = this.props;
+        const { dispatch, match, loggedUser } = this.props;
         const projectId = match.params.projectId;
         const selectedObj = { projectId: projectId, usersId: loggedUser.data.id };
 
@@ -151,6 +151,8 @@ class FolderModal extends React.Component {
                 .map((e) => { return { id: e.id, name: e.project } })
                 .value();
             dispatch({ type: "SET_PROJECT_SELECT_LIST", List: projectOptions });
+            dispatch({ type: "SET_PROJECT_LOADING", Loading: '' });
+
         });
     }
 
@@ -230,8 +232,8 @@ class FolderModal extends React.Component {
     }
 
     render() {
-        const { dispatch, project, workstream, folder, match, document } = { ...this.props };
-        const { Files = [], Selected, Loading } = { ...document };
+        const { project, workstream, folder, match, document } = { ...this.props };
+        const { Selected, Loading } = { ...document };
         const projectId = match.params.projectId;
         return (
             <div class="modal fade" id="folderModal" tabIndex="-1" role="dialog" aria-labelledby="folderModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
@@ -270,6 +272,11 @@ class FolderModal extends React.Component {
                                         disabled
                                         required={true}
                                     />
+                                    <div>
+                                        {
+                                            (project.Loading == "RETRIEVING" && typeof document.Selected.projectId != "undefined") && <i class="fa fa-circle-o-notch fa-spin fa-fw"></i>
+                                        }
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="workstream-options">Workstream  <span class="text-red">*</span></label>
