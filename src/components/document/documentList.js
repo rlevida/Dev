@@ -341,6 +341,25 @@ class DocumentList extends React.Component {
         })
     }
 
+    restore(data) {
+        const { dispatch, document, match } = { ...this.props };
+        const { Filter } = { ...document };
+        const projectId = match.params.projectId;
+        let dataToSubmit = {};
+
+        if (Filter.status === "trash") {
+            dataToSubmit = { isDeleted: 0, projectId: projectId }
+        } else if (Filter.status === "archived") {
+            dataToSubmit = { isArchived: 0, projectId: projectId }
+        }
+
+        putData(`/api/document/${data.id}`, dataToSubmit, (c) => {
+            const { result } = { ...c.data }
+            dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: result });
+            showToast("success", `Successfully restored to ${data.folderId === null && data.type === "document" ? 'active files' : 'library'}.`);
+        })
+    }
+
     render() {
         const { dispatch, document, folder, match } = { ...this.props };
         const { Count } = { ...document };
@@ -414,7 +433,7 @@ class DocumentList extends React.Component {
                                                                 </td>
                                                                 <td>{data.isRead ? moment(data.document_read[0].dateUpdated).format("MMMM DD, YYYY") : ''}</td>
                                                                 {
-                                                                    (match.path === "/projects/:projectId/files") &&
+                                                                    (match.path === "/projects/:projectId/files" && document.Filter.status !== "trash" && document.Filter.status !== "archived") &&
                                                                     <td>
                                                                         <a href="javascript:void(0)"
                                                                             onClick={() => this.downloadDocument(data)}
@@ -488,6 +507,16 @@ class DocumentList extends React.Component {
                                                                                 </li>
                                                                             }
                                                                         </ul>
+                                                                    </td>
+                                                                }
+                                                                {
+                                                                    (document.Filter.status === "trash" || document.Filter.status === "archived") &&
+                                                                    <td>
+                                                                        <a href="javascript:void(0)"
+                                                                            onClick={() => this.restore(data)}
+                                                                            class="btn btn-action">
+                                                                            <span class="fa fa-undo" title="RESTORE"></span>
+                                                                        </a>
                                                                     </td>
                                                                 }
                                                             </tr>
