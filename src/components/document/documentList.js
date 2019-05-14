@@ -22,8 +22,7 @@ class DocumentList extends React.Component {
     }
 
     async componentDidMount() {
-        const { dispatch } = { ...this.props }
-        this.fetchData(1)
+        const { dispatch, fetchWorkstreamDocument } = { ...this.props }
         if (getParameterByName("file-id")) {
             const documentId = getParameterByName("file-id")
             getData(`/api/document/detail/${documentId}`, {}, (ret) => {
@@ -35,7 +34,12 @@ class DocumentList extends React.Component {
                 })
             })
         }
+
+        if (typeof fetchWorkstreamDocument === "undefined") {
+            this.fetchData(1)
+        }
     }
+
 
     // componentDidUpdate(prevProps) {
     //     const { dispatch, history } = { ...this.props }
@@ -61,8 +65,6 @@ class DocumentList extends React.Component {
         dispatch({ type: 'SET_FOLDER_SELECTED', Selected: {} });
     }
 
-
-
     fetchData(page) {
         const { dispatch, loggedUser, document, folder, match } = this.props;
         const projectId = match.params.projectId;
@@ -70,19 +72,25 @@ class DocumentList extends React.Component {
         let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
         if (typeof folder.Selected.id !== "undefined") {
-            requestUrl += `&folderId=${folder.Selected.id}`
+            requestUrl += `&folderId=${folder.Selected.id}`;
         }
 
         if (status === 'active' || status === 'sort') {
-            requestUrl += `&type=document&folderId=null`
+            requestUrl += `&type=document&folderId=null`;
         }
 
         if (status === 'library') {
-            requestUrl += `&folderId=null&type=folder`
+            requestUrl += `&folderId=null&type=folder`;
         }
 
         if (tagWorkstream) {
-            requestUrl += `&workstream=${tagWorkstream}`
+            requestUrl += `&workstream=${tagWorkstream}`;
+        }
+
+        if (status === "archived") {
+            requestUrl += `&isArchived=1`;
+        } else {
+            requestUrl += `&isArchived=0`;
         }
 
         getData(requestUrl, {}, (c) => {

@@ -60,11 +60,19 @@ class DocumentFilter extends React.Component {
                 if (status === 'library') {
                     requestUrl += `&folderId=null&type=folder`;
                     this.fetchFolderList();
+                
+                }
+               
+                if (status === "archived") {
+                    requestUrl += `&isArchived=1`;
+                } else {
+                    requestUrl += `&isArchived=0`;
                 }
 
                 if (tagWorkstream) {
                     requestUrl += `&workstream=${tagWorkstream}`;
                 }
+
                 getData(`${requestUrl}`, {}, (c) => {
                     const { result, count } = { ...c.data }
                     dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count })

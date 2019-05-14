@@ -15,13 +15,13 @@ class ArchiveModal extends React.Component {
         super(props);
 
         _.map([
-            "archiveProject"
+            "archiveDocument"
         ], (fn) => {
             this[fn] = this[fn].bind(this);
         });
     }
 
-    archiveProject() {
+    archiveDocument() {
         const { document, dispatch, loggedUser, match } = this.props;
         const projectId = match.params.projectId;
         putData(`/api/document/${document.Selected.id}`, {
@@ -31,7 +31,7 @@ class ArchiveModal extends React.Component {
             actionType: "deleted", title: 'Document deleted'
         }, (c) => {
             if (c.status == 200) {
-                dispatch({ type: "UPDATE_DATA_DOCUMENT_LIST", UpdatedData: c.data.result })
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: c.data.result })
                 dispatch({ type: "SET_DOCUMENT_SELECTED", Selected: {} })
                 showToast("success", "Successfully Archived.");
             } else {
@@ -56,7 +56,7 @@ class ArchiveModal extends React.Component {
                             <div class="flex-row mt20" id="delete-action">
                                 <div class="flex-col">
                                     <div class="dropdown">
-                                        <button class="btn btn-danger" type="button" onClick={this.archiveProject}>
+                                        <button class="btn btn-danger" type="button" onClick={this.archiveDocument}>
                                             Yes archive {Selected.type}!
                                         </button>
                                     </div>
