@@ -153,7 +153,6 @@ exports.get = {
                 ]
             }
         }
-
         if (typeof queryString.userId !== "undefined" && queryString.userId !== '') {
             _.find(associationStack, { as: 'document_read' }).where = {
                 usersId: queryString.userId,
@@ -363,7 +362,8 @@ exports.get = {
             ...(typeof queryString.isDeleted != "undefined" && queryString.isDeleted != "") ? { isDeleted: queryString.isDeleted } : {},
             ...(typeof queryString.folderId != "undefined" && queryString.folderId != "undefined" && queryString.folderId != "") ? { folderId: queryString.folderId } : {},
             ...(typeof queryString.isCompleted != "undefined" && queryString.isCompleted != "") ? { isCompleted: queryString.isCompleted } : {},
-            ...(typeof queryString.type != "undefined" && queryString.type != "") ? { type: queryString.type } : {}
+            ...(typeof queryString.type != "undefined" && queryString.type != "") ? { type: queryString.type } : {},
+            ...(typeof queryString.isArchived != "undefined" && queryString.isArchived != "") ? { isArchived: queryString.isArchived } : {}
         }
 
         const tagWhereObj = {
@@ -958,9 +958,16 @@ exports.post = {
 exports.put = {
     index: (req, cb) => {
         let body = req.body;
-        const { usersId, oldDocument, newDocument, projectId, actionType, title } = body;
         const id = req.params.id;
+        const projectId = body.projectId;
+        const actionType = body.actionType;
+        const title = body.title;
+        const usersId = body.usersId;
+        const oldDocument = body.oldDocument;
+        const newDocument = body.newDocument;
+
         body = _.omit(body, 'usersId', 'oldDocument', 'newDocument', 'projectId', 'type', 'title', 'actionType');
+
         const whereObj = {
             ...(typeof body.origin !== 'undefined' && body.origin !== '') ? { origin: body.origin } : {},
             ...(typeof body.folderId !== 'undefined' && body.folderId !== '') ? { folderId: body.folderId } : {},
@@ -1322,16 +1329,6 @@ exports.put = {
         } catch (err) {
             cb({ status: false, error: err })
         }
-    },
-    read: (req, cb) => {
-        const id = req.params.id
-        const body = req.body
-
-        DocumentRead
-            .update({ isDeleted: body.isDeleted }, { where: { id: id } })
-            .then((res) => {
-                cb({ status: true, data: res })
-            })
     }
 }
 
@@ -1357,8 +1354,8 @@ exports.delete = {
 
         DocumentRead
             .destroy({ where: { ...whereObj } })
-            .then((res) => {
-                cb({ status: 200, data: res })
+            .then(() => {
+                cb({ status: true })
             })
     }
 }

@@ -11,12 +11,13 @@ import { Loading } from "../../../globalComponents";
 
 let keyTimer = "";
 
-@connect(({ task, conversation, document, loggedUser }) => {
+@connect(({ task, conversation, document, loggedUser, project }) => {
     return {
         task,
         conversation,
         document,
-        loggedUser
+        loggedUser,
+        project
     }
 })
 
@@ -48,7 +49,6 @@ class DocumentComment extends React.Component {
 
     renderUsers(query, callback) {
         const { match, document } = { ...this.props };
-        const { projectId } = { ...match.params };
         const workstreamIds = document.Selected.tagWorkstream.map((e) => { return e.value })
         keyTimer && clearTimeout(keyTimer);
         keyTimer = setTimeout(() => {
@@ -70,8 +70,8 @@ class DocumentComment extends React.Component {
     }
 
     handleSubmit() {
-        const { dispatch, conversation, document, loggedUser, members, match } = this.props;
-        const projectId = match.params.projectId;
+        const { dispatch, conversation, document, loggedUser, project, match } = this.props;
+        const projectId = project.Selected.id;
         const commentText = conversation.Selected.comment;
         const commentSplit = (commentText).split(/{([^}]+)}/g).filter(Boolean);
         const commentIds = _(commentSplit).filter((o) => {
@@ -89,6 +89,7 @@ class DocumentComment extends React.Component {
             userId: loggedUser.data.id,
             username: loggedUser.data.username,
             reminderList: _.uniqBy(commentIds, `userId`),
+            projectId: projectId
         };
 
         dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });
