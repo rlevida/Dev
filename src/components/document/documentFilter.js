@@ -40,13 +40,13 @@ class DocumentFilter extends React.Component {
         const projectId = match.params.projectId;
 
         if (_.isEqual(prevProps.document.Filter, this.props.document.Filter) == false) {
+            console.log(`here`)
             clearTimeout(delayTimer);
 
             if (_.isEmpty(folder.Selected) === false) {
                 dispatch({ type: "SET_SELECTED_FOLDER", Selected: {} })
                 dispatch({ type: "SET_SELECTED_FOLDER_NAME", List: [] })
             }
-
             const { status, tagWorkstream } = this.props.document.Filter;
             let requestUrl = `/api/document?linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
@@ -55,8 +55,10 @@ class DocumentFilter extends React.Component {
             delayTimer = setTimeout(() => {
 
                 if (status === "trash") {
-                    requestUrl += `&isDeleted=1`
+                    requestUrl += `&isActive=0`
                 } else {
+                    requestUrl += `&isActive=1`
+
                     if (status === 'active' || status === 'sort') {
                         requestUrl += `&folderId=null&type=document`;
                     }
@@ -71,8 +73,6 @@ class DocumentFilter extends React.Component {
                     } else {
                         requestUrl += `&isArchived=0`;
                     }
-
-                    requestUrl += `&isDeleted=0`
 
                     if (tagWorkstream) {
                         requestUrl += `&workstream=${tagWorkstream}`;

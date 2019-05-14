@@ -25,7 +25,7 @@ class DeleteModal extends React.Component {
         const { document, dispatch, loggedUser, match } = this.props;
         const projectId = match.params.projectId;
         putData(`/api/document/${document.Selected.id}`, {
-            isDeleted: 1, usersId: loggedUser.data.id,
+            isActive: 0, usersId: loggedUser.data.id,
             oldDocument: document.Selected.origin,
             projectId: projectId, type: document.Selected.type,
             actionType: "deleted", title: 'Document deleted'

@@ -40,24 +40,6 @@ class DocumentList extends React.Component {
         }
     }
 
-
-    // componentDidUpdate(prevProps) {
-    //     const { dispatch, history } = { ...this.props }
-    //     if (getParameterByName("file-id") && history.location.search !== "") {
-    //         if (this.props.document.Selected.id !== parseInt(getParameterByName("file-id"))) {
-    //             const documentId = getParameterByName("file-id")
-    //             getData(`/api/document/detail/${documentId}`, {}, (ret) => {
-    //                 const documentObj = { ...ret.data }
-    //                 getData(`/api/conversation/getConversationList?linkType=document&linkId=${documentObj.id}`, {}, (c) => {
-    //                     dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
-    //                     dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: documentObj });
-    //                     $(`#documentViewerModal`).modal('show')
-    //                 })
-    //             })
-    //         }
-    //     }
-    // }
-
     componentWillUnmount() {
         const { dispatch } = { ...this.props }
         dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
@@ -69,7 +51,7 @@ class DocumentList extends React.Component {
         const { dispatch, loggedUser, document, folder, match } = this.props;
         const projectId = match.params.projectId;
         const { status, tagWorkstream } = document.Filter;
-        let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
+        let requestUrl = `/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
         if (typeof folder.Selected.id !== "undefined") {
             requestUrl += `&folderId=${folder.Selected.id}`;
@@ -92,9 +74,9 @@ class DocumentList extends React.Component {
         } else {
             requestUrl += `&isArchived=0`;
         }
-
         getData(requestUrl, {}, (c) => {
-            const { count, result } = { ...c.data }
+            const { count, result } = { ...c.data };
+            console.log(result)
             dispatch({ type: 'SET_DOCUMENT_LIST', list: document.List.concat(result), count: count });
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' });
         });
@@ -228,7 +210,7 @@ class DocumentList extends React.Component {
             }
         } else {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
-            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+            getData(`/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
                 const { result, count } = { ...c.data }
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });

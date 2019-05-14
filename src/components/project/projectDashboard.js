@@ -141,7 +141,7 @@ export default class ProjectDashboard extends React.Component {
     fileList() {
         const { dispatch, loggedUser, match } = this.props;
         const projectId = match.params.projectId;
-        const requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=document&folderId=null`;
+        const requestUrl = `/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=document&folderId=null`;
 
         getData(requestUrl, {}, (c) => {
             const { count, result } = { ...c.data }

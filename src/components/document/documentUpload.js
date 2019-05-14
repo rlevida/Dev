@@ -110,7 +110,7 @@ class DocumentUpload extends React.Component {
         const { dispatch, loggedUser, match } = { ...this.props };
         const projectId = match.params.projectId;
 
-        let requestUrl = `/api/document?page=1&isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
+        let requestUrl = `/api/document?isActive=0&page=1&isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
 
         if (typeof options != "undefined" && options != "") {
             requestUrl += `&name=${options}`;
@@ -186,7 +186,7 @@ class DocumentUpload extends React.Component {
         const { loggedUser, folder, dispatch, document, match } = { ...this.props };
         const projectId = match.params.projectId;
         const selectedObj = { ...document.Selected };
-        const tempFiles =[...document.Files, ...file]
+        const tempFiles = [...document.Files, ...file]
         let data = new FormData();
 
         await dispatch({ type: "SET_DOCUMENT_LOADING", Loading: "SUBMITTING" });

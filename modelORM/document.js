@@ -46,6 +46,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: '0'
     },
+    isActive: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '0'
+    },
     documentNameCount: {
       type: DataTypes.INTEGER(11),
       allowNull: false,
