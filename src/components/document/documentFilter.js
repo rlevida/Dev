@@ -48,29 +48,35 @@ class DocumentFilter extends React.Component {
             }
 
             const { status, tagWorkstream } = this.props.document.Filter;
-            let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
+            let requestUrl = `/api/document?linkId=${projectId}&linkType=project&page=1&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
 
             delayTimer = setTimeout(() => {
-                if (status === 'active' || status === 'sort') {
-                    requestUrl += `&folderId=null&type=document`;
-                }
 
-                if (status === 'library') {
-                    requestUrl += `&folderId=null&type=folder`;
-                    this.fetchFolderList();
-                
-                }
-               
-                if (status === "archived") {
-                    requestUrl += `&isArchived=1`;
+                if (status === "trash") {
+                    requestUrl += `&isDeleted=1`
                 } else {
-                    requestUrl += `&isArchived=0`;
-                }
+                    if (status === 'active' || status === 'sort') {
+                        requestUrl += `&folderId=null&type=document`;
+                    }
 
-                if (tagWorkstream) {
-                    requestUrl += `&workstream=${tagWorkstream}`;
+                    if (status === 'library') {
+                        requestUrl += `&folderId=null&type=folder`;
+                        this.fetchFolderList();
+                    }
+
+                    if (status === "archived") {
+                        requestUrl += `&isArchived=1`;
+                    } else {
+                        requestUrl += `&isArchived=0`;
+                    }
+
+                    requestUrl += `&isDeleted=0`
+
+                    if (tagWorkstream) {
+                        requestUrl += `&workstream=${tagWorkstream}`;
+                    }
                 }
 
                 getData(`${requestUrl}`, {}, (c) => {
@@ -191,6 +197,12 @@ class DocumentFilter extends React.Component {
                             </div>
                             <div class="flex-col">
                                 <a class={document.Filter.status === 'sort' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'sort')}>Sort Files</a>
+                            </div>
+                            <div class="flex-col">
+                                <a class={document.Filter.status === 'trash' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'trash')}>Trash</a>
+                            </div>
+                            <div class="flex-col">
+                                <a class={document.Filter.status === 'archived' ? "btn btn-default btn-active" : "btn btn-default"} onClick={() => this.setDropDown('status', 'archived')}>Archived</a>
                             </div>
                         </div>
                     </div>

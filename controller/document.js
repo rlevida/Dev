@@ -958,9 +958,16 @@ exports.post = {
 exports.put = {
     index: (req, cb) => {
         let body = req.body;
-        const { usersId, oldDocument, newDocument, projectId, actionType, title } = body;
         const id = req.params.id;
+        const projectId = body.projectId;
+        const actionType = body.actionType;
+        const title = body.title;
+        const usersId = body.usersId;
+        const oldDocument = body.oldDocument;
+        const newDocument = body.newDocument;
+
         body = _.omit(body, 'usersId', 'oldDocument', 'newDocument', 'projectId', 'type', 'title', 'actionType');
+
         const whereObj = {
             ...(typeof body.origin !== 'undefined' && body.origin !== '') ? { origin: body.origin } : {},
             ...(typeof body.folderId !== 'undefined' && body.folderId !== '') ? { folderId: body.folderId } : {},
