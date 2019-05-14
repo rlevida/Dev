@@ -133,7 +133,7 @@ exports.get = {
                 Teams
                     .findAndCountAll({
                         include: associationStack,
-                        ...options,
+                        ..._.omit(options, ['offset', 'limit']),
                         distinct: true,
                         where: whereObj
                     })
@@ -174,6 +174,71 @@ exports.get = {
                 cb({ status: false, error: res.error })
             }
         })
+    },
+    teammates: async (req, cb) => {
+        const queryString = req.query;
+        const limit = 10;
+        const teams = await Teams
+            .findAll({ where: { teamLeaderId: queryString.userId, isDeleted: 0 } })
+            .map((mapObject) => {
+                const { id } = mapObject.toJSON();
+                return id;
+            });
+        const options = {
+            ...(typeof queryString.page != "undefined" && queryString.page != "") ? { offset: (limit * _.toNumber(queryString.page)) - limit, limit } : {},
+        };
+        if (teams.length > 0) {
+            const allTeams = await UsersTeam
+                .findAll({
+                    where: {
+                        teamId: teams,
+                        isDeleted: 0
+                    }
+                })
+                .map((mapObject) => {
+                    const { usersId } = mapObject.toJSON();
+                    return usersId;
+                })
+                .filter((o) => { return o != queryString.userId });
+                
+            const teamMembers = await Users
+                .findAll({
+                    attributes: ['id', 'username', 'firstName', 'lastName', 'emailAddress', 'phoneNumber', 'avatar', 'isActive', 'userType', 'company'],
+                    where: {
+                        id: allTeams,
+                        ...(typeof queryString.memberName != "undefined" && queryString.memberName != "") ? {
+                            [Op.or]: [
+                                Sequelize.where(Sequelize.fn('lower', Sequelize.col('users.firstName')),
+                                    {
+                                        [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.memberName}%`)
+                                    }
+                                ),
+                                Sequelize.where(Sequelize.fn('lower', Sequelize.col('users.lastName')),
+                                    {
+                                        [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.memberName}%`)
+                                    }
+                                ),
+                                Sequelize.where(Sequelize.fn('lower', Sequelize.col('users.username')),
+                                    {
+                                        [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.memberName}%`)
+                                    }
+                                ),
+                                Sequelize.where(Sequelize.fn('lower', Sequelize.col('users.emailAddress')),
+                                    {
+                                        [Sequelize.Op.like]: sequelize.fn('lower', `%${queryString.memberName}%`)
+                                    }
+                                )
+                            ]
+                        } : {}
+                    },
+                    ...options
+                }).map((response) => {
+                    return response.toJSON();
+                });
+            cb({ status: true, data: teamMembers });
+        } else {
+            cb({ status: true, data: [] });
+        }
     }
 }
 
@@ -192,7 +257,7 @@ exports.post = {
                         }
                     })
             } catch (err) {
-                cb({ status: true, error: err })
+                cb({ status: false, error: err })
             }
         }).then((nextThen) => {
             try {

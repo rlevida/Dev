@@ -177,7 +177,7 @@ exports.get = {
                     Users
                         .findAndCountAll({
                             include: associationStack,
-                            ...options,
+                            ..._.omit(options, ['offset', 'limit']),
                             distinct: true,
                             where: whereObj
                         })

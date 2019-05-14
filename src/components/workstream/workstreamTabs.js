@@ -125,6 +125,7 @@ export default class WorkstreamTabs extends React.Component {
                                     <TaskFilters
                                         show_tab={false}
                                         show_action={false}
+                                        projectId={project_id}
                                     />
                                 </div>
                                 <div class="bt">

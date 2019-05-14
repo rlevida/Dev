@@ -58,16 +58,13 @@ export default class TaskCalendar extends React.Component {
     }
 
     fetchData(selectedMonth) {
-        const { dispatch, match = "", task, loggedUser } = this.props;
-        const projectId = (match != "") ? match.params.projectId : "";
+        const { dispatch, projectId = "", task, loggedUser } = this.props;
         const fromDate = moment(selectedMonth).subtract(1, 'week').format("YYYY-MM-DD");
         const toDate = moment(selectedMonth).add(1, 'week').endOf('month').format("YYYY-MM-DD");
         let fetchUrl = `/api/task?dueDate=${JSON.stringify({ opt: "between", value: [fromDate, toDate] })}&view=calendar`;
-
         if (projectId != "") {
             fetchUrl += `&projectId=${projectId}`
         }
-
         if (task.Filter.type != "") {
             fetchUrl += `&type=${task.Filter.type}&userId=${loggedUser.data.id}`
         }
@@ -87,7 +84,7 @@ export default class TaskCalendar extends React.Component {
         if (task.Filter.taskAssigned != "") {
             fetchUrl += `&assigned=${task.Filter.taskAssigned}`
         }
-
+        
         getData(fetchUrl, {}, (c) => {
             dispatch({ type: "SET_TASK_LIST", list: c.data.result });
             dispatch({ type: "SET_TASK_LOADING", Loading: "" });

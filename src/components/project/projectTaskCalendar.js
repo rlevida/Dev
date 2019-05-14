@@ -13,7 +13,8 @@ import TaskFilters from "../task/taskFilter";
 })
 export default class ProjectTaskCalendar extends React.Component {
     render() {
-        const { dispatch, loggedUser } = { ...this.props };
+        const { dispatch, loggedUser, match } = { ...this.props };
+        const projectId = (match != "") ? match.params.projectId : project_id;
         return (
             <div class="card">
                 <div class="mb20 bb">
@@ -27,6 +28,7 @@ export default class ProjectTaskCalendar extends React.Component {
                                     <TaskFilters
                                         show_tab={false}
                                         show_action={false}
+                                        projectId={projectId}
                                     />
                                     {
                                         (loggedUser.data.userRole <= 4) && <a class="ml15 btn btn-default"
@@ -46,7 +48,7 @@ export default class ProjectTaskCalendar extends React.Component {
                         </div>
                     </div>
                 </div>
-                <TaskCalendar is_card={false} />
+                <TaskCalendar is_card={false} projectId={projectId} />
             </div>
         )
     }

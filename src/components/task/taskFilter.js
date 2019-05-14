@@ -54,24 +54,35 @@ export default class TaskFilters extends React.Component {
     }
 
     fetchUserList(options) {
-        const { show_tab = true, dispatch, loggedUser } = { ...this.props };
-        let fetchUrl = `/api/user?page=1`;
+        const { show_tab = true, dispatch, loggedUser, projectId = "", } = { ...this.props };
 
-        if (typeof options != "undefined" && options != "") {
-            fetchUrl += `&name=${options}`;
+        if (projectId != "") {
+            let projectMemberUrl = `/api/project/getProjectMembers?page=1&linkId=${projectId}&linkType=project`;
+
+            if (typeof options != "undefined" && options != "") {
+                projectMemberUrl += `&memberName=${options}`;
+            }
+
+            getData(projectMemberUrl, {}, (c) => {
+                const taskMemberOptions = _(c.data)
+                    .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName, image: e.avatar } })
+                    .value();
+                dispatch({ type: "SET_USER_SELECT_LIST", List: taskMemberOptions });
+            });
+        } else {
+            let teamMemberUrl = `/api/teams/teammates?page=1&userId=${loggedUser.data.id}`;
+
+            if (typeof options != "undefined" && options != "") {
+                teamMemberUrl += `&memberName=${options}`;
+            }
+
+            getData(teamMemberUrl, {}, (c) => {
+                const taskMemberOptions = _(c.data)
+                    .map((e) => { return { id: e.id, name: e.firstName + " " + e.lastName, image: e.avatar } })
+                    .value();
+                dispatch({ type: "SET_USER_SELECT_LIST", List: taskMemberOptions });
+            });
         }
-
-        getData(fetchUrl, {}, (c) => {
-            const memberOptions = _(c.data.result)
-                .map((o) => {
-                    return { id: o.id, name: `${o.firstName} ${o.lastName}`, image: o.avatar }
-                })
-                .filter((o) => {
-                    return (show_tab) ? o.id != loggedUser.data.id : o.id > 0;
-                })
-                .value();
-            dispatch({ type: "SET_USER_SELECT_LIST", List: memberOptions });
-        });
     }
 
     setTaskList(name, values) {
