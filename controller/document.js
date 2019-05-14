@@ -1322,16 +1322,6 @@ exports.put = {
         } catch (err) {
             cb({ status: false, error: err })
         }
-    },
-    read: (req, cb) => {
-        const id = req.params.id
-        const body = req.body
-
-        DocumentRead
-            .update({ isDeleted: body.isDeleted }, { where: { id: id } })
-            .then((res) => {
-                cb({ status: true, data: res })
-            })
     }
 }
 
@@ -1357,8 +1347,8 @@ exports.delete = {
 
         DocumentRead
             .destroy({ where: { ...whereObj } })
-            .then((res) => {
-                cb({ status: 200, data: res })
+            .then(() => {
+                cb({ status: true })
             })
     }
 }
