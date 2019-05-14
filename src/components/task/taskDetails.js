@@ -350,6 +350,7 @@ export default class TaskDetails extends React.Component {
         const { dispatch, task, loggedUser } = this.props;
 
         deleteData(`/api/checklist/${id}?taskId=${task.Selected.id}&userId=${loggedUser.data.id}`, {}, (c) => {
+            dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
             dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, checklist: _.remove(task.Selected.checklist, ({ id: checklistId }) => { return checklistId != id }) } });
             showToast("success", "Subtask successfully deleted.");
         });

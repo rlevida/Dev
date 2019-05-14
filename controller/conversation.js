@@ -840,7 +840,7 @@ exports.post = {
             },
             notification: (parallelCallback) => {
                 try {
-                    if (JSON.parse(body.reminderList).length === 0) {
+                    if ((body.reminderList) === 0) {
                         Users.findOne({
                             where: {
                                 id: body.userId

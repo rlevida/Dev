@@ -54,6 +54,7 @@ export default class TaskChecklist extends React.Component {
                         ...task.Selected,
                         checklist
                     };
+                    dispatch({ type: "ADD_ACTIVITYLOG", activity_log: c.data.activity_log });
                     dispatch({ type: "ADD_CHECKLIST", data: c.data.checklist });
                     dispatch({ type: "SET_TASK_SELECTED", Selected: { ...task.Selected, checklist: checklist } });
                     dispatch({ type: "UPDATE_DATA_TASK_LIST", List: [toBeUpdatedObject] });

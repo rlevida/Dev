@@ -88,7 +88,7 @@ class DocumentComment extends React.Component {
             projectId: projectId,
             userId: loggedUser.data.id,
             username: loggedUser.data.username,
-            reminderList: JSON.stringify(_.uniqBy(commentIds, `userId`)),
+            reminderList: _.uniqBy(commentIds, `userId`),
         };
 
         dispatch({ type: "SET_COMMENT_LOADING", Loading: "SUBMITTING" });

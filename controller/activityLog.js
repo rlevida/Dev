@@ -30,17 +30,8 @@ exports.get = {
                     {
                         linkId: {
                             [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT task_checklist.id FROM task LEFT JOIN task_checklist on task.id = task_checklist.taskId WHERE task.id = ${queryString.taskId})`)
-                        }
-                    },
-                    {
-                        linkId: {
-                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT checklist_documents.documentId FROM checklist_documents LEFT JOIN task ON task.id = checklist_documents.taskId WHERE task.id = ${queryString.taskId})`)
-                        }
-                    },
-                    {
-                        linkId: {
-                            [Sequelize.Op.in]: Sequelize.literal(`(SELECT DISTINCT members.id FROM members LEFT JOIN task ON task.id = members.linkId WHERE task.id = ${queryString.taskId} AND members.memberType = "assignedTo" AND members.linkType = "task")`)
-                        }
+                        },
+                        linkType: "checklist"
                     },
                     {
                         [Sequelize.Op.and]: [
@@ -81,7 +72,11 @@ exports.get = {
             },
             result: function (callback) {
                 try {
-                    ActivityLogs.findAll({ ...options, where: whereObj, order: [['dateAdded', 'DESC']] }).map((mapObject) => {
+                    ActivityLogs.findAll({ 
+                        ...options, 
+                        where: whereObj, 
+                        order: [['dateAdded', 'DESC']] 
+                    }).map((mapObject) => {
                         return mapObject.toJSON();
                     }).then((resultArray) => {
                         callback(null, resultArray);
