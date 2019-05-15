@@ -598,7 +598,7 @@ exports.post = {
                                 }
                             },
                             notification: (parallelCallback) => {
-                                if (res.dataValues.type !== "folder" && !isDuplicate) {
+                                if (res.dataValues.type !== "folder" && !isDuplicate && typeof data.tagWorkstream !== "undefined") {
                                     const workstreamIds = data.tagWorkstream.map((e) => { return e.value });
                                     const workstreamWhereObj = { linkId: workstreamIds, linkType: 'workstream', userTypeLinkId: { [Op.ne]: e.uploadedBy } };
                                     const taskWhereObj = { workstreamId: workstreamIds };

@@ -285,7 +285,7 @@ class DocumentUpload extends React.Component {
                                         />
                                     </div>
                                     <div class="form-group">
-                                        <label for="workstream-options">Workstream  <span class="text-red">*</span></label>
+                                        <label for="workstream-options">Workstream</label>
                                         <div class="display-flex vh-center">
                                             <DropDown
                                                 id="workstream-options"
@@ -297,7 +297,6 @@ class DocumentUpload extends React.Component {
                                                 onChange={(e) => {
                                                     this.setDropDown("tagWorkstream", (e == null) ? "" : e);
                                                 }}
-                                                required={true}
                                                 disabled={Loading === "SUBMITTING" ? true : false}
                                             />
                                             <div>
@@ -325,7 +324,7 @@ class DocumentUpload extends React.Component {
                                     </div>
                                     {DocumentToSave.length === 0 && <div class="form-group">
                                         <Dropzone
-                                            accept=".jpg,.png,.pdf,.doc,.docx,.xlsx"
+                                            accept=".jpg,.png,.pdf,.doc,.docx,.xlsx,.pptx,.ppt"
                                             onDrop={this.onDrop}
                                             class="document-file-upload mb10"
                                             id="task-document"
