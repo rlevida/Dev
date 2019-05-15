@@ -192,7 +192,7 @@ class FolderModal extends React.Component {
         const { dispatch, loggedUser, match } = { ...this.props };
         const projectId = match.params.projectId;
 
-        let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
+        let requestUrl = `/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}&type=folder`;
 
         if (typeof options != "undefined" && options != "") {
             requestUrl += `&name=${options}`;

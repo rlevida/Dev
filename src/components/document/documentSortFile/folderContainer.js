@@ -94,7 +94,7 @@ class FieldContainer extends React.Component {
             await this.fetchData(1);
             await history.push(`/projects/${projectId}/files`);
         } else if (folder.Selected.id !== data.id) {
-            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&type=folder&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+            getData(`/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&type=folder&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${typeof data.id !== 'undefined' ? data.id : null}&starredUser=${loggedUser.data.id}`, {}, (c) => {
                 const { result } = { ...c.data }
                 if (result.length > 0) {
                     const newList = this.getNestedChildren(folder.List, data.id, result)

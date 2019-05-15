@@ -10,6 +10,7 @@ CREATE TABLE `document` (
     `status` ENUM("new","library","archived"),
     `isCompleted` TINYINT(1) DEFAULT '0',
     `isArchived` TINYINT(1) DEFAULT '0',
+    `isActive` TINYINT(1) DEFAULT '1',
     `documentNameCount` INT(11) NOT NULL DEFAULT '0',
     `attachmentId` INT(11) NOT NULL DEFAULT '0',
     `readOn` DATETIME NULL DEFAULT NULL,

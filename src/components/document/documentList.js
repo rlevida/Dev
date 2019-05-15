@@ -37,23 +37,6 @@ class DocumentList extends React.Component {
         }
     }
 
-    // componentDidUpdate(prevProps) {
-    //     const { dispatch, history } = { ...this.props }
-    //     if (getParameterByName("file-id") && history.location.search !== "") {
-    //         if (this.props.document.Selected.id !== parseInt(getParameterByName("file-id"))) {
-    //             const documentId = getParameterByName("file-id")
-    //             getData(`/api/document/detail/${documentId}`, {}, (ret) => {
-    //                 const documentObj = { ...ret.data }
-    //                 getData(`/api/conversation/getConversationList?linkType=document&linkId=${documentObj.id}`, {}, (c) => {
-    //                     dispatch({ type: 'SET_COMMENT_LIST', list: c.data.result })
-    //                     dispatch({ type: 'SET_DOCUMENT_SELECTED', Selected: documentObj });
-    //                     $(`#documentViewerModal`).modal('show')
-    //                 })
-    //             })
-    //         }
-    //     }
-    // }
-
     componentWillUnmount() {
         const { dispatch } = { ...this.props }
         dispatch({ type: "SET_DOCUMENT_LIST", list: [], count: { current_page: 0, last_page: 0, total_page: 0 } });
@@ -69,25 +52,41 @@ class DocumentList extends React.Component {
         const { status, tagWorkstream } = document.Filter;
         let requestUrl = `/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${page}&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&starredUser=${loggedUser.data.id}`;
 
-        if (typeof folder.Selected.id !== "undefined") {
-            requestUrl += `&folderId=${folder.Selected.id}`
-        }
+        if (document.Filter.status === "trash") {
+            requestUrl += `&isActive=0`
+        } else {
+            requestUrl += `&isActive=1`;
+            if (typeof folder.Selected.id !== "undefined") {
+                requestUrl += `&folderId=${folder.Selected.id}`;
+            }
 
-        if (status === 'active' || status === 'sort') {
-            requestUrl += `&type=document&folderId=null`
-        }
+            if (status === 'active' || status === 'sort') {
+                requestUrl += `&type=document&folderId=null`;
+            }
 
-        if (status === 'library') {
-            requestUrl += `&folderId=null&type=folder`
-        }
+            if (status === 'library') {
+                requestUrl += `&folderId=null&type=folder`;
+            }
 
-        if (tagWorkstream) {
-            requestUrl += `&workstream=${tagWorkstream}`
-        }
+            if (tagWorkstream) {
+                requestUrl += `&workstream=${tagWorkstream}`;
+            }
 
+            if (status === "archived") {
+                requestUrl += `&isArchived=1`;
+            } else {
+                requestUrl += `&isArchived=0`;
+            }
+        }
         getData(requestUrl, {}, (c) => {
-            const { count, result } = { ...c.data }
-            dispatch({ type: 'SET_DOCUMENT_LIST', list: document.List.concat(result), count: count });
+            const { count, result } = { ...c.data };
+            let list = [];
+            if (document.Filter.status !== "trash" && document.Filter.status !== "archived") {
+                list = document.List.concat(result);
+            } else {
+                list = result;
+            }
+            dispatch({ type: 'SET_DOCUMENT_LIST', list: list, count: count });
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: '' });
         });
     }
@@ -220,7 +219,7 @@ class DocumentList extends React.Component {
             }
         } else {
             dispatch({ type: 'SET_DOCUMENT_LOADING', Loading: 'RETRIEVING' });
-            getData(`/api/document?isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
+            getData(`/api/document?isActive=1&isDeleted=0&linkId=${projectId}&linkType=project&page=${1}&&userId=${loggedUser.data.id}&userType=${loggedUser.data.userType}&folderId=${data.id}&starredUser=${loggedUser.data.id}`, {}, (c) => {
                 const { result, count } = { ...c.data }
                 if (c.status == 200) {
                     dispatch({ type: "SET_DOCUMENT_LIST", list: result, count: count });
@@ -333,6 +332,30 @@ class DocumentList extends React.Component {
         })
     }
 
+    restore(data) {
+        const { dispatch, document, match } = { ...this.props };
+        const { Filter } = { ...document };
+        const { last_page, current_page } = { ...document.Count };
+        const projectId = match.params.projectId;
+        let dataToSubmit = {};
+
+        if (Filter.status === "trash") {
+            dataToSubmit = { isActive: 1, projectId: projectId }
+        } else if (Filter.status === "archived") {
+            dataToSubmit = { isArchived: 0, projectId: projectId }
+        }
+
+        putData(`/api/document/${data.id}`, dataToSubmit, (c) => {
+            const { result } = { ...c.data }
+            if (last_page > current_page && document.List.length < 10) {
+                this.fetchData(1)
+            } else {
+                dispatch({ type: "REMOVE_DOCUMENT_FROM_LIST", UpdatedData: result });
+            }
+            showToast("success", `Successfully restored to ${data.folderId === null && data.type === "document" ? 'active files' : 'library'}.`);
+        })
+    }
+
     render() {
         const { dispatch, document, folder, match } = { ...this.props };
         const { Count } = { ...document };
@@ -349,7 +372,7 @@ class DocumentList extends React.Component {
                                     <h4><a href="javascript:void(0)" onClick={() => this.getFolderDocuments("")}>All Files</a></h4>
                                     {(folder.SelectedFolderName.length > 0) &&
                                         folder.SelectedFolderName.map((e, index) => {
-                                            const fName = e.documentNameCount > 0 ? `${e.name}(${e.documentNameCount})` : e.name;
+                                            const fName = e.documentNameCount > 0 ? `${e.origin}(${e.documentNameCount})` : e.origin;
                                             return <span key={index}> > <a href="javascript:void(0)" onClick={() => this.getFolderDocuments(e)}> {fName}</a> </span>
                                         })
                                     }
