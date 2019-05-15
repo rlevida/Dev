@@ -272,32 +272,33 @@ class DocumentUpload extends React.Component {
                                         <label for="project-options">Project <span class="text-red">*</span></label>
                                         <DropDown
                                             id="project-options"
-                                            multiple={false}
                                             options={project.SelectList}
                                             selected={projectId}
-                                            loading={true}
                                             onChange={(e) => {
                                                 this.setDropDown("projectId", (e == null) ? "" : e.value);
                                             }}
                                             placeholder={'Search project'}
                                             disabled
+                                            multiple={false}
+                                            loading={true}
                                             required={true}
                                         />
                                     </div>
                                     <div class="form-group">
-                                        <label for="workstream-options">Workstream</label>
+                                        <label for="workstream-options">Workstream <span class="text-red">*</span></label>
                                         <div class="display-flex vh-center">
                                             <DropDown
                                                 id="workstream-options"
-                                                multiple={true}
                                                 options={workstream.SelectList}
                                                 onInputChange={this.getWorkstreamList}
                                                 selected={(typeof document.Selected.tagWorkstream == "undefined") ? [] : document.Selected.tagWorkstream}
-                                                loading={true}
                                                 onChange={(e) => {
                                                     this.setDropDown("tagWorkstream", (e == null) ? "" : e);
                                                 }}
                                                 disabled={Loading === "SUBMITTING" ? true : false}
+                                                multiple={true}
+                                                loading={true}
+                                                required={true}
                                             />
                                             <div>
                                                 {
@@ -310,16 +311,16 @@ class DocumentUpload extends React.Component {
                                         <label for="folder-options">Folder</label>
                                         <DropDown
                                             id="folder-options"
-                                            multiple={false}
-                                            required={false}
                                             options={folder.SelectList}
                                             selected={(typeof document.Selected.folderId == "undefined") ? null : document.Selected.folderId}
                                             onInputChange={this.getFolderList}
                                             onChange={(e) => {
                                                 this.setDropDown("folderId", (e == null) ? "" : e.value);
                                             }}
-                                            isClearable={true}
                                             disabled={Loading === "SUBMITTING" ? true : false}
+                                            isClearable={true}
+                                            multiple={false}
+                                            required={false}
                                         />
                                     </div>
                                     {DocumentToSave.length === 0 && <div class="form-group">
